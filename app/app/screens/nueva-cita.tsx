@@ -325,12 +325,12 @@ const s = StyleSheet.create({
 
   horaCard: { borderRadius: radius.md, borderWidth: 1, padding: spacing.md, gap: spacing.sm },
   horaFecha: { fontSize: fontSize.sm, textTransform: 'capitalize' },
-  horaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  horaBtn: { width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  horaNum: { flexDirection: 'row', alignItems: 'baseline', gap: 3, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1, minWidth: 60, justifyContent: 'center' },
-  horaNumText: { fontSize: 22, fontWeight: fontWeight.bold, color: '#6366f1' },
-  horaNumLabel: { fontSize: fontSize.xs, color: '#6366f1', fontWeight: fontWeight.medium },
-  horaSep: { fontSize: 22, fontWeight: fontWeight.bold, marginHorizontal: 2 },
+  horaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  horaBtn: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  horaNum: { flexDirection: 'row', alignItems: 'baseline', gap: 2, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, minWidth: 50, justifyContent: 'center' },
+  horaNumText: { fontSize: 18, fontWeight: fontWeight.bold, color: '#6366f1' },
+  horaNumLabel: { fontSize: 10, color: '#6366f1', fontWeight: fontWeight.medium },
+  horaSep: { fontSize: 18, fontWeight: fontWeight.bold, marginHorizontal: 1 },
   horaFin: { fontSize: fontSize.xs },
 
   searchBox: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderRadius: radius.md, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: 10 },
