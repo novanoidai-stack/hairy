@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert, Platform,
+  StyleSheet, ActivityIndicator, Alert, Platform, TextInput,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { format, addMinutes } from 'date-fns';
+import { format, addMinutes as dateFnsAddMinutes } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 
 export default function NuevaCitaScreen() {
-  const { c } = useTheme();
+  const { c, isDark } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ profesionalId?: string; hora?: string }>();
@@ -25,6 +25,7 @@ export default function NuevaCitaScreen() {
   const [profSeleccionado, setProfSeleccionado] = useState<string>(params.profesionalId ?? '');
   const [servicioSeleccionado, setServicioSeleccionado] = useState('');
   const [clienteSeleccionado, setClienteSeleccionado] = useState('');
+  const [clienteSearch, setClienteSearch] = useState('');
   const [inicio, setInicio] = useState<Date>(params.hora ? new Date(params.hora) : new Date());
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -39,7 +40,7 @@ export default function NuevaCitaScreen() {
       const [{ data: profs }, { data: servs }, { data: clts }] = await Promise.all([
         supabase.from('profesionales').select('id, nombre, color').eq('negocio_id', profile.negocio_id).eq('activo', true),
         supabase.from('servicios').select('id, nombre, duracion_activa_min, duracion_espera_min, precio').eq('negocio_id', profile.negocio_id).eq('activo', true),
-        supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', profile.negocio_id).order('nombre').limit(100),
+        supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', profile.negocio_id).order('nombre').limit(200),
       ]);
 
       setProfesionales(profs ?? []);
@@ -54,7 +55,23 @@ export default function NuevaCitaScreen() {
   const duracionTotal = servicioActual
     ? servicioActual.duracion_activa_min + servicioActual.duracion_espera_min
     : 30;
-  const fin = addMinutes(inicio, duracionTotal);
+  const fin = dateFnsAddMinutes(inicio, duracionTotal);
+
+  function cambiarHora(deltaH: number, deltaM: number) {
+    const d = new Date(inicio);
+    d.setHours(d.getHours() + deltaH);
+    d.setMinutes(d.getMinutes() + deltaM);
+    setInicio(d);
+  }
+
+  const clientesFiltrados = clienteSearch.trim()
+    ? clientes.filter(cl =>
+        cl.nombre.toLowerCase().includes(clienteSearch.toLowerCase()) ||
+        (cl.telefono ?? '').includes(clienteSearch)
+      )
+    : clientes;
+
+  const clienteNombreSeleccionado = clientes.find(cl => cl.id === clienteSeleccionado)?.nombre ?? '';
 
   async function guardar() {
     if (!profSeleccionado || !servicioSeleccionado) {
@@ -63,10 +80,8 @@ export default function NuevaCitaScreen() {
     }
     setGuardando(true);
 
-    // Verificar solapamiento
     const { data: solapadas } = await supabase
-      .from('citas')
-      .select('id')
+      .from('citas').select('id')
       .eq('profesional_id', profSeleccionado)
       .neq('estado', 'cancelada')
       .lt('inicio', fin.toISOString())
@@ -95,98 +110,157 @@ export default function NuevaCitaScreen() {
   }
 
   if (loading) {
-    return (
-      <View style={[s.center, { backgroundColor: c.bg }]}>
-        <ActivityIndicator color="#6366f1" />
-      </View>
-    );
+    return <View style={[s.center, { backgroundColor: c.bg }]}><ActivityIndicator color="#6366f1" /></View>;
   }
 
   const inner = (
     <View style={[s.container, { backgroundColor: c.bg, paddingBottom: insets.bottom + spacing.lg }]}>
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
 
-        {/* Profesional */}
+        {/* ── Profesional ── */}
         <Section title="Profesional" required>
           <View style={s.chips}>
             {profesionales.map((p) => (
-              <Chip
-                key={p.id}
-                label={p.nombre}
-                color={p.color}
-                selected={profSeleccionado === p.id}
-                onPress={() => setProfSeleccionado(p.id)}
-              />
+              <Chip key={p.id} label={p.nombre} color={p.color}
+                selected={profSeleccionado === p.id} onPress={() => setProfSeleccionado(p.id)} />
             ))}
           </View>
         </Section>
 
-        {/* Servicio */}
+        {/* ── Servicio ── */}
         <Section title="Servicio" required>
           <View style={s.serviceList}>
-            {servicios.map((sv) => (
-              <TouchableOpacity
-                key={sv.id}
-                style={[s.serviceItem, { borderColor: servicioSeleccionado === sv.id ? '#6366f1' : c.border, backgroundColor: servicioSeleccionado === sv.id ? '#eef2ff' : c.surface }]}
-                onPress={() => setServicioSeleccionado(sv.id)}
-              >
-                <Text style={[s.serviceNombre, { color: c.text }]}>{sv.nombre}</Text>
-                <Text style={[s.serviceDuracion, { color: c.textSecondary }]}>
-                  {sv.duracion_activa_min + sv.duracion_espera_min} min · {sv.precio}€
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {servicios.map((sv) => {
+              const sel = servicioSeleccionado === sv.id;
+              return (
+                <TouchableOpacity
+                  key={sv.id}
+                  style={[s.serviceItem, {
+                    borderColor: sel ? '#6366f1' : c.border,
+                    backgroundColor: sel ? '#6366f122' : c.surface,
+                  }]}
+                  onPress={() => setServicioSeleccionado(sv.id)}
+                >
+                  <Text style={[s.serviceNombre, { color: sel ? '#6366f1' : c.text }]} numberOfLines={1}>
+                    {sv.nombre}
+                  </Text>
+                  <Text style={[s.serviceDuracion, { color: sel ? '#6366f1' : c.textSecondary }]}>
+                    {sv.duracion_activa_min + sv.duracion_espera_min} min · {sv.precio}€
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </Section>
 
-        {/* Hora */}
+        {/* ── Hora de inicio ── */}
         <Section title="Hora de inicio">
-          <View style={[s.horaBox, { backgroundColor: c.surface, borderColor: c.border }]}>
-            <Ionicons name="time-outline" size={20} color="#6366f1" />
-            <Text style={[s.horaText, { color: c.text }]}>
-              {format(inicio, "EEEE d MMM · HH:mm", { locale: es })}
+          <View style={[s.horaCard, { backgroundColor: c.surface, borderColor: c.border }]}>
+            <Text style={[s.horaFecha, { color: c.textSecondary }]}>
+              {format(inicio, "EEEE d 'de' MMMM", { locale: es })}
             </Text>
+            <View style={s.horaRow}>
+              {/* Horas */}
+              <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(-1, 0)}>
+                <Ionicons name="remove" size={18} color={c.text} />
+              </TouchableOpacity>
+              <View style={[s.horaNum, { backgroundColor: '#6366f122', borderColor: '#6366f133' }]}>
+                <Text style={s.horaNumText}>{String(inicio.getHours()).padStart(2, '0')}</Text>
+                <Text style={s.horaNumLabel}>h</Text>
+              </View>
+              <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(1, 0)}>
+                <Ionicons name="add" size={18} color={c.text} />
+              </TouchableOpacity>
+
+              <Text style={[s.horaSep, { color: c.textTertiary }]}>:</Text>
+
+              {/* Minutos */}
+              <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(0, -5)}>
+                <Ionicons name="remove" size={18} color={c.text} />
+              </TouchableOpacity>
+              <View style={[s.horaNum, { backgroundColor: '#6366f122', borderColor: '#6366f133' }]}>
+                <Text style={s.horaNumText}>{String(inicio.getMinutes()).padStart(2, '0')}</Text>
+                <Text style={s.horaNumLabel}>min</Text>
+              </View>
+              <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(0, 5)}>
+                <Ionicons name="add" size={18} color={c.text} />
+              </TouchableOpacity>
+            </View>
+            {servicioActual && (
+              <Text style={[s.horaFin, { color: c.textTertiary }]}>
+                Finaliza: {format(fin, 'HH:mm')} · {duracionTotal} min
+              </Text>
+            )}
           </View>
-          {servicioActual && (
-            <Text style={[s.finHora, { color: c.textSecondary }]}>
-              Finaliza: {format(fin, 'HH:mm')} ({duracionTotal} min)
-            </Text>
-          )}
         </Section>
 
-        {/* Cliente (opcional) */}
+        {/* ── Cliente ── */}
         <Section title="Cliente (opcional)">
-          <ScrollView style={s.clienteList} nestedScrollEnabled>
-            <TouchableOpacity
-              style={[s.clienteItem, { borderColor: !clienteSeleccionado ? '#6366f1' : c.border, backgroundColor: !clienteSeleccionado ? '#eef2ff' : c.surface }]}
-              onPress={() => setClienteSeleccionado('')}
-            >
-              <Text style={{ color: c.textSecondary, fontSize: fontSize.sm }}>Sin cliente asignado</Text>
-            </TouchableOpacity>
-            {clientes.map((cl) => (
+          {/* Buscador */}
+          <View style={[s.searchBox, { backgroundColor: c.surface, borderColor: c.border }]}>
+            <Ionicons name="search-outline" size={16} color={c.textTertiary} />
+            <TextInput
+              style={[s.searchInput, { color: c.text }]}
+              placeholder="Buscar por nombre o teléfono..."
+              placeholderTextColor={c.textTertiary}
+              value={clienteSearch}
+              onChangeText={setClienteSearch}
+            />
+            {clienteSearch.length > 0 && (
+              <TouchableOpacity onPress={() => setClienteSearch('')}>
+                <Ionicons name="close-circle" size={16} color={c.textTertiary} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Sin cliente */}
+          <TouchableOpacity
+            style={[s.clienteRow, { borderColor: !clienteSeleccionado ? '#6366f1' : c.border, backgroundColor: !clienteSeleccionado ? '#6366f122' : c.surface }]}
+            onPress={() => { setClienteSeleccionado(''); setClienteSearch(''); }}
+          >
+            <View style={[s.clienteAvatar, { backgroundColor: isDark ? '#334155' : '#e2e8f0' }]}>
+              <Ionicons name="person-outline" size={16} color={c.textTertiary} />
+            </View>
+            <Text style={[s.clienteNombre, { color: !clienteSeleccionado ? '#6366f1' : c.textSecondary }]}>
+              Sin cliente asignado
+            </Text>
+            {!clienteSeleccionado && <Ionicons name="checkmark-circle" size={18} color="#6366f1" style={{ marginLeft: 'auto' as any }} />}
+          </TouchableOpacity>
+
+          {/* Lista */}
+          {clientesFiltrados.map((cl) => {
+            const sel = clienteSeleccionado === cl.id;
+            return (
               <TouchableOpacity
                 key={cl.id}
-                style={[s.clienteItem, { borderColor: clienteSeleccionado === cl.id ? '#6366f1' : c.border, backgroundColor: clienteSeleccionado === cl.id ? '#eef2ff' : c.surface }]}
-                onPress={() => setClienteSeleccionado(cl.id)}
+                style={[s.clienteRow, { borderColor: sel ? '#6366f1' : c.border, backgroundColor: sel ? '#6366f122' : c.surface }]}
+                onPress={() => { setClienteSeleccionado(cl.id); setClienteSearch(''); }}
               >
-                <Text style={[s.clienteNombre, { color: c.text }]}>{cl.nombre}</Text>
-                {cl.telefono && <Text style={[s.clienteTel, { color: c.textSecondary }]}>{cl.telefono}</Text>}
+                <View style={[s.clienteAvatar, { backgroundColor: sel ? '#6366f133' : (isDark ? '#334155' : '#e2e8f0') }]}>
+                  <Text style={{ fontSize: 13, fontWeight: fontWeight.bold, color: sel ? '#6366f1' : c.textSecondary }}>
+                    {cl.nombre.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={[s.clienteNombre, { color: sel ? '#6366f1' : c.text }]} numberOfLines={1}>{cl.nombre}</Text>
+                  {cl.telefono && <Text style={[s.clienteTel, { color: c.textTertiary }]}>{cl.telefono}</Text>}
+                </View>
+                {sel && <Ionicons name="checkmark-circle" size={18} color="#6366f1" />}
               </TouchableOpacity>
-            ))}
-          </ScrollView>
+            );
+          })}
+
+          {clientesFiltrados.length === 0 && clienteSearch.trim() !== '' && (
+            <Text style={[s.noResults, { color: c.textTertiary }]}>Sin resultados para "{clienteSearch}"</Text>
+          )}
         </Section>
       </ScrollView>
 
       <View style={[s.footer, { borderTopColor: c.border, backgroundColor: c.bg }]}>
-        <TouchableOpacity
-          style={[s.btnGuardar, guardando && { opacity: 0.6 }]}
-          onPress={guardar}
-          disabled={guardando}
-        >
+        <TouchableOpacity style={[s.btnGuardar, guardando && { opacity: 0.6 }]} onPress={guardar} disabled={guardando}>
           {guardando
             ? <ActivityIndicator color="#fff" size="small" />
-            : <Text style={s.btnGuardarText}>Crear cita</Text>
-          }
+            : <Text style={s.btnGuardarText}>Crear cita</Text>}
         </TouchableOpacity>
       </View>
     </View>
@@ -238,24 +312,40 @@ function Chip({ label, color, selected, onPress }: { label: string; color: strin
 const s = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, borderWidth: 1.5 },
   chipDot: { width: 8, height: 8, borderRadius: 4 },
   chipText: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
+
   serviceList: { gap: spacing.sm },
-  serviceItem: { padding: spacing.md, borderRadius: radius.md, borderWidth: 1.5, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-  serviceNombre: { fontSize: fontSize.md, fontWeight: fontWeight.medium },
+  serviceItem: { padding: spacing.md, borderRadius: radius.md, borderWidth: 1.5, marginBottom: spacing.sm },
+  serviceNombre: { fontSize: fontSize.md, fontWeight: fontWeight.semibold, marginBottom: 2 },
   serviceDuracion: { fontSize: fontSize.sm },
-  horaBox: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1 },
-  horaText: { fontSize: fontSize.md, fontWeight: fontWeight.medium, textTransform: 'capitalize' },
-  finHora: { fontSize: fontSize.sm, marginTop: 4 },
-  clienteList: { maxHeight: 200 },
-  clienteItem: { padding: spacing.md, borderRadius: radius.md, borderWidth: 1.5, marginBottom: spacing.sm },
+
+  horaCard: { borderRadius: radius.md, borderWidth: 1, padding: spacing.md, gap: spacing.sm },
+  horaFecha: { fontSize: fontSize.sm, textTransform: 'capitalize' },
+  horaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  horaBtn: { width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  horaNum: { flexDirection: 'row', alignItems: 'baseline', gap: 3, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1, minWidth: 60, justifyContent: 'center' },
+  horaNumText: { fontSize: 22, fontWeight: fontWeight.bold, color: '#6366f1' },
+  horaNumLabel: { fontSize: fontSize.xs, color: '#6366f1', fontWeight: fontWeight.medium },
+  horaSep: { fontSize: 22, fontWeight: fontWeight.bold, marginHorizontal: 2 },
+  horaFin: { fontSize: fontSize.xs },
+
+  searchBox: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderRadius: radius.md, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: 10 },
+  searchInput: { flex: 1, fontSize: fontSize.sm, padding: 0 },
+
+  clienteRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, marginBottom: spacing.sm },
+  clienteAvatar: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   clienteNombre: { fontSize: fontSize.md, fontWeight: fontWeight.medium },
-  clienteTel: { fontSize: fontSize.sm, marginTop: 2 },
+  clienteTel: { fontSize: fontSize.xs, marginTop: 1 },
+  noResults: { fontSize: fontSize.sm, textAlign: 'center', paddingVertical: spacing.md },
+
   footer: { padding: spacing.lg, borderTopWidth: 1 },
   btnGuardar: { backgroundColor: '#6366f1', borderRadius: radius.md, padding: 16, alignItems: 'center' },
   btnGuardarText: { color: '#fff', fontSize: fontSize.md, fontWeight: fontWeight.bold },
+
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
   panel: { width: 500, maxHeight: '90%' as any, borderRadius: 20, overflow: 'hidden' },
   panelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, borderBottomWidth: 1 },
