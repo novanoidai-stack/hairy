@@ -1,4 +1,4 @@
-import { useColorScheme } from 'react-native';
+import { useThemeMode } from './themeContext';
 
 export const colors = {
   primary: '#6366f1',
@@ -96,8 +96,7 @@ export const shadow = {
 };
 
 export function useTheme() {
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
+  const { isDark } = useThemeMode();
   const c = isDark ? colors.dark : colors.light;
   return { isDark, c, colors, spacing, radius, fontSize, fontWeight, shadow };
 }

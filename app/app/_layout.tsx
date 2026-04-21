@@ -6,6 +6,7 @@ import { View, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebScrollbarStyles } from '@/components/WebScrollbarStyles';
+import { ThemeProvider } from '@/lib/themeContext';
 
 const webModal = Platform.OS === 'web'
   ? { presentation: 'transparentModal' as const, headerShown: false }
@@ -38,6 +39,7 @@ export default function RootLayout() {
   }
 
   return (
+    <ThemeProvider>
     <SafeAreaProvider>
     <GestureHandlerRootView style={{ flex: 1 }}>
       <WebScrollbarStyles />
@@ -52,5 +54,6 @@ export default function RootLayout() {
       </Stack>
     </GestureHandlerRootView>
     </SafeAreaProvider>
+    </ThemeProvider>
   );
 }
