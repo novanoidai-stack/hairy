@@ -168,14 +168,19 @@ export default function AgendaCalendar() {
 
   return (
     <View style={[s.root, { backgroundColor: c.bg }]}>
-      {/* Stats row */}
-      <View style={[s.statsRow, { paddingTop: insets.top + spacing.md }]}>
-        <StatCard label="Citas este mes" value={String(totalMes)} color={c.text} bg={calBg} border={calBorder} />
-        <StatCard label="Confirmadas" value={String(confirmadas)} color="#6366f1" bg={isDark ? '#6366f11a' : '#eef2ff'} border={isDark ? '#6366f133' : '#c7d2fe'} />
-        <StatCard label="Profesionales" value={String(profActivos)} color="#f59e0b" bg={isDark ? '#f59e0b1a' : '#fef3c7'} border={isDark ? '#f59e0b33' : '#fcd34d'} />
-      </View>
-
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}>
+
+        {/* Header */}
+        <View style={[s.header, { paddingTop: insets.top + spacing.md }]}>
+          <Text style={[s.title, { color: c.text }]}>Agenda</Text>
+        </View>
+
+        {/* Stats row */}
+        <View style={s.statsRow}>
+          <StatCard label="Citas este mes" value={String(totalMes)} color={c.text} bg={calBg} border={calBorder} />
+          <StatCard label="Confirmadas" value={String(confirmadas)} color="#6366f1" bg={isDark ? '#6366f11a' : '#eef2ff'} border={isDark ? '#6366f133' : '#c7d2fe'} />
+          <StatCard label="Profesionales" value={String(profActivos)} color="#f59e0b" bg={isDark ? '#f59e0b1a' : '#fef3c7'} border={isDark ? '#f59e0b33' : '#fcd34d'} />
+        </View>
         {/* Professional filter */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filterScroll} contentContainerStyle={s.filterContent}>
           <FilterChip
@@ -367,6 +372,8 @@ function CitaCard({ cita, c, isDark, calBg, calBorder, onPress }: { cita: CitaRa
 
 const s = StyleSheet.create({
   root: { flex: 1 },
+  header: { paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
+  title: { fontSize: fontSize.xxl, fontWeight: fontWeight.extrabold },
 
   statsRow: {
     flexDirection: 'row',
