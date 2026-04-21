@@ -31,6 +31,11 @@ export default function NuevaCitaScreen() {
   const [guardando, setGuardando] = useState(false);
   const [negocioId, setNegocioId] = useState('');
 
+  // Duration overrides
+  const [duracionOverride, setDuracionOverride] = useState<{ duracion_activa_min: number; duracion_espera_min: number } | null>(null);
+  const [duracionActivaCustom, setDuracionActivaCustom] = useState<number | null>(null);
+  const [duracionEsperaCustom, setDuracionEsperaCustom] = useState<number | null>(null);
+
   useEffect(() => {
     async function cargar() {
       const profile = await getUserProfile();
@@ -51,10 +56,41 @@ export default function NuevaCitaScreen() {
     cargar();
   }, []);
 
+  // Load per-professional duration override when both prof + service are selected
+  useEffect(() => {
+    if (!profSeleccionado || !servicioSeleccionado) {
+      setDuracionOverride(null);
+      setDuracionActivaCustom(null);
+      setDuracionEsperaCustom(null);
+      return;
+    }
+    supabase
+      .from('duraciones_profesional')
+      .select('duracion_activa_min, duracion_espera_min')
+      .eq('profesional_id', profSeleccionado)
+      .eq('servicio_id', servicioSeleccionado)
+      .maybeSingle()
+      .then(({ data }) => {
+        setDuracionOverride(data ?? null);
+        setDuracionActivaCustom(null);
+        setDuracionEsperaCustom(null);
+      });
+  }, [profSeleccionado, servicioSeleccionado]);
+
   const servicioActual = servicios.find((s) => s.id === servicioSeleccionado);
-  const duracionTotal = servicioActual
-    ? servicioActual.duracion_activa_min + servicioActual.duracion_espera_min
-    : 30;
+
+  // Duration resolution: manual → professional override → service default
+  const duracionActiva = duracionActivaCustom
+    ?? duracionOverride?.duracion_activa_min
+    ?? servicioActual?.duracion_activa_min
+    ?? 30;
+  const duracionEspera = duracionEsperaCustom
+    ?? duracionOverride?.duracion_espera_min
+    ?? servicioActual?.duracion_espera_min
+    ?? 0;
+  const duracionTotal = duracionActiva + duracionEspera;
+
+  const finActiva = dateFnsAddMinutes(inicio, duracionActiva);
   const fin = dateFnsAddMinutes(inicio, duracionTotal);
 
   function cambiarHora(deltaH: number, deltaM: number) {
@@ -71,8 +107,6 @@ export default function NuevaCitaScreen() {
       )
     : clientes;
 
-  const clienteNombreSeleccionado = clientes.find(cl => cl.id === clienteSeleccionado)?.nombre ?? '';
-
   async function guardar() {
     if (!profSeleccionado || !servicioSeleccionado) {
       Alert.alert('Faltan datos', 'Selecciona un profesional y un servicio.');
@@ -80,15 +114,57 @@ export default function NuevaCitaScreen() {
     }
     setGuardando(true);
 
-    const { data: solapadas } = await supabase
-      .from('citas').select('id')
+    // 1. Check professional blocks
+    const { data: bloqueos } = await supabase
+      .from('bloqueos_profesional')
+      .select('tipo, motivo')
       .eq('profesional_id', profSeleccionado)
-      .neq('estado', 'cancelada')
       .lt('inicio', fin.toISOString())
       .gt('fin', inicio.toISOString());
 
+    if (bloqueos && bloqueos.length > 0) {
+      const b = bloqueos[0];
+      Alert.alert('Profesional no disponible', b.motivo || b.tipo);
+      setGuardando(false);
+      return;
+    }
+
+    // 2. Check working hours (only if configured — if no schedule, allow)
+    const diaSemana = inicio.getDay();
+    const { data: horario } = await supabase
+      .from('horarios_profesional')
+      .select('hora_inicio, hora_fin')
+      .eq('profesional_id', profSeleccionado)
+      .eq('dia_semana', diaSemana)
+      .eq('activo', true)
+      .maybeSingle();
+
+    if (horario) {
+      const minInicio = inicio.getHours() * 60 + inicio.getMinutes();
+      const [h1, m1] = (horario.hora_inicio as string).split(':').map(Number);
+      const [h2, m2] = (horario.hora_fin as string).split(':').map(Number);
+      const limiteInicio = h1 * 60 + m1;
+      const limiteFin = h2 * 60 + m2;
+      if (minInicio < limiteInicio || minInicio + duracionActiva > limiteFin) {
+        const hi = (horario.hora_inicio as string).slice(0, 5);
+        const hf = (horario.hora_fin as string).slice(0, 5);
+        Alert.alert('Fuera de horario', `Este profesional trabaja de ${hi} a ${hf} los ${diaNombre(diaSemana)}.`);
+        setGuardando(false);
+        return;
+      }
+    }
+
+    // 3. Check active-phase overlap (parallel services allowed during wait time)
+    const { data: solapadas } = await supabase
+      .from('citas')
+      .select('id')
+      .eq('profesional_id', profSeleccionado)
+      .neq('estado', 'cancelada')
+      .lt('inicio', finActiva.toISOString())
+      .gt('fin_activa', inicio.toISOString());
+
     if (solapadas && solapadas.length > 0) {
-      Alert.alert('Conflicto', 'El profesional ya tiene una cita en ese horario.');
+      Alert.alert('Conflicto', 'El profesional ya tiene una cita activa en ese horario.');
       setGuardando(false);
       return;
     }
@@ -100,6 +176,7 @@ export default function NuevaCitaScreen() {
       cliente_id: clienteSeleccionado || null,
       inicio: inicio.toISOString(),
       fin: fin.toISOString(),
+      fin_activa: finActiva.toISOString(),
       estado: 'pendiente',
       canal: 'manual',
     });
@@ -186,17 +263,35 @@ export default function NuevaCitaScreen() {
                 <Ionicons name="add" size={18} color={c.text} />
               </TouchableOpacity>
             </View>
+
+            {/* Duration controls — shown when service is selected */}
             {servicioActual && (
-              <Text style={[s.horaFin, { color: c.textTertiary }]}>
-                Finaliza: {format(fin, 'HH:mm')} · {duracionTotal} min
-              </Text>
+              <View style={[s.duracionBox, { borderTopColor: c.border }]}>
+                <DuracionRow
+                  label="Tiempo activo"
+                  value={duracionActiva}
+                  onMinus={() => setDuracionActivaCustom(Math.max(5, duracionActiva - 5))}
+                  onPlus={() => setDuracionActivaCustom(duracionActiva + 5)}
+                  c={c} isDark={isDark}
+                />
+                <DuracionRow
+                  label="Tiempo de espera"
+                  value={duracionEspera}
+                  onMinus={() => setDuracionEsperaCustom(Math.max(0, duracionEspera - 5))}
+                  onPlus={() => setDuracionEsperaCustom(duracionEspera + 5)}
+                  c={c} isDark={isDark}
+                />
+                <Text style={[s.horaFin, { color: c.textTertiary }]}>
+                  Finaliza: {format(fin, 'HH:mm')} · {duracionTotal} min totales
+                  {duracionEspera > 0 && ` (${duracionActiva} activos + ${duracionEspera} espera)`}
+                </Text>
+              </View>
             )}
           </View>
         </Section>
 
         {/* ── Cliente ── */}
         <Section title="Cliente (opcional)">
-          {/* Buscador */}
           <View style={[s.searchBox, { backgroundColor: c.surface, borderColor: c.border }]}>
             <Ionicons name="search-outline" size={16} color={c.textTertiary} />
             <TextInput
@@ -213,7 +308,6 @@ export default function NuevaCitaScreen() {
             )}
           </View>
 
-          {/* Sin cliente */}
           <TouchableOpacity
             style={[s.clienteRow, { borderColor: !clienteSeleccionado ? '#6366f1' : c.border, backgroundColor: !clienteSeleccionado ? '#6366f122' : c.surface }]}
             onPress={() => { setClienteSeleccionado(''); setClienteSearch(''); }}
@@ -227,7 +321,6 @@ export default function NuevaCitaScreen() {
             {!clienteSeleccionado && <Ionicons name="checkmark-circle" size={18} color="#6366f1" style={{ marginLeft: 'auto' as any }} />}
           </TouchableOpacity>
 
-          {/* Lista */}
           {clientesFiltrados.map((cl) => {
             const sel = clienteSeleccionado === cl.id;
             return (
@@ -284,6 +377,31 @@ export default function NuevaCitaScreen() {
   return inner;
 }
 
+function diaNombre(dia: number) {
+  return ['domingos', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados'][dia];
+}
+
+function DuracionRow({ label, value, onMinus, onPlus, c, isDark }: {
+  label: string; value: number;
+  onMinus: () => void; onPlus: () => void;
+  c: any; isDark: boolean;
+}) {
+  return (
+    <View style={s.duracionRow}>
+      <Text style={[s.duracionLabel, { color: c.textSecondary }]}>{label}</Text>
+      <View style={s.duracionControl}>
+        <TouchableOpacity style={[s.durBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={onMinus}>
+          <Ionicons name="remove" size={14} color={c.text} />
+        </TouchableOpacity>
+        <Text style={[s.durValue, { color: c.text }]}>{value} min</Text>
+        <TouchableOpacity style={[s.durBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={onPlus}>
+          <Ionicons name="add" size={14} color={c.text} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 function Section({ title, children, required }: { title: string; children: React.ReactNode; required?: boolean }) {
   const { c } = useTheme();
   return (
@@ -332,6 +450,13 @@ const s = StyleSheet.create({
   horaNumLabel: { fontSize: 10, color: '#6366f1', fontWeight: fontWeight.medium },
   horaSep: { fontSize: 18, fontWeight: fontWeight.bold, marginHorizontal: 1 },
   horaFin: { fontSize: fontSize.xs },
+
+  duracionBox: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: spacing.sm, gap: spacing.sm },
+  duracionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  duracionLabel: { fontSize: fontSize.sm },
+  duracionControl: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  durBtn: { width: 26, height: 26, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  durValue: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, minWidth: 50, textAlign: 'center' },
 
   searchBox: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderRadius: radius.md, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: 10 },
   searchInput: { flex: 1, fontSize: fontSize.sm, padding: 0, backgroundColor: 'transparent' },
