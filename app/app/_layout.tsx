@@ -7,6 +7,18 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebScrollbarStyles } from '@/components/WebScrollbarStyles';
 import { ThemeProvider } from '@/lib/themeContext';
+import { useTheme } from '@/lib/theme';
+
+function ThemedRoot({ children }: { children: React.ReactNode }) {
+  const { c, isDark } = useTheme();
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: c.bg }}>
+      <WebScrollbarStyles />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      {children}
+    </GestureHandlerRootView>
+  );
+}
 
 const webModal = Platform.OS === 'web'
   ? { presentation: 'transparentModal' as const, headerShown: false }
@@ -41,9 +53,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
     <SafeAreaProvider>
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <WebScrollbarStyles />
-      <StatusBar style="light" />
+    <ThemedRoot>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />
@@ -52,7 +62,7 @@ export default function RootLayout() {
         <Stack.Screen name="screens/nueva-cita" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Nueva cita', headerBackTitle: 'Agenda', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
         <Stack.Screen name="screens/configuracion" options={{ headerShown: true, title: 'Configuración', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
       </Stack>
-    </GestureHandlerRootView>
+    </ThemedRoot>
     </SafeAreaProvider>
     </ThemeProvider>
   );

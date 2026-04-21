@@ -30,6 +30,7 @@ export default function NuevaCitaScreen() {
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [negocioId, setNegocioId] = useState('');
+  const [errMsg, setErrMsg] = useState('');
 
   // Duration overrides
   const [duracionOverride, setDuracionOverride] = useState<{ duracion_activa_min: number; duracion_espera_min: number } | null>(null);
@@ -107,83 +108,97 @@ export default function NuevaCitaScreen() {
       )
     : clientes;
 
+  function bloquear(msg: string) {
+    setErrMsg(msg);
+    setGuardando(false);
+  }
+
   async function guardar() {
     if (!profSeleccionado || !servicioSeleccionado) {
-      Alert.alert('Faltan datos', 'Selecciona un profesional y un servicio.');
+      setErrMsg('Selecciona un profesional y un servicio.');
       return;
     }
+    setErrMsg('');
     setGuardando(true);
 
-    // 1. Check professional blocks
-    const { data: bloqueos } = await supabase
-      .from('bloqueos_profesional')
-      .select('tipo, motivo')
-      .eq('profesional_id', profSeleccionado)
-      .lt('inicio', fin.toISOString())
-      .gt('fin', inicio.toISOString());
+    try {
+      // 1. Check professional blocks
+      const { data: bloqueos } = await supabase
+        .from('bloqueos_profesional')
+        .select('tipo, motivo')
+        .eq('profesional_id', profSeleccionado)
+        .lt('inicio', fin.toISOString())
+        .gt('fin', inicio.toISOString());
 
-    if (bloqueos && bloqueos.length > 0) {
-      const b = bloqueos[0];
-      Alert.alert('Profesional no disponible', b.motivo || b.tipo);
-      setGuardando(false);
-      return;
-    }
-
-    // 2. Check working hours (only if configured — if no schedule, allow)
-    const diaSemana = inicio.getDay();
-    const { data: horario } = await supabase
-      .from('horarios_profesional')
-      .select('hora_inicio, hora_fin')
-      .eq('profesional_id', profSeleccionado)
-      .eq('dia_semana', diaSemana)
-      .eq('activo', true)
-      .maybeSingle();
-
-    if (horario) {
-      const minInicio = inicio.getHours() * 60 + inicio.getMinutes();
-      const [h1, m1] = (horario.hora_inicio as string).split(':').map(Number);
-      const [h2, m2] = (horario.hora_fin as string).split(':').map(Number);
-      const limiteInicio = h1 * 60 + m1;
-      const limiteFin = h2 * 60 + m2;
-      if (minInicio < limiteInicio || minInicio + duracionActiva > limiteFin) {
-        const hi = (horario.hora_inicio as string).slice(0, 5);
-        const hf = (horario.hora_fin as string).slice(0, 5);
-        Alert.alert('Fuera de horario', `Este profesional trabaja de ${hi} a ${hf} los ${diaNombre(diaSemana)}.`);
-        setGuardando(false);
+      if (bloqueos && bloqueos.length > 0) {
+        bloquear(`Profesional no disponible: ${bloqueos[0].motivo || bloqueos[0].tipo}`);
         return;
       }
-    }
 
-    // 3. Check active-phase overlap (parallel services allowed during wait time)
-    const { data: solapadas } = await supabase
-      .from('citas')
-      .select('id')
-      .eq('profesional_id', profSeleccionado)
-      .neq('estado', 'cancelada')
-      .lt('inicio', finActiva.toISOString())
-      .gt('fin_activa', inicio.toISOString());
+      // 2. Check working hours (only if configured)
+      const diaSemana = inicio.getDay();
+      const { data: horario } = await supabase
+        .from('horarios_profesional')
+        .select('hora_inicio, hora_fin')
+        .eq('profesional_id', profSeleccionado)
+        .eq('dia_semana', diaSemana)
+        .eq('activo', true)
+        .maybeSingle();
 
-    if (solapadas && solapadas.length > 0) {
-      Alert.alert('Conflicto', 'El profesional ya tiene una cita activa en ese horario.');
+      if (horario) {
+        const minInicio = inicio.getHours() * 60 + inicio.getMinutes();
+        const [h1, m1] = (horario.hora_inicio as string).split(':').map(Number);
+        const [h2, m2] = (horario.hora_fin as string).split(':').map(Number);
+        if (minInicio < h1 * 60 + m1 || minInicio + duracionActiva > h2 * 60 + m2) {
+          bloquear(`Fuera de horario (${(horario.hora_inicio as string).slice(0,5)}–${(horario.hora_fin as string).slice(0,5)} los ${diaNombre(diaSemana)})`);
+          return;
+        }
+      }
+
+      // 3. Active-phase overlap (parallel services allowed during wait time)
+      const { data: solapadas, error: errSolapadas } = await supabase
+        .from('citas')
+        .select('id')
+        .eq('profesional_id', profSeleccionado)
+        .neq('estado', 'cancelada')
+        .lt('inicio', finActiva.toISOString())
+        .gt('fin_activa', inicio.toISOString());
+
+      if (errSolapadas) {
+        // fin_activa column might not exist on old rows — fall back to full overlap check
+        const { data: solapadasFallback } = await supabase
+          .from('citas').select('id')
+          .eq('profesional_id', profSeleccionado)
+          .neq('estado', 'cancelada')
+          .lt('inicio', fin.toISOString())
+          .gt('fin', inicio.toISOString());
+        if (solapadasFallback && solapadasFallback.length > 0) {
+          bloquear('El profesional ya tiene una cita en ese horario.');
+          return;
+        }
+      } else if (solapadas && solapadas.length > 0) {
+        bloquear('El profesional ya tiene una cita activa en ese horario.');
+        return;
+      }
+
+      const { error } = await supabase.from('citas').insert({
+        negocio_id: negocioId,
+        profesional_id: profSeleccionado,
+        servicio_id: servicioSeleccionado,
+        cliente_id: clienteSeleccionado || null,
+        inicio: inicio.toISOString(),
+        fin: fin.toISOString(),
+        fin_activa: finActiva.toISOString(),
+        estado: 'pendiente',
+        canal: 'manual',
+      });
+
       setGuardando(false);
-      return;
+      if (error) { setErrMsg(error.message); return; }
+      router.back();
+    } catch (e: any) {
+      bloquear(e?.message ?? 'Error inesperado');
     }
-
-    const { error } = await supabase.from('citas').insert({
-      negocio_id: negocioId,
-      profesional_id: profSeleccionado,
-      servicio_id: servicioSeleccionado,
-      cliente_id: clienteSeleccionado || null,
-      inicio: inicio.toISOString(),
-      fin: fin.toISOString(),
-      fin_activa: finActiva.toISOString(),
-      estado: 'pendiente',
-      canal: 'manual',
-    });
-
-    setGuardando(false);
-    if (error) { Alert.alert('Error', error.message); return; }
-    router.back();
   }
 
   if (loading) {
@@ -350,6 +365,12 @@ export default function NuevaCitaScreen() {
       </ScrollView>
 
       <View style={[s.footer, { borderTopColor: c.border, backgroundColor: c.bg }]}>
+        {errMsg ? (
+          <View style={s.errBanner}>
+            <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
+            <Text style={s.errText}>{errMsg}</Text>
+          </View>
+        ) : null}
         <TouchableOpacity style={[s.btnGuardar, guardando && { opacity: 0.6 }]} onPress={guardar} disabled={guardando}>
           {guardando
             ? <ActivityIndicator color="#fff" size="small" />
@@ -467,7 +488,9 @@ const s = StyleSheet.create({
   clienteTel: { fontSize: fontSize.xs, marginTop: 1 },
   noResults: { fontSize: fontSize.sm, textAlign: 'center', paddingVertical: spacing.md },
 
-  footer: { padding: spacing.lg, borderTopWidth: 1 },
+  footer: { padding: spacing.lg, borderTopWidth: 1, gap: spacing.sm },
+  errBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#ef444415', borderRadius: radius.md, padding: spacing.sm },
+  errText: { color: '#ef4444', fontSize: fontSize.sm, flex: 1 },
   btnGuardar: { backgroundColor: '#6366f1', borderRadius: radius.md, padding: 16, alignItems: 'center' },
   btnGuardarText: { color: '#fff', fontSize: fontSize.md, fontWeight: fontWeight.bold },
 
