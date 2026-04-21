@@ -334,7 +334,7 @@ const s = StyleSheet.create({
   horaFin: { fontSize: fontSize.xs },
 
   searchBox: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderRadius: radius.md, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: 10 },
-  searchInput: { flex: 1, fontSize: fontSize.sm, padding: 0 },
+  searchInput: { flex: 1, fontSize: fontSize.sm, padding: 0, backgroundColor: 'transparent' },
 
   clienteRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, marginBottom: spacing.sm },
   clienteAvatar: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
