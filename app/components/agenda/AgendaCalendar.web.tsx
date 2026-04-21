@@ -299,7 +299,7 @@ function CitaCard({ cita, c, isDark, calBg, calBorder, onPress }: any) {
 // ─── estilos ──────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   root: { flex: 1 },
-  scroll: { padding: spacing.lg, gap: spacing.lg, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 40, paddingVertical: spacing.lg, gap: spacing.lg, paddingBottom: 40 },
 
   header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   title: { fontSize: fontSize.xxl, fontWeight: fontWeight.extrabold },
