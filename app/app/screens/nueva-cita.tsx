@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert,
+  StyleSheet, ActivityIndicator, Alert, Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -102,7 +102,7 @@ export default function NuevaCitaScreen() {
     );
   }
 
-  return (
+  const inner = (
     <View style={[s.container, { backgroundColor: c.bg, paddingBottom: insets.bottom + spacing.lg }]}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
 
@@ -191,6 +191,23 @@ export default function NuevaCitaScreen() {
       </View>
     </View>
   );
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={s.overlay}>
+        <View style={[s.panel, { backgroundColor: c.bg }]}>
+          <View style={[s.panelHeader, { borderBottomColor: c.border }]}>
+            <Text style={[s.panelTitle, { color: c.text }]}>Nueva cita</Text>
+            <TouchableOpacity onPress={() => router.back()} style={s.closeBtn}>
+              <Ionicons name="close" size={20} color={c.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          {inner}
+        </View>
+      </View>
+    );
+  }
+  return inner;
 }
 
 function Section({ title, children, required }: { title: string; children: React.ReactNode; required?: boolean }) {
@@ -239,4 +256,9 @@ const s = StyleSheet.create({
   footer: { padding: spacing.lg, borderTopWidth: 1 },
   btnGuardar: { backgroundColor: '#6366f1', borderRadius: radius.md, padding: 16, alignItems: 'center' },
   btnGuardarText: { color: '#fff', fontSize: fontSize.md, fontWeight: fontWeight.bold },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
+  panel: { width: 500, maxHeight: '90%' as any, borderRadius: 20, overflow: 'hidden' },
+  panelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, borderBottomWidth: 1 },
+  panelTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
+  closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 });

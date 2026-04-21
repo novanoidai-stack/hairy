@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,7 +71,7 @@ export default function AgendaDetalleScreen() {
   const inicio = new Date(cita.inicio);
   const fin = new Date(cita.fin);
 
-  return (
+  const inner = (
     <View style={[s.container, { backgroundColor: c.bg, paddingBottom: insets.bottom + spacing.lg }]}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
 
@@ -134,6 +134,23 @@ export default function AgendaDetalleScreen() {
       </ScrollView>
     </View>
   );
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={s.overlay}>
+        <View style={[s.panel, { backgroundColor: c.bg }]}>
+          <View style={[s.panelHeader, { borderBottomColor: c.border }]}>
+            <Text style={[s.panelTitle, { color: c.text }]}>Detalle de cita</Text>
+            <TouchableOpacity onPress={() => router.back()} style={s.closeBtn}>
+              <Ionicons name="close" size={20} color={c.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          {inner}
+        </View>
+      </View>
+    );
+  }
+  return inner;
 }
 
 function Row({ icon, label, value, sub, dot, capitalize }: any) {
@@ -176,4 +193,9 @@ const s = StyleSheet.create({
   estadoBtnText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
   cancelBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, marginTop: spacing.sm },
   cancelBtnText: { color: '#ef4444', fontSize: fontSize.md, fontWeight: fontWeight.medium },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
+  panel: { width: 480, maxHeight: '85%' as any, borderRadius: 20, overflow: 'hidden' },
+  panelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, borderBottomWidth: 1 },
+  panelTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
+  closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 });

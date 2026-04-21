@@ -165,56 +165,53 @@ export default function AgendaCalendar() {
             </TouchableOpacity>
           </View>
 
-          {/* Cabecera días */}
-          <View style={s.dayNamesRow}>
+          {/* Cabecera días — misma estructura de filas para alineación perfecta */}
+          <View style={s.row}>
             {DAY_NAMES.map(d => (
-              <View key={d} style={s.dayNameCell}>
+              <View key={d} style={s.col}>
                 <Text style={[s.dayName, { color: c.textTertiary }]}>{d}</Text>
               </View>
             ))}
           </View>
 
-          {/* Grid */}
-          <View style={s.grid}>
-            {cells.map((day, i) => {
-              if (!day) return <View key={i} style={s.cellWrap} />;
-              const dateStr = toDateStr(month.year, month.month, day);
-              const isSelected = dateStr === selectedDate;
-              const isToday = dateStr === todayStr;
-              const count = countByDate[dateStr] ?? 0;
-
-              const bg = isToday
-                ? '#6366f1'
-                : isSelected
-                  ? (isDark ? '#6366f122' : '#eef2ff')
-                  : cellBg;
-              const border2 = isSelected && !isToday ? '#6366f1' : cellBorder;
-
-              return (
-                <TouchableOpacity
-                  key={i}
-                  style={s.cellWrap}
-                  onPress={() => setSelectedDate(dateStr)}
-                  activeOpacity={0.75}
-                >
-                  <View style={[s.cell, { backgroundColor: bg, borderColor: border2, borderWidth: isSelected && !isToday ? 1.5 : 1 }]}>
-                    <Text style={[
-                      s.cellDay,
-                      { color: isToday ? '#fff' : isSelected ? '#6366f1' : c.textSecondary },
-                      (isToday || isSelected) && { fontWeight: fontWeight.bold },
-                    ]}>{day}</Text>
-                    {count > 0 && (
-                      <View style={[s.citaBadge, { backgroundColor: isToday ? 'rgba(255,255,255,0.25)' : '#6366f122' }]}>
-                        <Text style={[s.citaBadgeText, { color: isToday ? '#fff' : '#6366f1' }]}>
-                          {count} {count === 1 ? 'cita' : 'citas'}
+          {/* Grid — filas explícitas de 7, sin flexWrap ni % para evitar desfase */}
+          {(() => {
+            const rows: (number | null)[][] = [];
+            for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+            return rows.map((row, ri) => (
+              <View key={ri} style={s.row}>
+                {row.map((day, ci) => {
+                  if (!day) return <View key={ci} style={s.col} />;
+                  const dateStr = toDateStr(month.year, month.month, day);
+                  const isSelected = dateStr === selectedDate;
+                  const isToday = dateStr === todayStr;
+                  const count = countByDate[dateStr] ?? 0;
+                  const bg = isToday ? '#6366f1' : isSelected ? (isDark ? '#6366f122' : '#eef2ff') : cellBg;
+                  const bColor = isSelected && !isToday ? '#6366f1' : cellBorder;
+                  return (
+                    <View key={ci} style={s.col}>
+                      <TouchableOpacity
+                        style={[s.cell, { backgroundColor: bg, borderColor: bColor, borderWidth: isSelected && !isToday ? 1.5 : 1 }]}
+                        onPress={() => setSelectedDate(dateStr)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={[s.cellDay, { color: isToday ? '#fff' : isSelected ? '#6366f1' : c.textSecondary }, (isToday || isSelected) && { fontWeight: fontWeight.bold }]}>
+                          {day}
                         </Text>
-                      </View>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                        {count > 0 && (
+                          <View style={[s.citaBadge, { backgroundColor: isToday ? 'rgba(255,255,255,0.25)' : '#6366f122' }]}>
+                            <Text style={[s.citaBadgeText, { color: isToday ? '#fff' : '#6366f1' }]}>
+                              {count} {count === 1 ? 'cita' : 'citas'}
+                            </Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+              </View>
+            ));
+          })()}
         </View>
 
         {/* ── Lista del día ── */}
@@ -326,12 +323,10 @@ const s = StyleSheet.create({
   navBtn: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   monthTitle: { fontSize: fontSize.xl, fontWeight: fontWeight.extrabold },
 
-  dayNamesRow: { flexDirection: 'row', paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
-  dayNameCell: { flex: 1, alignItems: 'center' },
-  dayName: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
+  row: { flexDirection: 'row', paddingHorizontal: spacing.md, marginBottom: 4 },
+  col: { flex: 1, paddingHorizontal: 3 },
+  dayName: { fontSize: fontSize.md, fontWeight: fontWeight.semibold, textAlign: 'center', paddingVertical: 8 },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.sm, gap: 6 },
-  cellWrap: { width: `${100 / 7}%` as any, paddingHorizontal: 3 },
   cell: {
     minHeight: 80, borderRadius: 12, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',

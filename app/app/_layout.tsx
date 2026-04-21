@@ -2,9 +2,13 @@ import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { supabase } from '@/lib/supabase';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+const webModal = Platform.OS === 'web'
+  ? { presentation: 'transparentModal' as const, headerShown: false }
+  : {};
 
 export default function RootLayout() {
   const [session, setSession] = useState<any>(undefined);
@@ -39,9 +43,9 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="screens/agenda-detalle" options={{ headerShown: true, title: 'Cita', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
+        <Stack.Screen name="screens/agenda-detalle" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Cita', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
         <Stack.Screen name="screens/cliente-detalle" options={{ headerShown: true, title: 'Cliente', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
-        <Stack.Screen name="screens/nueva-cita" options={{ headerShown: true, title: 'Nueva cita', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
+        <Stack.Screen name="screens/nueva-cita" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Nueva cita', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
         <Stack.Screen name="screens/configuracion" options={{ headerShown: true, title: 'Configuración', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
       </Stack>
     </GestureHandlerRootView>
