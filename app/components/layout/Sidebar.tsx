@@ -2,7 +2,6 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
-import { signOut } from '@/lib/auth';
 
 const NAV_ITEMS = [
   { label: 'Agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
@@ -15,6 +14,8 @@ export function Sidebar() {
   const { c, isDark } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+
+  const configActive = pathname.includes('/screens/configuracion');
 
   return (
     <View style={[s.sidebar, { backgroundColor: c.surface, borderRightColor: c.border }]}>
@@ -44,10 +45,21 @@ export function Sidebar() {
         })}
       </View>
 
-      <TouchableOpacity style={s.signOut} onPress={signOut}>
-        <Ionicons name="log-out-outline" size={20} color={c.textTertiary} />
-        <Text style={[s.signOutText, { color: c.textTertiary }]}>Cerrar sesión</Text>
-      </TouchableOpacity>
+      <View style={[s.bottomNav, { borderTopColor: c.border }]}>
+        <TouchableOpacity
+          style={[s.navItem, configActive && { backgroundColor: isDark ? '#1e1b4b' : '#eef2ff' }]}
+          onPress={() => router.push('/screens/configuracion' as any)}
+        >
+          <Ionicons
+            name={configActive ? 'settings' : 'settings-outline'}
+            size={20}
+            color={configActive ? '#6366f1' : c.textSecondary}
+          />
+          <Text style={[s.navLabel, { color: configActive ? '#6366f1' : c.textSecondary }, configActive && { fontWeight: fontWeight.semibold }]}>
+            Configuración
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -63,6 +75,7 @@ const s = StyleSheet.create({
   logo: { paddingHorizontal: spacing.lg, marginBottom: spacing.xl },
   logoText: { fontSize: fontSize.xxl, fontWeight: fontWeight.extrabold, letterSpacing: -0.5 },
   nav: { flex: 1, paddingHorizontal: spacing.sm, gap: spacing.xs },
+  bottomNav: { paddingHorizontal: spacing.sm, paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
   navItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -72,12 +85,4 @@ const s = StyleSheet.create({
     borderRadius: radius.md,
   },
   navLabel: { fontSize: fontSize.md },
-  signOut: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-  },
-  signOutText: { fontSize: fontSize.sm },
 });

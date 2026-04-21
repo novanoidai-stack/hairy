@@ -173,6 +173,9 @@ export default function AgendaCalendar() {
         {/* Header */}
         <View style={[s.header, { paddingTop: insets.top + spacing.md }]}>
           <Text style={[s.title, { color: c.text }]}>Agenda</Text>
+          <TouchableOpacity onPress={() => router.push('/screens/configuracion' as any)} style={s.gearBtn}>
+            <Ionicons name="settings-outline" size={22} color={c.textSecondary} />
+          </TouchableOpacity>
         </View>
 
         {/* Stats row */}
@@ -372,8 +375,9 @@ function CitaCard({ cita, c, isDark, calBg, calBorder, onPress }: { cita: CitaRa
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  header: { paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
+  header: { paddingHorizontal: spacing.md, paddingBottom: spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: fontSize.xxl, fontWeight: fontWeight.extrabold },
+  gearBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
 
   statsRow: {
     flexDirection: 'row',
