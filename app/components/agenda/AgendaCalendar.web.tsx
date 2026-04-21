@@ -1,4 +1,3 @@
-'use client'
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -7,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
-import { useResponsive } from '@/lib/hooks/useResponsive';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 
@@ -95,10 +93,16 @@ function useAgendaData(year: number, month: number) {
 // COMPONENTE PRINCIPAL
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function AgendaCalendar() {
-  const { isDesktop } = useResponsive();
   const today = new Date();
   const [month, setMonth] = useState({ year: today.getFullYear(), month: today.getMonth() });
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
   const { citas, profesionales, loading, negocioId } = useAgendaData(month.year, month.month);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   if (isDesktop) {
     return <DesktopCalendar citas={citas} profesionales={profesionales} loading={loading} negocioId={negocioId} />;
