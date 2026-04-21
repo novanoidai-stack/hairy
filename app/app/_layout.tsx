@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { WebScrollbarStyles } from '@/components/WebScrollbarStyles';
 
 const webModal = Platform.OS === 'web'
   ? { presentation: 'transparentModal' as const, headerShown: false }
@@ -39,6 +40,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <WebScrollbarStyles />
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
