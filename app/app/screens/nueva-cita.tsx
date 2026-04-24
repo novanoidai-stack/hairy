@@ -11,12 +11,14 @@ import { es } from 'date-fns/locale';
 import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { useCalendarRefresh } from '@/lib/calendarContext';
 
 export default function NuevaCitaScreen() {
   const { c, isDark } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ profesionalId?: string; hora?: string }>();
+  const { triggerRefresh } = useCalendarRefresh();
 
   const [profesionales, setProfesionales] = useState<any[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
@@ -93,6 +95,12 @@ export default function NuevaCitaScreen() {
 
   const finActiva = dateFnsAddMinutes(inicio, duracionActiva);
   const fin = dateFnsAddMinutes(inicio, duracionTotal);
+
+  function cambiarDia(deltaDias: number) {
+    const d = new Date(inicio);
+    d.setDate(d.getDate() + deltaDias);
+    setInicio(d);
+  }
 
   function cambiarHora(deltaH: number, deltaM: number) {
     const d = new Date(inicio);
@@ -189,12 +197,13 @@ export default function NuevaCitaScreen() {
         inicio: inicio.toISOString(),
         fin: fin.toISOString(),
         fin_activa: finActiva.toISOString(),
-        estado: 'pendiente',
+        estado: 'confirmada',
         canal: 'manual',
       });
 
       setGuardando(false);
       if (error) { setErrMsg(error.message); return; }
+      triggerRefresh();
       router.back();
     } catch (e: any) {
       bloquear(e?.message ?? 'Error inesperado');
@@ -248,9 +257,17 @@ export default function NuevaCitaScreen() {
         {/* ── Hora de inicio ── */}
         <Section title="Hora de inicio">
           <View style={[s.horaCard, { backgroundColor: c.surface, borderColor: c.border }]}>
-            <Text style={[s.horaFecha, { color: c.textSecondary }]}>
-              {format(inicio, "EEEE d 'de' MMMM", { locale: es })}
-            </Text>
+            <View style={s.fechaRow}>
+              <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarDia(-1)}>
+                <Ionicons name="remove" size={18} color={c.text} />
+              </TouchableOpacity>
+              <Text style={[s.horaFecha, { color: c.textSecondary }]}>
+                {format(inicio, "EEEE d 'de' MMMM", { locale: es })}
+              </Text>
+              <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarDia(1)}>
+                <Ionicons name="add" size={18} color={c.text} />
+              </TouchableOpacity>
+            </View>
             <View style={s.horaRow}>
               {/* Horas */}
               <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(-1, 0)}>
@@ -463,7 +480,8 @@ const s = StyleSheet.create({
   serviceDuracion: { fontSize: fontSize.sm },
 
   horaCard: { borderRadius: radius.md, borderWidth: 1, padding: spacing.md, gap: spacing.sm },
-  horaFecha: { fontSize: fontSize.sm, textTransform: 'capitalize' },
+  fechaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center' },
+  horaFecha: { fontSize: fontSize.sm, textTransform: 'capitalize', flex: 1, textAlign: 'center' },
   horaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   horaBtn: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   horaNum: { flexDirection: 'row', alignItems: 'baseline', gap: 2, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, minWidth: 50, justifyContent: 'center' },

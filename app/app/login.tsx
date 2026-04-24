@@ -11,6 +11,9 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
+  const [nombreNegocio, setNombreNegocio] = useState('');
+  const [codigoPostal, setCodigoPostal] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -25,15 +28,23 @@ export default function LoginScreen() {
 
   async function handleRegister() {
     if (!nombre.trim()) { setError('Introduce tu nombre'); return; }
+    if (!apellido.trim()) { setError('Introduce tu apellido'); return; }
+    if (!nombreNegocio.trim()) { setError('Introduce el nombre del negocio'); return; }
+    if (!codigoPostal.trim()) { setError('Introduce el código postal'); return; }
     setLoading(true);
     setError('');
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) { setError(error.message); setLoading(false); return; }
     if (data.user) {
+      const negocioId = `${nombreNegocio.toLowerCase().replace(/\s+/g, '_')}_${codigoPostal}`;
       await supabase.from('profiles').insert({
         id: data.user.id,
         email,
-        nombre,
+        nombre: `${nombre} ${apellido}`,
+        apellido,
+        nombre_negocio: nombreNegocio,
+        codigo_postal: codigoPostal,
+        negocio_id: negocioId,
         role: 'owner',
       });
       setSuccess('Cuenta creada. Revisa tu email para confirmarla.');
@@ -48,13 +59,37 @@ export default function LoginScreen() {
         <Text style={s.sub}>{mode === 'login' ? 'Gestión de peluquería' : 'Crea tu cuenta'}</Text>
 
         {mode === 'register' && (
-          <TextInput
-            style={s.input}
-            placeholder="Nombre"
-            placeholderTextColor="#64748b"
-            value={nombre}
-            onChangeText={setNombre}
-          />
+          <>
+            <TextInput
+              style={s.input}
+              placeholder="Nombre"
+              placeholderTextColor="#64748b"
+              value={nombre}
+              onChangeText={setNombre}
+            />
+            <TextInput
+              style={s.input}
+              placeholder="Apellido"
+              placeholderTextColor="#64748b"
+              value={apellido}
+              onChangeText={setApellido}
+            />
+            <TextInput
+              style={s.input}
+              placeholder="Nombre del negocio"
+              placeholderTextColor="#64748b"
+              value={nombreNegocio}
+              onChangeText={setNombreNegocio}
+            />
+            <TextInput
+              style={s.input}
+              placeholder="Código postal"
+              placeholderTextColor="#64748b"
+              value={codigoPostal}
+              onChangeText={setCodigoPostal}
+              keyboardType="number-pad"
+            />
+          </>
         )}
         <TextInput
           style={s.input}
@@ -89,7 +124,17 @@ export default function LoginScreen() {
 
         <TouchableOpacity
           style={s.switchBtn}
-          onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setSuccess(''); }}
+          onPress={() => {
+            setMode(mode === 'login' ? 'register' : 'login');
+            setError('');
+            setSuccess('');
+            setEmail('');
+            setPassword('');
+            setNombre('');
+            setApellido('');
+            setNombreNegocio('');
+            setCodigoPostal('');
+          }}
         >
           <Text style={s.switchText}>
             {mode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}

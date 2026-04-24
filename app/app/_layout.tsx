@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebScrollbarStyles } from '@/components/WebScrollbarStyles';
 import { ThemeProvider } from '@/lib/themeContext';
+import { CalendarProvider } from '@/lib/calendarContext';
 import { useTheme } from '@/lib/theme';
 
 function ThemedRoot({ children }: { children: React.ReactNode }) {
@@ -51,6 +52,7 @@ export default function RootLayout() {
   }
 
   return (
+    <CalendarProvider>
     <ThemeProvider>
     <SafeAreaProvider>
     <ThemedRoot>
@@ -65,5 +67,6 @@ export default function RootLayout() {
     </ThemedRoot>
     </SafeAreaProvider>
     </ThemeProvider>
+    </CalendarProvider>
   );
 }

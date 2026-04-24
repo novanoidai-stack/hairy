@@ -7,9 +7,10 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
+import { useCalendarRefresh } from '@/lib/calendarContext';
 
 const ESTADOS = [
-  { key: 'pendiente', label: 'Pendiente', color: '#f59e0b' },
+  { key: 'pendiente', label: 'Pendiente de confirmación', color: '#f59e0b' },
   { key: 'confirmada', label: 'Confirmada', color: '#6366f1' },
   { key: 'completada', label: 'Completada', color: '#10b981' },
   { key: 'no_show', label: 'No presentado', color: '#ef4444' },
@@ -21,9 +22,11 @@ export default function AgendaDetalleScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { citaId } = useLocalSearchParams<{ citaId: string }>();
+  const { triggerRefresh } = useCalendarRefresh();
   const [cita, setCita] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actualizando, setActualizando] = useState(false);
+  const [mostrarnDialogoEliminar, setMostrarDialogoEliminar] = useState(false);
 
   useEffect(() => {
     async function cargar() {
@@ -51,17 +54,13 @@ export default function AgendaDetalleScreen() {
   }
 
   async function eliminar() {
-    Alert.alert('Cancelar cita', '¿Seguro que quieres cancelar esta cita?', [
-      { text: 'No', style: 'cancel' },
-      {
-        text: 'Sí, cancelar',
-        style: 'destructive',
-        onPress: async () => {
-          await supabase.from('citas').update({ estado: 'cancelada' }).eq('id', citaId);
-          router.back();
-        },
-      },
-    ]);
+    setActualizando(true);
+    const { error } = await supabase.from('citas').delete().eq('id', citaId);
+    setActualizando(false);
+    if (!error) {
+      triggerRefresh();
+      router.back();
+    }
   }
 
   if (loading) return <View style={[s.center, { backgroundColor: c.bg }]}><ActivityIndicator color="#6366f1" /></View>;
@@ -98,6 +97,10 @@ export default function AgendaDetalleScreen() {
           )}
           <Divider />
           <Row icon="cash-outline" label="Precio" value={`${cita.servicios?.precio ?? 0}€`} />
+          <Divider />
+          <Row icon="timer-outline" label="Tiempo activo" value={`${cita.servicios?.duracion_activa_min ?? 0} min`} />
+          <Divider />
+          <Row icon="hourglass-outline" label="Tiempo de espera" value={`${cita.servicios?.duracion_espera_min ?? 0} min`} />
           {cita.canal !== 'manual' && (
             <>
               <Divider />
@@ -125,13 +128,44 @@ export default function AgendaDetalleScreen() {
           </View>
         )}
 
-        {cita.estado !== 'cancelada' && (
-          <TouchableOpacity style={[s.cancelBtn, { borderColor: c.border }]} onPress={eliminar}>
-            <Ionicons name="close-circle-outline" size={18} color="#ef4444" />
-            <Text style={s.cancelBtnText}>Cancelar cita</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={[s.cancelBtn, { borderColor: c.border }]}
+          onPress={() => setMostrarDialogoEliminar(true)}
+          disabled={actualizando}
+        >
+          <Ionicons name="trash-outline" size={18} color="#ef4444" />
+          <Text style={s.cancelBtnText}>Borrar cita</Text>
+        </TouchableOpacity>
       </ScrollView>
+
+      {mostrarnDialogoEliminar && (
+        <View style={s.dialogOverlay}>
+          <View style={[s.dialog, { backgroundColor: c.surface, borderColor: c.border }]}>
+            <Text style={[s.dialogTitle, { color: c.text }]}>Borrar cita</Text>
+            <Text style={[s.dialogMessage, { color: c.textSecondary }]}>
+              ¿Estás seguro de que quieres borrar esta cita? Este cambio no se puede revertir.
+            </Text>
+            <View style={s.dialogButtons}>
+              <TouchableOpacity
+                style={[s.dialogBtn, { backgroundColor: c.surface, borderColor: c.border }]}
+                onPress={() => setMostrarDialogoEliminar(false)}
+                disabled={actualizando}
+              >
+                <Text style={[s.dialogBtnText, { color: c.text }]}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.dialogBtn, s.dialogBtnDanger]}
+                onPress={eliminar}
+                disabled={actualizando}
+              >
+                <Text style={s.dialogBtnDangerText}>
+                  {actualizando ? '...' : 'Borrar'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 
@@ -198,4 +232,13 @@ const s = StyleSheet.create({
   panelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, borderBottomWidth: 1 },
   panelTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
   closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  dialogOverlay: { position: 'absolute' as any, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
+  dialog: { width: '80%', maxWidth: 320, borderRadius: radius.lg, borderWidth: 1, padding: spacing.lg, gap: spacing.md },
+  dialogTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
+  dialogMessage: { fontSize: fontSize.sm, lineHeight: 20 },
+  dialogButtons: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  dialogBtn: { flex: 1, paddingVertical: spacing.md, borderRadius: radius.md, alignItems: 'center', borderWidth: 1 },
+  dialogBtnText: { fontSize: fontSize.md, fontWeight: fontWeight.medium },
+  dialogBtnDanger: { backgroundColor: '#ef4444', borderColor: '#ef4444' },
+  dialogBtnDangerText: { color: '#fff', fontSize: fontSize.md, fontWeight: fontWeight.medium },
 });

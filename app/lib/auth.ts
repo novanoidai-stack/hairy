@@ -4,6 +4,9 @@ export interface UserProfile {
   id: string;
   email: string;
   nombre: string;
+  apellido?: string;
+  nombre_negocio?: string;
+  codigo_postal?: string;
   role: 'owner' | 'employee' | 'admin';
   negocio_id: string;
   phone: string;

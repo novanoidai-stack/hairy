@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator,
@@ -11,6 +12,7 @@ import { es } from 'date-fns/locale';
 import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { useCalendarRefresh } from '@/lib/calendarContext';
 
 const DAY_NAMES = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 const MONTH_NAMES = [
@@ -63,6 +65,8 @@ export default function AgendaCalendar() {
   const { c, isDark } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
+  const { refreshTrigger } = useCalendarRefresh();
 
   const today = new Date();
   const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
@@ -118,7 +122,59 @@ export default function AgendaCalendar() {
   useEffect(() => {
     if (!negocioId) return;
     loadMonth(month.year, month.month, negocioId);
-  }, [month, negocioId]);
+  }, [month, negocioId, loadMonth]);
+
+  useEffect(() => {
+    if (isFocused && negocioId) {
+      loadMonth(month.year, month.month, negocioId);
+    }
+  }, [isFocused, negocioId, month.year, month.month, loadMonth]);
+
+  useEffect(() => {
+    if (negocioId) {
+      loadMonth(month.year, month.month, negocioId);
+    }
+  }, [refreshTrigger, negocioId, month.year, month.month, loadMonth]);
+
+  // Listen for real-time changes in citas
+  useEffect(() => {
+    if (!negocioId) return;
+
+    const subscription = supabase
+      .channel(`citas:${negocioId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'citas' },
+        (payload: any) => {
+          if (payload.new?.negocio_id === negocioId) {
+            loadMonth(month.year, month.month, negocioId);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'citas' },
+        (payload: any) => {
+          if (payload.old?.negocio_id === negocioId) {
+            loadMonth(month.year, month.month, negocioId);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'citas' },
+        (payload: any) => {
+          if (payload.new?.negocio_id === negocioId) {
+            loadMonth(month.year, month.month, negocioId);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [negocioId, month.year, month.month, loadMonth]);
 
   // Dots per day: up to 3 profesional colors
   const dotsByDate = (() => {
