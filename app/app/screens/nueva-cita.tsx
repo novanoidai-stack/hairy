@@ -35,9 +35,10 @@ export default function NuevaCitaScreen() {
   const [errMsg, setErrMsg] = useState('');
 
   // Duration overrides
-  const [duracionOverride, setDuracionOverride] = useState<{ duracion_activa_min: number; duracion_espera_min: number } | null>(null);
+  const [duracionOverride, setDuracionOverride] = useState<{ duracion_activa_min: number; duracion_espera_min: number; duracion_activa_extra_min: number } | null>(null);
   const [duracionActivaCustom, setDuracionActivaCustom] = useState<number | null>(null);
   const [duracionEsperaCustom, setDuracionEsperaCustom] = useState<number | null>(null);
+  const [duracionActivaExtraCustom, setDuracionActivaExtraCustom] = useState<number | null>(null);
 
   useEffect(() => {
     async function cargar() {
@@ -47,7 +48,7 @@ export default function NuevaCitaScreen() {
 
       const [{ data: profs }, { data: servs }, { data: clts }] = await Promise.all([
         supabase.from('profesionales').select('id, nombre, color').eq('negocio_id', profile.negocio_id).eq('activo', true),
-        supabase.from('servicios').select('id, nombre, duracion_activa_min, duracion_espera_min, precio').eq('negocio_id', profile.negocio_id).eq('activo', true),
+        supabase.from('servicios').select('id, nombre, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, precio').eq('negocio_id', profile.negocio_id).eq('activo', true),
         supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', profile.negocio_id).order('nombre').limit(200),
       ]);
 
@@ -69,7 +70,7 @@ export default function NuevaCitaScreen() {
     }
     supabase
       .from('duraciones_profesional')
-      .select('duracion_activa_min, duracion_espera_min')
+      .select('duracion_activa_min, duracion_espera_min, duracion_activa_extra_min')
       .eq('profesional_id', profSeleccionado)
       .eq('servicio_id', servicioSeleccionado)
       .maybeSingle()
@@ -77,6 +78,7 @@ export default function NuevaCitaScreen() {
         setDuracionOverride(data ?? null);
         setDuracionActivaCustom(null);
         setDuracionEsperaCustom(null);
+        setDuracionActivaExtraCustom(null);
       });
   }, [profSeleccionado, servicioSeleccionado]);
 
@@ -91,9 +93,14 @@ export default function NuevaCitaScreen() {
     ?? duracionOverride?.duracion_espera_min
     ?? servicioActual?.duracion_espera_min
     ?? 0;
-  const duracionTotal = duracionActiva + duracionEspera;
+  const duracionActivaExtra = duracionActivaExtraCustom
+    ?? duracionOverride?.duracion_activa_extra_min
+    ?? servicioActual?.duracion_activa_extra_min
+    ?? 0;
+  const duracionTotal = duracionActiva + duracionEspera + duracionActivaExtra;
 
   const finActiva = dateFnsAddMinutes(new Date(inicio), duracionActiva);
+  const finEspera = dateFnsAddMinutes(new Date(inicio), duracionActiva + duracionEspera);
   const fin = dateFnsAddMinutes(new Date(inicio), duracionTotal);
 
   function cambiarDia(deltaDias: number) {
@@ -178,6 +185,22 @@ export default function NuevaCitaScreen() {
         return;
       }
 
+      // 3b. No solapar segunda fase activa (si existe)
+      if (duracionActivaExtra > 0) {
+        const { data: solapadasActivas2 } = await supabase
+          .from('citas')
+          .select('id')
+          .eq('profesional_id', profSeleccionado)
+          .neq('estado', 'cancelada')
+          .lt('inicio', fin.toISOString())             // otra.inicio < new.fin
+          .gt('fin_activa', finEspera.toISOString());  // otra.fin_activa > new.fin_espera (start of active2)
+
+        if (solapadasActivas2 && solapadasActivas2.length > 0) {
+          bloquear('El profesional ya tiene una cita activa en ese horario.');
+          return;
+        }
+      }
+
       // 4. No extender el fin si ya hay cita en fase de espera
       // Busca citas donde la nueva empieza en su fase de espera pero intenta extender el fin
       const { data: citasEspera } = await supabase
@@ -202,6 +225,7 @@ export default function NuevaCitaScreen() {
         inicio: inicio.toISOString(),
         fin: fin.toISOString(),
         fin_activa: finActiva.toISOString(),
+        fin_espera: finEspera.toISOString(),
         estado: 'confirmada',
         canal: 'manual',
       });
@@ -318,9 +342,18 @@ export default function NuevaCitaScreen() {
                   onPlus={() => setDuracionEsperaCustom(duracionEspera + 5)}
                   c={c} isDark={isDark}
                 />
+                {duracionEspera > 0 && (
+                  <DuracionRow
+                    label="Tiempo activo extra"
+                    value={duracionActivaExtra}
+                    onMinus={() => setDuracionActivaExtraCustom(Math.max(0, duracionActivaExtra - 5))}
+                    onPlus={() => setDuracionActivaExtraCustom(duracionActivaExtra + 5)}
+                    c={c} isDark={isDark}
+                  />
+                )}
                 <Text style={[s.horaFin, { color: c.textTertiary }]}>
                   Finaliza: {format(fin, 'HH:mm')} · {duracionTotal} min totales
-                  {duracionEspera > 0 && ` (${duracionActiva} activos + ${duracionEspera} espera)`}
+                  {duracionEspera > 0 && ` (${duracionActiva} activos + ${duracionEspera} espera${duracionActivaExtra > 0 ? ` + ${duracionActivaExtra} activos` : ''})`}
                 </Text>
               </View>
             )}

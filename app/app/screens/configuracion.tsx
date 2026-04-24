@@ -17,10 +17,11 @@ interface Servicio {
   precio: number;
   duracion_activa_min: number;
   duracion_espera_min: number;
+  duracion_activa_extra_min: number;
   activo: boolean;
 }
 
-const EMPTY_FORM = { nombre: '', precio: '', duracion_activa_min: '30', duracion_espera_min: '0', activo: true };
+const EMPTY_FORM = { nombre: '', precio: '', duracion_activa_min: '30', duracion_espera_min: '0', duracion_activa_extra_min: '0', activo: true };
 
 export default function ConfiguracionScreen() {
   const { c, isDark } = useTheme();
@@ -45,7 +46,7 @@ export default function ConfiguracionScreen() {
     setNegocioId(profile.negocio_id);
     const { data } = await supabase
       .from('servicios')
-      .select('id, nombre, precio, duracion_activa_min, duracion_espera_min, activo')
+      .select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, activo')
       .eq('negocio_id', profile.negocio_id)
       .order('nombre');
     setServicios(data ?? []);
@@ -65,6 +66,7 @@ export default function ConfiguracionScreen() {
       precio: String(sv.precio),
       duracion_activa_min: String(sv.duracion_activa_min),
       duracion_espera_min: String(sv.duracion_espera_min),
+      duracion_activa_extra_min: String(sv.duracion_activa_extra_min ?? 0),
       activo: sv.activo,
     });
     setModalVisible(true);
@@ -78,6 +80,7 @@ export default function ConfiguracionScreen() {
       precio: parseFloat(form.precio) || 0,
       duracion_activa_min: parseInt(form.duracion_activa_min) || 30,
       duracion_espera_min: parseInt(form.duracion_espera_min) || 0,
+      duracion_activa_extra_min: parseInt(form.duracion_activa_extra_min) || 0,
       activo: form.activo,
     };
     if (editando) {
@@ -264,10 +267,21 @@ export default function ConfiguracionScreen() {
                 </FormField>
               </View>
 
+              <FormField label="Tiempo activo extra (después de espera)" c={c}>
+                <TextInput
+                  style={[s.input, { color: c.text, borderColor: c.border, backgroundColor: c.surface }]}
+                  value={form.duracion_activa_extra_min}
+                  onChangeText={v => setForm(f => ({ ...f, duracion_activa_extra_min: v }))}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={c.textTertiary}
+                />
+              </FormField>
+
               <View style={[s.infoBox, { backgroundColor: '#6366f111', borderColor: '#6366f133' }]}>
                 <Ionicons name="information-circle-outline" size={16} color="#6366f1" />
                 <Text style={{ color: '#6366f1', fontSize: fontSize.xs, flex: 1 }}>
-                  Durante el tiempo de espera el profesional puede atender a otro cliente (ej. mientras procesa un tinte).
+                  Durante el tiempo de espera el profesional puede atender a otro cliente (ej. mientras procesa un tinte). El tiempo activo extra permite un segundo período activo después de la espera.
                 </Text>
               </View>
 

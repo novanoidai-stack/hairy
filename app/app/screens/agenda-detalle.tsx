@@ -35,7 +35,7 @@ export default function AgendaDetalleScreen() {
         .select(`
           id, inicio, fin, estado, notas, canal,
           profesionales(nombre, color),
-          servicios(nombre, precio, duracion_activa_min, duracion_espera_min),
+          servicios(nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min),
           clientes(id, nombre, telefono)
         `)
         .eq('id', citaId)
@@ -101,6 +101,12 @@ export default function AgendaDetalleScreen() {
           <Row icon="timer-outline" label="Tiempo activo" value={`${cita.servicios?.duracion_activa_min ?? 0} min`} />
           <Divider />
           <Row icon="hourglass-outline" label="Tiempo de espera" value={`${cita.servicios?.duracion_espera_min ?? 0} min`} />
+          {(cita.servicios?.duracion_activa_extra_min ?? 0) > 0 && (
+            <>
+              <Divider />
+              <Row icon="timer-outline" label="Tiempo activo extra" value={`${cita.servicios?.duracion_activa_extra_min ?? 0} min`} />
+            </>
+          )}
           {cita.canal !== 'manual' && (
             <>
               <Divider />
