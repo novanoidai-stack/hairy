@@ -166,7 +166,7 @@ export default function NuevaCitaScreen() {
       // 3. Active-phase overlap (parallel services allowed during wait time)
       const { data: solapadas, error: errSolapadas } = await supabase
         .from('citas')
-        .select('id')
+        .select('id, fin')
         .eq('profesional_id', profSeleccionado)
         .neq('estado', 'cancelada')
         .lt('inicio', finActiva.toISOString())
@@ -186,6 +186,21 @@ export default function NuevaCitaScreen() {
         }
       } else if (solapadas && solapadas.length > 0) {
         bloquear('El profesional ya tiene una cita activa en ese horario.');
+        return;
+      }
+
+      // 4. No extender después de otra cita que se ejecuta en paralelo
+      // Permite citas en la fase de espera, pero no si se extienden más allá del fin de otra cita
+      const { data: invasorEspera } = await supabase
+        .from('citas')
+        .select('id, fin')
+        .eq('profesional_id', profSeleccionado)
+        .neq('estado', 'cancelada')
+        .lte('fin_activa', inicio.toISOString())  // otra cita's active phase ends on or before new starts
+        .lt('fin', fin.toISOString());              // otra cita's total end is before new's total end
+
+      if (invasorEspera && invasorEspera.length > 0) {
+        bloquear('No puedes terminar después de otra cita que se ejecuta en paralelo. Intenta más tarde.');
         return;
       }
 

@@ -136,46 +136,6 @@ export default function AgendaCalendar() {
     }
   }, [refreshTrigger, negocioId, month.year, month.month, loadMonth]);
 
-  // Listen for real-time changes in citas
-  useEffect(() => {
-    if (!negocioId) return;
-
-    const subscription = supabase
-      .channel(`citas:${negocioId}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'citas' },
-        (payload: any) => {
-          if (payload.new?.negocio_id === negocioId) {
-            loadMonth(month.year, month.month, negocioId);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'citas' },
-        (payload: any) => {
-          if (payload.old?.negocio_id === negocioId) {
-            loadMonth(month.year, month.month, negocioId);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'citas' },
-        (payload: any) => {
-          if (payload.new?.negocio_id === negocioId) {
-            loadMonth(month.year, month.month, negocioId);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [negocioId, month.year, month.month, loadMonth]);
-
   // Dots per day: up to 3 profesional colors
   const dotsByDate = (() => {
     const map: Record<string, string[]> = {};
