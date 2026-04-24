@@ -93,8 +93,8 @@ export default function NuevaCitaScreen() {
     ?? 0;
   const duracionTotal = duracionActiva + duracionEspera;
 
-  const finActiva = dateFnsAddMinutes(inicio, duracionActiva);
-  const fin = dateFnsAddMinutes(inicio, duracionTotal);
+  const finActiva = dateFnsAddMinutes(new Date(inicio), duracionActiva);
+  const fin = dateFnsAddMinutes(new Date(inicio), duracionTotal);
 
   function cambiarDia(deltaDias: number) {
     const d = new Date(inicio);
@@ -191,15 +191,18 @@ export default function NuevaCitaScreen() {
 
       // 4. No extender después de otra cita que se ejecuta en paralelo
       // Permite citas en la fase de espera, pero no si se extienden más allá del fin de otra cita
+      console.log('Check 4 debug:', { inicio: inicio.toISOString(), fin: fin.toISOString(), duracionActiva, duracionEspera, duracionTotal });
+
       const { data: invasorEspera } = await supabase
         .from('citas')
-        .select('id, fin')
+        .select('id, fin, fin_activa, inicio')
         .eq('profesional_id', profSeleccionado)
         .neq('estado', 'cancelada')
         .lte('fin_activa', inicio.toISOString())  // otra cita's active phase ends on or before new starts
         .lt('fin', fin.toISOString());              // otra cita's total end is before new's total end
 
       if (invasorEspera && invasorEspera.length > 0) {
+        console.log('Check 4 rejection:', { new_inicio: inicio.toISOString(), new_fin: fin.toISOString(), duracionTotal, conflicts: invasorEspera });
         bloquear('No puedes terminar después de otra cita que se ejecuta en paralelo. Intenta más tarde.');
         return;
       }
