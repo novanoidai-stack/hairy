@@ -163,47 +163,34 @@ export default function NuevaCitaScreen() {
         }
       }
 
-      // 3. Active-phase overlap (parallel services allowed during wait time)
-      const { data: solapadas, error: errSolapadas } = await supabase
+      // 3. No solapar en fase activa
+      // Busca citas donde ambas fases activas se solapan
+      const { data: solapadasActivas } = await supabase
         .from('citas')
-        .select('id, fin')
+        .select('id')
         .eq('profesional_id', profSeleccionado)
         .neq('estado', 'cancelada')
-        .lt('inicio', finActiva.toISOString())
-        .gt('fin_activa', inicio.toISOString());
+        .lt('inicio', finActiva.toISOString())       // otra.inicio < new.fin_activa
+        .gt('fin_activa', inicio.toISOString());     // otra.fin_activa > new.inicio
 
-      if (errSolapadas) {
-        // fin_activa column might not exist on old rows — fall back to full overlap check
-        const { data: solapadasFallback } = await supabase
-          .from('citas').select('id')
-          .eq('profesional_id', profSeleccionado)
-          .neq('estado', 'cancelada')
-          .lt('inicio', fin.toISOString())
-          .gt('fin', inicio.toISOString());
-        if (solapadasFallback && solapadasFallback.length > 0) {
-          bloquear('El profesional ya tiene una cita en ese horario.');
-          return;
-        }
-      } else if (solapadas && solapadas.length > 0) {
+      if (solapadasActivas && solapadasActivas.length > 0) {
         bloquear('El profesional ya tiene una cita activa en ese horario.');
         return;
       }
 
-      // 4. No extender después de otra cita que se ejecuta en paralelo
-      // Permite citas en la fase de espera, pero no si se extienden más allá del fin de otra cita
-      console.log('Check 4 debug:', { inicio: inicio.toISOString(), fin: fin.toISOString(), duracionActiva, duracionEspera, duracionTotal });
-
-      const { data: invasorEspera } = await supabase
+      // 4. No extender el fin si ya hay cita en fase de espera
+      // Busca citas donde la nueva empieza en su fase de espera pero intenta extender el fin
+      const { data: citasEspera } = await supabase
         .from('citas')
-        .select('id, fin, fin_activa, inicio')
+        .select('id, fin')
         .eq('profesional_id', profSeleccionado)
         .neq('estado', 'cancelada')
-        .lte('fin_activa', inicio.toISOString())  // otra cita's active phase ends on or before new starts
-        .lt('fin', fin.toISOString());              // otra cita's total end is before new's total end
+        .lte('fin_activa', inicio.toISOString())    // otra.fin_activa <= new.inicio (new in/after wait phase)
+        .gte('fin', inicio.toISOString())           // otra.fin >= new.inicio (they overlap)
+        .lt('fin', fin.toISOString());              // otra.fin < new.fin (new extends past)
 
-      if (invasorEspera && invasorEspera.length > 0) {
-        console.log('Check 4 rejection:', { new_inicio: inicio.toISOString(), new_fin: fin.toISOString(), duracionTotal, conflicts: invasorEspera });
-        bloquear('No puedes terminar después de otra cita que se ejecuta en paralelo. Intenta más tarde.');
+      if (citasEspera && citasEspera.length > 0) {
+        bloquear('No puedes terminar después de otra cita. El profesional sigue ocupado en esa franja.');
         return;
       }
 
