@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hairy · Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #0b1220; color: #f8fafc; font-family: 'Inter', sans-serif; }
+  *, *::before, *::after { box-sizing: border-box; }
+  deck-stage > section { width: 1920px; height: 1080px; background: #0b1220; overflow: hidden; }
+  ::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<deck-stage>
+  <section data-screen-label="01 Cover">
+    <div id="slide-cover" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at top right, rgba(99,102,241,0.25), transparent 60%), radial-gradient(ellipse at bottom left, rgba(139,92,246,0.18), transparent 55%), #0b1220;">
+      <div style="text-align:center; padding: 80px;">
+        <div id="cover-logo"></div>
+        <h1 style="font-family:'Instrument Serif', serif; font-size: 140px; line-height:1; margin: 40px 0 24px; letter-spacing:-3px; color:#f8fafc;">hairy</h1>
+        <div style="font-size: 22px; color:#94a3b8; max-width: 720px; margin:0 auto 40px; line-height: 1.5;">Rediseño dark mode de la plataforma de gestión profesional para peluquerías y barberías</div>
+        <div style="display:inline-flex; gap: 12px; padding: 10px 20px; background: rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.30); border-radius: 999px; color:#818cf8; font-size: 14px; font-weight: 600; letter-spacing: 1.5px;">VERSIÓN 2.0 · OCTUBRE 2026</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="02 Sistema visual">
+    <div id="slide-system"></div>
+  </section>
+
+  <section data-screen-label="03 Agenda">
+    <div id="slide-agenda" style="width:100%;height:100%;"></div>
+  </section>
+
+  <section data-screen-label="04 Clientes">
+    <div id="slide-clientes" style="width:100%;height:100%;"></div>
+  </section>
+
+  <section data-screen-label="05 Equipo">
+    <div id="slide-equipo" style="width:100%;height:100%;"></div>
+  </section>
+
+  <section data-screen-label="06 Configuración">
+    <div id="slide-config" style="width:100%;height:100%;"></div>
+  </section>
+
+  <section data-screen-label="07 Nueva cita modal">
+    <div id="slide-modal" style="width:100%;height:100%;"></div>
+  </section>
+
+  <section data-screen-label="08 Mobile">
+    <div id="slide-mobile" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center, rgba(99,102,241,0.12), transparent 60%), #0b1220;"></div>
+  </section>
+</deck-stage>
+
+<script src="deck-stage.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="screens/shared.jsx"></script>
+<script type="text/babel" src="screens/agenda.jsx"></script>
+<script type="text/babel" src="screens/clientes.jsx"></script>
+<script type="text/babel" src="screens/equipo.jsx"></script>
+<script type="text/babel" src="screens/config.jsx"></script>
+<script type="text/babel" src="screens/modals.jsx"></script>
+<script type="text/babel" src="screens/mobile.jsx"></script>
+
+<script type="text/babel" data-presets="react">
+function DesktopShell({ active, children, modal }) {
+  return (
+    <div style={{ width: 1920, height: 1080, display:'flex', background: window.TOKENS.bg, color: window.TOKENS.text, position:'relative', overflow:'hidden', fontFamily:'Inter, sans-serif' }}>
+      <window.Sidebar active={active} />
+      <div style={{ flex: 1, minWidth: 0, position:'relative' }}>
+        {children}
+        {modal}
+      </div>
+    </div>
+  );
+}
+
+function SystemSlide() {
+  const T = window.TOKENS;
+  return (
+    <div style={{ width:'100%', height:'100%', padding: 100, color: T.text, display:'flex', flexDirection:'column', gap: 60 }}>
+      <div>
+        <div style={{ fontSize: 14, letterSpacing: 4, color: T.textTer, fontWeight: 600 }}>SISTEMA VISUAL</div>
+        <h1 style={{ fontFamily:'"Instrument Serif", serif', fontSize: 80, margin:'8px 0 0', letterSpacing:-1.5 }}>Tokens y fundamentos</h1>
+      </div>
+
+      <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr 1fr', gap: 40 }}>
+        {/* Color */}
+        <div>
+          <div style={{ fontSize: 16, letterSpacing: 2, color: T.textTer, fontWeight: 600, marginBottom: 18 }}>COLOR</div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap: 12 }}>
+            {[
+              {n:'Background', c:'#0b1220'},
+              {n:'Panel', c:'#0f172a'},
+              {n:'Card', c:'#141f33'},
+              {n:'Border', c:'#1e293b'},
+              {n:'Primary', c:'#6366f1'},
+              {n:'Primary Hi', c:'#818cf8'},
+              {n:'Success', c:'#10b981'},
+              {n:'Warning', c:'#f59e0b'},
+            ].map(s => (
+              <div key={s.n}>
+                <div style={{ height: 70, background: s.c, borderRadius: 12, border: `1px solid ${T.border}`, boxShadow: s.c === '#6366f1' ? `0 8px 24px ${s.c}55` : 'none' }} />
+                <div style={{ fontSize: 12, color: T.text, marginTop: 8, fontWeight: 600 }}>{s.n}</div>
+                <div style={{ fontSize: 11, color: T.textTer, fontFamily:'monospace' }}>{s.c}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Typography */}
+        <div>
+          <div style={{ fontSize: 16, letterSpacing: 2, color: T.textTer, fontWeight: 600, marginBottom: 18 }}>TIPOGRAFÍA</div>
+          <div style={{ background: T.bgCard, border:`1px solid ${T.border}`, borderRadius: 14, padding: 24 }}>
+            <div style={{ fontFamily:'"Instrument Serif", serif', fontSize: 56, lineHeight: 1, color: T.text }}>Display</div>
+            <div style={{ fontSize: 11, color: T.textTer, marginTop: 4 }}>Instrument Serif · 56px</div>
+            <div style={{ height: 1, background: T.border, margin:'18px 0' }} />
+            <div style={{ fontSize: 28, fontWeight: 700, color: T.text, letterSpacing:-0.4 }}>Heading</div>
+            <div style={{ fontSize: 11, color: T.textTer, marginTop: 4 }}>Inter 700 · 28px</div>
+            <div style={{ height: 1, background: T.border, margin:'18px 0' }} />
+            <div style={{ fontSize: 14, color: T.textSec }}>Body — texto en pantalla. Inter 400/500.</div>
+          </div>
+        </div>
+
+        {/* Components */}
+        <div>
+          <div style={{ fontSize: 16, letterSpacing: 2, color: T.textTer, fontWeight: 600, marginBottom: 18 }}>COMPONENTES</div>
+          <div style={{ background: T.bgCard, border:`1px solid ${T.border}`, borderRadius: 14, padding: 24, display:'flex', flexDirection:'column', gap: 14 }}>
+            <window.Btn variant="primary" icon={window.I.plus}>Botón primario</window.Btn>
+            <window.Btn variant="ghost" icon={window.I.cal}>Botón ghost</window.Btn>
+            <div style={{ display:'flex', gap: 8, flexWrap:'wrap' }}>
+              <window.Pill color="#6366f1">Confirmada</window.Pill>
+              <window.Pill color="#10b981">Completada</window.Pill>
+              <window.Pill color="#f59e0b">Pendiente</window.Pill>
+              <window.Pill color="#ef4444">No-show</window.Pill>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileSlide() {
+  return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap: 80 }}>
+      <div style={{ maxWidth: 540 }}>
+        <div style={{ fontSize: 14, letterSpacing: 4, color: '#64748b', fontWeight: 600 }}>MOBILE</div>
+        <h1 style={{ fontFamily:'"Instrument Serif", serif', fontSize: 90, margin:'8px 0 24px', letterSpacing:-2, color:'#f8fafc' }}>En el bolsillo</h1>
+        <div style={{ fontSize: 20, lineHeight: 1.5, color: '#94a3b8' }}>
+          App nativa para iOS y Android. Misma agenda, mismos clientes, mismo equipo — desde cualquier lugar del salón.
+        </div>
+        <div style={{ marginTop: 32, display:'flex', flexDirection:'column', gap: 16 }}>
+          {['Vista semanal con citas resaltadas','Tarjetas con estado en tiempo real','Acceso rápido a "Nueva cita"','Sincronización instantánea con desktop'].map((t,i) => (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap: 14, fontSize: 16, color:'#cbd5e1' }}>
+              <div style={{ width: 28, height: 28, borderRadius: 999, background:'rgba(99,102,241,0.18)', border:'1px solid rgba(99,102,241,0.4)', color:'#818cf8', display:'grid', placeItems:'center', flexShrink:0 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="m20 6-11 11-5-5"/></svg>
+              </div>
+              {t}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ transform:'scale(1.4)', transformOrigin:'center' }}>
+        <window.MobileAgenda />
+      </div>
+    </div>
+  );
+}
+
+// Mount each slide
+ReactDOM.createRoot(document.getElementById('cover-logo')).render(<window.HairyLogo size={64} />);
+ReactDOM.createRoot(document.getElementById('slide-system')).render(<SystemSlide />);
+ReactDOM.createRoot(document.getElementById('slide-agenda')).render(<DesktopShell active="agenda"><window.ScreenAgenda /></DesktopShell>);
+ReactDOM.createRoot(document.getElementById('slide-clientes')).render(<DesktopShell active="clientes"><window.ScreenClientes /></DesktopShell>);
+ReactDOM.createRoot(document.getElementById('slide-equipo')).render(<DesktopShell active="equipo"><window.ScreenEquipo /></DesktopShell>);
+ReactDOM.createRoot(document.getElementById('slide-config')).render(<DesktopShell active="config"><window.ScreenConfig /></DesktopShell>);
+ReactDOM.createRoot(document.getElementById('slide-modal')).render(
+  <DesktopShell active="agenda" modal={<window.NuevaCitaModal onClose={() => {}} />}>
+    <window.ScreenAgenda />
+  </DesktopShell>
+);
+ReactDOM.createRoot(document.getElementById('slide-mobile')).render(<MobileSlide />);
+</script>
+</body>
+</html>
