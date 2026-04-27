@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
@@ -17,13 +18,57 @@ export function Sidebar() {
   const pathname = usePathname();
   const configActive = pathname.includes('/screens/configuracion');
 
+  // Animation refs for nav items stagger
+  const navAnimations = useRef(NAV_ITEMS.map(() => new Animated.Value(0))).current;
+  const badgePulse = useRef(new Animated.Value(1)).current;
+  const [pressedItem, setPressedItem] = useState<string | null>(null);
+
+  // Stagger entry animation for nav items
+  useEffect(() => {
+    Animated.stagger(
+      60,
+      navAnimations.map((anim) =>
+        Animated.timing(anim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        })
+      )
+    ).start();
+  }, []);
+
+  // Logo badge pulse animation
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(badgePulse, {
+          toValue: 1.08,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(badgePulse, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
   return (
     <View style={s.sidebar}>
       {/* Logo */}
       <View style={s.logoContainer}>
-        <View style={s.logoBadge}>
+        <Animated.View
+          style={[
+            s.logoBadge,
+            {
+              transform: [{ scale: badgePulse }],
+            },
+          ]}
+        >
           <Ionicons name="cut" size={16} color="#fff" />
-        </View>
+        </Animated.View>
         <View>
           <Text style={s.logoText}>hairy</Text>
           <Text style={s.logoSubtext}>studio · pro</Text>
@@ -40,24 +85,41 @@ export function Sidebar() {
       {/* Navigation */}
       <View style={s.navSection}>
         <Text style={s.navSectionLabel}>PRINCIPAL</Text>
-        {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href || (item.href === '/(tabs)' && pathname === '/');
+        {NAV_ITEMS.map((item, idx) => {
+          const isActive = pathname === item.href || pathname.endsWith(item.label.toLowerCase()) || (item.href === '/(tabs)' && (pathname === '/' || pathname === '/(tabs)'));
+          const animValue = navAnimations[idx];
           return (
-            <TouchableOpacity
+            <Animated.View
               key={item.href}
-              style={[s.navItem, isActive && s.navItemActive]}
-              onPress={() => router.push(item.href as any)}
+              style={{
+                opacity: animValue,
+                transform: [
+                  {
+                    translateX: animValue.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-20, 0],
+                    }),
+                  },
+                ],
+              }}
             >
-              {isActive && <View style={s.navItemBar} />}
-              <Ionicons
-                name={(isActive ? item.activeIcon : item.icon) as any}
-                size={18}
-                color={isActive ? tokens.primaryHi : tokens.textSecondary}
-              />
-              <Text style={[s.navLabel, isActive && s.navLabelActive]}>
-                {item.label}
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.navItem, isActive && s.navItemActive]}
+                onPress={() => router.push(item.href as any)}
+                onPressIn={() => setPressedItem(item.href)}
+                onPressOut={() => setPressedItem(null)}
+              >
+                {isActive && <View style={s.navItemBar} />}
+                <Ionicons
+                  name={(isActive ? item.activeIcon : item.icon) as any}
+                  size={18}
+                  color={isActive ? tokens.primaryHi : tokens.textSecondary}
+                />
+                <Text style={[s.navLabel, isActive && s.navLabelActive]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
           );
         })}
       </View>
@@ -80,7 +142,11 @@ export function Sidebar() {
         </TouchableOpacity>
 
         {/* Account card */}
-        <View style={s.accountCard}>
+        <TouchableOpacity
+          style={s.accountCard}
+          onPressIn={() => setPressedItem('account')}
+          onPressOut={() => setPressedItem(null)}
+        >
           <View style={s.accountAvatar}>
             <Text style={s.accountInitial}>RM</Text>
           </View>
@@ -89,7 +155,7 @@ export function Sidebar() {
             <Text style={s.accountRole}>Salón Bonita · Admin</Text>
           </View>
           <Ionicons name="chevron-forward" size={14} color={tokens.textTertiary} />
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
