@@ -1,4 +1,4 @@
-import { Text, TextProps } from 'react-native';
+import { Text, TextProps, TextInput, TextInputProps } from 'react-native';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 
 interface TTextProps extends TextProps {
@@ -16,10 +16,20 @@ export function TText({ style, weight = '400', children, ...rest }: TTextProps) 
 
   let styleArray = Array.isArray(style) ? style : (style ? [style] : []);
 
-  // Always apply white as default, but allow style to override it
   return (
     <Text {...rest} style={[{ fontFamily, color: DESIGN_TOKENS.text }, ...styleArray]}>
       {children}
     </Text>
+  );
+}
+
+export function TTextInput({ style, ...rest }: TextInputProps) {
+  let styleArray = Array.isArray(style) ? style : (style ? [style] : []);
+  return (
+    <TextInput
+      {...rest}
+      style={[{ fontFamily: 'Inter_400Regular' }, ...styleArray]}
+      placeholderTextColor={rest.placeholderTextColor || DESIGN_TOKENS.textTertiary}
+    />
   );
 }

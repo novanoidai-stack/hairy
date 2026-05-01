@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { TText } from '@/components/ui/TText';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'expo-router';
@@ -14,17 +14,20 @@ const NAV_ITEMS = [
   { label: 'Informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes' },
 ];
 
+const HOVER_DURATION = 200;
+
 export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const configActive = pathname.includes('/screens/configuracion');
+  const configActive = pathname.includes('configuracion');
 
-  // Animation refs for nav items stagger
   const navAnimations = useRef(NAV_ITEMS.map(() => new Animated.Value(0))).current;
+  const navHoverAnims = useRef(NAV_ITEMS.map(() => new Animated.Value(0))).current;
+  const configHoverAnim = useRef(new Animated.Value(0)).current;
+  const accountScaleAnim = useRef(new Animated.Value(1)).current;
   const badgePulse = useRef(new Animated.Value(1)).current;
-  const [pressedItem, setPressedItem] = useState<string | null>(null);
+  const [accountHovered, setAccountHovered] = useState(false);
 
-  // Stagger entry animation for nav items
   useEffect(() => {
     Animated.stagger(
       60,
@@ -38,36 +41,28 @@ export function Sidebar() {
     ).start();
   }, []);
 
-  // Logo badge pulse animation
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(badgePulse, {
-          toValue: 1.08,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(badgePulse, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
+        Animated.timing(badgePulse, { toValue: 1.08, duration: 1500, useNativeDriver: true }),
+        Animated.timing(badgePulse, { toValue: 1, duration: 1500, useNativeDriver: true }),
       ])
     ).start();
   }, []);
+
+  const hoverIn = (anim: Animated.Value) => {
+    Animated.timing(anim, { toValue: 1, duration: HOVER_DURATION, useNativeDriver: true }).start();
+  };
+
+  const hoverOut = (anim: Animated.Value) => {
+    Animated.timing(anim, { toValue: 0, duration: HOVER_DURATION, useNativeDriver: true }).start();
+  };
 
   return (
     <View style={s.sidebar}>
       {/* Logo */}
       <View style={s.logoContainer}>
-        <Animated.View
-          style={[
-            s.logoBadge,
-            {
-              transform: [{ scale: badgePulse }],
-            },
-          ]}
-        >
+        <Animated.View style={[s.logoBadge, { transform: [{ scale: badgePulse }] }]}>
           <Ionicons name="cut" size={16} color="#fff" />
         </Animated.View>
         <View>
@@ -87,28 +82,28 @@ export function Sidebar() {
       <View style={s.navSection}>
         <TText style={s.navSectionLabel}>PRINCIPAL</TText>
         {NAV_ITEMS.map((item, idx) => {
-          const isActive = pathname === item.href || pathname.endsWith(item.label.toLowerCase()) || (item.href === '/(tabs)' && (pathname === '/' || pathname === '/(tabs)'));
-          const animValue = navAnimations[idx];
+          const isActive =
+            pathname === item.href ||
+            pathname.endsWith(item.label.toLowerCase()) ||
+            (item.href === '/(tabs)' && (pathname === '/' || pathname === '/(tabs)'));
+
+          const entryAnim = navAnimations[idx];
+          const hoverAnim = navHoverAnims[idx];
+          const combinedX = Animated.add(
+            entryAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }),
+            hoverAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 4] })
+          );
+
           return (
             <Animated.View
               key={item.href}
-              style={{
-                opacity: animValue,
-                transform: [
-                  {
-                    translateX: animValue.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [-20, 0],
-                    }),
-                  },
-                ],
-              }}
+              style={{ opacity: entryAnim, transform: [{ translateX: combinedX }] }}
             >
               <TouchableOpacity
                 style={[s.navItem, isActive && s.navItemActive]}
                 onPress={() => router.push(item.href as any)}
-                onPressIn={() => setPressedItem(item.href)}
-                onPressOut={() => setPressedItem(null)}
+                onMouseEnter={() => hoverIn(hoverAnim)}
+                onMouseLeave={() => hoverOut(hoverAnim)}
               >
                 {isActive && <View style={s.navItemBar} />}
                 <Ionicons
@@ -127,36 +122,54 @@ export function Sidebar() {
 
       {/* Bottom section */}
       <View>
-        <TouchableOpacity
-          style={[s.navItem, configActive && s.navItemActive]}
-          onPress={() => router.push('/screens/configuracion' as any)}
+        <Animated.View
+          style={{
+            transform: [
+              { translateX: configHoverAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 4] }) },
+            ],
+          }}
         >
-          {configActive && <View style={s.navItemBar} />}
-          <Ionicons
-            name={configActive ? 'settings' : 'settings-outline'}
-            size={18}
-            color={configActive ? tokens.primaryHi : tokens.textSecondary}
-          />
-          <TText style={[s.navLabel, configActive && s.navLabelActive]}>
-            Configuración
-          </TText>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.navItem, configActive && s.navItemActive]}
+            onPress={() => router.push('/(tabs)/configuracion' as any)}
+            onMouseEnter={() => hoverIn(configHoverAnim)}
+            onMouseLeave={() => hoverOut(configHoverAnim)}
+          >
+            {configActive && <View style={s.navItemBar} />}
+            <Ionicons
+              name={configActive ? 'settings' : 'settings-outline'}
+              size={18}
+              color={configActive ? tokens.primaryHi : tokens.textSecondary}
+            />
+            <TText style={[s.navLabel, configActive && s.navLabelActive]}>
+              Configuración
+            </TText>
+          </TouchableOpacity>
+        </Animated.View>
 
         {/* Account card */}
-        <TouchableOpacity
-          style={s.accountCard}
-          onPressIn={() => setPressedItem('account')}
-          onPressOut={() => setPressedItem(null)}
-        >
-          <View style={s.accountAvatar}>
-            <TText style={s.accountInitial}>RM</TText>
-          </View>
-          <View style={{ flex: 1 }}>
-            <TText style={s.accountName}>Rosa Mendoza</TText>
-            <TText style={s.accountRole}>Salón Bonita · Admin</TText>
-          </View>
-          <Ionicons name="chevron-forward" size={14} color={tokens.textTertiary} />
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: accountScaleAnim }] }}>
+          <TouchableOpacity
+            style={[s.accountCard, accountHovered && s.accountCardHovered]}
+            onMouseEnter={() => {
+              setAccountHovered(true);
+              Animated.timing(accountScaleAnim, { toValue: 1.02, duration: HOVER_DURATION, useNativeDriver: true }).start();
+            }}
+            onMouseLeave={() => {
+              setAccountHovered(false);
+              Animated.timing(accountScaleAnim, { toValue: 1, duration: HOVER_DURATION, useNativeDriver: true }).start();
+            }}
+          >
+            <View style={s.accountAvatar}>
+              <TText style={s.accountInitial}>RM</TText>
+            </View>
+            <View style={{ flex: 1 }}>
+              <TText style={s.accountName}>Rosa Mendoza</TText>
+              <TText style={s.accountRole}>Salón Bonita · Admin</TText>
+            </View>
+            <Ionicons name="chevron-forward" size={14} color={tokens.textTertiary} />
+          </TouchableOpacity>
+        </Animated.View>
       </View>
     </View>
   );
@@ -283,6 +296,11 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.border,
     marginTop: tokens.spacing.lg,
+    transition: 'background-color 0.2s ease, border-color 0.2s ease' as any,
+  },
+  accountCardHovered: {
+    borderColor: 'rgba(99,102,241,0.3)',
+    backgroundColor: 'rgba(99,102,241,0.05)',
   },
   accountAvatar: {
     width: 34,

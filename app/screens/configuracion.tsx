@@ -12,7 +12,7 @@ import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { Topbar, Card, Btn, Loading } from '@/components/ui/DesignComponents';
-import { TText } from '@/components/ui/TText';
+import { TText, TTextInput } from '@/components/ui/TText';
 
 const tokens = DESIGN_TOKENS;
 
