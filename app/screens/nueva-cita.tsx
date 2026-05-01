@@ -47,9 +47,9 @@ export default function NuevaCitaScreen() {
       setNegocioId(profile.negocio_id);
 
       const [{ data: profs }, { data: servs }, { data: clts }] = await Promise.all([
-        supabase.from('profesionales').select('id, nombre, color').eq('negocio_id', profile.negocio_id).eq('activo', true),
-        supabase.from('servicios').select('id, nombre, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, precio').eq('negocio_id', profile.negocio_id).eq('activo', true),
-        supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', profile.negocio_id).order('nombre').limit(200),
+        supabase.from('profesionales').select('*').eq('negocio_id', profile.negocio_id).eq('activo', true),
+        supabase.from('servicios').select('*').eq('negocio_id', profile.negocio_id).eq('activo', true),
+        supabase.from('clientes').select('*').eq('negocio_id', profile.negocio_id).order('nombre').limit(200),
       ]);
 
       setProfesionales(profs ?? []);
