@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hairy · Rediseño</title>
+<template id="__bundler_thumbnail" data-bg-color="#0b1220">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#818cf8"/>
+        <stop offset="100%" stop-color="#4f46e5"/>
+      </linearGradient>
+    </defs>
+    <rect width="1200" height="800" fill="#0b1220"/>
+    <rect x="500" y="300" width="200" height="200" rx="40" fill="url(#g)"/>
+    <text x="600" y="640" font-family="Georgia, serif" font-size="80" fill="#f8fafc" text-anchor="middle" font-style="italic">hairy</text>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #0b1220; color: #f8fafc; font-family: 'Inter', sans-serif; }
+  *, *::before, *::after { box-sizing: border-box; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.18); border-radius: 99px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  button { font-family: inherit; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="screens/shared.jsx"></script>
+<script type="text/babel" src="screens/agenda.jsx"></script>
+<script type="text/babel" src="screens/clientes.jsx"></script>
+<script type="text/babel" src="screens/equipo.jsx"></script>
+<script type="text/babel" src="screens/config.jsx"></script>
+<script type="text/babel" src="screens/modals.jsx"></script>
+<script type="text/babel" src="screens/mobile.jsx"></script>
+
+<script type="text/babel" data-presets="react">
+function DesktopShell({ active, children, modal }) {
+  return (
+    <div style={{ width: 1440, height: 900, display:'flex', background: window.TOKENS.bg, color: window.TOKENS.text, position:'relative', overflow:'hidden', fontFamily:'Inter, sans-serif' }}>
+      <window.Sidebar active={active} />
+      <div style={{ flex: 1, minWidth: 0, position:'relative' }}>
+        {children}
+        {modal}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <window.DesignCanvas>
+      <window.DCSection id="desktop" title="Desktop · 4 secciones principales" subtitle="Dark mode · sidebar persistente · 1440×900">
+        <window.DCArtboard id="agenda" label="01 · Agenda" width={1440} height={900}>
+          <DesktopShell active="agenda"><window.ScreenAgenda /></DesktopShell>
+        </window.DCArtboard>
+        <window.DCArtboard id="clientes" label="02 · Clientes" width={1440} height={900}>
+          <DesktopShell active="clientes"><window.ScreenClientes /></DesktopShell>
+        </window.DCArtboard>
+        <window.DCArtboard id="equipo" label="03 · Equipo" width={1440} height={900}>
+          <DesktopShell active="equipo"><window.ScreenEquipo /></DesktopShell>
+        </window.DCArtboard>
+        <window.DCArtboard id="config" label="04 · Configuración" width={1440} height={900}>
+          <DesktopShell active="config"><window.ScreenConfig /></DesktopShell>
+        </window.DCArtboard>
+      </window.DCSection>
+
+      <window.DCSection id="modales" title="Modales y overlays" subtitle="Crear / editar elementos">
+        <window.DCArtboard id="nueva-cita" label="Nueva cita · 3 pasos" width={1440} height={900}>
+          <DesktopShell active="agenda" modal={<window.NuevaCitaModal onClose={() => {}} />}>
+            <window.ScreenAgenda />
+          </DesktopShell>
+        </window.DCArtboard>
+      </window.DCSection>
+
+      <window.DCSection id="mobile" title="Mobile (iOS · React Native)" subtitle="App nativa con tab bar">
+        <window.DCArtboard id="mob-agenda" label="Agenda mobile" width={420} height={820}>
+          <div style={{ width: 420, height: 820, display:'grid', placeItems:'center', background:'#0b1220' }}>
+            <window.MobileAgenda />
+          </div>
+        </window.DCArtboard>
+      </window.DCSection>
+    </window.DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

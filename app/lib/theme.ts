@@ -42,6 +42,7 @@ export const colors = {
     text: '#f8fafc',
     textSecondary: '#94a3b8',
     textTertiary: '#64748b',
+    textMuted: '#475569',
     tabBar: '#0f172a',
     tabBarBorder: '#0f172a',
   },

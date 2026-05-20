@@ -7,9 +7,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
+import { useTheme } from '@/lib/theme';
+import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { Topbar, Card, Btn, Loading } from '@/components/ui/DesignComponents';
+import { TText } from '@/components/ui/TText';
 
 interface Profesional {
   id: string;
@@ -27,6 +30,8 @@ interface Bloqueo {
   recurrencia?: string;
 }
 
+const tokens = DESIGN_TOKENS;
+
 const TIPOS_BLOQUEO = [
   { key: 'vacaciones', label: 'Vacaciones', color: '#f59e0b' },
   { key: 'reunion', label: 'Reunión', color: '#3b82f6' },
@@ -34,6 +39,8 @@ const TIPOS_BLOQUEO = [
   { key: 'formacion', label: 'Formación', color: '#8b5cf6' },
   { key: 'descanso', label: 'Descanso', color: '#10b981' },
 ];
+
+const COLORES = ['#6366f1', '#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'];
 
 export default function EquipoScreen() {
   const { c } = useTheme();
@@ -43,27 +50,22 @@ export default function EquipoScreen() {
   const [loading, setLoading] = useState(true);
   const [negocioNombre, setNegocioNombre] = useState('');
 
-  // Modal crear profesional
   const [modalProfVisible, setModalProfVisible] = useState(false);
   const [nombreProf, setNombreProf] = useState('');
   const [colorProf, setColorProf] = useState('#6366f1');
   const [guardandoProf, setGuardandoProf] = useState(false);
 
-  // Modal gestionar bloques
   const [modalBloquesVisible, setModalBloquesVisible] = useState(false);
   const [profSeleccionada, setProfSeleccionada] = useState<Profesional | null>(null);
   const [bloques, setBloques] = useState<Bloqueo[]>([]);
   const [cargandoBloques, setCargandoBloques] = useState(false);
 
-  // Modal crear bloqueo
   const [modalBloqueVisible, setModalBloqueVisible] = useState(false);
   const [tipoBloqueo, setTipoBloqueo] = useState('vacaciones');
   const [motivoBloqueo, setMotivoBloqueo] = useState('');
   const [fechaInicio, setFechaInicio] = useState(new Date());
   const [fechaFin, setFechaFin] = useState(new Date());
   const [guardandoBloqueo, setGuardandoBloqueo] = useState(false);
-
-  const COLORES = ['#6366f1', '#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'];
 
   useEffect(() => {
     cargarEquipo();
@@ -82,6 +84,7 @@ export default function EquipoScreen() {
       .from('profesionales')
       .select('id, nombre, color, activo')
       .eq('negocio_id', profile.negocio_id)
+      .eq('activo', true)
       .order('nombre');
 
     setProfesionales(profs ?? []);
@@ -142,26 +145,137 @@ export default function EquipoScreen() {
     setModalBloquesVisible(true);
   }
 
-  async function crearBloqueo() {
-    if (!profSeleccionada) return;
-    setGuardandoBloqueo(true);
+  async function _insertarBloqueo() {
     const { error } = await supabase.from('bloqueos_profesional').insert({
       negocio_id: negocioId,
-      profesional_id: profSeleccionada.id,
+      profesional_id: profSeleccionada!.id,
       tipo: tipoBloqueo,
       inicio: fechaInicio.toISOString(),
       fin: fechaFin.toISOString(),
       motivo: motivoBloqueo.trim() || null,
     });
     setGuardandoBloqueo(false);
-    if (error) {
-      Alert.alert('Error', error.message);
-      return;
-    }
+    if (error) { Alert.alert('Error', error.message); return; }
     setModalBloqueVisible(false);
     setTipoBloqueo('vacaciones');
     setMotivoBloqueo('');
-    abrirBloques(profSeleccionada);
+    abrirBloques(profSeleccionada!);
+  }
+
+  async function crearBloqueo() {
+    if (!profSeleccionada) return;
+    setGuardandoBloqueo(true);
+
+    // CE-AG-08: check for confirmed/proposed citas in the block period
+    const { data: citasAfectadas } = await supabase
+      .from('citas')
+      .select('id, inicio, fin, fin_espera, clientes(nombre)')
+      .eq('negocio_id', negocioId)
+      .eq('profesional_id', profSeleccionada.id)
+      .in('estado', ['confirmada', 'propuesta', 'en_curso'])
+      .lt('inicio', fechaFin.toISOString())
+      .gt('fin', fechaInicio.toISOString());
+
+    setGuardandoBloqueo(false);
+
+    if (!citasAfectadas || citasAfectadas.length === 0) {
+      setGuardandoBloqueo(true);
+      await _insertarBloqueo();
+      return;
+    }
+
+    const resumen = citasAfectadas
+      .map((c: any) => `- ${c.clientes?.nombre ?? 'Clienta'} (${format(parseISO(c.inicio), 'dd/MM HH:mm', { locale: es })})`)
+      .join('\n');
+
+    Alert.alert(
+      `${citasAfectadas.length} cita(s) afectada(s)`,
+      `${resumen}\n\n¿Que deseas hacer?`,
+      [
+        { text: 'No crear bloqueo', style: 'cancel' },
+        {
+          text: 'Cancelar citas',
+          style: 'destructive',
+          onPress: async () => {
+            setGuardandoBloqueo(true);
+            await supabase
+              .from('citas')
+              .update({ estado: 'cancelada' })
+              .in('id', citasAfectadas.map((c: any) => c.id));
+            await _insertarBloqueo();
+          },
+        },
+        {
+          text: 'Reasignar',
+          onPress: async () => {
+            setGuardandoBloqueo(true);
+            await _reasignarCitasYBloquear(citasAfectadas);
+          },
+        },
+      ]
+    );
+  }
+
+  async function _reasignarCitasYBloquear(citas: any[]) {
+    const { data: otrosProfesionales } = await supabase
+      .from('profesionales')
+      .select('id, nombre')
+      .eq('negocio_id', negocioId)
+      .eq('activo', true)
+      .neq('id', profSeleccionada!.id);
+
+    if (!otrosProfesionales || otrosProfesionales.length === 0) {
+      setGuardandoBloqueo(false);
+      Alert.alert('Sin profesionales', 'No hay otros profesionales disponibles para reasignar.');
+      return;
+    }
+
+    const noReasignadas: string[] = [];
+
+    for (const cita of citas) {
+      const citaFin = cita.fin_espera || cita.fin;
+      let asignada = false;
+
+      for (const prof of otrosProfesionales) {
+        const { data: solapeCitas } = await supabase
+          .from('citas')
+          .select('id')
+          .eq('profesional_id', prof.id)
+          .in('estado', ['confirmada', 'propuesta', 'en_curso'])
+          .lt('inicio', citaFin)
+          .gt('fin', cita.inicio)
+          .limit(1);
+        if (solapeCitas && solapeCitas.length > 0) continue;
+
+        const { data: solapaBloqueos } = await supabase
+          .from('bloqueos_profesional')
+          .select('id')
+          .eq('profesional_id', prof.id)
+          .lt('inicio', citaFin)
+          .gt('fin', cita.inicio)
+          .limit(1);
+        if (solapaBloqueos && solapaBloqueos.length > 0) continue;
+
+        await supabase.from('citas').update({ profesional_id: prof.id }).eq('id', cita.id);
+        asignada = true;
+        break;
+      }
+
+      if (!asignada) {
+        noReasignadas.push(`${cita.clientes?.nombre ?? 'Clienta'} (${format(parseISO(cita.inicio), 'HH:mm dd/MM', { locale: es })})`);
+      }
+    }
+
+    if (noReasignadas.length > 0) {
+      setGuardandoBloqueo(false);
+      Alert.alert(
+        'Reasignacion parcial',
+        `No se pudo reasignar:\n${noReasignadas.join('\n')}\n\nEl bloqueo no se ha creado. Cancela estas citas manualmente.`
+      );
+      return;
+    }
+
+    await _insertarBloqueo();
   }
 
   async function eliminarBloqueo(bloqueId: string) {
@@ -176,63 +290,57 @@ export default function EquipoScreen() {
   }
 
   if (loading) {
-    return (
-      <View style={[s.center, { backgroundColor: c.bg }]}>
-        <ActivityIndicator color="#6366f1" />
-      </View>
-    );
+    return <Loading />;
   }
 
   const tipoInfo = (tipo: string) => TIPOS_BLOQUEO.find(t => t.key === tipo);
 
   return (
-    <View style={[s.container, { backgroundColor: c.bg, paddingTop: insets.top + spacing.md }]}>
-      <View style={[s.header, { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg }]}>
-        <Text style={[s.title, { color: c.text }]}>Equipo</Text>
-        <Text style={[s.subtitle, { color: c.textSecondary }]}>{negocioNombre}</Text>
-      </View>
+    <View style={[s.root, { backgroundColor: c.bg }]}>
+      <Topbar title="Equipo" subtitle={`${profesionales.length} profesionales`} />
 
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: insets.bottom + spacing.lg }}>
-        {/* Agregar profesional */}
-        <TouchableOpacity
-          style={[s.addCard, { backgroundColor: c.surface, borderColor: '#6366f1' }]}
-          onPress={() => setModalProfVisible(true)}
-        >
-          <Ionicons name="add-circle-outline" size={24} color="#6366f1" />
-          <Text style={[s.addText, { color: '#6366f1' }]}>Agregar profesional</Text>
-        </TouchableOpacity>
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+        <View style={s.section}>
+          <Btn
+            variant="primary"
+            onPress={() => setModalProfVisible(true)}
+            icon={<Ionicons name="add-circle-outline" size={18} color="#fff" />}
+          >
+            Agregar profesional
+          </Btn>
+        </View>
 
-        {/* Lista de profesionales */}
         {profesionales.length === 0 ? (
-          <Text style={[s.empty, { color: c.textTertiary }]}>No hay profesionales aún</Text>
+          <View style={s.emptyState}>
+            <Ionicons name="people-outline" size={48} color={tokens.textTertiary} />
+            <TText style={[s.emptyText, { color: c.textSecondary }]}>No hay profesionales registrados</TText>
+          </View>
         ) : (
-          <View style={{ gap: spacing.md }}>
+          <View style={s.section}>
             {profesionales.map((prof) => (
-              <View key={prof.id} style={[s.profCard, { backgroundColor: c.surface, borderColor: c.border }]}>
-                <View style={{ flex: 1, gap: spacing.sm }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                    <View style={[s.colorDot, { backgroundColor: prof.color }]} />
-                    <Text style={[s.profNombre, { color: c.text }]}>{prof.nombre}</Text>
+              <Card key={prof.id} style={s.profCard}>
+                <View style={s.profHeader}>
+                  <View style={[s.profColor, { backgroundColor: prof.color }]} />
+                  <View style={{ flex: 1 }}>
+                    <TText style={[s.profNombre, { color: c.text }]}>{prof.nombre}</TText>
+                    <TText style={[s.profEstado, { color: c.textTertiary }]}>
+                      {prof.activo ? 'Activo' : 'Inactivo'}
+                    </TText>
                   </View>
-                  <Text style={[s.profEstado, { color: c.textTertiary }]}>
-                    {prof.activo ? 'Activo' : 'Inactivo'}
-                  </Text>
-                </View>
-                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                   <TouchableOpacity
-                    style={[s.actionBtn, { backgroundColor: c.bgTertiary }]}
+                    style={[s.actionBtn, { backgroundColor: tokens.primarySoft }]}
                     onPress={() => abrirBloques(prof)}
                   >
-                    <Ionicons name="calendar-outline" size={18} color={c.text} />
+                    <Ionicons name="calendar-outline" size={16} color={tokens.primary} />
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[s.actionBtn, { backgroundColor: '#ef444422' }]}
                     onPress={() => eliminarProfesional(prof)}
                   >
-                    <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                    <Ionicons name="trash-outline" size={16} color="#ef4444" />
                   </TouchableOpacity>
                 </View>
-              </View>
+              </Card>
             ))}
           </View>
         )}
@@ -242,7 +350,7 @@ export default function EquipoScreen() {
       <Modal visible={modalProfVisible} transparent animationType="fade">
         <View style={s.modalOverlay}>
           <View style={[s.modalContent, { backgroundColor: c.surface, borderColor: c.border }]}>
-            <Text style={[s.modalTitle, { color: c.text }]}>Nuevo profesional</Text>
+            <TText style={[s.modalTitle, { color: c.text }]}>Nuevo profesional</TText>
 
             <TextInput
               style={[s.input, { backgroundColor: c.bg, borderColor: c.border, color: c.text }]}
@@ -252,7 +360,7 @@ export default function EquipoScreen() {
               onChangeText={setNombreProf}
             />
 
-            <Text style={[s.colorLabel, { color: c.textSecondary }]}>Color</Text>
+            <TText style={[s.colorLabel, { color: c.textSecondary }]}>Color</TText>
             <View style={s.colorGrid}>
               {COLORES.map((col) => (
                 <TouchableOpacity
@@ -267,22 +375,22 @@ export default function EquipoScreen() {
               ))}
             </View>
 
-            <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
-              <TouchableOpacity
-                style={[s.modalBtn, { backgroundColor: c.bg, borderColor: c.border, borderWidth: 1, flex: 1 }]}
+            <View style={s.modalBtns}>
+              <Btn
+                variant="ghost"
                 onPress={() => setModalProfVisible(false)}
+                style={{ flex: 1 }}
               >
-                <Text style={[s.modalBtnText, { color: c.text }]}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.modalBtn, { backgroundColor: '#6366f1', flex: 1 }]}
+                Cancelar
+              </Btn>
+              <Btn
+                variant="primary"
                 onPress={crearProfesional}
                 disabled={guardandoProf}
+                style={{ flex: 1 }}
               >
-                <Text style={s.modalBtnTextPrimary}>
-                  {guardandoProf ? '...' : 'Crear'}
-                </Text>
-              </TouchableOpacity>
+                {guardandoProf ? '...' : 'Crear'}
+              </Btn>
             </View>
           </View>
         </View>
@@ -295,57 +403,62 @@ export default function EquipoScreen() {
             <TouchableOpacity onPress={() => setModalBloquesVisible(false)}>
               <Ionicons name="chevron-back" size={24} color={c.text} />
             </TouchableOpacity>
-            <Text style={[s.modalHeaderTitle, { color: c.text }]}>
+            <TText style={[s.modalHeaderTitle, { color: c.text }]}>
               {profSeleccionada?.nombre}
-            </Text>
-            <TouchableOpacity
-              style={{ opacity: 0 }}
-              disabled
-            >
+            </TText>
+            <TouchableOpacity style={{ opacity: 0 }} disabled>
               <Ionicons name="chevron-back" size={24} color="transparent" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
+          <ScrollView contentContainerStyle={s.content}>
             {cargandoBloques ? (
-              <ActivityIndicator color="#6366f1" />
+              <Loading />
             ) : (
               <>
-                <TouchableOpacity
-                  style={[s.addCard, { backgroundColor: c.surface, borderColor: '#6366f1' }]}
-                  onPress={() => setModalBloqueVisible(true)}
-                >
-                  <Ionicons name="add-circle-outline" size={24} color="#6366f1" />
-                  <Text style={[s.addText, { color: '#6366f1' }]}>Agregar bloqueo</Text>
-                </TouchableOpacity>
+                <View style={s.section}>
+                  <Btn
+                    variant="primary"
+                    onPress={() => setModalBloqueVisible(true)}
+                    icon={<Ionicons name="add-circle-outline" size={18} color="#fff" />}
+                  >
+                    Agregar bloqueo
+                  </Btn>
+                </View>
 
                 {bloques.length === 0 ? (
-                  <Text style={[s.empty, { color: c.textTertiary }]}>
-                    Sin bloques de disponibilidad
-                  </Text>
+                  <View style={s.emptyState}>
+                    <Ionicons name="calendar-outline" size={48} color={tokens.textTertiary} />
+                    <TText style={[s.emptyText, { color: c.textSecondary }]}>Sin bloques de disponibilidad</TText>
+                  </View>
                 ) : (
-                  <View style={{ gap: spacing.md }}>
+                  <View style={s.section}>
                     {bloques.map((bloqueo) => {
                       const info = tipoInfo(bloqueo.tipo);
                       const inicio = parseISO(bloqueo.inicio);
                       const fin = parseISO(bloqueo.fin);
                       return (
-                        <View key={bloqueo.id} style={[s.bloqueCard, { backgroundColor: c.surface, borderColor: info?.color }]}>
-                          <View style={{ flex: 1, gap: spacing.xs }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                              <View style={[s.tipoBadge, { backgroundColor: info?.color + '22', borderColor: info?.color }]}>
-                                <Text style={[s.tipoBadgeText, { color: info?.color }]}>
+                        <Card key={bloqueo.id} style={[s.bloqueCard, { borderLeftColor: info?.color, borderLeftWidth: 4 }]}>
+                          <View style={{ flex: 1 }}>
+                            <View style={s.bloqueBadgeRow}>
+                              <View
+                                style={[
+                                  s.tipoBadge,
+                                  { backgroundColor: info?.color + '22', borderColor: info?.color },
+                                ]}
+                              >
+                                <TText style={[s.tipoBadgeText, { color: info?.color }]}>
                                   {info?.label}
-                                </Text>
+                                </TText>
                               </View>
                             </View>
-                            <Text style={[s.bloqueTime, { color: c.text }]}>
-                              {format(inicio, 'd MMM', { locale: es })} - {format(fin, 'd MMM yyyy HH:mm', { locale: es })}
-                            </Text>
+                            <TText style={[s.bloqueTime, { color: c.text }]}>
+                              {format(inicio, 'd MMM', { locale: es })} - {format(fin, 'd MMM yyyy', { locale: es })}
+                            </TText>
                             {bloqueo.motivo && (
-                              <Text style={[s.bloqueMotivo, { color: c.textSecondary }]}>
+                              <TText style={[s.bloqueMotivo, { color: c.textSecondary }]}>
                                 {bloqueo.motivo}
-                              </Text>
+                              </TText>
                             )}
                           </View>
                           <TouchableOpacity
@@ -354,7 +467,7 @@ export default function EquipoScreen() {
                           >
                             <Ionicons name="trash-outline" size={16} color="#ef4444" />
                           </TouchableOpacity>
-                        </View>
+                        </Card>
                       );
                     })}
                   </View>
@@ -369,9 +482,9 @@ export default function EquipoScreen() {
       <Modal visible={modalBloqueVisible} transparent animationType="fade">
         <View style={s.modalOverlay}>
           <View style={[s.modalContent, { backgroundColor: c.surface, borderColor: c.border }]}>
-            <Text style={[s.modalTitle, { color: c.text }]}>Nuevo bloqueo</Text>
+            <TText style={[s.modalTitle, { color: c.text }]}>Nuevo bloqueo</TText>
 
-            <Text style={[s.inputLabel, { color: c.textSecondary }]}>Tipo</Text>
+            <TText style={[s.inputLabel, { color: c.textSecondary }]}>Tipo</TText>
             <View style={s.tiposGrid}>
               {TIPOS_BLOQUEO.map((tipo) => (
                 <TouchableOpacity
@@ -385,14 +498,14 @@ export default function EquipoScreen() {
                   ]}
                   onPress={() => setTipoBloqueo(tipo.key)}
                 >
-                  <Text style={[s.tipoBtnText, { color: tipoBloqueo === tipo.key ? tipo.color : c.text }]}>
+                  <TText style={[s.tipoBtnText, { color: tipoBloqueo === tipo.key ? tipo.color : c.text }]}>
                     {tipo.label}
-                  </Text>
+                  </TText>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={[s.inputLabel, { color: c.textSecondary }]}>Motivo (opcional)</Text>
+            <TText style={[s.inputLabel, { color: c.textSecondary }]}>Motivo (opcional)</TText>
             <TextInput
               style={[s.input, { backgroundColor: c.bg, borderColor: c.border, color: c.text }]}
               placeholder="Ej: Vacaciones en el extranjero"
@@ -401,48 +514,48 @@ export default function EquipoScreen() {
               onChangeText={setMotivoBloqueo}
             />
 
-            <Text style={[s.inputLabel, { color: c.textSecondary }]}>Desde</Text>
+            <TText style={[s.inputLabel, { color: c.textSecondary }]}>Desde</TText>
             <View style={[s.dateBox, { backgroundColor: c.bg, borderColor: c.border }]}>
               <TouchableOpacity onPress={() => setFechaInicio(cambiarFecha(fechaInicio, -1))}>
                 <Ionicons name="remove" size={20} color={c.text} />
               </TouchableOpacity>
-              <Text style={[s.dateText, { color: c.text }]}>
+              <TText style={[s.dateText, { color: c.text }]}>
                 {format(fechaInicio, 'd MMM yyyy', { locale: es })}
-              </Text>
+              </TText>
               <TouchableOpacity onPress={() => setFechaInicio(cambiarFecha(fechaInicio, 1))}>
                 <Ionicons name="add" size={20} color={c.text} />
               </TouchableOpacity>
             </View>
 
-            <Text style={[s.inputLabel, { color: c.textSecondary }]}>Hasta</Text>
+            <TText style={[s.inputLabel, { color: c.textSecondary }]}>Hasta</TText>
             <View style={[s.dateBox, { backgroundColor: c.bg, borderColor: c.border }]}>
               <TouchableOpacity onPress={() => setFechaFin(cambiarFecha(fechaFin, -1))}>
                 <Ionicons name="remove" size={20} color={c.text} />
               </TouchableOpacity>
-              <Text style={[s.dateText, { color: c.text }]}>
+              <TText style={[s.dateText, { color: c.text }]}>
                 {format(fechaFin, 'd MMM yyyy', { locale: es })}
-              </Text>
+              </TText>
               <TouchableOpacity onPress={() => setFechaFin(cambiarFecha(fechaFin, 1))}>
                 <Ionicons name="add" size={20} color={c.text} />
               </TouchableOpacity>
             </View>
 
-            <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
-              <TouchableOpacity
-                style={[s.modalBtn, { backgroundColor: c.bg, borderColor: c.border, borderWidth: 1, flex: 1 }]}
+            <View style={s.modalBtns}>
+              <Btn
+                variant="ghost"
                 onPress={() => setModalBloqueVisible(false)}
+                style={{ flex: 1 }}
               >
-                <Text style={[s.modalBtnText, { color: c.text }]}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.modalBtn, { backgroundColor: '#6366f1', flex: 1 }]}
+                Cancelar
+              </Btn>
+              <Btn
+                variant="primary"
                 onPress={crearBloqueo}
                 disabled={guardandoBloqueo}
+                style={{ flex: 1 }}
               >
-                <Text style={s.modalBtnTextPrimary}>
-                  {guardandoBloqueo ? '...' : 'Crear'}
-                </Text>
-              </TouchableOpacity>
+                {guardandoBloqueo ? '...' : 'Crear'}
+              </Btn>
             </View>
           </View>
         </View>
@@ -452,41 +565,38 @@ export default function EquipoScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { borderBottomWidth: 1, borderBottomColor: '#1e293b' },
-  title: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
-  subtitle: { fontSize: fontSize.sm, marginTop: 4 },
-  addCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.md, padding: spacing.lg, borderRadius: radius.lg, borderWidth: 2, borderStyle: 'dashed' },
-  addText: { fontSize: fontSize.md, fontWeight: fontWeight.semibold },
-  empty: { textAlign: 'center', fontSize: fontSize.sm, marginVertical: spacing.lg },
-  profCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, justifyContent: 'space-between' },
-  colorDot: { width: 16, height: 16, borderRadius: 8 },
-  profNombre: { fontSize: fontSize.md, fontWeight: fontWeight.semibold, flex: 1 },
-  profEstado: { fontSize: fontSize.xs },
-  actionBtn: { width: 36, height: 36, borderRadius: radius.md, justifyContent: 'center', alignItems: 'center' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  root: { flex: 1 },
+  content: { paddingBottom: tokens.spacing.xxl },
+  section: { paddingHorizontal: tokens.spacing.lg, paddingVertical: tokens.spacing.md, gap: tokens.spacing.md },
+  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: tokens.spacing.xxl, gap: tokens.spacing.md },
+  emptyText: { fontSize: tokens.fontSize.base, textAlign: 'center' },
+  profCard: { gap: tokens.spacing.md },
+  profHeader: { flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.md },
+  profColor: { width: 12, height: 12, borderRadius: 6 },
+  profNombre: { fontSize: tokens.fontSize.base, fontWeight: '600' },
+  profEstado: { fontSize: tokens.fontSize.xs, marginTop: tokens.spacing.xs / 2 },
+  actionBtn: { width: 36, height: 36, borderRadius: tokens.radius.md, justifyContent: 'center', alignItems: 'center' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: tokens.spacing.lg },
   modalContainer: { flex: 1 },
-  modalContent: { borderRadius: radius.lg, padding: spacing.lg, maxHeight: '80%', width: '90%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1 },
-  modalHeaderTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
-  modalTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, marginBottom: spacing.md },
-  input: { borderWidth: 1, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md, fontSize: fontSize.md },
-  inputLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, marginBottom: spacing.sm },
-  colorLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, marginBottom: spacing.sm, marginTop: spacing.md },
-  colorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
-  colorOption: { width: 50, height: 50, borderRadius: radius.md },
-  tiposGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
-  tipoBtn: { flex: 1, minWidth: '45%', paddingVertical: spacing.md, borderRadius: radius.md, borderWidth: 1, alignItems: 'center' },
-  tipoBtnText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
-  dateBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.md, borderRadius: radius.md, borderWidth: 1, marginBottom: spacing.md },
-  dateText: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
-  modalBtn: { paddingVertical: spacing.md, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-  modalBtnText: { fontSize: fontSize.md, fontWeight: fontWeight.semibold },
-  modalBtnTextPrimary: { color: '#fff', fontSize: fontSize.md, fontWeight: fontWeight.semibold },
-  bloqueCard: { flexDirection: 'row', gap: spacing.md, padding: spacing.md, borderRadius: radius.md, borderWidth: 1.5, alignItems: 'flex-start', justifyContent: 'space-between' },
-  bloqueTime: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
-  bloqueMotivo: { fontSize: fontSize.xs, fontStyle: 'italic' },
-  tipoBadge: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full, borderWidth: 1 },
-  tipoBadgeText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
+  modalContent: { borderRadius: tokens.radius.lg, padding: tokens.spacing.lg, maxHeight: '80%', width: '90%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: tokens.spacing.lg, paddingVertical: tokens.spacing.md, borderBottomWidth: 1 },
+  modalHeaderTitle: { fontSize: tokens.fontSize.lg, fontWeight: '700' },
+  modalTitle: { fontSize: tokens.fontSize.lg, fontWeight: '700', marginBottom: tokens.spacing.md },
+  modalBtns: { flexDirection: 'row', gap: tokens.spacing.md, marginTop: tokens.spacing.lg },
+  input: { borderWidth: 1, borderRadius: tokens.radius.md, padding: tokens.spacing.md, marginBottom: tokens.spacing.md, fontSize: tokens.fontSize.base },
+  inputLabel: { fontSize: tokens.fontSize.sm, fontWeight: '500', marginBottom: tokens.spacing.sm },
+  colorLabel: { fontSize: tokens.fontSize.sm, fontWeight: '500', marginBottom: tokens.spacing.sm, marginTop: tokens.spacing.md },
+  colorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: tokens.spacing.sm, marginBottom: tokens.spacing.md },
+  colorOption: { width: 50, height: 50, borderRadius: tokens.radius.md },
+  tiposGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: tokens.spacing.sm, marginBottom: tokens.spacing.md },
+  tipoBtn: { flex: 1, minWidth: '45%', paddingVertical: tokens.spacing.md, borderRadius: tokens.radius.md, borderWidth: 1, alignItems: 'center' },
+  tipoBtnText: { fontSize: tokens.fontSize.sm, fontWeight: '600' },
+  dateBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: tokens.spacing.md, paddingVertical: tokens.spacing.md, borderRadius: tokens.radius.md, borderWidth: 1, marginBottom: tokens.spacing.md },
+  dateText: { fontSize: tokens.fontSize.sm, fontWeight: '500' },
+  bloqueCard: { flexDirection: 'row', alignItems: 'flex-start', gap: tokens.spacing.md, justifyContent: 'space-between' },
+  bloqueBadgeRow: { marginBottom: tokens.spacing.xs },
+  tipoBadge: { paddingHorizontal: tokens.spacing.sm, paddingVertical: 4, borderRadius: tokens.radius.full, borderWidth: 1, alignSelf: 'flex-start' },
+  tipoBadgeText: { fontSize: tokens.fontSize.xs, fontWeight: '600' },
+  bloqueTime: { fontSize: tokens.fontSize.sm, fontWeight: '500', marginTop: tokens.spacing.xs },
+  bloqueMotivo: { fontSize: tokens.fontSize.xs, fontStyle: 'italic', marginTop: tokens.spacing.xs },
 });

@@ -6,10 +6,15 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
+import { useTheme } from '@/lib/theme';
 import { useThemeMode } from '@/lib/themeContext';
+import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { Topbar, Card, Btn, Loading } from '@/components/ui/DesignComponents';
+import { TText, TTextInput } from '@/components/ui/TText';
+
+const tokens = DESIGN_TOKENS;
 
 interface Servicio {
   id: string;
@@ -18,10 +23,11 @@ interface Servicio {
   duracion_activa_min: number;
   duracion_espera_min: number;
   duracion_activa_extra_min: number;
+  min_antelacion_min: number;
   activo: boolean;
 }
 
-const EMPTY_FORM = { nombre: '', precio: '', duracion_activa_min: '30', duracion_espera_min: '0', duracion_activa_extra_min: '0', activo: true };
+const EMPTY_FORM = { nombre: '', precio: '', duracion_activa_min: '30', duracion_espera_min: '0', duracion_activa_extra_min: '0', min_antelacion_min: '0', activo: true };
 
 export default function ConfiguracionScreen() {
   const { c, isDark } = useTheme();
@@ -46,7 +52,7 @@ export default function ConfiguracionScreen() {
     setNegocioId(profile.negocio_id);
     const { data } = await supabase
       .from('servicios')
-      .select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, activo')
+      .select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, min_antelacion_min, activo')
       .eq('negocio_id', profile.negocio_id)
       .order('nombre');
     setServicios(data ?? []);
@@ -67,6 +73,7 @@ export default function ConfiguracionScreen() {
       duracion_activa_min: String(sv.duracion_activa_min),
       duracion_espera_min: String(sv.duracion_espera_min),
       duracion_activa_extra_min: String(sv.duracion_activa_extra_min ?? 0),
+      min_antelacion_min: String(sv.min_antelacion_min ?? 0),
       activo: sv.activo,
     });
     setModalVisible(true);
@@ -81,6 +88,7 @@ export default function ConfiguracionScreen() {
       duracion_activa_min: parseInt(form.duracion_activa_min) || 30,
       duracion_espera_min: parseInt(form.duracion_espera_min) || 0,
       duracion_activa_extra_min: parseInt(form.duracion_activa_extra_min) || 0,
+      min_antelacion_min: parseInt(form.min_antelacion_min) || 0,
       activo: form.activo,
     };
     if (editando) {
@@ -118,96 +126,113 @@ export default function ConfiguracionScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: c.bg }]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + spacing.xl }}>
+      <Topbar title="Configuración" subtitle="Ajustes de negocio y cuenta" />
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
 
         {/* ── Apariencia ── */}
-        <SectionHeader title="Apariencia" c={c} />
-        <View style={[s.card, { backgroundColor: c.surface, borderColor: c.border }]}>
-          <View style={s.row}>
-            <View style={s.rowLeft}>
-              <IconBox color="#6366f1" icon="moon-outline" />
-              <View>
-                <Text style={[s.rowTitle, { color: c.text }]}>Modo oscuro</Text>
-                <Text style={[s.rowSub, { color: c.textTertiary }]}>
-                  {mode === 'system' ? 'Según el sistema' : isDark ? 'Activado' : 'Desactivado'}
-                </Text>
+        <View style={s.section}>
+          <TText style={[s.sectionTitle, { color: c.text }]}>Apariencia</TText>
+          <Card>
+            <View style={s.settingRow}>
+              <View style={s.settingLeft}>
+                <View style={[s.settingIcon, { backgroundColor: tokens.primarySoft }]}>
+                  <Ionicons name="moon-outline" size={18} color={tokens.primary} />
+                </View>
+                <View>
+                  <TText style={[s.settingLabel, { color: c.text }]}>Modo oscuro</TText>
+                  <TText style={[s.settingValue, { color: c.textSecondary }]}>
+                    {mode === 'system' ? 'Según el sistema' : isDark ? 'Activado' : 'Desactivado'}
+                  </TText>
+                </View>
               </View>
+              <Switch
+                value={isDark}
+                onValueChange={v => setMode(v ? 'dark' : 'light')}
+                trackColor={{ false: c.border, true: tokens.primary }}
+                thumbColor="#fff"
+              />
             </View>
-            <Switch
-              value={isDark}
-              onValueChange={v => setMode(v ? 'dark' : 'light')}
-              trackColor={{ false: c.border, true: '#6366f1' }}
-              thumbColor="#fff"
-            />
-          </View>
-          <Divider c={c} />
-          <TouchableOpacity style={s.row} onPress={() => setMode('system')}>
-            <View style={s.rowLeft}>
-              <IconBox color="#f59e0b" icon="phone-portrait-outline" />
-              <View>
-                <Text style={[s.rowTitle, { color: c.text }]}>Seguir ajuste del sistema</Text>
-                <Text style={[s.rowSub, { color: c.textTertiary }]}>Usa el tema del dispositivo automáticamente</Text>
+            <View style={[s.divider, { backgroundColor: c.border }]} />
+            <TouchableOpacity style={s.settingRow} onPress={() => setMode('system')}>
+              <View style={s.settingLeft}>
+                <View style={[s.settingIcon, { backgroundColor: '#f59e0b22' }]}>
+                  <Ionicons name="phone-portrait-outline" size={18} color="#f59e0b" />
+                </View>
+                <View>
+                  <TText style={[s.settingLabel, { color: c.text }]}>Seguir ajuste del sistema</TText>
+                  <TText style={[s.settingValue, { color: c.textSecondary }]}>Usa el tema del dispositivo automáticamente</TText>
+                </View>
               </View>
-            </View>
-            {mode === 'system' && <Ionicons name="checkmark" size={18} color="#6366f1" />}
-          </TouchableOpacity>
+              {mode === 'system' && <Ionicons name="checkmark" size={18} color={tokens.primary} />}
+            </TouchableOpacity>
+          </Card>
         </View>
 
         {/* ── Servicios ── */}
-        <SectionHeader title="Servicios" c={c} action={{ label: 'Añadir', onPress: abrirNuevo }} />
-        <View style={[s.card, { backgroundColor: c.surface, borderColor: c.border }]}>
-          {loading ? (
-            <View style={{ padding: spacing.lg, alignItems: 'center' }}>
-              <ActivityIndicator color="#6366f1" />
-            </View>
-          ) : servicios.length === 0 ? (
-            <TouchableOpacity style={s.emptyRow} onPress={abrirNuevo}>
-              <Ionicons name="add-circle-outline" size={20} color="#6366f1" />
-              <Text style={{ color: '#6366f1', fontSize: fontSize.sm }}>Añadir primer servicio</Text>
+        <View style={s.section}>
+          <View style={s.sectionHeader}>
+            <TText style={[s.sectionTitle, { color: c.text }]}>Servicios</TText>
+            <TouchableOpacity onPress={abrirNuevo}>
+              <TText style={[s.sectionAction, { color: tokens.primary }]}>Añadir</TText>
             </TouchableOpacity>
+          </View>
+
+          {loading ? (
+            <Loading />
+          ) : servicios.length === 0 ? (
+            <Card>
+              <TouchableOpacity style={s.emptyAction} onPress={abrirNuevo}>
+                <Ionicons name="add-circle-outline" size={24} color={tokens.primary} />
+                <TText style={[s.emptyActionText, { color: tokens.primary }]}>Añadir primer servicio</TText>
+              </TouchableOpacity>
+            </Card>
           ) : (
-            servicios.map((sv, i) => (
-              <View key={sv.id}>
-                {i > 0 && <Divider c={c} />}
-                <View style={s.row}>
-                  <TouchableOpacity style={s.rowLeft} onPress={() => abrirEditar(sv)} activeOpacity={0.7}>
-                    <IconBox color={sv.activo ? '#10b981' : c.textTertiary} icon="cut-outline" bg={sv.activo ? '#10b98122' : c.bgTertiary} />
+            <View style={{ gap: tokens.spacing.md }}>
+              {servicios.map((sv) => (
+                <Card key={sv.id} style={s.servicioCard}>
+                  <TouchableOpacity style={s.servicioLeft} onPress={() => abrirEditar(sv)}>
+                    <View style={[s.servicioIcon, { backgroundColor: sv.activo ? tokens.successSoft : c.bgTertiary }]}>
+                      <Ionicons name="cut-outline" size={18} color={sv.activo ? tokens.success : c.textTertiary} />
+                    </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[s.rowTitle, { color: sv.activo ? c.text : c.textTertiary }]}>{sv.nombre}</Text>
-                      <Text style={[s.rowSub, { color: c.textTertiary }]}>
-                        {sv.duracion_activa_min + sv.duracion_espera_min} min
-                        {sv.duracion_espera_min > 0 && ` (${sv.duracion_activa_min}+${sv.duracion_espera_min})`}
-                        {' · '}{sv.precio}€
-                      </Text>
+                      <TText style={[s.servicioNombre, { color: sv.activo ? c.text : c.textTertiary }]}>{sv.nombre}</TText>
+                      <TText style={[s.servicioInfo, { color: c.textSecondary }]}>
+                        {sv.duracion_activa_min + sv.duracion_espera_min} min{sv.duracion_espera_min > 0 && ` (${sv.duracion_activa_min}+${sv.duracion_espera_min})`} · {sv.precio}€
+                      </TText>
                     </View>
                   </TouchableOpacity>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                  <View style={s.servicioActions}>
                     <Switch
                       value={sv.activo}
                       onValueChange={() => toggleActivo(sv)}
-                      trackColor={{ false: c.border, true: '#6366f1' }}
+                      trackColor={{ false: c.border, true: tokens.primary }}
                       thumbColor="#fff"
                     />
-                    <TouchableOpacity onPress={() => eliminarServicio(sv.id)} hitSlop={8}>
-                      <Ionicons name="trash-outline" size={18} color="#ef444488" />
+                    <TouchableOpacity onPress={() => eliminarServicio(sv.id)}>
+                      <Ionicons name="trash-outline" size={18} color="#ef4444" />
                     </TouchableOpacity>
                   </View>
-                </View>
-              </View>
-            ))
+                </Card>
+              ))}
+            </View>
           )}
         </View>
 
         {/* ── Cuenta ── */}
-        <SectionHeader title="Cuenta" c={c} />
-        <View style={[s.card, { backgroundColor: c.surface, borderColor: c.border }]}>
-          <TouchableOpacity style={s.row} onPress={cerrarSesion}>
-            <View style={s.rowLeft}>
-              <IconBox color="#ef4444" icon="log-out-outline" bg="#ef444422" />
-              <Text style={[s.rowTitle, { color: '#ef4444' }]}>Cerrar sesión</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={c.textTertiary} />
-          </TouchableOpacity>
+        <View style={s.section}>
+          <TText style={[s.sectionTitle, { color: c.text }]}>Cuenta</TText>
+          <Card>
+            <TouchableOpacity style={s.settingRow} onPress={cerrarSesion}>
+              <View style={s.settingLeft}>
+                <View style={[s.settingIcon, { backgroundColor: '#ef444422' }]}>
+                  <Ionicons name="log-out-outline" size={18} color="#ef4444" />
+                </View>
+                <TText style={[s.settingLabel, { color: '#ef4444' }]}>Cerrar sesión</TText>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={c.textTertiary} />
+            </TouchableOpacity>
+          </Card>
         </View>
       </ScrollView>
 
@@ -216,15 +241,15 @@ export default function ConfiguracionScreen() {
         <View style={s.overlay}>
           <View style={[s.modalPanel, { backgroundColor: c.bg, borderColor: c.border }]}>
             <View style={[s.modalHeader, { borderBottomColor: c.border }]}>
-              <Text style={[s.modalTitle, { color: c.text }]}>{editando ? 'Editar servicio' : 'Nuevo servicio'}</Text>
+              <TText style={[s.modalTitle, { color: c.text }]}>{editando ? 'Editar servicio' : 'Nuevo servicio'}</TText>
               <TouchableOpacity onPress={() => setModalVisible(false)} style={s.closeBtn}>
                 <Ionicons name="close" size={20} color={c.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }} keyboardShouldPersistTaps="handled">
+            <ScrollView contentContainerStyle={s.modalContent} keyboardShouldPersistTaps="handled">
               <FormField label="Nombre *" c={c}>
-                <TextInput
+                <TTextInput
                   style={[s.input, { color: c.text, borderColor: c.border, backgroundColor: c.surface }]}
                   value={form.nombre}
                   onChangeText={v => setForm(f => ({ ...f, nombre: v }))}
@@ -234,7 +259,7 @@ export default function ConfiguracionScreen() {
               </FormField>
 
               <FormField label="Precio (€)" c={c}>
-                <TextInput
+                <TTextInput
                   style={[s.input, { color: c.text, borderColor: c.border, backgroundColor: c.surface }]}
                   value={form.precio}
                   onChangeText={v => setForm(f => ({ ...f, precio: v }))}
@@ -244,9 +269,9 @@ export default function ConfiguracionScreen() {
                 />
               </FormField>
 
-              <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+              <View style={{ flexDirection: 'row', gap: tokens.spacing.sm }}>
                 <FormField label="Duración activa (min)" c={c} style={{ flex: 1 }}>
-                  <TextInput
+                  <TTextInput
                     style={[s.input, { color: c.text, borderColor: c.border, backgroundColor: c.surface }]}
                     value={form.duracion_activa_min}
                     onChangeText={v => setForm(f => ({ ...f, duracion_activa_min: v }))}
@@ -255,8 +280,8 @@ export default function ConfiguracionScreen() {
                     placeholderTextColor={c.textTertiary}
                   />
                 </FormField>
-                <FormField label="Tiempo de espera (min)" c={c} style={{ flex: 1 }}>
-                  <TextInput
+                <FormField label="Tiempo de reposo (min)" c={c} style={{ flex: 1 }}>
+                  <TTextInput
                     style={[s.input, { color: c.text, borderColor: c.border, backgroundColor: c.surface }]}
                     value={form.duracion_espera_min}
                     onChangeText={v => setForm(f => ({ ...f, duracion_espera_min: v }))}
@@ -267,8 +292,8 @@ export default function ConfiguracionScreen() {
                 </FormField>
               </View>
 
-              <FormField label="Tiempo activo extra (después de espera)" c={c}>
-                <TextInput
+              <FormField label="Tiempo activo extra (después de reposo)" c={c}>
+                <TTextInput
                   style={[s.input, { color: c.text, borderColor: c.border, backgroundColor: c.surface }]}
                   value={form.duracion_activa_extra_min}
                   onChangeText={v => setForm(f => ({ ...f, duracion_activa_extra_min: v }))}
@@ -278,32 +303,51 @@ export default function ConfiguracionScreen() {
                 />
               </FormField>
 
-              <View style={[s.infoBox, { backgroundColor: '#6366f111', borderColor: '#6366f133' }]}>
-                <Ionicons name="information-circle-outline" size={16} color="#6366f1" />
-                <Text style={{ color: '#6366f1', fontSize: fontSize.xs, flex: 1 }}>
-                  Durante el tiempo de espera el profesional puede atender a otro cliente (ej. mientras procesa un tinte). El tiempo activo extra permite un segundo período activo después de la espera.
-                </Text>
+              <FormField label="Antelación mínima (min)" c={c}>
+                <TTextInput
+                  style={[s.input, { color: c.text, borderColor: c.border, backgroundColor: c.surface }]}
+                  value={form.min_antelacion_min}
+                  onChangeText={v => setForm(f => ({ ...f, min_antelacion_min: v }))}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={c.textTertiary}
+                />
+              </FormField>
+
+              <View style={[s.infoBox, { backgroundColor: tokens.primarySoft, borderColor: tokens.primary + '33' }]}>
+                <Ionicons name="information-circle-outline" size={16} color={tokens.primary} />
+                <TText style={{ color: tokens.primary, fontSize: tokens.fontSize.xs, flex: 1 }}>
+                  Durante el tiempo de reposo el profesional puede atender a otra clienta (ej. mientras procesa un tinte). El tiempo activo extra permite un segundo periodo activo después del reposo.
+                </TText>
               </View>
 
-              <View style={[s.row, { paddingHorizontal: 0, paddingVertical: spacing.sm }]}>
-                <Text style={[s.rowTitle, { color: c.text }]}>Servicio activo</Text>
+              <View style={[s.switchRow, { borderTopColor: c.border }]}>
+                <TText style={[s.switchLabel, { color: c.text }]}>Servicio activo</TText>
                 <Switch
                   value={form.activo}
                   onValueChange={v => setForm(f => ({ ...f, activo: v }))}
-                  trackColor={{ false: c.border, true: '#6366f1' }}
+                  trackColor={{ false: c.border, true: tokens.primary }}
                   thumbColor="#fff"
                 />
               </View>
 
-              <TouchableOpacity
-                style={[s.btnGuardar, guardando && { opacity: 0.6 }]}
-                onPress={guardarServicio}
-                disabled={guardando}
-              >
-                {guardando
-                  ? <ActivityIndicator color="#fff" size="small" />
-                  : <Text style={s.btnGuardarText}>{editando ? 'Guardar cambios' : 'Crear servicio'}</Text>}
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: tokens.spacing.md, marginTop: tokens.spacing.lg }}>
+                <Btn
+                  variant="ghost"
+                  onPress={() => setModalVisible(false)}
+                  style={{ flex: 1 }}
+                >
+                  Cancelar
+                </Btn>
+                <Btn
+                  variant="primary"
+                  onPress={guardarServicio}
+                  disabled={guardando}
+                  style={{ flex: 1 }}
+                >
+                  {guardando ? '...' : editando ? 'Guardar' : 'Crear'}
+                </Btn>
+              </View>
             </ScrollView>
           </View>
         </View>
@@ -312,62 +356,44 @@ export default function ConfiguracionScreen() {
   );
 }
 
-function SectionHeader({ title, c, action }: { title: string; c: any; action?: { label: string; onPress: () => void } }) {
-  return (
-    <View style={s.sectionHeader}>
-      <Text style={[s.sectionTitle, { color: c.textSecondary }]}>{title.toUpperCase()}</Text>
-      {action && (
-        <TouchableOpacity onPress={action.onPress}>
-          <Text style={{ color: '#6366f1', fontSize: fontSize.sm, fontWeight: fontWeight.semibold }}>{action.label}</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-}
-
-function IconBox({ color, icon, bg }: { color: string; icon: any; bg?: string }) {
-  return (
-    <View style={[s.iconBox, { backgroundColor: bg ?? color + '22' }]}>
-      <Ionicons name={icon} size={18} color={color} />
-    </View>
-  );
-}
-
 function FormField({ label, c, children, style }: { label: string; c: any; children: React.ReactNode; style?: any }) {
   return (
-    <View style={[{ gap: 6 }, style]}>
-      <Text style={{ color: c.textSecondary, fontSize: fontSize.sm }}>{label}</Text>
+    <View style={[{ gap: tokens.spacing.sm }, style]}>
+      <TText style={{ color: c.textSecondary, fontSize: tokens.fontSize.sm, fontWeight: '500' }}>{label}</TText>
       {children}
     </View>
   );
 }
 
-function Divider({ c }: { c: any }) {
-  return <View style={[s.divider, { backgroundColor: c.border }]} />;
-}
-
 const s = StyleSheet.create({
   root: { flex: 1 },
-  sectionHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.sm,
-  },
-  sectionTitle: { fontSize: fontSize.xs, fontWeight: fontWeight.bold, letterSpacing: 0.8 },
-  card: { marginHorizontal: spacing.md, borderRadius: radius.lg, borderWidth: 1, overflow: 'hidden' },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, gap: spacing.sm },
-  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 },
-  rowTitle: { fontSize: fontSize.md, fontWeight: fontWeight.medium },
-  rowSub: { fontSize: fontSize.xs, marginTop: 1 },
-  iconBox: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  emptyRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.lg, justifyContent: 'center' },
-  divider: { height: StyleSheet.hairlineWidth, marginHorizontal: spacing.md },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
-  modalPanel: { width: '100%', maxWidth: 480, maxHeight: '90%' as any, borderRadius: radius.xl, borderWidth: 1, overflow: 'hidden' },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, borderBottomWidth: 1 },
-  modalTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
+  content: { paddingBottom: tokens.spacing.xxl },
+  section: { paddingHorizontal: tokens.spacing.lg, paddingVertical: tokens.spacing.md, gap: tokens.spacing.md },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: tokens.spacing.sm },
+  sectionTitle: { fontSize: tokens.fontSize.lg, fontWeight: '700' },
+  sectionAction: { fontSize: tokens.fontSize.sm, fontWeight: '600' },
+  settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: tokens.spacing.md, paddingHorizontal: tokens.spacing.md, gap: tokens.spacing.md },
+  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.md, flex: 1 },
+  settingIcon: { width: 40, height: 40, borderRadius: tokens.radius.md, alignItems: 'center', justifyContent: 'center' },
+  settingLabel: { fontSize: tokens.fontSize.base, fontWeight: '500' },
+  settingValue: { fontSize: tokens.fontSize.sm, marginTop: tokens.spacing.xs / 2 },
+  divider: { height: StyleSheet.hairlineWidth, marginHorizontal: tokens.spacing.md },
+  servicioCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: tokens.spacing.md },
+  servicioLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.md },
+  servicioIcon: { width: 40, height: 40, borderRadius: tokens.radius.md, alignItems: 'center', justifyContent: 'center' },
+  servicioNombre: { fontSize: tokens.fontSize.base, fontWeight: '600' },
+  servicioInfo: { fontSize: tokens.fontSize.xs, marginTop: tokens.spacing.xs / 2 },
+  servicioActions: { flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.sm },
+  emptyAction: { paddingVertical: tokens.spacing.xl, alignItems: 'center', justifyContent: 'center', gap: tokens.spacing.md },
+  emptyActionText: { fontSize: tokens.fontSize.base, fontWeight: '600' },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: tokens.spacing.lg },
+  modalPanel: { width: '100%', maxWidth: 480, maxHeight: '90%' as any, borderRadius: tokens.radius.lg, borderWidth: 1, overflow: 'hidden' },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: tokens.spacing.md, borderBottomWidth: 1 },
+  modalTitle: { fontSize: tokens.fontSize.lg, fontWeight: '700' },
+  modalContent: { padding: tokens.spacing.lg, gap: tokens.spacing.md },
   closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  input: { borderWidth: 1, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 10, fontSize: fontSize.md },
-  infoBox: { flexDirection: 'row', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.md, borderWidth: 1, alignItems: 'flex-start' },
-  btnGuardar: { backgroundColor: '#6366f1', borderRadius: radius.md, padding: 14, alignItems: 'center', marginTop: spacing.sm },
-  btnGuardarText: { color: '#fff', fontSize: fontSize.md, fontWeight: fontWeight.bold },
+  input: { borderWidth: 1, borderRadius: tokens.radius.md, paddingHorizontal: tokens.spacing.md, paddingVertical: 10, fontSize: tokens.fontSize.base },
+  infoBox: { flexDirection: 'row', gap: tokens.spacing.sm, padding: tokens.spacing.md, borderRadius: tokens.radius.md, borderWidth: 1, alignItems: 'flex-start' },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: tokens.spacing.md, borderTopWidth: 1 },
+  switchLabel: { fontSize: tokens.fontSize.base, fontWeight: '500' },
 });

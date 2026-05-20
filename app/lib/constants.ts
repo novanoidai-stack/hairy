@@ -10,15 +10,58 @@ export const HORARIO_CIERRE = {
   minutos: 0,
 };
 
-export const INTERVALO_MINUTOS = 30;
+export const INTERVALO_MINUTOS = 15;
 
 export const CITA_CARD_DETAILS_MIN_HEIGHT = 38;
 
 export const CITA_STATUS = {
+  PROPUESTA: 'propuesta',
   CONFIRMADA: 'confirmada',
+  EN_CURSO: 'en_curso',
+  FINALIZADA: 'finalizada',
+  COBRADA: 'cobrada',
   CANCELADA: 'cancelada',
+  NO_PRESENTADA: 'no_presentada',
+  INTERRUMPIDA: 'interrumpida',
+  EXPIRADA: 'expirada',
+  HISTORICA: 'historica',
   PENDIENTE: 'pendiente',
 } as const;
+
+export type CitaStatus = typeof CITA_STATUS[keyof typeof CITA_STATUS];
+
+export const CITA_STATUS_TERMINALES: CitaStatus[] = [
+  CITA_STATUS.CANCELADA,
+  CITA_STATUS.NO_PRESENTADA,
+  CITA_STATUS.EXPIRADA,
+  CITA_STATUS.HISTORICA,
+];
+
+export const CITA_STATUS_ACTIVOS: CitaStatus[] = [
+  CITA_STATUS.PROPUESTA,
+  CITA_STATUS.CONFIRMADA,
+  CITA_STATUS.EN_CURSO,
+  CITA_STATUS.FINALIZADA,
+  CITA_STATUS.COBRADA,
+];
+
+export const CITA_CANAL = {
+  MANUAL: 'manual',
+  WEB: 'web',
+  WHATSAPP: 'whatsapp',
+  AGENTE_VOZ: 'agente_voz',
+  ASISTENTE_IA: 'asistente_ia',
+} as const;
+
+export const CATEGORIAS_PROFESIONAL = [
+  { value: 'auxiliar', label: 'Auxiliar' },
+  { value: 'oficial', label: 'Oficial' },
+  { value: 'oficial_mayor', label: 'Oficial Mayor' },
+  { value: 'estilista_senior', label: 'Estilista Senior' },
+  { value: 'direccion', label: 'Dirección' },
+] as const;
+
+export type CategoriaProfesional = typeof CATEGORIAS_PROFESIONAL[number]['value'];
 
 export const LOCALE = 'es-ES';
 
