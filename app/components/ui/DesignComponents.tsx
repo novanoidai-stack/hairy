@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, ActivityIndicator } from 'react-native';
+import { TText } from '@/components/ui/TText';
 import { Ionicons } from '@expo/vector-icons';
 import { DESIGN_TOKENS, STATUS_META } from '@/lib/designTokens';
 
@@ -9,10 +10,10 @@ export function Topbar({ title, subtitle, right }: { title: string; subtitle?: s
   return (
     <View style={s.topbar}>
       <View>
-        <Text style={s.topbarTitle}>{title}</Text>
-        {subtitle && <Text style={s.topbarSubtitle}>{subtitle}</Text>}
+        <TText style={s.topbarTitle}>{title}</TText>
+        {subtitle && <TText style={s.topbarSubtitle}>{subtitle}</TText>}
       </View>
-      <View style={{ display: 'flex', flexDirection: 'row', gap: tokens.spacing.md }}>
+      <View style={{ flexDirection: 'row', gap: tokens.spacing.md }}>
         {right}
       </View>
     </View>
@@ -60,7 +61,7 @@ export function Btn({
       disabled={disabled}
     >
       {icon}
-      <Text style={[s.btnText, { color: v.text }]}>{children}</Text>
+      <TText style={[s.btnText, { color: v.text }]}>{children}</TText>
     </TouchableOpacity>
   );
 }
@@ -69,7 +70,7 @@ export function Btn({
 export function Pill({ children, color = tokens.primary }: { children: string; color?: string }) {
   return (
     <View style={[s.pill, { backgroundColor: `${color}22`, borderColor: `${color}33` }]}>
-      <Text style={[s.pillText, { color }]}>{children}</Text>
+      <TText style={[s.pillText, { color }]}>{children}</TText>
     </View>
   );
 }
@@ -80,7 +81,7 @@ export function StatusBadge({ status }: { status: keyof typeof STATUS_META }) {
   if (!meta) return null;
   return (
     <View style={[s.statusBadge, { backgroundColor: meta.soft, borderColor: meta.color }]}>
-      <Text style={[s.statusBadgeText, { color: meta.color }]}>{meta.label}</Text>
+      <TText style={[s.statusBadgeText, { color: meta.color }]}>{meta.label}</TText>
     </View>
   );
 }
@@ -132,8 +133,8 @@ export function EmptyState({ icon, title, subtitle }: { icon?: string; title: st
   return (
     <View style={s.emptyState}>
       {icon && <Ionicons name={icon as any} size={48} color={tokens.textTertiary} style={{ marginBottom: tokens.spacing.md }} />}
-      <Text style={s.emptyStateTitle}>{title}</Text>
-      {subtitle && <Text style={s.emptyStateSubtitle}>{subtitle}</Text>}
+      <TText style={s.emptyStateTitle}>{title}</TText>
+      {subtitle && <TText style={s.emptyStateSubtitle}>{subtitle}</TText>}
     </View>
   );
 }
@@ -143,8 +144,8 @@ export function StatCard({ label, value, icon, color = tokens.primary }: { label
   return (
     <Card style={[s.statCard, { borderColor: color }]}>
       {icon && <Ionicons name={icon as any} size={20} color={color} />}
-      <Text style={s.statValue}>{value}</Text>
-      <Text style={s.statLabel}>{label}</Text>
+      <TText style={s.statValue}>{value}</TText>
+      <TText style={s.statLabel}>{label}</TText>
     </Card>
   );
 }
@@ -167,8 +168,8 @@ export function RowItem({
     <View style={s.rowItem}>
       {icon && <Ionicons name={icon as any} size={18} color={tokens.textSecondary} />}
       <View style={{ flex: 1 }}>
-        <Text style={s.rowLabel}>{label}</Text>
-        {value && <Text style={s.rowValue}>{value}</Text>}
+        <TText style={s.rowLabel}>{label}</TText>
+        {value && <TText style={s.rowValue}>{value}</TText>}
       </View>
       {rightContent}
     </View>

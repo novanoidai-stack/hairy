@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
+  View, ScrollView, TouchableOpacity,
   StyleSheet, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
+import { TText } from '@/components/ui/TText';
 import { AppointmentCard } from './AppointmentCard';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -65,12 +66,12 @@ export function AgendaView({ profesionales, onCitaPress, onNuevaCita, fecha, onF
 
         <TouchableOpacity onPress={() => onFechaChange(new Date())}>
           <View style={s.fechaCenter}>
-            <Text style={[s.fechaDia, { color: c.text }]}>
+            <TText style={[s.fechaDia, { color: c.text }]}>
               {format(fecha, "EEEE d 'de' MMMM", { locale: es })}
-            </Text>
+            </TText>
             {isToday(fecha) && (
               <View style={s.hoyBadge}>
-                <Text style={s.hoyText}>Hoy</Text>
+                <TText style={s.hoyText}>Hoy</TText>
               </View>
             )}
           </View>
@@ -88,7 +89,7 @@ export function AgendaView({ profesionales, onCitaPress, onNuevaCita, fecha, onF
           {profesionales.map((prof) => (
             <View key={prof.id} style={[s.profCol, { width: COL_WIDTH }]}>
               <View style={[s.profDot, { backgroundColor: prof.color }]} />
-              <Text style={[s.profNombre, { color: c.text }]} numberOfLines={1}>{prof.nombre}</Text>
+              <TText style={[s.profNombre, { color: c.text }]} numberOfLines={1}>{prof.nombre}</TText>
             </View>
           ))}
         </ScrollView>
@@ -105,9 +106,9 @@ export function AgendaView({ profesionales, onCitaPress, onNuevaCita, fecha, onF
           <View style={[s.timeCol, { width: TIME_COL_WIDTH }]}>
             {HOURS.map((hour) => (
               <View key={hour} style={[s.timeRow, { height: HOUR_HEIGHT }]}>
-                <Text style={[s.timeLabel, { color: c.textTertiary }]}>
+                <TText style={[s.timeLabel, { color: c.textTertiary }]}>
                   {String(hour).padStart(2, '0')}:00
-                </Text>
+                </TText>
               </View>
             ))}
           </View>

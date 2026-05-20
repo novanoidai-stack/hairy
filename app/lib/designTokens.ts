@@ -1,4 +1,25 @@
 // Design tokens from Claude Design rediseño
+//
+// TYPOGRAPHY HIERARCHY (4 text color levels):
+// - text: #f8fafc      → títulos, nombres destacados, valores seleccionados
+// - textSecondary: #94a3b8 → texto del cuerpo, descripciones, valores en reposo
+// - textTertiary: #64748b  → labels UPPERCASE, placeholders, meta info, "Sin teléfono"
+// - textMuted: #475569     → estados deshabilitados
+//
+// FONT WEIGHTS (Inter):
+// - 400 → texto corrido, descripciones
+// - 500 → links, items de menú no seleccionados
+// - 600 → labels UPPERCASE, items seleccionados, valores secundarios
+// - 700 → títulos H1/H2/H3, nombres en cards, precios, totales
+// - 800 → solo para display muy grandes
+//
+// FONT SMOOTHING:
+// Applied globally in WebScrollbarStyles:
+// - -webkit-font-smoothing: antialiased
+// - -moz-osx-font-smoothing: grayscale
+// - text-rendering: optimizeLegibility
+// This is set on the root element automatically.
+
 export const DESIGN_TOKENS = {
   // Backgrounds
   bg: '#0b1220',
@@ -14,6 +35,9 @@ export const DESIGN_TOKENS = {
   text: '#f8fafc',
   textSecondary: '#94a3b8',
   textTertiary: '#64748b',
+  textMuted: '#475569',
+  textSec: '#94a3b8',
+  textTer: '#64748b',
 
   // Primary (Indigo)
   primary: '#6366f1',

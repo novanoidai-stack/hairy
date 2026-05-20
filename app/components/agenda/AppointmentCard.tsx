@@ -1,5 +1,6 @@
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
-import { fontSize, fontWeight, radius } from '@/lib/theme';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { fontSize, fontWeight, radius, useTheme } from '@/lib/theme';
+import { TText } from '@/components/ui/TText';
 import type { Cita } from './AgendaView';
 
 const ESTADO_COLORS: Record<Cita['estado'], string> = {
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function AppointmentCard({ cita, top, height, onPress }: Props) {
+  const { c } = useTheme();
   const bg = cita.color + '22';
   const border = cita.color;
   const estadoColor = ESTADO_COLORS[cita.estado];
@@ -38,13 +40,13 @@ export function AppointmentCard({ cita, top, height, onPress }: Props) {
       activeOpacity={0.8}
     >
       <View style={[s.estadoDot, { backgroundColor: estadoColor }]} />
-      <Text style={[s.cliente, { color: border }]} numberOfLines={1}>
+      <TText style={[s.cliente, { color: border }]} numberOfLines={1}>
         {cita.clienteNombre}
-      </Text>
+      </TText>
       {!compact && (
-        <Text style={s.servicio} numberOfLines={1}>
+        <TText style={[s.servicio, { color: c.textSecondary }]} numberOfLines={1}>
           {cita.servicioNombre}
-        </Text>
+        </TText>
       )}
     </TouchableOpacity>
   );

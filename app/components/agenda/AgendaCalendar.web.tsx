@@ -1,6 +1,10 @@
-import { useEffect, useState, useMemo } from 'react';
+﻿import { useEffect, useState, useMemo, useRef } from 'react';
+import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { TimeDrumPicker } from '@/components/ui/Pickers';
+import { useCalendarRefresh } from '@/lib/calendarContext';
+import { syncAlergiasACliente } from '@/lib/syncAlergias';
 import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
 import {
   NEGOCIO_ID_FALLBACK,
@@ -15,18 +19,19 @@ import {
 import { isTimeSlotOccupied } from '@/lib/utils/appointment';
 
 const ANIMATIONS = `
-  button, input, select, textarea {
-    color: #f8fafc !important;
-  }
-  button * {
-    color: #f8fafc !important;
+  input::placeholder, textarea::placeholder {
+    color: var(--color-text-tertiary) !important;
   }
   input, select, textarea {
-    background-color: #141f33 !important;
+    background-color: var(--color-bg-card) !important;
+    color: var(--color-text) !important;
+  }
+  input:disabled, textarea:disabled {
+    color: var(--color-text-muted) !important;
   }
   option {
-    background-color: #141f33 !important;
-    color: #f8fafc !important;
+    background-color: var(--color-bg-card) !important;
+    color: var(--color-text) !important;
   }
   @keyframes slideInUp {
     from { opacity: 0; transform: translateY(20px); }
@@ -80,6 +85,7 @@ interface Cita {
   fin: string;
   estado: string;
   profesional_id: string;
+  servicio_id?: string;
   profesionales?: { nombre: string; color: string };
   servicios?: { nombre: string };
   clientes?: { nombre: string };
@@ -123,6 +129,7 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
 };
 
 export default function AgendaCalendar() {
+  const { refreshTrigger } = useCalendarRefresh();
   const [citas, setCitas] = useState<Cita[]>([]);
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
@@ -137,6 +144,8 @@ export default function AgendaCalendar() {
   const [showEditCita, setShowEditCita] = useState(false);
   const [selectedCitaEdit, setSelectedCitaEdit] = useState<any>(null);
   const [notifications, setNotifications] = useState(0);
+  const [bloqueos, setBloqueos] = useState<any[]>([]);
+  const [citaAddonsMap, setCitaAddonsMap] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
     async function cargar() {
@@ -147,15 +156,17 @@ export default function AgendaCalendar() {
           negocioId = profile.negocio_id;
         }
 
-        const [profResult, citaResult, srvResult, cltResult] = await Promise.all([
+        const [profResult, citaResult, srvResult, cltResult, bloqueoResult, addonsResult] = await Promise.all([
           supabase.from('profesionales').select('id, nombre, color, activo').eq('negocio_id', negocioId),
           supabase
             .from('citas')
-            .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id')
+            .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo')
             .eq('negocio_id', negocioId)
-            .neq('estado', CITA_STATUS.CANCELADA),
-          supabase.from('servicios').select('id, nombre, precio').eq('negocio_id', negocioId),
-          supabase.from('clientes').select('id, nombre').eq('negocio_id', negocioId),
+            .eq('oculta_en_calendario', false),
+          supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min').eq('negocio_id', negocioId),
+          supabase.from('clientes').select('id, nombre, telefono, alergias').eq('negocio_id', negocioId),
+          supabase.from('bloqueos_profesional').select('*').eq('negocio_id', negocioId),
+          supabase.from('cita_addons').select('cita_id, service_addons(nombre)'),
         ]);
 
         if (profResult.error) console.error('Prof error:', profResult.error);
@@ -167,6 +178,13 @@ export default function AgendaCalendar() {
         setCitas(citaResult.data ?? []);
         setServicios(srvResult.data ?? []);
         setClientes(cltResult.data ?? []);
+        setBloqueos(bloqueoResult.data ?? []);
+        const addonMap: Record<string, any[]> = {};
+        for (const row of (addonsResult.data ?? [])) {
+          if (!addonMap[row.cita_id]) addonMap[row.cita_id] = [];
+          addonMap[row.cita_id].push(row);
+        }
+        setCitaAddonsMap(addonMap);
         setNotifications((citaResult.data ?? []).filter((c) => c.estado === 'pendiente').length);
         setLoading(false);
       } catch (error) {
@@ -175,7 +193,7 @@ export default function AgendaCalendar() {
       }
     }
     cargar();
-  }, []);
+  }, [refreshTrigger]);
 
   const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   const year = currentMonth.getFullYear();
@@ -222,6 +240,16 @@ export default function AgendaCalendar() {
 
   const totalCitasHoy = citasHoy.length;
 
+  // Citas en proximas 48h sin confirmar por el cliente (excluye canceladas)
+  const sinConfirmar48h = useMemo(() => {
+    const ahora = Date.now();
+    return citas.filter((c: any) => {
+      const ts = new Date(c.inicio).getTime();
+      const horas = (ts - ahora) / 3600000;
+      return horas > 0 && horas <= 48 && !c.confirmada_cliente && c.estado !== CITA_STATUS.CANCELADA;
+    }).length;
+  }, [citas]);
+
   const servicioMap = useMemo(() => {
     const map = new Map(servicios.map((s) => [s.id, s]));
     return map;
@@ -244,6 +272,46 @@ export default function AgendaCalendar() {
     }, 0);
   }, [citasHoy, servicioMap]);
 
+  // RN-AG-073-074: metricas de aprovechamiento de tiempos muertos por profesional
+  const reposoUtilMap = useMemo(() => {
+    const map: Record<string, { totalMin: number; usedMin: number }> = {};
+    const byProf: Record<string, any[]> = {};
+    citasHoy.forEach((c: any) => {
+      if (c.estado === CITA_STATUS.CANCELADA) return;
+      if (!byProf[c.profesional_id]) byProf[c.profesional_id] = [];
+      byProf[c.profesional_id].push(c);
+    });
+    Object.entries(byProf).forEach(([profId, profCitas]) => {
+      let totalMin = 0;
+      let usedMin = 0;
+      profCitas.forEach((c: any) => {
+        if (!c.fin_activa || !c.fin_espera) return;
+        const restStart = new Date(c.fin_activa).getTime();
+        const restEnd = new Date(c.fin_espera).getTime();
+        if (restEnd <= restStart) return;
+        // Excluir reposos de citas anidadas (su inicio cae dentro del reposo de otra)
+        const esAnidada = profCitas.some((host: any) => {
+          if (host.id === c.id || !host.fin_activa || !host.fin_espera) return false;
+          const hRestStart = new Date(host.fin_activa).getTime();
+          const hRestEnd = new Date(host.fin_espera).getTime();
+          return new Date(c.inicio).getTime() >= hRestStart && new Date(c.inicio).getTime() < hRestEnd;
+        });
+        if (esAnidada) return;
+        totalMin += (restEnd - restStart) / 60000;
+        // Overlap: span completo de otra cita (inicio→fin) dentro de este reposo
+        profCitas.forEach((d: any) => {
+          if (d.id === c.id) return;
+          const dStart = new Date(d.inicio).getTime();
+          const dFin = new Date(d.fin).getTime();
+          const ov = Math.max(0, Math.min(dFin, restEnd) - Math.max(dStart, restStart));
+          usedMin += ov / 60000;
+        });
+      });
+      if (totalMin > 0) map[profId] = { totalMin, usedMin: Math.min(usedMin, totalMin) };
+    });
+    return map;
+  }, [citasHoy]);
+
   const totalCitasMes = useMemo(() => {
     return citas.filter((c) => {
       const d = new Date(c.inicio);
@@ -254,6 +322,13 @@ export default function AgendaCalendar() {
   const ocupacionMes = useMemo(() => {
     return Math.round((totalCitasMes / OCUPACION_MAX_PER_MES) * 100);
   }, [totalCitasMes]);
+
+  // RN-AG-073-074: resumen global de aprovechamiento de reposo del dia
+  const reposoGlobal = useMemo(() => {
+    let total = 0, used = 0;
+    Object.values(reposoUtilMap).forEach((v) => { total += v.totalMin; used += v.usedMin; });
+    return total > 0 ? { totalMin: total, usedMin: used, pct: Math.round(used / total * 100) } : null;
+  }, [reposoUtilMap]);
 
   const handlePrevMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
@@ -268,7 +343,7 @@ export default function AgendaCalendar() {
     setCurrentMonth(today);
   };
 
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: TOKENS.text }}>Cargando...</div>;
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0b1220', color: TOKENS.text }}>Cargando...</div>;
 
   const monthName = currentMonth.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' });
 
@@ -276,7 +351,7 @@ export default function AgendaCalendar() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
       <style>{ANIMATIONS}</style>
       {/* Topbar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
+      <div className="m-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, letterSpacing: -0.4 }}>Agenda</h1>
           <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: TOKENS.textSec }}>
@@ -284,15 +359,34 @@ export default function AgendaCalendar() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <button style={{ padding: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.textSec, position: 'relative', cursor: 'pointer', width: 36, height: 36, display: 'grid', placeItems: 'center', transition: 'all 0.3s ease', transform: 'scale(1)' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.background = TOKENS.bgCardHi; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.background = TOKENS.bgCard; }}>
+          {reposoGlobal && (
+            <div
+              title={`${reposoGlobal.usedMin} de ${reposoGlobal.totalMin} min de reposo aprovechados hoy`}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', color: '#f59e0b', borderRadius: 999, fontSize: 12, fontWeight: 700 }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: '#f59e0b' }} />
+              {reposoGlobal.pct}% reposo aprovechado
+            </div>
+          )}
+          {sinConfirmar48h > 0 && (
+            <div
+              title="Citas en las proximas 48h que la clienta aun no ha confirmado"
+              className="m-pulse-red"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.30)', color: '#ef4444', borderRadius: 999, fontSize: 12, fontWeight: 700 }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: '#ef4444' }} />
+              {sinConfirmar48h} sin confirmar
+            </div>
+          )}
+          <button className="m-btn-icon" style={{ padding: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.textSec, position: 'relative', cursor: 'pointer', width: 36, height: 36, display: 'grid', placeItems: 'center' }}>
             <Icon name="bell" size={20} color={TOKENS.textSec} />
             {notifications > 0 && <span style={{ position: 'absolute', top: 5, right: 5, width: 7, height: 7, background: TOKENS.danger, borderRadius: 999, boxShadow: `0 0 0 2px ${TOKENS.bg}`, animation: 'pulse 2s infinite' }} />}
           </button>
-          <button onClick={handleToday} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)', transform: 'translateY(0)' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 6px 20px rgba(99,102,241,0.2)`; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+          <button className="m-btn-secondary" onClick={handleToday} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="calendar" size={16} color={TOKENS.text} />
             Hoy
           </button>
-          <button onClick={() => setShowNewCita(true)} style={{ padding: '9px 14px', background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)', transform: 'translateY(0)' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+          <button className="m-btn-primary" onClick={() => setShowNewCita(true)} style={{ padding: '9px 14px', background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="plus" size={16} color="#fff" />
             Nueva cita
           </button>
@@ -319,11 +413,11 @@ export default function AgendaCalendar() {
 
           <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <button onClick={handlePrevMonth} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', transition: 'all 0.2s ease', transform: 'scale(1) rotate(0deg)' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1) rotate(-15deg)'; e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.background = TOKENS.bgCardHi; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.background = TOKENS.bg; }}>
+              <button className="m-btn-icon m-btn-icon-rotate-l" onClick={handlePrevMonth} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
                 <Icon name="chevronLeft" size={18} color={TOKENS.textSec} />
               </button>
               <div style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text, textTransform: 'capitalize' }}>{monthName}</div>
-              <button onClick={handleNextMonth} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', transition: 'all 0.2s ease', transform: 'scale(1) rotate(0deg)' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)'; e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.background = TOKENS.bgCardHi; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.background = TOKENS.bg; }}>
+              <button className="m-btn-icon m-btn-icon-rotate-r" onClick={handleNextMonth} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
                 <Icon name="chevronRight" size={18} color={TOKENS.textSec} />
               </button>
             </div>
@@ -404,7 +498,7 @@ export default function AgendaCalendar() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <ProfRow id="todos" name="Todos" color={TOKENS.primary} count={citasHoy.length} selected={selectedProf === 'todos'} onSel={() => setSelectedProf('todos')} />
               {visibleProfs.map((p) => (
-                <ProfRow key={p.id} id={p.id} name={p.nombre} role={p.rol} color={p.color} count={citasHoy.filter((c) => c.profesional_id === p.id).length} selected={selectedProf === p.id} onSel={() => setSelectedProf(p.id)} />
+                <ProfRow key={p.id} id={p.id} name={p.nombre} role={p.rol} color={p.color} count={citasHoy.filter((c) => c.profesional_id === p.id).length} selected={selectedProf === p.id} onSel={() => setSelectedProf(p.id)} reposoUtil={reposoUtilMap[p.id]} />
               ))}
             </div>
           </div>
@@ -424,28 +518,26 @@ export default function AgendaCalendar() {
                 {totalCitasHoy} citas programadas · {ingresosDia}€ estimados
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <ViewTab active={view === 'day'} onClick={() => setView('day')}>Día</ViewTab>
-              <ViewTab active={view === 'week'} onClick={() => setView('week')}>Semana</ViewTab>
-              <ViewTab active={view === 'month'} onClick={() => setView('month')}>Mes</ViewTab>
-            </div>
           </div>
 
-          {view === 'day' && <DayTimeline citas={filtered} profesionales={visibleProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} />}
-          {view === 'week' && <div style={{ color: TOKENS.textSec, padding: '20px', textAlign: 'center' }}>Vista de semana (próximamente)</div>}
-          {view === 'month' && <div style={{ color: TOKENS.textSec, padding: '20px', textAlign: 'center' }}>Vista de mes (próximamente)</div>}
+          <DayTimeline citas={filtered} profesionales={visibleProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} />
         </div>
       </div>
 
-      {showNewCita && <NewCitaModal onClose={() => setShowNewCita(false)} selectedDate={selectedDateObj} />}
+      {showNewCita && <NewCitaModal onClose={() => setShowNewCita(false)} onSaved={(nuevaCita: any) => { if (nuevaCita) setCitas(prev => [...prev, nuevaCita]); setShowNewCita(false); }} selectedDate={selectedDateObj} />}
       {showEditCita && selectedCitaEdit && (
-        <EditCitaModal
+        <DetalleCitaModal
           onClose={() => setShowEditCita(false)}
+          onSaved={(updatedFields: any) => {
+            setCitas(prev => prev.map(c => c.id === selectedCitaEdit.id ? { ...c, ...updatedFields } : c));
+            setShowEditCita(false);
+          }}
           cita={selectedCitaEdit}
           servicios={servicios}
           clientes={clientes}
           profesionales={profesionales}
           citasHoy={citasHoy}
+          allCitas={citas}
         />
       )}
     </div>
@@ -468,7 +560,7 @@ function StatCard({ label, value, sub, tone, progress }: any) {
   );
 }
 
-function ProfRow({ id, name, role, color, count, selected, onSel }: any) {
+function ProfRow({ id, name, role, color, count, selected, onSel, reposoUtil }: any) {
   return (
     <button
       onClick={onSel}
@@ -508,13 +600,30 @@ function ProfRow({ id, name, role, color, count, selected, onSel }: any) {
           boxShadow: `0 0 0 1px rgba(255,255,255,0.06)`,
         }}
       >
-        {name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
+        {id === 'todos' ? (
+          <svg width="13" height="13" viewBox="0 0 12 12" fill="#fff">
+            <rect x="0" y="0" width="5" height="5" rx="1"/>
+            <rect x="7" y="0" width="5" height="5" rx="1"/>
+            <rect x="0" y="7" width="5" height="5" rx="1"/>
+            <rect x="7" y="7" width="5" height="5" rx="1"/>
+          </svg>
+        ) : name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: selected ? TOKENS.text : TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {name}
         </div>
         {role && <div style={{ fontSize: 11, color: TOKENS.textTer }}>{role}</div>}
+        {reposoUtil && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+            <div style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(245,158,11,0.15)', overflow: 'hidden' }}>
+              <div style={{ width: `${Math.round(reposoUtil.usedMin / reposoUtil.totalMin * 100)}%`, height: '100%', borderRadius: 2, background: '#f59e0b', transition: 'width 0.3s ease' }} />
+            </div>
+            <span style={{ fontSize: 9, color: '#f59e0b', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              {Math.round(reposoUtil.usedMin / reposoUtil.totalMin * 100)}%
+            </span>
+          </div>
+        )}
       </div>
       <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textSec, padding: '2px 7px', borderRadius: 6, background: 'rgba(148,163,184,0.10)' }}>
         {count}
@@ -557,17 +666,194 @@ function ViewTab({ children, active, onClick }: any) {
   );
 }
 
-function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, onEditCita }: any) {
+const BLOQUEO_COLORS: Record<string, string> = {
+  vacaciones: '#10b981',
+  reunion:    '#3b82f6',
+  baja:       '#ef4444',
+  formacion:  '#8b5cf6',
+  descanso:   '#f59e0b',
+};
+const BLOQUEO_LABELS: Record<string, string> = {
+  vacaciones: 'Vacaciones',
+  reunion:    'Reunión',
+  baja:       'Baja',
+  formacion:  'Formación',
+  descanso:   'Descanso',
+};
+
+function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date() }: any) {
   const HOURS = [];
   for (let h = HORARIO_APERTURA.horas; h < HORARIO_CIERRE.horas; h++) HOURS.push(h);
   const ROW_H = 64;
   const START_H = HORARIO_APERTURA.horas;
-
   const now = new Date();
   const currentHourPercent = ((now.getHours() - START_H) + now.getMinutes() / 60) / HOURS.length;
   const isToday = now.getHours() >= START_H && now.getHours() < START_H + HOURS.length;
 
+  // ---- DRAG & DROP ----
+  const [isDragging, setIsDragging] = useState(false);
+  const [drag, setDrag] = useState<any>(null);
+  const [dropSlot, setDropSlot] = useState<any>(null);
+  const [dragError, setDragError] = useState<string | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<any>(null);
+  const dropRef = useRef<any>(null);
+  const _profRef = useRef(profesionales); _profRef.current = profesionales;
+  const _citasRef = useRef(citas); _citasRef.current = citas;
+  const _dateRef = useRef(selectedDateObj); _dateRef.current = selectedDateObj;
+
+  const startDrag = (cita: any, e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const d = {
+      cita,
+      startX: e.clientX, startY: e.clientY,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      ghostX: rect.left, ghostY: rect.top,
+      blockWidth: rect.width, blockHeight: rect.height,
+    };
+    dragRef.current = d;
+    setIsDragging(true);
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const onMove = (e: MouseEvent) => {
+      const d = dragRef.current;
+      if (!d) return;
+      const moved = Math.abs(e.clientX - d.startX) > 5 || Math.abs(e.clientY - d.startY) > 5;
+      if (!moved) return;
+
+      const upd = { ...d, ghostX: e.clientX - d.offsetX, ghostY: e.clientY - d.offsetY };
+      dragRef.current = upd;
+      setDrag(upd);
+
+      const grid = gridRef.current;
+      if (!grid) return;
+      const r = grid.getBoundingClientRect();
+      const relY = e.clientY - r.top;
+      const relX = e.clientX - r.left - 56;
+      const profs = _profRef.current;
+      if (relY < 0 || relY >= HOURS.length * ROW_H || relX < 0 || relX > r.width - 56 || !profs.length) {
+        dropRef.current = null; setDropSlot(null); return;
+      }
+      const colW = (r.width - 56) / profs.length;
+      const profIndex = Math.min(Math.floor(relX / colW), profs.length - 1);
+      const snappedMin = Math.max(0, Math.round((relY - d.offsetY) / ROW_H * 60 / 15) * 15);
+      const sl = { profIndex, minutesFromStart: snappedMin, colW };
+      dropRef.current = sl; setDropSlot(sl);
+    };
+
+    const onUp = async (e: MouseEvent) => {
+      const d = dragRef.current;
+      const sl = dropRef.current;
+      dragRef.current = null; dropRef.current = null;
+      setDrag(null); setDropSlot(null); setIsDragging(false);
+
+      if (!d) return;
+
+      const moved = Math.abs(e.clientX - d.startX) > 5 || Math.abs(e.clientY - d.startY) > 5;
+      if (!moved) { onEditCita?.(d.cita); return; }
+      if (!sl) return;
+
+      const profs = _profRef.current;
+      const currentCitas = _citasRef.current;
+      const dateObj = _dateRef.current;
+      const targetProf = profs[sl.profIndex];
+      if (!targetProf) return;
+
+      const cita = d.cita;
+      const durMs = new Date(cita.fin).getTime() - new Date(cita.inicio).getTime();
+      const activaMs = cita.fin_activa
+        ? new Date(cita.fin_activa).getTime() - new Date(cita.inicio).getTime() : durMs;
+      const esperaMs = cita.fin_activa && cita.fin_espera
+        ? new Date(cita.fin_espera).getTime() - new Date(cita.fin_activa).getTime() : 0;
+
+      const h = START_H + Math.floor(sl.minutesFromStart / 60);
+      const m = sl.minutesFromStart % 60;
+      const nuevoInicio = new Date(dateObj); nuevoInicio.setHours(h, m, 0, 0);
+      const nuevoFinActiva = new Date(nuevoInicio.getTime() + activaMs);
+      const nuevoFinEspera = new Date(nuevoFinActiva.getTime() + esperaMs);
+      const nuevoFin = new Date(nuevoInicio.getTime() + durMs);
+
+      if (nuevoInicio.getTime() === new Date(cita.inicio).getTime() && targetProf.id === cita.profesional_id) return;
+
+      const limFin = new Date(dateObj); limFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+      if (nuevoFin > limFin) {
+        setDragError('La cita excede el horario de cierre');
+        setTimeout(() => setDragError(null), 2500);
+        return;
+      }
+
+      const activo2Ms = cita.fin_espera ? new Date(cita.fin).getTime() - new Date(cita.fin_espera).getTime() : 0;
+      const c1 = isTimeSlotOccupied(nuevoInicio, nuevoFinActiva, currentCitas, targetProf.id, cita.id);
+      const c2 = activo2Ms > 0 && isTimeSlotOccupied(nuevoFinEspera, nuevoFin, currentCitas, targetProf.id, cita.id);
+      if (c1 || c2) {
+        setDragError('Conflicto: la fase activa se solapa con otra cita activa');
+        setTimeout(() => setDragError(null), 2500);
+        return;
+      }
+
+      const payload: any = {
+        inicio: nuevoInicio.toISOString(), fin: nuevoFin.toISOString(),
+        fin_activa: nuevoFinActiva.toISOString(), fin_espera: nuevoFinEspera.toISOString(),
+        profesional_id: targetProf.id,
+      };
+      const { error } = await supabase.from('citas').update(payload).eq('id', cita.id);
+      if (!error) onCitaUpdated?.({ id: cita.id, ...payload });
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [isDragging]);
+  // ---- END DRAG & DROP ----
+
+  const citasWithLanes = useMemo(() => {
+    const result = citas.map((c: any) => ({ ...c }));
+    const byProf: Record<string, any[]> = {};
+    result.forEach((c: any) => {
+      if (!byProf[c.profesional_id]) byProf[c.profesional_id] = [];
+      byProf[c.profesional_id].push(c);
+    });
+    Object.values(byProf).forEach((profCitas: any[]) => {
+      profCitas.sort((a: any, b: any) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+      const lanes: any[][] = [];
+      profCitas.forEach((cita: any) => {
+        let placed = false;
+        for (let i = 0; i < lanes.length; i++) {
+          const last = lanes[i][lanes[i].length - 1];
+          if (new Date(last.fin).getTime() <= new Date(cita.inicio).getTime()) {
+            lanes[i].push(cita);
+            cita._lane = i;
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) {
+          lanes.push([cita]);
+          cita._lane = lanes.length - 1;
+        }
+      });
+      profCitas.forEach((cita: any) => {
+        const overlapping = profCitas.filter((o: any) =>
+          o.id !== cita.id &&
+          new Date(o.inicio).getTime() < new Date(cita.fin).getTime() &&
+          new Date(o.fin).getTime() > new Date(cita.inicio).getTime()
+        );
+        cita._totalLanes = overlapping.length > 0
+          ? Math.max(...overlapping.map((o: any) => o._lane ?? 0), cita._lane ?? 0) + 1
+          : 1;
+      });
+    });
+    return result;
+  }, [citas]);
+
   return (
+    <>
     <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, overflow: 'hidden' }}>
       <div style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(99,102,241,0.04)' }}>
         <div />
@@ -578,7 +864,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
           </div>
         ))}
       </div>
-      <div style={{ position: 'relative', height: HOURS.length * ROW_H }}>
+      <div ref={gridRef} style={{ position: 'relative', height: HOURS.length * ROW_H, cursor: isDragging ? 'grabbing' : 'default' }}>
         {isToday && (
           <div style={{
             position: 'absolute',
@@ -617,6 +903,27 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
             </div>
           </div>
         )}
+        {dropSlot && drag && (() => {
+          const dropProf = profesionales[dropSlot.profIndex];
+          const dropColor = dropProf?.color || TOKENS.primary;
+          const dropTop = dropSlot.minutesFromStart / 60 * ROW_H;
+          const dropLeft = 56 + dropSlot.profIndex * dropSlot.colW;
+          const dropH = drag.blockHeight;
+          return (
+            <div style={{
+              position: 'absolute', top: dropTop, left: dropLeft,
+              width: dropSlot.colW - 8, height: dropH,
+              background: `${dropColor}18`,
+              border: `2px dashed ${dropColor}99`,
+              borderRadius: 8, pointerEvents: 'none', zIndex: 6,
+              display: 'flex', alignItems: 'flex-start', padding: '4px 6px',
+            }}>
+              <span style={{ fontSize: 9, fontWeight: 700, color: dropColor }}>
+                {String(START_H + Math.floor(dropSlot.minutesFromStart / 60)).padStart(2, '0')}:{String(dropSlot.minutesFromStart % 60).padStart(2, '0')}
+              </span>
+            </div>
+          );
+        })()}
         {HOURS.map((h, idx) => (
           <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(148,163,184,0.05)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(99,102,241,0.03)' }}>
             <div style={{ padding: '8px 8px', fontSize: 11, color: TOKENS.textTer, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
@@ -627,76 +934,283 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
             ))}
           </div>
         ))}
-        {citas.map((cita: any) => {
-          const start = new Date(cita.inicio);
-          const end = new Date(cita.fin);
-          const startH = start.getHours() + start.getMinutes() / 60;
-          const durH = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-          const top = (startH - START_H) * ROW_H;
-          const height = durH * ROW_H;
-          const profIdx = profesionales.findIndex((p: any) => p.id === cita.profesional_id);
-          const colWidth = 100 / Math.max(1, profesionales.length);
-          const leftPercent = 56 + profIdx * colWidth;
-          const profColor = profesionales[profIdx]?.color || TOKENS.primary;
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 56,
+          right: 0,
+          height: HOURS.length * ROW_H,
+          display: 'grid',
+          gridTemplateColumns: `repeat(${Math.max(1, profesionales.length)}, 1fr)`,
+          pointerEvents: 'none',
+        }}>
+          {profesionales.map((prof: any) => {
+            const profColor = prof.color || TOKENS.primary;
+            const profCitas = citasWithLanes.filter((c: any) => c.profesional_id === prof.id);
+            return (
+              <div key={prof.id} style={{ position: 'relative', pointerEvents: 'none' }}>
+                {(bloqueos as any[]).filter((b: any) => {
+                  if (b.profesional_id !== prof.id) return false;
+                  const dayStart = new Date(selectedDateObj); dayStart.setHours(0, 0, 0, 0);
+                  const dayEnd = new Date(selectedDateObj); dayEnd.setHours(23, 59, 59, 999);
+                  return new Date(b.inicio) <= dayEnd && new Date(b.fin) >= dayStart;
+                }).map((b: any) => {
+                  const bloqueoDayStart = new Date(selectedDateObj); bloqueoDayStart.setHours(START_H, 0, 0, 0);
+                  const bloqueoDayEnd = new Date(selectedDateObj); bloqueoDayEnd.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
+                  const bStart = new Date(Math.max(new Date(b.inicio).getTime(), bloqueoDayStart.getTime()));
+                  const bEnd = new Date(Math.min(new Date(b.fin).getTime(), bloqueoDayEnd.getTime()));
+                  const blockTop = (bStart.getHours() + bStart.getMinutes() / 60 - START_H) * ROW_H;
+                  const blockHeight = (bEnd.getHours() + bEnd.getMinutes() / 60 - (bStart.getHours() + bStart.getMinutes() / 60)) * ROW_H;
+                  if (blockHeight <= 0) return null;
+                  const bColor = BLOQUEO_COLORS[b.tipo] || '#94a3b8';
+                  return (
+                    <div
+                      key={b.id}
+                      style={{
+                        position: 'absolute',
+                        top: blockTop,
+                        left: 2,
+                        right: 2,
+                        height: blockHeight,
+                        background: `repeating-linear-gradient(45deg, ${bColor}14, ${bColor}14 4px, transparent 4px, transparent 10px)`,
+                        backgroundColor: `${bColor}0a`,
+                        borderLeft: `3px solid ${bColor}99`,
+                        borderRadius: 6,
+                        pointerEvents: 'none',
+                        zIndex: 2,
+                        padding: '4px 6px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div style={{ fontSize: 10, color: bColor, fontWeight: 700, whiteSpace: 'nowrap' }}>{BLOQUEO_LABELS[b.tipo] || b.tipo}</div>
+                      {b.motivo && blockHeight > 32 && (
+                        <div style={{ fontSize: 9, color: `${bColor}bb`, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.motivo}</div>
+                      )}
+                    </div>
+                  );
+                })}
+                {[...profCitas].sort((a: any, b: any) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime()).map((cita: any) => {
+                  const start = new Date(cita.inicio);
+                  const end = new Date(cita.fin);
+                  const startH = start.getHours() + start.getMinutes() / 60;
+                  const durH = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+                  const top = (startH - START_H) * ROW_H;
+                  const height = Math.max(24, durH * ROW_H);
+                  const lane = cita._lane ?? 0;
+                  const totalLanes = cita._totalLanes ?? 1;
+                  const cancelada = cita.estado === CITA_STATUS.CANCELADA;
 
-          return (
-            <div
-              key={cita.id}
-              style={{
-                position: 'absolute',
-                top,
-                left: `calc(56px + ${profIdx * colWidth}% + 4px)`,
-                right: `calc(${(profesionales.length - profIdx - 1) * colWidth}% + 4px)`,
-                height,
-                background: `linear-gradient(180deg, ${profColor}28, ${profColor}18)`,
-                border: `1px solid ${profColor}55`,
-                borderLeft: `3px solid ${profColor}`,
-                borderRadius: 8,
-                padding: '6px 8px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-                boxShadow: `0 4px 14px ${profColor}22`,
-                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                transform: 'scale(1)',
-              }}
-              onClick={() => onEditCita(cita)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.05)';
-                e.currentTarget.style.boxShadow = `0 8px 32px ${profColor}45`;
-                e.currentTarget.style.borderColor = `${profColor}99`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = `0 4px 14px ${profColor}22`;
-                e.currentTarget.style.borderColor = `${profColor}55`;
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                <span style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600 }}>
-                  {start.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })}
-                </span>
-                <div style={{ width: 5, height: 5, borderRadius: 999, background: cita.estado === CITA_STATUS.CONFIRMADA ? '#10b981' : '#f59e0b' }} />
+                  // 5.5: grupo encadenado
+                  const isChained = !!cita.grupo_id;
+                  const chainSiblings = isChained ? citasWithLanes.filter((c: any) => c.grupo_id === cita.grupo_id) : [];
+                  const chainTotal = chainSiblings.length;
+                  const chainPos = isChained ? (cita.orden_en_grupo ?? 0) + 1 : 0;
+
+                  // RN-AG-042: zonas de reposo diferenciadas visualmente
+                  const finActiva = cita.fin_activa ? new Date(cita.fin_activa) : null;
+                  const finEspera = cita.fin_espera ? new Date(cita.fin_espera) : null;
+                  const activaPx = finActiva ? ((finActiva.getTime() - start.getTime()) / (1000 * 60 * 60)) * ROW_H : height;
+                  const esperaPx = (finActiva && finEspera) ? ((finEspera.getTime() - finActiva.getTime()) / (1000 * 60 * 60)) * ROW_H : 0;
+                  const hasEspera = esperaPx > 2;
+                  return (
+                    <div
+                      key={cita.id}
+                      style={{
+                        position: 'absolute',
+                        top,
+                        left: `calc(${(lane / totalLanes) * 100}% + 4px)`,
+                        right: `calc(${((totalLanes - lane - 1) / totalLanes) * 100}% + 4px)`,
+                        height,
+                        boxSizing: 'border-box',
+                        pointerEvents: 'auto',
+                        background: cancelada ? 'linear-gradient(180deg, #3a3a3a18, #2a2a2a10)' : `linear-gradient(180deg, ${profColor}28, ${profColor}18)`,
+                        border: cancelada ? '1px solid #55555540' : `1px solid ${profColor}55`,
+                        borderLeft: cancelada ? '3px solid #66666660' : `3px solid ${profColor}`,
+                        borderTop: isChained && !cancelada ? `2px solid #a78bfa` : undefined,
+                        borderRadius: 8,
+                        padding: height <= CITA_CARD_DETAILS_MIN_HEIGHT ? '3px 6px' : '6px 8px',
+                        overflow: 'hidden',
+                        cursor: isDragging ? 'grabbing' : 'grab',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                        boxShadow: cancelada ? 'none' : `0 8px 8px ${profColor}25`,
+                        transition: drag?.cita.id === cita.id ? 'none' : 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        transform: 'scale(1)',
+                        opacity: cancelada ? 0.45 : (drag?.cita.id === cita.id ? 0.25 : 1),
+                      }}
+                      onMouseDown={(e) => { if (!cancelada) startDrag(cita, e); }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = cancelada ? 'none' : `0 12px 12px ${profColor}45`;
+                        e.currentTarget.style.borderColor = cancelada ? '#77777770' : `${profColor}99`;
+                        if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #a78bfa';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = cancelada ? 'none' : `0 8px 8px ${profColor}25`;
+                        e.currentTarget.style.borderColor = cancelada ? '#55555540' : `${profColor}55`;
+                        if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #a78bfa';
+                      }}
+                    >
+                      {/* RN-AG-042: zona de reposo semitransparente con rayas */}
+                      {hasEspera && !cancelada && (
+                        <div style={{
+                          position: 'absolute',
+                          top: activaPx,
+                          left: 0,
+                          right: 0,
+                          height: esperaPx,
+                          pointerEvents: 'none',
+                          background: `repeating-linear-gradient(45deg, transparent, transparent 4px, ${profColor}12 4px, ${profColor}12 8px)`,
+                          borderTop: `1px dashed ${profColor}70`,
+                          borderBottom: esperaPx > 2 && finEspera && finEspera < end ? `1px dashed ${profColor}70` : 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden',
+                        }}>
+                          {esperaPx >= 18 && (
+                            <span style={{ fontSize: 9, fontWeight: 700, color: `${profColor}99`, letterSpacing: 0.5, textTransform: 'uppercase', userSelect: 'none' }}>
+                              reposo
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {(() => {
+                        const horasHasta = (start.getTime() - Date.now()) / 3600000;
+                        const inminente = !cancelada && horasHasta > 0 && horasHasta <= 48;
+                        const confirmada = !!cita.confirmada_cliente;
+                        const narrow = height <= CITA_CARD_DETAILS_MIN_HEIGHT;
+                        const nombreCliente = clienteMap?.get(cita.cliente_id)?.nombre || '-';
+                        const nombreServicio = servicioMap?.get(cita.servicio_id)?.nombre || '';
+                        const timeStr = `${start.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })}`;
+
+                        let icon: any = null;
+                        if (!cancelada) {
+                          if (confirmada) {
+                            icon = (
+                              <div
+                                title="Confirmada por la clienta"
+                                style={{ width: 14, height: 14, borderRadius: 999, background: '#10b981', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}
+                              >
+                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                              </div>
+                            );
+                          } else {
+                            icon = (
+                              <div
+                                className={inminente ? 'm-pulse-red' : ''}
+                                title={inminente ? 'Sin confirmar · menos de 48h' : 'Sin confirmar por la clienta'}
+                                style={{ width: 14, height: 14, borderRadius: 999, background: inminente ? '#ef4444' : '#f59e0b', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0, fontSize: 10, fontWeight: 800, lineHeight: 1 }}
+                              >
+                                !
+                              </div>
+                            );
+                          }
+                        }
+
+                        const chainBadge = isChained ? (
+                          <span style={{ fontSize: 8, fontWeight: 700, background: 'rgba(139,92,246,0.25)', color: '#a78bfa', padding: '1px 5px', borderRadius: 4, flexShrink: 0, letterSpacing: 0.3 }}>
+                            {chainPos}/{chainTotal}
+                          </span>
+                        ) : null;
+
+                        const addonsNames = (citaAddonsMap[cita.id] || [])
+                          .map((ca: any) => ca.service_addons?.nombre)
+                          .filter(Boolean);
+                        const addonsStr = addonsNames.length > 0 ? '+ ' + addonsNames.join(', ') : '';
+
+                        if (narrow) {
+                          return (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', height: '100%' }}>
+                              <span style={{ fontSize: 10, fontWeight: 600, color: TOKENS.textTer, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                                {timeStr}
+                              </span>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancelada ? 'line-through' : 'none' }}>
+                                {nombreCliente}{nombreServicio ? ` · ${nombreServicio}` : ''}{addonsStr ? ` ${addonsStr}` : ''}
+                              </span>
+                              {chainBadge}
+                              {icon}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                              <span style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600 }}>{timeStr}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                {chainBadge}
+                                {icon}
+                              </div>
+                            </div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelada ? 'line-through' : 'none' }}>
+                              {nombreCliente}
+                            </div>
+                            <div style={{ fontSize: 10, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {nombreServicio || (cita.servicio_id ? 'Servicio eliminado' : 'Sin servicio')}
+                            </div>
+                            {addonsStr && (
+                              <div style={{ fontSize: 9, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {addonsStr}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  );
+                })}
               </div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {clienteMap?.get(cita.cliente_id)?.nombre || '-'}
-              </div>
-              {height > CITA_CARD_DETAILS_MIN_HEIGHT && (
-                <div style={{ fontSize: 10, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {servicioMap?.get(cita.servicio_id)?.nombre || 'Servicio'}
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
+
+      {/* Ghost element — sigue al cursor durante el arrastre */}
+      {drag && (
+        <div style={{
+          position: 'fixed',
+          top: drag.ghostY, left: drag.ghostX,
+          width: drag.blockWidth, height: drag.blockHeight,
+          pointerEvents: 'none', zIndex: 9999,
+          background: `linear-gradient(180deg, ${(profesionales.find((p: any) => p.id === drag.cita.profesional_id)?.color || TOKENS.primary)}50, ${(profesionales.find((p: any) => p.id === drag.cita.profesional_id)?.color || TOKENS.primary)}30)`,
+          border: `2px solid ${profesionales.find((p: any) => p.id === drag.cita.profesional_id)?.color || TOKENS.primary}`,
+          borderLeft: `4px solid ${profesionales.find((p: any) => p.id === drag.cita.profesional_id)?.color || TOKENS.primary}`,
+          borderRadius: 8, padding: '5px 8px',
+          boxShadow: `0 12px 32px rgba(0,0,0,0.4)`,
+          overflow: 'hidden',
+        }}>
+          <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600 }}>
+            {String(new Date(drag.cita.inicio).getHours()).padStart(2, '0')}:{String(new Date(drag.cita.inicio).getMinutes()).padStart(2, '0')}
+          </div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {clienteMap?.get(drag.cita.cliente_id)?.nombre || '-'}
+          </div>
+        </div>
+      )}
+
+      {/* Toast de error al soltar en posicion invalida */}
+      {dragError && (
+        <div style={{
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(239,68,68,0.95)', color: '#fff',
+          padding: '10px 20px', borderRadius: 10,
+          fontSize: 13, fontWeight: 600,
+          boxShadow: '0 8px 24px rgba(239,68,68,0.4)',
+          pointerEvents: 'none', zIndex: 9999,
+        }}>
+          {dragError}
+        </div>
+      )}
+    </>
   );
 }
 
-function NewCitaModal({ onClose, selectedDate }: any) {
+function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
+  const { triggerRefresh } = useCalendarRefresh();
   const [clientes, setClientes] = useState<any[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
   const [profesionales, setProfesionales] = useState<any[]>([]);
@@ -706,19 +1220,30 @@ function NewCitaModal({ onClose, selectedDate }: any) {
   const [selectedProf, setSelectedProf] = useState('');
   const [selectedHora, setSelectedHora] = useState<string>('');
   const [horaPersonalizada, setHoraPersonalizada] = useState<string>('');
+  const [useCustomHora, setUseCustomHora] = useState(false);
   const [loading, setLoading] = useState(true);
   const [negocioId, setNegocioId] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
   const [duracionOverride, setDuracionOverride] = useState<any>(null);
   const [duracionActivaCustom, setDuracionActivaCustom] = useState<number | null>(null);
   const [duracionEsperaCustom, setDuracionEsperaCustom] = useState<number | null>(null);
   const [duracionActivaExtraCustom, setDuracionActivaExtraCustom] = useState<number | null>(null);
+  const [profOverrides, setProfOverrides] = useState<any[]>([]);
   const [errMsg, setErrMsg] = useState('');
   const [guardando, setGuardando] = useState(false);
+  const [bloqueosProfHoy, setBloqueosProfHoy] = useState<any[]>([]);
   const [showCreateCliente, setShowCreateCliente] = useState(false);
   const [nuevoClienteNombre, setNuevoClienteNombre] = useState('');
   const [nuevoClienteTelefono, setNuevoClienteTelefono] = useState('');
   const [creandoCliente, setCreandoCliente] = useState(false);
   const [clienteSearch, setClienteSearch] = useState('');
+  const [citasConfirmadas, setCitasConfirmadas] = useState<any[]>([]);
+  const citasConfirmadasRef = useRef<any[]>([]);
+  citasConfirmadasRef.current = citasConfirmadas;
+  const [allDurOverrides, setAllDurOverrides] = useState<any[]>([]);
+  const [addonsDisponibles, setAddonsDisponibles] = useState<any[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [allProfSrvOverrides, setAllProfSrvOverrides] = useState<any[]>([]);
   const today = selectedDate || new Date();
 
   useEffect(() => {
@@ -729,23 +1254,26 @@ function NewCitaModal({ onClose, selectedDate }: any) {
         negocioId = profile.negocio_id;
       }
       setNegocioId(negocioId);
+      if (profile?.id) setUserId(profile.id);
 
       // Construir fecha local sin conversión a UTC
       const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
       const tomorrow = new Date(today.getTime() + 86400000);
       const tomorrowStr = tomorrow.getFullYear() + '-' + String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' + String(tomorrow.getDate()).padStart(2, '0');
 
-      const [{ data: clts }, { data: srvs }, { data: prfs }, { data: cits }] = await Promise.all([
-        supabase.from('clientes').select('id, nombre').eq('negocio_id', negocioId).order('nombre'),
-        supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min').eq('negocio_id', negocioId).order('nombre'),
+      const [{ data: clts, error: cltsErr }, { data: srvs, error: srvsErr }, { data: prfs, error: prfsErr }, { data: cits, error: citsErr }, { data: durOverrides }, { data: profSrvOverrides }] = await Promise.all([
+        supabase.from('clientes').select('id, nombre, telefono, alergias').eq('negocio_id', negocioId).order('nombre'),
+        supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, min_antelacion_min').eq('negocio_id', negocioId).order('nombre'),
         supabase.from('profesionales').select('id, nombre, color').eq('negocio_id', negocioId).eq('activo', true),
-        supabase.from('citas').select('id, inicio, fin, fin_activa, fin_espera, profesional_id').eq('negocio_id', negocioId).gte('inicio', `${todayStr}T00:00:00`).lt('inicio', `${tomorrowStr}T00:00:00`).neq('estado', CITA_STATUS.CANCELADA),
+        supabase.from('citas').select('id, inicio, fin, fin_activa, fin_espera, profesional_id, grupo_id, orden_en_grupo').eq('negocio_id', negocioId).gte('inicio', `${todayStr}T00:00:00`).lt('inicio', `${tomorrowStr}T00:00:00`).neq('estado', CITA_STATUS.CANCELADA),
+        supabase.from('duraciones_profesional').select('profesional_id, servicio_id, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min'),
+        supabase.from('professional_service_overrides').select('professional_id, service_id, duracion, duracion_espera_min, duracion_activa_extra_min, precio, activo'),
       ]);
 
-      if (srvs?.error) console.error('Servicios error:', srvs.error);
-      if (clts?.error) console.error('Clientes error:', clts.error);
-      if (prfs?.error) console.error('Profesionales error:', prfs.error);
-      if (cits?.error) console.error('Citas error:', cits.error);
+      if (srvsErr) console.error('Servicios error:', srvsErr);
+      if (cltsErr) console.error('Clientes error:', cltsErr);
+      if (prfsErr) console.error('Profesionales error:', prfsErr);
+      if (citsErr) console.error('Citas error:', citsErr);
 
       console.log('Servicios data:', srvs);
       console.log('Clientes data:', clts);
@@ -756,6 +1284,8 @@ function NewCitaModal({ onClose, selectedDate }: any) {
       setServicios(srvs ?? []);
       setProfesionales(prfs ?? []);
       setCitasHoy(cits ?? []);
+      setAllDurOverrides(durOverrides ?? []);
+      setAllProfSrvOverrides(profSrvOverrides ?? []);
       setLoading(false);
     }
     cargar();
@@ -763,8 +1293,16 @@ function NewCitaModal({ onClose, selectedDate }: any) {
 
   // Load per-professional duration override when both prof + service are selected
   useEffect(() => {
-    setSelectedHora('');
+    // Pre-select suggested hora if chaining, otherwise clear
+    const confirmed = citasConfirmadasRef.current;
+    if (confirmed.length > 0) {
+      const lastFin = confirmed[confirmed.length - 1].fin as Date;
+      setSelectedHora(`${String(lastFin.getHours()).padStart(2, '0')}:${String(lastFin.getMinutes()).padStart(2, '0')}`);
+    } else {
+      setSelectedHora('');
+    }
     setHoraPersonalizada('');
+    setUseCustomHora(false);
     if (!selectedProf || !selectedServicio) {
       setDuracionOverride(null);
       setDuracionActivaCustom(null);
@@ -786,26 +1324,89 @@ function NewCitaModal({ onClose, selectedDate }: any) {
       });
   }, [selectedProf, selectedServicio]);
 
-  const servicioActual = servicios.find((s) => s.id === selectedServicio);
+  // Reset confirmed chain when client changes
+  useEffect(() => {
+    setCitasConfirmadas([]);
+  }, [selectedCliente]);
 
-  // Duration resolution: manual → professional override → service default
+  // Fetch add-ons for the selected service
+  useEffect(() => {
+    setSelectedAddons([]);
+    if (!selectedServicio) { setAddonsDisponibles([]); return; }
+    supabase
+      .from('service_addons')
+      .select('id, nombre, duracion_min, precio')
+      .eq('servicio_id', selectedServicio)
+      .eq('activo', true)
+      .order('nombre')
+      .then(({ data }) => setAddonsDisponibles(data ?? []));
+  }, [selectedServicio]);
+
+  useEffect(() => {
+    if (!selectedProf) { setProfOverrides([]); return; }
+    supabase
+      .from('professional_service_overrides')
+      .select('*')
+      .eq('professional_id', selectedProf)
+      .then(({ data }) => {
+        const ovs = data ?? [];
+        setProfOverrides(ovs);
+        setSelectedServicio(prev => {
+          if (!prev) return prev;
+          const ov = ovs.find((o: any) => o.service_id === prev);
+          return ov?.activo === false ? '' : prev;
+        });
+      });
+  }, [selectedProf]);
+
+  useEffect(() => {
+    if (!selectedProf || !negocioId) { setBloqueosProfHoy([]); return; }
+    const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+    const tomorrow = new Date(today.getTime() + 86400000);
+    const tomorrowStr = tomorrow.getFullYear() + '-' + String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' + String(tomorrow.getDate()).padStart(2, '0');
+    supabase
+      .from('bloqueos_profesional')
+      .select('inicio, fin, tipo, motivo')
+      .eq('profesional_id', selectedProf)
+      .lt('inicio', `${tomorrowStr}T00:00:00`)
+      .gt('fin', `${todayStr}T00:00:00`)
+      .then(({ data }) => setBloqueosProfHoy(data ?? []));
+  }, [selectedProf, negocioId]);
+
+  const servicioActual = servicios.find((s) => s.id === selectedServicio);
+  const profServicioOverride = profOverrides.find((o) => o.service_id === selectedServicio);
+
+  const serviciosFiltrados = useMemo(
+    () => servicios.filter((s) => {
+      const ov = profOverrides.find((o: any) => o.service_id === s.id);
+      return ov?.activo !== false;
+    }),
+    [servicios, profOverrides]
+  );
+
+  // Duration resolution: manual → prof service override → duraciones_profesional → service default
   const duracionActiva = duracionActivaCustom
+    ?? profServicioOverride?.duracion
     ?? duracionOverride?.duracion_activa_min
     ?? servicioActual?.duracion_activa_min
-    ?? servicioActual?.duracion
     ?? 30;
   const duracionEspera = duracionEsperaCustom
+    ?? profServicioOverride?.duracion_espera_min
     ?? duracionOverride?.duracion_espera_min
     ?? servicioActual?.duracion_espera_min
     ?? 0;
   const duracionActivaExtra = duracionActivaExtraCustom
+    ?? profServicioOverride?.duracion_activa_extra_min
     ?? duracionOverride?.duracion_activa_extra_min
     ?? servicioActual?.duracion_activa_extra_min
     ?? 0;
-  const duracionTotal = duracionActiva + duracionEspera + duracionActivaExtra;
+  const addonsDuracion = selectedAddons.reduce((sum, aid) => {
+    const a = addonsDisponibles.find((x: any) => x.id === aid);
+    return sum + (a?.duracion_min ?? 0);
+  }, 0);
+  const duracionTotal = duracionActiva + duracionEspera + duracionActivaExtra + addonsDuracion;
 
-  // Parse selected hora (format: "HH:MM") - usar hora personalizada si existe
-  const horaActual = horaPersonalizada || selectedHora;
+  const horaActual = (useCustomHora && horaPersonalizada) || selectedHora;
   let inicio: Date | null = null;
   let finActiva: Date | null = null;
   let finEspera: Date | null = null;
@@ -816,14 +1417,92 @@ function NewCitaModal({ onClose, selectedDate }: any) {
     inicio = new Date(today);
     inicio.setHours(hh, mm, 0, 0);
     finActiva = new Date(inicio.getTime() + duracionActiva * 60000);
-    finEspera = new Date(inicio.getTime() + (duracionActiva + duracionEspera) * 60000);
-    fin = new Date(inicio.getTime() + duracionTotal * 60000);
+    finEspera = new Date(finActiva.getTime() + duracionEspera * 60000);
+    fin = new Date(finEspera.getTime() + (duracionActivaExtra + addonsDuracion) * 60000);
   }
 
+  // RN-AG-072: detectar si la hora seleccionada aprovecha un reposo existente
+  const citaHostReposo = (inicio && finActiva && selectedProf) ? citasHoy.find((c: any) => {
+    if (c.profesional_id !== selectedProf || !c.fin_activa || !c.fin_espera) return false;
+    const cFinActiva = new Date(c.fin_activa);
+    const cFinEspera = new Date(c.fin_espera);
+    const cFin = new Date(c.fin);
+    const hasSegundaFase = cFinEspera.getTime() < cFin.getTime();
+    return inicio! >= cFinActiva && (hasSegundaFase ? finActiva! < cFinEspera : finActiva! <= cFinEspera);
+  }) : null;
+
+  // Hora sugerida: fin del ultimo servicio confirmado
+  const horaSugerida = citasConfirmadas.length > 0
+    ? (() => {
+        const lastFin = citasConfirmadas[citasConfirmadas.length - 1].fin as Date;
+        return `${String(lastFin.getHours()).padStart(2, '0')}:${String(lastFin.getMinutes()).padStart(2, '0')}`;
+      })()
+    : null;
+
+  // Totales agregados (confirmadas + actual)
+  const totalPrecioEncadenado = useMemo(() => {
+    let total = servicioActual?.precio ?? 0;
+    for (const c of citasConfirmadas) {
+      total += c.precio ?? 0;
+    }
+    return total;
+  }, [citasConfirmadas, servicioActual]);
+
+  const totalDuracionEncadenado = useMemo(() => {
+    let total = duracionTotal;
+    for (const c of citasConfirmadas) {
+      total += c.durActiva + c.durEspera + c.durActivaExtra + (c.addonsDuracion ?? 0);
+    }
+    return total;
+  }, [citasConfirmadas, duracionTotal]);
+
+  const handleEncadenarServicio = () => {
+    if (!selectedServicio || !selectedProf || !horaActual || !inicio || !fin || !finActiva || !finEspera) return;
+    const srv = servicios.find((s: any) => s.id === selectedServicio);
+    const prof = profesionales.find((p: any) => p.id === selectedProf);
+    const nuevaCita = {
+      servicioId: selectedServicio,
+      profId: selectedProf,
+      hora: horaActual,
+      servicioNombre: srv?.nombre || '',
+      profNombre: prof?.nombre || '',
+      profColor: prof?.color || '',
+      precio: srv?.precio ?? 0,
+      durActiva: duracionActiva,
+      durEspera: duracionEspera,
+      durActivaExtra: duracionActivaExtra,
+      addonsDuracion,
+      addons: [...selectedAddons],
+      inicio: new Date(inicio),
+      finActiva: new Date(finActiva),
+      finEspera: new Date(finEspera),
+      fin: new Date(fin),
+    };
+    setCitasConfirmadas([...citasConfirmadas, nuevaCita]);
+    // Reset form para siguiente servicio (mantener cliente)
+    setSelectedServicio('');
+    setSelectedProf('');
+    setSelectedHora('');
+    setHoraPersonalizada('');
+    setUseCustomHora(false);
+    setSelectedAddons([]);
+    setDuracionOverride(null);
+    setDuracionActivaCustom(null);
+    setDuracionEsperaCustom(null);
+    setDuracionActivaExtraCustom(null);
+  };
 
   const handleGuardar = async () => {
-    if (!selectedCliente || !selectedServicio || !selectedProf || !horaActual || !inicio || !fin || !finActiva || !finEspera) {
+    // Determinar si el form actual tiene un servicio completo
+    const formCompleto = !!(selectedServicio && selectedProf && horaActual && inicio && fin && finActiva && finEspera);
+    const totalCitas = citasConfirmadas.length + (formCompleto ? 1 : 0);
+
+    if (totalCitas === 0) {
       setErrMsg('Por favor completa todos los campos');
+      return;
+    }
+    if (!selectedCliente) {
+      setErrMsg('Por favor selecciona un cliente');
       return;
     }
 
@@ -831,84 +1510,144 @@ function NewCitaModal({ onClose, selectedDate }: any) {
     setGuardando(true);
 
     try {
-      // 1. Check professional blocks
-      const { data: bloqueos } = await supabase
-        .from('bloqueos_profesional')
-        .select('tipo, motivo')
-        .eq('profesional_id', selectedProf)
-        .lt('inicio', fin.toISOString())
-        .gt('fin', inicio.toISOString());
+      // Construir lista de todas las citas a guardar
+      const grupoId = totalCitas > 1 ? crypto.randomUUID() : null;
+      const citasAGuardar: any[] = [];
+      let ordenIdx = 0;
 
-      if (bloqueos && bloqueos.length > 0) {
-        setErrMsg(`Profesional no disponible: ${bloqueos[0].motivo || bloqueos[0].tipo}`);
-        setGuardando(false);
-        return;
+      // Primero: citas confirmadas
+      for (const confirmed of citasConfirmadas) {
+        citasAGuardar.push({
+          negocio_id: negocioId,
+          profesional_id: confirmed.profId,
+          servicio_id: confirmed.servicioId,
+          cliente_id: selectedCliente || null,
+          inicio: confirmed.inicio.toISOString(),
+          fin: confirmed.fin.toISOString(),
+          fin_activa: confirmed.finActiva.toISOString(),
+          fin_espera: confirmed.finEspera.toISOString(),
+          estado: CITA_STATUS.CONFIRMADA,
+          canal: 'manual',
+          creado_por: userId,
+          ...(grupoId && { grupo_id: grupoId, orden_en_grupo: ordenIdx }),
+          _addons: confirmed.addons || [],
+        });
+        ordenIdx++;
       }
 
-      // 2. No overlap on active phase 1
-      const { data: solapadasActivas } = await supabase
-        .from('citas')
-        .select('id')
-        .eq('profesional_id', selectedProf)
-        .neq('estado', CITA_STATUS.CANCELADA)
-        .lt('inicio', finActiva.toISOString())
-        .gt('fin_activa', inicio.toISOString());
-
-      if (solapadasActivas && solapadasActivas.length > 0) {
-        setErrMsg('El profesional ya tiene una cita activa en ese horario.');
-        setGuardando(false);
-        return;
+      // Luego: servicio actual del form (si esta completo)
+      if (formCompleto) {
+        citasAGuardar.push({
+          negocio_id: negocioId,
+          profesional_id: selectedProf,
+          servicio_id: selectedServicio,
+          cliente_id: selectedCliente || null,
+          inicio: inicio!.toISOString(),
+          fin: fin!.toISOString(),
+          fin_activa: finActiva!.toISOString(),
+          fin_espera: finEspera!.toISOString(),
+          estado: CITA_STATUS.CONFIRMADA,
+          canal: 'manual',
+          creado_por: userId,
+          ...(grupoId && { grupo_id: grupoId, orden_en_grupo: ordenIdx }),
+          _addons: [...selectedAddons],
+        });
       }
 
-      // 3. No overlap on active phase 2 (if it exists)
-      if (duracionActivaExtra > 0) {
-        const { data: solapadasActivas2 } = await supabase
+      // Validar cada cita contra DB y entre si
+      for (let i = 0; i < citasAGuardar.length; i++) {
+        const cita = citasAGuardar[i];
+        const cInicio = new Date(cita.inicio);
+        const cFinActiva = new Date(cita.fin_activa);
+        const cFinEspera = new Date(cita.fin_espera);
+        const cFin = new Date(cita.fin);
+
+        // Check bloqueos
+        const { data: bloqueos } = await supabase
+          .from('bloqueos_profesional')
+          .select('tipo, motivo')
+          .eq('profesional_id', cita.profesional_id)
+          .lt('inicio', cita.fin)
+          .gt('fin', cita.inicio);
+
+        if (bloqueos && bloqueos.length > 0) {
+          const profName = profesionales.find((p: any) => p.id === cita.profesional_id)?.nombre || 'Profesional';
+          setErrMsg(`${profName} no disponible (servicio ${i + 1}): ${bloqueos[0].motivo || bloqueos[0].tipo}`);
+          setGuardando(false);
+          return;
+        }
+
+        // Check overlap contra DB (ambas fases activas)
+        const { data: candidatas } = await supabase
           .from('citas')
-          .select('id')
-          .eq('profesional_id', selectedProf)
+          .select('id, inicio, fin_activa, fin_espera, fin')
+          .eq('profesional_id', cita.profesional_id)
           .neq('estado', CITA_STATUS.CANCELADA)
-          .lt('inicio', fin.toISOString())
-          .gt('fin_activa', finEspera.toISOString());
+          .lt('inicio', cita.fin)
+          .gt('fin', cita.inicio);
 
-        if (solapadasActivas2 && solapadasActivas2.length > 0) {
-          setErrMsg('El profesional ya tiene una cita activa en ese horario.');
+        const solapadas = (candidatas || []).filter((c: any) => {
+          const ci = new Date(c.inicio);
+          const cfa = new Date(c.fin_activa);
+          const cfe = c.fin_espera ? new Date(c.fin_espera) : null;
+          const cf = new Date(c.fin);
+          if (ci < cFinActiva && cfa > cInicio) return true;
+          if (cfe && cf.getTime() > cfe.getTime() && cfe < cFinActiva && cf > cInicio) return true;
+          return false;
+        });
+
+        if (solapadas.length > 0) {
+          const profName = profesionales.find((p: any) => p.id === cita.profesional_id)?.nombre || 'Profesional';
+          setErrMsg(`Conflicto: servicio ${i + 1} con ${profName} se solapa con otra cita activa.`);
+          setGuardando(false);
+          return;
+        }
+
+        // Check intra-group overlap (same prof doing multiple services in chain)
+        const intraConflict = citasAGuardar.some((prev: any, j: number) => {
+          if (j >= i || prev.profesional_id !== cita.profesional_id) return false;
+          const prevInicio = new Date(prev.inicio);
+          const prevFinActiva = new Date(prev.fin_activa);
+          return cInicio < prevFinActiva && cFinActiva > prevInicio;
+        });
+        if (intraConflict) {
+          const profName = profesionales.find((p: any) => p.id === cita.profesional_id)?.nombre || 'Profesional';
+          setErrMsg(`Conflicto interno: servicio ${i + 1} con ${profName} se solapa con otro servicio del encadenado.`);
           setGuardando(false);
           return;
         }
       }
 
-      // 4. Don't extend end in wait phase
-      const { data: citasEspera } = await supabase
-        .from('citas')
-        .select('id, fin')
-        .eq('profesional_id', selectedProf)
-        .neq('estado', CITA_STATUS.CANCELADA)
-        .lte('fin_activa', inicio.toISOString())
-        .gte('fin', inicio.toISOString())
-        .lt('fin', fin.toISOString());
+      // Extraer addons antes de insertar (no es columna de DB)
+      const addonsPerCita = citasAGuardar.map(c => c._addons || []);
+      const citasParaDB = citasAGuardar.map(({ _addons, ...rest }) => rest);
 
-      if (citasEspera && citasEspera.length > 0) {
-        setErrMsg('No puedes terminar después de otra cita. El profesional sigue ocupado en esa franja.');
-        setGuardando(false);
+      // Insert all citas
+      const { data: citasInsertadas, error } = await supabase.from('citas').insert(citasParaDB).select();
+
+      setGuardando(false);
+      if (error) {
+        setErrMsg(error.message);
+        if (grupoId) {
+          await supabase.from('citas').delete().eq('grupo_id', grupoId);
+        }
         return;
       }
 
-      const { error } = await supabase.from('citas').insert({
-        negocio_id: negocioId,
-        profesional_id: selectedProf,
-        servicio_id: selectedServicio,
-        cliente_id: selectedCliente || null,
-        inicio: inicio.toISOString(),
-        fin: fin.toISOString(),
-        fin_activa: finActiva.toISOString(),
-        fin_espera: finEspera.toISOString(),
-        estado: CITA_STATUS.CONFIRMADA,
-        canal: 'manual',
-      });
+      // Insert add-ons for each cita
+      if (citasInsertadas) {
+        for (let i = 0; i < citasInsertadas.length; i++) {
+          const addons = addonsPerCita[i];
+          if (addons.length > 0 && citasInsertadas[i]?.id) {
+            await supabase.from('cita_addons').insert(
+              addons.map((aid: string) => ({ cita_id: citasInsertadas[i].id, addon_id: aid }))
+            );
+          }
+        }
+      }
 
-      setGuardando(false);
-      if (error) { setErrMsg(error.message); return; }
-      onClose();
+      triggerRefresh();
+      onSaved?.(citasInsertadas?.[0] ?? null) ?? onClose();
     } catch (e: any) {
       setErrMsg(e?.message ?? 'Error inesperado');
       setGuardando(false);
@@ -943,7 +1682,7 @@ function NewCitaModal({ onClose, selectedDate }: any) {
     }
   };
 
-  if (loading) return null;
+  if (loading) return <div style={{ background: '#0b1220', height: '100vh', width: '100%' }} />;
 
   const clienteSeleccionado = clientes.find(c => c.id === selectedCliente);
 
@@ -956,6 +1695,46 @@ function NewCitaModal({ onClose, selectedDate }: any) {
             ✕
           </button>
         </div>
+
+        {/* Tarjetas de servicios confirmados (encadenados) */}
+        {citasConfirmadas.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
+              Servicios confirmados ({citasConfirmadas.length})
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {citasConfirmadas.map((cita: any, idx: number) => (
+                <div key={idx} style={{ padding: '8px 12px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 18, height: 18, borderRadius: 999, background: cita.profColor || TOKENS.primary, color: '#fff', fontSize: 9, fontWeight: 700, display: 'grid', placeItems: 'center' }}>
+                        {idx + 1}
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>{cita.servicioNombre}</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: TOKENS.textSec, marginTop: 3, marginLeft: 24 }}>
+                      {cita.profNombre} -- {cita.inicio.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} a {cita.fin.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.success, marginRight: 8 }}>{cita.precio}{'€'}</div>
+                  <button
+                    onClick={() => setCitasConfirmadas(citasConfirmadas.filter((_: any, i: number) => i !== idx))}
+                    style={{ width: 22, height: 22, borderRadius: 6, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: TOKENS.danger, cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'grid', placeItems: 'center', transition: 'all 0.15s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
+                  >
+                    x
+                  </button>
+                </div>
+              ))}
+            </div>
+            {!selectedServicio && (
+              <div style={{ fontSize: 10, color: TOKENS.textTer, marginTop: 6, fontStyle: 'italic' }}>
+                Selecciona el siguiente servicio o pulsa Reservar para guardar
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Stepper with dividers */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 22 }}>
@@ -975,8 +1754,14 @@ function NewCitaModal({ onClose, selectedDate }: any) {
         </div>
 
         {/* FormField Cliente */}
+        {citasConfirmadas.length > 0 ? (
+          <div style={{ marginBottom: 14, padding: '10px 14px', background: 'rgba(99,102,241,0.06)', border: `1px solid rgba(99,102,241,0.2)`, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Clienta:</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.primaryHi }}>{clientes.find((c: any) => c.id === selectedCliente)?.nombre || ''}</div>
+          </div>
+        ) : (
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Cliente</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Clienta</div>
           <input
             type="text"
             placeholder="Buscar cliente..."
@@ -1004,13 +1789,13 @@ function NewCitaModal({ onClose, selectedDate }: any) {
               e.currentTarget.style.boxShadow = 'none';
             }}
           />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(85px, 1fr))', gap: 6, maxHeight: 150, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 150, overflowY: 'auto' }}>
             {clientes.filter((c) => c.nombre.toLowerCase().includes(clienteSearch.toLowerCase())).map((c) => (
               <button
                 key={c.id}
                 onClick={() => setSelectedCliente(c.id)}
                 style={{
-                  padding: '10px 8px',
+                  padding: '8px 12px',
                   background: selectedCliente === c.id ? 'rgba(99,102,241,0.18)' : TOKENS.bgCard,
                   border: `1px solid ${selectedCliente === c.id ? 'rgba(99,102,241,0.4)' : TOKENS.border}`,
                   borderRadius: 8,
@@ -1018,20 +1803,16 @@ function NewCitaModal({ onClose, selectedDate }: any) {
                   cursor: 'pointer',
                   fontSize: 11,
                   fontWeight: selectedCliente === c.id ? 600 : 500,
-                  textAlign: 'center',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  transition: 'all 0.2s ease',
-                  transform: 'scale(1)',
+                  transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.08)';
                   e.currentTarget.style.boxShadow = `0 4px 12px rgba(99,102,241,0.2)`;
+                  e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
                   e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.borderColor = selectedCliente === c.id ? 'rgba(99,102,241,0.4)' : TOKENS.border;
                 }}
               >
                 {c.nombre}
@@ -1040,7 +1821,7 @@ function NewCitaModal({ onClose, selectedDate }: any) {
             <button
               onClick={() => setShowCreateCliente(true)}
               style={{
-                padding: '10px 8px',
+                padding: '8px 12px',
                 background: 'rgba(16,185,129,0.1)',
                 border: `1px dashed rgba(16,185,129,0.35)`,
                 borderRadius: 8,
@@ -1048,26 +1829,26 @@ function NewCitaModal({ onClose, selectedDate }: any) {
                 cursor: 'pointer',
                 fontSize: 11,
                 fontWeight: 600,
-                textAlign: 'center',
-                transition: 'all 0.2s ease',
-                transform: 'scale(1)',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.08)';
-                e.currentTarget.style.background = 'rgba(16,185,129,0.15)';
+                e.currentTarget.style.background = 'rgba(16,185,129,0.18)';
+                e.currentTarget.style.borderColor = 'rgba(16,185,129,0.5)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
                 e.currentTarget.style.background = 'rgba(16,185,129,0.1)';
+                e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)';
               }}
             >
               + Crear
             </button>
           </div>
         </div>
+        )}
 
         {/* Selected client card */}
-        {selectedCliente && clienteSeleccionado && (
+        {selectedCliente && clienteSeleccionado && citasConfirmadas.length === 0 && (
           <div style={{ marginBottom: 14, padding: '10px 12px', borderRadius: 10, background: 'rgba(99,102,241,0.08)', border: `1px solid rgba(99,102,241,0.30)`, display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 32, height: 32, borderRadius: 999, background: `linear-gradient(135deg, ${TOKENS.primary}, ${TOKENS.primaryHi})`, display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
               {clienteSeleccionado.nombre.charAt(0).toUpperCase()}
@@ -1086,43 +1867,82 @@ function NewCitaModal({ onClose, selectedDate }: any) {
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Servicio</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            {servicios.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setSelectedServicio(s.id)}
-                style={{
-                  padding: '12px',
-                  background: selectedServicio === s.id ? 'rgba(99,102,241,0.12)' : TOKENS.bgCard,
-                  border: `1px solid ${selectedServicio === s.id ? 'rgba(99,102,241,0.4)' : TOKENS.border}`,
-                  borderRadius: 10,
-                  color: TOKENS.text,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  textAlign: 'left',
-                  transition: 'all 0.2s ease',
-                  transform: 'translateY(0)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.borderColor = TOKENS.primary;
-                  e.currentTarget.style.boxShadow = `0 4px 16px rgba(99,102,241,0.15)`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.borderColor = selectedServicio === s.id ? 'rgba(99,102,241,0.4)' : TOKENS.border;
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div>{s.nombre}</div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                  <span style={{ fontSize: 10, color: TOKENS.textTer }}>{s.duracion_activa_min ? s.duracion_activa_min + (s.duracion_espera_min || 0) + (s.duracion_activa_extra_min || 0) : 30} min</span>
-                  <span style={{ fontSize: 10, color: TOKENS.success, fontWeight: 700 }}>{s.precio}€</span>
-                </div>
-              </button>
-            ))}
+            {(selectedProf ? serviciosFiltrados : servicios).map((s) => {
+              const ov = profOverrides.find((o: any) => o.service_id === s.id);
+              const catalogDur = (s.duracion_activa_min || 0) + (s.duracion_espera_min || 0) + (s.duracion_activa_extra_min || 0);
+              const efectivoDur = selectedProf && ov?.duracion != null
+                ? (ov.duracion + (ov.duracion_espera_min ?? s.duracion_espera_min ?? 0) + (ov.duracion_activa_extra_min ?? s.duracion_activa_extra_min ?? 0))
+                : (catalogDur || 30);
+              const efectivoPrecio = selectedProf && ov?.precio != null ? ov.precio : s.precio;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setSelectedServicio(s.id)}
+                  style={{
+                    padding: '12px',
+                    background: selectedServicio === s.id ? 'rgba(99,102,241,0.12)' : TOKENS.bgCard,
+                    border: `1px solid ${selectedServicio === s.id ? 'rgba(99,102,241,0.4)' : TOKENS.border}`,
+                    borderRadius: 10,
+                    color: TOKENS.text,
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    textAlign: 'left',
+                    transition: 'all 0.2s ease',
+                    transform: 'translateY(0)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.borderColor = TOKENS.primary;
+                    e.currentTarget.style.boxShadow = `0 4px 16px rgba(99,102,241,0.15)`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.borderColor = selectedServicio === s.id ? 'rgba(99,102,241,0.4)' : TOKENS.border;
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div>{s.nombre}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                    <span style={{ fontSize: 10, color: TOKENS.textTer }}>{efectivoDur} min</span>
+                    <span style={{ fontSize: 10, color: TOKENS.success, fontWeight: 700 }}>{efectivoPrecio}€</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        {/* Add-ons opcionales (5.6) */}
+        {selectedServicio && addonsDisponibles.length > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Add-ons</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {addonsDisponibles.map((a: any) => {
+                const sel = selectedAddons.includes(a.id);
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => setSelectedAddons(sel ? selectedAddons.filter(x => x !== a.id) : [...selectedAddons, a.id])}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      background: sel ? 'rgba(16,185,129,0.12)' : TOKENS.bgCard,
+                      border: `1px solid ${sel ? 'rgba(16,185,129,0.5)' : TOKENS.border}`,
+                      color: sel ? TOKENS.success : TOKENS.textSec,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {a.nombre} <span style={{ fontSize: 9, color: TOKENS.textTer, fontWeight: 400 }}>+{a.duracion_min}min · {a.precio}€</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* FormField Profesional */}
         <div style={{ marginBottom: 14 }}>
@@ -1176,102 +1996,221 @@ function NewCitaModal({ onClose, selectedDate }: any) {
                 Ahora: {new Date().getHours().toString().padStart(2, '0')}:{new Date().getMinutes().toString().padStart(2, '0')}
               </div>
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, marginBottom: 12 }}>
-              {generarSlotsHorarios().map((time) => {
+            {(() => {
+              const slots = generarSlotsHorarios();
+              // RN-AG-070/071: añadir fin_activa exacto como slot extra si no es múltiplo de 15
+              const slotsSet = new Set(slots);
+              const extraSlots: string[] = [];
+              citasHoy.forEach((c: any) => {
+                if (c.profesional_id !== selectedProf || !c.fin_activa || !c.fin_espera) return;
+                const cFinActiva = new Date(c.fin_activa);
+                const cFinEspera = new Date(c.fin_espera);
+                const cFin = new Date(c.fin);
+                const hasSegundaFase = cFinEspera.getTime() < cFin.getTime();
+                const slotFinActiva = new Date(cFinActiva.getTime() + duracionActiva * 60000);
+                // Si hay segunda fase activa, la activa debe terminar ANTES del fin del reposo (no justo al límite)
+                if (hasSegundaFase ? slotFinActiva >= cFinEspera : slotFinActiva > cFinEspera) return;
+                const timeStr = `${String(cFinActiva.getHours()).padStart(2, '0')}:${String(cFinActiva.getMinutes()).padStart(2, '0')}`;
+                if (!slotsSet.has(timeStr)) extraSlots.push(timeStr);
+              });
+              const allSlots = [...slots, ...extraSlots].sort();
+
+              // pre-calculate which slots fit within a rest phase
+              const reposaSlots = new Set<string>();
+              allSlots.forEach((time) => {
                 const [h, m] = time.split(':').map(Number);
-                const testInicio = new Date(today);
-                testInicio.setHours(h, m, 0, 0);
-                const testFin = new Date(testInicio.getTime() + duracionTotal * 60000);
-
-                const occupied = citasHoy.some(cita => {
-                  if (cita.profesional_id !== selectedProf) return false;
-                  const citaInicio = new Date(cita.inicio);
-                  const citaFin = new Date(cita.fin);
-                  return testInicio.getTime() < citaFin.getTime() && testFin.getTime() > citaInicio.getTime();
+                const slotInicio = new Date(today); slotInicio.setHours(h, m, 0, 0);
+                const slotFinActiva = new Date(slotInicio.getTime() + duracionActiva * 60000);
+                const encajaEnReposo = citasHoy.some((c: any) => {
+                  if (c.profesional_id !== selectedProf || !c.fin_activa || !c.fin_espera) return false;
+                  const cFinActiva = new Date(c.fin_activa);
+                  const cFinEspera = new Date(c.fin_espera);
+                  const cFin = new Date(c.fin);
+                  const hasSegundaFase = cFinEspera.getTime() < cFin.getTime();
+                  // Si hay segunda fase activa, la nueva activa debe terminar ANTES del reposo (no justo al límite)
+                  return slotInicio >= cFinActiva && (hasSegundaFase ? slotFinActiva < cFinEspera : slotFinActiva <= cFinEspera);
                 });
+                if (encajaEnReposo) reposaSlots.add(time);
+              });
+              const primerReposo = allSlots.find(t => reposaSlots.has(t));
 
-                const selected = (selectedHora === time && !horaPersonalizada);
-
-                // No mostrar horas ocupadas
-                if (occupied) return null;
-
-                return (
-                  <button
-                    key={time}
-                    onClick={() => {
-                      setHoraPersonalizada('');
-                      selected ? setSelectedHora('') : setSelectedHora(time);
-                    }}
-                    style={{
-                      padding: '8px 0',
-                      borderRadius: 8,
-                      background: selected ? `linear-gradient(180deg,#7c83ff,#6366f1)` : TOKENS.bgCard,
-                      border: `1px solid ${selected ? '#6366f1' : TOKENS.border}`,
-                      color: selected ? '#fff' : TOKENS.textSec,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                      transform: 'scale(1)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.08)';
-                      if (!selected) {
-                        e.currentTarget.style.borderColor = TOKENS.primary;
-                        e.currentTarget.style.boxShadow = `0 4px 12px rgba(99,102,241,0.2)`;
-                      } else {
-                        e.currentTarget.style.boxShadow = `0 6px 20px rgba(99,102,241,0.4)`;
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.borderColor = selected ? '#6366f1' : TOKENS.border;
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  >
-                    {time}
-                  </button>
+              // Count only reposo slots that are actually available (not occupied)
+              let visibleReposoCount = 0;
+              reposaSlots.forEach((time) => {
+                const [rh, rm] = time.split(':').map(Number);
+                const rInicio = new Date(today); rInicio.setHours(rh, rm, 0, 0);
+                const rFinActiva = new Date(rInicio.getTime() + duracionActiva * 60000);
+                const rOcc1 = isTimeSlotOccupied(rInicio, rFinActiva, citasHoy, selectedProf);
+                const rOcc2 = duracionActivaExtra > 0 && isTimeSlotOccupied(
+                  new Date(rInicio.getTime() + (duracionActiva + duracionEspera) * 60000),
+                  new Date(rInicio.getTime() + duracionTotal * 60000),
+                  citasHoy, selectedProf
                 );
-              })}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 11, color: TOKENS.textSec }}>O personalizada:</span>
-              <input
-                type="time"
-                value={horaPersonalizada}
-                onChange={(e) => {
-                  setHoraPersonalizada(e.target.value);
-                  setSelectedHora('');
-                }}
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  background: TOKENS.bgCard,
-                  border: `1px solid ${horaPersonalizada ? 'rgba(99,102,241,0.4)' : TOKENS.border}`,
-                  borderRadius: 8,
-                  color: TOKENS.text,
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = TOKENS.primary;
-                  e.currentTarget.style.boxShadow = `0 0 0 3px ${TOKENS.primarySoft}`;
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = horaPersonalizada ? 'rgba(99,102,241,0.4)' : TOKENS.border;
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              />
+                const rFin = new Date(rInicio.getTime() + duracionTotal * 60000);
+                const rBlocked = bloqueosProfHoy.some((b: any) => new Date(b.inicio) < rFin && new Date(b.fin) > rInicio);
+                if (!rOcc1 && !rOcc2 && !rBlocked) visibleReposoCount++;
+              });
+
+              return (
+                <>
+                  {visibleReposoCount > 0 && (
+                    <div style={{ fontSize: 10, color: '#f59e0b', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: 999, background: '#f59e0b', display: 'inline-block', flexShrink: 0 }} />
+                      {visibleReposoCount} hueco{visibleReposoCount > 1 ? 's' : ''} aprovecha{visibleReposoCount === 1 ? '' : 'n'} tiempo de reposo
+                    </div>
+                  )}
+                  {horaSugerida && (
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ fontSize: 9, fontWeight: 600, color: '#a78bfa', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' }}>Hora sugerida (fin servicio anterior)</div>
+                      <button
+                        onClick={() => {
+                          setHoraPersonalizada('');
+                          setUseCustomHora(false);
+                          selectedHora === horaSugerida ? setSelectedHora('') : setSelectedHora(horaSugerida);
+                        }}
+                        style={{
+                          padding: '7px 16px',
+                          borderRadius: 8,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          border: `1.5px solid ${selectedHora === horaSugerida && !horaPersonalizada ? '#a78bfa' : 'rgba(167,139,250,0.4)'}`,
+                          background: selectedHora === horaSugerida && !horaPersonalizada ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.06)',
+                          color: '#a78bfa',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        {horaSugerida}
+                      </button>
+                    </div>
+                  )}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, marginBottom: 12 }}>
+                    {allSlots.map((time) => {
+                      const [h, m] = time.split(':').map(Number);
+                      const testInicio = new Date(today);
+                      testInicio.setHours(h, m, 0, 0);
+                      const testFinActiva = new Date(testInicio.getTime() + duracionActiva * 60000);
+                      const occupied1 = isTimeSlotOccupied(testInicio, testFinActiva, citasHoy, selectedProf);
+                      const occupied2 = duracionActivaExtra > 0 && isTimeSlotOccupied(
+                        new Date(testInicio.getTime() + (duracionActiva + duracionEspera) * 60000),
+                        new Date(testInicio.getTime() + duracionTotal * 60000),
+                        citasHoy,
+                        selectedProf
+                      );
+                      const testFin = new Date(testInicio.getTime() + duracionTotal * 60000);
+                      const blockedByAusencia = bloqueosProfHoy.some((b: any) =>
+                        new Date(b.inicio) < testFin && new Date(b.fin) > testInicio
+                      );
+
+                      if (occupied1 || occupied2 || blockedByAusencia) return null;
+
+                      const selected = (selectedHora === time && !horaPersonalizada);
+                      const esReposo = reposaSlots.has(time);
+
+                      return (
+                        <button
+                          key={time}
+                          onClick={() => {
+                            setHoraPersonalizada('');
+                            selected ? setSelectedHora('') : setSelectedHora(time);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: esReposo ? '5px 0 4px' : '8px 0',
+                            borderRadius: 8,
+                            background: selected
+                              ? `linear-gradient(180deg,#7c83ff,#6366f1)`
+                              : esReposo ? 'rgba(245,158,11,0.08)' : TOKENS.bgCard,
+                            border: `1px solid ${selected ? '#6366f1' : esReposo ? 'rgba(245,158,11,0.45)' : TOKENS.border}`,
+                            color: selected ? '#fff' : esReposo ? '#f59e0b' : TOKENS.textSec,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                            transform: 'scale(1)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 1,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.08)';
+                            if (!selected) {
+                              e.currentTarget.style.borderColor = esReposo ? '#f59e0b' : TOKENS.primary;
+                              e.currentTarget.style.boxShadow = esReposo ? `0 4px 12px rgba(245,158,11,0.25)` : `0 4px 12px rgba(99,102,241,0.2)`;
+                            } else {
+                              e.currentTarget.style.boxShadow = `0 6px 20px rgba(99,102,241,0.4)`;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.borderColor = selected ? '#6366f1' : esReposo ? 'rgba(245,158,11,0.45)' : TOKENS.border;
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        >
+                          <span>{time}</span>
+                          {esReposo && (
+                            <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: 0.4, opacity: selected ? 0.8 : 1, color: selected ? '#fff' : '#f59e0b' }}>
+                              espera
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              );
+            })()}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {!useCustomHora ? (
+                <button
+                  onClick={() => { setUseCustomHora(true); setSelectedHora(''); setHoraPersonalizada('09:00'); }}
+                  style={{ background: 'none', border: `1px dashed ${TOKENS.border}`, borderRadius: 8, padding: '8px 12px', color: TOKENS.textTer, fontSize: 11, cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.color = TOKENS.primaryHi; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.color = TOKENS.textTer; }}
+                >
+                  + Hora personalizada
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 11, color: TOKENS.textSec }}>Hora personalizada:</span>
+                    <button
+                      onClick={() => { setUseCustomHora(false); setHoraPersonalizada(''); }}
+                      style={{ background: 'none', border: 'none', color: TOKENS.textTer, fontSize: 11, cursor: 'pointer', padding: '2px 6px' }}
+                    >
+                      ✕ Cancelar
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <TimeDrumPicker
+                      value={horaPersonalizada}
+                      onChange={(v) => { setHoraPersonalizada(v); setSelectedHora(''); }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
+        {/* RN-AG-072: info banner cuando la hora aprovecha un reposo */}
+        {citaHostReposo && horaActual && (
+          <div style={{ padding: '10px 12px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: 10, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: '#f59e0b', flexShrink: 0 }} />
+            <span style={{ fontSize: 11, color: '#f59e0b', lineHeight: '1.4' }}>
+              Esta hora aprovecha el tiempo de reposo de otra cita. El profesional atendera este servicio mientras la cita anterior reposa.
+            </span>
+          </div>
+        )}
+
         {/* Total estimado */}
-        {selectedCliente && selectedServicio && selectedProf && horaActual && (
-          <div style={{ marginTop: 18, padding: 12, background: 'rgba(16,185,129,0.08)', border: `1px solid rgba(16,185,129,0.25)`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-            <div style={{ fontSize: 12, color: TOKENS.textSec }}>Total estimado</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: TOKENS.success }}>{servicioActual?.precio}€</div>
+        {(selectedCliente && selectedServicio && selectedProf && horaActual) && (
+          <div style={{ marginTop: 0, padding: 12, background: 'rgba(16,185,129,0.08)', border: `1px solid rgba(16,185,129,0.25)`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+            <div style={{ fontSize: 12, color: TOKENS.textSec }}>
+              Total estimado {citasConfirmadas.length > 0 && `(${citasConfirmadas.length + 1} servicios)`}
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: TOKENS.success }}>{totalPrecioEncadenado}{'€'}</div>
           </div>
         )}
 
@@ -1366,101 +2305,457 @@ function NewCitaModal({ onClose, selectedDate }: any) {
         )}
 
         {/* Bottom buttons */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18, paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '9px 18px',
-              background: TOKENS.bgCard,
-              border: `1px solid ${TOKENS.border}`,
-              color: TOKENS.text,
-              borderRadius: 8,
-              cursor: 'pointer',
-              fontSize: 12,
-              fontWeight: 600,
-              transition: 'all 0.2s ease',
-              transform: 'translateX(0)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateX(-2px)';
-              e.currentTarget.style.background = TOKENS.bgCard;
-              e.currentTarget.style.borderColor = TOKENS.borderHi;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateX(0)';
-              e.currentTarget.style.background = TOKENS.bgCard;
-              e.currentTarget.style.borderColor = TOKENS.border;
-            }}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleGuardar}
-            disabled={!selectedCliente || !selectedServicio || !selectedProf || !horaActual || guardando}
-            style={{
-              padding: '9px 18px',
-              background: !selectedCliente || !selectedServicio || !selectedProf || !selectedHora || guardando ? 'rgba(99,102,241,0.5)' : `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              cursor: !selectedCliente || !selectedServicio || !selectedProf || !selectedHora || guardando ? 'not-allowed' : 'pointer',
-              fontSize: 12,
-              fontWeight: 600,
-              boxShadow: !selectedCliente || !selectedServicio || !selectedProf || !selectedHora || guardando ? 'none' : `0 4px 12px rgba(99,102,241,0.4)`,
-              transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              transform: 'translateY(0)',
-            }}
-            onMouseEnter={(e) => {
-              if (!(!selectedCliente || !selectedServicio || !selectedProf || !selectedHora || guardando)) {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = `0 8px 24px rgba(99,102,241,0.6)`;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = `0 4px 12px rgba(99,102,241,0.4)`;
-            }}
-          >
-            {guardando ? '...' : '✓ Reservar cita'}
-          </button>
-        </div>
+        {(() => {
+          const formCompleto = !!(selectedCliente && selectedServicio && selectedProf && horaActual);
+          const totalCitas = citasConfirmadas.length + (formCompleto ? 1 : 0);
+          const puedeGuardar = totalCitas > 0 && selectedCliente && !guardando;
+          const puedeEncadenar = formCompleto && !guardando;
+          return (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18, paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
+              <button
+                onClick={onClose}
+                style={{
+                  padding: '9px 18px',
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  color: TOKENS.text,
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.borderHi; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; }}
+              >
+                Cancelar
+              </button>
+              {puedeEncadenar && (
+                <button
+                  onClick={handleEncadenarServicio}
+                  style={{
+                    padding: '9px 18px',
+                    background: 'rgba(139,92,246,0.1)',
+                    border: '1px solid rgba(139,92,246,0.35)',
+                    color: '#a78bfa',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139,92,246,0.18)'; e.currentTarget.style.borderColor = '#a78bfa'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(139,92,246,0.1)'; e.currentTarget.style.borderColor = 'rgba(139,92,246,0.35)'; }}
+                >
+                  + Encadenar otro
+                </button>
+              )}
+              <button
+                onClick={handleGuardar}
+                disabled={!puedeGuardar}
+                style={{
+                  padding: '9px 18px',
+                  background: !puedeGuardar ? 'rgba(99,102,241,0.5)' : `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: !puedeGuardar ? 'not-allowed' : 'pointer',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  boxShadow: !puedeGuardar ? 'none' : `0 4px 12px rgba(99,102,241,0.4)`,
+                  transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  transform: 'translateY(0)',
+                }}
+                onMouseEnter={(e) => {
+                  if (puedeGuardar) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = `0 8px 24px rgba(99,102,241,0.6)`;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = puedeGuardar ? `0 4px 12px rgba(99,102,241,0.4)` : 'none';
+                }}
+              >
+                {guardando ? '...' : totalCitas > 1 ? `Reservar ${totalCitas} citas` : 'Reservar cita'}
+              </button>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
 }
 
-function EditCitaModal({ onClose, cita, servicios, clientes, profesionales, citasHoy }: any) {
-  const [clienteId, setClienteId] = useState(cita.cliente_id);
-  const [servicioId, setServicioId] = useState(cita.servicio_id);
-  const [profId, setProfId] = useState(cita.profesional_id);
-  const [inicio, setInicio] = useState(cita.inicio);
-  const [fin, setFin] = useState(cita.fin);
-  const [estado, setEstado] = useState(cita.estado);
-  const [servicioSearch, setServicioSearch] = useState('');
-  const [guardando, setGuardando] = useState(false);
-
-  const serviciosFiltrados = servicios.filter((s: any) =>
-    s.nombre.toLowerCase().includes(servicioSearch.toLowerCase())
+function TimeBtn({ onClick, plus }: { onClick: () => void; plus?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        width: 28, height: 28, borderRadius: 7,
+        background: 'rgba(148,163,184,0.08)',
+        border: `1px solid ${TOKENS.border}`,
+        color: TOKENS.textSec,
+        cursor: 'pointer',
+        fontSize: 16, fontWeight: 700,
+        display: 'grid', placeItems: 'center',
+        fontFamily: 'inherit',
+        flexShrink: 0,
+      }}
+    >
+      {plus ? '+' : '−'}
+    </button>
   );
+}
+
+function TimeNumBox({ value, label }: { value: string; label: string }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'baseline', gap: 2,
+      padding: '5px 10px', borderRadius: 8,
+      background: 'rgba(99,102,241,0.13)',
+      border: '1px solid rgba(99,102,241,0.22)',
+      minWidth: label === 'h' ? 46 : 52,
+      justifyContent: 'center',
+    }}>
+      <span style={{ fontSize: 17, fontWeight: 700, color: TOKENS.primary, fontFamily: 'inherit' }}>{value}</span>
+      <span style={{ fontSize: 10, fontWeight: 600, color: TOKENS.primary, fontFamily: 'inherit' }}>{label}</span>
+    </div>
+  );
+}
+
+function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesionales, citasHoy, allCitas }: any) {
+  const router = useRouter();
+  const { triggerRefresh } = useCalendarRefresh();
+  const cliente = clientes.find((c: any) => c.id === cita.cliente_id);
+  const servicio = servicios.find((s: any) => s.id === cita.servicio_id);
+  const prof = profesionales.find((p: any) => p.id === cita.profesional_id);
+
+  const [selectedCliente, setSelectedCliente] = useState(cliente);
+  const [selectedServicio, setSelectedServicio] = useState(servicio);
+  const [selectedProf, setSelectedProf] = useState(prof);
+  const [estado, setEstado] = useState(cita.estado);
+  const [qCli, setQCli] = useState('');
+  const [qSrv, setQSrv] = useState('');
+  const [openCli, setOpenCli] = useState(false);
+  const [openSrv, setOpenSrv] = useState(false);
+  const [openEst, setOpenEst] = useState(false);
+  const [activo, setActivo] = useState(cita.fin_activa ? Math.round((new Date(cita.fin_activa).getTime() - new Date(cita.inicio).getTime()) / 60000) : 30);
+  const [espera, setEspera] = useState(cita.fin_espera ? Math.round((new Date(cita.fin_espera).getTime() - new Date(cita.fin_activa).getTime()) / 60000) : 0);
+  const [activo2, setActivo2] = useState(cita.fin ? Math.round((new Date(cita.fin).getTime() - new Date(cita.fin_espera).getTime()) / 60000) : 0);
+  const [guardando, setGuardando] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [motivoCancelacion, setMotivoCancelacion] = useState('');
+  const [canceladoPor, setCanceladoPor] = useState<'clienta' | 'negocio'>('negocio');
+  const [fechaEditada, setFechaEditada] = useState(() => new Date(cita.inicio));
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const [horaEditada, setHoraEditada] = useState(() => {
+    const d = new Date(cita.inicio);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  });
+  function adjustFecha(delta: number) {
+    setFechaEditada(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + delta);
+      return d;
+    });
+  }
+  function adjustHora(dh: number, dm: number) {
+    const [h, m] = horaEditada.split(':').map(Number);
+    let newH = h + dh;
+    let newM = m + dm;
+    if (newM < 0)  { newM = 55; newH -= 1; }
+    if (newM >= 60){ newM = 0;  newH += 1; }
+    newH = ((newH % 24) + 24) % 24;
+    setHoraEditada(`${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`);
+  }
+  const [errMsg, setErrMsg] = useState('');
+  const [notasCita, setNotasCita] = useState(cita.notas ?? '');
+  const [citaAddons, setCitaAddons] = useState<any[]>([]);
+  const [availableAddons, setAvailableAddons] = useState<any[]>([]);
+  const [togglingAddon, setTogglingAddon] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from('cita_addons')
+      .select('addon_id, service_addons(nombre, duracion_min, precio)')
+      .eq('cita_id', cita.id)
+      .then(({ data }) => setCitaAddons(data ?? []));
+  }, [cita.id]);
+
+  useEffect(() => {
+    const srvId = selectedServicio?.id || cita.servicio_id;
+    if (!srvId) { setAvailableAddons([]); return; }
+    supabase
+      .from('service_addons')
+      .select('id, nombre, duracion_min, precio')
+      .eq('servicio_id', srvId)
+      .eq('activo', true)
+      .order('nombre')
+      .then(({ data }) => setAvailableAddons(data ?? []));
+  }, [selectedServicio?.id, cita.servicio_id]);
+
+  const toggleAddon = async (addon: any) => {
+    setTogglingAddon(addon.id);
+    const exists = citaAddons.find((ca: any) => ca.addon_id === addon.id);
+    const delta = addon.duracion_min || 0;
+
+    if (exists) {
+      await supabase.from('cita_addons').delete().eq('cita_id', cita.id).eq('addon_id', addon.id);
+      setCitaAddons(prev => prev.filter((ca: any) => ca.addon_id !== addon.id));
+    } else {
+      await supabase.from('cita_addons').insert({ cita_id: cita.id, addon_id: addon.id });
+      setCitaAddons(prev => [...prev, { addon_id: addon.id, service_addons: addon }]);
+    }
+
+    // Addons suman al final: solo cambia fin, no fin_activa ni fin_espera
+    const inicioDate = new Date(cita.inicio);
+    const finActivaDate = new Date(inicioDate.getTime() + activo * 60000);
+    const finEsperaDate = new Date(finActivaDate.getTime() + espera * 60000);
+    const newActivo2 = exists ? Math.max(0, activo2 - delta) : activo2 + delta;
+    const newFin = new Date(finEsperaDate.getTime() + newActivo2 * 60000);
+    setActivo2(newActivo2);
+
+    await supabase.from('citas').update({
+      fin: newFin.toISOString(),
+      updated_at: new Date().toISOString(),
+    }).eq('id', cita.id);
+
+    triggerRefresh();
+    setTogglingAddon(null);
+  };
+
+  const hasFormula = !!(cita.formula_producto || cita.formula_tono || cita.formula_tiempo_min != null || cita.formula_resultado || cita.formula_notas);
+  const [showFormula, setShowFormula] = useState(hasFormula);
+  const [confirmadaCliente, setConfirmadaCliente] = useState<boolean>(!!cita.confirmada_cliente);
+  const [togglingConfirma, setTogglingConfirma] = useState(false);
+  const [chainOverlapInfo, setChainOverlapInfo] = useState<any>(null);
+  const [loadingChainInfo, setLoadingChainInfo] = useState(false);
+  const [showChainForm, setShowChainForm] = useState(false);
+  const [chainServicioId, setChainServicioId] = useState<string | null>(null);
+  const [chainProfId, setChainProfId] = useState<string | null>(null);
+  const [chainGuardando, setChainGuardando] = useState(false);
+  const [chainErr, setChainErr] = useState('');
+
+  async function toggleConfirma() {
+    if (togglingConfirma) return;
+    setTogglingConfirma(true);
+    const next = !confirmadaCliente;
+    const { error: e } = await supabase
+      .from('citas')
+      .update({
+        confirmada_cliente: next,
+        confirmada_at: next ? new Date().toISOString() : null,
+      })
+      .eq('id', cita.id);
+    setTogglingConfirma(false);
+    if (e) { setErrMsg('No se pudo cambiar la confirmacion: ' + e.message); return; }
+    setConfirmadaCliente(next);
+    triggerRefresh();
+  }
+
+  useEffect(() => {
+    async function detectChainOverlap() {
+      if (!cita.grupo_id || !selectedProf) {
+        setChainOverlapInfo(null);
+        return;
+      }
+      setLoadingChainInfo(true);
+      try {
+        const profile = await getUserProfile();
+        const negocioId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
+        const { data: citasDelGrupo } = await supabase
+          .from('citas')
+          .select('*')
+          .eq('grupo_id', cita.grupo_id)
+          .eq('negocio_id', negocioId);
+        if (!citasDelGrupo || citasDelGrupo.length <= 1) {
+          setChainOverlapInfo(null);
+          setLoadingChainInfo(false);
+          return;
+        }
+        const sortedGroup = (citasDelGrupo as any[]).sort((a, b) => (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0));
+        const currentIndex = sortedGroup.findIndex((c: any) => c.id === cita.id);
+        if (currentIndex === -1) {
+          setChainOverlapInfo(null);
+          setLoadingChainInfo(false);
+          return;
+        }
+        const prevCitas = sortedGroup.slice(0, currentIndex);
+        const nextCitas = sortedGroup.slice(currentIndex + 1);
+        const currentInicio = new Date(cita.inicio);
+        const currentFin = new Date(cita.fin);
+        let overlaps: any = {
+          before: false,
+          after: false,
+          beforeCita: null,
+          afterCita: null,
+        };
+        for (const prev of prevCitas) {
+          const prevFin = new Date(prev.fin);
+          if (prevFin > currentInicio) {
+            overlaps.before = true;
+            overlaps.beforeCita = prev;
+            break;
+          }
+        }
+        for (const next of nextCitas) {
+          const nextInicio = new Date(next.inicio);
+          if (nextInicio < currentFin) {
+            overlaps.after = true;
+            overlaps.afterCita = next;
+            break;
+          }
+        }
+        if (overlaps.before || overlaps.after) {
+          setChainOverlapInfo(overlaps);
+        } else {
+          setChainOverlapInfo(null);
+        }
+      } catch (err) {
+        console.error('Error detecting chain overlap:', err);
+        setChainOverlapInfo(null);
+      } finally {
+        setLoadingChainInfo(false);
+      }
+    }
+    detectChainOverlap();
+  }, [cita.grupo_id, cita.inicio, cita.fin, selectedProf]);
+
+  const [formulaProducto, setFormulaProducto] = useState(cita.formula_producto ?? '');
+  const [formulaTono, setFormulaTono] = useState(cita.formula_tono ?? '');
+  const [formulaTiempo, setFormulaTiempo] = useState(cita.formula_tiempo_min != null ? String(cita.formula_tiempo_min) : '');
+  const [formulaResultado, setFormulaResultado] = useState(cita.formula_resultado ?? '');
+  const [formulaNotas, setFormulaNotas] = useState(cita.formula_notas ?? '');
+
+  const totalMin = activo + espera + activo2;
+  const citaDate = new Date(cita.inicio).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'short' });
+  const citaHora = new Date(cita.inicio).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
+  const citaFinHora = new Date(cita.fin).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
 
   const handleGuardar = async () => {
-    if (!clienteId || !servicioId || !profId) return;
+    if (!selectedCliente || !selectedServicio || !selectedProf) return;
+    setErrMsg('');
     setGuardando(true);
     try {
-      const { error } = await supabase
-        .from('citas')
-        .update({
-          cliente_id: clienteId,
-          servicio_id: servicioId,
-          profesional_id: profId,
-          inicio,
-          fin,
-          estado,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', cita.id);
+      const [hh, mm] = horaEditada.split(':').map(Number);
+      const inicioDate = new Date(fechaEditada);
+      inicioDate.setHours(hh, mm, 0, 0);
+
+      const finActiva = new Date(inicioDate.getTime() + activo * 60000);
+      const finEspera = new Date(finActiva.getTime() + espera * 60000);
+      const fin = new Date(finEspera.getTime() + activo2 * 60000);
+
+      const originalInicio = new Date(cita.inicio);
+      const originalFin = new Date(cita.fin);
+      const inicioMoved = inicioDate.getTime() !== originalInicio.getTime();
+
+      if (inicioMoved && citasHoy) {
+        // MOVER: validar solapamiento, sin cascade
+        const conflictActivo1 = isTimeSlotOccupied(inicioDate, finActiva, citasHoy, selectedProf.id, cita.id);
+        const conflictActivo2 = activo2 > 0 && isTimeSlotOccupied(finEspera, fin, citasHoy, selectedProf.id, cita.id);
+        if (conflictActivo1 || conflictActivo2) {
+          setErrMsg('Conflicto activo+activo: la fase activa se solapa con otra cita activa del profesional.');
+          setGuardando(false);
+          return;
+        }
+      }
+
+      // Bloqueo duro: si esta cita está dentro del tiempo de espera de otra,
+      // el nuevo fin activo no puede superar el fin de ese tiempo de espera (RN-AG-013)
+      if (!inicioMoved && citasHoy) {
+        const hostCita = (citasHoy as any[]).find((c: any) =>
+          c.id !== cita.id &&
+          c.profesional_id === selectedProf.id &&
+          c.fin_activa && new Date(c.fin_activa) <= inicioDate &&
+          c.fin_espera && new Date(c.fin_espera) > inicioDate
+        );
+        if (hostCita && finActiva > new Date(hostCita.fin_espera)) {
+          setErrMsg('El tiempo activo supera el tiempo de espera de la cita anterior.');
+          setGuardando(false);
+          return;
+        }
+      }
+
+      const formulaTiempoNum = formulaTiempo.trim() ? parseInt(formulaTiempo.trim(), 10) : null;
+      const updatedFields = {
+        inicio: inicioDate.toISOString(),
+        cliente_id: selectedCliente.id,
+        servicio_id: selectedServicio.id,
+        profesional_id: selectedProf.id,
+        estado,
+        fin_activa: finActiva.toISOString(),
+        fin_espera: finEspera.toISOString(),
+        fin: fin.toISOString(),
+        notas: notasCita.trim() || null,
+        formula_producto: formulaProducto.trim() || null,
+        formula_tono: formulaTono.trim() || null,
+        formula_tiempo_min: formulaTiempoNum != null && !isNaN(formulaTiempoNum) ? formulaTiempoNum : null,
+        formula_resultado: formulaResultado.trim() || null,
+        formula_notas: formulaNotas.trim() || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('citas').update(updatedFields).eq('id', cita.id);
       if (error) throw error;
-      onClose();
+
+      if (selectedCliente?.id && notasCita.trim()) {
+        await syncAlergiasACliente(selectedCliente.id, notasCita.trim());
+      }
+
+      // Cascade solo cuando las barras de duracion cambiaron (inicio no se movio)
+      if (!inicioMoved) {
+        // Desplazar automaticamente citas dentro del tiempo de espera
+        const originalFinActiva = cita.fin_activa ? new Date(cita.fin_activa) : originalFin;
+        const originalFinEspera = cita.fin_espera ? new Date(cita.fin_espera) : originalFin;
+        const deltaActiva = finActiva.getTime() - originalFinActiva.getTime();
+        if (deltaActiva !== 0 && citasHoy) {
+          const citasEnEspera = (citasHoy as any[]).filter((c: any) =>
+            c.profesional_id === selectedProf.id &&
+            c.id !== cita.id &&
+            new Date(c.inicio) >= originalFinActiva &&
+            new Date(c.inicio) < originalFinEspera
+          );
+          for (const sig of citasEnEspera) {
+            const p: any = {
+              inicio: new Date(new Date(sig.inicio).getTime() + deltaActiva).toISOString(),
+              fin: new Date(new Date(sig.fin).getTime() + deltaActiva).toISOString(),
+            };
+            if (sig.fin_activa) p.fin_activa = new Date(new Date(sig.fin_activa).getTime() + deltaActiva).toISOString();
+            if (sig.fin_espera) p.fin_espera = new Date(new Date(sig.fin_espera).getTime() + deltaActiva).toISOString();
+            await supabase.from('citas').update(p).eq('id', sig.id);
+          }
+        }
+
+        const delayMs = fin.getTime() - originalFin.getTime();
+        if (delayMs > 0 && citasHoy) {
+          const siguientes = (citasHoy as any[]).filter((c: any) =>
+            c.profesional_id === selectedProf.id &&
+            c.id !== cita.id &&
+            new Date(c.inicio) >= originalFin
+          );
+          if (siguientes.length > 0) {
+            const delayMin = Math.round(delayMs / 60000);
+            const ok = window.confirm(
+              `Esta cita se ha alargado ${delayMin} min.\n\nHay ${siguientes.length} cita${siguientes.length > 1 ? 's' : ''} siguiente${siguientes.length > 1 ? 's' : ''} de ${selectedProf.nombre} que pueden verse afectadas.\n\n¿Desplazarlas tambien?`
+            );
+            if (ok) {
+              for (const sig of siguientes) {
+                const payload: any = {
+                  inicio: new Date(new Date(sig.inicio).getTime() + delayMs).toISOString(),
+                  fin: new Date(new Date(sig.fin).getTime() + delayMs).toISOString(),
+                };
+                if (sig.fin_activa) payload.fin_activa = new Date(new Date(sig.fin_activa).getTime() + delayMs).toISOString();
+                if (sig.fin_espera) payload.fin_espera = new Date(new Date(sig.fin_espera).getTime() + delayMs).toISOString();
+                await supabase.from('citas').update(payload).eq('id', sig.id);
+              }
+            }
+          }
+        }
+      }
+
+      triggerRefresh();
+      onSaved?.(updatedFields) ?? onClose();
     } catch (err) {
       console.error('Error al guardar:', err);
     } finally {
@@ -1469,31 +2764,197 @@ function EditCitaModal({ onClose, cita, servicios, clientes, profesionales, cita
   };
 
   const handleEliminar = async () => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar esta cita?')) return;
     setGuardando(true);
     try {
-      const { error } = await supabase
-        .from('citas')
-        .update({ estado: CITA_STATUS.CANCELADA })
-        .eq('id', cita.id);
+      const payload: any = {
+        oculta_en_calendario: true,
+        cancelado_por: canceladoPor,
+        motivo_cancelacion: motivoCancelacion.trim() || null,
+      };
+      if (cita.estado !== CITA_STATUS.CANCELADA) payload.estado = CITA_STATUS.CANCELADA;
+      // Cancel this cita
+      const { error } = await supabase.from('citas').update(payload).eq('id', cita.id);
       if (error) throw error;
-      onClose();
+      // If part of a group, cancel all siblings too
+      if (cita.grupo_id) {
+        await supabase.from('citas').update(payload).eq('grupo_id', cita.grupo_id).neq('id', cita.id);
+      }
+      triggerRefresh();
+      onSaved?.() ?? onClose();
     } catch (err) {
-      console.error('Error al eliminar:', err);
+      console.error('Error al cancelar:', err);
     } finally {
       setGuardando(false);
+      setShowCancelModal(false);
     }
   };
 
-  const inicioDate = new Date(inicio);
-  const horaInicio = `${String(inicioDate.getHours()).padStart(2, '0')}:${String(inicioDate.getMinutes()).padStart(2, '0')}`;
-  const cliente = clientes.find((c: any) => c.id === clienteId);
-  const servicio = servicios.find((s: any) => s.id === servicioId);
-  const prof = profesionales.find((p: any) => p.id === profId);
-  const horaFin = `${String(new Date(fin).getHours()).padStart(2, '0')}:${String(new Date(fin).getMinutes()).padStart(2, '0')}`;
+  // Helper: check if a new active window overlaps with any active phase of an existing cita
+  // A cita has TWO active phases: [inicio→fin_activa] + [fin_espera→fin] (activa_extra)
+  // During reposo (fin_activa→fin_espera) the professional is FREE
+  const citaActivaOverlap = (c: any, newInicio: Date, newFinActiva: Date): boolean => {
+    const ci = new Date(c.inicio);
+    const cfa = new Date(c.fin_activa);
+    const cfe = c.fin_espera ? new Date(c.fin_espera) : null;
+    const cf = new Date(c.fin);
+    // Overlap with first active phase
+    if (ci < newFinActiva && cfa > newInicio) return true;
+    // Overlap with activa_extra (second active phase after reposo)
+    if (cfe && cf.getTime() > cfe.getTime() && cfe < newFinActiva && cf > newInicio) return true;
+    return false;
+  };
+
+  // Helper: resolve durations for a prof+service via cascade
+  const resolverDuraciones = async (profId: string, servicioId: string) => {
+    const srv = servicios.find((s: any) => s.id === servicioId);
+    if (!srv) throw new Error('Servicio no encontrado');
+    const [{ data: profSrvOvs }, { data: durOvs }] = await Promise.all([
+      supabase.from('professional_service_overrides').select('duracion, duracion_espera_min, duracion_activa_extra_min').eq('professional_id', profId).eq('service_id', servicioId),
+      supabase.from('duraciones_profesional').select('duracion_activa_min, duracion_espera_min, duracion_activa_extra_min').eq('profesional_id', profId).eq('servicio_id', servicioId),
+    ]);
+    const pso = profSrvOvs?.[0];
+    const dov = durOvs?.[0];
+    return {
+      durActiva: pso?.duracion ?? dov?.duracion_activa_min ?? srv.duracion_activa_min ?? 30,
+      durEspera: pso?.duracion_espera_min ?? dov?.duracion_espera_min ?? srv.duracion_espera_min ?? 0,
+      durActivaExtra: pso?.duracion_activa_extra_min ?? dov?.duracion_activa_extra_min ?? srv.duracion_activa_extra_min ?? 0,
+    };
+  };
+
+  // Helper: get chain start time (fin of last cita in group)
+  const getChainInicio = (): Date => {
+    if (cita.grupo_id && allCitas) {
+      const siblings = (allCitas as any[]).filter((c: any) => c.grupo_id === cita.grupo_id);
+      const maxSib = siblings.reduce((best: any, c: any) => (!best || (c.orden_en_grupo ?? 0) > (best.orden_en_grupo ?? 0)) ? c : best, null);
+      return maxSib ? new Date(maxSib.fin) : new Date(cita.fin);
+    }
+    return new Date(cita.fin);
+  };
+
+  // Helper: create the chained cita in DB
+  const crearCitaEncadenada = async (profId: string, servicioId: string, inicioDate: Date, durActiva: number, durEspera: number, durActivaExtra: number) => {
+    const profile = await getUserProfile();
+    const negocioId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
+    const userId = (await supabase.auth.getUser()).data.user?.id || null;
+
+    const chainFinActiva = new Date(inicioDate.getTime() + durActiva * 60000);
+    const chainFinEspera = new Date(inicioDate.getTime() + (durActiva + durEspera) * 60000);
+    const chainFin = new Date(inicioDate.getTime() + (durActiva + durEspera + durActivaExtra) * 60000);
+
+    let grupoId = cita.grupo_id;
+    let maxOrden = cita.orden_en_grupo ?? 0;
+    if (!grupoId) {
+      grupoId = crypto.randomUUID();
+      await supabase.from('citas').update({ grupo_id: grupoId, orden_en_grupo: 0 }).eq('id', cita.id);
+      maxOrden = 0;
+    } else if (allCitas) {
+      const siblings = (allCitas as any[]).filter((c: any) => c.grupo_id === grupoId);
+      maxOrden = Math.max(...siblings.map((c: any) => c.orden_en_grupo ?? 0), 0);
+    }
+
+    const { error } = await supabase.from('citas').insert({
+      negocio_id: negocioId,
+      profesional_id: profId,
+      servicio_id: servicioId,
+      cliente_id: cita.cliente_id,
+      inicio: inicioDate.toISOString(),
+      fin: chainFin.toISOString(),
+      fin_activa: chainFinActiva.toISOString(),
+      fin_espera: chainFinEspera.toISOString(),
+      estado: CITA_STATUS.CONFIRMADA,
+      canal: 'manual',
+      creado_por: userId,
+      grupo_id: grupoId,
+      orden_en_grupo: maxOrden + 1,
+    }).select();
+
+    if (error) throw new Error(error.message);
+    triggerRefresh();
+    onClose();
+  };
+
+  const handleEncadenar = async () => {
+    if (!chainServicioId || !chainProfId) return;
+    setChainErr('');
+    setChainGuardando(true);
+    try {
+      const { durActiva, durEspera, durActivaExtra } = await resolverDuraciones(chainProfId, chainServicioId);
+
+      const chainInicio = getChainInicio();
+      const chainFinActiva = new Date(chainInicio.getTime() + durActiva * 60000);
+
+      // Validate overlap (broad fetch, filter both active phases)
+      const { data: potentialOverlaps } = await supabase.from('citas')
+        .select('id, inicio, fin_activa, fin_espera, fin')
+        .eq('profesional_id', chainProfId)
+        .neq('estado', CITA_STATUS.CANCELADA)
+        .lt('inicio', chainFinActiva.toISOString())
+        .gt('fin', chainInicio.toISOString());
+      const solapadas = (potentialOverlaps || []).filter((c: any) => citaActivaOverlap(c, chainInicio, chainFinActiva));
+
+      if (solapadas.length > 0) {
+        const profName = profesionales.find((p: any) => p.id === chainProfId)?.nombre || 'Profesional';
+        const fmtH = (d: Date) => d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        setChainErr(`${profName} tiene otra cita activa en esa franja (${fmtH(chainInicio)}-${fmtH(chainFinActiva)})`);
+        setChainGuardando(false);
+        return;
+      }
+
+      await crearCitaEncadenada(chainProfId, chainServicioId, chainInicio, durActiva, durEspera, durActivaExtra);
+    } catch (e: any) {
+      setChainErr(e?.message ?? 'Error inesperado');
+    } finally {
+      setChainGuardando(false);
+    }
+  };
+
+  // Computed: chain timing preview
+  const chainTimingPreview = (() => {
+    if (!chainServicioId || !chainProfId) return null;
+    const srv = servicios.find((s: any) => s.id === chainServicioId);
+    if (!srv) return null;
+    let lastFin: Date;
+    if (cita.grupo_id && allCitas) {
+      const siblings = (allCitas as any[]).filter((c: any) => c.grupo_id === cita.grupo_id);
+      const maxSib = siblings.reduce((best: any, c: any) => (!best || (c.orden_en_grupo ?? 0) > (best.orden_en_grupo ?? 0)) ? c : best, null);
+      lastFin = maxSib ? new Date(maxSib.fin) : new Date(cita.fin);
+    } else {
+      lastFin = new Date(cita.fin);
+    }
+    const durTotal = (srv.duracion_activa_min ?? 30) + (srv.duracion_espera_min ?? 0) + (srv.duracion_activa_extra_min ?? 0);
+    const chainFin = new Date(lastFin.getTime() + durTotal * 60000);
+    return {
+      inicio: lastFin,
+      fin: chainFin,
+      durTotal,
+      precio: srv.precio ?? 0,
+    };
+  })();
+
+  const estadoMeta: any = {
+    [CITA_STATUS.PROPUESTA]:     { label: 'Propuesta',       color: '#8b5cf6', soft: 'rgba(139,92,246,0.12)' },
+    [CITA_STATUS.CONFIRMADA]:    { label: 'Confirmada',      color: TOKENS.success, soft: `rgba(16,185,129,0.12)` },
+    [CITA_STATUS.EN_CURSO]:      { label: 'En curso',        color: '#10b981', soft: 'rgba(16,185,129,0.2)' },
+    [CITA_STATUS.FINALIZADA]:    { label: 'Finalizada',      color: '#06b6d4', soft: 'rgba(6,182,212,0.12)' },
+    [CITA_STATUS.COBRADA]:       { label: 'Cobrada',         color: '#22c55e', soft: 'rgba(34,197,94,0.12)' },
+    [CITA_STATUS.CANCELADA]:     { label: 'Cancelada',       color: TOKENS.danger, soft: 'rgba(239,68,68,0.12)' },
+    [CITA_STATUS.NO_PRESENTADA]: { label: 'No presentada',  color: '#ef4444', soft: 'rgba(239,68,68,0.15)' },
+    [CITA_STATUS.INTERRUMPIDA]:  { label: 'Interrumpida',    color: '#f97316', soft: 'rgba(249,115,22,0.12)' },
+    [CITA_STATUS.HISTORICA]:     { label: 'Historica',       color: '#64748b', soft: 'rgba(100,116,139,0.12)' },
+    [CITA_STATUS.PENDIENTE]:     { label: 'Pendiente',       color: '#f59e0b', soft: 'rgba(245,158,11,0.12)' },
+  };
+  const meta = estadoMeta[estado];
+
+  const serviciosFiltrados = servicios.filter((s: any) =>
+    s.nombre.toLowerCase().includes(qSrv.toLowerCase())
+  );
+  const clientesFiltrados = clientes.filter((c: any) =>
+    c.nombre.toLowerCase().includes(qCli.toLowerCase())
+  );
 
   return (
     <div
+      className="m-overlay-enter"
       style={{
         position: 'fixed',
         inset: 0,
@@ -1502,294 +2963,924 @@ function EditCitaModal({ onClose, cita, servicios, clientes, profesionales, cita
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
-        animation: 'fadeIn 0.3s ease',
       }}
       onClick={onClose}
     >
       <div
+        className="m-modal-enter"
         style={{
           background: TOKENS.bgPanel,
           borderRadius: 16,
-          maxWidth: 580,
-          width: '90%',
+          maxWidth: 900,
+          width: '95%',
           maxHeight: '90vh',
-          overflow: 'auto',
+          overflow: 'hidden',
           border: `1px solid ${TOKENS.border}`,
           boxShadow: `0 20px 60px rgba(0,0,0,0.4)`,
-          animation: 'slideInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 60, minWidth: 0 }}>
+
         {/* Header */}
-        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${TOKENS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: TOKENS.text }}>Editar cita</h2>
-          <button
-            onClick={onClose}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              border: 'none',
-              background: TOKENS.bgCard,
-              color: TOKENS.textSec,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 18,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = TOKENS.bgCardHi;
-              e.currentTarget.style.transform = 'rotate(90deg)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = TOKENS.bgCard;
-              e.currentTarget.style.transform = 'rotate(0deg)';
-            }}
-          >
-            ×
-          </button>
+        <div
+          style={{
+            marginTop: 3,
+            padding: '28px 32px 24px',
+            borderBottom: `1px solid ${TOKENS.border}`,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: 16,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0, flex: 1 }}>
+            <Avatar name={selectedCliente?.nombre} size={52} />
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 11, color: TOKENS.textTer, letterSpacing: 1.5, fontWeight: 600, textTransform: 'uppercase' }}>
+                Detalle de cita
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.3, color: TOKENS.text, marginTop: 2 }}>
+                {selectedCliente?.nombre}
+              </div>
+              <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span>{selectedServicio?.nombre}</span>
+                <span style={{ width: 3, height: 3, borderRadius: 99, background: TOKENS.textTer }} />
+                <span>{selectedProf?.nombre}</span>
+                <span style={{ width: 3, height: 3, borderRadius: 99, background: TOKENS.textTer }} />
+                <span>
+                  {citaDate} · {citaHora} - {citaFinHora}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Pill color={estado === CITA_STATUS.CONFIRMADA ? TOKENS.primary : meta.color} soft={estado === CITA_STATUS.CONFIRMADA ? TOKENS.primarySoft : meta.soft}>
+              {meta.label}
+            </Pill>
+            <button
+              className="m-btn-icon m-btn-icon-close"
+              onClick={onClose}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: TOKENS.bgCard,
+                border: `1px solid ${TOKENS.border}`,
+                color: TOKENS.textSec,
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              <IconClose />
+            </button>
+          </div>
         </div>
 
-        {/* Content */}
-        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Cliente */}
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Cliente</label>
-            <select
-              value={clienteId}
-              onChange={(e) => setClienteId(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                marginTop: 8,
-                background: TOKENS.bgCard,
-                border: `1px solid ${TOKENS.border}`,
-                borderRadius: 10,
-                color: TOKENS.text,
-                fontSize: 13,
-                cursor: 'pointer',
-              }}
-            >
-              <option value="">Seleccionar cliente</option>
-              {clientes.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* 5.5: Servicios encadenados info */}
+        {cita.grupo_id && allCitas && (() => {
+          const siblings = (allCitas as any[])
+            .filter((c: any) => c.grupo_id === cita.grupo_id)
+            .sort((a: any, b: any) => (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0));
+          if (siblings.length <= 1) return null;
+          return (
+            <div style={{ padding: '12px 32px', borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(139,92,246,0.04)' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+                Servicio encadenado ({siblings.length} servicios)
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {siblings.map((sib: any, idx: number) => {
+                  const sibSrv = servicios.find((s: any) => s.id === sib.servicio_id);
+                  const sibProf = profesionales.find((p: any) => p.id === sib.profesional_id);
+                  const isCurrent = sib.id === cita.id;
+                  const sibInicio = new Date(sib.inicio);
+                  const sibFin = new Date(sib.fin);
+                  return (
+                    <div
+                      key={sib.id}
+                      style={{
+                        padding: '6px 10px',
+                        background: isCurrent ? 'rgba(139,92,246,0.15)' : TOKENS.bgCard,
+                        border: `1px solid ${isCurrent ? '#a78bfa' : TOKENS.border}`,
+                        borderRadius: 8,
+                        minWidth: 0,
+                      }}
+                    >
+                      <div style={{ fontSize: 11, fontWeight: 600, color: isCurrent ? '#a78bfa' : TOKENS.text }}>
+                        {idx + 1}. {sibSrv?.nombre || 'Servicio'}
+                      </div>
+                      <div style={{ fontSize: 9, color: TOKENS.textTer, marginTop: 2 }}>
+                        {sibProf?.nombre?.split(' ')[0]} · {sibInicio.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}-{sibFin.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
-          {/* Servicio */}
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Servicio</label>
-            <input
-              type="text"
-              placeholder="Buscar servicio..."
-              value={servicioSearch}
-              onChange={(e) => setServicioSearch(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                marginTop: 8,
-                background: TOKENS.bgCard,
-                border: `1px solid ${TOKENS.border}`,
-                borderRadius: 10,
-                color: TOKENS.text,
-                fontSize: 13,
-                marginBottom: 8,
-              }}
-            />
-            <select
-              value={servicioId}
-              onChange={(e) => setServicioId(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                background: TOKENS.bgCard,
-                border: `1px solid ${TOKENS.border}`,
-                borderRadius: 10,
-                color: TOKENS.text,
-                fontSize: 13,
-                cursor: 'pointer',
-              }}
-            >
-              <option value="">Seleccionar servicio</option>
-              {serviciosFiltrados.map((s: any) => (
-                <option key={s.id} value={s.id}>
-                  {s.nombre} - {s.precio}€
-                </option>
-              ))}
-            </select>
+        {/* Chain overlap detection */}
+        {chainOverlapInfo && (chainOverlapInfo.before || chainOverlapInfo.after) && (
+          <div style={{ padding: '12px 32px', borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(239,68,68,0.04)' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+              Conflicto en cadena
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {chainOverlapInfo.before && chainOverlapInfo.beforeCita && (() => {
+                const prevSrv = servicios.find((s: any) => s.id === chainOverlapInfo.beforeCita.servicio_id);
+                const prevProf = profesionales.find((p: any) => p.id === chainOverlapInfo.beforeCita.profesional_id);
+                const prevFin = new Date(chainOverlapInfo.beforeCita.fin);
+                const currentInicio = new Date(cita.inicio);
+                const overlap = prevFin > currentInicio ? Math.round((prevFin.getTime() - currentInicio.getTime()) / 60000) : 0;
+                return (
+                  <div style={{ padding: '8px 10px', background: TOKENS.bgCard, border: `1px solid #ef4444`, borderRadius: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#ef4444' }}>
+                      Anterior finaliza tarde
+                    </div>
+                    <div style={{ fontSize: 10, color: TOKENS.text, marginTop: 4 }}>
+                      {prevSrv?.nombre} ({prevProf?.nombre?.split(' ')[0]}) finaliza a {prevFin.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - Solapamiento: {overlap} min
+                    </div>
+                  </div>
+                );
+              })()}
+              {chainOverlapInfo.after && chainOverlapInfo.afterCita && (() => {
+                const nextSrv = servicios.find((s: any) => s.id === chainOverlapInfo.afterCita.servicio_id);
+                const nextProf = profesionales.find((p: any) => p.id === chainOverlapInfo.afterCita.profesional_id);
+                const nextInicio = new Date(chainOverlapInfo.afterCita.inicio);
+                const currentFin = new Date(cita.fin);
+                const overlap = currentFin > nextInicio ? Math.round((currentFin.getTime() - nextInicio.getTime()) / 60000) : 0;
+                return (
+                  <div style={{ padding: '8px 10px', background: TOKENS.bgCard, border: `1px solid #ef4444`, borderRadius: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#ef4444' }}>
+                      Siguiente comienza temprano
+                    </div>
+                    <div style={{ fontSize: 10, color: TOKENS.text, marginTop: 4 }}>
+                      {nextSrv?.nombre} ({nextProf?.nombre?.split(' ')[0]}) comienza a {nextInicio.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - Solapamiento: {overlap} min
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
+        )}
 
-          {/* Profesional */}
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Profesional</label>
-            <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-              {profesionales.map((p: any) => (
+        {/* Encadenar servicio */}
+        {estado !== CITA_STATUS.CANCELADA && (
+          <div style={{ padding: showChainForm ? '10px 32px' : '0 32px', borderBottom: `1px solid ${TOKENS.border}`, ...(showChainForm ? {} : { display: 'flex', alignItems: 'center', minHeight: 36 }) }}>
+            {!showChainForm ? (
+              <button
+                onClick={() => { setShowChainForm(true); setChainServicioId(null); setChainProfId(null); setChainErr(''); }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  color: '#a78bfa',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'opacity 0.15s',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+              >
+                + Encadenar servicio
+              </button>
+            ) : (
+              <div style={{ borderLeft: '3px solid #a78bfa', paddingLeft: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                    Encadenar servicio
+                  </div>
+                  <button onClick={() => setShowChainForm(false)} style={{ background: 'none', border: 'none', color: TOKENS.textTer, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>x</button>
+                </div>
+
+                {/* Servicio */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: TOKENS.textTer, letterSpacing: 0.6, marginBottom: 6 }}>Servicio</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                    {servicios.map((s: any) => (
+                      <button
+                        key={s.id}
+                        onClick={() => { setChainServicioId(s.id); setChainErr(''); }}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: 6,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          border: chainServicioId === s.id ? '1px solid #a78bfa' : `1px solid ${TOKENS.border}`,
+                          background: chainServicioId === s.id ? 'rgba(139,92,246,0.15)' : TOKENS.bgCard,
+                          color: chainServicioId === s.id ? '#a78bfa' : TOKENS.text,
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {s.nombre}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Profesional */}
+                {chainServicioId && (
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: TOKENS.textTer, letterSpacing: 0.6, marginBottom: 6 }}>Profesional</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {profesionales.map((p: any) => (
+                        <button
+                          key={p.id}
+                          onClick={() => { setChainProfId(p.id); setChainErr(''); }}
+                          style={{
+                            padding: '5px 10px',
+                            borderRadius: 6,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            border: chainProfId === p.id ? `1px solid ${p.color || '#a78bfa'}` : `1px solid ${TOKENS.border}`,
+                            background: chainProfId === p.id ? `${p.color || '#a78bfa'}22` : TOKENS.bgCard,
+                            color: chainProfId === p.id ? (p.color || '#a78bfa') : TOKENS.text,
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {p.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Preview de horario */}
+                {chainTimingPreview && chainProfId && (
+                  <div style={{ padding: '8px 10px', background: 'rgba(139,92,246,0.06)', borderRadius: 6, border: `1px solid rgba(139,92,246,0.15)` }}>
+                    <div style={{ fontSize: 10, color: TOKENS.textTer }}>
+                      {chainTimingPreview.inicio.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {chainTimingPreview.fin.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} ({chainTimingPreview.durTotal} min) · {chainTimingPreview.precio}
+                    </div>
+                  </div>
+                )}
+
+                {chainErr && (
+                  <div style={{ fontSize: 11, color: TOKENS.danger, padding: '6px 10px', background: `${TOKENS.danger}15`, borderRadius: 6, border: `1px solid ${TOKENS.danger}44` }}>{chainErr}</div>
+                )}
+
+                {/* Botones */}
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setShowChainForm(false)}
+                    style={{ padding: '6px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleEncadenar}
+                    disabled={!chainServicioId || !chainProfId || chainGuardando}
+                    style={{
+                      padding: '6px 14px',
+                      background: !chainServicioId || !chainProfId || chainGuardando ? 'rgba(139,92,246,0.3)' : 'linear-gradient(180deg,#9b8afb 0%,#8b5cf6 100%)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: !chainServicioId || !chainProfId || chainGuardando ? 'not-allowed' : 'pointer',
+                      fontSize: 11,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {chainGuardando ? '...' : 'Encadenar'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Body */}
+        <div style={{ padding: '28px 32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>
+          {/* Left column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
+            {/* Cliente */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <Label>Clienta</Label>
+                {selectedCliente?.id && (
+                  <button
+                    type="button"
+                    className="m-btn-secondary"
+                    onClick={() => {
+                      onClose();
+                      router.push({ pathname: '/(tabs)/clientes', params: { clienteId: selectedCliente.id } } as any);
+                    }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 9px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, borderRadius: 6, cursor: 'pointer', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.6 }}
+                  >
+                    Ver ficha →
+                  </button>
+                )}
+              </div>
+              <SearchDropdown
+                open={openCli}
+                setOpen={setOpenCli}
+                q={qCli}
+                setQ={setQCli}
+                placeholder="Buscar cliente…"
+                trigger={
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                    <Avatar name={selectedCliente?.nombre} size={28} />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text }}>
+                        {selectedCliente?.nombre}
+                      </div>
+                      <div style={{ fontSize: 11, color: TOKENS.textTer, fontStyle: !selectedCliente?.telefono ? 'italic' : 'normal' }}>
+                        {selectedCliente?.telefono || 'Sin teléfono'}
+                      </div>
+                    </div>
+                  </div>
+                }
+              >
+                {clientesFiltrados.map((c: any) => (
+                  <DropdownItem
+                    key={c.id}
+                    onClick={() => {
+                      setSelectedCliente(c);
+                      setOpenCli(false);
+                      setQCli('');
+                    }}
+                    active={c.id === selectedCliente?.id}
+                  >
+                    <Avatar name={c.nombre} size={28} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>
+                        {c.nombre}
+                      </div>
+                      <div style={{ fontSize: 10, color: TOKENS.textTer, fontStyle: !c.telefono ? 'italic' : 'normal' }}>
+                        {c.telefono || 'Sin teléfono'}
+                      </div>
+                    </div>
+                  </DropdownItem>
+                ))}
+              </SearchDropdown>
+            </div>
+
+            {/* Confirmacion del cliente */}
+            <div>
+              <Label>Confirmacion del cliente</Label>
+              <button
+                type="button"
+                onClick={toggleConfirma}
+                disabled={togglingConfirma}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '12px 14px',
+                  borderRadius: 12,
+                  background: confirmadaCliente
+                    ? 'linear-gradient(180deg, rgba(16,185,129,0.10), rgba(16,185,129,0.04))'
+                    : 'linear-gradient(180deg, rgba(239,68,68,0.10), rgba(239,68,68,0.04))',
+                  border: `1.5px solid ${confirmadaCliente ? 'rgba(16,185,129,0.45)' : 'rgba(239,68,68,0.45)'}`,
+                  color: confirmadaCliente ? TOKENS.success : '#ef4444',
+                  cursor: togglingConfirma ? 'wait' : 'pointer',
+                  fontFamily: 'inherit',
+                  textAlign: 'left',
+                  transition: 'transform 0.15s cubic-bezier(0.16,1,0.3,1), box-shadow 0.15s ease, border-color 0.15s ease',
+                  boxShadow: confirmadaCliente ? '0 4px 14px rgba(16,185,129,0.18)' : '0 4px 14px rgba(239,68,68,0.18)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!togglingConfirma) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = confirmadaCliente
+                      ? '0 8px 22px rgba(16,185,129,0.30)'
+                      : '0 8px 22px rgba(239,68,68,0.30)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = confirmadaCliente
+                    ? '0 4px 14px rgba(16,185,129,0.18)'
+                    : '0 4px 14px rgba(239,68,68,0.18)';
+                }}
+              >
+                <div style={{
+                  width: 36, height: 36, borderRadius: 999,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  background: confirmadaCliente ? 'rgba(16,185,129,0.20)' : 'rgba(239,68,68,0.20)',
+                  flexShrink: 0,
+                }}>
+                  {confirmadaCliente ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>
+                    {confirmadaCliente ? 'Confirmada por el cliente' : 'Sin confirmar por el cliente'}
+                  </div>
+                  <div style={{ fontSize: 11, color: confirmadaCliente ? 'rgba(16,185,129,0.80)' : 'rgba(239,68,68,0.80)', fontWeight: 500 }}>
+                    {togglingConfirma
+                      ? 'Guardando...'
+                      : confirmadaCliente
+                        ? 'Toca para desmarcar'
+                        : 'Toca para marcarla como confirmada'}
+                  </div>
+                </div>
+                <div style={{
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  background: confirmadaCliente ? 'rgba(16,185,129,0.20)' : 'rgba(239,68,68,0.20)',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                  textTransform: 'uppercase',
+                  flexShrink: 0,
+                }}>
+                  {confirmadaCliente ? 'Desmarcar' : 'Confirmar'}
+                </div>
+              </button>
+            </div>
+
+            {/* Servicio */}
+            <div>
+              <Label>Servicio</Label>
+              <SearchDropdown
+                open={openSrv}
+                setOpen={setOpenSrv}
+                q={qSrv}
+                setQ={setQSrv}
+                placeholder="Buscar servicio…"
+                trigger={
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: TOKENS.primarySoft, color: TOKENS.primaryHi, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                      <IconClock />
+                    </div>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text }}>
+                        {selectedServicio?.nombre}
+                      </div>
+                      <div style={{ fontSize: 11, color: TOKENS.textTer }}>
+                        {((selectedServicio?.duracion_activa_min || selectedServicio?.duracion || 0) + (selectedServicio?.duracion_espera_min || 0) + (selectedServicio?.duracion_activa_extra_min || 0)) || 0} min · {selectedServicio?.precio || 0} €
+                      </div>
+                    </div>
+                  </div>
+                }
+              >
+                {serviciosFiltrados.map((s: any) => (
+                  <DropdownItem
+                    key={s.id}
+                    onClick={() => {
+                      setSelectedServicio(s);
+                      setOpenSrv(false);
+                      setQSrv('');
+                      setActivo(s.duracion_activa_min || s.duracion || 30);
+                      setEspera(s.duracion_espera_min || 0);
+                      setActivo2(s.duracion_activa_extra_min || 0);
+                    }}
+                    active={s.id === selectedServicio?.id}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>
+                        {s.nombre}
+                      </div>
+                      <div style={{ fontSize: 10, color: TOKENS.textTer }}>
+                        {((s.duracion_activa_min || s.duracion || 0) + (s.duracion_espera_min || 0) + (s.duracion_activa_extra_min || 0)) || 0} min
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: TOKENS.success }}>
+                      {s.precio || 0} €
+                    </span>
+                  </DropdownItem>
+                ))}
+              </SearchDropdown>
+
+              {/* Add-ons toggleables */}
+              {availableAddons.length > 0 && (
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                  {availableAddons.map((addon: any) => {
+                    const active = citaAddons.some((ca: any) => ca.addon_id === addon.id);
+                    const loading = togglingAddon === addon.id;
+                    return (
+                      <button
+                        key={addon.id}
+                        onClick={() => toggleAddon(addon)}
+                        disabled={loading}
+                        onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.5)'; e.currentTarget.style.background = 'rgba(16,185,129,0.06)'; } e.currentTarget.style.transform = 'scale(1.05)'; }}
+                        onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.background = 'transparent'; } e.currentTarget.style.transform = 'scale(1)'; }}
+                        style={{
+                          fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 4, cursor: loading ? 'wait' : 'pointer',
+                          background: active ? 'rgba(16,185,129,0.1)' : 'transparent',
+                          color: active ? TOKENS.success : TOKENS.textSec,
+                          border: `1px solid ${active ? 'rgba(16,185,129,0.25)' : TOKENS.border}`,
+                          opacity: loading ? 0.5 : 1, transition: 'all 0.15s ease', transform: 'scale(1)',
+                        }}
+                      >
+                        {active ? '+' : ''} {addon.nombre} ({addon.duracion_min}min · {addon.precio}EUR)
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Profesional */}
+            <div>
+              <Label>Profesional</Label>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', minWidth: 0 }}>
+                {profesionales.map((p: any) => {
+                  const sel = p.id === selectedProf?.id;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => setSelectedProf(p)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 7,
+                        padding: '7px 11px',
+                        borderRadius: 999,
+                        background: sel ? `${p.color}22` : 'rgba(148,163,184,0.06)',
+                        border: `1px solid ${sel ? `${p.color}66` : TOKENS.border}`,
+                        color: sel ? p.color : TOKENS.textSec,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!sel) {
+                          e.currentTarget.style.borderColor = p.color;
+                          e.currentTarget.style.background = `${p.color}10`;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!sel) {
+                          e.currentTarget.style.borderColor = TOKENS.border;
+                          e.currentTarget.style.background = 'rgba(148,163,184,0.06)';
+                        }
+                      }}
+                    >
+                      <div style={{ width: 6, height: 6, borderRadius: 999, background: p.color }} />
+                      {p.nombre.split(' ')[0]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Aviso de alergias del cliente */}
+            {(() => {
+              const alergiasTexto = (selectedCliente?.alergias ?? '').trim();
+              if (!alergiasTexto) return null;
+              return (
+                <div className="m-pulse-red" style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: 12, background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.40)', borderRadius: 10 }}>
+                  <span style={{ display: 'inline-flex', color: '#ef4444', flexShrink: 0, marginTop: 1 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#ef4444', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 2 }}>Alergias registradas</div>
+                    <div style={{ fontSize: 12, color: '#ef4444', lineHeight: 1.4, whiteSpace: 'pre-wrap' as any }}>{alergiasTexto}</div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Alergias de la cita */}
+            <div>
+              <Label>Alergias</Label>
+              <textarea
+                value={notasCita}
+                onChange={(e) => setNotasCita(e.target.value)}
+                placeholder="Alergias o reacciones a tener en cuenta para esta cita…"
+                rows={4}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '10px 12px',
+                  background: '#0b1220',
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 10,
+                  color: TOKENS.text,
+                  fontSize: 13,
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  resize: 'vertical',
+                }}
+              />
+            </div>
+
+            {/* Estado */}
+            <div>
+              <Label>Estado</Label>
+              <div style={{ position: 'relative' }}>
                 <button
-                  key={p.id}
-                  onClick={() => setProfId(p.id)}
+                  onClick={() => setOpenEst(!openEst)}
                   style={{
-                    padding: '8px 14px',
-                    background: profId === p.id ? `${p.color}22` : TOKENS.bgCard,
-                    border: `1px solid ${profId === p.id ? `${p.color}44` : TOKENS.border}`,
-                    borderRadius: 8,
-                    color: profId === p.id ? p.color : TOKENS.text,
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    background: TOKENS.bgCard,
+                    border: `1px solid ${TOKENS.border}`,
                     cursor: 'pointer',
-                    fontSize: 12,
-                    fontWeight: 500,
+                    color: TOKENS.text,
+                    fontSize: 13,
+                    fontWeight: 600,
                     transition: 'all 0.2s ease',
                   }}
-                  onMouseEnter={(e) => {
-                    if (profId !== p.id) {
-                      e.currentTarget.style.borderColor = p.color;
-                      e.currentTarget.style.background = `${p.color}10`;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (profId !== p.id) {
-                      e.currentTarget.style.borderColor = TOKENS.border;
-                      e.currentTarget.style.background = TOKENS.bgCard;
-                    }
-                  }}
                 >
-                  {p.nombre}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 999,
+                        background: meta.color,
+                      }}
+                    />
+                    {meta.label}
+                  </span>
+                  <span style={{ transform: openEst ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', display: 'flex', alignItems: 'center', color: TOKENS.textTer }}><IconChevronDown /></span>
                 </button>
-              ))}
+                {openEst && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 4px)',
+                      left: 0,
+                      right: 0,
+                      zIndex: 30,
+                      background: TOKENS.bgPanel,
+                      border: `1px solid ${TOKENS.borderHi}`,
+                      borderRadius: 10,
+                      boxShadow: '0 14px 40px rgba(0,0,0,0.5)',
+                      padding: 4,
+                    }}
+                  >
+                    {Object.entries(estadoMeta).map(([k, m]: any) => (
+                      <button
+                        key={k}
+                        onClick={async () => {
+                          setEstado(k);
+                          setOpenEst(false);
+                          await supabase.from('citas').update({ estado: k }).eq('id', cita.id);
+                          triggerRefresh();
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          padding: '8px 10px',
+                          borderRadius: 7,
+                          background: estado === k ? TOKENS.primarySoft : 'transparent',
+                          border: 'none',
+                          color: TOKENS.text,
+                          fontSize: 12,
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'background 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (estado !== k) {
+                            e.currentTarget.style.background = 'rgba(99,102,241,0.06)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (estado !== k) {
+                            e.currentTarget.style.background = 'transparent';
+                          }
+                        }}
+                      >
+                        <span style={{ width: 8, height: 8, borderRadius: 999, background: m.color }} />
+                        <span style={{ flex: 1 }}>{m.label}</span>
+                        {estado === k && <IconCheck />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Estado */}
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Estado</label>
-            <select
-              value={estado}
-              onChange={(e) => setEstado(e.target.value)}
+            {/* Resumen */}
+            <div
               style={{
-                width: '100%',
-                padding: '10px 12px',
-                marginTop: 8,
-                background: TOKENS.bgCard,
-                border: `1px solid ${TOKENS.border}`,
-                borderRadius: 10,
-                color: TOKENS.text,
-                fontSize: 13,
-                cursor: 'pointer',
+                padding: 14,
+                borderRadius: 12,
+                background: 'rgba(16,185,129,0.06)',
+                border: '1px solid rgba(16,185,129,0.25)',
               }}
             >
-              <option value={CITA_STATUS.CONFIRMADA}>Confirmada</option>
-              <option value={CITA_STATUS.CANCELADA}>Cancelada</option>
-              <option value={CITA_STATUS.PENDIENTE}>Pendiente</option>
-            </select>
-          </div>
-
-          {/* Hora inicio y fin */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Hora inicio</label>
-              <input
-                type="time"
-                value={horaInicio}
-                onChange={(e) => {
-                  const [h, m] = e.target.value.split(':');
-                  const newInicio = new Date(inicio);
-                  newInicio.setHours(parseInt(h), parseInt(m));
-                  setInicio(newInicio.toISOString());
-                }}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  marginTop: 8,
-                  background: TOKENS.bgCard,
-                  border: `1px solid ${TOKENS.border}`,
-                  borderRadius: 10,
-                  color: TOKENS.text,
-                  fontSize: 13,
-                  fontFamily: 'monospace',
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Hora fin</label>
-              <input
-                type="time"
-                value={horaFin}
-                onChange={(e) => {
-                  const [h, m] = e.target.value.split(':');
-                  const newFin = new Date(fin);
-                  newFin.setHours(parseInt(h), parseInt(m));
-                  setFin(newFin.toISOString());
-                }}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  marginTop: 8,
-                  background: TOKENS.bgCard,
-                  border: `1px solid ${TOKENS.border}`,
-                  borderRadius: 10,
-                  color: TOKENS.text,
-                  fontSize: 13,
-                  fontFamily: 'monospace',
-                }}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, fontWeight: 700, textTransform: 'uppercase' }}>
+                  Resumen
+                </span>
+                <span style={{ fontSize: 22, fontWeight: 700, color: '#10b981' }}>
+                  {selectedServicio?.precio || 0} €
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                <SummaryCell label="Activo 1" value={`${activo}m`} color={TOKENS.primary} />
+                <SummaryCell label="Espera" value={`${espera}m`} color="#f59e0b" />
+                <SummaryCell label="Activo 2" value={`${activo2}m`} color={TOKENS.primary} />
+                <SummaryCell label="Total" value={`${totalMin}m`} color="#10b981" />
+              </div>
             </div>
           </div>
 
-          {/* Información de tiempos */}
-          <div style={{ background: 'rgba(99,102,241,0.08)', padding: 12, borderRadius: 10, borderLeft: `3px solid ${TOKENS.primary}` }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text, marginBottom: 8 }}>Información de tiempos</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12 }}>
-              <div>
-                <span style={{ color: TOKENS.textTer, display: 'block', fontSize: 10, fontWeight: 600, marginBottom: 2 }}>Tiempo activo</span>
-                <span style={{ color: TOKENS.text, fontWeight: 600 }}>
-                  {cita.fin_activa ? new Date(cita.fin_activa).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' }) : '—'}
-                </span>
+          {/* Right column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
+            {/* Fecha */}
+            <div>
+              <Label>Fecha</Label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+                <TimeBtn onClick={() => adjustFecha(-1)} />
+                <div
+                  onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
+                  style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 600, color: TOKENS.text, cursor: 'pointer', userSelect: 'none', textTransform: 'capitalize' }}
+                >
+                  {fechaEditada.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'short' })}
+                </div>
+                <TimeBtn onClick={() => adjustFecha(1)} plus />
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  value={`${fechaEditada.getFullYear()}-${String(fechaEditada.getMonth() + 1).padStart(2, '0')}-${String(fechaEditada.getDate()).padStart(2, '0')}`}
+                  onChange={(e) => e.target.value && setFechaEditada(new Date(e.target.value + 'T12:00:00'))}
+                  style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+                />
               </div>
-              <div>
-                <span style={{ color: TOKENS.textTer, display: 'block', fontSize: 10, fontWeight: 600, marginBottom: 2 }}>Tiempo de espera</span>
-                <span style={{ color: TOKENS.text, fontWeight: 600 }}>
-                  {cita.fin_espera ? new Date(cita.fin_espera).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' }) : '—'}
-                </span>
+            </div>
+
+            {/* Hora */}
+            <div>
+              <Label>Hora</Label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+                <TimeBtn onClick={() => adjustHora(-1, 0)} />
+                <TimeNumBox value={horaEditada.split(':')[0]} label="h" />
+                <TimeBtn onClick={() => adjustHora(1, 0)} plus />
+                <span style={{ color: TOKENS.textTer, fontSize: 17, fontWeight: 700, margin: '0 2px' }}>:</span>
+                <TimeBtn onClick={() => adjustHora(0, -5)} />
+                <TimeNumBox value={horaEditada.split(':')[1]} label="min" />
+                <TimeBtn onClick={() => adjustHora(0, 5)} plus />
               </div>
+            </div>
+
+            {/* Secuencia */}
+            <div
+              style={{
+                padding: 12,
+                borderRadius: 12,
+                background: 'rgba(148,163,184,0.04)',
+                border: `1px solid ${TOKENS.border}`,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <Label>Secuencia de la cita</Label>
+                <span style={{ fontSize: 10, color: TOKENS.textSec, fontWeight: 400 }}>activo → espera → activo</span>
+              </div>
+
+              <SequenceBar activo={activo} espera={espera} activo2={activo2} primary={TOKENS.primary} warning="#f59e0b" />
+
+              <div style={{ height: 12 }} />
+
+              <TimeSlider
+                label="1 · Tiempo activo"
+                hint="Aplicación del servicio"
+                value={activo}
+                setValue={setActivo}
+                min={5}
+                max={240}
+                step={5}
+                color={TOKENS.primary}
+                chips={[15, 30, 45, 60, 90, 120]}
+              />
+
+              <div style={{ height: 12 }} />
+
+              <TimeSlider
+                label="2 · Tiempo de reposo"
+                hint="Tiempo de reposo (ej. tinte procesando). Pon 0 si no hay."
+                value={espera}
+                setValue={setEspera}
+                min={0}
+                max={120}
+                step={5}
+                color="#f59e0b"
+                chips={[0, 15, 30, 45, 60]}
+              />
+
+              <div style={{ height: 12 }} />
+
+              <TimeSlider
+                label="3 · Segundo tiempo activo"
+                hint="Trabajo posterior al reposo (lavado, peinado…). 0 si no aplica."
+                value={activo2}
+                setValue={setActivo2}
+                min={0}
+                max={120}
+                step={5}
+                color={TOKENS.primary}
+                chips={[0, 15, 30, 45, 60]}
+              />
+            </div>
+
+            {/* Fórmula de color / química */}
+            <div
+              style={{
+                padding: 12,
+                borderRadius: 12,
+                background: showFormula ? 'rgba(139,92,246,0.06)' : 'rgba(148,163,184,0.04)',
+                border: `1px solid ${showFormula ? 'rgba(139,92,246,0.30)' : TOKENS.border}`,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowFormula(v => !v)}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: TOKENS.text,
+                  textAlign: 'left',
+                }}
+              >
+                <span style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(139,92,246,0.14)', color: '#8b5cf6', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text, letterSpacing: 0.3 }}>Fórmula de color / química</div>
+                  <div style={{ fontSize: 10, color: TOKENS.textSec, marginTop: 2 }}>
+                    {hasFormula ? 'Fórmula registrada' : 'Opcional · producto, tono, tiempo, resultado'}
+                  </div>
+                </div>
+                <span style={{ transform: showFormula ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', color: TOKENS.textTer, display: 'flex' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </span>
+              </button>
+
+              {showFormula && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+                  <FormulaInput label="Producto" value={formulaProducto} onChange={setFormulaProducto} placeholder="Ej. Wella Koleston 7/0" />
+                  <FormulaInput label="Tono / mezcla" value={formulaTono} onChange={setFormulaTono} placeholder="Ej. Rubio medio + 9% oxidante 30 vol" />
+                  <FormulaInput label="Tiempo de aplicación (min)" value={formulaTiempo} onChange={setFormulaTiempo} placeholder="35" inputMode="numeric" />
+                  <FormulaInput label="Resultado" value={formulaResultado} onChange={setFormulaResultado} placeholder="Cómo quedó (cobertura, tono final…)" multiline />
+                  <FormulaInput label="Notas adicionales" value={formulaNotas} onChange={setFormulaNotas} placeholder="Observaciones específicas" multiline />
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Bottom buttons */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '16px 24px', borderTop: `1px solid ${TOKENS.border}`, flexWrap: 'wrap' }}>
-          <button
-            onClick={handleEliminar}
-            disabled={guardando}
-            style={{
-              padding: '9px 14px',
-              background: TOKENS.danger,
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              cursor: 'pointer',
-              fontSize: 12,
-              fontWeight: 600,
-              opacity: guardando ? 0.6 : 1,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (!guardando) {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = `0 4px 12px rgba(239,68,68,0.3)`;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            🗑 Eliminar
-          </button>
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '20px 32px',
+            borderTop: `1px solid ${TOKENS.border}`,
+            gap: 12,
+          }}
+        >
+          {cita.estado !== CITA_STATUS.CANCELADA && cita.estado !== CITA_STATUS.HISTORICA && cita.estado !== CITA_STATUS.EXPIRADA && (
+            <button
+              className="m-btn-danger"
+              onClick={() => setShowCancelModal(true)}
+              disabled={guardando}
+              style={{
+                padding: '9px 14px',
+                background: 'rgba(239,68,68,0.08)',
+                color: TOKENS.danger,
+                border: `1px solid ${TOKENS.danger}88`,
+                borderRadius: 8,
+                cursor: guardando ? 'not-allowed' : 'pointer',
+                fontSize: 12,
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <IconTrash /> Cancelar cita
+            </button>
+          )}
+          {errMsg ? <div style={{ fontSize: 11, color: TOKENS.danger, padding: '6px 10px', background: `${TOKENS.danger}15`, borderRadius: 6, border: `1px solid ${TOKENS.danger}44` }}>{errMsg}</div> : null}
           <div style={{ display: 'flex', gap: 8 }}>
             <button
+              className="m-btn-secondary"
               onClick={onClose}
               disabled={guardando}
               style={{
@@ -1798,55 +3889,633 @@ function EditCitaModal({ onClose, cita, servicios, clientes, profesionales, cita
                 border: `1px solid ${TOKENS.border}`,
                 color: TOKENS.text,
                 borderRadius: 8,
-                cursor: 'pointer',
+                cursor: guardando ? 'not-allowed' : 'pointer',
                 fontSize: 12,
                 fontWeight: 600,
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                if (!guardando) {
-                  e.currentTarget.style.background = TOKENS.bgCardHi;
-                  e.currentTarget.style.borderColor = TOKENS.borderHi;
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = TOKENS.bgCard;
-                e.currentTarget.style.borderColor = TOKENS.border;
               }}
             >
-              Cancelar
+              Descartar
             </button>
             <button
+              className="m-btn-primary"
               onClick={handleGuardar}
-              disabled={!clienteId || !servicioId || !profId || guardando}
+              disabled={!selectedCliente || !selectedServicio || !selectedProf || guardando}
               style={{
                 padding: '9px 18px',
-                background: !clienteId || !servicioId || !profId || guardando ? 'rgba(99,102,241,0.5)' : `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
+                background: !selectedCliente || !selectedServicio || !selectedProf || guardando ? 'rgba(99,102,241,0.5)' : `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
                 color: '#fff',
                 border: 'none',
                 borderRadius: 8,
-                cursor: !clienteId || !servicioId || !profId || guardando ? 'not-allowed' : 'pointer',
+                cursor: !selectedCliente || !selectedServicio || !selectedProf || guardando ? 'not-allowed' : 'pointer',
                 fontSize: 12,
                 fontWeight: 600,
-                boxShadow: !clienteId || !servicioId || !profId || guardando ? 'none' : `0 4px 12px rgba(99,102,241,0.4)`,
-                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              }}
-              onMouseEnter={(e) => {
-                if (!(!clienteId || !servicioId || !profId || guardando)) {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = `0 8px 24px rgba(99,102,241,0.6)`;
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = `0 4px 12px rgba(99,102,241,0.4)`;
+                boxShadow: !selectedCliente || !selectedServicio || !selectedProf || guardando ? 'none' : `0 4px 12px rgba(99,102,241,0.4)`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
               }}
             >
-              {guardando ? '...' : '✓ Guardar cambios'}
+              {guardando ? '...' : <><IconCheck /> Guardar cambios</>}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Modal cancelacion CU-AG-05 */}
+      {showCancelModal && (
+        <div onClick={(e) => e.stopPropagation()} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 28, width: 360, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: TOKENS.text }}>Cancelar cita</div>
+            <div style={{ fontSize: 13, color: TOKENS.textSec }}>La cita desaparecera del calendario pero se conservara en el historial.</div>
+
+            {/* Quien cancela */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 }}>Quien cancela</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {(['clienta', 'negocio'] as const).map((op) => (
+                  <button
+                    key={op}
+                    onClick={() => setCanceladoPor(op)}
+                    style={{
+                      flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                      background: canceladoPor === op ? 'rgba(99,102,241,0.12)' : 'transparent',
+                      border: `1px solid ${canceladoPor === op ? 'rgba(99,102,241,0.5)' : TOKENS.border}`,
+                      color: canceladoPor === op ? '#818cf8' : TOKENS.textSec,
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {op === 'clienta' ? 'Clienta' : 'Negocio'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Motivo */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 }}>Motivo (opcional)</div>
+              <textarea
+                value={motivoCancelacion}
+                onChange={(e) => setMotivoCancelacion(e.target.value)}
+                placeholder="Ej: clienta no puede venir..."
+                rows={3}
+                style={{ width: '100%', background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, borderRadius: 8, padding: '8px 10px', fontSize: 13, color: TOKENS.text, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowCancelModal(false)}
+                disabled={guardando}
+                style={{ padding: '8px 16px', background: 'transparent', border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.textSec, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Volver
+              </button>
+              <button
+                onClick={handleEliminar}
+                disabled={guardando}
+                style={{ padding: '8px 16px', background: TOKENS.danger, border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: guardando ? 'not-allowed' : 'pointer' }}
+              >
+                {guardando ? '...' : 'Cancelar cita'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+function FormulaInput({ label, value, onChange, placeholder, multiline, inputMode }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; multiline?: boolean; inputMode?: any }) {
+  const Tag: any = multiline ? 'textarea' : 'input';
+  return (
+    <div>
+      <div style={{ fontSize: 10, letterSpacing: 0.8, color: TOKENS.textSec, fontWeight: 600, marginBottom: 5 }}>{label}</div>
+      <Tag
+        value={value}
+        onChange={(e: any) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={multiline ? 2 : undefined}
+        inputMode={inputMode}
+        style={{
+          width: '100%',
+          boxSizing: 'border-box',
+          padding: '8px 10px',
+          background: '#0b1220',
+          border: `1px solid ${TOKENS.border}`,
+          borderRadius: 8,
+          color: TOKENS.text,
+          fontSize: 12,
+          fontFamily: 'inherit',
+          outline: 'none',
+          resize: multiline ? 'vertical' : 'none',
+          minHeight: multiline ? 50 : 'auto',
+        }}
+      />
+    </div>
+  );
+}
+
+function Label({ children }: any) {
+  return (
+    <div
+      style={{
+        fontSize: 10,
+        letterSpacing: 1.2,
+        color: TOKENS.textTer,
+        textTransform: 'uppercase',
+        fontWeight: 600,
+        marginBottom: 6,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SearchDropdown({ open, setOpen, q, setQ, placeholder, trigger, children }: any) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '8px 12px',
+          borderRadius: 10,
+          background: TOKENS.bgCard,
+          border: `1px solid ${open ? 'rgba(99,102,241,0.40)' : TOKENS.border}`,
+          cursor: 'pointer',
+          textAlign: 'left',
+          transition: 'all 0.2s ease',
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>{trigger}</div>
+        <span style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0, display: 'flex', alignItems: 'center' }}><IconChevronDown /></span>
+      </button>
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            right: 0,
+            zIndex: 30,
+            background: TOKENS.bgPanel,
+            border: `1px solid ${TOKENS.borderHi}`,
+            borderRadius: 12,
+            boxShadow: '0 16px 50px rgba(0,0,0,0.55)',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 12px',
+              borderBottom: `1px solid ${TOKENS.border}`,
+              background: TOKENS.bgCard,
+            }}
+          >
+            <span style={{ color: TOKENS.textTer, display: 'flex', alignItems: 'center' }}><IconSearch /></span>
+            <input
+              autoFocus
+              value={q}
+              onChange={(e) => setQ(e.currentTarget.value)}
+              placeholder={placeholder}
+              style={{
+                flex: 1,
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                color: TOKENS.text,
+                fontSize: 12,
+                fontFamily: 'inherit',
+              }}
+            />
+          </div>
+          <div style={{ maxHeight: 240, overflowY: 'auto', padding: 4 }}>
+            {children}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DropdownItem({ onClick, active, children }: any) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '8px 10px',
+        borderRadius: 8,
+        background: active ? TOKENS.primarySoft : 'transparent',
+        border: `1px solid ${active ? 'rgba(99,102,241,0.30)' : 'transparent'}`,
+        cursor: 'pointer',
+        textAlign: 'left',
+        marginBottom: 2,
+        transition: 'all 0.2s ease',
+      }}
+      onMouseEnter={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = 'rgba(99,102,241,0.06)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = 'transparent';
+        }
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function TimeSlider({ label, hint, value, setValue, min, max, step, color, chips }: any) {
+  const pct = ((value - min) / (max - min)) * 100;
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  const updateFromEvent = (clientX: number) => {
+    if (!trackRef.current) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const newVal = Math.round(ratio * (max - min) + min);
+    setValue(Math.max(min, Math.min(max, newVal)));
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    trackRef.current?.setPointerCapture(e.pointerId);
+    updateFromEvent(e.clientX);
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (e.buttons === 0) return;
+    updateFromEvent(e.clientX);
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
+        <Label>{label}</Label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={() => setValue(Math.max(min, value - step))}
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 6,
+              background: TOKENS.bgCard,
+              border: `1px solid ${TOKENS.border}`,
+              color: TOKENS.textSec,
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'grid',
+              placeItems: 'center',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = TOKENS.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = TOKENS.border;
+            }}
+          >
+            −
+          </button>
+          <div style={{ minWidth: 64, textAlign: 'center', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 3 }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color }}>{value}</span>
+            <span style={{ fontSize: 11, fontWeight: 500, color: TOKENS.textSec }}>min</span>
+          </div>
+          <button
+            onClick={() => setValue(Math.min(max, value + step))}
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 6,
+              background: TOKENS.bgCard,
+              border: `1px solid ${TOKENS.border}`,
+              color: TOKENS.textSec,
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'grid',
+              placeItems: 'center',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = TOKENS.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = TOKENS.border;
+            }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+      {hint && (
+        <div style={{ fontSize: 11, color: TOKENS.textSec, marginTop: -3, marginBottom: 8, fontWeight: 400 }}>
+          {hint}
+        </div>
+      )}
+
+      <div
+        ref={trackRef}
+        style={{
+          position: 'relative',
+          height: 16,
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: 8,
+          userSelect: 'none',
+          cursor: 'grab',
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+      >
+        {/* Track de fondo */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            height: 4,
+            borderRadius: 99,
+            background: 'rgba(148,163,184,0.15)',
+            pointerEvents: 'none',
+          }}
+        />
+        {/* Track relleno */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            width: `${pct}%`,
+            height: 4,
+            borderRadius: 99,
+            background: color,
+            pointerEvents: 'none',
+          }}
+        />
+        {/* Thumb siempre visible */}
+        <div
+          style={{
+            position: 'absolute',
+            left: `calc(${pct}% - 8px)`,
+            width: 16,
+            height: 16,
+            borderRadius: 999,
+            background: color,
+            boxShadow: `0 0 0 4px ${color}33, 0 2px 6px rgba(0,0,0,0.4)`,
+            pointerEvents: 'none',
+          }}
+        />
+      </div>
+
+      <div style={{ display: 'flex', gap: 4, marginTop: 8, flexWrap: 'wrap', minWidth: 0 }}>
+        {chips.map((m: number) => {
+          const isActive = value === m;
+          return (
+            <button
+              key={m}
+              onClick={() => setValue(m)}
+              style={{
+                padding: '4px 10px',
+                borderRadius: 999,
+                background: isActive ? `${color}22` : 'rgba(148,163,184,0.06)',
+                border: `1px solid ${isActive ? `${color}66` : TOKENS.border}`,
+                color: isActive ? color : TOKENS.textSec,
+                fontSize: 10,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.borderColor = color;
+                  e.currentTarget.style.background = `${color}10`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.borderColor = TOKENS.border;
+                  e.currentTarget.style.background = 'rgba(148,163,184,0.06)';
+                }
+              }}
+            >
+              {m === 0 ? 'Sin espera' : `${m}m`}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SummaryCell({ label, value, color }: any) {
+  return (
+    <div style={{ background: 'rgba(148,163,184,0.06)', borderRadius: 8, padding: '8px 10px' }}>
+      <div
+        style={{
+          fontSize: 9,
+          letterSpacing: 1,
+          color: TOKENS.textTer,
+          fontWeight: 600,
+          textTransform: 'uppercase',
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 700, color, marginTop: 2 }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function SequenceBar({ activo, espera, activo2, primary, warning }: any) {
+  const total = Math.max(1, activo + espera + activo2);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', height: 32, borderRadius: 8, overflow: 'hidden', gap: 2 }}>
+        {/* Activo 1 */}
+        {activo > 0 && (
+          <div
+            style={{
+              flex: activo / total,
+              background: `linear-gradient(180deg, #818cf8, #6366f1)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#fff',
+            }}
+          >
+            {(activo / total) * 100 >= 40 ? `${activo}m` : ''}
+          </div>
+        )}
+
+        {/* Espera */}
+        {espera > 0 && (
+          <div
+            style={{
+              flex: espera / total,
+              background: `repeating-linear-gradient(45deg, #f59e0b 0 6px, transparent 6px 12px), rgba(245,158,11,0.18)`,
+              borderTop: `1px solid rgba(245,158,11,0.4)`,
+              borderBottom: `1px solid rgba(245,158,11,0.4)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#fff',
+            }}
+          >
+            {(espera / total) * 100 >= 40 ? `${espera}m` : ''}
+          </div>
+        )}
+
+        {/* Activo 2 */}
+        {activo2 > 0 && (
+          <div
+            style={{
+              flex: activo2 / total,
+              background: `linear-gradient(180deg, #818cf8, #6366f1)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#fff',
+            }}
+          >
+            {(activo2 / total) * 100 >= 40 ? `${activo2}m` : ''}
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 9, color: TOKENS.textTer, fontWeight: 600, letterSpacing: 0.5 }}>
+        <span>0 min</span>
+        <span>Total · {total} min</span>
+      </div>
+    </div>
+  );
+}
+
+function Avatar({ name, size }: any) {
+  const getInitials = (n: string) => {
+    return n
+      .split(' ')
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const hash = name?.split('').reduce((h: any, c: any) => h + c.charCodeAt(0), 0) || 0;
+  const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'];
+  const color = colors[hash % colors.length];
+
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        background: `${color}22`,
+        border: `1px solid ${color}44`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        fontSize: Math.max(10, size / 3),
+        fontWeight: 700,
+        color: color,
+      }}
+    >
+      {getInitials(name || '?')}
+    </div>
+  );
+}
+
+function Pill({ children, color, soft }: any) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '4px 10px',
+        borderRadius: 999,
+        background: soft,
+        border: `1px solid ${color}55`,
+        color: color,
+        fontSize: 11,
+        fontWeight: 600,
+        flexShrink: 0,
+      }}
+    >
+      <span style={{ width: 6, height: 6, borderRadius: 999, background: color }} />
+      {children}
+    </span>
+  );
+}
+
+const IconCalendar = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <path d="M16 2v4M8 2v4M3 10h18" />
+  </svg>
+);
+
+const IconClock = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 6v6l4 2" />
+  </svg>
+);
+
+const IconTrash = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <line x1="10" y1="11" x2="10" y2="17" />
+    <line x1="14" y1="11" x2="14" y2="17" />
+  </svg>
+);
+
+const IconSearch = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.35-4.35" />
+  </svg>
+);
+
+const IconCheck = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const IconClose = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+const IconChevronDown = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);

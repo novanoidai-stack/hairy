@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Hairy · Mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #0b1220; color: #f8fafc; font-family: 'Inter', sans-serif; min-height: 100vh; }
+  *, *::before, *::after { box-sizing: border-box; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="screens/shared.jsx"></script>
+<script type="text/babel" src="screens/clientes.jsx"></script>
+<script type="text/babel" src="screens/mobile.jsx"></script>
+
+<script type="text/babel" data-presets="react">
+function App() {
+  return (
+    <div style={{ minHeight:'100vh', padding:'60px 40px', background:'radial-gradient(ellipse at top, rgba(99,102,241,0.12), transparent 60%), #0b1220' }}>
+      <div style={{ textAlign:'center', marginBottom: 50 }}>
+        <div style={{ fontSize: 13, letterSpacing: 4, color:'#64748b', fontWeight: 600 }}>HAIRY · MOBILE</div>
+        <h1 style={{ fontFamily:'"Instrument Serif", serif', fontSize: 72, margin:'10px 0 12px', letterSpacing:-1.5, color:'#f8fafc' }}>4 pantallas iOS</h1>
+        <div style={{ fontSize: 16, color:'#94a3b8', maxWidth: 600, margin:'0 auto' }}>Agenda, Clientes, Equipo y Configuración — diseño dark-mode nativo para React Native + Expo</div>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(380px, 1fr))', gap: 50, justifyItems:'center', maxWidth: 1700, margin:'0 auto' }}>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: 16 }}>
+          <window.MobileAgenda />
+          <div style={{ fontSize: 14, fontWeight: 700, color:'#f8fafc' }}>01 · Agenda</div>
+          <div style={{ fontSize: 12, color:'#64748b' }}>Vista semanal + lista de citas</div>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: 16 }}>
+          <window.MobileClientes />
+          <div style={{ fontSize: 14, fontWeight: 700, color:'#f8fafc' }}>02 · Clientes</div>
+          <div style={{ fontSize: 12, color:'#64748b' }}>Lista filtrable con tags</div>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: 16 }}>
+          <window.MobileEquipo />
+          <div style={{ fontSize: 14, fontWeight: 700, color:'#f8fafc' }}>03 · Equipo</div>
+          <div style={{ fontSize: 12, color:'#64748b' }}>Profesionales + ocupación</div>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: 16 }}>
+          <window.MobileConfig />
+          <div style={{ fontSize: 14, fontWeight: 700, color:'#f8fafc' }}>04 · Configuración</div>
+          <div style={{ fontSize: 12, color:'#64748b' }}>Servicios + preferencias</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

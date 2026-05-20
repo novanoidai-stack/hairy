@@ -37,17 +37,24 @@ export default function LoginScreen() {
     if (error) { setError(error.message); setLoading(false); return; }
     if (data.user) {
       const negocioId = `${nombreNegocio.toLowerCase().replace(/\s+/g, '_')}_${codigoPostal}`;
-      await supabase.from('profiles').insert({
-        id: data.user.id,
-        email,
-        nombre: `${nombre} ${apellido}`,
-        apellido,
-        nombre_negocio: nombreNegocio,
-        codigo_postal: codigoPostal,
-        negocio_id: negocioId,
-        role: 'owner',
-      });
-      setSuccess('Cuenta creada. Revisa tu email para confirmarla.');
+      try {
+        // Crear el perfil (negocio_id se genera automáticamente)
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: data.user.id,
+          email,
+          nombre: `${nombre} ${apellido}`,
+          apellido,
+          nombre_negocio: nombreNegocio,
+          codigo_postal: codigoPostal,
+          negocio_id: negocioId,
+          role: 'owner',
+        });
+        if (profileError) throw profileError;
+
+        setSuccess('Cuenta creada. Revisa tu email para confirmarla.');
+      } catch (err: any) {
+        setError(err.message || 'Error al crear la cuenta');
+      }
     }
     setLoading(false);
   }
