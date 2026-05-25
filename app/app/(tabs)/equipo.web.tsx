@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
@@ -95,15 +95,37 @@ function fmtFecha(iso: string) {
   const d = new Date(iso);
   return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 }
+function fmtRecurrencia(json: string | null): string | null {
+  if (!json) return null;
+  try {
+    const r = JSON.parse(json);
+    const diasNombres: Record<number, string> = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mie', 4: 'Jue', 5: 'Vie', 6: 'Sab' };
+    const freq = r.frecuencia === 'diaria' ? 'Diaria' : r.frecuencia === 'semanal' ? 'Semanal' : r.frecuencia === 'bisemanal' ? 'Bisemanal' : 'Mensual';
+    if ((r.frecuencia === 'semanal' || r.frecuencia === 'bisemanal') && r.dias_semana?.length) {
+      return `${freq} (${r.dias_semana.map((d: number) => diasNombres[d] ?? d).join(', ')})`;
+    }
+    if (r.frecuencia === 'mensual' && r.dia_mes) return `${freq} (dia ${r.dia_mes})`;
+    return freq;
+  } catch { return null; }
+}
 
 export default function EquipoWeb() {
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showNewProf, setShowNewProf] = useState(false);
+  const [showNewBloqueo, setShowNewBloqueo] = useState(false);
   const [negocioId, setNegocioId] = useState('');
   const [horarios, setHorarios] = useState<any[]>([]);
   const [bloqueos, setBloqueos] = useState<any[]>([]);
+  // Horario editor
+  const [editDia, setEditDia] = useState<number | null>(null); // dia_semana DB (0-6)
+  const [editHIni, setEditHIni] = useState('09:00');
+  const [editHFin, setEditHFin] = useState('18:00');
+  const [savingHorario, setSavingHorario] = useState(false);
+  // Bloqueo context menu
+  const [menuBloqueoId, setMenuBloqueoId] = useState<string | null>(null);
+  const [editBloqueo, setEditBloqueo] = useState<any | null>(null);
 
   useEffect(() => {
     async function cargar() {
@@ -119,7 +141,7 @@ export default function EquipoWeb() {
         supabase.from('profesionales').select('id, nombre, color, activo, categoria').eq('negocio_id', negocioId),
         supabase.from('citas').select('id, profesional_id, inicio')
           .eq('negocio_id', negocioId)
-          .neq('estado', 'cancelada')
+          .eq('estado', 'confirmada')
           .gte('inicio', mesInicio)
           .lte('inicio', mesFin),
       ]);
@@ -152,21 +174,26 @@ export default function EquipoWeb() {
     cargar();
   }, []);
 
+  async function cargarPanelDerecho(profId?: string) {
+    const id = profId ?? selected;
+    if (!id) return;
+    const [{ data: hor }, { data: bloq }] = await Promise.all([
+      supabase.from('horarios_profesional').select('id, dia_semana, hora_inicio, hora_fin').eq('profesional_id', id),
+      supabase.from('bloqueos_profesional').select('id, tipo, inicio, fin, motivo, recurrencia, recurrencia_padre_id')
+        .eq('profesional_id', id)
+        .gte('fin', new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
+        .order('inicio', { ascending: true })
+        .limit(10),
+    ]);
+    setHorarios(hor ?? []);
+    setBloqueos(bloq ?? []);
+    setEditDia(null);
+    setMenuBloqueoId(null);
+  }
+
   useEffect(() => {
     if (!selected) return;
-    async function cargarPanelDerecho() {
-      const [{ data: hor }, { data: bloq }] = await Promise.all([
-        supabase.from('horarios_profesional').select('dia_semana, hora_inicio, hora_fin, activo').eq('profesional_id', selected),
-        supabase.from('bloqueos_profesional').select('id, tipo, inicio, fin, motivo, recurrencia')
-          .eq('profesional_id', selected)
-          .gte('fin', new Date().toISOString())
-          .order('inicio', { ascending: true })
-          .limit(5),
-      ]);
-      setHorarios(hor ?? []);
-      setBloqueos(bloq ?? []);
-    }
-    cargarPanelDerecho();
+    cargarPanelDerecho(selected);
   }, [selected]);
 
   if (loading) return (
@@ -187,6 +214,73 @@ export default function EquipoWeb() {
   );
 
   const profSel = profesionales.find((p) => p.id === selected);
+
+  const DIAS_SEMANA_FULL = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+
+  function openEditDia(dbDia: number) {
+    const existing = horarios.find((x) => x.dia_semana === dbDia);
+    if (existing) {
+      setEditHIni(fmtHora(existing.hora_inicio));
+      setEditHFin(fmtHora(existing.hora_fin));
+    } else {
+      setEditHIni('09:00');
+      setEditHFin('18:00');
+    }
+    setEditDia(dbDia);
+  }
+
+  function adjustEditH(field: 'ini' | 'fin', hDelta: number, mDelta: number) {
+    const setter = field === 'ini' ? setEditHIni : setEditHFin;
+    const current = field === 'ini' ? editHIni : editHFin;
+    const [hh, mm] = current.split(':').map(Number);
+    let nh = hh + hDelta;
+    let nm = mm + mDelta;
+    if (nm >= 60) { nm -= 60; nh++; }
+    if (nm < 0) { nm += 60; nh--; }
+    if (nh < 0) nh = 0;
+    if (nh > 23) nh = 23;
+    setter(`${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`);
+  }
+
+  async function guardarHorario() {
+    if (!selected || editDia === null) return;
+    setSavingHorario(true);
+    const existing = horarios.find((x) => x.dia_semana === editDia);
+    if (existing) {
+      await supabase.from('horarios_profesional')
+        .update({ hora_inicio: editHIni, hora_fin: editHFin })
+        .eq('id', existing.id);
+    } else {
+      await supabase.from('horarios_profesional').insert({
+        profesional_id: selected,
+        dia_semana: editDia,
+        hora_inicio: editHIni,
+        hora_fin: editHFin,
+      });
+    }
+    setSavingHorario(false);
+    await cargarPanelDerecho();
+  }
+
+  async function cerrarDia() {
+    if (!selected || editDia === null) return;
+    const existing = horarios.find((x) => x.dia_semana === editDia);
+    if (existing) {
+      await supabase.from('horarios_profesional').delete().eq('id', existing.id);
+    }
+    await cargarPanelDerecho();
+  }
+
+  async function eliminarBloqueo(bloqId: string) {
+    await supabase.from('bloqueos_profesional').delete().eq('id', bloqId);
+    await cargarPanelDerecho();
+  }
+
+  async function eliminarSerieBloqueo(bloq: any) {
+    const padreId = bloq.recurrencia_padre_id ?? bloq.id;
+    await supabase.from('bloqueos_profesional').delete().or(`id.eq.${padreId},recurrencia_padre_id.eq.${padreId}`);
+    await cargarPanelDerecho();
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
@@ -351,7 +445,7 @@ export default function EquipoWeb() {
 
         {/* Right: blocks panel */}
         {profSel && selected && (
-          <div className="equipo-panel" style={{ borderLeft: `1px solid ${TOKENS.border}`, padding: 24, overflowY: 'auto', background: 'linear-gradient(180deg, rgba(99,102,241,0.04), transparent 30%)' }}>
+          <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ borderLeft: `1px solid ${TOKENS.border}`, padding: 24, overflowY: 'auto', background: 'linear-gradient(180deg, rgba(99,102,241,0.04), transparent 30%)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
               <div
                 style={{
@@ -380,27 +474,77 @@ export default function EquipoWeb() {
             <Section title="Horario base">
               <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 14, display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4 }}>
                 {DIAS_SEMANA.map((dia, i) => {
-                  // i=0→Lun(db=1), i=1→Mar(db=2)… i=6→Dom(db=0)
                   const dbDia = i === 6 ? 0 : i + 1;
-                  const h = horarios.find((x) => x.dia_semana === dbDia && x.activo);
+                  const h = horarios.find((x) => x.dia_semana === dbDia);
                   const label = h ? `${fmtHora(h.hora_inicio)}-${fmtHora(h.hora_fin)}` : null;
+                  const isEditing = editDia === dbDia;
                   return (
                     <div key={i}
-                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.background = label ? 'rgba(99,102,241,0.18)' : 'rgba(148,163,184,0.1)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = label ? 'rgba(99,102,241,0.10)' : 'rgba(148,163,184,0.05)'; }}
-                      style={{ textAlign: 'center', padding: 6, borderRadius: 8, background: label ? 'rgba(99,102,241,0.10)' : 'rgba(148,163,184,0.05)', transition: 'transform 0.15s ease, background 0.15s ease', cursor: 'default' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: label ? TOKENS.primaryHi : TOKENS.textTer }}>{dia}</div>
+                      onClick={() => openEditDia(dbDia)}
+                      onMouseEnter={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.background = label ? 'rgba(99,102,241,0.18)' : 'rgba(148,163,184,0.1)'; }}}
+                      onMouseLeave={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = isEditing ? 'rgba(99,102,241,0.22)' : label ? 'rgba(99,102,241,0.10)' : 'rgba(148,163,184,0.05)'; }}}
+                      style={{ textAlign: 'center', padding: 6, borderRadius: 8, background: isEditing ? 'rgba(99,102,241,0.22)' : label ? 'rgba(99,102,241,0.10)' : 'rgba(148,163,184,0.05)', transition: 'transform 0.15s ease, background 0.15s ease', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: isEditing ? TOKENS.text : label ? TOKENS.primaryHi : TOKENS.textTer }}>{dia}</div>
                       <div style={{ fontSize: 9, color: label ? TOKENS.textSec : TOKENS.textTer, marginTop: 2 }}>{label || 'Cerrado'}</div>
                     </div>
                   );
                 })}
               </div>
+              {/* Editor inline de horario */}
+              {editDia !== null && (
+                <div style={{ marginTop: 10, padding: 14, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 12, animation: 'scaleIn 0.2s ease' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text, marginBottom: 10 }}>{DIAS_SEMANA_FULL[editDia]}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Entrada</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}` }}>
+                        <BtnFlecha onClick={() => adjustEditH('ini', -1, 0)} />
+                        <NumBox value={editHIni.split(':')[0]} label="h" />
+                        <BtnFlecha onClick={() => adjustEditH('ini', 1, 0)} plus />
+                        <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
+                        <BtnFlecha onClick={() => adjustEditH('ini', 0, -15)} />
+                        <NumBox value={editHIni.split(':')[1]} label="m" />
+                        <BtnFlecha onClick={() => adjustEditH('ini', 0, 15)} plus />
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Salida</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}` }}>
+                        <BtnFlecha onClick={() => adjustEditH('fin', -1, 0)} />
+                        <NumBox value={editHFin.split(':')[0]} label="h" />
+                        <BtnFlecha onClick={() => adjustEditH('fin', 1, 0)} plus />
+                        <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
+                        <BtnFlecha onClick={() => adjustEditH('fin', 0, -15)} />
+                        <NumBox value={editHFin.split(':')[1]} label="m" />
+                        <BtnFlecha onClick={() => adjustEditH('fin', 0, 15)} plus />
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={guardarHorario} disabled={savingHorario}
+                      style={{ flex: 1, padding: '7px 0', background: TOKENS.primary, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      {savingHorario ? 'Guardando...' : 'Guardar'}
+                    </button>
+                    {horarios.find((x) => x.dia_semana === editDia) && (
+                      <button onClick={cerrarDia}
+                        style={{ padding: '7px 12px', background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: `1px solid rgba(239,68,68,0.25)`, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                        Cerrar dia
+                      </button>
+                    )}
+                    <button onClick={() => setEditDia(null)}
+                      style={{ padding: '7px 12px', background: 'transparent', color: TOKENS.textSec, border: `1px solid ${TOKENS.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
             </Section>
 
             {/* Bloques header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <div style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>Bloqueos próximos</div>
               <button
+                onClick={() => setShowNewBloqueo(true)}
                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)'; e.currentTarget.style.background = 'rgba(99,102,241,0.18)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(99,102,241,0.35)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.background = 'rgba(99,102,241,0.10)'; e.currentTarget.style.boxShadow = 'none'; }}
                 onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.96)'; }}
@@ -447,28 +591,56 @@ export default function EquipoWeb() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                       <Pill color={cfg.color}>{cfg.label}</Pill>
                       {horaStr && <span style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600 }}>{horaStr}</span>}
-                      {b.recurrencia && <span style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600 }}>· {b.recurrencia}</span>}
+                      {b.recurrencia && <span style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600 }}>· {fmtRecurrencia(b.recurrencia) ?? b.recurrencia}</span>}
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>{fechaStr}</div>
                     {b.motivo && <div style={{ fontSize: 11, color: TOKENS.textSec, marginTop: 2 }}>{b.motivo}</div>}
                   </div>
-                  <button
-                    onClick={() => console.log('Opciones de bloqueo')}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      alignSelf: 'center',
-                      borderRadius: 6,
-                      background: 'transparent',
-                      border: 'none',
-                      color: TOKENS.textTer,
-                      cursor: 'pointer',
-                      display: 'grid',
-                      placeItems: 'center',
-                    }}
-                  >
-                    <Icon name="moreVertical" size={16} color={TOKENS.textTer} />
-                  </button>
+                  <div style={{ position: 'relative', alignSelf: 'center' }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setMenuBloqueoId(menuBloqueoId === b.id ? null : b.id); }}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 6,
+                        background: menuBloqueoId === b.id ? 'rgba(148,163,184,0.12)' : 'transparent',
+                        border: 'none',
+                        color: TOKENS.textTer,
+                        cursor: 'pointer',
+                        display: 'grid',
+                        placeItems: 'center',
+                      }}
+                    >
+                      <Icon name="moreVertical" size={16} color={TOKENS.textTer} />
+                    </button>
+                    {menuBloqueoId === b.id && (
+                      <div style={{ position: 'absolute', right: 0, top: 28, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 10, padding: 4, minWidth: 160, zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', animation: 'scaleIn 0.15s ease' }}>
+                        <button
+                          onClick={() => { setEditBloqueo(b); setMenuBloqueoId(null); }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.12)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                          style={{ width: '100%', padding: '8px 12px', background: 'transparent', border: 'none', borderRadius: 7, color: TOKENS.text, fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
+                          <Icon name="edit" size={14} color={TOKENS.textSec} /> Editar bloqueo
+                        </button>
+                        {(b.recurrencia || b.recurrencia_padre_id) && (
+                          <button
+                            onClick={() => { eliminarSerieBloqueo(b); }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.10)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                            style={{ width: '100%', padding: '8px 12px', background: 'transparent', border: 'none', borderRadius: 7, color: '#f87171', fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
+                            <Icon name="trash" size={14} color="#f87171" /> Eliminar toda la serie
+                          </button>
+                        )}
+                        <button
+                          onClick={() => { eliminarBloqueo(b.id); }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.10)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                          style={{ width: '100%', padding: '8px 12px', background: 'transparent', border: 'none', borderRadius: 7, color: '#ef4444', fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
+                          <Icon name="trash" size={14} color="#ef4444" /> Eliminar bloqueo
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 );
               })}
@@ -496,6 +668,8 @@ export default function EquipoWeb() {
         )}
 
       {showNewProf && <NewProfModal onClose={() => setShowNewProf(false)} negocioId={negocioId} onCreated={() => { setShowNewProf(false); location.reload(); }} />}
+      {showNewBloqueo && <NewBloqueoModal profesionales={profesionales} selectedId={selected} negocioId={negocioId} onClose={() => setShowNewBloqueo(false)} onCreated={() => { setShowNewBloqueo(false); location.reload(); }} />}
+      {editBloqueo && <EditBloqueoModal bloqueo={editBloqueo} onClose={() => setEditBloqueo(null)} onSaved={() => { setEditBloqueo(null); cargarPanelDerecho(); }} />}
       </div>
     </div>
   );
@@ -650,6 +824,1002 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
             }}
           >
             {loading ? 'Creando...' : 'Crear profesional'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const TIPOS_BLOQUEO = [
+  { value: 'vacaciones', label: 'Vacaciones', color: '#f59e0b' },
+  { value: 'formacion',  label: 'Formacion',  color: '#8b5cf6' },
+  { value: 'reunion',    label: 'Reunion',    color: '#3b82f6' },
+  { value: 'baja',       label: 'Baja',       color: '#ef4444' },
+  { value: 'descanso',   label: 'Descanso',   color: '#10b981' },
+  { value: 'otro',       label: 'Otro',       color: '#94a3b8' },
+];
+
+const FRECUENCIAS = [
+  { value: 'diaria',     label: 'Diaria' },
+  { value: 'semanal',    label: 'Semanal' },
+  { value: 'bisemanal',  label: 'Bisemanal' },
+  { value: 'mensual',    label: 'Mensual' },
+];
+
+const DIAS_SEMANA_FULL = [
+  { value: 1, label: 'Lun' },
+  { value: 2, label: 'Mar' },
+  { value: 3, label: 'Mie' },
+  { value: 4, label: 'Jue' },
+  { value: 5, label: 'Vie' },
+  { value: 6, label: 'Sab' },
+  { value: 0, label: 'Dom' },
+];
+
+function BtnFlecha({ onClick, plus }: { onClick: () => void; plus?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        width: 28, height: 28, borderRadius: 7,
+        background: 'rgba(148,163,184,0.08)',
+        border: `1px solid ${TOKENS.border}`,
+        color: TOKENS.textSec,
+        cursor: 'pointer',
+        fontSize: 16, fontWeight: 700,
+        display: 'grid', placeItems: 'center',
+        fontFamily: 'inherit',
+        flexShrink: 0,
+      }}
+    >
+      {plus ? '+' : '-'}
+    </button>
+  );
+}
+
+function NumBox({ value, label }: { value: string; label: string }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'baseline', gap: 2,
+      padding: '5px 10px', borderRadius: 8,
+      background: 'rgba(99,102,241,0.13)',
+      border: '1px solid rgba(99,102,241,0.22)',
+      minWidth: label === 'h' ? 46 : 52,
+      justifyContent: 'center',
+    }}>
+      <span style={{ fontSize: 17, fontWeight: 700, color: TOKENS.primary, fontFamily: 'inherit' }}>{value}</span>
+      <span style={{ fontSize: 10, fontWeight: 600, color: TOKENS.primary, fontFamily: 'inherit' }}>{label}</span>
+    </div>
+  );
+}
+
+function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCreated }: {
+  profesionales: Profesional[];
+  selectedId: string | null;
+  negocioId: string;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [tipo, setTipo] = useState('vacaciones');
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [horaInicio, setHoraInicio] = useState('09:00');
+  const [fechaFin, setFechaFin] = useState('');
+  const [horaFin, setHoraFin] = useState('18:00');
+  const [motivo, setMotivo] = useState('');
+  const [todoElDia, setTodoElDia] = useState(false);
+  const [esRecurrente, setEsRecurrente] = useState(false);
+  const [frecuencia, setFrecuencia] = useState('semanal');
+  const [diasSemana, setDiasSemana] = useState<number[]>([]);
+  const [diaMes, setDiaMes] = useState(1);
+  const [fechaFinRecurrencia, setFechaFinRecurrencia] = useState('');
+  const [profsSeleccionados, setProfsSeleccionados] = useState<string[]>(
+    selectedId ? [selectedId] : []
+  );
+  const [loading, setLoading] = useState(false);
+  const [paso, setPaso] = useState(0);
+  const [conflictos, setConflictos] = useState<any[]>([]);
+  const [accionesConflicto, setAccionesConflicto] = useState<Record<string, 'cancelar' | 'mantener'>>({});
+
+  const dateInicioRef = useRef<HTMLInputElement>(null);
+  const dateFinRef = useRef<HTMLInputElement>(null);
+  const dateRecurrenciaRef = useRef<HTMLInputElement>(null);
+
+  function adjustFechaInicio(delta: number) {
+    setFechaInicio((prev) => {
+      const d = new Date(prev + 'T12:00:00');
+      d.setDate(d.getDate() + delta);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    });
+  }
+  function adjustFechaFin(delta: number) {
+    setFechaFin((prev) => {
+      const d = new Date(prev + 'T12:00:00');
+      d.setDate(d.getDate() + delta);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    });
+  }
+  function adjustFechaRecurrencia(delta: number) {
+    setFechaFinRecurrencia((prev) => {
+      const d = new Date(prev + 'T12:00:00');
+      d.setDate(d.getDate() + delta);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    });
+  }
+  function adjustHoraInicio(hDelta: number, mDelta: number) {
+    setHoraInicio((prev) => {
+      const [h, m] = prev.split(':').map(Number);
+      let totalMin = h * 60 + m + hDelta * 60 + mDelta;
+      if (totalMin < 0) totalMin = 0;
+      if (totalMin > 1439) totalMin = 1439;
+      return `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
+    });
+  }
+  function adjustHoraFin(hDelta: number, mDelta: number) {
+    setHoraFin((prev) => {
+      const [h, m] = prev.split(':').map(Number);
+      let totalMin = h * 60 + m + hDelta * 60 + mDelta;
+      if (totalMin < 0) totalMin = 0;
+      if (totalMin > 1439) totalMin = 1439;
+      return `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
+    });
+  }
+
+  function fmtFechaDisplay(dateStr: string): string {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  useEffect(() => {
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dd = String(hoy.getDate()).padStart(2, '0');
+    const f = `${yyyy}-${mm}-${dd}`;
+    setFechaInicio(f);
+    setFechaFin(f);
+    const fin90 = new Date(hoy);
+    fin90.setDate(fin90.getDate() + 90);
+    const fy = fin90.getFullYear();
+    const fm = String(fin90.getMonth() + 1).padStart(2, '0');
+    const fd = String(fin90.getDate()).padStart(2, '0');
+    setFechaFinRecurrencia(`${fy}-${fm}-${fd}`);
+  }, []);
+
+  const toggleDia = (d: number) => {
+    setDiasSemana((prev) =>
+      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]
+    );
+  };
+
+  const toggleProf = (id: string) => {
+    setProfsSeleccionados((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  function generarInstancias(desde: Date, hasta: Date): { inicio: Date; fin: Date }[] {
+    const instancias: { inicio: Date; fin: Date }[] = [];
+    const hInicio = todoElDia ? 0 : parseInt(horaInicio.split(':')[0]);
+    const mInicio = todoElDia ? 0 : parseInt(horaInicio.split(':')[1]);
+    const hFin = todoElDia ? 23 : parseInt(horaFin.split(':')[0]);
+    const mFin = todoElDia ? 59 : parseInt(horaFin.split(':')[1]);
+
+    let cursor = new Date(desde);
+    const limite = new Date(hasta);
+    limite.setDate(limite.getDate() + 1);
+
+    while (cursor < limite && instancias.length < 400) {
+      const dow = cursor.getDay();
+      let incluir = false;
+
+      if (frecuencia === 'diaria') {
+        incluir = true;
+      } else if (frecuencia === 'semanal') {
+        incluir = diasSemana.includes(dow);
+      } else if (frecuencia === 'bisemanal') {
+        const weeksDiff = Math.floor((cursor.getTime() - desde.getTime()) / (7 * 86400000));
+        incluir = weeksDiff % 2 === 0 && diasSemana.includes(dow);
+      } else if (frecuencia === 'mensual') {
+        incluir = cursor.getDate() === diaMes;
+      }
+
+      if (incluir) {
+        const ini = new Date(cursor);
+        ini.setHours(hInicio, mInicio, 0, 0);
+        const fin = new Date(cursor);
+        fin.setHours(hFin, mFin, 0, 0);
+        instancias.push({ inicio: ini, fin: fin });
+      }
+
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return instancias;
+  }
+
+  function getRangosBloqueo(): { inicio: string; fin: string }[] {
+    if (!esRecurrente) {
+      const ini = todoElDia
+        ? new Date(`${fechaInicio}T00:00:00`).toISOString()
+        : new Date(`${fechaInicio}T${horaInicio}:00`).toISOString();
+      const fin = todoElDia
+        ? new Date(`${fechaFin}T23:59:00`).toISOString()
+        : new Date(`${fechaFin}T${horaFin}:00`).toISOString();
+      return [{ inicio: ini, fin }];
+    }
+    return generarInstancias(new Date(fechaInicio), new Date(fechaFinRecurrencia)).map((inst) => ({
+      inicio: inst.inicio.toISOString(),
+      fin: inst.fin.toISOString(),
+    }));
+  }
+
+  async function detectarConflictos() {
+    if (profsSeleccionados.length === 0 || !fechaInicio || !fechaFin) return;
+    setLoading(true);
+
+    const rangos = getRangosBloqueo();
+    const minInicio = rangos.reduce((a, b) => a < b.inicio ? a : b.inicio, rangos[0].inicio);
+    const maxFin = rangos.reduce((a, b) => a > b.fin ? a : b.fin, rangos[0].fin);
+
+    const { data: citas } = await supabase
+      .from('citas')
+      .select('id, profesional_id, inicio, fin, cliente:clientes(nombre), servicio:servicios(nombre)')
+      .eq('negocio_id', negocioId)
+      .eq('estado', 'confirmada')
+      .in('profesional_id', profsSeleccionados)
+      .gte('fin', minInicio)
+      .lte('inicio', maxFin);
+
+    const citasConflicto = (citas ?? []).filter((c: any) =>
+      rangos.some((r) => c.inicio < r.fin && c.fin > r.inicio)
+    );
+
+    setLoading(false);
+
+    if (citasConflicto.length === 0) {
+      await ejecutarCreacion();
+    } else {
+      setConflictos(citasConflicto);
+      const acciones: Record<string, 'cancelar' | 'mantener'> = {};
+      citasConflicto.forEach((c: any) => { acciones[c.id] = 'cancelar'; });
+      setAccionesConflicto(acciones);
+      setPaso(1);
+    }
+  }
+
+  async function ejecutarCreacion() {
+    setLoading(true);
+    try {
+      for (const [citaId, accion] of Object.entries(accionesConflicto)) {
+        if (accion === 'cancelar') {
+          await supabase.from('citas').update({ estado: 'cancelada' }).eq('id', citaId);
+        }
+      }
+
+      const grupoId = profsSeleccionados.length > 1 ? crypto.randomUUID() : null;
+
+      for (const profId of profsSeleccionados) {
+        if (!esRecurrente) {
+          const ini = todoElDia
+            ? new Date(`${fechaInicio}T00:00:00`).toISOString()
+            : new Date(`${fechaInicio}T${horaInicio}:00`).toISOString();
+          const fin = todoElDia
+            ? new Date(`${fechaFin}T23:59:00`).toISOString()
+            : new Date(`${fechaFin}T${horaFin}:00`).toISOString();
+
+          await supabase.from('bloqueos_profesional').insert({
+            profesional_id: profId,
+            negocio_id: negocioId,
+            tipo,
+            inicio: ini,
+            fin: fin,
+            motivo: motivo || null,
+            grupo_bloqueo_id: grupoId,
+          });
+        } else {
+          const recurrenciaJson = JSON.stringify({
+            frecuencia,
+            dias_semana: frecuencia === 'semanal' || frecuencia === 'bisemanal' ? diasSemana : undefined,
+            dia_mes: frecuencia === 'mensual' ? diaMes : undefined,
+            fecha_fin: fechaFinRecurrencia,
+          });
+
+          const { data: padre } = await supabase.from('bloqueos_profesional').insert({
+            profesional_id: profId,
+            negocio_id: negocioId,
+            tipo,
+            inicio: todoElDia
+              ? new Date(`${fechaInicio}T00:00:00`).toISOString()
+              : new Date(`${fechaInicio}T${horaInicio}:00`).toISOString(),
+            fin: todoElDia
+              ? new Date(`${fechaInicio}T23:59:00`).toISOString()
+              : new Date(`${fechaInicio}T${horaFin}:00`).toISOString(),
+            motivo: motivo || null,
+            recurrencia: recurrenciaJson,
+            grupo_bloqueo_id: grupoId,
+          }).select('id').single();
+
+          if (padre?.id) {
+            const instancias = generarInstancias(
+              new Date(fechaInicio),
+              new Date(fechaFinRecurrencia)
+            );
+            const hijas = instancias.slice(1).map((inst) => ({
+              profesional_id: profId,
+              negocio_id: negocioId,
+              tipo,
+              inicio: inst.inicio.toISOString(),
+              fin: inst.fin.toISOString(),
+              motivo: motivo || null,
+              recurrencia_padre_id: padre.id,
+              grupo_bloqueo_id: grupoId,
+            }));
+            if (hijas.length > 0) {
+              await supabase.from('bloqueos_profesional').insert(hijas);
+            }
+          }
+        }
+      }
+      onCreated();
+    } catch {
+      setLoading(false);
+    }
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '8px 10px',
+    background: TOKENS.bgCard,
+    border: `1px solid ${TOKENS.borderHi}`,
+    borderRadius: 8,
+    color: TOKENS.text,
+    fontSize: 13,
+    outline: 'none',
+    boxSizing: 'border-box',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 11,
+    fontWeight: 600,
+    color: TOKENS.textSec,
+    marginBottom: 4,
+    display: 'block',
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.65)',
+        display: 'grid',
+        placeItems: 'center',
+        zIndex: 9999,
+        animation: 'fadeIn 0.2s ease',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 480,
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          background: TOKENS.bgPanel,
+          border: `1px solid ${TOKENS.borderHi}`,
+          borderRadius: 16,
+          padding: 28,
+          animation: 'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)',
+        }}
+      >
+        {paso === 1 && (
+          <div>
+            <h3 style={{ margin: 0, marginBottom: 6, fontSize: 18, fontWeight: 700, color: TOKENS.text }}>
+              Conflictos detectados
+            </h3>
+            <p style={{ margin: 0, marginBottom: 18, fontSize: 12, color: TOKENS.textSec }}>
+              {conflictos.length} cita{conflictos.length > 1 ? 's' : ''} confirmada{conflictos.length > 1 ? 's' : ''} solapan con el bloqueo. Elige que hacer con cada una.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20, maxHeight: 340, overflowY: 'auto' }}>
+              {conflictos.map((c: any) => {
+                const profData = profesionales.find((p) => p.id === c.profesional_id);
+                const accion = accionesConflicto[c.id] ?? 'cancelar';
+                const ini = new Date(c.inicio);
+                const fin = new Date(c.fin);
+                return (
+                  <div key={c.id} style={{
+                    padding: 14,
+                    background: TOKENS.bgCard,
+                    border: `1px solid ${accion === 'cancelar' ? '#ef444466' : TOKENS.border}`,
+                    borderRadius: 12,
+                    transition: 'border-color 0.15s ease',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      {profData && <div style={{ width: 8, height: 8, borderRadius: 4, background: profData.color }} />}
+                      <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text }}>{c.cliente?.nombre ?? 'Cliente'}</span>
+                      <span style={{ fontSize: 11, color: TOKENS.textTer }}>{c.servicio?.nombre ?? ''}</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: TOKENS.textSec, marginBottom: 10 }}>
+                      {ini.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })} · {ini.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {fin.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                      {profData && <span> · {profData.nombre}</span>}
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        onClick={() => setAccionesConflicto((prev) => ({ ...prev, [c.id]: 'cancelar' }))}
+                        style={{
+                          flex: 1,
+                          padding: '6px 0',
+                          borderRadius: 8,
+                          border: accion === 'cancelar' ? '2px solid #ef4444' : `1px solid ${TOKENS.border}`,
+                          background: accion === 'cancelar' ? '#ef444418' : 'transparent',
+                          color: accion === 'cancelar' ? '#ef4444' : TOKENS.textSec,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        Cancelar cita
+                      </button>
+                      <button
+                        onClick={() => setAccionesConflicto((prev) => ({ ...prev, [c.id]: 'mantener' }))}
+                        style={{
+                          flex: 1,
+                          padding: '6px 0',
+                          borderRadius: 8,
+                          border: accion === 'mantener' ? `2px solid ${TOKENS.primary}` : `1px solid ${TOKENS.border}`,
+                          background: accion === 'mantener' ? TOKENS.primarySoft : 'transparent',
+                          color: accion === 'mantener' ? TOKENS.primaryHi : TOKENS.textSec,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        Mantener
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Resumen */}
+            {(() => {
+              const cancelar = Object.values(accionesConflicto).filter((a) => a === 'cancelar').length;
+              const mantener = Object.values(accionesConflicto).filter((a) => a === 'mantener').length;
+              return (
+                <div style={{ padding: 12, background: 'rgba(99,102,241,0.08)', borderRadius: 10, marginBottom: 18, fontSize: 12, color: TOKENS.textSec }}>
+                  {cancelar > 0 && <span style={{ color: '#ef4444', fontWeight: 600 }}>{cancelar} se cancelar{cancelar > 1 ? 'an' : 'a'}</span>}
+                  {cancelar > 0 && mantener > 0 && <span> · </span>}
+                  {mantener > 0 && <span style={{ color: TOKENS.primaryHi, fontWeight: 600 }}>{mantener} se mantiene{mantener > 1 ? 'n' : ''}</span>}
+                </div>
+              );
+            })()}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                onClick={() => setPaso(0)}
+                style={{
+                  padding: '9px 14px',
+                  background: 'transparent',
+                  color: TOKENS.textSec,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 10,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                Volver
+              </button>
+              <button
+                onClick={ejecutarCreacion}
+                disabled={loading}
+                style={{
+                  padding: '9px 14px',
+                  background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 10,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  boxShadow: `0 6px 20px rgba(99,102,241,0.45)`,
+                  opacity: loading ? 0.6 : 1,
+                }}
+              >
+                {loading ? 'Aplicando...' : 'Confirmar y crear bloqueo'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {paso === 0 && <h3 style={{ margin: 0, marginBottom: 20, fontSize: 18, fontWeight: 700, color: TOKENS.text }}>
+          Nuevo bloqueo
+        </h3>}
+
+        {paso === 0 && <>
+        {/* Tipo */}
+        <div style={{ marginBottom: 16 }}>
+          <span style={labelStyle}>Tipo</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+            {TIPOS_BLOQUEO.map((t) => (
+              <button
+                key={t.value}
+                onClick={() => setTipo(t.value)}
+                style={{
+                  padding: '7px 0',
+                  borderRadius: 8,
+                  border: tipo === t.value ? `2px solid ${t.color}` : `1px solid ${TOKENS.border}`,
+                  background: tipo === t.value ? `${t.color}18` : TOKENS.bgCard,
+                  color: tipo === t.value ? t.color : TOKENS.textSec,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Todo el dia toggle */}
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={() => setTodoElDia(!todoElDia)}
+            style={{
+              width: 36,
+              height: 20,
+              borderRadius: 10,
+              border: 'none',
+              background: todoElDia ? TOKENS.primary : TOKENS.bgCard,
+              position: 'relative',
+              cursor: 'pointer',
+              transition: 'background 0.2s ease',
+            }}
+          >
+            <div style={{
+              width: 16,
+              height: 16,
+              borderRadius: 8,
+              background: '#fff',
+              position: 'absolute',
+              top: 2,
+              left: todoElDia ? 18 : 2,
+              transition: 'left 0.2s ease',
+            }} />
+          </button>
+          <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>Todo el dia</span>
+        </div>
+
+        {/* Fechas */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+          <div>
+            <span style={labelStyle}>Fecha inicio</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+              <BtnFlecha onClick={() => adjustFechaInicio(-1)} />
+              <div
+                onClick={() => dateInicioRef.current?.showPicker?.()}
+                style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: TOKENS.text, cursor: 'pointer', userSelect: 'none', textTransform: 'capitalize' }}
+              >
+                {fmtFechaDisplay(fechaInicio)}
+              </div>
+              <BtnFlecha onClick={() => adjustFechaInicio(1)} plus />
+              <input ref={dateInicioRef} type="date" value={fechaInicio} onChange={(e) => e.target.value && setFechaInicio(e.target.value)} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }} />
+            </div>
+          </div>
+          <div>
+            <span style={labelStyle}>Fecha fin</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+              <BtnFlecha onClick={() => adjustFechaFin(-1)} />
+              <div
+                onClick={() => dateFinRef.current?.showPicker?.()}
+                style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: TOKENS.text, cursor: 'pointer', userSelect: 'none', textTransform: 'capitalize' }}
+              >
+                {fmtFechaDisplay(fechaFin)}
+              </div>
+              <BtnFlecha onClick={() => adjustFechaFin(1)} plus />
+              <input ref={dateFinRef} type="date" value={fechaFin} onChange={(e) => e.target.value && setFechaFin(e.target.value)} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }} />
+            </div>
+          </div>
+        </div>
+
+        {!todoElDia && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+            <div>
+              <span style={labelStyle}>Hora inicio</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+                <BtnFlecha onClick={() => adjustHoraInicio(-1, 0)} />
+                <NumBox value={horaInicio.split(':')[0]} label="h" />
+                <BtnFlecha onClick={() => adjustHoraInicio(1, 0)} plus />
+                <span style={{ color: TOKENS.textTer, fontSize: 17, fontWeight: 700, margin: '0 2px' }}>:</span>
+                <BtnFlecha onClick={() => adjustHoraInicio(0, -5)} />
+                <NumBox value={horaInicio.split(':')[1]} label="min" />
+                <BtnFlecha onClick={() => adjustHoraInicio(0, 5)} plus />
+              </div>
+            </div>
+            <div>
+              <span style={labelStyle}>Hora fin</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+                <BtnFlecha onClick={() => adjustHoraFin(-1, 0)} />
+                <NumBox value={horaFin.split(':')[0]} label="h" />
+                <BtnFlecha onClick={() => adjustHoraFin(1, 0)} plus />
+                <span style={{ color: TOKENS.textTer, fontSize: 17, fontWeight: 700, margin: '0 2px' }}>:</span>
+                <BtnFlecha onClick={() => adjustHoraFin(0, -5)} />
+                <NumBox value={horaFin.split(':')[1]} label="min" />
+                <BtnFlecha onClick={() => adjustHoraFin(0, 5)} plus />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Motivo */}
+        <div style={{ marginBottom: 16 }}>
+          <span style={labelStyle}>Motivo (opcional)</span>
+          <input
+            type="text"
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            placeholder="Ej: Cita medica, vacaciones de verano..."
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Recurrente toggle */}
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={() => setEsRecurrente(!esRecurrente)}
+            style={{
+              width: 36,
+              height: 20,
+              borderRadius: 10,
+              border: 'none',
+              background: esRecurrente ? TOKENS.primary : TOKENS.bgCard,
+              position: 'relative',
+              cursor: 'pointer',
+              transition: 'background 0.2s ease',
+            }}
+          >
+            <div style={{
+              width: 16,
+              height: 16,
+              borderRadius: 8,
+              background: '#fff',
+              position: 'absolute',
+              top: 2,
+              left: esRecurrente ? 18 : 2,
+              transition: 'left 0.2s ease',
+            }} />
+          </button>
+          <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>Recurrente</span>
+        </div>
+
+        {esRecurrente && (
+          <div style={{
+            background: TOKENS.bgCard,
+            border: `1px solid ${TOKENS.border}`,
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 16,
+          }}>
+            {/* Frecuencia */}
+            <div style={{ marginBottom: 12 }}>
+              <span style={labelStyle}>Frecuencia</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                {FRECUENCIAS.map((f) => (
+                  <button
+                    key={f.value}
+                    onClick={() => setFrecuencia(f.value)}
+                    style={{
+                      padding: '6px 0',
+                      borderRadius: 8,
+                      border: frecuencia === f.value ? `2px solid ${TOKENS.primary}` : `1px solid ${TOKENS.border}`,
+                      background: frecuencia === f.value ? TOKENS.primarySoft : 'transparent',
+                      color: frecuencia === f.value ? TOKENS.primaryHi : TOKENS.textSec,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dias de semana (semanal/bisemanal) */}
+            {(frecuencia === 'semanal' || frecuencia === 'bisemanal') && (
+              <div style={{ marginBottom: 12 }}>
+                <span style={labelStyle}>Dias de la semana</span>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {DIAS_SEMANA_FULL.map((d) => (
+                    <button
+                      key={d.value}
+                      onClick={() => toggleDia(d.value)}
+                      style={{
+                        width: 38,
+                        height: 34,
+                        borderRadius: 8,
+                        border: diasSemana.includes(d.value) ? `2px solid ${TOKENS.primary}` : `1px solid ${TOKENS.border}`,
+                        background: diasSemana.includes(d.value) ? TOKENS.primarySoft : 'transparent',
+                        color: diasSemana.includes(d.value) ? TOKENS.primaryHi : TOKENS.textSec,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Dia del mes (mensual) */}
+            {frecuencia === 'mensual' && (
+              <div style={{ marginBottom: 12 }}>
+                <span style={labelStyle}>Dia del mes</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={diaMes}
+                  onChange={(e) => setDiaMes(parseInt(e.target.value) || 1)}
+                  style={{ ...inputStyle, width: 80 }}
+                />
+              </div>
+            )}
+
+            {/* Fecha fin recurrencia */}
+            <div>
+              <span style={labelStyle}>Hasta</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: 'transparent', border: `1px solid ${TOKENS.border}` }}>
+                <BtnFlecha onClick={() => adjustFechaRecurrencia(-7)} />
+                <div
+                  onClick={() => dateRecurrenciaRef.current?.showPicker?.()}
+                  style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: TOKENS.text, cursor: 'pointer', userSelect: 'none', textTransform: 'capitalize' }}
+                >
+                  {fmtFechaDisplay(fechaFinRecurrencia)}
+                </div>
+                <BtnFlecha onClick={() => adjustFechaRecurrencia(7)} plus />
+                <input ref={dateRecurrenciaRef} type="date" value={fechaFinRecurrencia} onChange={(e) => e.target.value && setFechaFinRecurrencia(e.target.value)} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Profesionales */}
+        <div style={{ marginBottom: 20 }}>
+          <span style={labelStyle}>Profesionales</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
+            {profesionales.filter((p) => p.activo).map((p) => {
+              const sel = profsSeleccionados.includes(p.id);
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => toggleProf(p.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    border: sel ? `2px solid ${p.color}` : `1px solid ${TOKENS.border}`,
+                    background: sel ? `${p.color}18` : TOKENS.bgCard,
+                    color: sel ? TOKENS.text : TOKENS.textSec,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ width: 8, height: 8, borderRadius: 4, background: p.color, flexShrink: 0 }} />
+                  {p.nombre}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Botones */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '9px 14px',
+              background: 'transparent',
+              color: TOKENS.textSec,
+              border: `1px solid ${TOKENS.border}`,
+              borderRadius: 10,
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 600,
+            }}
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={detectarConflictos}
+            disabled={loading || profsSeleccionados.length === 0}
+            style={{
+              padding: '9px 14px',
+              background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
+              color: '#fff',
+              border: 'none',
+              borderRadius: 10,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: 13,
+              fontWeight: 600,
+              boxShadow: `0 6px 20px rgba(99,102,241,0.45)`,
+              opacity: loading || profsSeleccionados.length === 0 ? 0.6 : 1,
+            }}
+          >
+            {loading ? 'Comprobando...' : 'Crear bloqueo'}
+          </button>
+        </div>
+        </>}
+      </div>
+    </div>
+  );
+}
+
+function EditBloqueoModal({ bloqueo, onClose, onSaved }: { bloqueo: any; onClose: () => void; onSaved: () => void }) {
+  const [tipo, setTipo] = useState(bloqueo.tipo || 'vacaciones');
+  const [motivo, setMotivo] = useState(bloqueo.motivo || '');
+  const dIni = new Date(bloqueo.inicio);
+  const dFin = new Date(bloqueo.fin);
+  const hIni = `${String(dIni.getHours()).padStart(2, '0')}:${String(dIni.getMinutes()).padStart(2, '0')}`;
+  const hFin = `${String(dFin.getHours()).padStart(2, '0')}:${String(dFin.getMinutes()).padStart(2, '0')}`;
+  const isFullDay = hIni === '00:00' && hFin === '23:59';
+  const [todoElDia, setTodoElDia] = useState(isFullDay);
+  const [fechaInicio, setFechaInicio] = useState(
+    `${dIni.getFullYear()}-${String(dIni.getMonth() + 1).padStart(2, '0')}-${String(dIni.getDate()).padStart(2, '0')}`
+  );
+  const [fechaFin, setFechaFin] = useState(
+    `${dFin.getFullYear()}-${String(dFin.getMonth() + 1).padStart(2, '0')}-${String(dFin.getDate()).padStart(2, '0')}`
+  );
+  const [horaInicio, setHoraInicio] = useState(isFullDay ? '09:00' : hIni);
+  const [horaFin, setHoraFin] = useState(isFullDay ? '18:00' : hFin);
+  const [saving, setSaving] = useState(false);
+  const dateInicioRef = useRef<HTMLInputElement>(null);
+  const dateFinRef = useRef<HTMLInputElement>(null);
+
+  function fmtFechaDisplay(dateStr: string) {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+  function adjustFI(delta: number) {
+    setFechaInicio((prev: string) => { const d = new Date(prev + 'T12:00:00'); d.setDate(d.getDate() + delta); const r = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; if (r > fechaFin) setFechaFin(r); return r; });
+  }
+  function adjustFF(delta: number) {
+    setFechaFin((prev: string) => { const d = new Date(prev + 'T12:00:00'); d.setDate(d.getDate() + delta); const r = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; return r < fechaInicio ? fechaInicio : r; });
+  }
+  function adjustH(field: 'ini' | 'fin', hD: number, mD: number) {
+    const setter = field === 'ini' ? setHoraInicio : setHoraFin;
+    const current = field === 'ini' ? horaInicio : horaFin;
+    const [hh, mm] = current.split(':').map(Number);
+    let nh = hh + hD, nm = mm + mD;
+    if (nm >= 60) { nm -= 60; nh++; } if (nm < 0) { nm += 60; nh--; }
+    nh = Math.max(0, Math.min(23, nh));
+    setter(`${String(nh).padStart(2,'0')}:${String(nm).padStart(2,'0')}`);
+  }
+
+  async function guardar() {
+    setSaving(true);
+    const ini = todoElDia
+      ? new Date(`${fechaInicio}T00:00:00`).toISOString()
+      : new Date(`${fechaInicio}T${horaInicio}:00`).toISOString();
+    const fin = todoElDia
+      ? new Date(`${fechaFin}T23:59:00`).toISOString()
+      : new Date(`${fechaFin}T${horaFin}:00`).toISOString();
+    await supabase.from('bloqueos_profesional').update({ tipo, motivo: motivo || null, inicio: ini, fin }).eq('id', bloqueo.id);
+    setSaving(false);
+    onSaved();
+  }
+
+  const TIPOS = ['vacaciones', 'formacion', 'reunion', 'baja', 'descanso', 'otro'];
+  const TIPO_LABELS: Record<string,string> = { vacaciones:'Vacaciones', formacion:'Formacion', reunion:'Reunion', baja:'Baja', descanso:'Descanso', otro:'Otro' };
+  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 11, color: TOKENS.textSec, fontWeight: 600, marginBottom: 6 };
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 16, padding: 28, width: 440, maxHeight: '80vh', overflowY: 'auto', animation: 'scaleIn 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Editar bloqueo</h2>
+
+        {/* Tipo */}
+        <div style={{ marginBottom: 16 }}>
+          <span style={labelStyle}>Tipo</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+            {TIPOS.map((t) => (
+              <button key={t} onClick={() => setTipo(t)}
+                style={{ padding: '7px 0', borderRadius: 8, border: tipo === t ? `2px solid ${TOKENS.primary}` : `1px solid ${TOKENS.border}`, background: tipo === t ? TOKENS.primarySoft : TOKENS.bgCard, color: tipo === t ? TOKENS.primaryHi : TOKENS.textSec, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                {TIPO_LABELS[t] || t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Todo el dia */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <div onClick={() => setTodoElDia(!todoElDia)} style={{ width: 36, height: 20, borderRadius: 10, background: todoElDia ? TOKENS.primary : TOKENS.bgCard, border: `1px solid ${todoElDia ? TOKENS.primary : TOKENS.borderHi}`, cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
+            <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', position: 'absolute', top: 1, left: todoElDia ? 18 : 2, transition: 'left 0.2s' }} />
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text }}>Todo el dia</span>
+        </div>
+
+        {/* Fechas */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+          <div>
+            <span style={labelStyle}>Fecha inicio</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+              <BtnFlecha onClick={() => adjustFI(-1)} />
+              <div onClick={() => dateInicioRef.current?.showPicker?.()} style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: TOKENS.text, cursor: 'pointer', userSelect: 'none', textTransform: 'capitalize' }}>{fmtFechaDisplay(fechaInicio)}</div>
+              <BtnFlecha onClick={() => adjustFI(1)} plus />
+              <input ref={dateInicioRef} type="date" value={fechaInicio} onChange={(e) => { if (e.target.value) { setFechaInicio(e.target.value); if (e.target.value > fechaFin) setFechaFin(e.target.value); }}} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }} />
+            </div>
+          </div>
+          <div>
+            <span style={labelStyle}>Fecha fin</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+              <BtnFlecha onClick={() => adjustFF(-1)} />
+              <div onClick={() => dateFinRef.current?.showPicker?.()} style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: TOKENS.text, cursor: 'pointer', userSelect: 'none', textTransform: 'capitalize' }}>{fmtFechaDisplay(fechaFin)}</div>
+              <BtnFlecha onClick={() => adjustFF(1)} plus />
+              <input ref={dateFinRef} type="date" value={fechaFin} onChange={(e) => { if (e.target.value) setFechaFin(e.target.value < fechaInicio ? fechaInicio : e.target.value); }} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Horas */}
+        {!todoElDia && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+            <div>
+              <span style={labelStyle}>Hora inicio</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+                <BtnFlecha onClick={() => adjustH('ini', -1, 0)} />
+                <NumBox value={horaInicio.split(':')[0]} label="h" />
+                <BtnFlecha onClick={() => adjustH('ini', 1, 0)} plus />
+                <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
+                <BtnFlecha onClick={() => adjustH('ini', 0, -5)} />
+                <NumBox value={horaInicio.split(':')[1]} label="m" />
+                <BtnFlecha onClick={() => adjustH('ini', 0, 5)} plus />
+              </div>
+            </div>
+            <div>
+              <span style={labelStyle}>Hora fin</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
+                <BtnFlecha onClick={() => adjustH('fin', -1, 0)} />
+                <NumBox value={horaFin.split(':')[0]} label="h" />
+                <BtnFlecha onClick={() => adjustH('fin', 1, 0)} plus />
+                <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
+                <BtnFlecha onClick={() => adjustH('fin', 0, -5)} />
+                <NumBox value={horaFin.split(':')[1]} label="m" />
+                <BtnFlecha onClick={() => adjustH('fin', 0, 5)} plus />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Motivo */}
+        <div style={{ marginBottom: 20 }}>
+          <span style={labelStyle}>Motivo (opcional)</span>
+          <input type="text" value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ej: Cita medica..."
+            style={{ width: '100%', padding: '8px 10px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+        </div>
+
+        {/* Botones */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <button onClick={onClose} style={{ padding: '9px 14px', background: 'transparent', color: TOKENS.textSec, border: `1px solid ${TOKENS.border}`, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
+          <button onClick={guardar} disabled={saving} style={{ padding: '9px 14px', background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(99,102,241,0.45)', opacity: saving ? 0.6 : 1 }}>
+            {saving ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </div>
       </div>

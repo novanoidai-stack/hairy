@@ -108,8 +108,7 @@ export default function NuevaCitaScreen() {
       .eq('profesional_id', profSeleccionado)
       .gte('inicio', `${diaStr}T00:00:00`)
       .lt('inicio', `${diaStr}T23:59:59`)
-      .neq('estado', 'cancelada')
-      .neq('estado', 'historica')
+      .eq('estado', 'confirmada')
       .then(({ data }) => setCitasDia(data ?? []));
   }, [profSeleccionado, negocioId, inicio.toDateString()]);
 
@@ -263,7 +262,7 @@ export default function NuevaCitaScreen() {
         .from('citas')
         .select('id')
         .eq('profesional_id', profSeleccionado)
-        .neq('estado', 'cancelada')
+        .eq('estado', 'confirmada')
         .lt('inicio', finActiva.toISOString())       // otra.inicio < new.fin_activa
         .gt('fin_activa', inicio.toISOString());     // otra.fin_activa > new.inicio
 
@@ -278,7 +277,7 @@ export default function NuevaCitaScreen() {
           .from('citas')
           .select('id')
           .eq('profesional_id', profSeleccionado)
-          .neq('estado', 'cancelada')
+          .eq('estado', 'confirmada')
           .lt('inicio', fin.toISOString())             // otra.inicio < new.fin
           .gt('fin_activa', finEspera.toISOString());  // otra.fin_activa > new.fin_espera (start of active2)
 
@@ -294,7 +293,7 @@ export default function NuevaCitaScreen() {
         .from('citas')
         .select('id, fin')
         .eq('profesional_id', profSeleccionado)
-        .neq('estado', 'cancelada')
+        .eq('estado', 'confirmada')
         .lte('fin_activa', inicio.toISOString())    // otra.fin_activa <= new.inicio (new in/after wait phase)
         .gt('fin', inicio.toISOString())            // otra.fin > new.inicio (overlap real, excluye frontera exacta)
         .lt('fin', fin.toISOString());              // otra.fin < new.fin (new extends past)

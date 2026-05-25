@@ -4,11 +4,10 @@ import { TText } from '@/components/ui/TText';
 import type { Cita } from './AgendaView';
 
 const ESTADO_COLORS: Record<Cita['estado'], string> = {
-  pendiente: '#f59e0b',
   confirmada: '#6366f1',
   completada: '#10b981',
   cancelada: '#94a3b8',
-  no_show: '#ef4444',
+  no_presentada: '#ef4444',
 };
 
 interface Props {

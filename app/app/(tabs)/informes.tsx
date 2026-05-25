@@ -64,7 +64,7 @@ export default function InformesScreen() {
 
     const citasData = citas ?? [];
     const totalCitas = citasData.length;
-    const citasCompletas = citasData.filter(c => c.estado === 'finalizada' || c.estado === 'cobrada').length;
+    const citasCompletas = citasData.filter(c => c.estado === 'completada').length;
     const totalIngresos = citasData.reduce((sum, c) => sum + ((c.servicios as any)?.precio || 0), 0);
 
     // Occupación: asumiendo 8 horas de trabajo por día (480 minutos), 6 días a la semana

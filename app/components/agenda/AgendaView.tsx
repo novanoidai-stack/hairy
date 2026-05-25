@@ -24,7 +24,7 @@ export interface Cita {
   inicio: Date;
   fin: Date;
   color: string;
-  estado: 'pendiente' | 'confirmada' | 'completada' | 'cancelada' | 'no_show';
+  estado: 'confirmada' | 'completada' | 'cancelada' | 'no_presentada';
 }
 
 export interface Profesional {
