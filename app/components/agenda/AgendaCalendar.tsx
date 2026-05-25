@@ -84,6 +84,7 @@ export default function AgendaCalendar() {
         .gte('inicio', start)
         .lte('inicio', end)
         .neq('estado', 'cancelada')
+        .neq('estado', 'no_presentada')
         .order('inicio');
 
       setCitas((citsData as any) ?? []);
@@ -110,6 +111,7 @@ export default function AgendaCalendar() {
             .gte('inicio', start)
             .lte('inicio', end)
             .neq('estado', 'cancelada')
+            .neq('estado', 'no_presentada')
             .order('inicio');
 
           setCitas((citsData as any) ?? []);

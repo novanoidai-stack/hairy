@@ -57,6 +57,9 @@ const TOKENS = {
   cyanSoft: 'rgba(6,182,212,0.14)',
 };
 
+// Normalizar texto: quitar tildes para busquedas sin discriminar acentos
+const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
 // Umbral para alerta de inactividad
 const INACTIVIDAD_DIAS = 90;
 
@@ -65,6 +68,7 @@ interface Cita {
   cliente_id: string;
   inicio: string;
   fin: string;
+  estado?: string;
   servicio_id?: string;
   profesional_id?: string;
   notas?: string | null;
@@ -218,7 +222,7 @@ export default function ClientesWeb() {
         .order('nombre'),
       supabase
         .from('citas')
-        .select('id, cliente_id, inicio, fin, servicio_id, profesional_id, notas, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas')
+        .select('id, cliente_id, inicio, fin, estado, servicio_id, profesional_id, notas, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas')
         .eq('negocio_id', profile.negocio_id),
       supabase
         .from('servicios')
@@ -286,12 +290,12 @@ export default function ClientesWeb() {
 
   const visibleClientes = useMemo(() => {
     let list = clientes;
-    const q = searchText.trim().toLowerCase();
+    const q = norm(searchText.trim());
     if (q) {
       list = list.filter((cl) =>
-        cl.nombre.toLowerCase().includes(q) ||
-        (cl.telefono ?? '').toLowerCase().includes(q) ||
-        (cl.email ?? '').toLowerCase().includes(q)
+        norm(cl.nombre).includes(q) ||
+        (cl.telefono ?? '').includes(q) ||
+        norm(cl.email ?? '').includes(q)
       );
     }
     if (activeTagFilter !== 'Todos') {
@@ -531,7 +535,7 @@ export default function ClientesWeb() {
                   triggerRefresh();
                 }} />}
                 {activeTab === 'color' && <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} onChanged={async () => { await cargar(); triggerRefresh(); }} />}
-                {activeTab === 'historial' && <HistorialTab cliente={c} citas={citas} servicios={servicios} />}
+                {activeTab === 'historial' && <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} />}
               </div>
             ) : (
               // Modo expandido: todas las secciones a la vez en cuadricula
@@ -556,7 +560,7 @@ export default function ClientesWeb() {
 
                 {/* Fila 3: Historial completo */}
                 <Panel title="Historial completo" accent={TOKENS.success}>
-                  <HistorialTab cliente={c} citas={citas} servicios={servicios} />
+                  <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} />
                 </Panel>
               </div>
             )}
@@ -1036,7 +1040,7 @@ function FieldKV({ label, value, full }: { label: string; value: string; full?: 
 }
 
 // ── Tab: Historial
-function HistorialTab({ cliente, citas, servicios }: { cliente: Cliente; citas: Cita[]; servicios: any[] }) {
+function HistorialTab({ cliente, citas, servicios, profesionales = [] }: { cliente: Cliente; citas: Cita[]; servicios: any[]; profesionales?: any[] }) {
   const clientCitas = citas
     .filter((cit) => cit.cliente_id === cliente.id)
     .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime());
@@ -1045,22 +1049,84 @@ function HistorialTab({ cliente, citas, servicios }: { cliente: Cliente; citas: 
     return <div style={{ fontSize: 12, color: TOKENS.textTer, padding: '10px 0' }}>Sin historial</div>;
   }
 
+  const estadoStyle: Record<string, { bg: string; color: string; label: string }> = {
+    confirmada: { bg: 'rgba(99,102,241,0.12)', color: TOKENS.primaryHi, label: 'Confirmada' },
+    completada: { bg: 'rgba(34,197,94,0.12)', color: '#22c55e', label: 'Completada' },
+    cancelada: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444', label: 'Cancelada' },
+    no_presentada: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', label: 'No presentada' },
+  };
+
+  const completadas = clientCitas.filter((c) => c.estado === 'completada').length;
+  const canceladas = clientCitas.filter((c) => c.estado === 'cancelada' || c.estado === 'no_presentada').length;
+  const totalGastado = clientCitas
+    .filter((c) => c.estado === 'completada')
+    .reduce((sum, c) => sum + (servicios.find((s) => s.id === c.servicio_id)?.precio || 0), 0);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {clientCitas.map((h) => {
-        const fecha = new Date(h.inicio).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' });
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* Stats resumen */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ padding: '5px 10px', background: 'rgba(99,102,241,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: TOKENS.primaryHi }}>
+          {clientCitas.length} citas totales
+        </div>
+        {completadas > 0 && (
+          <div style={{ padding: '5px 10px', background: 'rgba(34,197,94,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: '#22c55e' }}>
+            {completadas} completadas
+          </div>
+        )}
+        {canceladas > 0 && (
+          <div style={{ padding: '5px 10px', background: 'rgba(239,68,68,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: '#ef4444' }}>
+            {canceladas} cancel./no-show
+          </div>
+        )}
+        {totalGastado > 0 && (
+          <div style={{ padding: '5px 10px', background: 'rgba(16,185,129,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: TOKENS.success }}>
+            {totalGastado} EUR facturado
+          </div>
+        )}
+      </div>
+
+      {/* Lista de citas */}
+      {clientCitas.map((h, idx) => {
+        const fecha = new Date(h.inicio);
+        const fechaStr = fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: fecha.getFullYear() !== new Date().getFullYear() ? '2-digit' : undefined });
+        const horaStr = fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
         const srv = servicios.find((s) => s.id === h.servicio_id);
-        const serviceName = srv?.nombre || 'Servicio';
-        const precio = srv?.precio ?? '-';
-        const isPast = new Date(h.inicio) < new Date();
+        const prof = profesionales.find((p: any) => p.id === h.profesional_id);
+        const estado = h.estado || 'confirmada';
+        const est = estadoStyle[estado] || estadoStyle.confirmada;
+        const precio = srv?.precio ?? 0;
+
         return (
-          <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10 }}>
-            <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: isPast ? TOKENS.success : TOKENS.primary }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12, fontWeight: 600 }}>{serviceName}</div>
-              <div style={{ fontSize: 10, color: TOKENS.textTer, marginTop: 2 }}>{fecha}</div>
+          <div
+            key={h.id}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
+              background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10,
+              transition: 'all 0.15s ease',
+              animation: `fadeIn 0.2s ease ${idx * 0.03}s both`,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.transform = 'translateX(2px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = 'none'; }}
+          >
+            <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: prof?.color || TOKENS.primary, flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>{srv?.nombre || 'Servicio'}</div>
+              <div style={{ fontSize: 10, color: TOKENS.textTer, marginTop: 2 }}>
+                {prof?.nombre || 'Profesional'} · {fechaStr} · {horaStr}
+              </div>
             </div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: isPast ? TOKENS.success : TOKENS.primary }}>{precio} €</div>
+            <span style={{
+              fontSize: 9, fontWeight: 700, padding: '3px 7px', borderRadius: 4,
+              background: est.bg, color: est.color, textTransform: 'uppercase', flexShrink: 0,
+            }}>
+              {est.label}
+            </span>
+            {precio > 0 && (
+              <div style={{ fontSize: 12, fontWeight: 700, color: estado === 'completada' ? TOKENS.success : TOKENS.textSec, minWidth: 45, textAlign: 'right', flexShrink: 0 }}>
+                {precio} EUR
+              </div>
+            )}
           </div>
         );
       })}

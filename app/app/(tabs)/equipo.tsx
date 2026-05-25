@@ -172,7 +172,7 @@ export default function EquipoScreen() {
       .select('id, inicio, fin, fin_espera, clientes(nombre)')
       .eq('negocio_id', negocioId)
       .eq('profesional_id', profSeleccionada.id)
-      .in('estado', ['confirmada', 'propuesta', 'en_curso'])
+      .eq('estado', 'confirmada')
       .lt('inicio', fechaFin.toISOString())
       .gt('fin', fechaInicio.toISOString());
 
@@ -241,7 +241,7 @@ export default function EquipoScreen() {
           .from('citas')
           .select('id')
           .eq('profesional_id', prof.id)
-          .in('estado', ['confirmada', 'propuesta', 'en_curso'])
+          .eq('estado', 'confirmada')
           .lt('inicio', citaFin)
           .gt('fin', cita.inicio)
           .limit(1);

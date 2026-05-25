@@ -12,27 +12,14 @@ import { TText, TTextInput } from '@/components/ui/TText';
 import { CITA_STATUS } from '@/lib/constants';
 
 const ESTADOS_META: Record<string, { label: string; color: string }> = {
-  [CITA_STATUS.PROPUESTA]:      { label: 'Propuesta',        color: '#8b5cf6' },
   [CITA_STATUS.CONFIRMADA]:     { label: 'Confirmada',       color: '#6366f1' },
-  [CITA_STATUS.EN_CURSO]:       { label: 'En curso',         color: '#10b981' },
-  [CITA_STATUS.FINALIZADA]:     { label: 'Finalizada',       color: '#06b6d4' },
-  [CITA_STATUS.COBRADA]:        { label: 'Cobrada',          color: '#22c55e' },
+  [CITA_STATUS.COMPLETADA]:     { label: 'Completada',       color: '#22c55e' },
   [CITA_STATUS.CANCELADA]:      { label: 'Cancelada',        color: '#94a3b8' },
   [CITA_STATUS.NO_PRESENTADA]:  { label: 'No presentada',   color: '#ef4444' },
-  [CITA_STATUS.INTERRUMPIDA]:   { label: 'Interrumpida',     color: '#f97316' },
-  [CITA_STATUS.HISTORICA]:      { label: 'Historica',        color: '#64748b' },
-  [CITA_STATUS.PENDIENTE]:      { label: 'Pendiente',        color: '#f59e0b' },
 };
 
-// Transiciones permitidas por estado actual (RN-AG según documento modular)
 const TRANSICIONES: Record<string, string[]> = {
-  [CITA_STATUS.PROPUESTA]:   [CITA_STATUS.CONFIRMADA, CITA_STATUS.CANCELADA],
-  [CITA_STATUS.CONFIRMADA]:  [CITA_STATUS.EN_CURSO, CITA_STATUS.NO_PRESENTADA, CITA_STATUS.CANCELADA],
-  [CITA_STATUS.EN_CURSO]:    [CITA_STATUS.FINALIZADA, CITA_STATUS.INTERRUMPIDA],
-  [CITA_STATUS.FINALIZADA]:  [CITA_STATUS.COBRADA],
-  [CITA_STATUS.COBRADA]:     [CITA_STATUS.HISTORICA],
-  [CITA_STATUS.INTERRUMPIDA]:[CITA_STATUS.COBRADA],
-  [CITA_STATUS.PENDIENTE]:   [CITA_STATUS.CONFIRMADA, CITA_STATUS.CANCELADA],
+  [CITA_STATUS.CONFIRMADA]:  [CITA_STATUS.COMPLETADA, CITA_STATUS.NO_PRESENTADA, CITA_STATUS.CANCELADA],
 };
 
 export default function AgendaDetalleScreen() {
@@ -181,8 +168,8 @@ export default function AgendaDetalleScreen() {
           )}
         </View>
 
-        {/* Ajustar horario — solo en citas EN_CURSO (PA-01 + CE-AG-02) */}
-        {cita.estado === CITA_STATUS.EN_CURSO && (
+        {/* Ajustar horario — solo en citas confirmadas (PA-01 + CE-AG-02) */}
+        {cita.estado === CITA_STATUS.CONFIRMADA && (
           <AjustarHorarioSection cita={cita} onCitaUpdated={handleCitaUpdated} />
         )}
 
@@ -212,8 +199,8 @@ export default function AgendaDetalleScreen() {
         {/* Formula de color */}
         <FormulaSection cita={cita} onSave={guardarFormula} actualizando={actualizando} />
 
-        {/* CU-AG-05: cancelar cita (solo estados no terminales ni ya cancelada) */}
-        {![CITA_STATUS.HISTORICA, CITA_STATUS.EXPIRADA, CITA_STATUS.CANCELADA].includes(cita.estado) && (
+        {/* CU-AG-05: cancelar cita (solo si esta confirmada) */}
+        {cita.estado === CITA_STATUS.CONFIRMADA && (
           <TouchableOpacity
             style={[s.cancelBtn, { borderColor: c.border }]}
             onPress={() => setMostrarDialogoEliminar(true)}
@@ -503,8 +490,7 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
       .select('id')
       .eq('negocio_id', cita.negocio_id)
       .eq('profesional_id', cita.profesional_id)
-      .neq('estado', CITA_STATUS.CANCELADA)
-      .neq('estado', CITA_STATUS.HISTORICA)
+      .eq('estado', CITA_STATUS.CONFIRMADA)
       .neq('id', cita.id)
       .lt('inicio', nuevoFinActiva.toISOString())
       .gt('fin_activa', nuevoInicio.toISOString());
@@ -521,8 +507,7 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
         .select('id')
         .eq('negocio_id', cita.negocio_id)
         .eq('profesional_id', cita.profesional_id)
-        .neq('estado', CITA_STATUS.CANCELADA)
-        .neq('estado', CITA_STATUS.HISTORICA)
+        .eq('estado', CITA_STATUS.CONFIRMADA)
         .neq('id', cita.id)
         .lt('inicio', nuevoFin.toISOString())
         .gt('fin_activa', nuevoFinEspera.toISOString());
@@ -540,8 +525,7 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
       .select('id')
       .eq('negocio_id', cita.negocio_id)
       .eq('profesional_id', cita.profesional_id)
-      .neq('estado', CITA_STATUS.CANCELADA)
-      .neq('estado', CITA_STATUS.HISTORICA)
+      .eq('estado', CITA_STATUS.CONFIRMADA)
       .neq('id', cita.id)
       .lte('fin_activa', nuevoInicio.toISOString())
       .gt('fin_espera', nuevoInicio.toISOString())
@@ -602,8 +586,7 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
       .eq('negocio_id', cita.negocio_id)
       .eq('profesional_id', cita.profesional_id)
       .neq('id', cita.id)
-      .neq('estado', CITA_STATUS.CANCELADA)
-      .neq('estado', CITA_STATUS.HISTORICA)
+      .eq('estado', CITA_STATUS.CONFIRMADA)
       .lte('fin_activa', inicio.toISOString())
       .gt('fin_espera', inicio.toISOString())
       .not('fin_espera', 'is', null);
@@ -639,8 +622,7 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
         .gte('inicio', originalFinActiva.toISOString())
         .lt('inicio', originalFinEspera.toISOString())
         .neq('id', cita.id)
-        .neq('estado', CITA_STATUS.CANCELADA)
-        .neq('estado', CITA_STATUS.HISTORICA)
+        .eq('estado', CITA_STATUS.CONFIRMADA)
         .eq('oculta_en_calendario', false);
       if (citasEnEspera) {
         for (const sig of citasEnEspera as any[]) {
@@ -666,8 +648,7 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
         .gte('inicio', originalFin.toISOString())
         .lte('inicio', diaFin.toISOString())
         .neq('id', cita.id)
-        .neq('estado', CITA_STATUS.CANCELADA)
-        .neq('estado', CITA_STATUS.HISTORICA)
+        .eq('estado', CITA_STATUS.CONFIRMADA)
         .eq('oculta_en_calendario', false);
 
       if (siguientes && siguientes.length > 0) {
