@@ -7,7 +7,7 @@ export interface UserProfile {
   apellido?: string;
   nombre_negocio?: string;
   codigo_postal?: string;
-  role: 'owner' | 'employee' | 'admin';
+  role: 'owner' | 'employee' | 'admin' | 'recepcionista';
   negocio_id: string;
   phone: string;
   avatar_url?: string;
@@ -41,4 +41,20 @@ export async function signOut() {
 
 export function isOwner(profile: UserProfile | null): boolean {
   return profile?.role === 'owner' || profile?.role === 'admin';
+}
+
+export function canAccessConfig(profile: UserProfile | null): boolean {
+  return profile?.role === 'owner' || profile?.role === 'admin';
+}
+
+export function canAccessInformes(profile: UserProfile | null): boolean {
+  return profile?.role === 'owner' || profile?.role === 'admin';
+}
+
+export function canEditEquipo(profile: UserProfile | null): boolean {
+  return profile?.role === 'owner' || profile?.role === 'admin';
+}
+
+export function isRecepcionista(profile: UserProfile | null): boolean {
+  return profile?.role === 'recepcionista';
 }
