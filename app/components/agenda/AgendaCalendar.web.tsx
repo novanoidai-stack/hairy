@@ -2003,6 +2003,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
   const [addonsDisponibles, setAddonsDisponibles] = useState<any[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [allProfSrvOverrides, setAllProfSrvOverrides] = useState<any[]>([]);
+  const [allCatPricing, setAllCatPricing] = useState<any[]>([]);
   const today = selectedDate || new Date();
 
   useEffect(() => {
@@ -2020,13 +2021,14 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
       const tomorrow = new Date(today.getTime() + 86400000);
       const tomorrowStr = tomorrow.getFullYear() + '-' + String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' + String(tomorrow.getDate()).padStart(2, '0');
 
-      const [{ data: clts, error: cltsErr }, { data: srvs, error: srvsErr }, { data: prfs, error: prfsErr }, { data: cits, error: citsErr }, { data: durOverrides }, { data: profSrvOverrides }] = await Promise.all([
+      const [{ data: clts, error: cltsErr }, { data: srvs, error: srvsErr }, { data: prfs, error: prfsErr }, { data: cits, error: citsErr }, { data: durOverrides }, { data: profSrvOverrides }, { data: catPr }] = await Promise.all([
         supabase.from('clientes').select('id, nombre, telefono, alergias').eq('negocio_id', negocioId).order('nombre'),
         supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, min_antelacion_min').eq('negocio_id', negocioId).order('nombre'),
-        supabase.from('profesionales').select('id, nombre, color').eq('negocio_id', negocioId).eq('activo', true),
+        supabase.from('profesionales').select('id, nombre, color, categoria').eq('negocio_id', negocioId).eq('activo', true),
         supabase.from('citas').select('id, inicio, fin, fin_activa, fin_espera, profesional_id, grupo_id, orden_en_grupo').eq('negocio_id', negocioId).gte('inicio', `${todayStr}T00:00:00`).lt('inicio', `${tomorrowStr}T00:00:00`).eq('estado', CITA_STATUS.CONFIRMADA),
         supabase.from('duraciones_profesional').select('profesional_id, servicio_id, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min'),
         supabase.from('professional_service_overrides').select('professional_id, service_id, duracion, duracion_espera_min, duracion_activa_extra_min, precio, activo'),
+        supabase.from('service_category_pricing').select('servicio_id, categoria, precio').eq('negocio_id', negocioId),
       ]);
 
       if (srvsErr) console.error('Servicios error:', srvsErr);
@@ -2045,6 +2047,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
       setCitasHoy(cits ?? []);
       setAllDurOverrides(durOverrides ?? []);
       setAllProfSrvOverrides(profSrvOverrides ?? []);
+      setAllCatPricing(catPr ?? []);
       setLoading(false);
     }
     cargar();
@@ -2134,6 +2137,16 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
 
   const servicioActual = servicios.find((s) => s.id === selectedServicio);
   const profServicioOverride = profOverrides.find((o) => o.service_id === selectedServicio);
+  const resolvedPrecio = useMemo(() => {
+    if (!servicioActual) return 0;
+    if (profServicioOverride?.precio != null) return profServicioOverride.precio;
+    const profCat = profesionales.find((p: any) => p.id === selectedProf)?.categoria;
+    if (profCat) {
+      const cp = allCatPricing.find((c: any) => c.servicio_id === servicioActual.id && c.categoria === profCat);
+      if (cp) return cp.precio;
+    }
+    return servicioActual.precio ?? 0;
+  }, [servicioActual, profServicioOverride, selectedProf, profesionales, allCatPricing]);
 
   const serviciosFiltrados = useMemo(
     () => servicios.filter((s) => {
@@ -2200,12 +2213,12 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
 
   // Totales agregados (confirmadas + actual)
   const totalPrecioEncadenado = useMemo(() => {
-    let total = servicioActual?.precio ?? 0;
+    let total = resolvedPrecio;
     for (const c of citasConfirmadas) {
       total += c.precio ?? 0;
     }
     return total;
-  }, [citasConfirmadas, servicioActual]);
+  }, [citasConfirmadas, resolvedPrecio]);
 
   const totalDuracionEncadenado = useMemo(() => {
     let total = duracionTotal;
@@ -2226,7 +2239,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
       servicioNombre: srv?.nombre || '',
       profNombre: prof?.nombre || '',
       profColor: prof?.color || '',
-      precio: srv?.precio ?? 0,
+      precio: resolvedPrecio,
       durActiva: duracionActiva,
       durEspera: duracionEspera,
       durActivaExtra: duracionActivaExtra,
@@ -2632,7 +2645,9 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
               const efectivoDur = selectedProf && ov?.duracion != null
                 ? (ov.duracion + (ov.duracion_espera_min ?? s.duracion_espera_min ?? 0) + (ov.duracion_activa_extra_min ?? s.duracion_activa_extra_min ?? 0))
                 : (catalogDur || 30);
-              const efectivoPrecio = selectedProf && ov?.precio != null ? ov.precio : s.precio;
+              const profCat = profesionales.find((p: any) => p.id === selectedProf)?.categoria;
+              const catPrice = profCat ? allCatPricing.find((cp: any) => cp.servicio_id === s.id && cp.categoria === profCat) : null;
+              const efectivoPrecio = selectedProf && ov?.precio != null ? ov.precio : (catPrice ? catPrice.precio : s.precio);
               return (
                 <button
                   key={s.id}

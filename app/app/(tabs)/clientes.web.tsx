@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+// @ts-ignore
+import { createPortal } from 'react-dom';
 import { useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
@@ -196,6 +198,7 @@ export default function ClientesWeb() {
   const [citas, setCitas] = useState<Cita[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
   const [profesionales, setProfesionales] = useState<any[]>([]);
+  const [fichasTecnicas, setFichasTecnicas] = useState<any[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -214,10 +217,10 @@ export default function ClientesWeb() {
     }
     setNegocioId(profile.negocio_id);
 
-    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }] = await Promise.all([
+    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }] = await Promise.all([
       supabase
         .from('clientes')
-        .select('id, nombre, telefono, email, fecha_nacimiento, alergias')
+        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias')
         .eq('negocio_id', profile.negocio_id)
         .order('nombre'),
       supabase
@@ -232,6 +235,11 @@ export default function ClientesWeb() {
         .from('profesionales')
         .select('id, nombre, color')
         .eq('negocio_id', profile.negocio_id),
+      supabase
+        .from('fichas_tecnicas_color')
+        .select('*')
+        .eq('negocio_id', profile.negocio_id)
+        .order('created_at', { ascending: false }),
     ]);
 
     const enrichedClients = (clts ?? []).map((cl: any) => {
@@ -262,6 +270,7 @@ export default function ClientesWeb() {
     setCitas(citsData ?? []);
     setServicios(srvData ?? []);
     setProfesionales(profData ?? []);
+    setFichasTecnicas(fichasData ?? []);
     // Si llega clienteId por URL, pre-seleccionar ese; si no, el primero
     const targetId = (params?.clienteId as string | undefined) || null;
     if (targetId && enrichedClients.find((cl) => cl.id === targetId)) {
@@ -534,7 +543,7 @@ export default function ClientesWeb() {
                   setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
                   triggerRefresh();
                 }} />}
-                {activeTab === 'color' && <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} onChanged={async () => { await cargar(); triggerRefresh(); }} />}
+                {activeTab === 'color' && <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} />}
                 {activeTab === 'historial' && <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} />}
               </div>
             ) : (
@@ -554,7 +563,7 @@ export default function ClientesWeb() {
                     }} />
                   </Panel>
                   <Panel title="Color / Química" accent={TOKENS.violet}>
-                    <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} onChanged={async () => { await cargar(); triggerRefresh(); }} />
+                    <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} />
                   </Panel>
                 </div>
 
@@ -739,16 +748,20 @@ function NotasTab({ cliente, onUpdated }: {
   );
 }
 
-// ── Tab: Color/Quimica
-function ColorTab({ cliente, citas, servicios, profesionales, onChanged }: { cliente: Cliente; citas: Cita[]; servicios: any[]; profesionales: any[]; onChanged: () => Promise<void> }) {
-  const [editingCita, setEditingCita] = useState<Cita | null>(null);
+// ── Tab: Color/Quimica (usa fichas_tecnicas_color + fallback a campos legacy en citas)
+function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, negocioId, onChanged }: { cliente: Cliente; citas: Cita[]; servicios: any[]; profesionales: any[]; fichasTecnicas: any[]; negocioId: string; onChanged: () => Promise<void> }) {
+  const [editingFicha, setEditingFicha] = useState<any | null>(null);
   const [showAdd, setShowAdd] = useState(false);
 
   const clientCitas = citas
     .filter((cit) => cit.cliente_id === cliente.id)
     .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime());
 
-  const formulas = clientCitas.filter((cit) => (
+  // Fichas estructuradas de la nueva tabla
+  const fichasCliente = fichasTecnicas.filter((f: any) => f.cliente_id === cliente.id);
+
+  // Formulas legacy (campos texto en citas, para retrocompatibilidad)
+  const formulasLegacy = clientCitas.filter((cit) => (
     (cit.formula_producto && cit.formula_producto.trim()) ||
     (cit.formula_tono && cit.formula_tono.trim()) ||
     (cit.formula_tiempo_min != null) ||
@@ -756,51 +769,142 @@ function ColorTab({ cliente, citas, servicios, profesionales, onChanged }: { cli
     (cit.formula_notas && cit.formula_notas.trim())
   ));
 
+  // Si no tiene fichas estructuradas, mostrar las legacy
+  const usarLegacy = fichasCliente.length === 0 && formulasLegacy.length > 0;
+  const totalFormulas = fichasCliente.length + (usarLegacy ? formulasLegacy.length : 0);
+
   const hasCitas = clientCitas.length > 0;
+
+  const TIPOS_SERVICIO_MAP: Record<string, string> = {
+    coloracion_global: 'Color global', color_raiz: 'Color raiz', mechas: 'Mechas',
+    balayage: 'Balayage', decoloracion: 'Decoloracion', matiz: 'Matiz',
+    bano_color: 'Bano de color', correccion_color: 'Correccion', color_fantasia: 'Color fantasia', otro: 'Otro',
+  };
 
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <div style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600 }}>
-          {formulas.length} {formulas.length === 1 ? 'formula' : 'formulas'} registrada{formulas.length === 1 ? '' : 's'}
+          {totalFormulas} {totalFormulas === 1 ? 'formula' : 'formulas'} registrada{totalFormulas === 1 ? '' : 's'}
         </div>
         <button
           className="m-btn-secondary"
           onClick={() => setShowAdd(true)}
-          disabled={!hasCitas}
-          title={!hasCitas ? 'Necesita al menos una cita para asociar la formula' : ''}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: hasCitas ? TOKENS.text : TOKENS.textTer, borderRadius: 8, cursor: hasCitas ? 'pointer' : 'not-allowed', fontSize: 11, fontWeight: 600 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
         >
-          <Icon name="plus" size={12} color={hasCitas ? TOKENS.text : TOKENS.textTer} />
+          <Icon name="plus" size={12} color={TOKENS.text} />
           Nueva formula
         </button>
       </div>
 
-      {formulas.length === 0 ? (
+      {totalFormulas === 0 ? (
         <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 18, textAlign: 'center' }}>
           <div style={{ display: 'inline-flex', padding: 10, background: 'rgba(139,92,246,0.10)', borderRadius: 999, color: TOKENS.violet, marginBottom: 8 }}>
             <Icon name="droplet" size={20} color={TOKENS.violet} />
           </div>
           <div style={{ fontSize: 12, color: TOKENS.textSec, marginBottom: 4 }}>Sin formulas registradas</div>
-          <div style={{ fontSize: 11, color: TOKENS.textTer }}>{hasCitas ? 'Pulsa "Nueva formula" para anadir una' : 'Crea primero una cita para anadir una formula'}</div>
+          <div style={{ fontSize: 11, color: TOKENS.textTer }}>Pulsa "Nueva formula" para anadir una</div>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {formulas.map((cit) => {
-            const fecha = new Date(cit.inicio);
+          {/* Fichas estructuradas (nueva tabla) */}
+          {fichasCliente.map((ficha: any) => {
+            const fecha = new Date(ficha.created_at);
             const fechaStr = fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-            const srv = servicios.find((s) => s.id === cit.servicio_id);
-            const prof = profesionales.find((p) => p.id === cit.profesional_id);
+            const prof = profesionales.find((p: any) => p.id === ficha.profesional_id);
+            const tipoLabel = TIPOS_SERVICIO_MAP[ficha.tipo_servicio] || ficha.tipo_servicio;
+            const formulaArr = Array.isArray(ficha.formula) ? ficha.formula : [];
+
             return (
               <div
-                key={cit.id}
-                onClick={() => setEditingCita(cit)}
+                key={ficha.id}
+                onClick={() => setEditingFicha(ficha)}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(139,92,246,0.40)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = 'translateY(0)'; }}
                 style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 12, cursor: 'pointer', transition: 'transform 0.15s ease, border-color 0.15s ease' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.violet, letterSpacing: 0.4, textTransform: 'uppercase' }}>{fechaStr}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.violet, letterSpacing: 0.4, textTransform: 'uppercase' }}>{fechaStr}</span>
+                    <Pill color={TOKENS.violet}>{tipoLabel}</Pill>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {prof && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: TOKENS.textSec }}>
+                        <span style={{ width: 6, height: 6, borderRadius: 3, background: prof.color }} />
+                        {prof.nombre}
+                      </div>
+                    )}
+                    <Icon name="edit" size={11} color={TOKENS.textTer} />
+                  </div>
+                </div>
+
+                {/* Formula estructurada */}
+                {formulaArr.length > 0 && (
+                  <div style={{ background: TOKENS.bgCardHi, borderRadius: 8, padding: '8px 10px', marginBottom: 8, fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: 9, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 4 }}>Formula</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text }}>
+                      {formulaArr.map((f: any) => `${f.numero || '?'} (${f.gramos || '?'}g)`).join(' + ')}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {ficha.marca_producto && <FieldKV label="Marca" value={ficha.marca_producto} />}
+                  {ficha.oxidante_volumen && <FieldKV label="Oxidante" value={`${ficha.oxidante_volumen} vol${ficha.oxidante_proporcion ? ` (${ficha.oxidante_proporcion})` : ''}`} />}
+                  {ficha.tiempo_exposicion_min && <FieldKV label="Tiempo" value={`${ficha.tiempo_exposicion_min} min`} />}
+                  {ficha.base_natural && <FieldKV label="Base natural" value={ficha.base_natural} />}
+                  {ficha.color_previo && <FieldKV label="Color previo" value={ficha.color_previo} />}
+                  {ficha.porcentaje_canas != null && <FieldKV label="Canas" value={`${ficha.porcentaje_canas}%`} />}
+                  {ficha.resultado_color && <FieldKV label="Resultado" value={ficha.resultado_color} full />}
+                  {ficha.resultado_notas && <FieldKV label="Notas" value={ficha.resultado_notas} full />}
+                </div>
+
+                {ficha.tecnica_aplicacion && ficha.tecnica_aplicacion.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
+                    {ficha.tecnica_aplicacion.map((t: string) => (
+                      <Pill key={t} color={TOKENS.cyan}>{t}</Pill>
+                    ))}
+                  </div>
+                )}
+
+                {ficha.incidencias && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '8px 10px', background: TOKENS.dangerSoft, border: `1px solid rgba(239,68,68,0.30)`, borderRadius: 8, marginTop: 8, fontSize: 11, color: TOKENS.danger }}>
+                    <Icon name="alert" size={12} color={TOKENS.danger} />
+                    <span>{ficha.incidencias}</span>
+                  </div>
+                )}
+
+                {ficha.resultado_satisfactorio != null && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 4, background: ficha.resultado_satisfactorio ? TOKENS.success : TOKENS.warning }} />
+                    <span style={{ fontSize: 10, color: ficha.resultado_satisfactorio ? TOKENS.success : TOKENS.warning, fontWeight: 600 }}>
+                      {ficha.resultado_satisfactorio ? 'Resultado satisfactorio' : 'Resultado a revisar'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Formulas legacy (retrocompatibilidad) */}
+          {usarLegacy && formulasLegacy.map((cit) => {
+            const fecha = new Date(cit.inicio);
+            const fechaStr = fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+            const srv = servicios.find((s: any) => s.id === cit.servicio_id);
+            const prof = profesionales.find((p: any) => p.id === cit.profesional_id);
+            return (
+              <div
+                key={cit.id}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(139,92,246,0.40)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = 'translateY(0)'; }}
+                style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 12, transition: 'transform 0.15s ease, border-color 0.15s ease' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.violet, letterSpacing: 0.4, textTransform: 'uppercase' }}>{fechaStr}</div>
+                    <Pill color={TOKENS.textTer}>Legacy</Pill>
+                  </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {prof && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: TOKENS.textSec }}>
@@ -825,181 +929,263 @@ function ColorTab({ cliente, citas, servicios, profesionales, onChanged }: { cli
         </div>
       )}
 
-      {(editingCita || showAdd) && (
-        <FormulaModal
-          mode={editingCita ? 'edit' : 'add'}
-          cita={editingCita}
+      {(editingFicha || showAdd) && (
+        <FichaColorModal
+          mode={editingFicha ? 'edit' : 'add'}
+          ficha={editingFicha}
+          clienteId={cliente.id}
+          negocioId={negocioId}
           citasCliente={clientCitas}
           servicios={servicios}
           profesionales={profesionales}
-          onClose={() => { setEditingCita(null); setShowAdd(false); }}
-          onSaved={async () => { setEditingCita(null); setShowAdd(false); await onChanged(); }}
+          onClose={() => { setEditingFicha(null); setShowAdd(false); }}
+          onSaved={async () => { setEditingFicha(null); setShowAdd(false); await onChanged(); }}
         />
       )}
     </>
   );
 }
 
-function FormulaModal({ mode, cita, citasCliente, servicios, profesionales, onClose, onSaved }: {
+function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, servicios, profesionales, onClose, onSaved }: {
   mode: 'add' | 'edit';
-  cita: Cita | null;
+  ficha: any | null;
+  clienteId: string;
+  negocioId: string;
   citasCliente: Cita[];
   servicios: any[];
   profesionales: any[];
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
-  // Para "add", pre-seleccionar cita mas reciente sin formula (si existe), si no la mas reciente
-  const defaultCitaId = (() => {
-    if (mode === 'edit' && cita) return cita.id;
-    if (citasCliente.length === 0) return '';
-    const sinFormula = citasCliente.find((c) => !(
-      (c.formula_producto && c.formula_producto.trim()) ||
-      (c.formula_tono && c.formula_tono.trim()) ||
-      (c.formula_tiempo_min != null) ||
-      (c.formula_resultado && c.formula_resultado.trim()) ||
-      (c.formula_notas && c.formula_notas.trim())
-    ));
-    return (sinFormula ?? citasCliente[0]).id;
-  })();
+  const TIPOS_SERVICIO = [
+    { key: 'coloracion_global', label: 'Color global' }, { key: 'color_raiz', label: 'Color raiz' },
+    { key: 'mechas', label: 'Mechas' }, { key: 'balayage', label: 'Balayage' },
+    { key: 'decoloracion', label: 'Decoloracion' }, { key: 'matiz', label: 'Matiz' },
+    { key: 'bano_color', label: 'Bano de color' }, { key: 'correccion_color', label: 'Correccion' },
+    { key: 'color_fantasia', label: 'Color fantasia' }, { key: 'otro', label: 'Otro' },
+  ];
 
-  const [citaId, setCitaId] = useState<string>(defaultCitaId);
-  const targetCita = citasCliente.find((c) => c.id === citaId) ?? cita ?? null;
+  const TECNICAS = ['Pincel', 'Peine', 'Mano', 'Papel meche', 'Gorro', 'Balayage libre', 'Foilyage'];
+  const OXIDANTES_VOL = [10, 20, 30, 40];
 
-  const [producto, setProducto] = useState(cita?.formula_producto ?? '');
-  const [tono, setTono] = useState(cita?.formula_tono ?? '');
-  const [tiempo, setTiempo] = useState(cita?.formula_tiempo_min != null ? String(cita.formula_tiempo_min) : '');
-  const [resultado, setResultado] = useState(cita?.formula_resultado ?? '');
-  const [notasFormula, setNotasFormula] = useState(cita?.formula_notas ?? '');
+  const [tipoServicio, setTipoServicio] = useState(ficha?.tipo_servicio ?? 'coloracion_global');
+  const [marcaProducto, setMarcaProducto] = useState(ficha?.marca_producto ?? '');
+  const [formulaEntries, setFormulaEntries] = useState<{ numero: string; gramos: string }[]>(
+    Array.isArray(ficha?.formula) && ficha.formula.length > 0
+      ? ficha.formula.map((f: any) => ({ numero: f.numero ?? '', gramos: String(f.gramos ?? '') }))
+      : [{ numero: '', gramos: '' }]
+  );
+  const [oxidanteVol, setOxidanteVol] = useState(ficha?.oxidante_volumen != null ? String(ficha.oxidante_volumen) : '');
+  const [oxidanteProp, setOxidanteProp] = useState(ficha?.oxidante_proporcion ?? '');
+  const [tiempoExp, setTiempoExp] = useState(ficha?.tiempo_exposicion_min != null ? String(ficha.tiempo_exposicion_min) : '');
+  const [tecnicas, setTecnicas] = useState<string[]>(ficha?.tecnica_aplicacion ?? []);
+  const [baseNatural, setBaseNatural] = useState(ficha?.base_natural ?? '');
+  const [colorPrevio, setColorPrevio] = useState(ficha?.color_previo ?? '');
+  const [porcCanas, setPorcCanas] = useState(ficha?.porcentaje_canas != null ? String(ficha.porcentaje_canas) : '');
+  const [resultadoColor, setResultadoColor] = useState(ficha?.resultado_color ?? '');
+  const [satisfactorio, setSatisfactorio] = useState<boolean | null>(ficha?.resultado_satisfactorio ?? null);
+  const [resultadoNotas, setResultadoNotas] = useState(ficha?.resultado_notas ?? '');
+  const [incidencias, setIncidencias] = useState(ficha?.incidencias ?? '');
+  const [profesionalId, setProfesionalId] = useState(ficha?.profesional_id ?? '');
+  const [citaId, setCitaId] = useState(ficha?.cita_id ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Si en modo "add" cambia la cita seleccionada, prefill desde esa cita
-  useEffect(() => {
-    if (mode === 'add' && targetCita) {
-      setProducto(targetCita.formula_producto ?? '');
-      setTono(targetCita.formula_tono ?? '');
-      setTiempo(targetCita.formula_tiempo_min != null ? String(targetCita.formula_tiempo_min) : '');
-      setResultado(targetCita.formula_resultado ?? '');
-      setNotasFormula(targetCita.formula_notas ?? '');
-    }
-  }, [citaId]);
+  function addFormulaEntry() { setFormulaEntries([...formulaEntries, { numero: '', gramos: '' }]); }
+  function removeFormulaEntry(i: number) { setFormulaEntries(formulaEntries.filter((_, idx) => idx !== i)); }
+  function updateFormulaEntry(i: number, field: 'numero' | 'gramos', val: string) {
+    const copy = [...formulaEntries];
+    copy[i] = { ...copy[i], [field]: val };
+    setFormulaEntries(copy);
+  }
+
+  function toggleTecnica(t: string) {
+    setTecnicas(tecnicas.includes(t) ? tecnicas.filter((x) => x !== t) : [...tecnicas, t]);
+  }
 
   async function handleSave() {
-    if (!citaId) {
-      setError('Selecciona una cita');
-      return;
+    if (!tipoServicio) { setError('Selecciona un tipo de servicio'); return; }
+    setLoading(true);
+    setError('');
+
+    const formulaJson = formulaEntries
+      .filter((f) => f.numero.trim())
+      .map((f) => ({ numero: f.numero.trim(), gramos: f.gramos.trim() ? parseFloat(f.gramos.trim()) : null }));
+
+    const tiempoNum = tiempoExp.trim() ? parseInt(tiempoExp.trim(), 10) : null;
+    const oxVol = oxidanteVol.trim() ? parseInt(oxidanteVol.trim(), 10) : null;
+    const canasNum = porcCanas.trim() ? parseInt(porcCanas.trim(), 10) : null;
+
+    const row: Record<string, any> = {
+      negocio_id: negocioId,
+      cliente_id: clienteId,
+      tipo_servicio: tipoServicio,
+      marca_producto: marcaProducto.trim() || null,
+      formula: formulaJson.length > 0 ? formulaJson : [],
+      oxidante_volumen: oxVol,
+      oxidante_proporcion: oxidanteProp.trim() || null,
+      tiempo_exposicion_min: tiempoNum != null && !isNaN(tiempoNum) ? tiempoNum : null,
+      tecnica_aplicacion: tecnicas,
+      base_natural: baseNatural.trim() || null,
+      color_previo: colorPrevio.trim() || null,
+      porcentaje_canas: canasNum != null && !isNaN(canasNum) ? canasNum : null,
+      resultado_color: resultadoColor.trim() || null,
+      resultado_satisfactorio: satisfactorio,
+      resultado_notas: resultadoNotas.trim() || null,
+      incidencias: incidencias.trim() || null,
+      profesional_id: profesionalId || null,
+      cita_id: citaId || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    let err;
+    if (mode === 'edit' && ficha?.id) {
+      ({ error: err } = await supabase.from('fichas_tecnicas_color').update(row).eq('id', ficha.id));
+    } else {
+      ({ error: err } = await supabase.from('fichas_tecnicas_color').insert(row));
     }
-    setLoading(true);
-    setError('');
-    const tiempoNum = tiempo.trim() ? parseInt(tiempo.trim(), 10) : null;
-    const { error: err } = await supabase
-      .from('citas')
-      .update({
-        formula_producto: producto.trim() || null,
-        formula_tono: tono.trim() || null,
-        formula_tiempo_min: tiempoNum != null && !isNaN(tiempoNum) ? tiempoNum : null,
-        formula_resultado: resultado.trim() || null,
-        formula_notas: notasFormula.trim() || null,
-      })
-      .eq('id', citaId);
     setLoading(false);
     if (err) { setError(err.message); return; }
     await onSaved();
   }
 
-  async function handleClear() {
-    if (!citaId) return;
+  async function handleDelete() {
+    if (!ficha?.id) return;
     setLoading(true);
     setError('');
-    const { error: err } = await supabase
-      .from('citas')
-      .update({
-        formula_producto: null,
-        formula_tono: null,
-        formula_tiempo_min: null,
-        formula_resultado: null,
-        formula_notas: null,
-      })
-      .eq('id', citaId);
+    const { error: err } = await supabase.from('fichas_tecnicas_color').delete().eq('id', ficha.id);
     setLoading(false);
     if (err) { setError(err.message); return; }
     await onSaved();
   }
 
-  const targetSrv = targetCita ? servicios.find((s) => s.id === targetCita.servicio_id) : null;
-  const targetProf = targetCita ? profesionales.find((p) => p.id === targetCita.profesional_id) : null;
-  const targetFecha = targetCita ? new Date(targetCita.inicio) : null;
+  const selectStyle: React.CSSProperties = { width: '100%', padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', cursor: 'pointer' };
+  const textareaStyle: React.CSSProperties = { width: '100%', minHeight: 54, padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, outline: 'none', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' };
 
-  return (
+  return createPortal(
     <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
-      <div className="m-modal-enter" style={{ width: 460, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,92,246,0.18)' }}>
+      <div className="m-modal-enter" style={{ width: 520, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,92,246,0.18)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(139,92,246,0.14)', color: TOKENS.violet, display: 'grid', placeItems: 'center' }}>
               <Icon name="droplet" size={16} color={TOKENS.violet} />
             </div>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: TOKENS.text }}>{mode === 'edit' ? 'Editar formula' : 'Nueva formula'}</h3>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: TOKENS.text }}>{mode === 'edit' ? 'Editar ficha de color' : 'Nueva ficha de color'}</h3>
           </div>
           <button className="m-btn-icon m-btn-icon-close" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
             <Icon name="x" size={14} color={TOKENS.textSec} />
           </button>
         </div>
 
-        {/* Cita asociada */}
-        {mode === 'edit' && targetCita && (
-          <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: 10, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Icon name="calendar" size={14} color={TOKENS.textSec} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>
-                {targetSrv?.nombre || 'Servicio'}{targetFecha ? ' · ' + targetFecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
-              </div>
-              {targetProf && <div style={{ fontSize: 10, color: TOKENS.textTer, marginTop: 2 }}>{targetProf.nombre}</div>}
-            </div>
+        {/* Seccion: Servicio y profesional */}
+        <SectionLabel>Servicio</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <Field label="Tipo de servicio">
+            <select value={tipoServicio} onChange={(e) => setTipoServicio(e.target.value)} style={selectStyle}>
+              {TIPOS_SERVICIO.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </select>
+          </Field>
+          <Field label="Profesional">
+            <select value={profesionalId} onChange={(e) => setProfesionalId(e.target.value)} style={selectStyle}>
+              <option value="">Sin asignar</option>
+              {profesionales.map((p: any) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+            </select>
+          </Field>
+        </div>
+        {citasCliente.length > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <Field label="Asociar a cita (opcional)">
+              <select value={citaId} onChange={(e) => setCitaId(e.target.value)} style={selectStyle}>
+                <option value="">Sin cita asociada</option>
+                {citasCliente.map((cit) => {
+                  const srv = servicios.find((s: any) => s.id === cit.servicio_id);
+                  const fecha = new Date(cit.inicio).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                  return <option key={cit.id} value={cit.id}>{fecha} - {srv?.nombre || 'Servicio'}</option>;
+                })}
+              </select>
+            </Field>
           </div>
         )}
 
-        {mode === 'add' && (
-          <Field label="Asociar a cita">
-            <select
-              value={citaId}
-              onChange={(e) => setCitaId(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', cursor: 'pointer' }}
-            >
-              {citasCliente.map((cit) => {
-                const srv = servicios.find((s) => s.id === cit.servicio_id);
-                const fecha = new Date(cit.inicio).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-                const hasFormula = !!(cit.formula_producto || cit.formula_tono || cit.formula_tiempo_min != null || cit.formula_resultado || cit.formula_notas);
+        {/* Seccion: Formula */}
+        <SectionLabel>Formula</SectionLabel>
+        <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
+          <Field label="Marca / producto"><Input value={marcaProducto} onChange={setMarcaProducto} placeholder="Ej. Wella Koleston, L'Oreal Majirel" /></Field>
+          <Field label="Mezcla de color">
+            {formulaEntries.map((entry, i) => (
+              <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 4, alignItems: 'center' }}>
+                <Input value={entry.numero} onChange={(v) => updateFormulaEntry(i, 'numero', v)} placeholder="Numero/tono (ej. 7/0)" style={{ flex: 2 }} />
+                <Input value={entry.gramos} onChange={(v) => updateFormulaEntry(i, 'gramos', v)} placeholder="g" style={{ flex: 1 }} />
+                {formulaEntries.length > 1 && (
+                  <button onClick={() => removeFormulaEntry(i)} style={{ width: 28, height: 28, borderRadius: 6, background: 'transparent', border: `1px solid ${TOKENS.border}`, color: TOKENS.textTer, cursor: 'pointer', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <Icon name="x" size={10} color={TOKENS.textTer} />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button onClick={addFormulaEntry} style={{ padding: '4px 10px', background: 'transparent', border: `1px dashed ${TOKENS.border}`, borderRadius: 8, color: TOKENS.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', marginTop: 2 }}>
+              + Anadir tono
+            </button>
+          </Field>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            <Field label="Oxidante (vol)">
+              <select value={oxidanteVol} onChange={(e) => setOxidanteVol(e.target.value)} style={selectStyle}>
+                <option value="">--</option>
+                {OXIDANTES_VOL.map((v) => <option key={v} value={String(v)}>{v} vol</option>)}
+              </select>
+            </Field>
+            <Field label="Proporcion"><Input value={oxidanteProp} onChange={setOxidanteProp} placeholder="Ej. 1:1.5" /></Field>
+            <Field label="Tiempo (min)"><Input value={tiempoExp} onChange={setTiempoExp} placeholder="35" /></Field>
+          </div>
+        </div>
+
+        {/* Seccion: Estado del cabello */}
+        <SectionLabel>Estado del cabello</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <Field label="Base natural"><Input value={baseNatural} onChange={setBaseNatural} placeholder="Ej. 5" /></Field>
+          <Field label="Color previo"><Input value={colorPrevio} onChange={setColorPrevio} placeholder="Ej. 7/3" /></Field>
+          <Field label="% canas"><Input value={porcCanas} onChange={setPorcCanas} placeholder="30" /></Field>
+        </div>
+
+        {/* Seccion: Tecnica */}
+        <SectionLabel>Tecnica de aplicacion</SectionLabel>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+          {TECNICAS.map((t) => {
+            const active = tecnicas.includes(t);
+            return (
+              <button
+                key={t}
+                onClick={() => toggleTecnica(t)}
+                style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: active ? '1px solid rgba(139,92,246,0.50)' : `1px solid ${TOKENS.border}`, background: active ? 'rgba(139,92,246,0.14)' : TOKENS.bgCard, color: active ? TOKENS.violet : TOKENS.textSec, transition: 'all 0.15s ease' }}
+              >
+                {t}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Seccion: Resultado */}
+        <SectionLabel>Resultado</SectionLabel>
+        <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
+          <Field label="Color obtenido"><Input value={resultadoColor} onChange={setResultadoColor} placeholder="Ej. Rubio claro ceniza" /></Field>
+          <Field label="Satisfaccion">
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[{ val: true, label: 'Satisfactorio', color: TOKENS.success }, { val: false, label: 'A revisar', color: TOKENS.warning }].map(({ val, label, color }) => {
+                const active = satisfactorio === val;
                 return (
-                  <option key={cit.id} value={cit.id}>
-                    {fecha} · {srv?.nombre || 'Servicio'}{hasFormula ? ' (sobreescribir formula)' : ''}
-                  </option>
+                  <button
+                    key={label}
+                    onClick={() => setSatisfactorio(active ? null : val)}
+                    style={{ flex: 1, padding: '8px 10px', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: active ? `1px solid ${color}` : `1px solid ${TOKENS.border}`, background: active ? `${color}18` : TOKENS.bgCard, color: active ? color : TOKENS.textSec, transition: 'all 0.15s ease' }}
+                  >
+                    {label}
+                  </button>
                 );
               })}
-            </select>
+            </div>
           </Field>
-        )}
-
-        <div style={{ display: 'grid', gap: 12, marginTop: mode === 'add' ? 12 : 0, marginBottom: 14 }}>
-          <Field label="Producto"><Input value={producto} onChange={setProducto} placeholder="Ej. Wella Koleston 7/0" /></Field>
-          <Field label="Tono / mezcla"><Input value={tono} onChange={setTono} placeholder="Ej. Rubio medio + 9% oxidante 30 vol" /></Field>
-          <Field label="Tiempo de aplicacion (min)"><Input value={tiempo} onChange={setTiempo} placeholder="35" /></Field>
-          <Field label="Resultado">
-            <textarea
-              value={resultado}
-              onChange={(e) => setResultado(e.target.value)}
-              placeholder="Como quedo (cobertura, tono final...)"
-              style={{ width: '100%', minHeight: 60, padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, outline: 'none', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
-            />
-          </Field>
-          <Field label="Notas adicionales">
-            <textarea
-              value={notasFormula}
-              onChange={(e) => setNotasFormula(e.target.value)}
-              placeholder="Observaciones especificas"
-              style={{ width: '100%', minHeight: 60, padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, outline: 'none', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
-            />
-          </Field>
+          <Field label="Notas del resultado"><textarea value={resultadoNotas} onChange={(e) => setResultadoNotas(e.target.value)} placeholder="Observaciones sobre el resultado" style={textareaStyle} /></Field>
+          <Field label="Incidencias (si las hubo)"><textarea value={incidencias} onChange={(e) => setIncidencias(e.target.value)} placeholder="Irritacion, mancha, reaccion..." style={textareaStyle} /></Field>
         </div>
 
         {error && <div style={{ padding: '10px 12px', background: TOKENS.dangerSoft, border: `1px solid rgba(239,68,68,0.30)`, borderRadius: 10, color: TOKENS.danger, fontSize: 12, marginBottom: 12 }}>{error}</div>}
@@ -1008,12 +1194,12 @@ function FormulaModal({ mode, cita, citasCliente, servicios, profesionales, onCl
           {mode === 'edit' ? (
             <button
               className="m-btn-danger"
-              onClick={handleClear}
+              onClick={handleDelete}
               disabled={loading}
               style={{ padding: '9px 14px', background: 'transparent', border: `1px solid rgba(239,68,68,0.35)`, color: TOKENS.danger, borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
               <Icon name="trash" size={14} color={TOKENS.danger} />
-              Limpiar formula
+              Eliminar ficha
             </button>
           ) : <span />}
           <div style={{ display: 'flex', gap: 8 }}>
@@ -1026,6 +1212,15 @@ function FormulaModal({ mode, cita, citasCliente, servicios, profesionales, onCl
           </div>
         </div>
       </div>
+    </div>,
+    document.body
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontSize: 10, letterSpacing: 1.2, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 700, marginBottom: 8, marginTop: 4 }}>
+      {children}
     </div>
   );
 }
@@ -1436,7 +1631,7 @@ function Field({ label, labelColor, children }: { label: string; labelColor?: st
   );
 }
 
-function Input({ value, onChange, placeholder, type }: { value: string; onChange: (v: string) => void; placeholder?: string; type?: string }) {
+function Input({ value, onChange, placeholder, type, style: extraStyle }: { value: string; onChange: (v: string) => void; placeholder?: string; type?: string; style?: React.CSSProperties }) {
   return (
     <input
       type={type || 'text'}
@@ -1445,6 +1640,7 @@ function Input({ value, onChange, placeholder, type }: { value: string; onChange
       placeholder={placeholder}
       style={{
         width: '100%',
+        ...extraStyle,
         padding: '10px 12px',
         background: TOKENS.bgCard,
         border: `1px solid ${TOKENS.border}`,

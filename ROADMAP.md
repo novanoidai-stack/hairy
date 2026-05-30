@@ -118,20 +118,20 @@ Una cita puede requerir varios profesionales en secuencia (ej. corte + tinte + s
 
 ---
 
-## Fase 9 -- Metricas e informes -- 0/10
+## Fase 9 -- Metricas e informes -- 10/10
 
 | # | Regla | Descripcion | Estado |
 |---|-------|-------------|--------|
-| 9.1 | M-01 | % ocupacion por profesional / franja horaria / dia semana | Pendiente |
-| 9.2 | M-02 | Tasa de no-shows por profesional / servicio / periodo | Pendiente |
-| 9.3 | M-03 | Tiempo medio de espera entre citas (eficiencia de agenda) | Pendiente |
-| 9.4 | M-04 | % tiempos de reposo aprovechados (citas adicionales metidas) | Pendiente |
-| 9.5 | M-05 | Ingresos por profesional, servicio, clienta, periodo | Pendiente |
-| 9.6 | M-06 | Servicios mas solicitados y combinaciones mas frecuentes | Pendiente |
-| 9.7 | M-07 | Retencion de clientas: frecuencia de visita, tiempo desde ultima cita | Pendiente |
-| 9.8 | M-08 | Comisiones por profesional calculadas automaticamente | Pendiente |
-| 9.9 | -- | Informes exportables (PDF/CSV) | Pendiente |
-| 9.10 | -- | Dashboard visual con KPIs principales en pantalla inicio | Pendiente |
+| 9.1 | M-01 | % ocupacion por profesional / franja horaria / dia semana | Completado |
+| 9.2 | M-02 | Tasa de no-shows por profesional / servicio / periodo | Completado |
+| 9.3 | M-03 | Tiempo medio de espera entre citas (eficiencia de agenda) | Completado |
+| 9.4 | M-04 | % tiempos de reposo aprovechados (citas adicionales metidas) | Completado |
+| 9.5 | M-05 | Ingresos por profesional, servicio, clienta, periodo | Completado |
+| 9.6 | M-06 | Servicios mas solicitados y combinaciones mas frecuentes | Completado |
+| 9.7 | M-07 | Retencion de clientas: frecuencia de visita, tiempo desde ultima cita | Completado |
+| 9.8 | M-08 | Comisiones por profesional calculadas automaticamente | Completado |
+| 9.9 | -- | Informes exportables (PDF/CSV) | Completado |
+| 9.10 | -- | Dashboard visual con KPIs principales en pantalla inicio | Completado |
 
 ---
 

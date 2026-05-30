@@ -4,14 +4,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
+import { getUserProfile, canAccessConfig, canAccessInformes, type UserProfile } from '@/lib/auth';
 
 const tokens = DESIGN_TOKENS;
 
-const NAV_ITEMS = [
-  { label: 'Agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
-  { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes' },
-  { label: 'Equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo' },
-  { label: 'Informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes' },
+const ALL_NAV_ITEMS = [
+  { label: 'Agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)', requiresConfig: false, requiresInformes: false },
+  { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', requiresConfig: false, requiresInformes: false },
+  { label: 'Equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', requiresConfig: false, requiresInformes: false },
+  { label: 'Informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', requiresConfig: false, requiresInformes: true },
 ];
 
 const HOVER_DURATION = 200;
@@ -20,9 +21,18 @@ export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const configActive = pathname.includes('configuracion');
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
-  const navAnimations = useRef(NAV_ITEMS.map(() => new Animated.Value(0))).current;
-  const navHoverAnims = useRef(NAV_ITEMS.map(() => new Animated.Value(0))).current;
+  useEffect(() => {
+    getUserProfile().then(p => setProfile(p));
+  }, []);
+
+  const showConfig = canAccessConfig(profile);
+  const showInformes = canAccessInformes(profile);
+  const NAV_ITEMS = ALL_NAV_ITEMS.filter(item => !item.requiresInformes || showInformes);
+
+  const navAnimations = useRef(ALL_NAV_ITEMS.map(() => new Animated.Value(0))).current;
+  const navHoverAnims = useRef(ALL_NAV_ITEMS.map(() => new Animated.Value(0))).current;
   const configHoverAnim = useRef(new Animated.Value(0)).current;
   const accountScaleAnim = useRef(new Animated.Value(1)).current;
   const badgePulse = useRef(new Animated.Value(1)).current;
@@ -123,6 +133,7 @@ export function Sidebar() {
 
       {/* Bottom section */}
       <View>
+        {showConfig && (
         <Animated.View
           style={{
             transform: [
@@ -146,6 +157,7 @@ export function Sidebar() {
             </TText>
           </TouchableOpacity>
         </Animated.View>
+        )}
 
         {/* Account card */}
         <Animated.View style={{ transform: [{ scale: accountScaleAnim }] }}>

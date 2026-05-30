@@ -39,6 +39,11 @@ interface Profesional {
   citas?: number;
   exp?: string;
   categoria?: string;
+  especialidades?: string[];
+  comision_pct?: number;
+  tipo_relacion?: string;
+  telefono?: string;
+  email?: string;
   ocupacion?: number;
   dayPcts?: number[];
 }
@@ -120,12 +125,16 @@ export default function EquipoWeb() {
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   // Horario editor
   const [editDia, setEditDia] = useState<number | null>(null); // dia_semana DB (0-6)
+  const [editTurno, setEditTurno] = useState<1 | 2>(1);
   const [editHIni, setEditHIni] = useState('09:00');
   const [editHFin, setEditHFin] = useState('18:00');
   const [savingHorario, setSavingHorario] = useState(false);
   // Bloqueo context menu
   const [menuBloqueoId, setMenuBloqueoId] = useState<string | null>(null);
   const [editBloqueo, setEditBloqueo] = useState<any | null>(null);
+  // Card context menu + edit
+  const [menuCardId, setMenuCardId] = useState<string | null>(null);
+  const [editingProf, setEditingProf] = useState<Profesional | null>(null);
 
   useEffect(() => {
     async function cargar() {
@@ -138,7 +147,7 @@ export default function EquipoWeb() {
       const mesFin = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
       const [{ data: profsRaw }, { data: citsData }] = await Promise.all([
-        supabase.from('profesionales').select('id, nombre, color, activo, categoria').eq('negocio_id', negocioId),
+        supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email').eq('negocio_id', negocioId),
         supabase.from('citas').select('id, profesional_id, inicio')
           .eq('negocio_id', negocioId)
           .eq('estado', 'confirmada')
@@ -174,11 +183,17 @@ export default function EquipoWeb() {
     cargar();
   }, []);
 
+  async function toggleActivo(prof: Profesional) {
+    await supabase.from('profesionales').update({ activo: !prof.activo }).eq('id', prof.id);
+    setProfesionales(prev => prev.map(p => p.id === prof.id ? { ...p, activo: !p.activo } : p));
+    setMenuCardId(null);
+  }
+
   async function cargarPanelDerecho(profId?: string) {
     const id = profId ?? selected;
     if (!id) return;
     const [{ data: hor }, { data: bloq }] = await Promise.all([
-      supabase.from('horarios_profesional').select('id, dia_semana, hora_inicio, hora_fin').eq('profesional_id', id),
+      supabase.from('horarios_profesional').select('id, dia_semana, hora_inicio, hora_fin, turno').eq('profesional_id', id),
       supabase.from('bloqueos_profesional').select('id, tipo, inicio, fin, motivo, recurrencia, recurrencia_padre_id')
         .eq('profesional_id', id)
         .gte('fin', new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
@@ -217,15 +232,16 @@ export default function EquipoWeb() {
 
   const DIAS_SEMANA_FULL = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
-  function openEditDia(dbDia: number) {
-    const existing = horarios.find((x) => x.dia_semana === dbDia);
+  function openEditDia(dbDia: number, turno: 1 | 2 = 1) {
+    const existing = horarios.find((x) => x.dia_semana === dbDia && (x.turno ?? 1) === turno);
     if (existing) {
       setEditHIni(fmtHora(existing.hora_inicio));
       setEditHFin(fmtHora(existing.hora_fin));
     } else {
-      setEditHIni('09:00');
-      setEditHFin('18:00');
+      setEditHIni(turno === 2 ? '16:00' : '09:00');
+      setEditHFin(turno === 2 ? '20:00' : '14:00');
     }
+    setEditTurno(turno);
     setEditDia(dbDia);
   }
 
@@ -245,7 +261,7 @@ export default function EquipoWeb() {
   async function guardarHorario() {
     if (!selected || editDia === null) return;
     setSavingHorario(true);
-    const existing = horarios.find((x) => x.dia_semana === editDia);
+    const existing = horarios.find((x) => x.dia_semana === editDia && (x.turno ?? 1) === editTurno);
     if (existing) {
       await supabase.from('horarios_profesional')
         .update({ hora_inicio: editHIni, hora_fin: editHFin })
@@ -254,20 +270,33 @@ export default function EquipoWeb() {
       await supabase.from('horarios_profesional').insert({
         profesional_id: selected,
         dia_semana: editDia,
+        turno: editTurno,
         hora_inicio: editHIni,
         hora_fin: editHFin,
       });
     }
     setSavingHorario(false);
+    setEditDia(null);
+    await cargarPanelDerecho();
+  }
+
+  async function cerrarTurno() {
+    if (!selected || editDia === null) return;
+    const existing = horarios.find((x) => x.dia_semana === editDia && (x.turno ?? 1) === editTurno);
+    if (existing) {
+      await supabase.from('horarios_profesional').delete().eq('id', existing.id);
+    }
+    setEditDia(null);
     await cargarPanelDerecho();
   }
 
   async function cerrarDia() {
     if (!selected || editDia === null) return;
-    const existing = horarios.find((x) => x.dia_semana === editDia);
-    if (existing) {
-      await supabase.from('horarios_profesional').delete().eq('id', existing.id);
+    const diaHorarios = horarios.filter((x) => x.dia_semana === editDia);
+    for (const h of diaHorarios) {
+      await supabase.from('horarios_profesional').delete().eq('id', h.id);
     }
+    setEditDia(null);
     await cargarPanelDerecho();
   }
 
@@ -311,7 +340,7 @@ export default function EquipoWeb() {
       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 420px', overflow: 'hidden' }}>
         {/* Cards grid */}
         <div style={{ overflowY: 'auto', padding: 24 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridAutoRows: '1fr', gap: 16 }}>
+          <div onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridAutoRows: '1fr', gap: 16 }}>
             {profesionales.map((p, idx) => {
               const isSel = p.id === selected;
               return (
@@ -363,25 +392,45 @@ export default function EquipoWeb() {
                         {CATEGORIAS_PROF.find(c => c.value === p.categoria)?.label || 'Oficial'}
                       </div>
                     </div>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(148,163,184,0.12)'; e.currentTarget.style.borderColor = 'rgba(148,163,184,0.3)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.border; }}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 8,
-                        background: 'transparent',
-                        border: `1px solid ${TOKENS.border}`,
-                        color: TOKENS.textTer,
-                        display: 'grid',
-                        placeItems: 'center',
-                        cursor: 'pointer',
-                        transition: 'background 0.15s ease, border-color 0.15s ease',
-                      }}
-                    >
-                      <Icon name="moreVertical" size={16} color={TOKENS.textTer} />
-                    </button>
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setMenuCardId(menuCardId === p.id ? null : p.id); }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(148,163,184,0.12)'; e.currentTarget.style.borderColor = 'rgba(148,163,184,0.3)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.border; }}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          background: 'transparent',
+                          border: `1px solid ${TOKENS.border}`,
+                          color: TOKENS.textTer,
+                          display: 'grid',
+                          placeItems: 'center',
+                          cursor: 'pointer',
+                          transition: 'background 0.15s ease, border-color 0.15s ease',
+                        }}
+                      >
+                        <Icon name="moreVertical" size={16} color={TOKENS.textTer} />
+                      </button>
+                      {menuCardId === p.id && (
+                        <div style={{ position: 'absolute', right: 0, top: 32, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 10, padding: 4, minWidth: 170, zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', animation: 'scaleIn 0.15s ease' }}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setEditingProf(p); setMenuCardId(null); }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.12)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                            style={{ width: '100%', padding: '8px 12px', background: 'transparent', border: 'none', borderRadius: 7, color: TOKENS.text, fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
+                            <Icon name="edit" size={14} color={TOKENS.textSec} /> Editar profesional
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); toggleActivo(p); }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = p.activo ? 'rgba(239,68,68,0.10)' : 'rgba(16,185,129,0.10)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                            style={{ width: '100%', padding: '8px 12px', background: 'transparent', border: 'none', borderRadius: 7, color: p.activo ? '#f87171' : TOKENS.success, fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
+                            {p.activo ? 'Desactivar' : 'Activar'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
@@ -410,6 +459,17 @@ export default function EquipoWeb() {
                       );
                     })}
                   </div>
+
+                  {p.especialidades && p.especialidades.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 10 }}>
+                      {p.especialidades.slice(0, 3).map((esp: string) => (
+                        <span key={esp} style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.20)', color: '#06b6d4', fontSize: 9, fontWeight: 600 }}>{esp}</span>
+                      ))}
+                      {p.especialidades.length > 3 && (
+                        <span style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(148,163,184,0.06)', color: TOKENS.textTer, fontSize: 9, fontWeight: 600 }}>+{p.especialidades.length - 3}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -465,9 +525,41 @@ export default function EquipoWeb() {
               </div>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>{profSel.nombre}</div>
-                <div style={{ fontSize: 11, color: TOKENS.textSec }}>Profesional</div>
+                <div style={{ fontSize: 11, color: TOKENS.textSec }}>{CATEGORIAS_PROF.find(c => c.value === profSel.categoria)?.label || 'Oficial'}{profSel.tipo_relacion === 'autonomo' ? ' (Autonomo)' : profSel.tipo_relacion === 'formacion' ? ' (En formacion)' : ''}</div>
               </div>
             </div>
+
+            {/* Info del profesional */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+              {profSel.comision_pct != null && profSel.comision_pct > 0 && (
+                <div style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(16,185,129,0.08)', fontSize: 11, fontWeight: 600, color: TOKENS.success }}>
+                  Comision: {profSel.comision_pct}%
+                </div>
+              )}
+              {profSel.telefono && (
+                <div style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.06)', fontSize: 11, color: TOKENS.textSec }}>
+                  {profSel.telefono}
+                </div>
+              )}
+              {profSel.email && (
+                <div style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.06)', fontSize: 11, color: TOKENS.textSec }}>
+                  {profSel.email}
+                </div>
+              )}
+            </div>
+
+            {/* Especialidades */}
+            {profSel.especialidades && profSel.especialidades.length > 0 && (
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 }}>Especialidades</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {profSel.especialidades.map((esp: string) => (
+                    <span key={esp} style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(6,182,212,0.10)', border: '1px solid rgba(6,182,212,0.25)', color: '#06b6d4', fontSize: 11, fontWeight: 600 }}>{esp}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={{ fontSize: 12, color: TOKENS.textSec, marginBottom: 18 }}>Disponibilidad y bloqueos en el calendario.</div>
 
             {/* Horario base */}
@@ -475,25 +567,58 @@ export default function EquipoWeb() {
               <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 14, display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4 }}>
                 {DIAS_SEMANA.map((dia, i) => {
                   const dbDia = i === 6 ? 0 : i + 1;
-                  const h = horarios.find((x) => x.dia_semana === dbDia);
-                  const label = h ? `${fmtHora(h.hora_inicio)}-${fmtHora(h.hora_fin)}` : null;
+                  const dayH = horarios.filter((x) => x.dia_semana === dbDia).sort((a, b) => (a.turno ?? 1) - (b.turno ?? 1));
+                  const hasH = dayH.length > 0;
                   const isEditing = editDia === dbDia;
                   return (
                     <div key={i}
                       onClick={() => openEditDia(dbDia)}
-                      onMouseEnter={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.background = label ? 'rgba(99,102,241,0.18)' : 'rgba(148,163,184,0.1)'; }}}
-                      onMouseLeave={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = isEditing ? 'rgba(99,102,241,0.22)' : label ? 'rgba(99,102,241,0.10)' : 'rgba(148,163,184,0.05)'; }}}
-                      style={{ textAlign: 'center', padding: 6, borderRadius: 8, background: isEditing ? 'rgba(99,102,241,0.22)' : label ? 'rgba(99,102,241,0.10)' : 'rgba(148,163,184,0.05)', transition: 'transform 0.15s ease, background 0.15s ease', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: isEditing ? TOKENS.text : label ? TOKENS.primaryHi : TOKENS.textTer }}>{dia}</div>
-                      <div style={{ fontSize: 9, color: label ? TOKENS.textSec : TOKENS.textTer, marginTop: 2 }}>{label || 'Cerrado'}</div>
+                      onMouseEnter={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.background = hasH ? 'rgba(99,102,241,0.18)' : 'rgba(148,163,184,0.1)'; }}}
+                      onMouseLeave={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = isEditing ? 'rgba(99,102,241,0.22)' : hasH ? 'rgba(99,102,241,0.10)' : 'rgba(148,163,184,0.05)'; }}}
+                      style={{ textAlign: 'center', padding: 6, borderRadius: 8, background: isEditing ? 'rgba(99,102,241,0.22)' : hasH ? 'rgba(99,102,241,0.10)' : 'rgba(148,163,184,0.05)', transition: 'transform 0.15s ease, background 0.15s ease', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: isEditing ? TOKENS.text : hasH ? TOKENS.primaryHi : TOKENS.textTer }}>{dia}</div>
+                      {dayH.length === 0 && <div style={{ fontSize: 9, color: TOKENS.textTer, marginTop: 2 }}>Cerrado</div>}
+                      {dayH.map((h, hi) => (
+                        <div key={hi} style={{ fontSize: dayH.length > 1 ? 8 : 9, color: TOKENS.textSec, marginTop: hi === 0 ? 2 : 0, lineHeight: 1.3 }}>
+                          {fmtHora(h.hora_inicio)}-{fmtHora(h.hora_fin)}
+                        </div>
+                      ))}
                     </div>
                   );
                 })}
               </div>
               {/* Editor inline de horario */}
-              {editDia !== null && (
+              {editDia !== null && (() => {
+                const dayTurnos = horarios.filter((x) => x.dia_semana === editDia);
+                const hasTurno2 = dayTurnos.some((x) => (x.turno ?? 1) === 2);
+                const currentTurnoExists = dayTurnos.some((x) => (x.turno ?? 1) === editTurno);
+                return (
                 <div style={{ marginTop: 10, padding: 14, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 12, animation: 'scaleIn 0.2s ease' }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text, marginBottom: 10 }}>{DIAS_SEMANA_FULL[editDia]}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text }}>{DIAS_SEMANA_FULL[editDia]}</div>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <button onClick={() => openEditDia(editDia!, 1)}
+                        style={{ padding: '3px 8px', fontSize: 10, fontWeight: 600, borderRadius: 6, border: `1px solid ${editTurno === 1 ? TOKENS.primary : TOKENS.border}`, background: editTurno === 1 ? TOKENS.primarySoft : 'transparent', color: editTurno === 1 ? TOKENS.primaryHi : TOKENS.textTer, cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                        Turno 1
+                      </button>
+                      {hasTurno2 ? (
+                        <button onClick={() => openEditDia(editDia!, 2)}
+                          style={{ padding: '3px 8px', fontSize: 10, fontWeight: 600, borderRadius: 6, border: `1px solid ${editTurno === 2 ? TOKENS.primary : TOKENS.border}`, background: editTurno === 2 ? TOKENS.primarySoft : 'transparent', color: editTurno === 2 ? TOKENS.primaryHi : TOKENS.textTer, cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                          Turno 2
+                        </button>
+                      ) : editTurno !== 2 ? (
+                        <button onClick={() => openEditDia(editDia!, 2)}
+                          style={{ padding: '3px 8px', fontSize: 10, fontWeight: 600, borderRadius: 6, border: `1px dashed ${TOKENS.border}`, background: 'transparent', color: TOKENS.textTer, cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                          + Turno 2
+                        </button>
+                      ) : (
+                        <button onClick={() => openEditDia(editDia!, 2)}
+                          style={{ padding: '3px 8px', fontSize: 10, fontWeight: 600, borderRadius: 6, border: `1px solid ${TOKENS.primary}`, background: TOKENS.primarySoft, color: TOKENS.primaryHi, cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                          Turno 2
+                        </button>
+                      )}
+                    </div>
+                  </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
                     <div>
                       <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Entrada</div>
@@ -520,15 +645,21 @@ export default function EquipoWeb() {
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button onClick={guardarHorario} disabled={savingHorario}
                       style={{ flex: 1, padding: '7px 0', background: TOKENS.primary, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                       {savingHorario ? 'Guardando...' : 'Guardar'}
                     </button>
-                    {horarios.find((x) => x.dia_semana === editDia) && (
+                    {currentTurnoExists && hasTurno2 && (
+                      <button onClick={cerrarTurno}
+                        style={{ padding: '7px 12px', background: 'rgba(239,68,68,0.08)', color: '#f87171', border: `1px solid rgba(239,68,68,0.18)`, borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                        Quitar turno
+                      </button>
+                    )}
+                    {dayTurnos.length > 0 && (
                       <button onClick={cerrarDia}
-                        style={{ padding: '7px 12px', background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: `1px solid rgba(239,68,68,0.25)`, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                        Cerrar dia
+                        style={{ padding: '7px 12px', background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: `1px solid rgba(239,68,68,0.25)`, borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                        {hasTurno2 ? 'Cerrar dia completo' : 'Cerrar dia'}
                       </button>
                     )}
                     <button onClick={() => setEditDia(null)}
@@ -537,7 +668,8 @@ export default function EquipoWeb() {
                     </button>
                   </div>
                 </div>
-              )}
+                );
+              })()}
             </Section>
 
             {/* Bloques header */}
@@ -668,6 +800,7 @@ export default function EquipoWeb() {
         )}
 
       {showNewProf && <NewProfModal onClose={() => setShowNewProf(false)} negocioId={negocioId} onCreated={() => { setShowNewProf(false); location.reload(); }} />}
+      {editingProf && <EditProfModal prof={editingProf} onClose={() => setEditingProf(null)} onSaved={() => { setEditingProf(null); location.reload(); }} />}
       {showNewBloqueo && <NewBloqueoModal profesionales={profesionales} selectedId={selected} negocioId={negocioId} onClose={() => setShowNewBloqueo(false)} onCreated={() => { setShowNewBloqueo(false); location.reload(); }} />}
       {editBloqueo && <EditBloqueoModal bloqueo={editBloqueo} onClose={() => setEditBloqueo(null)} onSaved={() => { setEditBloqueo(null); cargarPanelDerecho(); }} />}
       </div>
@@ -683,13 +816,24 @@ const CATEGORIAS_PROF = [
   { value: 'direccion',       label: 'Direccion' },
 ];
 
+const ESPECIALIDADES_CATALOGO = [
+  'Color', 'Mechas y tecnicas', 'Decoloracion', 'Corte mujer', 'Corte hombre',
+  'Peinados evento', 'Tratamientos', 'Recogidos y novias', 'Alisados',
+];
+
 function NewProfModal({ onClose, negocioId, onCreated }: any) {
   const [nombre, setNombre] = useState('');
   const [color, setColor] = useState('#6366f1');
   const [categoria, setCategoria] = useState('oficial');
+  const [especialidades, setEspecialidades] = useState<string[]>([]);
+  const [comisionPct, setComisionPct] = useState('');
   const [loading, setLoading] = useState(false);
 
   const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#ef4444'];
+
+  function toggleEspecialidad(esp: string) {
+    setEspecialidades(prev => prev.includes(esp) ? prev.filter(e => e !== esp) : [...prev, esp]);
+  }
 
   const handleGuardar = async () => {
     if (!nombre.trim()) {
@@ -699,11 +843,14 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
 
     setLoading(true);
     try {
+      const comision = comisionPct.trim() ? parseFloat(comisionPct.trim()) : null;
       await supabase.from('profesionales').insert({
         negocio_id: negocioId,
         nombre: nombre.trim(),
         color: color,
         categoria: categoria,
+        especialidades: especialidades.length > 0 ? especialidades : null,
+        comision_pct: comision,
         activo: true,
       });
 
@@ -770,6 +917,55 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
             </div>
           </div>
           <div>
+            <div style={{ fontSize: 11, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 }}>Especialidades</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {ESPECIALIDADES_CATALOGO.map((esp) => {
+                const sel = especialidades.includes(esp);
+                return (
+                  <button
+                    key={esp}
+                    onClick={() => toggleEspecialidad(esp)}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: 999,
+                      background: sel ? 'rgba(6,182,212,0.14)' : TOKENS.bgCard,
+                      border: `1px solid ${sel ? 'rgba(6,182,212,0.40)' : TOKENS.border}`,
+                      color: sel ? '#06b6d4' : TOKENS.textSec,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {esp}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 }}>Comision (%)</div>
+            <input
+              value={comisionPct}
+              onChange={(e) => setComisionPct(e.target.value)}
+              placeholder="Ej. 35"
+              type="number"
+              min="0"
+              max="100"
+              style={{
+                width: 120,
+                padding: '10px 12px',
+                background: TOKENS.bgCard,
+                border: `1px solid ${TOKENS.border}`,
+                borderRadius: 10,
+                color: TOKENS.text,
+                fontSize: 13,
+                outline: 'none',
+                fontFamily: 'inherit',
+              }}
+            />
+          </div>
+          <div>
             <div style={{ fontSize: 11, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 }}>Color*</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {COLORS.map((c) => (
@@ -825,6 +1021,124 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
           >
             {loading ? 'Creando...' : 'Crear profesional'}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose: () => void; onSaved: () => void }) {
+  const [nombre, setNombre] = useState(prof.nombre);
+  const [color, setColor] = useState(prof.color);
+  const [categoria, setCategoria] = useState(prof.categoria ?? 'oficial');
+  const [especialidades, setEspecialidades] = useState<string[]>(prof.especialidades ?? []);
+  const [comisionPct, setComisionPct] = useState(prof.comision_pct != null ? String(prof.comision_pct) : '');
+  const [telefono, setTelefono] = useState(prof.telefono ?? '');
+  const [email, setEmail] = useState(prof.email ?? '');
+  const [tipoRelacion, setTipoRelacion] = useState(prof.tipo_relacion ?? 'empleado');
+  const [loading, setLoading] = useState(false);
+
+  const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#ef4444'];
+  const TIPOS_REL = [
+    { value: 'empleado', label: 'Empleado' },
+    { value: 'autonomo', label: 'Autonomo' },
+    { value: 'formacion', label: 'En formacion' },
+  ];
+
+  function toggleEspecialidad(esp: string) {
+    setEspecialidades(prev => prev.includes(esp) ? prev.filter(e => e !== esp) : [...prev, esp]);
+  }
+
+  const handleGuardar = async () => {
+    if (!nombre.trim()) return;
+    setLoading(true);
+    const comision = comisionPct.trim() ? parseFloat(comisionPct.trim()) : null;
+    await supabase.from('profesionales').update({
+      nombre: nombre.trim(),
+      color,
+      categoria,
+      especialidades: especialidades.length > 0 ? especialidades : null,
+      comision_pct: comision,
+      telefono: telefono.trim() || null,
+      email: email.trim() || null,
+      tipo_relacion: tipoRelacion,
+    }).eq('id', prof.id);
+    setLoading(false);
+    onSaved();
+  };
+
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' };
+  const labelStyle: React.CSSProperties = { fontSize: 11, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
+      <div style={{ width: 480, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>Editar profesional</h3>
+          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18 }}>x</button>
+        </div>
+
+        <div style={{ display: 'grid', gap: 14, marginBottom: 20 }}>
+          <div>
+            <div style={labelStyle}>Nombre*</div>
+            <input value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} />
+          </div>
+          <div>
+            <div style={labelStyle}>Categoria*</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {CATEGORIAS_PROF.map((cat) => (
+                <button key={cat.value} onClick={() => setCategoria(cat.value)} style={{ padding: '6px 12px', borderRadius: 8, background: categoria === cat.value ? 'rgba(99,102,241,0.18)' : TOKENS.bgCard, border: `1px solid ${categoria === cat.value ? 'rgba(99,102,241,0.5)' : TOKENS.border}`, color: categoria === cat.value ? '#818cf8' : TOKENS.textSec, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{cat.label}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={labelStyle}>Especialidades</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {ESPECIALIDADES_CATALOGO.map((esp) => {
+                const sel = especialidades.includes(esp);
+                return (
+                  <button key={esp} onClick={() => toggleEspecialidad(esp)} style={{ padding: '5px 10px', borderRadius: 999, background: sel ? 'rgba(6,182,212,0.14)' : TOKENS.bgCard, border: `1px solid ${sel ? 'rgba(6,182,212,0.40)' : TOKENS.border}`, color: sel ? '#06b6d4' : TOKENS.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{esp}</button>
+                );
+              })}
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <div style={labelStyle}>Comision (%)</div>
+              <input value={comisionPct} onChange={(e) => setComisionPct(e.target.value)} placeholder="35" type="number" min="0" max="100" style={{ ...inputStyle, width: 120 }} />
+            </div>
+            <div>
+              <div style={labelStyle}>Tipo de relacion</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {TIPOS_REL.map((t) => (
+                  <button key={t.value} onClick={() => setTipoRelacion(t.value)} style={{ padding: '6px 10px', borderRadius: 8, background: tipoRelacion === t.value ? 'rgba(99,102,241,0.18)' : TOKENS.bgCard, border: `1px solid ${tipoRelacion === t.value ? 'rgba(99,102,241,0.5)' : TOKENS.border}`, color: tipoRelacion === t.value ? '#818cf8' : TOKENS.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t.label}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <div style={labelStyle}>Telefono</div>
+              <input value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+34 600 000 000" style={inputStyle} />
+            </div>
+            <div>
+              <div style={labelStyle}>Email</div>
+              <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nombre@salon.com" style={inputStyle} />
+            </div>
+          </div>
+          <div>
+            <div style={labelStyle}>Color*</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {COLORS.map((c) => (
+                <button key={c} onClick={() => setColor(c)} style={{ width: 32, height: 32, borderRadius: 8, background: c, border: `2px solid ${color === c ? '#fff' : 'transparent'}`, cursor: 'pointer', boxShadow: `0 0 8px ${c}66` }} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
+          <button onClick={onClose} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
+          <button onClick={handleGuardar} disabled={loading} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(99,102,241,0.45)', opacity: loading ? 0.6 : 1 }}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
         </div>
       </div>
     </div>
