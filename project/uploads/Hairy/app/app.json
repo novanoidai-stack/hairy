@@ -23,6 +23,9 @@
       },
       "package": "com.hairy.app"
     },
+    "web": {
+      "backgroundColor": "#0b1220"
+    },
     "plugins": [
       "expo-router",
       "expo-secure-store"
