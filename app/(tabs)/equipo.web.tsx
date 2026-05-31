@@ -46,6 +46,10 @@ interface Profesional {
   email?: string;
   ocupacion?: number;
   dayPcts?: number[];
+  ingresos?: number;
+  ticketMedio?: number;
+  comisionesDevengadas?: number;
+  clientesUnicos?: number;
 }
 
 const ANIMATIONS = `
@@ -146,24 +150,27 @@ export default function EquipoWeb() {
       const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const mesFin = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [{ data: profsRaw }, { data: citsData }] = await Promise.all([
+      const [{ data: profsRaw }, { data: citsData }, { data: srvData }] = await Promise.all([
         supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email').eq('negocio_id', negocioId),
-        supabase.from('citas').select('id, profesional_id, inicio')
+        supabase.from('citas').select('id, profesional_id, cliente_id, servicio_id, inicio, estado')
           .eq('negocio_id', negocioId)
-          .eq('estado', 'confirmada')
           .gte('inicio', mesInicio)
           .lte('inicio', mesFin),
+        supabase.from('servicios').select('id, precio').eq('negocio_id', negocioId),
       ]);
       const profs = profsRaw ? [...profsRaw].sort((a, b) => a.nombre.localeCompare(b.nombre)) : null;
+      const srvMap: Record<string, number> = {};
+      (srvData ?? []).forEach((s: any) => { srvMap[s.id] = s.precio ?? 0; });
 
-      const totalCitas = (citsData ?? []).length;
+      const confirmedCitas = (citsData ?? []).filter((c: any) => c.estado === 'confirmada' || c.estado === 'completada');
+      const totalCitas = confirmedCitas.length;
 
       const enriched = (profs ?? []).map((p) => {
-        const profCitas = (citsData ?? []).filter((c) => c.profesional_id === p.id);
+        const profCitas = confirmedCitas.filter((c: any) => c.profesional_id === p.id);
         const citas = profCitas.length;
 
         const dayCounts = [0, 0, 0, 0, 0, 0, 0];
-        profCitas.forEach((c) => {
+        profCitas.forEach((c: any) => {
           const dow = new Date(c.inicio).getDay();
           const idx = dow === 0 ? 6 : dow - 1;
           dayCounts[idx]++;
@@ -173,7 +180,14 @@ export default function EquipoWeb() {
 
         const ocupacion = totalCitas > 0 ? Math.round((citas / totalCitas) * 100) : 0;
 
-        return { ...p, citas, dayPcts, ocupacion, exp: '' };
+        // Metricas
+        const ingresos = profCitas.reduce((sum: number, c: any) => sum + (srvMap[c.servicio_id] ?? 0), 0);
+        const ticketMedio = citas > 0 ? Math.round(ingresos / citas) : 0;
+        const comisionPct = p.comision_pct ?? 0;
+        const comisionesDevengadas = Math.round(ingresos * comisionPct / 100);
+        const clientesUnicos = new Set(profCitas.map((c: any) => c.cliente_id).filter(Boolean)).size;
+
+        return { ...p, citas, dayPcts, ocupacion, ingresos, ticketMedio, comisionesDevengadas, clientesUnicos, exp: '' };
       });
 
       setProfesionales(enriched);
@@ -560,7 +574,19 @@ export default function EquipoWeb() {
               </div>
             )}
 
-            <div style={{ fontSize: 12, color: TOKENS.textSec, marginBottom: 18 }}>Disponibilidad y bloqueos en el calendario.</div>
+            {/* Metricas del mes */}
+            <Section title="Metricas del mes">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 6 }}>
+                <MetricCard label="Citas" value={String(profSel.citas ?? 0)} color={TOKENS.primary} />
+                <MetricCard label="Ingresos" value={`${profSel.ingresos ?? 0}EUR`} color={TOKENS.success} />
+                <MetricCard label="Ticket medio" value={`${profSel.ticketMedio ?? 0}EUR`} color="#06b6d4" />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                <MetricCard label="Comisiones" value={`${profSel.comisionesDevengadas ?? 0}EUR`} color="#f59e0b" />
+                <MetricCard label="Ocupacion" value={`${profSel.ocupacion ?? 0}%`} color="#8b5cf6" />
+                <MetricCard label="Clientas" value={String(profSel.clientesUnicos ?? 0)} color="#ec4899" />
+              </div>
+            </Section>
 
             {/* Horario base */}
             <Section title="Horario base">
@@ -2157,6 +2183,15 @@ function Section({ title, children }: any) {
         {title}
       </div>
       {children}
+    </div>
+  );
+}
+
+function MetricCard({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div style={{ background: `${color}0a`, border: `1px solid ${color}22`, borderRadius: 10, padding: '10px 12px', textAlign: 'center' }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color, letterSpacing: -0.3 }}>{value}</div>
+      <div style={{ fontSize: 9, letterSpacing: 0.8, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase', marginTop: 3 }}>{label}</div>
     </div>
   );
 }
