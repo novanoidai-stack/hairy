@@ -81,13 +81,16 @@ interface Cita {
   formula_notas?: string | null;
 }
 
+type TagValor = 'VIP' | 'Habitual' | 'Nuevo';
+type TagActividad = 'Activa' | 'Riesgo abandono' | 'Inactiva';
+type TagRiesgo = 'Fiable' | 'Incidencias' | 'Alto riesgo';
+
 interface Cliente {
   id: string;
   nombre: string;
   telefono?: string | null;
   email?: string | null;
   fecha_nacimiento?: string | null;
-  // Alergias del cliente. Se persiste en la columna alergias de BD.
   alergias?: string | null;
   visitas?: number;
   ultimaVisita?: Date | null;
@@ -96,16 +99,34 @@ interface Cliente {
   gastado?: number;
   fav?: string;
   favCount?: number;
-  tag?: 'VIP' | 'Habitual' | 'Nuevo';
+  tag?: TagValor;
+  actividad?: TagActividad;
+  riesgo?: TagRiesgo;
+  noshows_count?: number;
+  diasInactiva?: number;
+  profHabitual?: string;
 }
 
 type Tab = 'resumen' | 'notas' | 'color' | 'historial';
 
-// Calcula el tag a partir de visitas y gasto total
-function computeTag(visitas: number, gastado: number): 'VIP' | 'Habitual' | 'Nuevo' {
+function computeTag(visitas: number, gastado: number): TagValor {
   if (visitas > 10 || gastado > 500) return 'VIP';
   if (visitas >= 3) return 'Habitual';
   return 'Nuevo';
+}
+
+function computeActividad(ultimaVisita: Date | null): TagActividad {
+  if (!ultimaVisita) return 'Inactiva';
+  const dias = Math.floor((Date.now() - ultimaVisita.getTime()) / (1000 * 60 * 60 * 24));
+  if (dias <= 45) return 'Activa';
+  if (dias <= INACTIVIDAD_DIAS) return 'Riesgo abandono';
+  return 'Inactiva';
+}
+
+function computeRiesgo(noshows: number): TagRiesgo {
+  if (noshows >= 3) return 'Alto riesgo';
+  if (noshows >= 1) return 'Incidencias';
+  return 'Fiable';
 }
 
 // Alertas que se muestran en el panel detalle
@@ -206,7 +227,7 @@ export default function ClientesWeb() {
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [negocioId, setNegocioId] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('resumen');
-  const [activeTagFilter, setActiveTagFilter] = useState<'Todos' | 'VIP' | 'Habitual' | 'Nuevo'>('Todos');
+  const [activeTagFilter, setActiveTagFilter] = useState<string>('Todos');
   const [panelExpanded, setPanelExpanded] = useState(false);
 
   async function cargar() {
@@ -262,8 +283,18 @@ export default function ClientesWeb() {
       const fav = favEntry ? favEntry[0] : undefined;
       const favCount = favEntry ? favEntry[1] : 0;
       const tag = computeTag(visitas, gastado);
+      const actividad = computeActividad(ultimaVisita);
+      const noshows = cl.noshows_count ?? 0;
+      const riesgo = computeRiesgo(noshows);
+      const diasInactiva = ultimaVisita ? Math.floor((Date.now() - ultimaVisita.getTime()) / (1000 * 60 * 60 * 24)) : null;
 
-      return { ...cl, visitas, gastado, ultimaVisita, primeraVisita, ultimaVisitaStr, fav, favCount, tag } as Cliente;
+      // Profesional habitual: el que mas citas tiene con esta clienta
+      const profCount: Record<string, number> = {};
+      clientCitas.forEach((c: Cita) => { if (c.profesional_id) profCount[c.profesional_id] = (profCount[c.profesional_id] || 0) + 1; });
+      const topProf = Object.entries(profCount).sort((a, b) => b[1] - a[1])[0];
+      const profHabitual = topProf ? ((profData ?? []).find((p: any) => p.id === topProf[0])?.nombre ?? undefined) : undefined;
+
+      return { ...cl, visitas, gastado, ultimaVisita, primeraVisita, ultimaVisitaStr, fav, favCount, tag, actividad, riesgo, noshows_count: noshows, diasInactiva, profHabitual } as Cliente;
     });
 
     setClientes(enrichedClients);
@@ -308,18 +339,22 @@ export default function ClientesWeb() {
       );
     }
     if (activeTagFilter !== 'Todos') {
-      list = list.filter((cl) => cl.tag === activeTagFilter);
+      if (activeTagFilter === 'Inactivas') list = list.filter((cl) => cl.actividad === 'Inactiva');
+      else if (activeTagFilter === 'Riesgo') list = list.filter((cl) => cl.riesgo === 'Alto riesgo' || cl.riesgo === 'Incidencias');
+      else list = list.filter((cl) => cl.tag === activeTagFilter);
     }
     return list;
   }, [clientes, searchText, activeTagFilter]);
 
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0b1220', color: TOKENS.text }}>Cargando...</div>;
 
-  const tagCounts = {
+  const tagCounts: Record<string, number> = {
     Todos: clientes.length,
     VIP: clientes.filter((x) => x.tag === 'VIP').length,
     Habitual: clientes.filter((x) => x.tag === 'Habitual').length,
     Nuevo: clientes.filter((x) => x.tag === 'Nuevo').length,
+    Inactivas: clientes.filter((x) => x.actividad === 'Inactiva').length,
+    Riesgo: clientes.filter((x) => x.riesgo === 'Alto riesgo' || x.riesgo === 'Incidencias').length,
   };
 
   return (
@@ -354,8 +389,8 @@ export default function ClientesWeb() {
 
           {/* Tag chips */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            {(['Todos', 'VIP', 'Habitual', 'Nuevo'] as const).map((t) => {
-              const color = t === 'VIP' ? TOKENS.warning : t === 'Habitual' ? TOKENS.primary : t === 'Nuevo' ? TOKENS.success : TOKENS.primary;
+            {(['Todos', 'VIP', 'Habitual', 'Nuevo', 'Inactivas', 'Riesgo'] as const).map((t) => {
+              const color = t === 'VIP' ? TOKENS.warning : t === 'Habitual' ? TOKENS.primary : t === 'Nuevo' ? TOKENS.success : t === 'Inactivas' ? TOKENS.textTer : t === 'Riesgo' ? TOKENS.danger : TOKENS.primary;
               const active = activeTagFilter === t;
               return (
                 <button
@@ -422,6 +457,9 @@ export default function ClientesWeb() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text }}>{cl.nombre}</div>
                         <Pill color={tagColor}>{cl.tag}</Pill>
+                        {cl.actividad === 'Inactiva' && <Pill color={TOKENS.textTer}>Inactiva</Pill>}
+                        {cl.actividad === 'Riesgo abandono' && <Pill color="#f59e0b">Riesgo</Pill>}
+                        {cl.riesgo === 'Alto riesgo' && <Pill color={TOKENS.danger}>No-show</Pill>}
                         {(() => {
                           const alergiasTexto = (cl.alergias ?? '').trim();
                           if (!alergiasTexto) return null;
