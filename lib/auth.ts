@@ -46,3 +46,7 @@ export function isOwner(profile: UserProfile | null): boolean {
 export function canAccessInformes(profile: UserProfile | null): boolean {
   return profile?.role === 'owner' || profile?.role === 'admin';
 }
+
+export function canAccessConfig(profile: UserProfile | null): boolean {
+  return profile?.role === 'owner' || profile?.role === 'admin';
+}
