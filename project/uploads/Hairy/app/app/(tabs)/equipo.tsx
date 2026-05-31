@@ -142,26 +142,137 @@ export default function EquipoScreen() {
     setModalBloquesVisible(true);
   }
 
-  async function crearBloqueo() {
-    if (!profSeleccionada) return;
-    setGuardandoBloqueo(true);
+  async function _insertarBloqueo() {
     const { error } = await supabase.from('bloqueos_profesional').insert({
       negocio_id: negocioId,
-      profesional_id: profSeleccionada.id,
+      profesional_id: profSeleccionada!.id,
       tipo: tipoBloqueo,
       inicio: fechaInicio.toISOString(),
       fin: fechaFin.toISOString(),
       motivo: motivoBloqueo.trim() || null,
     });
     setGuardandoBloqueo(false);
-    if (error) {
-      Alert.alert('Error', error.message);
-      return;
-    }
+    if (error) { Alert.alert('Error', error.message); return; }
     setModalBloqueVisible(false);
     setTipoBloqueo('vacaciones');
     setMotivoBloqueo('');
-    abrirBloques(profSeleccionada);
+    abrirBloques(profSeleccionada!);
+  }
+
+  async function crearBloqueo() {
+    if (!profSeleccionada) return;
+    setGuardandoBloqueo(true);
+
+    // CE-AG-08: check for confirmed/proposed citas in the block period
+    const { data: citasAfectadas } = await supabase
+      .from('citas')
+      .select('id, inicio, fin, fin_espera, clientes(nombre)')
+      .eq('negocio_id', negocioId)
+      .eq('profesional_id', profSeleccionada.id)
+      .eq('estado', 'confirmada')
+      .lt('inicio', fechaFin.toISOString())
+      .gt('fin', fechaInicio.toISOString());
+
+    setGuardandoBloqueo(false);
+
+    if (!citasAfectadas || citasAfectadas.length === 0) {
+      setGuardandoBloqueo(true);
+      await _insertarBloqueo();
+      return;
+    }
+
+    const resumen = citasAfectadas
+      .map((c: any) => `- ${c.clientes?.nombre ?? 'Clienta'} (${format(parseISO(c.inicio), 'dd/MM HH:mm', { locale: es })})`)
+      .join('\n');
+
+    Alert.alert(
+      `${citasAfectadas.length} cita(s) afectada(s)`,
+      `${resumen}\n\n¿Que deseas hacer?`,
+      [
+        { text: 'No crear bloqueo', style: 'cancel' },
+        {
+          text: 'Cancelar citas',
+          style: 'destructive',
+          onPress: async () => {
+            setGuardandoBloqueo(true);
+            await supabase
+              .from('citas')
+              .update({ estado: 'cancelada' })
+              .in('id', citasAfectadas.map((c: any) => c.id));
+            await _insertarBloqueo();
+          },
+        },
+        {
+          text: 'Reasignar',
+          onPress: async () => {
+            setGuardandoBloqueo(true);
+            await _reasignarCitasYBloquear(citasAfectadas);
+          },
+        },
+      ]
+    );
+  }
+
+  async function _reasignarCitasYBloquear(citas: any[]) {
+    const { data: otrosProfesionales } = await supabase
+      .from('profesionales')
+      .select('id, nombre')
+      .eq('negocio_id', negocioId)
+      .eq('activo', true)
+      .neq('id', profSeleccionada!.id);
+
+    if (!otrosProfesionales || otrosProfesionales.length === 0) {
+      setGuardandoBloqueo(false);
+      Alert.alert('Sin profesionales', 'No hay otros profesionales disponibles para reasignar.');
+      return;
+    }
+
+    const noReasignadas: string[] = [];
+
+    for (const cita of citas) {
+      const citaFin = cita.fin_espera || cita.fin;
+      let asignada = false;
+
+      for (const prof of otrosProfesionales) {
+        const { data: solapeCitas } = await supabase
+          .from('citas')
+          .select('id')
+          .eq('profesional_id', prof.id)
+          .eq('estado', 'confirmada')
+          .lt('inicio', citaFin)
+          .gt('fin', cita.inicio)
+          .limit(1);
+        if (solapeCitas && solapeCitas.length > 0) continue;
+
+        const { data: solapaBloqueos } = await supabase
+          .from('bloqueos_profesional')
+          .select('id')
+          .eq('profesional_id', prof.id)
+          .lt('inicio', citaFin)
+          .gt('fin', cita.inicio)
+          .limit(1);
+        if (solapaBloqueos && solapaBloqueos.length > 0) continue;
+
+        await supabase.from('citas').update({ profesional_id: prof.id }).eq('id', cita.id);
+        asignada = true;
+        break;
+      }
+
+      if (!asignada) {
+        noReasignadas.push(`${cita.clientes?.nombre ?? 'Clienta'} (${format(parseISO(cita.inicio), 'HH:mm dd/MM', { locale: es })})`);
+      }
+    }
+
+    if (noReasignadas.length > 0) {
+      setGuardandoBloqueo(false);
+      Alert.alert(
+        'Reasignacion parcial',
+        `No se pudo reasignar:\n${noReasignadas.join('\n')}\n\nEl bloqueo no se ha creado. Cancela estas citas manualmente.`
+      );
+      return;
+    }
+
+    await _insertarBloqueo();
   }
 
   async function eliminarBloqueo(bloqueId: string) {
@@ -392,7 +503,11 @@ export default function EquipoScreen() {
               ))}
             </View>
 
+<<<<<<< HEAD:app/(tabs)/equipo.tsx
+            <TText style={[s.inputLabel, { color: c.textSecondary }]}>Motivo (opcional)</TText>
+=======
             <Text style={[s.inputLabel, { color: c.textSecondary }]}>Motivo (opcional)</Text>
+>>>>>>> e956b4eda12ccdefd0a432eba43335ae3a830b66:app/project/uploads/Hairy/app/app/(tabs)/equipo.tsx
             <TextInput
               style={[s.input, { backgroundColor: c.bg, borderColor: c.border, color: c.text }]}
               placeholder="Ej: Vacaciones en el extranjero"
