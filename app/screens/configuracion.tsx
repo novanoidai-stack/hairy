@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, Switch,
-  StyleSheet, ActivityIndicator, Alert, TextInput, Modal,
+  StyleSheet, ActivityIndicator, Alert, TextInput, Modal, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -124,6 +124,17 @@ export default function ConfiguracionScreen() {
     router.replace('/login');
   }
 
+  // Salir del software hacia la web publica, sin cerrar sesion. Solo aplica en web
+  // (la app movil no esta embebida en el sitio).
+  function volverAlSitioWeb() {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    try {
+      (window.top || window).location.href = '/';
+    } catch (e) {
+      window.location.href = '/';
+    }
+  }
+
   return (
     <View style={[s.root, { backgroundColor: c.bg }]}>
       <Topbar title="Configuración" subtitle="Ajustes de negocio y cuenta" />
@@ -223,6 +234,20 @@ export default function ConfiguracionScreen() {
         <View style={s.section}>
           <TText style={[s.sectionTitle, { color: c.text }]}>Cuenta</TText>
           <Card>
+            {Platform.OS === 'web' && (
+              <>
+                <TouchableOpacity style={s.settingRow} onPress={volverAlSitioWeb}>
+                  <View style={s.settingLeft}>
+                    <View style={[s.settingIcon, { backgroundColor: tokens.primarySoft }]}>
+                      <Ionicons name="arrow-back-outline" size={18} color={tokens.primary} />
+                    </View>
+                    <TText style={[s.settingLabel, { color: c.text }]}>Volver al sitio web</TText>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={c.textTertiary} />
+                </TouchableOpacity>
+                <View style={[s.divider, { backgroundColor: c.border }]} />
+              </>
+            )}
             <TouchableOpacity style={s.settingRow} onPress={cerrarSesion}>
               <View style={s.settingLeft}>
                 <View style={[s.settingIcon, { backgroundColor: '#ef444422' }]}>

@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Animated, Platform } from 'react-native';
 import { TText } from '@/components/ui/TText';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'expo-router';
@@ -20,6 +20,18 @@ export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const configActive = pathname.includes('configuracion');
+
+  // Salir del software de vuelta a la web publica, sin cerrar sesion.
+  // Navega la ventana superior (funciona tanto en /app directo como embebido en la demo).
+  const exitToWeb = () => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    try {
+      (window.top || window).location.href = '/';
+    } catch (e) {
+      window.location.href = '/';
+    }
+  };
+  const [exitHovered, setExitHovered] = useState(false);
 
   const navAnimations = useRef(NAV_ITEMS.map(() => new Animated.Value(0))).current;
   const navHoverAnims = useRef(NAV_ITEMS.map(() => new Animated.Value(0))).current;
@@ -146,6 +158,16 @@ export function Sidebar() {
             </TText>
           </TouchableOpacity>
         </Animated.View>
+
+        {/* Volver al sitio web (salir del software sin cerrar sesion) */}
+        <TouchableOpacity
+          style={[s.navItem, exitHovered && s.navItemHovered]}
+          onPress={exitToWeb}
+          {...{ onMouseEnter: () => setExitHovered(true), onMouseLeave: () => setExitHovered(false) } as any}
+        >
+          <Ionicons name="arrow-back-outline" size={18} color={tokens.textSecondary} />
+          <TText style={s.navLabel}>Volver al sitio web</TText>
+        </TouchableOpacity>
 
         {/* Account card */}
         <Animated.View style={{ transform: [{ scale: accountScaleAnim }] }}>
