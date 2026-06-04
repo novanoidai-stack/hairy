@@ -313,13 +313,27 @@
       clearMsg(loginMsg);
       var email = val('loginEmail');
       if (!email) { msg(loginMsg, 'err', 'Escribe tu correo arriba y vuelve a pulsar.'); return; }
-      if (!api || !api.resetPassword) { msg(loginMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
+      if (!api || !api.sendReset) { msg(loginMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
       var prev = forgotLink.textContent; forgotLink.textContent = 'Enviando...';
       var redirectTo = window.location.origin + '/restablecer.html';
-      api.resetPassword(email, redirectTo).then(function (r) {
-        forgotLink.textContent = prev;
-        // No revelamos si el correo existe o no (evita enumeracion de cuentas).
-        msg(loginMsg, 'ok', 'Si ese correo tiene cuenta, te enviamos un enlace para restablecer la contraseña.');
+      // Correo branded de Mecha + aviso si el correo no existe (Edge Function).
+      api.sendReset(email, redirectTo).then(function (r) {
+        if (r && r.exists === false) {
+          forgotLink.textContent = prev;
+          msg(loginMsg, 'err', 'No hay ninguna cuenta con ese correo. Revisa la dirección o crea una cuenta nueva.');
+          return;
+        }
+        if (r && r.sent) {
+          forgotLink.textContent = prev;
+          msg(loginMsg, 'ok', 'Te hemos enviado un correo para restablecer tu contraseña. Revisa tu bandeja (y el spam).');
+          return;
+        }
+        // Funcion no lista (sin Resend) o fallo de envio: fallback al correo
+        // nativo de Supabase para no dejar al usuario sin enlace.
+        api.resetPassword(email, redirectTo).then(function () {
+          forgotLink.textContent = prev;
+          msg(loginMsg, 'ok', 'Te hemos enviado un correo para restablecer tu contraseña. Revisa tu bandeja (y el spam).');
+        });
       });
     });
   }

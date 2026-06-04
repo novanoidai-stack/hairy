@@ -146,6 +146,35 @@
     }
   }
 
+  // Envia el correo de recuperacion branded de Mecha (Edge Function send-reset).
+  // Ademas -decision de producto- indica si el correo NO tiene cuenta.
+  // Devuelve { ok, status, exists, sent, error }. Si la funcion no esta lista
+  // (p.ej. sin RESEND_API_KEY) el cliente puede hacer fallback a resetPassword.
+  async function sendReset(email, redirectTo) {
+    try {
+      var res = await fetch(SUPABASE_URL + '/functions/v1/send-reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ email: email, redirectTo: redirectTo }),
+      });
+      var body = {};
+      try { body = await res.json(); } catch (e) {}
+      return {
+        ok: res.ok,
+        status: res.status,
+        exists: body.exists,
+        sent: body.sent,
+        error: body.error || null,
+      };
+    } catch (e) {
+      return { ok: false, status: 0, exists: undefined, sent: false, error: e };
+    }
+  }
+
   // Tras volver del enlace de recuperacion (sesion temporal ya activa), fija la
   // nueva contrasena. Devuelve { error }.
   async function updatePassword(newPassword) {
@@ -197,6 +226,7 @@
     getSession: getSession,
     signOut: signOut,
     resetPassword: resetPassword,
+    sendReset: sendReset,
     updatePassword: updatePassword,
     isStaff: isStaff,
     useDemoVisit: useDemoVisit,
