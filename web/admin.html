@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mecha — Panel de solicitudes</title>
+<meta name="description" content="Panel interno de Mecha para revisar las solicitudes de demo, reserva de llamada y altas." />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#070a14" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/mecha.css" />
+<style>
+  body{min-height:100vh}
+  .ad-wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:26px 22px 80px}
+
+  /* ---- topbar ---- */
+  .ad-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0 22px;flex-wrap:wrap}
+  .ad-top .who{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--text-sec)}
+  .ad-top .who .em{color:var(--text);font-weight:600}
+  .ad-out{font-size:13px;font-weight:600;color:var(--text-sec);padding:8px 14px;border:1px solid var(--border-hi);border-radius:10px}
+  .ad-out:hover{color:var(--text);border-color:var(--accent)}
+
+  /* ---- login gate ---- */
+  .gate{min-height:100vh;display:grid;place-items:center;position:relative;z-index:1;padding:40px 22px}
+  .gate-card{width:100%;max-width:380px}
+  .gate-h{font-size:26px;letter-spacing:-.02em;margin:18px 0 6px}
+  .gate-p{font-size:14px;color:var(--text-sec);margin-bottom:24px}
+  .gate .field{margin-bottom:14px}
+  .gate .field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-sec);margin-bottom:7px}
+  .gate .inp{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border-hi);border-radius:12px;padding:12px 14px;transition:border-color .2s,box-shadow .2s}
+  .gate .inp:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .gate .inp svg{width:17px;height:17px;color:var(--text-ter);flex-shrink:0}
+  .gate .inp input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14.5px}
+  .gate .inp input::placeholder{color:var(--text-ter)}
+
+  .ad-msg{font-size:13px;line-height:1.5;margin-top:14px;display:none}
+  .ad-msg.show{display:block}
+  .ad-msg.err{color:#ff8a6b}
+  .ad-msg.ok{color:var(--accent-hi)}
+
+  /* ---- toolbar ---- */
+  .ad-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .ad-search{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--border-hi);border-radius:11px;padding:10px 13px;flex:1;min-width:220px}
+  .ad-search:focus-within{border-color:var(--accent)}
+  .ad-search svg{width:16px;height:16px;color:var(--text-ter);flex-shrink:0}
+  .ad-search input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px}
+  .ad-search input::placeholder{color:var(--text-ter)}
+  .ad-sel{background:var(--card);border:1px solid var(--border-hi);border-radius:11px;padding:10px 12px;color:var(--text);font-size:13.5px;font-weight:500}
+  .ad-sel:focus{outline:none;border-color:var(--accent)}
+  .ad-refresh{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--text-sec);padding:10px 14px;border:1px solid var(--border-hi);border-radius:11px}
+  .ad-refresh:hover{color:var(--text);border-color:var(--accent)}
+  .ad-refresh svg{width:15px;height:15px}
+
+  /* ---- stats ---- */
+  .ad-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+  .ad-stat{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:12px 16px;min-width:120px}
+  .ad-stat .n{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.02em}
+  .ad-stat .l{font-size:11.5px;color:var(--text-ter);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+  /* ---- list ---- */
+  .ad-count{font-size:13px;color:var(--text-ter);margin-bottom:12px}
+  .ad-list{display:flex;flex-direction:column;gap:12px}
+  .card-row{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;
+    box-shadow:var(--shadow-card)}
+  .card-row .r-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .card-row .r-id{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+  .card-row .r-name{font-size:16px;font-weight:700;letter-spacing:-.01em}
+  .card-row .r-salon{font-size:13.5px;color:var(--text-sec)}
+  .card-row .r-when{font-size:12px;color:var(--text-ter)}
+
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.03em;
+    text-transform:uppercase;padding:4px 9px;border-radius:7px;border:1px solid transparent}
+  .tag.demo{color:#ff8a3d;background:rgba(244,80,30,.12);border-color:rgba(244,80,30,.3)}
+  .tag.reserva_llamada{color:#34d399;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.3)}
+  .tag.signup{color:#a5b4fc;background:rgba(129,140,248,.12);border-color:rgba(129,140,248,.32)}
+
+  .r-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 22px;margin-bottom:14px}
+  .r-cell .k{font-size:11px;color:var(--text-ter);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+  .r-cell .v{font-size:14px;color:var(--text);word-break:break-word}
+  .r-cell .v a{color:var(--accent-hi)}
+  .r-cell .v.empty{color:var(--text-ter)}
+  .r-note{font-size:13.5px;color:var(--text-sec);line-height:1.55;background:rgba(255,255,255,.02);
+    border:1px solid var(--border);border-radius:10px;padding:10px 13px;margin-bottom:14px}
+
+  .r-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .r-foot label{font-size:12px;color:var(--text-ter)}
+  .estado-sel{background:var(--card-hi);border:1px solid var(--border-hi);border-radius:9px;padding:7px 11px;
+    color:var(--text);font-size:13px;font-weight:600}
+  .estado-sel:focus{outline:none;border-color:var(--accent)}
+  .estado-sel[data-estado="nueva"]{color:#ff8a3d}
+  .estado-sel[data-estado="contactada"]{color:#a5b4fc}
+  .estado-sel[data-estado="ganada"]{color:#34d399}
+  .estado-sel[data-estado="descartada"]{color:var(--text-ter)}
+
+  .ad-empty{text-align:center;padding:60px 20px;color:var(--text-ter);font-size:14.5px}
+  .ad-loading{text-align:center;padding:50px 20px;color:var(--text-sec);font-size:14px}
+
+  /* ---- tabs ---- */
+  .ad-tabs{display:flex;align-items:flex-end;gap:0;margin-bottom:22px;border-bottom:1px solid var(--border)}
+  .ad-tab{position:relative;font-family:inherit;font-size:14.5px;font-weight:600;color:var(--text-sec);
+    padding:11px 2px;margin-right:22px;margin-bottom:-1px;border:none;background:none;cursor:pointer;
+    border-bottom:2px solid transparent;transition:color .18s,border-color .18s}
+  .ad-tab:hover{color:var(--text)}
+  .ad-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+  .ad-tab .badge{display:inline-block;margin-left:8px;font-size:11px;font-weight:700;color:var(--text-ter);
+    background:var(--card-hi);border:1px solid var(--border-hi);border-radius:20px;padding:1px 8px;vertical-align:middle}
+
+  /* ---- plan badge ---- */
+  .plan{display:inline-flex;align-items:center;font-size:11.5px;font-weight:700;letter-spacing:.03em;
+    text-transform:uppercase;padding:4px 9px;border-radius:7px;border:1px solid transparent}
+  .plan.free{color:#a5b4fc;background:rgba(129,140,248,.12);border-color:rgba(129,140,248,.32)}
+  .plan.full{color:#34d399;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.3)}
+  .plan.demo{color:#ff8a3d;background:rgba(244,80,30,.12);border-color:rgba(244,80,30,.3)}
+
+  /* ---- grant action ---- */
+  .btn-grant{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;
+    color:#0a0d16;background:linear-gradient(180deg,#ffcf4a,#ff7a2e);border:none;border-radius:10px;
+    padding:9px 16px;cursor:pointer;transition:filter .18s,opacity .18s}
+  .btn-grant:hover{filter:brightness(1.06)}
+  .btn-grant:disabled{opacity:.55;cursor:default;filter:none}
+  .granted-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--accent-hi)}
+  .granted-pill svg{width:15px;height:15px}
+
+  @media (max-width:560px){
+    .ad-top{padding-top:6px}
+    .card-row{padding:16px}
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e0340e" /><stop offset=".5" stop-color="#ff7a2e" /><stop offset="1" stop-color="#ffcf4a" />
+    </linearGradient>
+    <symbol id="mecha-mark" viewBox="0 0 40 40">
+      <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+      <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+    </symbol>
+  </defs>
+</svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <span class="orb o1"></span><span class="orb o2"></span>
+  <div class="bg-noise"></div>
+</div>
+
+<!-- LOGIN GATE -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <a class="brand" href="index.html" aria-label="Mecha, inicio">
+      <svg class="brand-mark" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg>
+      <span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">Panel</span></span>
+    </a>
+    <h1 class="gate-h">Panel de solicitudes</h1>
+    <p class="gate-p">Acceso solo para el equipo Mecha.</p>
+    <form onsubmit="return false">
+      <div class="field"><label>Correo</label>
+        <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 6L2 7" /></svg><input type="email" id="gateEmail" placeholder="equipo@mecha.com" autocomplete="email" /></div>
+      </div>
+      <div class="field"><label>Contraseña</label>
+        <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg><input type="password" id="gatePw" placeholder="••••••••" autocomplete="current-password" /></div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="gateBtn" style="margin-top:6px">Entrar al panel</button>
+      <div class="ad-msg" id="gateMsg"></div>
+    </form>
+  </div>
+</div>
+
+<!-- PANEL -->
+<div class="ad-wrap" id="panel" style="display:none">
+  <div class="ad-top">
+    <a class="brand" href="index.html" aria-label="Mecha, inicio">
+      <svg class="brand-mark" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg>
+      <span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">Panel</span></span>
+    </a>
+    <div class="who"><span>Sesión: <span class="em" id="meEmail"></span></span><button class="ad-out" id="outBtn">Salir</button></div>
+  </div>
+
+  <div class="ad-tabs">
+    <button class="ad-tab active" id="tabSol" data-view="solicitudes">Solicitudes<span class="badge" id="badgeSol">0</span></button>
+    <button class="ad-tab" id="tabCue" data-view="cuentas">Cuentas<span class="badge" id="badgeCue">0</span></button>
+  </div>
+
+  <!-- VISTA: SOLICITUDES -->
+  <div id="view-solicitudes">
+    <div class="ad-stats" id="stats"></div>
+
+    <div class="ad-tools">
+      <div class="ad-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+        <input type="search" id="q" placeholder="Buscar por nombre, salón, email o teléfono" />
+      </div>
+      <select class="ad-sel" id="fTipo">
+        <option value="">Todos los tipos</option>
+        <option value="demo">Demo</option>
+        <option value="reserva_llamada">Reserva de llamada</option>
+        <option value="signup">Alta (signup)</option>
+      </select>
+      <select class="ad-sel" id="fEstado">
+        <option value="">Todos los estados</option>
+        <option value="nueva">Nueva</option>
+        <option value="contactada">Contactada</option>
+        <option value="ganada">Ganada</option>
+        <option value="descartada">Descartada</option>
+      </select>
+      <button class="ad-refresh" id="refreshBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+        Actualizar
+      </button>
+    </div>
+
+    <div class="ad-count" id="count"></div>
+    <div class="ad-msg" id="panelMsg" style="margin-bottom:14px"></div>
+    <div class="ad-list" id="list"><div class="ad-loading">Cargando solicitudes...</div></div>
+  </div>
+
+  <!-- VISTA: CUENTAS -->
+  <div id="view-cuentas" style="display:none">
+    <div class="ad-stats" id="statsCue"></div>
+
+    <div class="ad-tools">
+      <div class="ad-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+        <input type="search" id="qCue" placeholder="Buscar por nombre, email, salón o negocio" />
+      </div>
+      <select class="ad-sel" id="fPlan">
+        <option value="">Todos los planes</option>
+        <option value="free">Free</option>
+        <option value="full">Full</option>
+      </select>
+      <button class="ad-refresh" id="refreshCueBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+        Actualizar
+      </button>
+    </div>
+
+    <div class="ad-count" id="countCue"></div>
+    <div class="ad-msg" id="cueMsg" style="margin-bottom:14px"></div>
+    <div class="ad-list" id="listCue"><div class="ad-loading">Cargando cuentas...</div></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/auth.js"></script>
+<script>
+(function () {
+  var api = window.MechaAPI;
+  var $ = function (id) { return document.getElementById(id); };
+  var rows = [];
+
+  var TIPO_LABEL = { demo: 'Demo', reserva_llamada: 'Reserva de llamada', signup: 'Alta' };
+  var ESTADOS = ['nueva', 'contactada', 'ganada', 'descartada'];
+
+  function esc(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function msg(el, type, text) { if (!el) return; el.className = 'ad-msg show ' + type; el.textContent = text; }
+  function clearMsg(el) { if (el) { el.className = 'ad-msg'; el.textContent = ''; } }
+
+  function fmtDate(iso) {
+    try {
+      var d = new Date(iso);
+      return d.toLocaleString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return iso || ''; }
+  }
+
+  // ---------- GATE ----------
+  var gate = $('gate'), panel = $('panel');
+  var gateBtn = $('gateBtn'), gateMsg = $('gateMsg');
+
+  function showPanel(email) {
+    gate.style.display = 'none';
+    panel.style.display = 'block';
+    $('meEmail').textContent = email || '';
+    load();
+  }
+
+  function denyAccess(text) {
+    msg(gateMsg, 'err', text || 'Esta cuenta no tiene acceso al panel.');
+    if (api && api.signOut) api.signOut();
+  }
+
+  // Sesion existente al cargar
+  if (api && api.getSession) {
+    api.getSession().then(function (s) {
+      if (!s) return;
+      api.isStaff().then(function (ok) {
+        if (ok) showPanel(s.user && s.user.email);
+        else denyAccess('Tu cuenta no pertenece al equipo. Pide acceso al administrador.');
+      });
+    });
+  }
+
+  if (gateBtn) {
+    gateBtn.addEventListener('click', function () {
+      clearMsg(gateMsg);
+      var email = ($('gateEmail').value || '').trim();
+      var pw = $('gatePw').value || '';
+      if (!email || !pw) { msg(gateMsg, 'err', 'Escribe tu correo y contraseña.'); return; }
+      if (!api) { msg(gateMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
+      gateBtn.disabled = true; var prev = gateBtn.textContent; gateBtn.textContent = 'Entrando...';
+      api.signIn({ email: email, password: pw }).then(function (r) {
+        if (r.error) {
+          msg(gateMsg, 'err', 'No pudimos entrar. Revisa tus datos.');
+          gateBtn.disabled = false; gateBtn.textContent = prev; return;
+        }
+        api.isStaff().then(function (ok) {
+          gateBtn.disabled = false; gateBtn.textContent = prev;
+          if (ok) showPanel(r.session && r.session.user && r.session.user.email);
+          else denyAccess('Tu cuenta no pertenece al equipo. Pide acceso al administrador.');
+        });
+      });
+    });
+  }
+
+  var outBtn = $('outBtn');
+  if (outBtn) outBtn.addEventListener('click', function () {
+    if (api && api.signOut) api.signOut();
+    window.location.reload();
+  });
+
+  // ---------- DATA ----------
+  function load() {
+    var listEl = $('list');
+    listEl.innerHTML = '<div class="ad-loading">Cargando solicitudes...</div>';
+    clearMsg($('panelMsg'));
+    api.client.from('solicitudes').select('*').order('created_at', { ascending: false })
+      .then(function (res) {
+        if (res.error) {
+          listEl.innerHTML = '';
+          msg($('panelMsg'), 'err', 'No se pudieron cargar las solicitudes: ' + (res.error.message || ''));
+          return;
+        }
+        rows = res.data || [];
+        renderStats();
+        render();
+      });
+  }
+
+  function renderStats() {
+    var total = rows.length;
+    var nuevas = rows.filter(function (r) { return r.estado === 'nueva'; }).length;
+    var ganadas = rows.filter(function (r) { return r.estado === 'ganada'; }).length;
+    var reservas = rows.filter(function (r) { return r.tipo === 'reserva_llamada'; }).length;
+    var stats = [
+      { n: total, l: 'Total' },
+      { n: nuevas, l: 'Nuevas' },
+      { n: reservas, l: 'Reservas' },
+      { n: ganadas, l: 'Ganadas' }
+    ];
+    $('stats').innerHTML = stats.map(function (s) {
+      return '<div class="ad-stat"><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>';
+    }).join('');
+    var bs = $('badgeSol'); if (bs) bs.textContent = total;
+  }
+
+  function filtered() {
+    var q = ($('q').value || '').trim().toLowerCase();
+    var tipo = $('fTipo').value;
+    var estado = $('fEstado').value;
+    return rows.filter(function (r) {
+      if (tipo && r.tipo !== tipo) return false;
+      if (estado && r.estado !== estado) return false;
+      if (q) {
+        var hay = [r.nombre, r.salon, r.email, r.telefono].join(' ').toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function cell(k, v, isLink) {
+    if (!v) return '<div class="r-cell"><div class="k">' + k + '</div><div class="v empty">—</div></div>';
+    var val = isLink === 'mail' ? '<a href="mailto:' + esc(v) + '">' + esc(v) + '</a>'
+      : isLink === 'tel' ? '<a href="tel:' + esc(v) + '">' + esc(v) + '</a>'
+      : esc(v);
+    return '<div class="r-cell"><div class="k">' + k + '</div><div class="v">' + val + '</div></div>';
+  }
+
+  function rowHtml(r) {
+    var estadoOpts = ESTADOS.map(function (e) {
+      return '<option value="' + e + '"' + (r.estado === e ? ' selected' : '') + '>' +
+        e.charAt(0).toUpperCase() + e.slice(1) + '</option>';
+    }).join('');
+
+    var grid = '';
+    grid += cell('Email', r.email, 'mail');
+    grid += cell('Teléfono', r.telefono, 'tel');
+    if (r.tipo === 'reserva_llamada' || r.fecha_preferida) grid += cell('Fecha preferida', r.fecha_preferida);
+    if (r.tipo === 'reserva_llamada' || r.hora_preferida) grid += cell('Hora preferida', r.hora_preferida);
+    if (r.num_profesionales) grid += cell('Profesionales', r.num_profesionales);
+    if (r.herramienta_actual) grid += cell('Herramienta actual', r.herramienta_actual);
+
+    var note = r.nota ? '<div class="r-note">' + esc(r.nota) + '</div>' : '';
+
+    return '<div class="card-row" data-id="' + esc(r.id) + '">' +
+      '<div class="r-head">' +
+        '<div class="r-id">' +
+          '<span class="tag ' + esc(r.tipo) + '">' + (TIPO_LABEL[r.tipo] || esc(r.tipo)) + '</span>' +
+          '<span class="r-name">' + (esc(r.nombre) || 'Sin nombre') + '</span>' +
+          (r.salon ? '<span class="r-salon">· ' + esc(r.salon) + '</span>' : '') +
+        '</div>' +
+        '<span class="r-when">' + fmtDate(r.created_at) + '</span>' +
+      '</div>' +
+      '<div class="r-grid">' + grid + '</div>' +
+      note +
+      '<div class="r-foot">' +
+        '<label>Estado</label>' +
+        '<select class="estado-sel" data-estado="' + esc(r.estado) + '" data-id="' + esc(r.id) + '">' + estadoOpts + '</select>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function render() {
+    var data = filtered();
+    var listEl = $('list');
+    $('count').textContent = data.length + ' de ' + rows.length + ' solicitudes';
+    if (!data.length) {
+      listEl.innerHTML = '<div class="ad-empty">No hay solicitudes que coincidan con el filtro.</div>';
+      return;
+    }
+    listEl.innerHTML = data.map(rowHtml).join('');
+
+    listEl.querySelectorAll('.estado-sel').forEach(function (sel) {
+      sel.addEventListener('change', function () {
+        var id = sel.getAttribute('data-id');
+        var nuevo = sel.value;
+        var anterior = sel.getAttribute('data-estado');
+        sel.disabled = true;
+        api.client.from('solicitudes').update({ estado: nuevo }).eq('id', id).then(function (res) {
+          sel.disabled = false;
+          if (res.error) {
+            sel.value = anterior;
+            msg($('panelMsg'), 'err', 'No se pudo actualizar el estado.');
+            return;
+          }
+          sel.setAttribute('data-estado', nuevo);
+          var local = rows.filter(function (x) { return x.id === id; })[0];
+          if (local) local.estado = nuevo;
+          renderStats();
+        });
+      });
+    });
+  }
+
+  ['q', 'fTipo', 'fEstado'].forEach(function (id) {
+    var el = $(id);
+    if (el) el.addEventListener('input', render);
+    if (el) el.addEventListener('change', render);
+  });
+  var rb = $('refreshBtn');
+  if (rb) rb.addEventListener('click', load);
+
+  // ---------- CUENTAS ----------
+  var accounts = [];
+  var cuentasLoaded = false;
+
+  function loadCuentas() {
+    var listEl = $('listCue');
+    listEl.innerHTML = '<div class="ad-loading">Cargando cuentas...</div>';
+    clearMsg($('cueMsg'));
+    // El panel de staff lee todas las cuentas: lo autoriza la policy RLS is_staff()
+    // sobre profiles (no aplica el filtro por negocio_id propio del resto de la app).
+    api.client.from('profiles').select('*').order('created_at', { ascending: false })
+      .then(function (res) {
+        if (res.error) {
+          listEl.innerHTML = '';
+          msg($('cueMsg'), 'err', 'No se pudieron cargar las cuentas: ' + (res.error.message || ''));
+          return;
+        }
+        accounts = res.data || [];
+        cuentasLoaded = true;
+        renderCuentas();
+      });
+  }
+
+  function renderCuentasStats() {
+    var total = accounts.length;
+    var free = accounts.filter(function (p) { return (p.plan || 'free') === 'free'; }).length;
+    var full = accounts.filter(function (p) { return p.plan === 'full'; }).length;
+    var enDemo = accounts.filter(function (p) { return p.negocio_id === 'demo_salon_001'; }).length;
+    var stats = [
+      { n: total, l: 'Cuentas' },
+      { n: free, l: 'Free' },
+      { n: full, l: 'Full' },
+      { n: enDemo, l: 'En demo' }
+    ];
+    $('statsCue').innerHTML = stats.map(function (s) {
+      return '<div class="ad-stat"><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>';
+    }).join('');
+    var bc = $('badgeCue'); if (bc) bc.textContent = total;
+  }
+
+  function cuentasFiltered() {
+    var q = ($('qCue').value || '').trim().toLowerCase();
+    var plan = $('fPlan').value;
+    return accounts.filter(function (p) {
+      if (plan && (p.plan || 'free') !== plan) return false;
+      if (q) {
+        var hay = [p.nombre, p.apellido, p.email, p.nombre_negocio, p.negocio_id, p.phone].join(' ').toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function cuentaRowHtml(p) {
+    var plan = p.plan || 'free';
+    var planClass = plan === 'full' ? 'full' : 'free';
+    var isDemo = p.negocio_id === 'demo_salon_001';
+
+    var grid = '';
+    grid += cell('Email', p.email, 'mail');
+    grid += cell('Teléfono', p.phone, 'tel');
+    grid += cell('Negocio', p.nombre_negocio);
+    grid += cell('Identificador (negocio_id)', p.negocio_id);
+    grid += cell('Código postal', p.codigo_postal);
+    grid += cell('Visitas demo usadas', p.demo_visits_used != null ? String(p.demo_visits_used) : '');
+
+    var action = plan === 'full'
+      ? '<span class="granted-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Acceso completo activo</span>'
+      : '<button class="btn-grant" data-grant="' + esc(p.id) + '">Dar acceso completo</button>';
+
+    var nombreFull = (esc(p.nombre) || 'Sin nombre') + (p.apellido ? (' ' + esc(p.apellido)) : '');
+
+    return '<div class="card-row" data-pid="' + esc(p.id) + '">' +
+      '<div class="r-head">' +
+        '<div class="r-id">' +
+          '<span class="plan ' + planClass + '">' + esc(plan) + '</span>' +
+          (isDemo ? '<span class="plan demo">en demo</span>' : '') +
+          '<span class="r-name">' + nombreFull + '</span>' +
+          (p.nombre_negocio ? '<span class="r-salon">· ' + esc(p.nombre_negocio) + '</span>' : '') +
+        '</div>' +
+        '<span class="r-when">' + fmtDate(p.created_at) + '</span>' +
+      '</div>' +
+      '<div class="r-grid">' + grid + '</div>' +
+      '<div class="r-foot">' + action + '</div>' +
+    '</div>';
+  }
+
+  function renderCuentas() {
+    renderCuentasStats();
+    var data = cuentasFiltered();
+    var listEl = $('listCue');
+    $('countCue').textContent = data.length + ' de ' + accounts.length + ' cuentas';
+    if (!data.length) {
+      listEl.innerHTML = '<div class="ad-empty">No hay cuentas que coincidan con el filtro.</div>';
+      return;
+    }
+    listEl.innerHTML = data.map(cuentaRowHtml).join('');
+
+    listEl.querySelectorAll('.btn-grant').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-grant');
+        var p = accounts.filter(function (x) { return x.id === id; })[0];
+        var quien = p ? (p.nombre_negocio || p.email || 'esta cuenta') : 'esta cuenta';
+        if (!window.confirm('Dar acceso completo a "' + quien + '"?\n\nLa cuenta pasará a plan full con su propio negocio y dejará de estar limitada a la demo.')) return;
+        btn.disabled = true;
+        var prev = btn.textContent;
+        btn.textContent = 'Activando...';
+        api.client.rpc('staff_grant_full_access', { target_user_id: id }).then(function (res) {
+          if (res.error) {
+            btn.disabled = false;
+            btn.textContent = prev;
+            var m = res.error.message || '';
+            msg($('cueMsg'), 'err', m.indexOf('not_authorized') !== -1
+              ? 'Tu cuenta no tiene permiso para esta acción.'
+              : 'No se pudo dar acceso: ' + m);
+            return;
+          }
+          var updated = res.data && res.data.length ? res.data[0] : res.data;
+          var local = accounts.filter(function (x) { return x.id === id; })[0];
+          if (local && updated) { local.plan = updated.plan; local.negocio_id = updated.negocio_id; }
+          msg($('cueMsg'), 'ok', 'Acceso completo activado' +
+            (updated && updated.negocio_id ? ' (negocio: ' + updated.negocio_id + ')' : '') + '.');
+          renderCuentas();
+        });
+      });
+    });
+  }
+
+  ['qCue', 'fPlan'].forEach(function (id) {
+    var el = $(id);
+    if (el) el.addEventListener('input', renderCuentas);
+    if (el) el.addEventListener('change', renderCuentas);
+  });
+  var rbc = $('refreshCueBtn');
+  if (rbc) rbc.addEventListener('click', loadCuentas);
+
+  // ---------- TABS ----------
+  function switchView(view) {
+    var sol = view === 'solicitudes';
+    $('tabSol').classList.toggle('active', sol);
+    $('tabCue').classList.toggle('active', !sol);
+    $('view-solicitudes').style.display = sol ? 'block' : 'none';
+    $('view-cuentas').style.display = sol ? 'none' : 'block';
+    if (!sol && !cuentasLoaded) loadCuentas();
+  }
+  var ts = $('tabSol'); if (ts) ts.addEventListener('click', function () { switchView('solicitudes'); });
+  var tc = $('tabCue'); if (tc) tc.addEventListener('click', function () { switchView('cuentas'); });
+})();
+</script>
+
+</body>
+</html>

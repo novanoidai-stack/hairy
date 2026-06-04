@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mecha — Demo real, solo vista</title>
+<meta name="description" content="Entra a una demo real de Mecha en solo vista. Es tu cuenta gratis: explora la agenda, las fichas de cliente, el asistente de IA y los informes con datos de verdad." />
+<meta name="robots" content="noindex, follow" />
+<meta name="theme-color" content="#070a14" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/mecha.css" />
+<link rel="stylesheet" href="assets/mecha-sections.css" />
+<style>
+  html,body{height:100%}
+  body{display:flex;flex-direction:column;overflow:hidden}
+
+  /* ---------- DEMO BAR ---------- */
+  .dm-bar{position:relative;z-index:5;display:flex;align-items:center;gap:16px;padding:11px clamp(14px,3vw,28px);
+    border-bottom:1px solid var(--border);background:rgba(11,16,32,.82);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);flex-shrink:0}
+  .dm-bar .brand{display:flex;align-items:center;gap:9px}
+  .dm-bar .brand svg{width:28px;height:28px}
+  .dm-bar .brand .nm{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.04em}
+  .dm-pill{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--accent-hi);background:var(--accent-soft);border:1px solid var(--accent-soft);padding:5px 11px;border-radius:999px}
+  .dm-pill .d{width:6px;height:6px;border-radius:50%;background:var(--accent-hi);box-shadow:0 0 10px var(--accent-glow)}
+  .dm-visits{display:inline-flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;font-weight:600;color:var(--text-sec);
+    padding:6px 13px;border:1px solid var(--border-hi);border-radius:10px;background:var(--card)}
+  .dm-visits svg{width:15px;height:15px;color:var(--accent-hi)}
+  .dm-visits.low{color:#ffb07a;border-color:rgba(244,80,30,.4)}
+  .dm-visits.low svg{color:#ffb07a}
+  .dm-bar-cta{display:flex;align-items:center;gap:10px}
+  .dm-bar .btn{padding:9px 16px;font-size:13.5px}
+  .dm-bar .cta-short{display:none}
+  .ver-back{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--text-sec)}
+  .ver-back:hover{color:var(--text)}
+  .ver-back svg{width:16px;height:16px}
+  @media(max-width:720px){
+    .dm-bar{gap:10px;padding:10px 14px}
+    .dm-bar .brand .nm,.dm-bar .ver-back span{display:none}
+    .dm-pill{display:none}
+    .dm-visits{white-space:nowrap;font-size:12px;padding:5px 10px;gap:6px;flex-shrink:0}
+    .dm-bar .btn{padding:8px 12px;font-size:12px}
+    .dm-bar .cta-long{display:none}
+    .dm-bar .cta-short{display:inline}
+  }
+  @media(max-width:440px){
+    .dm-bar .brand{display:none}
+    .dm-visits{font-size:11.5px;padding:5px 9px}
+  }
+
+  /* ---------- STAGE / REAL APP ---------- */
+  .dm-stage{position:relative;z-index:1;flex:1;min-height:0;display:flex;padding:clamp(10px,2vw,22px)}
+  .dm-appwrap{position:relative;width:100%;max-width:1280px;margin:0 auto;border-radius:var(--r-lg);overflow:hidden;
+    border:1px solid var(--border-hi);box-shadow:var(--shadow-card);background:#070a14}
+  .dm-appframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#070a14;z-index:1}
+
+  /* placeholder visible mientras carga (y en local sin /app) */
+  .dm-localnote{position:absolute;inset:0;z-index:0;display:grid;place-items:center;padding:24px;text-align:center}
+  .dm-localnote .in{max-width:440px}
+  .dm-localnote .sp{width:46px;height:46px;margin:0 auto 18px;border-radius:50%;border:3px solid rgba(255,255,255,.1);
+    border-top-color:var(--accent-hi);animation:dmSpin 1s linear infinite}
+  @keyframes dmSpin{to{transform:rotate(360deg)}}
+  .dm-localnote h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em;margin-bottom:7px}
+  .dm-localnote p{font-size:13.5px;color:var(--text-sec);line-height:1.55}
+
+  /* read-only shield: deja ver, no tocar */
+  .dm-shield{position:absolute;inset:0;z-index:6;cursor:default;background:transparent}
+  .dm-ro-badge{position:absolute;top:14px;right:14px;z-index:7;display:inline-flex;align-items:center;gap:7px;
+    font-size:12px;font-weight:700;color:#0b0a12;background:linear-gradient(135deg,#ffd9a8,#ffb07a);
+    padding:6px 12px;border-radius:999px;box-shadow:0 10px 26px -12px rgba(244,80,30,.7)}
+  .dm-ro-badge svg{width:14px;height:14px}
+
+  /* ---------- GUIDED TOUR ---------- */
+  .dm-tour{position:absolute;left:clamp(14px,2.5vw,30px);bottom:clamp(14px,2.5vw,30px);z-index:9;width:min(360px,calc(100% - 28px));
+    background:linear-gradient(180deg,var(--card-hi),var(--card));border:1px solid var(--border-hi);border-radius:var(--r-lg);
+    box-shadow:var(--shadow-pop);padding:18px 18px 16px;display:none}
+  .dm-tour.show{display:block;animation:dmFade .4s var(--ease)}
+  @keyframes dmFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .dm-tour-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .dm-tour-step{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-hi)}
+  .dm-tour-skip{font-size:12px;color:var(--text-ter);background:none}
+  .dm-tour-skip:hover{color:var(--text)}
+  .dm-tour h4{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.02em;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+  .dm-tour h4 .ic{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi)}
+  .dm-tour h4 .ic svg{width:17px;height:17px}
+  .dm-tour p{font-size:13.5px;color:var(--text-sec);line-height:1.55;min-height:60px}
+  .dm-dots{display:flex;gap:6px;margin:14px 0 14px}
+  .dm-dots span{width:7px;height:7px;border-radius:50%;background:var(--border-hi);transition:all .25s}
+  .dm-dots span.on{background:var(--accent-hi);width:18px;border-radius:4px}
+  .dm-tour-acts{display:flex;align-items:center;gap:10px}
+  .dm-tour-acts .btn{flex:1;justify-content:center;padding:10px;font-size:13.5px}
+  .dm-tour-acts .ghost{flex:0 0 auto;padding:10px 14px;font-size:13.5px;color:var(--text-sec);border:1px solid var(--border-hi);border-radius:11px;background:none}
+  .dm-tour-acts .ghost:hover{color:var(--text);border-color:var(--accent)}
+  .dm-tour-acts .ghost[disabled]{opacity:.4;pointer-events:none}
+
+  /* ---------- ACCESS / INTRO GATE ---------- */
+  .dm-gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:22px;
+    background:rgba(7,10,20,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .dm-gate.hide{display:none}
+  .dm-card{width:100%;max-width:460px;background:linear-gradient(180deg,var(--card-hi),var(--card));border:1px solid var(--border-hi);
+    border-radius:var(--r-xl);box-shadow:var(--shadow-pop);padding:30px 30px 26px;position:relative;overflow:hidden;animation:dmPop .5s var(--ease)}
+  .dm-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
+  @keyframes dmPop{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+  .dm-card .gmark{width:54px;height:54px;margin-bottom:16px}
+  .dm-card .geyebrow{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-hi)}
+  .dm-card h2{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:-.03em;margin:8px 0 8px;line-height:1.08}
+  .dm-card h2 .em{font-family:var(--serif);font-weight:400;font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .dm-card .gsub{font-size:14px;color:var(--text-sec);line-height:1.55;margin-bottom:18px}
+  .dm-glist{display:flex;flex-direction:column;gap:11px;margin-bottom:22px}
+  .dm-gitem{display:flex;gap:11px;align-items:flex-start;font-size:13.5px;color:var(--text-sec);line-height:1.45}
+  .dm-gitem .ck{width:22px;height:22px;border-radius:7px;flex-shrink:0;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi)}
+  .dm-gitem .ck svg{width:13px;height:13px}
+  .dm-gitem b{color:var(--text);font-weight:600}
+  .dm-card .btn{margin-top:2px}
+  .dm-gsecond{font-size:13px;color:var(--text-sec);text-align:center;margin-top:15px}
+  .dm-gsecond a{color:var(--accent-hi);font-weight:600}
+  .dm-gback{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--text-ter);border:1px solid var(--border)}
+  .dm-gback:hover{color:var(--text);border-color:var(--border-hi)}
+  .dm-gback svg{width:16px;height:16px}
+
+  /* ---------- OUT-OF-VISITS / END ---------- */
+  .dm-end{position:fixed;inset:0;z-index:60;display:none;place-items:center;padding:24px;
+    background:rgba(7,10,20,.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .dm-end.show{display:grid;animation:dmFade .4s var(--ease)}
+  .dm-end-card{width:100%;max-width:460px;text-align:center;background:linear-gradient(180deg,var(--card-hi),var(--card));
+    border:1px solid var(--border-hi);border-radius:var(--r-xl);box-shadow:var(--shadow-pop);padding:34px 30px 30px;position:relative;overflow:hidden}
+  .dm-end-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
+  .dm-end-card .ic{width:60px;height:60px;border-radius:17px;margin:0 auto 16px;display:grid;place-items:center;background:var(--grad-soft);box-shadow:0 16px 40px -14px var(--accent-glow)}
+  .dm-end-card .ic svg{width:30px;height:30px;color:#fff}
+  .dm-end-card h2{font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:-.03em;margin-bottom:9px}
+  .dm-end-card p{font-size:14.5px;color:var(--text-sec);line-height:1.55;margin-bottom:22px}
+  .dm-end-card p .em{font-family:var(--serif);font-style:italic;color:var(--accent-hi)}
+  .dm-end-actions{display:flex;flex-direction:column;gap:11px}
+  .dm-end-actions .ghost{font-size:13px;color:var(--text-ter);background:none}
+  .dm-end-actions .ghost:hover{color:var(--text)}
+
+  @media(max-width:720px){
+    .dm-stage{padding:0}
+    .dm-appwrap{border-radius:0;border-left:0;border-right:0}
+    .dm-tour{left:10px;right:10px;bottom:10px;width:auto}
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <span class="orb o1"></span>
+  <span class="orb o2"></span>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e0340e" /><stop offset=".45" stop-color="#ff7a2e" /><stop offset="1" stop-color="#ffcf4a" />
+    </linearGradient>
+    <symbol id="mecha-mark" viewBox="0 0 40 40">
+      <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+      <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ============ DEMO BAR ============ -->
+<header class="dm-bar">
+  <a class="ver-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg><span>Volver</span></a>
+  <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha</span></div>
+  <span class="dm-pill"><span class="d"></span>Demo real · solo vista</span>
+  <span class="dm-visits" id="visits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg><span id="visitsText">Preparando…</span></span>
+  <div class="dm-bar-cta">
+    <a class="btn btn-primary" href="reservar.html"><span class="cta-long">Quiero el acceso completo</span><span class="cta-short">Acceso completo</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+    </a>
+  </div>
+</header>
+
+<!-- ============ REAL APP (read-only) ============ -->
+<main class="dm-stage">
+  <div class="dm-appwrap">
+    <div class="dm-localnote" id="localnote">
+      <div class="in">
+        <div class="sp"></div>
+        <h3>Abriendo tu Mecha</h3>
+        <p>Esta es tu cuenta real en solo vista. Cargando el software con tus datos…</p>
+      </div>
+    </div>
+    <iframe class="dm-appframe" id="appFrame" title="Mecha — software real, solo vista" referrerpolicy="same-origin" style="display:none"></iframe>
+    <div class="dm-shield" id="shield" aria-hidden="true">
+      <span class="dm-ro-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>Modo solo vista</span>
+    </div>
+
+    <!-- GUIDED TOUR -->
+    <div class="dm-tour" id="tour">
+      <div class="dm-tour-top">
+        <span class="dm-tour-step" id="tourStep">Paso 1 de 6</span>
+        <button class="dm-tour-skip" id="tourSkip">Saltar guía</button>
+      </div>
+      <h4><span class="ic" id="tourIc"></span><span id="tourTitle">Tu agenda real</span></h4>
+      <p id="tourText"></p>
+      <div class="dm-dots" id="tourDots"></div>
+      <div class="dm-tour-acts">
+        <button class="ghost" id="tourPrev">Atrás</button>
+        <button class="btn btn-primary" id="tourNext">Siguiente</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ============ ACCESS / INTRO GATE ============ -->
+<div class="dm-gate hide" id="gate">
+  <div class="dm-card">
+    <a class="dm-gback" href="index.html" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></a>
+    <svg class="gmark" viewBox="0 0 40 40"><use href="#mecha-mark" /></svg>
+    <span class="geyebrow">Demo real · gratis</span>
+    <h2>Entra a tu <span class="em">Mecha</span> de verdad</h2>
+    <p class="gsub">La demo no son fotos: es el software real con tu propia cuenta gratis. Créala sin tarjeta y míralo por dentro en solo vista.</p>
+    <div class="dm-glist">
+      <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>El software de verdad, <b>no una maqueta</b></span></div>
+      <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>3 visitas gratis</b> a la demo con cada cuenta</span></div>
+      <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Sin tarjeta y con una <b>guía que te explica cada parte</b></span></div>
+    </div>
+    <a class="btn btn-primary btn-block btn-lg" href="acceso.html?next=demo#signup">Crear cuenta gratis y entrar
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+    </a>
+    <p class="dm-gsecond">¿Ya tienes cuenta? <a href="acceso.html?next=demo#login">Inicia sesión</a></p>
+  </div>
+</div>
+
+<!-- ============ OUT OF VISITS ============ -->
+<div class="dm-end" id="end">
+  <div class="dm-end-card">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5.8L20.5 9l-4.5 4 1.3 6.2L12 16.5 6.7 19.2 8 13 3.5 9l6.1-1.2z" /></svg></div>
+    <h2>Has usado tus 3 visitas</h2>
+    <p>Ya conoces Mecha por dentro. Para usarlo de verdad — con todo desbloqueado y la <span class="em">IA implementada</span> — reserva una llamada y te lo dejamos listo en menos de un día.</p>
+    <div class="dm-end-actions">
+      <a class="btn btn-primary btn-lg" href="reservar.html">Reservar llamada · acceso completo
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+      </a>
+      <a class="ghost" href="index.html">Volver al inicio</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/auth.js"></script>
+<script>
+(function(){
+  var $=function(s,c){return (c||document).querySelector(s);};
+  var api=window.MechaAPI;
+  var APP_URL=(api&&api.APP_URL)||'/app';
+  var VISIT_FLAG='mecha_demo_visit';
+  var qs=new URLSearchParams(location.search);
+  var preview=qs.get('preview')==='1';
+
+  var gate=$('#gate'), end=$('#end'), frame=$('#appFrame'), localnote=$('#localnote');
+  var visitsEl=$('#visits'), visitsText=$('#visitsText');
+  var tour=$('#tour');
+
+  function showGate(){ gate.classList.remove('hide'); }
+  function hideGate(){ gate.classList.add('hide'); }
+  function showEnd(){ end.classList.add('show'); visitsText.textContent='0 visitas'; visitsEl.classList.add('low'); }
+
+  function setVisits(remaining){
+    if(remaining===null||typeof remaining==='undefined'){ visitsText.textContent='Solo vista'; return; }
+    var n=remaining;
+    visitsText.textContent = n===1 ? 'Te queda 1 visita' : ('Te quedan '+n+' visitas');
+    if(n<=1) visitsEl.classList.add('low');
+  }
+
+  /* ---------- carga del software real en solo vista ---------- */
+  function mountApp(){
+    if(preview){
+      // modo maqueta local: dejamos el placeholder, sin cargar /app
+      localnote.querySelector('.sp').style.display='none';
+      localnote.querySelector('h3').textContent='Vista previa del marco de la demo';
+      localnote.querySelector('p').textContent='En produccion aqui se carga tu Mecha real (/app) en solo vista. Esta es solo la maqueta del marco guiado.';
+      return;
+    }
+    frame.style.display='block';
+    frame.addEventListener('load',function(){ localnote.style.display='none'; });
+    frame.src=APP_URL;
+  }
+
+  function enterDemo(remaining){
+    hideGate();
+    setVisits(remaining);
+    mountApp();
+    startTour();
+  }
+
+  /* ---------- arranque ---------- */
+  function boot(){
+    if(preview){ enterDemo(3); return; }
+    if(!api||!api.getSession){ showGate(); return; }
+
+    // Una visita por sesion de navegador: si ya entraste, no descuentes otra.
+    var saved=null;
+    try{ saved=JSON.parse(sessionStorage.getItem(VISIT_FLAG)||'null'); }catch(e){}
+    if(saved&&saved.allowed){ enterDemo(saved.remaining); return; }
+
+    api.getSession().then(function(s){
+      if(!s){ showGate(); return; }
+      api.useDemoVisit().then(function(res){
+        if(res&&res.allowed){
+          try{ sessionStorage.setItem(VISIT_FLAG, JSON.stringify({allowed:true,remaining:res.remaining})); }catch(e){}
+          enterDemo(res.remaining);
+        } else if(res&&res.reason==='no_profile'){
+          // cuenta sin perfil aun (confirmacion por email pendiente): la app lo resuelve al entrar
+          enterDemo(null);
+        } else {
+          showEnd();
+        }
+      });
+    });
+  }
+
+  /* ---------- GUIDED TOUR ---------- */
+  var ICONS={
+    agenda:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>',
+    clientes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    ia:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg>',
+    org:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>',
+    fich:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>',
+    rep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>'
+  };
+  var STEPS=[
+    {ic:'agenda',t:'Tu agenda real',d:'Esta es tu agenda de verdad. Cada columna es un profesional y cada bloque, una cita. Los huecos muertos se marcan solos para que no pierdas tiempo.'},
+    {ic:'clientes',t:'Fichas de cliente',d:'Cada cliente guarda su historial: formula de color, alergias, notas y preferencias. Todo a un toque, sin papeles ni libretas.'},
+    {ic:'ia',t:'Asistente IA por WhatsApp',d:'La IA atiende a tus clientes por WhatsApp, reserva la cita y cobra el deposito por Stripe. Tu solo cortas; ella llena la agenda.'},
+    {ic:'org',t:'Organizador con IA',d:'Pulsa "Organizar mi dia" y la IA recoloca tus citas para no dejar huecos sueltos. Tambien puedes pedirselo hablando, como a un companero.'},
+    {ic:'fich',t:'Fichajes legales',d:'Tu equipo ficha entrada y salida con un clic. Integrado con Elevascore, 100% legal en Espana, con informes listos para descargar.'},
+    {ic:'rep',t:'Informes claros',d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Sabes como va el salon de un vistazo, sin hojas de calculo.'}
+  ];
+  var ti=0, tourStarted=false;
+  var tourStep=$('#tourStep'), tourSkip=$('#tourSkip'), tourIc=$('#tourIc'),
+      tourTitle=$('#tourTitle'), tourText=$('#tourText'), tourDots=$('#tourDots'),
+      tourPrev=$('#tourPrev'), tourNext=$('#tourNext');
+
+  STEPS.forEach(function(_,i){ var d=document.createElement('span'); if(i===0)d.className='on'; tourDots.appendChild(d); });
+
+  function renderStep(){
+    var s=STEPS[ti];
+    tourStep.textContent='Paso '+(ti+1)+' de '+STEPS.length;
+    tourIc.innerHTML=ICONS[s.ic];
+    tourTitle.textContent=s.t;
+    tourText.textContent=s.d;
+    Array.prototype.forEach.call(tourDots.children,function(d,i){ d.classList.toggle('on', i===ti); });
+    tourPrev.disabled = ti===0;
+    tourNext.textContent = ti===STEPS.length-1 ? 'Entendido' : 'Siguiente';
+  }
+  function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; renderStep(); tour.classList.add('show'); }
+  function closeTour(){ tour.classList.remove('show'); }
+  tourNext.addEventListener('click',function(){ if(ti<STEPS.length-1){ ti++; renderStep(); } else { closeTour(); } });
+  tourPrev.addEventListener('click',function(){ if(ti>0){ ti--; renderStep(); } });
+  tourSkip.addEventListener('click',closeTour);
+
+  boot();
+})();
+</script>
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0b0a12" /><g transform="scale(2.5)"><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="#ff7a2e" /><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#ffd9a8" /></g></svg>
+</template>
+
+<script src="assets/cookies.js"></script>
+</body>
+</html>
