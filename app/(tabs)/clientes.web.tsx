@@ -582,7 +582,7 @@ export default function ClientesWeb() {
                   triggerRefresh();
                 }} />}
                 {activeTab === 'color' && <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} />}
-                {activeTab === 'historial' && <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} />}
+                {activeTab === 'historial' && <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} />}
               </div>
             ) : (
               // Modo expandido: todas las secciones a la vez en cuadricula
@@ -607,7 +607,7 @@ export default function ClientesWeb() {
 
                 {/* Fila 3: Historial completo */}
                 <Panel title="Historial completo" accent={TOKENS.success}>
-                  <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} />
+                  <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} />
                 </Panel>
               </div>
             )}
@@ -1273,7 +1273,8 @@ function FieldKV({ label, value, full }: { label: string; value: string; full?: 
 }
 
 // ── Tab: Historial
-function HistorialTab({ cliente, citas, servicios, profesionales = [] }: { cliente: Cliente; citas: Cita[]; servicios: any[]; profesionales?: any[] }) {
+function HistorialTab({ cliente, citas, servicios, profesionales = [], fichasTecnicas = [] }: { cliente: Cliente; citas: Cita[]; servicios: any[]; profesionales?: any[]; fichasTecnicas?: any[] }) {
+  const [detailCita, setDetailCita] = useState<Cita | null>(null);
   const clientCitas = citas
     .filter((cit) => cit.cliente_id === cliente.id)
     .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime());
@@ -1330,13 +1331,17 @@ function HistorialTab({ cliente, citas, servicios, profesionales = [] }: { clien
         const est = estadoStyle[estado] || estadoStyle.confirmada;
         const precio = srv?.precio ?? 0;
 
+        const tieneFicha = fichasTecnicas.some((f: any) => f.cita_id === h.id);
+        const tieneFormula = !!(h.formula_producto || h.formula_tono || h.formula_resultado || h.formula_notas || h.formula_tiempo_min != null);
         return (
           <div
             key={h.id}
+            onClick={() => setDetailCita(h)}
+            title="Ver detalle completo de la cita"
             style={{
               display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
               background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10,
-              transition: 'all 0.15s ease',
+              transition: 'all 0.15s ease', cursor: 'pointer',
               animation: `fadeIn 0.2s ease ${idx * 0.03}s both`,
             }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.transform = 'translateX(2px)'; }}
@@ -1344,7 +1349,14 @@ function HistorialTab({ cliente, citas, servicios, profesionales = [] }: { clien
           >
             <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: prof?.color || TOKENS.primary, flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>{srv?.nombre || 'Servicio'}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>{srv?.nombre || 'Servicio'}</div>
+                {(tieneFicha || tieneFormula) && (
+                  <span title="Tiene ficha de color / quimica" style={{ display: 'inline-flex', color: TOKENS.violet }}>
+                    <Icon name="droplet" size={11} color={TOKENS.violet} />
+                  </span>
+                )}
+              </div>
               <div style={{ fontSize: 10, color: TOKENS.textTer, marginTop: 2 }}>
                 {prof?.nombre || 'Profesional'} · {fechaStr} · {horaStr}
               </div>
@@ -1360,9 +1372,192 @@ function HistorialTab({ cliente, citas, servicios, profesionales = [] }: { clien
                 {precio} EUR
               </div>
             )}
+            <Icon name="chevronRight" size={14} color={TOKENS.textTer} />
           </div>
         );
       })}
+
+      {detailCita && (
+        <CitaDetalleModal
+          cita={detailCita}
+          cliente={cliente}
+          servicio={servicios.find((s) => s.id === detailCita.servicio_id)}
+          profesional={profesionales.find((p: any) => p.id === detailCita.profesional_id)}
+          ficha={fichasTecnicas.find((f: any) => f.cita_id === detailCita.id) || null}
+          onClose={() => setDetailCita(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Modal full-screen: detalle completo de una cita (servicio + quimica + notas)
+function CitaDetalleModal({ cita, cliente, servicio, profesional, ficha, onClose }: {
+  cita: Cita; cliente: Cliente; servicio?: any; profesional?: any; ficha: any | null; onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const TIPOS: Record<string, string> = {
+    coloracion_global: 'Color global', color_raiz: 'Color raiz', mechas: 'Mechas',
+    balayage: 'Balayage', decoloracion: 'Decoloracion', matiz: 'Matiz',
+    bano_color: 'Bano de color', correccion_color: 'Correccion', color_fantasia: 'Color fantasia', otro: 'Otro',
+  };
+  const estadoStyle: Record<string, { bg: string; color: string; label: string }> = {
+    confirmada: { bg: 'rgba(244,80,30,0.12)', color: TOKENS.primaryHi, label: 'Confirmada' },
+    completada: { bg: 'rgba(15,157,107,0.14)', color: TOKENS.success, label: 'Completada' },
+    cancelada: { bg: 'rgba(226,59,52,0.12)', color: TOKENS.danger, label: 'Cancelada' },
+    no_presentada: { bg: 'rgba(224,138,0,0.14)', color: TOKENS.warning, label: 'No presentada' },
+  };
+
+  const fecha = new Date(cita.inicio);
+  const fin = cita.fin ? new Date(cita.fin) : null;
+  const fechaLarga = fecha.toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+  const horaIni = fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const horaFin = fin ? fin.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : null;
+  const est = estadoStyle[cita.estado || 'confirmada'] || estadoStyle.confirmada;
+  const precio = servicio?.precio ?? 0;
+  const duracionMin = fin ? Math.round((fin.getTime() - fecha.getTime()) / 60000) : (servicio?.duracion_activa_min ?? null);
+  const alergiasTexto = (cliente.alergias ?? '').trim();
+
+  const formulaArr = Array.isArray(ficha?.formula) ? ficha!.formula : [];
+  const tecnicas: string[] = Array.isArray(ficha?.tecnica_aplicacion) ? ficha!.tecnica_aplicacion : [];
+  const hayQuimicaLegacy = !ficha && !!(cita.formula_producto || cita.formula_tono || cita.formula_resultado || cita.formula_notas || cita.formula_tiempo_min != null);
+
+  return createPortal(
+    <div
+      className="m-overlay-enter"
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(28,24,20,0.55)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+    >
+      <div
+        className="m-modal-enter"
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: 880, maxHeight: '92vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 20, boxShadow: '0 40px 90px rgba(28,24,20,0.35)' }}
+      >
+        {/* Cabecera */}
+        <div style={{ position: 'sticky', top: 0, zIndex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '22px 26px', borderBottom: `1px solid ${TOKENS.border}`, background: 'linear-gradient(180deg, rgba(244,80,30,0.06), transparent)' }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: -0.4, color: TOKENS.text }}>{servicio?.nombre || 'Servicio'}</h2>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 6, background: est.bg, color: est.color, textTransform: 'uppercase' }}>{est.label}</span>
+            </div>
+            <div style={{ marginTop: 6, fontSize: 13, color: TOKENS.textSec, textTransform: 'capitalize' }}>{fechaLarga}</div>
+            <div style={{ marginTop: 2, fontSize: 12, color: TOKENS.textTer }}>
+              {horaIni}{horaFin ? `–${horaFin}` : ''}{duracionMin ? ` · ${duracionMin} min` : ''}
+            </div>
+          </div>
+          <button className="m-btn-icon-close" onClick={onClose} title="Cerrar (Esc)" style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 9, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+            <Icon name="x" size={16} color={TOKENS.textSec} />
+          </button>
+        </div>
+
+        <div style={{ padding: '20px 26px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {/* Datos clave */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+            <DetailStat label="Profesional" value={profesional?.nombre || '—'} dot={profesional?.color} />
+            <DetailStat label="Precio" value={precio > 0 ? `${precio} EUR` : '—'} tone={cita.estado === 'completada' ? TOKENS.success : TOKENS.text} />
+            <DetailStat label="Cliente" value={cliente.nombre} />
+          </div>
+
+          {/* Alergias relevantes */}
+          {alergiasTexto && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', background: 'rgba(226,59,52,0.07)', border: `1px solid rgba(226,59,52,0.30)`, borderRadius: 12 }}>
+              <Icon name="alert" size={16} color={TOKENS.danger} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.danger, textTransform: 'uppercase', letterSpacing: 0.5 }}>Alergias del cliente</div>
+                <div style={{ fontSize: 13, color: TOKENS.text, marginTop: 2 }}>{alergiasTexto}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Quimica / formula */}
+          {(ficha || hayQuimicaLegacy) ? (
+            <Panel title="Color / Química" accent={TOKENS.violet}>
+              {ficha ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <Pill color={TOKENS.violet}>{TIPOS[ficha.tipo_servicio] || ficha.tipo_servicio}</Pill>
+                    {ficha.marca_producto && <span style={{ fontSize: 12, color: TOKENS.textSec }}>{ficha.marca_producto}</span>}
+                  </div>
+                  {formulaArr.length > 0 && (
+                    <div style={{ background: TOKENS.bgCardHi, borderRadius: 10, padding: '10px 12px', fontFamily: 'monospace' }}>
+                      <div style={{ fontSize: 9, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 4 }}>Formula</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: TOKENS.text }}>
+                        {formulaArr.map((f: any) => `${f.numero || '?'} (${f.gramos || '?'}g)`).join('  +  ')}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    {ficha.oxidante_volumen && <FieldKV label="Oxidante" value={`${ficha.oxidante_volumen} vol${ficha.oxidante_proporcion ? ` (${ficha.oxidante_proporcion})` : ''}`} />}
+                    {ficha.tiempo_exposicion_min && <FieldKV label="Tiempo exposicion" value={`${ficha.tiempo_exposicion_min} min`} />}
+                    {ficha.base_natural && <FieldKV label="Base natural" value={ficha.base_natural} />}
+                    {ficha.color_previo && <FieldKV label="Color previo" value={ficha.color_previo} />}
+                    {ficha.porcentaje_canas != null && <FieldKV label="Canas" value={`${ficha.porcentaje_canas}%`} />}
+                    {ficha.resultado_color && <FieldKV label="Resultado color" value={ficha.resultado_color} full />}
+                    {ficha.resultado_notas && <FieldKV label="Notas resultado" value={ficha.resultado_notas} full />}
+                  </div>
+                  {tecnicas.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {tecnicas.map((t) => <Pill key={t} color={TOKENS.cyan}>{t}</Pill>)}
+                    </div>
+                  )}
+                  {ficha.incidencias && (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '9px 11px', background: TOKENS.dangerSoft, border: `1px solid rgba(226,59,52,0.30)`, borderRadius: 9, fontSize: 12, color: TOKENS.danger }}>
+                      <Icon name="alert" size={13} color={TOKENS.danger} />
+                      <span>{ficha.incidencias}</span>
+                    </div>
+                  )}
+                  {ficha.resultado_satisfactorio != null && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: 4, background: ficha.resultado_satisfactorio ? TOKENS.success : TOKENS.warning }} />
+                      <span style={{ fontSize: 11, color: ficha.resultado_satisfactorio ? TOKENS.success : TOKENS.warning, fontWeight: 600 }}>
+                        {ficha.resultado_satisfactorio ? 'Resultado satisfactorio' : 'Resultado a revisar'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  {cita.formula_producto && <FieldKV label="Producto" value={cita.formula_producto} />}
+                  {cita.formula_tono && <FieldKV label="Tono" value={cita.formula_tono} />}
+                  {cita.formula_tiempo_min != null && <FieldKV label="Tiempo" value={`${cita.formula_tiempo_min} min`} />}
+                  {cita.formula_resultado && <FieldKV label="Resultado" value={cita.formula_resultado} full />}
+                  {cita.formula_notas && <FieldKV label="Notas" value={cita.formula_notas} full />}
+                </div>
+              )}
+            </Panel>
+          ) : (
+            <Panel title="Color / Química" accent={TOKENS.violet}>
+              <div style={{ fontSize: 12, color: TOKENS.textTer }}>Esta cita no tiene ficha de color registrada.</div>
+            </Panel>
+          )}
+
+          {/* Notas de la cita */}
+          {cita.notas && (
+            <Panel title="Notas de la cita" accent={TOKENS.primary}>
+              <div style={{ fontSize: 13, color: TOKENS.text, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{cita.notas}</div>
+            </Panel>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// ── Stat compacto para el detalle de cita
+function DetailStat({ label, value, tone, dot }: { label: string; value: string; tone?: string; dot?: string }) {
+  return (
+    <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: '12px 14px' }}>
+      <div style={{ fontSize: 10, letterSpacing: 0.6, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 5 }}>
+        {dot && <span style={{ width: 8, height: 8, borderRadius: 4, background: dot, flexShrink: 0 }} />}
+        <span style={{ fontSize: 15, fontWeight: 700, color: tone || TOKENS.text }}>{value}</span>
+      </div>
     </div>
   );
 }
