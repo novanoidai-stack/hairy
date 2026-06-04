@@ -1,4 +1,6 @@
-web/
+# La landing estatica (web/*.html, web/assets) si se versiona.
+# Solo se ignora la salida del build de Expo (web/app), generada en Vercel.
+web/app/
 node_modules/
 .expo/
 .env

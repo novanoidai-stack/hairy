@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Mecha — Demo real, solo vista</title>
-<meta name="description" content="Entra a una demo real de Mecha en solo vista. Es tu cuenta gratis: explora la agenda, las fichas de cliente, el asistente de IA y los informes con datos de verdad." />
+<title>Mecha — Demo real e interactiva</title>
+<meta name="description" content="Entra a una demo real e interactiva de Mecha. Es tu cuenta gratis: crea y mueve citas, explora las fichas de cliente, el asistente de IA y los informes con datos de verdad." />
 <meta name="robots" content="noindex, follow" />
 <meta name="theme-color" content="#070a14" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -51,9 +51,9 @@
   }
 
   /* ---------- STAGE / REAL APP ---------- */
-  .dm-stage{position:relative;z-index:1;flex:1;min-height:0;display:flex;padding:clamp(10px,2vw,22px)}
-  .dm-appwrap{position:relative;width:100%;max-width:1280px;margin:0 auto;border-radius:var(--r-lg);overflow:hidden;
-    border:1px solid var(--border-hi);box-shadow:var(--shadow-card);background:#070a14}
+  .dm-stage{position:relative;z-index:1;flex:1;min-height:0;display:flex;padding:0}
+  .dm-appwrap{position:relative;width:100%;max-width:none;margin:0;border-radius:0;overflow:hidden;
+    border:0;box-shadow:none;background:#070a14}
   .dm-appframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#070a14;z-index:1}
 
   /* placeholder visible mientras carga (y en local sin /app) */
@@ -64,13 +64,6 @@
   @keyframes dmSpin{to{transform:rotate(360deg)}}
   .dm-localnote h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em;margin-bottom:7px}
   .dm-localnote p{font-size:13.5px;color:var(--text-sec);line-height:1.55}
-
-  /* read-only shield: deja ver, no tocar */
-  .dm-shield{position:absolute;inset:0;z-index:6;cursor:default;background:transparent}
-  .dm-ro-badge{position:absolute;top:14px;right:14px;z-index:7;display:inline-flex;align-items:center;gap:7px;
-    font-size:12px;font-weight:700;color:#0b0a12;background:linear-gradient(135deg,#ffd9a8,#ffb07a);
-    padding:6px 12px;border-radius:999px;box-shadow:0 10px 26px -12px rgba(244,80,30,.7)}
-  .dm-ro-badge svg{width:14px;height:14px}
 
   /* ---------- GUIDED TOUR ---------- */
   .dm-tour{position:absolute;left:clamp(14px,2.5vw,30px);bottom:clamp(14px,2.5vw,30px);z-index:9;width:min(360px,calc(100% - 28px));
@@ -167,7 +160,7 @@
 <header class="dm-bar">
   <a class="ver-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg><span>Volver</span></a>
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha</span></div>
-  <span class="dm-pill"><span class="d"></span>Demo real · solo vista</span>
+  <span class="dm-pill"><span class="d"></span>Demo real · interactiva</span>
   <span class="dm-visits" id="visits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg><span id="visitsText">Preparando…</span></span>
   <div class="dm-bar-cta">
     <a class="btn btn-primary" href="reservar.html"><span class="cta-long">Quiero el acceso completo</span><span class="cta-short">Acceso completo</span>
@@ -176,20 +169,17 @@
   </div>
 </header>
 
-<!-- ============ REAL APP (read-only) ============ -->
+<!-- ============ REAL APP (interactiva) ============ -->
 <main class="dm-stage">
   <div class="dm-appwrap">
     <div class="dm-localnote" id="localnote">
       <div class="in">
         <div class="sp"></div>
         <h3>Abriendo tu Mecha</h3>
-        <p>Esta es tu cuenta real en solo vista. Cargando el software con tus datos…</p>
+        <p>Esta es tu cuenta real. Cargando el software con tus datos para que pruebes la agenda de verdad…</p>
       </div>
     </div>
-    <iframe class="dm-appframe" id="appFrame" title="Mecha — software real, solo vista" referrerpolicy="same-origin" style="display:none"></iframe>
-    <div class="dm-shield" id="shield" aria-hidden="true">
-      <span class="dm-ro-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>Modo solo vista</span>
-    </div>
+    <iframe class="dm-appframe" id="appFrame" title="Mecha — software real e interactivo" referrerpolicy="same-origin" style="display:none"></iframe>
 
     <!-- GUIDED TOUR -->
     <div class="dm-tour" id="tour">
@@ -215,7 +205,7 @@
     <svg class="gmark" viewBox="0 0 40 40"><use href="#mecha-mark" /></svg>
     <span class="geyebrow">Demo real · gratis</span>
     <h2>Entra a tu <span class="em">Mecha</span> de verdad</h2>
-    <p class="gsub">La demo no son fotos: es el software real con tu propia cuenta gratis. Créala sin tarjeta y míralo por dentro en solo vista.</p>
+    <p class="gsub">La demo no son fotos: es el software real con tu propia cuenta gratis. Créala sin tarjeta, crea y mueve citas y pruébalo por dentro.</p>
     <div class="dm-glist">
       <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>El software de verdad, <b>no una maqueta</b></span></div>
       <div class="dm-gitem"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>3 visitas gratis</b> a la demo con cada cuenta</span></div>
@@ -263,19 +253,19 @@
   function showEnd(){ end.classList.add('show'); visitsText.textContent='0 visitas'; visitsEl.classList.add('low'); }
 
   function setVisits(remaining){
-    if(remaining===null||typeof remaining==='undefined'){ visitsText.textContent='Solo vista'; return; }
+    if(remaining===null||typeof remaining==='undefined'){ visitsText.textContent='Demo activa'; return; }
     var n=remaining;
     visitsText.textContent = n===1 ? 'Te queda 1 visita' : ('Te quedan '+n+' visitas');
     if(n<=1) visitsEl.classList.add('low');
   }
 
-  /* ---------- carga del software real en solo vista ---------- */
+  /* ---------- carga del software real e interactivo ---------- */
   function mountApp(){
     if(preview){
       // modo maqueta local: dejamos el placeholder, sin cargar /app
       localnote.querySelector('.sp').style.display='none';
       localnote.querySelector('h3').textContent='Vista previa del marco de la demo';
-      localnote.querySelector('p').textContent='En produccion aqui se carga tu Mecha real (/app) en solo vista. Esta es solo la maqueta del marco guiado.';
+      localnote.querySelector('p').textContent='En produccion aqui se carga tu Mecha real (/app) interactiva. Esta es solo la maqueta del marco guiado.';
       return;
     }
     frame.style.display='block';

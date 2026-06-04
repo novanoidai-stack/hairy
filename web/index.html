@@ -77,6 +77,32 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="assets/mecha.css" />
 <link rel="stylesheet" href="assets/mecha-sections.css" />
+<style>
+  /* ---------- ACCOUNT CHIP (sesion activa) ---------- */
+  .acct{position:relative;display:none}
+  .acct.on{display:inline-flex}
+  .acct-btn{display:inline-flex;align-items:center;gap:8px;padding:5px 11px 5px 5px;border:1px solid var(--border-hi);
+    border-radius:999px;background:var(--card);color:var(--text);cursor:pointer;font:inherit;font-size:14px;font-weight:600;transition:border-color .2s}
+  .acct-btn:hover{border-color:var(--accent)}
+  .acct-av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--grad);
+    color:#0b0a12;font-weight:800;font-size:14px;text-transform:uppercase;flex-shrink:0;line-height:1}
+  .acct-ca{width:14px;height:14px;color:var(--text-ter);transition:transform .2s}
+  .acct.open .acct-ca{transform:rotate(180deg)}
+  .acct-menu{position:absolute;top:calc(100% + 10px);right:0;min-width:236px;background:linear-gradient(180deg,var(--card-hi),var(--card));
+    border:1px solid var(--border-hi);border-radius:14px;box-shadow:var(--shadow-pop);padding:8px;display:none;z-index:50}
+  .acct.open .acct-menu{display:block;animation:acctFade .2s var(--ease)}
+  @keyframes acctFade{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .acct-head{padding:8px 11px 11px;border-bottom:1px solid var(--border);margin-bottom:6px}
+  .acct-head .lbl{font-size:11px;color:var(--text-ter);text-transform:uppercase;letter-spacing:.09em;font-weight:600}
+  .acct-head .eml{font-size:13.5px;color:var(--text);font-weight:600;margin-top:3px;word-break:break-all}
+  .acct-menu a,.acct-menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 11px;
+    border-radius:9px;font:inherit;font-size:14px;color:var(--text-sec);background:none;border:0;cursor:pointer;text-decoration:none}
+  .acct-menu a:hover,.acct-menu button:hover{background:var(--accent-soft);color:var(--text)}
+  .acct-menu svg{width:16px;height:16px;flex-shrink:0}
+  .acct-menu .sep{height:1px;background:var(--border);margin:6px 4px;padding:0}
+  .acct-menu .danger:hover{color:#ffb07a;background:rgba(244,80,30,.12)}
+  .acct-staff{display:none}
+</style>
 </head>
 <body data-theme="dark">
 
@@ -131,8 +157,22 @@
       <a href="#plataforma">Plataforma</a>
     </div>
     <div class="nav-cta">
-      <a href="acceso.html" class="login">Iniciar sesión</a>
-      <a href="demo.html" class="btn btn-primary">Ver demo gratis</a>
+      <a href="acceso.html" class="login" id="navLogin">Iniciar sesión</a>
+      <a href="demo.html" class="btn btn-primary" id="navDemo">Ver demo gratis</a>
+      <div class="acct" id="acct">
+        <button class="acct-btn" id="acctBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Tu cuenta">
+          <span class="acct-av" id="acctAv">·</span>
+          <svg class="acct-ca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+        </button>
+        <div class="acct-menu" id="acctMenu" role="menu">
+          <div class="acct-head"><div class="lbl">Tu cuenta</div><div class="eml" id="acctEml"></div></div>
+          <a href="#" id="acctApp" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 9h6v6H9z" /></svg>Entrar al software</a>
+          <a href="demo.html" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>Ver la demo</a>
+          <a href="admin.html" id="acctStaff" class="acct-staff" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z" /></svg>Panel de staff</a>
+          <div class="sep"></div>
+          <button class="danger" id="acctOut" type="button" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>Cerrar sesión</button>
+        </div>
+      </div>
     </div>
   </div>
 </nav>
@@ -1104,6 +1144,54 @@ window.MECHA_CHAT = [
 <template id="__bundler_thumbnail">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0b0a12" /><g transform="scale(2.5)"><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="#ff7a2e" /><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#ffd9a8" /></g></svg>
 </template>
+
+<!-- ============ SESION / CHIP DE CUENTA ============ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/auth.js"></script>
+<script>
+(function(){
+  var api=window.MechaAPI;
+  if(!api||!api.getSession) return;
+  var $=function(id){return document.getElementById(id);};
+  var acct=$('acct'), btn=$('acctBtn'), av=$('acctAv'), eml=$('acctEml'),
+      login=$('navLogin'), demo=$('navDemo'), appLink=$('acctApp'),
+      out=$('acctOut'), staff=$('acctStaff');
+  if(!acct) return;
+
+  function openMenu(){ acct.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
+  function closeMenu(){ acct.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+  btn.addEventListener('click',function(e){ e.stopPropagation(); acct.classList.contains('open')?closeMenu():openMenu(); });
+  document.addEventListener('click',function(e){ if(!acct.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeMenu(); });
+
+  appLink.addEventListener('click',function(e){ e.preventDefault(); if(api.goToApp) api.goToApp(); });
+  out.addEventListener('click',function(){
+    closeMenu();
+    if(api.signOut){ api.signOut().then(function(){ location.reload(); }); }
+    else { location.reload(); }
+  });
+
+  function render(session){
+    if(!session||!session.user){
+      acct.classList.remove('on');
+      if(login) login.style.display='';
+      if(demo) demo.style.display='';
+      return;
+    }
+    var email=(session.user.email||'').trim();
+    av.textContent=(email.charAt(0)||'·').toUpperCase();
+    eml.textContent=email||'Tu cuenta';
+    if(login) login.style.display='none';
+    if(demo) demo.style.display='none';
+    acct.classList.add('on');
+    if(staff&&api.isStaff){ api.isStaff().then(function(ok){ if(ok) staff.style.display='flex'; }); }
+  }
+
+  api.getSession().then(render);
+  // Reaccionar a login/logout en otra pestana de la misma sesion.
+  if(api.onAuth){ api.onAuth(function(_evt,session){ render(session); }); }
+})();
+</script>
 
 <script src="assets/cookies.js"></script>
 </body>
