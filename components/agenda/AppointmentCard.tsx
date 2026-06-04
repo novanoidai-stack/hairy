@@ -4,7 +4,7 @@ import { TText } from '@/components/ui/TText';
 import type { Cita } from './AgendaView';
 
 const ESTADO_COLORS: Record<Cita['estado'], string> = {
-  confirmada: '#6366f1',
+  confirmada: '#f4501e',
   completada: '#10b981',
   cancelada: '#94a3b8',
   no_presentada: '#ef4444',

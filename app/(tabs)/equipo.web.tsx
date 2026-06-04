@@ -89,7 +89,7 @@ const ANIMATIONS = `
 
 const TIPO_CONFIG: Record<string, { label: string; color: string }> = {
   vacaciones: { label: 'Vacaciones', color: '#f59e0b' },
-  formacion:  { label: 'Formación',  color: '#8b5cf6' },
+  formacion:  { label: 'Formación',  color: '#c0260a' },
   reunion:    { label: 'Reunión',    color: '#3b82f6' },
   baja:       { label: 'Baja',       color: '#ef4444' },
   descanso:   { label: 'Descanso',   color: '#10b981' },
@@ -344,7 +344,7 @@ export default function EquipoWeb() {
           <button
             className="m-btn-primary"
             onClick={() => setShowNewProf(true)}
-            style={{ padding: '9px 14px', background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px rgba(99,102,241,0.45)`, display: 'flex', alignItems: 'center', gap: 6 }}>
+            style={{ padding: '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px rgba(244,80,30,0.45)`, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="plus" size={16} color="#fff" />
             Añadir profesional
           </button>
@@ -430,7 +430,7 @@ export default function EquipoWeb() {
                         <div style={{ position: 'absolute', right: 0, top: 32, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 10, padding: 4, minWidth: 170, zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', animation: 'scaleIn 0.15s ease' }}>
                           <button
                             onClick={(e) => { e.stopPropagation(); setEditingProf(p); setMenuCardId(null); }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.12)'; }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,80,30,0.12)'; }}
                             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                             style={{ width: '100%', padding: '8px 12px', background: 'transparent', border: 'none', borderRadius: 7, color: TOKENS.text, fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
                             <Icon name="edit" size={14} color={TOKENS.textSec} /> Editar profesional
@@ -491,7 +491,7 @@ export default function EquipoWeb() {
             {/* Add card */}
             <div
               onClick={() => setShowNewProf(true)}
-              onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.primarySoft; e.currentTarget.style.borderColor = `rgba(99,102,241,0.4)`; e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.primarySoft; e.currentTarget.style.borderColor = `rgba(244,80,30,0.4)`; e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
               style={{
                 background: 'transparent',
@@ -519,7 +519,7 @@ export default function EquipoWeb() {
 
         {/* Right: blocks panel */}
         {profSel && selected && (
-          <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ borderLeft: `1px solid ${TOKENS.border}`, padding: 24, overflowY: 'auto', background: 'linear-gradient(180deg, rgba(99,102,241,0.04), transparent 30%)' }}>
+          <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ borderLeft: `1px solid ${TOKENS.border}`, padding: 24, overflowY: 'auto', background: 'linear-gradient(180deg, rgba(244,80,30,0.04), transparent 30%)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
               <div
                 style={{
@@ -583,7 +583,7 @@ export default function EquipoWeb() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 <MetricCard label="Comisiones" value={`${profSel.comisionesDevengadas ?? 0}EUR`} color="#f59e0b" />
-                <MetricCard label="Ocupacion" value={`${profSel.ocupacion ?? 0}%`} color="#8b5cf6" />
+                <MetricCard label="Ocupacion" value={`${profSel.ocupacion ?? 0}%`} color="#c0260a" />
                 <MetricCard label="Clientas" value={String(profSel.clientesUnicos ?? 0)} color="#ec4899" />
               </div>
             </Section>
@@ -599,9 +599,9 @@ export default function EquipoWeb() {
                   return (
                     <div key={i}
                       onClick={() => openEditDia(dbDia)}
-                      onMouseEnter={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.background = hasH ? 'rgba(99,102,241,0.18)' : 'rgba(148,163,184,0.1)'; }}}
-                      onMouseLeave={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = isEditing ? 'rgba(99,102,241,0.22)' : hasH ? 'rgba(99,102,241,0.10)' : 'rgba(148,163,184,0.05)'; }}}
-                      style={{ textAlign: 'center', padding: 6, borderRadius: 8, background: isEditing ? 'rgba(99,102,241,0.22)' : hasH ? 'rgba(99,102,241,0.10)' : 'rgba(148,163,184,0.05)', transition: 'transform 0.15s ease, background 0.15s ease', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
+                      onMouseEnter={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.background = hasH ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.1)'; }}}
+                      onMouseLeave={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.05)'; }}}
+                      style={{ textAlign: 'center', padding: 6, borderRadius: 8, background: isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.05)', transition: 'transform 0.15s ease, background 0.15s ease', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
                       <div style={{ fontSize: 10, fontWeight: 700, color: isEditing ? TOKENS.text : hasH ? TOKENS.primaryHi : TOKENS.textTer }}>{dia}</div>
                       {dayH.length === 0 && <div style={{ fontSize: 9, color: TOKENS.textTer, marginTop: 2 }}>Cerrado</div>}
                       {dayH.map((h, hi) => (
@@ -703,16 +703,16 @@ export default function EquipoWeb() {
               <div style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>Bloqueos próximos</div>
               <button
                 onClick={() => setShowNewBloqueo(true)}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)'; e.currentTarget.style.background = 'rgba(99,102,241,0.18)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(99,102,241,0.35)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.background = 'rgba(99,102,241,0.10)'; e.currentTarget.style.boxShadow = 'none'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)'; e.currentTarget.style.background = 'rgba(244,80,30,0.18)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(244,80,30,0.35)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.background = 'rgba(244,80,30,0.10)'; e.currentTarget.style.boxShadow = 'none'; }}
                 onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.96)'; }}
                 onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)'; }}
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
                   color: TOKENS.primaryHi,
-                  background: 'rgba(99,102,241,0.10)',
-                  border: `1px solid rgba(99,102,241,0.25)`,
+                  background: 'rgba(244,80,30,0.10)',
+                  border: `1px solid rgba(244,80,30,0.25)`,
                   padding: '5px 10px',
                   borderRadius: 8,
                   display: 'inline-flex',
@@ -775,7 +775,7 @@ export default function EquipoWeb() {
                       <div style={{ position: 'absolute', right: 0, top: 28, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 10, padding: 4, minWidth: 160, zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', animation: 'scaleIn 0.15s ease' }}>
                         <button
                           onClick={() => { setEditBloqueo(b); setMenuBloqueoId(null); }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.12)'; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,80,30,0.12)'; }}
                           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                           style={{ width: '100%', padding: '8px 12px', background: 'transparent', border: 'none', borderRadius: 7, color: TOKENS.text, fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
                           <Icon name="edit" size={14} color={TOKENS.textSec} /> Editar bloqueo
@@ -809,7 +809,7 @@ export default function EquipoWeb() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 {[
                   { l: 'Vacaciones', c: '#f59e0b' },
-                  { l: 'Formación', c: '#8b5cf6' },
+                  { l: 'Formación', c: '#c0260a' },
                   { l: 'Reunión', c: '#3b82f6' },
                   { l: 'Baja', c: '#ef4444' },
                   { l: 'Descanso', c: '#10b981' },
@@ -849,13 +849,13 @@ const ESPECIALIDADES_CATALOGO = [
 
 function NewProfModal({ onClose, negocioId, onCreated }: any) {
   const [nombre, setNombre] = useState('');
-  const [color, setColor] = useState('#6366f1');
+  const [color, setColor] = useState('#f4501e');
   const [categoria, setCategoria] = useState('oficial');
   const [especialidades, setEspecialidades] = useState<string[]>([]);
   const [comisionPct, setComisionPct] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#ef4444'];
+  const COLORS = ['#f4501e', '#c0260a', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#ef4444'];
 
   function toggleEspecialidad(esp: string) {
     setEspecialidades(prev => prev.includes(esp) ? prev.filter(e => e !== esp) : [...prev, esp]);
@@ -890,7 +890,7 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
-      <div style={{ width: 420, maxWidth: '100%', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15)' }}>
+      <div style={{ width: 420, maxWidth: '100%', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>Nuevo profesional</h3>
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18 }}>
@@ -928,9 +928,9 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
                   style={{
                     padding: '6px 12px',
                     borderRadius: 8,
-                    background: categoria === cat.value ? 'rgba(99,102,241,0.18)' : TOKENS.bgCard,
-                    border: `1px solid ${categoria === cat.value ? 'rgba(99,102,241,0.5)' : TOKENS.border}`,
-                    color: categoria === cat.value ? '#818cf8' : TOKENS.textSec,
+                    background: categoria === cat.value ? 'rgba(244,80,30,0.18)' : TOKENS.bgCard,
+                    border: `1px solid ${categoria === cat.value ? 'rgba(244,80,30,0.5)' : TOKENS.border}`,
+                    color: categoria === cat.value ? '#ff7a2e' : TOKENS.textSec,
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -1034,14 +1034,14 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
             disabled={loading}
             style={{
               padding: '9px 14px',
-              background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
+              background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`,
               color: '#fff',
               border: 'none',
               borderRadius: 10,
               cursor: loading ? 'not-allowed' : 'pointer',
               fontSize: 13,
               fontWeight: 600,
-              boxShadow: `0 6px 20px rgba(99,102,241,0.45)`,
+              boxShadow: `0 6px 20px rgba(244,80,30,0.45)`,
               opacity: loading ? 0.6 : 1,
             }}
           >
@@ -1064,7 +1064,7 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
   const [tipoRelacion, setTipoRelacion] = useState(prof.tipo_relacion ?? 'empleado');
   const [loading, setLoading] = useState(false);
 
-  const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#ef4444'];
+  const COLORS = ['#f4501e', '#c0260a', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#ef4444'];
   const TIPOS_REL = [
     { value: 'empleado', label: 'Empleado' },
     { value: 'autonomo', label: 'Autonomo' },
@@ -1098,7 +1098,7 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
-      <div style={{ width: 480, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15)' }}>
+      <div style={{ width: 480, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>Editar profesional</h3>
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18 }}>x</button>
@@ -1113,7 +1113,7 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
             <div style={labelStyle}>Categoria*</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {CATEGORIAS_PROF.map((cat) => (
-                <button key={cat.value} onClick={() => setCategoria(cat.value)} style={{ padding: '6px 12px', borderRadius: 8, background: categoria === cat.value ? 'rgba(99,102,241,0.18)' : TOKENS.bgCard, border: `1px solid ${categoria === cat.value ? 'rgba(99,102,241,0.5)' : TOKENS.border}`, color: categoria === cat.value ? '#818cf8' : TOKENS.textSec, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{cat.label}</button>
+                <button key={cat.value} onClick={() => setCategoria(cat.value)} style={{ padding: '6px 12px', borderRadius: 8, background: categoria === cat.value ? 'rgba(244,80,30,0.18)' : TOKENS.bgCard, border: `1px solid ${categoria === cat.value ? 'rgba(244,80,30,0.5)' : TOKENS.border}`, color: categoria === cat.value ? '#ff7a2e' : TOKENS.textSec, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{cat.label}</button>
               ))}
             </div>
           </div>
@@ -1137,7 +1137,7 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
               <div style={labelStyle}>Tipo de relacion</div>
               <div style={{ display: 'flex', gap: 6 }}>
                 {TIPOS_REL.map((t) => (
-                  <button key={t.value} onClick={() => setTipoRelacion(t.value)} style={{ padding: '6px 10px', borderRadius: 8, background: tipoRelacion === t.value ? 'rgba(99,102,241,0.18)' : TOKENS.bgCard, border: `1px solid ${tipoRelacion === t.value ? 'rgba(99,102,241,0.5)' : TOKENS.border}`, color: tipoRelacion === t.value ? '#818cf8' : TOKENS.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t.label}</button>
+                  <button key={t.value} onClick={() => setTipoRelacion(t.value)} style={{ padding: '6px 10px', borderRadius: 8, background: tipoRelacion === t.value ? 'rgba(244,80,30,0.18)' : TOKENS.bgCard, border: `1px solid ${tipoRelacion === t.value ? 'rgba(244,80,30,0.5)' : TOKENS.border}`, color: tipoRelacion === t.value ? '#ff7a2e' : TOKENS.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t.label}</button>
                 ))}
               </div>
             </div>
@@ -1164,7 +1164,7 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
           <button onClick={onClose} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
-          <button onClick={handleGuardar} disabled={loading} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(99,102,241,0.45)', opacity: loading ? 0.6 : 1 }}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
+          <button onClick={handleGuardar} disabled={loading} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(244,80,30,0.45)', opacity: loading ? 0.6 : 1 }}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
         </div>
       </div>
     </div>
@@ -1173,7 +1173,7 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
 
 const TIPOS_BLOQUEO = [
   { value: 'vacaciones', label: 'Vacaciones', color: '#f59e0b' },
-  { value: 'formacion',  label: 'Formacion',  color: '#8b5cf6' },
+  { value: 'formacion',  label: 'Formacion',  color: '#c0260a' },
   { value: 'reunion',    label: 'Reunion',    color: '#3b82f6' },
   { value: 'baja',       label: 'Baja',       color: '#ef4444' },
   { value: 'descanso',   label: 'Descanso',   color: '#10b981' },
@@ -1224,8 +1224,8 @@ function NumBox({ value, label }: { value: string; label: string }) {
     <div style={{
       display: 'flex', alignItems: 'baseline', gap: 2,
       padding: '5px 10px', borderRadius: 8,
-      background: 'rgba(99,102,241,0.13)',
-      border: '1px solid rgba(99,102,241,0.22)',
+      background: 'rgba(244,80,30,0.13)',
+      border: '1px solid rgba(244,80,30,0.22)',
       minWidth: label === 'h' ? 46 : 52,
       justifyContent: 'center',
     }}>
@@ -1632,7 +1632,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
               const cancelar = Object.values(accionesConflicto).filter((a) => a === 'cancelar').length;
               const mantener = Object.values(accionesConflicto).filter((a) => a === 'mantener').length;
               return (
-                <div style={{ padding: 12, background: 'rgba(99,102,241,0.08)', borderRadius: 10, marginBottom: 18, fontSize: 12, color: TOKENS.textSec }}>
+                <div style={{ padding: 12, background: 'rgba(244,80,30,0.08)', borderRadius: 10, marginBottom: 18, fontSize: 12, color: TOKENS.textSec }}>
                   {cancelar > 0 && <span style={{ color: '#ef4444', fontWeight: 600 }}>{cancelar} se cancelar{cancelar > 1 ? 'an' : 'a'}</span>}
                   {cancelar > 0 && mantener > 0 && <span> · </span>}
                   {mantener > 0 && <span style={{ color: TOKENS.primaryHi, fontWeight: 600 }}>{mantener} se mantiene{mantener > 1 ? 'n' : ''}</span>}
@@ -1661,14 +1661,14 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
                 disabled={loading}
                 style={{
                   padding: '9px 14px',
-                  background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
+                  background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`,
                   color: '#fff',
                   border: 'none',
                   borderRadius: 10,
                   cursor: loading ? 'not-allowed' : 'pointer',
                   fontSize: 13,
                   fontWeight: 600,
-                  boxShadow: `0 6px 20px rgba(99,102,241,0.45)`,
+                  boxShadow: `0 6px 20px rgba(244,80,30,0.45)`,
                   opacity: loading ? 0.6 : 1,
                 }}
               >
@@ -1992,14 +1992,14 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
             disabled={loading || profsSeleccionados.length === 0}
             style={{
               padding: '9px 14px',
-              background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
+              background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`,
               color: '#fff',
               border: 'none',
               borderRadius: 10,
               cursor: loading ? 'not-allowed' : 'pointer',
               fontSize: 13,
               fontWeight: 600,
-              boxShadow: `0 6px 20px rgba(99,102,241,0.45)`,
+              boxShadow: `0 6px 20px rgba(244,80,30,0.45)`,
               opacity: loading || profsSeleccionados.length === 0 ? 0.6 : 1,
             }}
           >
@@ -2158,7 +2158,7 @@ function EditBloqueoModal({ bloqueo, onClose, onSaved }: { bloqueo: any; onClose
         {/* Botones */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button onClick={onClose} style={{ padding: '9px 14px', background: 'transparent', color: TOKENS.textSec, border: `1px solid ${TOKENS.border}`, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
-          <button onClick={guardar} disabled={saving} style={{ padding: '9px 14px', background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(99,102,241,0.45)', opacity: saving ? 0.6 : 1 }}>
+          <button onClick={guardar} disabled={saving} style={{ padding: '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(244,80,30,0.45)', opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </div>

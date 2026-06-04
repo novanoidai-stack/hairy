@@ -339,7 +339,7 @@ export default function NuevaCitaScreen() {
   }
 
   if (loading) {
-    return <View style={[s.center, { backgroundColor: c.bg }]}><ActivityIndicator color="#6366f1" /></View>;
+    return <View style={[s.center, { backgroundColor: c.bg }]}><ActivityIndicator color="#f4501e" /></View>;
   }
 
   const inner = (
@@ -370,15 +370,15 @@ export default function NuevaCitaScreen() {
                 <TouchableOpacity
                   key={sv.id}
                   style={[s.serviceItem, {
-                    borderColor: sel ? '#6366f1' : c.border,
-                    backgroundColor: sel ? '#6366f122' : c.surface,
+                    borderColor: sel ? '#f4501e' : c.border,
+                    backgroundColor: sel ? '#f4501e22' : c.surface,
                   }]}
                   onPress={() => setServicioSeleccionado(sv.id)}
                 >
-                  <TText style={[s.serviceNombre, { color: sel ? '#6366f1' : c.text }]} numberOfLines={1}>
+                  <TText style={[s.serviceNombre, { color: sel ? '#f4501e' : c.text }]} numberOfLines={1}>
                     {sv.nombre}
                   </TText>
-                  <TText style={[s.serviceDuracion, { color: sel ? '#6366f1' : c.textSecondary }]}>
+                  <TText style={[s.serviceDuracion, { color: sel ? '#f4501e' : c.textSecondary }]}>
                     {durTotal} min · {precio}€
                   </TText>
                 </TouchableOpacity>
@@ -406,7 +406,7 @@ export default function NuevaCitaScreen() {
               <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(-1, 0)}>
                 <Ionicons name="remove" size={18} color={c.text} />
               </TouchableOpacity>
-              <View style={[s.horaNum, { backgroundColor: '#6366f122', borderColor: '#6366f133' }]}>
+              <View style={[s.horaNum, { backgroundColor: '#f4501e22', borderColor: '#f4501e33' }]}>
                 <TText style={s.horaNumText}>{String(inicio.getHours()).padStart(2, '0')}</TText>
                 <TText style={s.horaNumLabel}>h</TText>
               </View>
@@ -420,7 +420,7 @@ export default function NuevaCitaScreen() {
               <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(0, -5)}>
                 <Ionicons name="remove" size={18} color={c.text} />
               </TouchableOpacity>
-              <View style={[s.horaNum, { backgroundColor: '#6366f122', borderColor: '#6366f133' }]}>
+              <View style={[s.horaNum, { backgroundColor: '#f4501e22', borderColor: '#f4501e33' }]}>
                 <TText style={s.horaNumText}>{String(inicio.getMinutes()).padStart(2, '0')}</TText>
                 <TText style={s.horaNumLabel}>min</TText>
               </View>
@@ -491,16 +491,16 @@ export default function NuevaCitaScreen() {
           </View>
 
           <TouchableOpacity
-            style={[s.clienteRow, { borderColor: !clienteSeleccionado ? '#6366f1' : c.border, backgroundColor: !clienteSeleccionado ? '#6366f122' : c.surface }]}
+            style={[s.clienteRow, { borderColor: !clienteSeleccionado ? '#f4501e' : c.border, backgroundColor: !clienteSeleccionado ? '#f4501e22' : c.surface }]}
             onPress={() => { setClienteSeleccionado(''); setClienteSearch(''); }}
           >
             <View style={[s.clienteAvatar, { backgroundColor: isDark ? '#334155' : '#e2e8f0' }]}>
               <Ionicons name="person-outline" size={16} color={c.textTertiary} />
             </View>
-            <TText style={[s.clienteNombre, { color: !clienteSeleccionado ? '#6366f1' : c.textSecondary }]}>
+            <TText style={[s.clienteNombre, { color: !clienteSeleccionado ? '#f4501e' : c.textSecondary }]}>
               Sin clienta asignada
             </TText>
-            {!clienteSeleccionado && <Ionicons name="checkmark-circle" size={18} color="#6366f1" style={{ marginLeft: 'auto' as any }} />}
+            {!clienteSeleccionado && <Ionicons name="checkmark-circle" size={18} color="#f4501e" style={{ marginLeft: 'auto' as any }} />}
           </TouchableOpacity>
 
           {clientesFiltrados.map((cl) => {
@@ -508,19 +508,19 @@ export default function NuevaCitaScreen() {
             return (
               <TouchableOpacity
                 key={cl.id}
-                style={[s.clienteRow, { borderColor: sel ? '#6366f1' : c.border, backgroundColor: sel ? '#6366f122' : c.surface }]}
+                style={[s.clienteRow, { borderColor: sel ? '#f4501e' : c.border, backgroundColor: sel ? '#f4501e22' : c.surface }]}
                 onPress={() => { setClienteSeleccionado(cl.id); setClienteSearch(''); }}
               >
-                <View style={[s.clienteAvatar, { backgroundColor: sel ? '#6366f133' : (isDark ? '#334155' : '#e2e8f0') }]}>
-                  <TText style={{ fontSize: 13, fontWeight: fontWeight.bold, color: sel ? '#6366f1' : c.textSecondary }}>
+                <View style={[s.clienteAvatar, { backgroundColor: sel ? '#f4501e33' : (isDark ? '#334155' : '#e2e8f0') }]}>
+                  <TText style={{ fontSize: 13, fontWeight: fontWeight.bold, color: sel ? '#f4501e' : c.textSecondary }}>
                     {cl.nombre.charAt(0).toUpperCase()}
                   </TText>
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <TText style={[s.clienteNombre, { color: sel ? '#6366f1' : c.text }]} numberOfLines={1}>{cl.nombre}</TText>
+                  <TText style={[s.clienteNombre, { color: sel ? '#f4501e' : c.text }]} numberOfLines={1}>{cl.nombre}</TText>
                   {cl.telefono && <TText style={[s.clienteTel, { color: c.textTertiary }]}>{cl.telefono}</TText>}
                 </View>
-                {sel && <Ionicons name="checkmark-circle" size={18} color="#6366f1" />}
+                {sel && <Ionicons name="checkmark-circle" size={18} color="#f4501e" />}
               </TouchableOpacity>
             );
           })}
@@ -589,7 +589,7 @@ export default function NuevaCitaScreen() {
             onPress={() => setShowFormula(v => !v)}
             style={[s.formulaToggle, { backgroundColor: c.surface, borderColor: c.border }]}
           >
-            <Ionicons name="color-palette-outline" size={18} color={'#8b5cf6'} />
+            <Ionicons name="color-palette-outline" size={18} color={'#c0260a'} />
             <View style={{ flex: 1 }}>
               <TText style={[s.formulaToggleTitle, { color: c.text }]}>Formula de color / quimica</TText>
               <TText style={[s.formulaToggleSub, { color: c.textTertiary }]}>
@@ -746,8 +746,8 @@ const s = StyleSheet.create({
   horaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   horaBtn: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   horaNum: { flexDirection: 'row', alignItems: 'baseline', gap: 2, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, minWidth: 50, justifyContent: 'center' },
-  horaNumText: { fontSize: 18, fontWeight: fontWeight.bold, color: '#6366f1' },
-  horaNumLabel: { fontSize: 10, color: '#6366f1', fontWeight: fontWeight.medium },
+  horaNumText: { fontSize: 18, fontWeight: fontWeight.bold, color: '#f4501e' },
+  horaNumLabel: { fontSize: 10, color: '#f4501e', fontWeight: fontWeight.medium },
   horaSep: { fontSize: 18, fontWeight: fontWeight.bold, marginHorizontal: 1 },
   horaFin: { fontSize: fontSize.xs },
   reposaHint: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.sm, borderRadius: radius.md, borderWidth: 1, marginTop: spacing.xs },
@@ -772,7 +772,7 @@ const s = StyleSheet.create({
   footer: { padding: spacing.lg, borderTopWidth: 1, gap: spacing.sm },
   errBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#ef444415', borderRadius: radius.md, padding: spacing.sm },
   errText: { color: '#ef4444', fontSize: fontSize.sm, flex: 1 },
-  btnGuardar: { backgroundColor: '#6366f1', borderRadius: radius.md, padding: 16, alignItems: 'center' },
+  btnGuardar: { backgroundColor: '#f4501e', borderRadius: radius.md, padding: 16, alignItems: 'center' },
   btnGuardarText: { color: '#fff', fontSize: fontSize.md, fontWeight: fontWeight.bold },
 
   formulaToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.md, borderWidth: 1 },

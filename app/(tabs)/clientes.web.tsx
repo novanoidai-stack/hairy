@@ -53,8 +53,8 @@ const TOKENS = {
   warningSoft: 'rgba(224,138,0,0.16)',
   danger: '#e23b34',
   dangerSoft: 'rgba(226,59,52,0.14)',
-  violet: '#7c5cff',
-  violetSoft: 'rgba(124,92,255,0.14)',
+  violet: '#c0260a',
+  violetSoft: 'rgba(192,38,10,0.14)',
   cyan: '#0891b2',
   cyanSoft: 'rgba(8,145,178,0.14)',
 };
@@ -346,7 +346,7 @@ export default function ClientesWeb() {
     return list;
   }, [clientes, searchText, activeTagFilter]);
 
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0b1220', color: TOKENS.text }}>Cargando...</div>;
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: TOKENS.bg, color: TOKENS.text }}>Cargando...</div>;
 
   const tagCounts: Record<string, number> = {
     Todos: clientes.length,
@@ -369,7 +369,7 @@ export default function ClientesWeb() {
           <button
             className="m-btn-primary"
             onClick={() => { setEditingCliente(null); setShowClienteModal(true); }}
-            style={{ padding: '9px 14px', background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ padding: '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <Icon name="plus" size={16} color="#fff" />
             Nuevo cliente
@@ -422,7 +422,7 @@ export default function ClientesWeb() {
 
           {/* Table */}
           <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 0.8fr 32px', padding: '10px 16px', fontSize: 10, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(99,102,241,0.04)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 0.8fr 32px', padding: '10px 16px', fontSize: 10, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(244,80,30,0.04)' }}>
               <div>Cliente</div>
               <div>Ultima visita</div>
               <div>Total gastado</div>
@@ -448,7 +448,7 @@ export default function ClientesWeb() {
                     borderBottom: i < visibleClientes.length - 1 ? `1px solid ${TOKENS.border}` : 'none',
                     alignItems: 'center',
                     cursor: 'pointer',
-                    background: isSel ? 'rgba(99,102,241,0.08)' : 'transparent',
+                    background: isSel ? 'rgba(244,80,30,0.08)' : 'transparent',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -486,7 +486,7 @@ export default function ClientesWeb() {
 
         {/* Detail panel */}
         {c && (
-          <div key={c.id} className="m-slide-right" style={{ borderLeft: `1px solid ${TOKENS.border}`, padding: panelExpanded ? '24px 0' : 24, overflowY: 'auto', background: 'linear-gradient(180deg, rgba(99,102,241,0.04), transparent 30%)', minWidth: 0 }}>
+          <div key={c.id} className="m-slide-right" style={{ borderLeft: `1px solid ${TOKENS.border}`, padding: panelExpanded ? '24px 0' : 24, overflowY: 'auto', background: 'linear-gradient(180deg, rgba(244,80,30,0.04), transparent 30%)', minWidth: 0 }}>
           <div style={{ maxWidth: panelExpanded ? 1400 : 'none', margin: panelExpanded ? '0 auto' : 0, padding: panelExpanded ? '0 32px' : 0 }}>
             {/* Toggle expand */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
@@ -547,14 +547,14 @@ export default function ClientesWeb() {
                     alignItems: 'center',
                     gap: 6,
                     padding: '12px 8px',
-                    background: a.p ? 'linear-gradient(180deg,#7c83ff,#6366f1)' : TOKENS.bgCard,
+                    background: a.p ? 'linear-gradient(180deg,#ff7a2e,#f4501e)' : TOKENS.bgCard,
                     border: a.p ? '1px solid rgba(255,255,255,0.12)' : `1px solid ${TOKENS.border}`,
                     borderRadius: 12,
                     color: a.p ? '#fff' : TOKENS.text,
                     fontSize: 11,
                     fontWeight: 600,
                     cursor: 'pointer',
-                    boxShadow: a.p ? '0 4px 14px rgba(99,102,241,0.4)' : 'none',
+                    boxShadow: a.p ? '0 4px 14px rgba(244,80,30,0.4)' : 'none',
                   }}
                 >
                   <Icon name={a.icon} size={18} color={a.p ? '#fff' : TOKENS.text} />
@@ -700,7 +700,7 @@ function ResumenTab({ cliente, citas, servicios }: { cliente: Cliente; citas: Ci
           const price = srv?.precio ?? '-';
           const duration = Math.round((new Date(nextCita.fin).getTime() - new Date(nextCita.inicio).getTime()) / 60000);
           return (
-            <div style={{ background: 'linear-gradient(180deg, rgba(99,102,241,0.12), rgba(99,102,241,0.04))', border: `1px solid rgba(99,102,241,0.30)`, borderRadius: 12, padding: 14 }}>
+            <div style={{ background: 'linear-gradient(180deg, rgba(244,80,30,0.12), rgba(244,80,30,0.04))', border: `1px solid rgba(244,80,30,0.30)`, borderRadius: 12, padding: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: TOKENS.primaryHi, letterSpacing: 0.4 }}>{dateStr}</span>
                 <Pill color={TOKENS.primary}>Programada</Pill>
@@ -837,7 +837,7 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
 
       {totalFormulas === 0 ? (
         <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 18, textAlign: 'center' }}>
-          <div style={{ display: 'inline-flex', padding: 10, background: 'rgba(139,92,246,0.10)', borderRadius: 999, color: TOKENS.violet, marginBottom: 8 }}>
+          <div style={{ display: 'inline-flex', padding: 10, background: 'rgba(192,38,10,0.10)', borderRadius: 999, color: TOKENS.violet, marginBottom: 8 }}>
             <Icon name="droplet" size={20} color={TOKENS.violet} />
           </div>
           <div style={{ fontSize: 12, color: TOKENS.textSec, marginBottom: 4 }}>Sin formulas registradas</div>
@@ -857,7 +857,7 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
               <div
                 key={ficha.id}
                 onClick={() => setEditingFicha(ficha)}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(139,92,246,0.40)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(192,38,10,0.40)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = 'translateY(0)'; }}
                 style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 12, cursor: 'pointer', transition: 'transform 0.15s ease, border-color 0.15s ease' }}
               >
@@ -934,7 +934,7 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
             return (
               <div
                 key={cit.id}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(139,92,246,0.40)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(192,38,10,0.40)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = 'translateY(0)'; }}
                 style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 12, transition: 'transform 0.15s ease, border-color 0.15s ease' }}
               >
@@ -1102,10 +1102,10 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
 
   return createPortal(
     <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
-      <div className="m-modal-enter" style={{ width: 520, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,92,246,0.18)' }}>
+      <div className="m-modal-enter" style={{ width: 520, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(192,38,10,0.18)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(139,92,246,0.14)', color: TOKENS.violet, display: 'grid', placeItems: 'center' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(192,38,10,0.14)', color: TOKENS.violet, display: 'grid', placeItems: 'center' }}>
               <Icon name="droplet" size={16} color={TOKENS.violet} />
             </div>
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: TOKENS.text }}>{mode === 'edit' ? 'Editar ficha de color' : 'Nueva ficha de color'}</h3>
@@ -1194,7 +1194,7 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
               <button
                 key={t}
                 onClick={() => toggleTecnica(t)}
-                style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: active ? '1px solid rgba(139,92,246,0.50)' : `1px solid ${TOKENS.border}`, background: active ? 'rgba(139,92,246,0.14)' : TOKENS.bgCard, color: active ? TOKENS.violet : TOKENS.textSec, transition: 'all 0.15s ease' }}
+                style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: active ? '1px solid rgba(192,38,10,0.50)' : `1px solid ${TOKENS.border}`, background: active ? 'rgba(192,38,10,0.14)' : TOKENS.bgCard, color: active ? TOKENS.violet : TOKENS.textSec, transition: 'all 0.15s ease' }}
               >
                 {t}
               </button>
@@ -1244,7 +1244,7 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
             <button className="m-btn-secondary" onClick={onClose} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
               Cancelar
             </button>
-            <button className="m-btn-primary" onClick={handleSave} disabled={loading} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#a78bfa 0%,#8b5cf6 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(139,92,246,0.40)' }}>
+            <button className="m-btn-primary" onClick={handleSave} disabled={loading} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#e0340e 0%,#c0260a 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(192,38,10,0.40)' }}>
               {loading ? 'Guardando...' : 'Guardar'}
             </button>
           </div>
@@ -1283,7 +1283,7 @@ function HistorialTab({ cliente, citas, servicios, profesionales = [] }: { clien
   }
 
   const estadoStyle: Record<string, { bg: string; color: string; label: string }> = {
-    confirmada: { bg: 'rgba(99,102,241,0.12)', color: TOKENS.primaryHi, label: 'Confirmada' },
+    confirmada: { bg: 'rgba(244,80,30,0.12)', color: TOKENS.primaryHi, label: 'Confirmada' },
     completada: { bg: 'rgba(34,197,94,0.12)', color: '#22c55e', label: 'Completada' },
     cancelada: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444', label: 'Cancelada' },
     no_presentada: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', label: 'No presentada' },
@@ -1299,7 +1299,7 @@ function HistorialTab({ cliente, citas, servicios, profesionales = [] }: { clien
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* Stats resumen */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <div style={{ padding: '5px 10px', background: 'rgba(99,102,241,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: TOKENS.primaryHi }}>
+        <div style={{ padding: '5px 10px', background: 'rgba(244,80,30,0.08)', borderRadius: 8, fontSize: 11, fontWeight: 600, color: TOKENS.primaryHi }}>
           {clientCitas.length} citas totales
         </div>
         {completadas > 0 && (
@@ -1451,7 +1451,7 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
 
   return (
     <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
-      <div className="m-modal-enter" style={{ width: 460, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15)' }}>
+      <div className="m-modal-enter" style={{ width: 460, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>{isEdit ? 'Editar cliente' : 'Nuevo cliente'}</h3>
           <button className="m-btn-icon m-btn-icon-close" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
@@ -1524,7 +1524,7 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
             <button className="m-btn-secondary" onClick={onClose} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
               Cancelar
             </button>
-            <button className="m-btn-primary" onClick={handleGuardar} disabled={loading} style={{ padding: '9px 14px', background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}` }}>
+            <button className="m-btn-primary" onClick={handleGuardar} disabled={loading} style={{ padding: '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}` }}>
               {loading ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear cliente'}
             </button>
           </div>
@@ -1616,19 +1616,19 @@ function BirthdayPicker({ mm, dd, onChange }: { mm: number | null; dd: number | 
               onMouseEnter={(e) => {
                 if (!isSel) {
                   e.currentTarget.style.transform = 'scale(1.12)';
-                  e.currentTarget.style.background = 'rgba(99,102,241,0.12)';
+                  e.currentTarget.style.background = 'rgba(244,80,30,0.12)';
                   e.currentTarget.style.borderColor = TOKENS.primary;
                 }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.background = isSel ? 'rgba(99,102,241,0.18)' : 'transparent';
+                e.currentTarget.style.background = isSel ? 'rgba(244,80,30,0.18)' : 'transparent';
                 e.currentTarget.style.borderColor = isSel ? TOKENS.primary : 'transparent';
               }}
               style={{
                 height: 30,
                 borderRadius: 7,
-                background: isSel ? 'rgba(99,102,241,0.18)' : 'transparent',
+                background: isSel ? 'rgba(244,80,30,0.18)' : 'transparent',
                 border: `1px solid ${isSel ? TOKENS.primary : 'transparent'}`,
                 color: isSel ? TOKENS.primaryHi : TOKENS.textSec,
                 fontSize: 11,

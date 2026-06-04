@@ -394,7 +394,7 @@ export default function ClientesScreen() {
   }
 
   const labels: Record<string, string> = { vip: 'VIP', habitual: 'Habitual', nuevo: 'Nuevo', inactivo: 'Inactivo' };
-  const colors: Record<string, string> = { vip: '#f59e0b', habitual: '#6366f1', nuevo: '#10b981', inactivo: '#94a3b8' };
+  const colors: Record<string, string> = { vip: '#f59e0b', habitual: '#f4501e', nuevo: '#10b981', inactivo: '#94a3b8' };
   const riesgoColors: Record<string, string> = { normal: tokens.success, medio: tokens.warning, alto: tokens.danger };
 
   // ─── Tab content renderers ───

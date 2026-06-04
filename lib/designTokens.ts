@@ -57,8 +57,8 @@ export const DESIGN_TOKENS = {
   dangerSoft: 'rgba(226,59,52,0.14)',
 
   // Additional
-  violet: '#7c5cff',
-  violetSoft: 'rgba(124,92,255,0.14)',
+  violet: '#c0260a',
+  violetSoft: 'rgba(192,38,10,0.14)',
   cyan: '#0891b2',
   cyanSoft: 'rgba(8,145,178,0.14)',
   rose: '#e11d6b',
