@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mecha — Restablecer contraseña</title>
+<meta name="description" content="Crea una nueva contraseña para tu cuenta de Mecha." />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#070a14" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/mecha.css" />
+<style>
+  body{min-height:100vh}
+  .gate{min-height:100vh;display:grid;place-items:center;position:relative;z-index:1;padding:40px 22px}
+  .gate-card{width:100%;max-width:400px}
+  .gate-h{font-size:26px;letter-spacing:-.02em;margin:18px 0 6px}
+  .gate-p{font-size:14px;color:var(--text-sec);margin-bottom:24px;line-height:1.55}
+  .gate .field{margin-bottom:14px}
+  .gate .field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-sec);margin-bottom:7px}
+  .gate .inp{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border-hi);border-radius:12px;padding:12px 14px;transition:border-color .2s,box-shadow .2s}
+  .gate .inp:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .gate .inp svg{width:17px;height:17px;color:var(--text-ter);flex-shrink:0}
+  .gate .inp input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14.5px}
+  .gate .inp input::placeholder{color:var(--text-ter)}
+  .ad-msg{font-size:13px;line-height:1.5;margin-top:14px;display:none}
+  .ad-msg.show{display:block}
+  .ad-msg.err{color:#ff8a6b}
+  .ad-msg.ok{color:var(--accent-hi)}
+  .gate-foot{font-size:13px;color:var(--text-sec);margin-top:20px;text-align:center}
+  .gate-foot a{color:var(--accent-hi)}
+  .gate-loading{font-size:14px;color:var(--text-sec);padding:8px 0}
+</style>
+</head>
+<body data-theme="dark">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e0340e" /><stop offset=".5" stop-color="#ff7a2e" /><stop offset="1" stop-color="#ffcf4a" />
+    </linearGradient>
+    <symbol id="mecha-mark" viewBox="0 0 40 40">
+      <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+      <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+    </symbol>
+  </defs>
+</svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <span class="orb o1"></span><span class="orb o2"></span>
+  <div class="bg-noise"></div>
+</div>
+
+<div class="gate">
+  <div class="gate-card">
+    <a class="brand" href="index.html" aria-label="Mecha, inicio">
+      <svg class="brand-mark" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg>
+      <span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">Cuenta</span></span>
+    </a>
+
+    <!-- VERIFICANDO -->
+    <div id="stateLoading">
+      <h1 class="gate-h">Restablecer contraseña</h1>
+      <p class="gate-loading">Verificando el enlace...</p>
+    </div>
+
+    <!-- ENLACE NO VALIDO -->
+    <div id="stateInvalid" style="display:none">
+      <h1 class="gate-h">Enlace no válido o caducado</h1>
+      <p class="gate-p">Este enlace ya se usó o expiró. Pide uno nuevo desde la pantalla de acceso.</p>
+      <a class="btn btn-primary btn-block btn-lg" href="acceso.html">Volver a acceso</a>
+    </div>
+
+    <!-- NUEVA CONTRASENA -->
+    <div id="stateForm" style="display:none">
+      <h1 class="gate-h">Crea una contraseña nueva</h1>
+      <p class="gate-p">Escribe tu nueva contraseña. Debe tener al menos 8 caracteres.</p>
+      <form onsubmit="return false">
+        <div class="field"><label>Nueva contraseña</label>
+          <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg><input type="password" id="pw1" placeholder="••••••••" autocomplete="new-password" /></div>
+        </div>
+        <div class="field"><label>Repite la contraseña</label>
+          <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg><input type="password" id="pw2" placeholder="••••••••" autocomplete="new-password" /></div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="saveBtn" style="margin-top:6px">Guardar contraseña</button>
+        <div class="ad-msg" id="formMsg"></div>
+      </form>
+    </div>
+
+    <div class="gate-foot"><a href="acceso.html">Volver a acceso</a></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/cookies.js"></script>
+<script>
+(function () {
+  var api = window.MechaAPI;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function msg(el, type, text) { if (!el) return; el.className = 'ad-msg show ' + type; el.textContent = text; }
+  function clearMsg(el) { if (el) { el.className = 'ad-msg'; el.textContent = ''; } }
+
+  function show(state) {
+    $('stateLoading').style.display = state === 'loading' ? 'block' : 'none';
+    $('stateInvalid').style.display = state === 'invalid' ? 'block' : 'none';
+    $('stateForm').style.display = state === 'form' ? 'block' : 'none';
+  }
+
+  if (!api) { show('invalid'); return; }
+
+  // La sesion de recuperacion llega en el hash del enlace del correo. El cliente
+  // (detectSessionInUrl) la procesa y dispara PASSWORD_RECOVERY. Mostramos el
+  // formulario en cuanto haya sesion; si en unos segundos no hay nada, el enlace
+  // no es valido o ya caduco.
+  var revealed = false;
+  function reveal() { if (revealed) return; revealed = true; show('form'); }
+
+  if (api.onAuth) {
+    api.onAuth(function (event) {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || event === 'USER_UPDATED') reveal();
+    });
+  }
+  if (api.getSession) {
+    api.getSession().then(function (s) { if (s) reveal(); });
+  }
+  setTimeout(function () { if (!revealed) show('invalid'); }, 3500);
+
+  // Guardar nueva contrasena.
+  var saveBtn = $('saveBtn'), formMsg = $('formMsg');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function () {
+      clearMsg(formMsg);
+      var pw1 = ($('pw1').value || '');
+      var pw2 = ($('pw2').value || '');
+      if (pw1.length < 8) { msg(formMsg, 'err', 'La contraseña necesita al menos 8 caracteres.'); return; }
+      if (pw1 !== pw2) { msg(formMsg, 'err', 'Las dos contraseñas no coinciden.'); return; }
+      saveBtn.disabled = true;
+      var prev = saveBtn.textContent; saveBtn.textContent = 'Guardando...';
+      api.updatePassword(pw1).then(function (r) {
+        if (r.error) {
+          msg(formMsg, 'err', 'No se pudo guardar. Pide un enlace nuevo e inténtalo otra vez.');
+          saveBtn.disabled = false; saveBtn.textContent = prev;
+          return;
+        }
+        msg(formMsg, 'ok', 'Contraseña actualizada. Te llevamos a iniciar sesión...');
+        if (api.signOut) api.signOut();
+        setTimeout(function () { window.location.href = 'acceso.html'; }, 1800);
+      });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mecha — Iniciar sesión o crear cuenta</title>
+<meta name="description" content="Accede a tu cuenta de Mecha o crea una nueva gratis, sin tarjeta. El sistema operativo de tu salón o barbería." />
+<meta name="robots" content="noindex, follow" />
+<meta name="theme-color" content="#070a14" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/mecha.css" />
+<style>
+  body{min-height:100vh}
+  .auth{position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+  .auth-aside{position:relative;overflow:hidden;padding:48px;display:flex;flex-direction:column;justify-content:space-between;
+    background:linear-gradient(160deg,rgba(244,80,30,.16),rgba(255,176,60,.06) 60%,transparent),var(--bg-2);
+    border-right:1px solid var(--border)}
+  .auth-aside .a-orb{position:absolute;border-radius:50%;filter:blur(70px);mix-blend-mode:screen;pointer-events:none}
+  .auth-aside .a-orb.x1{width:420px;height:420px;top:-100px;left:-80px;background:radial-gradient(circle,rgba(244,80,30,.8),transparent 65%);opacity:.5}
+  .auth-aside .a-orb.x2{width:360px;height:360px;bottom:-120px;right:-60px;background:radial-gradient(circle,rgba(255,176,60,.5),transparent 65%);opacity:.4}
+  .auth-aside .top,.auth-aside .mid,.auth-aside .bot{position:relative;z-index:1}
+  .a-quote{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(26px,3vw,40px);line-height:1.2;letter-spacing:-.005em;max-width:460px}
+  .a-quote .grad-txt{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .a-sub{font-size:15px;color:var(--text-sec);margin-top:20px;max-width:420px;line-height:1.6}
+  .a-points{display:flex;flex-direction:column;gap:14px;margin-top:30px}
+  .a-point{display:flex;gap:12px;align-items:center;font-size:14.5px;color:var(--text-sec)}
+  .a-point .ck{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi);flex-shrink:0}
+  .a-point .ck svg{width:14px;height:14px}
+  .a-point strong{color:var(--text);font-weight:600}
+  .a-testi{margin-top:34px;padding:18px 20px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.02);max-width:430px}
+  .a-testi p{font-size:14px;color:var(--text-sec);line-height:1.55;font-style:italic}
+  .a-testi .who{display:flex;align-items:center;gap:10px;margin-top:13px}
+  .a-testi .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+  .a-testi .nm{font-size:13px;font-weight:700;color:var(--text)}
+  .a-testi .rl{font-size:11.5px;color:var(--text-ter)}
+
+  .auth-main{display:flex;align-items:center;justify-content:center;padding:40px 28px}
+  .auth-card{width:100%;max-width:404px}
+  .auth-back{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-sec);margin-bottom:30px}
+  .auth-back:hover{color:var(--text)}
+  .auth-back svg{width:15px;height:15px}
+  .auth-h{font-size:28px;letter-spacing:-.02em;margin-bottom:6px}
+  .auth-p{font-size:14.5px;color:var(--text-sec);margin-bottom:26px}
+  .seg{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:13px;margin-bottom:26px}
+  .seg button{flex:1;font-size:13.5px;font-weight:600;padding:9px;border-radius:9px;color:var(--text-sec);transition:all .2s}
+  .seg button.on{background:var(--grad-soft);color:#fff;box-shadow:0 6px 16px -8px var(--accent-glow)}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-sec);margin-bottom:7px}
+  .field .inp{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border-hi);border-radius:12px;padding:12px 14px;transition:border-color .2s,box-shadow .2s}
+  .field .inp:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .field .inp svg{width:17px;height:17px;color:var(--text-ter);flex-shrink:0}
+  .field input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--text);font-size:14.5px}
+  .field input::placeholder{color:var(--text-ter)}
+  .field .pw-toggle{cursor:pointer}
+  .field .inp{min-width:0}
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row-2 > .field{min-width:0}
+  .auth-extra{display:flex;align-items:center;justify-content:space-between;margin:4px 0 22px;font-size:13px}
+  .auth-extra .rem{display:flex;align-items:center;gap:8px;color:var(--text-sec);cursor:pointer}
+  .auth-extra .rem .box{width:18px;height:18px;border-radius:6px;border:1.5px solid var(--border-hi);display:grid;place-items:center;transition:all .2s}
+  .auth-extra .rem.on .box{background:var(--grad-soft);border-color:transparent}
+  .auth-extra .rem .box svg{width:12px;height:12px;color:#fff;opacity:0;transition:opacity .15s}
+  .auth-extra .rem.on .box svg{opacity:1}
+  .auth-extra a{color:var(--accent-hi);font-weight:600}
+  .auth-sso{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+  .sso-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border-radius:12px;border:1px solid var(--border-hi);background:rgba(255,255,255,.03);font-size:14px;font-weight:600;color:var(--text);transition:all .2s}
+  .sso-btn:hover{border-color:var(--accent);background:rgba(255,255,255,.06)}
+  .sso-btn svg{width:18px;height:18px}
+  .sso-btn.is-soon{opacity:.5;cursor:not-allowed;position:relative}
+  .sso-btn.is-soon:hover{border-color:var(--border-hi);background:rgba(255,255,255,.03)}
+  .sso-soon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--text-ter);border:1px solid var(--border);border-radius:999px;padding:2px 8px}
+  .sso-btn[disabled]{pointer-events:auto}
+  .divider{display:flex;align-items:center;gap:14px;margin:24px 0;color:var(--text-ter);font-size:12px}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
+  .auth-foot{font-size:13px;color:var(--text-sec);text-align:center;margin-top:26px}
+  .auth-foot a{color:var(--accent-hi);font-weight:600}
+  .legal{font-size:11.5px;color:var(--text-ter);text-align:center;margin-top:22px;line-height:1.5}
+  .legal a{color:var(--text-sec);text-decoration:underline}
+  .auth-msg{font-size:13px;line-height:1.5;margin-top:14px;display:none}
+  .auth-msg.show{display:block}
+  .auth-msg.err{color:#ff8a6b}
+  .auth-msg.ok{color:var(--accent-hi)}
+  .pane{display:none}.pane.on{display:block;animation:fadeUp .35s var(--ease)}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (max-width:860px){
+    .auth{grid-template-columns:1fr}
+    .auth-aside{display:none}
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e0340e" /><stop offset=".5" stop-color="#ff7a2e" /><stop offset="1" stop-color="#ffcf4a" />
+    </linearGradient>
+    <symbol id="mecha-mark" viewBox="0 0 40 40">
+      <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+      <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+    </symbol>
+  </defs>
+</svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <div class="bg-noise"></div>
+</div>
+
+<div class="auth">
+  <!-- ASIDE -->
+  <aside class="auth-aside">
+    <span class="a-orb x1"></span><span class="a-orb x2"></span>
+    <div class="top">
+      <a class="brand" href="index.html" aria-label="Mecha, inicio">
+        <svg class="brand-mark" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg>
+        <span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">OS</span></span>
+      </a>
+    </div>
+    <div class="mid">
+      <h2 class="a-quote">El salón que <span class="grad-txt">se gestiona solo</span> mientras tú cortas.</h2>
+      <p class="a-sub">Agenda inteligente, asistente de IA que reserva por WhatsApp y cobra el depósito, y toda tu operativa en un solo sitio.</p>
+      <div class="a-points">
+        <div class="a-point"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>−93% no-shows</strong> con recordatorio y depósito por Stripe</span></div>
+        <div class="a-point"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>+32% ocupación</strong> aprovechando tiempos muertos</span></div>
+        <div class="a-point"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Conecta tu Booksy o Fresha</strong> — no tiras nada</span></div>
+      </div>
+      <div class="a-testi">
+        <p>"En dos semanas dejamos de perder huecos por los tintes. La agenda se llena sola y los avisos por WhatsApp nos quitaron el teléfono de encima."</p>
+        <div class="who"><span class="av">SL</span><div><div class="nm">Sofía León</div><div class="rl">Studio Norte · Madrid</div></div></div>
+      </div>
+    </div>
+    <div class="bot"><span style="font-size:12px;color:var(--text-ter)">© 2026 Mecha · Hecho para salones de peluquería · <a href="privacidad.html" style="color:var(--text-ter);text-decoration:underline">Privacidad</a></span></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="auth-main">
+    <div class="auth-card">
+      <a class="auth-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>Volver a la web</a>
+
+      <div class="seg" role="tablist">
+        <button id="tabLogin" role="tab">Iniciar sesión</button>
+        <button id="tabSignup" role="tab">Crear cuenta</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="pane" id="paneLogin">
+        <h1 class="auth-h">Bienvenido de nuevo</h1>
+        <p class="auth-p">Entra para ver tu agenda de hoy.</p>
+        <form onsubmit="return false">
+          <div class="field"><label>Correo</label>
+            <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 6L2 7" /></svg><input type="email" id="loginEmail" placeholder="tu@salon.com" autocomplete="email" /></div>
+          </div>
+          <div class="field"><label>Contraseña</label>
+            <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg><input type="password" placeholder="••••••••" autocomplete="current-password" id="loginPw" /><svg class="pw-toggle" data-target="loginPw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg></div>
+          </div>
+          <div class="auth-extra">
+            <span class="rem" id="rememberMe"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span>Recordarme</span>
+            <a href="#" id="forgotLink">¿Olvidaste tu contraseña?</a>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">Entrar a Mecha</button>
+          <div class="auth-msg" id="loginMsg"></div>
+        </form>
+        <div class="divider">o continúa con</div>
+        <div class="auth-sso">
+          <button class="sso-btn" type="button" id="ssoGoogle"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.56c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.56-2.76c-.98.66-2.23 1.06-3.72 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" /><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.22V7.04H2.18a11 11 0 0 0 0 9.9z" /><path fill="#EA4335" d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.46 14.97.5 12 .5A11 11 0 0 0 2.18 7.04L5.84 9.9C6.71 7.3 9.14 4.75 12 4.75z" /></svg>Google</button>
+          <button class="sso-btn is-soon" type="button" id="ssoApple" disabled aria-disabled="true" title="Disponible pronto"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 1c.1 1.2-.4 2.4-1.1 3.3-.8.9-2 1.6-3.2 1.5-.1-1.2.5-2.4 1.2-3.2C14.2 1.7 15.4 1.1 16.5 1zm3.6 16.3c-.6 1.4-.9 2-1.7 3.2-1.1 1.7-2.6 3.8-4.5 3.8-1.7 0-2.1-1.1-4.4-1.1s-2.8 1.1-4.4 1.1c-1.9 0-3.4-1.9-4.5-3.6C-.7 16.5-1 11 1.2 8c1-1.5 2.7-2.5 4.5-2.5 1.8 0 2.9 1.1 4.4 1.1 1.4 0 2.3-1.1 4.4-1.1 1.6 0 3.3.9 4.5 2.4-3.9 2.2-3.3 7.8 1.1 9.4z" /></svg>Apple<span class="sso-soon">Pronto</span></button>
+        </div>
+        <div class="auth-msg" id="ssoMsg"></div>
+        <p class="auth-foot">¿No tienes cuenta? <a href="#" id="goSignup">Créala gratis</a></p>
+      </div>
+
+      <!-- SIGNUP -->
+      <div class="pane" id="paneSignup">
+        <h1 class="auth-h">Crea tu cuenta gratis</h1>
+        <p class="auth-p">Sin tarjeta. Listo en una tarde.</p>
+        <form onsubmit="return false">
+          <div class="field"><label>Nombre del salón</label>
+            <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg><input type="text" id="suSalon" placeholder="Studio Norte" autocomplete="organization" /></div>
+          </div>
+          <div class="row-2">
+            <div class="field"><label>Tu nombre</label>
+              <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg><input type="text" id="suName" placeholder="Sofía" autocomplete="given-name" /></div>
+            </div>
+            <div class="field"><label>Teléfono</label>
+              <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" /></svg><input type="tel" id="suPhone" placeholder="6·· ··· ···" autocomplete="tel" /></div>
+            </div>
+          </div>
+          <div class="field"><label>Correo</label>
+            <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 6L2 7" /></svg><input type="email" id="suEmail" placeholder="tu@salon.com" autocomplete="email" /></div>
+          </div>
+          <div class="field"><label>Contraseña</label>
+            <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg><input type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" id="signupPw" /><svg class="pw-toggle" data-target="signupPw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg></div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px" id="signupBtn">Crear cuenta gratis</button>
+          <div class="auth-msg" id="signupMsg"></div>
+        </form>
+        <p class="legal">Al crear tu cuenta aceptas los <a href="terminos.html">Términos</a> y la <a href="privacidad.html">Política de privacidad</a> de Mecha.</p>
+        <p class="auth-foot">¿Ya tienes cuenta? <a href="#" id="goLogin">Inicia sesión</a></p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/auth.js"></script>
+<script>
+(function () {
+  var tabLogin = document.getElementById('tabLogin');
+  var tabSignup = document.getElementById('tabSignup');
+  var paneLogin = document.getElementById('paneLogin');
+  var paneSignup = document.getElementById('paneSignup');
+  function show(which) {
+    var signup = which === 'signup';
+    tabSignup.classList.toggle('on', signup);
+    tabLogin.classList.toggle('on', !signup);
+    paneSignup.classList.toggle('on', signup);
+    paneLogin.classList.toggle('on', !signup);
+    try { history.replaceState(null, '', signup ? '#signup' : '#login'); } catch (e) {}
+  }
+  tabLogin.addEventListener('click', function () { show('login'); });
+  tabSignup.addEventListener('click', function () { show('signup'); });
+  var goSignup = document.getElementById('goSignup');
+  var goLogin = document.getElementById('goLogin');
+  if (goSignup) goSignup.addEventListener('click', function (e) { e.preventDefault(); show('signup'); });
+  if (goLogin) goLogin.addEventListener('click', function (e) { e.preventDefault(); show('login'); });
+
+  // password visibility
+  document.querySelectorAll('.pw-toggle').forEach(function (t) {
+    t.addEventListener('click', function () {
+      var inp = document.getElementById(t.getAttribute('data-target'));
+      if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+    });
+  });
+  // remember me
+  var rem = document.getElementById('rememberMe');
+  if (rem) rem.addEventListener('click', function () { rem.classList.toggle('on'); });
+
+  show(location.hash === '#signup' ? 'signup' : 'login');
+
+  // ---- Cableado Supabase (login / signup) ----
+  var val = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  function msg(el, type, text) {
+    if (!el) return;
+    el.className = 'auth-msg show ' + type;
+    el.textContent = text;
+  }
+  function clearMsg(el) { if (el) { el.className = 'auth-msg'; el.textContent = ''; } }
+
+  var api = window.MechaAPI;
+  var nextDest = new URLSearchParams(location.search).get('next');
+
+  // Despues de autenticar: si venimos de la demo, vuelve a la demo;
+  // el equipo (staff) va al panel de solicitudes; el resto entra al software.
+  function routeAfterAuth() {
+    if (nextDest === 'demo') { window.location.href = 'demo.html'; return; }
+    if (api && api.isStaff) {
+      api.isStaff().then(function (staff) {
+        if (staff) { window.location.href = 'admin.html'; }
+        else { api.goToApp(); }
+      });
+    } else if (api) {
+      api.goToApp();
+    }
+  }
+
+  // Guarda contra navegaciones dobles (sesion previa + evento SIGNED_IN del SSO).
+  var routed = false;
+  function go() { if (routed) return; routed = true; routeAfterAuth(); }
+
+  // Reaccion al volver del SSO (Google): el hash trae la sesion y dispara SIGNED_IN.
+  if (api && api.onAuth) {
+    api.onAuth(function (event) { if (event === 'SIGNED_IN') go(); });
+  }
+
+  // Si ya hay sesion activa, enruta segun el tipo de cuenta.
+  if (api && api.getSession) {
+    api.getSession().then(function (s) { if (s) go(); });
+  }
+
+  // LOGIN
+  var loginBtn = document.getElementById('loginBtn');
+  var loginMsg = document.getElementById('loginMsg');
+  if (loginBtn) {
+    loginBtn.addEventListener('click', function () {
+      clearMsg(loginMsg);
+      var email = val('loginEmail');
+      var password = val('loginPw');
+      if (!email || !password) { msg(loginMsg, 'err', 'Escribe tu correo y contraseña.'); return; }
+      if (!api) { msg(loginMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
+      loginBtn.disabled = true;
+      var prev = loginBtn.textContent; loginBtn.textContent = 'Entrando...';
+      api.signIn({ email: email, password: password }).then(function (r) {
+        if (r.error) {
+          msg(loginMsg, 'err', 'No pudimos entrar. Revisa tus datos.');
+          loginBtn.disabled = false; loginBtn.textContent = prev;
+          return;
+        }
+        msg(loginMsg, 'ok', 'Listo, abriendo tu panel...');
+        go();
+      });
+    });
+  }
+
+  // OLVIDE CONTRASENA: envia el correo de restablecimiento.
+  var forgotLink = document.getElementById('forgotLink');
+  if (forgotLink) {
+    forgotLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      clearMsg(loginMsg);
+      var email = val('loginEmail');
+      if (!email) { msg(loginMsg, 'err', 'Escribe tu correo arriba y vuelve a pulsar.'); return; }
+      if (!api || !api.resetPassword) { msg(loginMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
+      var prev = forgotLink.textContent; forgotLink.textContent = 'Enviando...';
+      var redirectTo = window.location.origin + '/restablecer.html';
+      api.resetPassword(email, redirectTo).then(function (r) {
+        forgotLink.textContent = prev;
+        // No revelamos si el correo existe o no (evita enumeracion de cuentas).
+        msg(loginMsg, 'ok', 'Si ese correo tiene cuenta, te enviamos un enlace para restablecer la contraseña.');
+      });
+    });
+  }
+
+  // SIGNUP
+  var signupBtn = document.getElementById('signupBtn');
+  var signupMsg = document.getElementById('signupMsg');
+  if (signupBtn) {
+    signupBtn.addEventListener('click', function () {
+      clearMsg(signupMsg);
+      var d = {
+        salon: val('suSalon'), nombre: val('suName'), telefono: val('suPhone'),
+        email: val('suEmail'), password: val('signupPw')
+      };
+      if (!d.salon || !d.nombre || !d.email || !d.password) {
+        msg(signupMsg, 'err', 'Completa el nombre del salón, tu nombre, correo y contraseña.'); return;
+      }
+      if (d.password.length < 8) { msg(signupMsg, 'err', 'La contraseña necesita al menos 8 caracteres.'); return; }
+      if (!api) { msg(signupMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
+      signupBtn.disabled = true;
+      var prev = signupBtn.textContent; signupBtn.textContent = 'Creando tu cuenta...';
+      api.signUpFree(d).then(function (r) {
+        if (r.error) {
+          msg(signupMsg, 'err', r.error.message || 'No pudimos crear la cuenta. Inténtalo de nuevo.');
+          signupBtn.disabled = false; signupBtn.textContent = prev;
+          if (r.error.code === 'email_exists') {
+            var le = document.getElementById('loginEmail'); if (le) le.value = d.email;
+            setTimeout(function () { show('login'); }, 1400);
+          }
+          return;
+        }
+        if (r.needsManualLogin) {
+          msg(signupMsg, 'ok', 'Cuenta creada. Inicia sesión para entrar.');
+          var le2 = document.getElementById('loginEmail'); if (le2) le2.value = d.email;
+          signupBtn.disabled = false; signupBtn.textContent = prev;
+          setTimeout(function () { show('login'); }, 1400);
+          return;
+        }
+        msg(signupMsg, 'ok', 'Cuenta lista, entrando a Mecha...');
+        go();
+      });
+    });
+  }
+
+  // SSO GOOGLE
+  var ssoGoogle = document.getElementById('ssoGoogle');
+  var ssoMsg = document.getElementById('ssoMsg');
+  if (ssoGoogle) {
+    ssoGoogle.addEventListener('click', function () {
+      clearMsg(ssoMsg);
+      if (!api || !api.signInWithGoogle) { msg(ssoMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
+      // Al volver de Google conservamos el destino (p. ej. la demo).
+      var redirectTo = location.origin + location.pathname + (nextDest ? ('?next=' + encodeURIComponent(nextDest)) : '');
+      ssoGoogle.disabled = true;
+      var prev = ssoGoogle.innerHTML;
+      ssoGoogle.textContent = 'Abriendo Google...';
+      api.signInWithGoogle({ redirectTo: redirectTo }).then(function (r) {
+        if (r && r.error) {
+          if (r.disabled) {
+            msg(ssoMsg, 'ok', 'Iniciar sesión con Google estará disponible muy pronto. De momento usa tu correo.');
+          } else {
+            msg(ssoMsg, 'err', 'No se pudo abrir Google. Inténtalo de nuevo.');
+          }
+          ssoGoogle.disabled = false; ssoGoogle.innerHTML = prev;
+        }
+        // sin error: el navegador redirige a Google.
+      });
+    });
+  }
+
+  // SSO APPLE (proximamente)
+  var ssoApple = document.getElementById('ssoApple');
+  if (ssoApple) {
+    ssoApple.addEventListener('click', function (e) {
+      e.preventDefault();
+      msg(ssoMsg, 'ok', 'Iniciar sesión con Apple estará disponible pronto. De momento usa Google o tu correo.');
+    });
+  }
+})();
+</script>
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0b0a12" /><g transform="scale(2.5)"><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="#ff7a2e" /><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#ffd9a8" /></g></svg>
+</template>
+
+<script src="assets/cookies.js"></script>
+</body>
+</html>

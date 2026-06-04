@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mecha — Privacidad, derechos y aviso legal</title>
+<meta name="description" content="Política de privacidad, tus derechos (RGPD) y aviso legal de Mecha, el sistema operativo para salones de peluquería." />
+<meta name="robots" content="noindex, follow" />
+<meta name="theme-color" content="#070a14" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/mecha.css" />
+<style>
+  body{min-height:100vh}
+  .legal-wrap{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:0 24px}
+  .legal-top{padding:30px 0 0}
+  .legal-back{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--text-sec);transition:color .2s}
+  .legal-back:hover{color:var(--text)}
+  .legal-back svg{width:17px;height:17px}
+  .legal-brand{display:flex;align-items:center;gap:10px;margin:34px 0 14px}
+  .legal-brand svg{width:34px;height:34px}
+  .legal-brand .nm{font-family:var(--display);font-size:21px;font-weight:800;letter-spacing:-.04em}
+  .legal-brand .tag{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--accent-hi);border:1px solid var(--accent-soft);padding:2px 7px;border-radius:6px}
+  .legal-head h1{font-family:var(--display);font-weight:700;font-size:clamp(34px,5vw,52px);line-height:1.04;letter-spacing:-.03em;margin-bottom:14px}
+  .legal-head h1 .em{font-family:var(--serif);font-weight:400;font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .legal-head .lead{font-size:16px;color:var(--text-sec);line-height:1.65;max-width:680px}
+  .legal-meta{font-size:13px;color:var(--text-ter);margin-top:16px}
+  .legal-disc{margin:26px 0 0;padding:14px 16px;border:1px solid var(--accent-soft);background:rgba(244,80,30,.07);border-radius:14px;font-size:13px;color:var(--text-sec);line-height:1.6}
+  .legal-disc strong{color:var(--accent-hi)}
+
+  /* TOC */
+  .legal-toc{display:flex;flex-wrap:wrap;gap:9px;margin:30px 0 10px}
+  .legal-toc a{font-size:13px;font-weight:600;color:var(--text-sec);padding:7px 13px;border:1px solid var(--border-hi);border-radius:999px;transition:all .2s}
+  .legal-toc a:hover{color:var(--text);border-color:var(--accent);background:var(--accent-soft)}
+
+  /* sections */
+  .legal-sec{padding:40px 0 8px;border-top:1px solid var(--border);margin-top:34px}
+  .legal-sec:first-of-type{border-top:0;margin-top:14px}
+  .legal-sec .eyebrow{display:inline-block;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-hi);margin-bottom:10px}
+  .legal-sec h2{font-size:26px;letter-spacing:-.01em;margin-bottom:8px}
+  .legal-sec h3{font-size:16px;margin:24px 0 8px;color:var(--text)}
+  .legal-sec p{font-size:15px;color:var(--text-sec);line-height:1.72;margin-bottom:14px}
+  .legal-sec p a{color:var(--accent-hi);text-decoration:underline;text-underline-offset:2px}
+  .legal-sec ul{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:10px}
+  .legal-sec li{display:flex;gap:11px;font-size:15px;color:var(--text-sec);line-height:1.6}
+  .legal-sec li .ck{width:22px;height:22px;border-radius:7px;flex-shrink:0;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi);margin-top:1px}
+  .legal-sec li .ck svg{width:13px;height:13px}
+  .legal-sec li strong{color:var(--text);font-weight:600}
+  .legal-card{border:1px solid var(--border);background:var(--card);border-radius:16px;padding:18px 20px;margin:8px 0 18px}
+  .legal-card .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-ter);font-weight:700;margin-bottom:4px}
+  .legal-card .v{font-size:15px;color:var(--text);line-height:1.6}
+
+  /* rights grid */
+  .rights-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:6px 0 18px}
+  .right-card{border:1px solid var(--border-hi);background:var(--card);border-radius:14px;padding:16px}
+  .right-card .rt{font-size:15px;font-weight:700;margin-bottom:5px}
+  .right-card .rd{font-size:13.5px;color:var(--text-sec);line-height:1.55}
+
+  /* CTA */
+  .legal-cta{margin:48px 0 0;border:1px solid var(--border-hi);border-radius:var(--r-lg);padding:30px;text-align:center;background:linear-gradient(160deg,rgba(244,80,30,.12),transparent 70%),var(--card)}
+  .legal-cta h2{font-size:24px;margin-bottom:8px}
+  .legal-cta p{font-size:15px;color:var(--text-sec);max-width:520px;margin:0 auto 18px;line-height:1.6}
+
+  .legal-foot{padding:40px 0 50px;margin-top:40px;border-top:1px solid var(--border);font-size:13px;color:var(--text-ter);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .legal-foot a{color:var(--text-ter)}
+  .legal-foot a:hover{color:var(--text)}
+
+  @media(max-width:640px){.rights-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <span class="orb o1"></span>
+  <span class="orb o2"></span>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e0340e" /><stop offset=".5" stop-color="#ff7a2e" /><stop offset="1" stop-color="#ffcf4a" />
+    </linearGradient>
+    <symbol id="mecha-mark" viewBox="0 0 40 40">
+      <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+      <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+    </symbol>
+  </defs>
+</svg>
+
+<div class="legal-wrap">
+  <div class="legal-top">
+    <a class="legal-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>Volver a la web</a>
+    <div class="legal-brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><use href="#mecha-mark" /></svg>
+      <span class="nm">Mecha</span><span class="tag">OS</span>
+    </div>
+  </div>
+
+  <header class="legal-head">
+    <h1>Privacidad, derechos y <span class="em">aviso legal</span></h1>
+    <p class="lead">En Mecha tratamos los datos de tu peluquería y de tus clientes con el mismo cuidado con el que tú los atiendes. Aquí te explicamos qué datos manejamos, para qué, y qué derechos tienes — en lenguaje claro.</p>
+    <p class="legal-meta">Última actualización: junio de 2026</p>
+    <div class="legal-disc">
+      <strong>Identidad fiscal pendiente.</strong> Los datos de identificación del responsable (razón social, NIF y domicilio) están <strong>pendientes de cumplimentar</strong> y se completarán antes del lanzamiento comercial. Para cualquier asunto relacionado con tus datos, el canal de contacto válido es <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a>.
+    </div>
+  </header>
+
+  <nav class="legal-toc" aria-label="Índice">
+    <a href="#privacidad">Política de privacidad</a>
+    <a href="#derechos">Tus derechos</a>
+    <a href="#aviso">Aviso legal</a>
+    <a href="#cookies">Cookies</a>
+  </nav>
+
+  <!-- PRIVACIDAD -->
+  <section class="legal-sec" id="privacidad">
+    <span class="eyebrow">01 · Privacidad</span>
+    <h2>Política de privacidad</h2>
+    <p>Esta política describe cómo Mecha recoge y trata los datos personales en el marco del Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD).</p>
+
+    <h3>Responsable del tratamiento</h3>
+    <div class="legal-card">
+      <div class="k">Responsable</div>
+      <div class="v">Razón social, NIF y domicilio: <strong>pendientes de cumplimentar</strong> antes del lanzamiento comercial.<br />Contacto en materia de privacidad: <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a> · Teléfono: <a href="tel:+34690792975">690 792 975</a></div>
+    </div>
+
+    <h3>Qué datos tratamos</h3>
+    <ul>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>De tu salón:</strong> nombre del negocio, datos de contacto, profesionales del equipo y datos de facturación.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>De tus clientes:</strong> nombre, teléfono, historial de citas, fórmulas de color, notas, fotos de servicios y preferencias que tú decides guardar.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>De pagos:</strong> los depósitos y cobros se procesan a través de Stripe; Mecha no almacena los datos completos de tarjetas.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>De uso:</strong> datos técnicos necesarios para que el servicio funcione y mejore.</span></li>
+    </ul>
+
+    <h3>Para qué los usamos</h3>
+    <p>Para prestar el servicio de gestión de tu peluquería: agenda, recordatorios y reservas por WhatsApp, cobro de depósitos, informes y soporte. Solo tratamos los datos para las finalidades necesarias del servicio que contratas.</p>
+
+    <h3>Base legal del tratamiento</h3>
+    <ul>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Ejecución del contrato</strong> (art. 6.1.b RGPD): para darte de alta, prestarte el servicio y gestionar tu cuenta y la de tu salón.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Obligación legal</strong> (art. 6.1.c RGPD): para cumplir obligaciones fiscales, contables y de facturación.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Consentimiento</strong> (art. 6.1.a RGPD): para las cookies de medición y, en su caso, comunicaciones comerciales. Puedes retirarlo cuando quieras.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Interés legítimo</strong> (art. 6.1.f RGPD): para la seguridad del servicio y la mejora del producto con datos de uso agregados.</span></li>
+    </ul>
+
+    <h3>Tú eres el responsable de los datos de tus clientes</h3>
+    <p>Los clientes son tuyos. Respecto a sus datos, tu salón actúa como responsable del tratamiento y Mecha como <strong>encargado del tratamiento</strong>, tratándolos únicamente según tus instrucciones y para prestarte el servicio. Nunca vendemos ni alquilamos tus datos ni los de tus clientes: Mecha no es un marketplace.</p>
+
+    <h3>Conexión con Booksy y Fresha</h3>
+    <p>Si conectas tu cuenta de Booksy o Fresha, Mecha sincroniza las reservas y datos que tú autorices para centralizarlos en tu sistema. Esa información se trata con las mismas garantías descritas aquí.</p>
+
+    <h3>Proveedores que nos ayudan a prestar el servicio</h3>
+    <p>Para funcionar, Mecha se apoya en proveedores tecnológicos que actúan como <strong>encargados del tratamiento</strong>, accediendo a los datos solo para prestarnos su servicio y bajo contrato conforme al art. 28 RGPD. Los principales son:</p>
+    <ul>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Supabase</strong> — base de datos y autenticación.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Vercel</strong> — alojamiento de la web y la aplicación.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Stripe</strong> — procesamiento de pagos y depósitos.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Google</strong> — inicio de sesión, sincronización de calendario y medición (Analytics).</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Retell AI</strong> y <strong>OpenAI</strong> — asistente de voz e inteligencia artificial que atiende reservas.</span></li>
+    </ul>
+
+    <h3>Transferencias internacionales</h3>
+    <p>Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo (por ejemplo, en Estados Unidos). En esos casos, las transferencias se amparan en las garantías previstas en el RGPD, principalmente las <strong>Cláusulas Contractuales Tipo</strong> de la Comisión Europea y, cuando aplica, el marco <em>EU-U.S. Data Privacy Framework</em>. Puedes solicitarnos más información escribiendo a <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a>.</p>
+
+    <h3>Conservación y seguridad</h3>
+    <p>Conservamos los datos mientras mantengas tu cuenta activa y durante los plazos legales aplicables. Aplicamos medidas técnicas y organizativas para proteger la información, y si dejas Mecha puedes exportar o eliminar tus datos.</p>
+  </section>
+
+  <!-- DERECHOS -->
+  <section class="legal-sec" id="derechos">
+    <span class="eyebrow">02 · Tus derechos</span>
+    <h2>Tus derechos (RGPD)</h2>
+    <p>Tú y tus clientes podéis ejercer en cualquier momento los siguientes derechos escribiendo a <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a>:</p>
+    <div class="rights-grid">
+      <div class="right-card"><div class="rt">Acceso</div><div class="rd">Saber qué datos tratamos y obtener una copia.</div></div>
+      <div class="right-card"><div class="rt">Rectificación</div><div class="rd">Corregir datos inexactos o incompletos.</div></div>
+      <div class="right-card"><div class="rt">Supresión</div><div class="rd">Pedir que borremos los datos cuando proceda.</div></div>
+      <div class="right-card"><div class="rt">Oposición</div><div class="rd">Oponerte a determinados tratamientos.</div></div>
+      <div class="right-card"><div class="rt">Limitación</div><div class="rd">Restringir el tratamiento en ciertos casos.</div></div>
+      <div class="right-card"><div class="rt">Portabilidad</div><div class="rd">Llevarte tus datos en un formato estándar.</div></div>
+    </div>
+    <p>Si consideras que no hemos atendido bien tu solicitud, puedes reclamar ante la Agencia Española de Protección de Datos (<a href="https://www.aepd.es" target="_blank" rel="noopener">aepd.es</a>).</p>
+  </section>
+
+  <!-- AVISO LEGAL -->
+  <section class="legal-sec" id="aviso">
+    <span class="eyebrow">03 · Aviso legal</span>
+    <h2>Aviso legal</h2>
+    <p>El presente sitio web y el servicio Mecha son titularidad de la sociedad responsable, cuya razón social, NIF y domicilio se encuentran <strong>pendientes de cumplimentar</strong> y se publicarán antes del lanzamiento comercial. Puedes contactar en <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a> o en el teléfono <a href="tel:+34690792975">690 792 975</a>.</p>
+    <h3>Condiciones de uso</h3>
+    <p>El acceso y uso del sitio implica la aceptación de estas condiciones. Los contenidos, marcas y diseños son propiedad de sus respectivos titulares. Las referencias a Booksy y Fresha son meramente descriptivas: son marcas de sus titulares y Mecha no está afiliado a ellas.</p>
+    <h3>Estimaciones y ejemplos</h3>
+    <p>Las cifras, gráficas, capturas y fichas que aparecen en la web son <strong>estimaciones e ilustraciones</strong> basadas en casos típicos de salones de peluquería. No constituyen una garantía de resultados; tus cifras reales dependerán de tu negocio.</p>
+  </section>
+
+  <!-- COOKIES -->
+  <section class="legal-sec" id="cookies">
+    <span class="eyebrow">04 · Cookies</span>
+    <h2>Cookies</h2>
+    <p>Usamos las cookies estrictamente necesarias para que el servicio funcione y, solo si las aceptas, cookies de medición (Google Analytics) para entender cómo se usa la web y mejorarla. Ninguna cookie no necesaria se activa sin tu consentimiento previo.</p>
+    <p>Puedes consultar el detalle en la <a href="cookies.html">Política de cookies</a> o <a href="#" onclick="if(window.MechaCookies){window.MechaCookies.open();}return false;">cambiar tus preferencias</a> en cualquier momento.</p>
+  </section>
+
+  <!-- CTA -->
+  <div class="legal-cta">
+    <h2>¿Dudas sobre tus datos?</h2>
+    <p>Te lo explicamos todo en una llamada y, si quieres, te enseñamos Mecha funcionando con tu peluquería en mente — en menos de un día.</p>
+    <a href="index.html#cta" class="btn btn-primary btn-lg">Reservar una demo
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+    </a>
+  </div>
+
+  <footer class="legal-foot">
+    <span>© 2026 Mecha · Hecho para salones de peluquería.</span>
+    <span><a href="index.html">Inicio</a> · <a href="acceso.html">Iniciar sesión</a></span>
+  </footer>
+</div>
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0b0a12" /><g transform="scale(2.5)"><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="#ff7a2e" /><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#ffd9a8" /></g></svg>
+</template>
+
+<script src="assets/cookies.js"></script>
+</body>
+</html>
