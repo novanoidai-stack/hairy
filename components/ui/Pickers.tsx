@@ -215,7 +215,7 @@ export function DateTimePicker({ value, onChange }: { value: string; onChange: (
           style={{
             padding: '9px 12px',
             background: T.bg,
-            border: `1px solid ${datePart ? 'rgba(99,102,241,0.4)' : T.border}`,
+            border: `1px solid ${datePart ? 'rgba(244,80,30,0.4)' : T.border}`,
             borderRadius: 8,
             color: datePart ? T.text : T.textTer,
             fontSize: 13,

@@ -62,8 +62,8 @@ const ANIMATIONS = `
     100% { background-position: 1000px 0; }
   }
   @keyframes glow {
-    0%, 100% { box-shadow: 0 0 8px rgba(99,102,241,0.3); }
-    50% { box-shadow: 0 0 16px rgba(99,102,241,0.6); }
+    0%, 100% { box-shadow: 0 0 8px rgba(244,80,30,0.3); }
+    50% { box-shadow: 0 0 16px rgba(244,80,30,0.6); }
   }
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
@@ -479,7 +479,7 @@ export default function AgendaCalendar() {
             <Icon name="x" size={16} color="#ef4444" />
             Cerrar salon
           </button>
-          <button className="m-btn-primary" onClick={() => setShowNewCita(true)} style={{ padding: '9px 14px', background: `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button className="m-btn-primary" onClick={() => setShowNewCita(true)} style={{ padding: '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="plus" size={16} color="#fff" />
             Nueva cita
           </button>
@@ -498,7 +498,7 @@ export default function AgendaCalendar() {
                 padding: '7px 16px',
                 fontSize: 12,
                 fontWeight: view === v ? 700 : 500,
-                background: view === v ? 'rgba(99,102,241,0.15)' : 'transparent',
+                background: view === v ? 'rgba(244,80,30,0.15)' : 'transparent',
                 color: view === v ? TOKENS.primaryHi : TOKENS.textSec,
                 border: 'none',
                 cursor: 'pointer',
@@ -506,7 +506,7 @@ export default function AgendaCalendar() {
                 transition: 'all 0.2s ease',
                 position: 'relative',
               }}
-              onMouseEnter={(e) => { if (view !== v) e.currentTarget.style.background = 'rgba(99,102,241,0.06)'; }}
+              onMouseEnter={(e) => { if (view !== v) e.currentTarget.style.background = 'rgba(244,80,30,0.06)'; }}
               onMouseLeave={(e) => { if (view !== v) e.currentTarget.style.background = 'transparent'; }}
             >
               {v === 'day' ? 'Dia' : v === 'week' ? 'Semana' : 'Mes'}
@@ -524,15 +524,15 @@ export default function AgendaCalendar() {
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '7px 12px',
-              background: filterServicio !== 'todos' ? 'rgba(99,102,241,0.10)' : TOKENS.bgCard,
-              border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== 'todos' ? 'rgba(99,102,241,0.30)' : TOKENS.border}`,
+              background: filterServicio !== 'todos' ? 'rgba(244,80,30,0.10)' : TOKENS.bgCard,
+              border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== 'todos' ? 'rgba(244,80,30,0.30)' : TOKENS.border}`,
               borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 600,
               color: filterServicio !== 'todos' ? TOKENS.primaryHi : TOKENS.textSec,
               transition: 'all 0.2s ease',
               minWidth: 120,
             }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; }}
-            onMouseLeave={(e) => { if (!dropServicioOpen) e.currentTarget.style.borderColor = filterServicio !== 'todos' ? 'rgba(99,102,241,0.30)' : TOKENS.border; }}
+            onMouseLeave={(e) => { if (!dropServicioOpen) e.currentTarget.style.borderColor = filterServicio !== 'todos' ? 'rgba(244,80,30,0.30)' : TOKENS.border; }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></svg>
             <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -550,7 +550,7 @@ export default function AgendaCalendar() {
               <div
                 onMouseDown={() => { setFilterServicio('todos'); setDropServicioOpen(false); }}
                 style={{ padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: filterServicio === 'todos' ? 700 : 500, color: filterServicio === 'todos' ? TOKENS.primaryHi : TOKENS.textSec, transition: 'background 0.1s' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.08)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,80,30,0.08)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
                 Todos los servicios
@@ -560,7 +560,7 @@ export default function AgendaCalendar() {
                   key={s.id}
                   onMouseDown={() => { setFilterServicio(s.id); setDropServicioOpen(false); }}
                   style={{ padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: filterServicio === s.id ? 700 : 500, color: filterServicio === s.id ? TOKENS.primaryHi : TOKENS.text, transition: 'background 0.1s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.08)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,80,30,0.08)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <span>{s.nombre}</span>
@@ -579,15 +579,15 @@ export default function AgendaCalendar() {
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '7px 12px',
-              background: filterEstado !== 'todos' ? 'rgba(99,102,241,0.10)' : TOKENS.bgCard,
-              border: `1px solid ${dropEstadoOpen ? TOKENS.primary : filterEstado !== 'todos' ? 'rgba(99,102,241,0.30)' : TOKENS.border}`,
+              background: filterEstado !== 'todos' ? 'rgba(244,80,30,0.10)' : TOKENS.bgCard,
+              border: `1px solid ${dropEstadoOpen ? TOKENS.primary : filterEstado !== 'todos' ? 'rgba(244,80,30,0.30)' : TOKENS.border}`,
               borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 600,
               color: filterEstado !== 'todos' ? TOKENS.primaryHi : TOKENS.textSec,
               transition: 'all 0.2s ease',
               minWidth: 110,
             }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; }}
-            onMouseLeave={(e) => { if (!dropEstadoOpen) e.currentTarget.style.borderColor = filterEstado !== 'todos' ? 'rgba(99,102,241,0.30)' : TOKENS.border; }}
+            onMouseLeave={(e) => { if (!dropEstadoOpen) e.currentTarget.style.borderColor = filterEstado !== 'todos' ? 'rgba(244,80,30,0.30)' : TOKENS.border; }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M8 12l2.5 2.5L16 9" /></svg>
             <span style={{ flex: 1, textAlign: 'left' }}>
@@ -615,7 +615,7 @@ export default function AgendaCalendar() {
                     key={e.value}
                     onMouseDown={() => { setFilterEstado(e.value); setDropEstadoOpen(false); }}
                     style={{ padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: filterEstado === e.value ? 700 : 500, color: filterEstado === e.value ? e.dot : TOKENS.text, transition: 'background 0.1s', display: 'flex', alignItems: 'center', gap: 8 }}
-                    onMouseEnter={(ev) => { ev.currentTarget.style.background = 'rgba(99,102,241,0.08)'; }}
+                    onMouseEnter={(ev) => { ev.currentTarget.style.background = 'rgba(244,80,30,0.08)'; }}
                     onMouseLeave={(ev) => { ev.currentTarget.style.background = 'transparent'; }}
                   >
                     <span style={{ width: 8, height: 8, borderRadius: 999, background: e.dot, flexShrink: 0 }} />
@@ -655,7 +655,7 @@ export default function AgendaCalendar() {
               background: TOKENS.bgCard, border: `1px solid ${searchOpen ? TOKENS.primary : TOKENS.border}`,
               borderRadius: 10, padding: '7px 12px',
               transition: 'all 0.25s ease', width: searchOpen ? 280 : 180,
-              boxShadow: searchOpen ? `0 0 0 3px rgba(99,102,241,0.10)` : 'none',
+              boxShadow: searchOpen ? `0 0 0 3px rgba(244,80,30,0.10)` : 'none',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={searchOpen ? TOKENS.primaryHi : TOKENS.textTer} strokeWidth="2" style={{ transition: 'stroke 0.2s ease', flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
@@ -708,7 +708,7 @@ export default function AgendaCalendar() {
                       setSearchQuery('');
                     }}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s ease' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.08)'; e.currentTarget.style.transform = 'translateX(2px)'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,80,30,0.08)'; e.currentTarget.style.transform = 'translateX(2px)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'none'; }}
                   >
                     <div style={{ width: 4, height: 32, borderRadius: 2, background: prof?.color || TOKENS.primary, flexShrink: 0 }} />
@@ -728,12 +728,12 @@ export default function AgendaCalendar() {
                       onMouseDown={(e) => { e.stopPropagation(); setShowClienteHistorial(cli); }}
                       style={{
                         padding: '4px 8px', fontSize: 10, fontWeight: 600,
-                        background: 'rgba(99,102,241,0.10)', border: '1px solid rgba(99,102,241,0.25)',
+                        background: 'rgba(244,80,30,0.10)', border: '1px solid rgba(244,80,30,0.25)',
                         borderRadius: 6, color: TOKENS.primaryHi, cursor: 'pointer', whiteSpace: 'nowrap',
                         transition: 'all 0.15s ease',
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.20)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.10)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,80,30,0.20)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(244,80,30,0.10)'; }}
                     >
                       Historial
                     </button>
@@ -850,7 +850,7 @@ export default function AgendaCalendar() {
                     style={{
                       height: 40,
                       borderRadius: 9,
-                      background: isToday ? 'linear-gradient(180deg,#7c83ff,#6366f1)' : isSel ? 'rgba(99,102,241,0.16)' : 'transparent',
+                      background: isToday ? 'linear-gradient(180deg,#ff7a2e,#f4501e)' : isSel ? 'rgba(244,80,30,0.16)' : 'transparent',
                       border: isSel && !isToday ? `1px solid ${TOKENS.primary}` : '1px solid transparent',
                       color: isToday ? '#fff' : isSel ? TOKENS.primaryHi : TOKENS.textSec,
                       fontSize: 12,
@@ -870,13 +870,13 @@ export default function AgendaCalendar() {
                       if (isToday) {
                         e.currentTarget.style.boxShadow = `0 6px 20px ${TOKENS.primaryGlow}`;
                       } else {
-                        e.currentTarget.style.background = 'rgba(99,102,241,0.12)';
+                        e.currentTarget.style.background = 'rgba(244,80,30,0.12)';
                         e.currentTarget.style.borderColor = TOKENS.primary;
                       }
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.background = isToday ? 'linear-gradient(180deg,#7c83ff,#6366f1)' : isSel ? 'rgba(99,102,241,0.16)' : 'transparent';
+                      e.currentTarget.style.background = isToday ? 'linear-gradient(180deg,#ff7a2e,#f4501e)' : isSel ? 'rgba(244,80,30,0.16)' : 'transparent';
                       e.currentTarget.style.borderColor = isSel && !isToday ? TOKENS.primary : 'transparent';
                       e.currentTarget.style.boxShadow = isToday ? `0 4px 14px ${TOKENS.primaryGlow}` : 'none';
                     }}
@@ -1277,8 +1277,8 @@ function ProfRow({ id, name, role, color, count, selected, onSel, reposoUtil, on
         alignItems: 'center',
         gap: 10,
         padding: '8px 10px',
-        background: selected ? 'rgba(99,102,241,0.10)' : 'transparent',
-        border: `1px solid ${selected ? 'rgba(99,102,241,0.25)' : 'transparent'}`,
+        background: selected ? 'rgba(244,80,30,0.10)' : 'transparent',
+        border: `1px solid ${selected ? 'rgba(244,80,30,0.25)' : 'transparent'}`,
         borderRadius: 10,
         cursor: 'pointer',
         textAlign: 'left',
@@ -1286,11 +1286,11 @@ function ProfRow({ id, name, role, color, count, selected, onSel, reposoUtil, on
         transform: 'translateX(0)',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = selected ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.05)';
+        e.currentTarget.style.background = selected ? 'rgba(244,80,30,0.15)' : 'rgba(244,80,30,0.05)';
         e.currentTarget.style.transform = 'translateX(4px)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = selected ? 'rgba(99,102,241,0.10)' : 'transparent';
+        e.currentTarget.style.background = selected ? 'rgba(244,80,30,0.10)' : 'transparent';
         e.currentTarget.style.transform = 'translateX(0)';
       }}
     >
@@ -1384,7 +1384,7 @@ function ViewTab({ children, active, onClick }: any) {
         e.currentTarget.style.transform = 'scale(1.05)';
         e.currentTarget.style.borderColor = TOKENS.primary;
         if (!active) {
-          e.currentTarget.style.background = 'rgba(99,102,241,0.05)';
+          e.currentTarget.style.background = 'rgba(244,80,30,0.05)';
         }
       }}
       onMouseLeave={(e) => {
@@ -1402,7 +1402,7 @@ const BLOQUEO_COLORS: Record<string, string> = {
   vacaciones: '#10b981',
   reunion:    '#3b82f6',
   baja:       '#ef4444',
-  formacion:  '#8b5cf6',
+  formacion:  '#c0260a',
   descanso:   '#f59e0b',
 };
 const BLOQUEO_LABELS: Record<string, string> = {
@@ -1605,7 +1605,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
   return (
     <>
     <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, overflow: 'hidden' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(99,102,241,0.04)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(244,80,30,0.04)' }}>
         <div />
         {profesionales.map((p: any) => (
           <div key={p.id} style={{ padding: '12px 14px', borderLeft: `1px solid ${TOKENS.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1675,7 +1675,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
           );
         })()}
         {HOURS.map((h, idx) => (
-          <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(148,163,184,0.05)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(99,102,241,0.03)' }}>
+          <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(148,163,184,0.05)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(244,80,30,0.03)' }}>
             <div style={{ padding: '8px 8px', fontSize: 11, color: TOKENS.textTer, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
               {h}:00
             </div>
@@ -1776,7 +1776,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         background: cancelada ? 'linear-gradient(180deg, #3a3a3a18, #2a2a2a10)' : `linear-gradient(180deg, ${profColor}28, ${profColor}18)`,
                         border: cancelada ? '1px solid #55555540' : `1px solid ${profColor}55`,
                         borderLeft: cancelada ? '3px solid #66666660' : `3px solid ${profColor}`,
-                        borderTop: isChained && !cancelada ? `2px solid #a78bfa` : undefined,
+                        borderTop: isChained && !cancelada ? `2px solid #e0340e` : undefined,
                         borderRadius: 8,
                         padding: height <= CITA_CARD_DETAILS_MIN_HEIGHT ? '3px 6px' : '6px 8px',
                         overflow: 'hidden',
@@ -1794,13 +1794,13 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         e.currentTarget.style.transform = 'scale(1.05)';
                         e.currentTarget.style.boxShadow = cancelada ? 'none' : `0 12px 12px ${profColor}45`;
                         e.currentTarget.style.borderColor = cancelada ? '#77777770' : `${profColor}99`;
-                        if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #a78bfa';
+                        if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #e0340e';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'scale(1)';
                         e.currentTarget.style.boxShadow = cancelada ? 'none' : `0 8px 8px ${profColor}25`;
                         e.currentTarget.style.borderColor = cancelada ? '#55555540' : `${profColor}55`;
-                        if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #a78bfa';
+                        if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #e0340e';
                       }}
                     >
                       {/* RN-AG-042: zona de reposo semitransparente con rayas */}
@@ -1865,7 +1865,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         }
 
                         const chainBadge = isChained ? (
-                          <span style={{ fontSize: 8, fontWeight: 700, background: 'rgba(139,92,246,0.25)', color: '#a78bfa', padding: '1px 5px', borderRadius: 4, flexShrink: 0, letterSpacing: 0.3 }}>
+                          <span style={{ fontSize: 8, fontWeight: 700, background: 'rgba(192,38,10,0.25)', color: '#e0340e', padding: '1px 5px', borderRadius: 4, flexShrink: 0, letterSpacing: 0.3 }}>
                             {chainPos}/{chainTotal}
                           </span>
                         ) : null;
@@ -2447,7 +2447,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24, animation: 'fadeIn 0.3s ease' }}>
-      <div style={{ width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 24, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15)', animation: 'scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+      <div style={{ width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 24, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)', animation: 'scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
           <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: TOKENS.text }}>Nueva cita</h3>
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18, transition: 'all 0.2s ease', transform: 'scale(1) rotate(0deg)' }} onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.border; e.currentTarget.style.color = TOKENS.text; e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.color = TOKENS.textSec; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}>
@@ -2458,12 +2458,12 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
         {/* Tarjetas de servicios confirmados (encadenados) */}
         {citasConfirmadas.length > 0 && (
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#e0340e', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
               Servicios confirmados ({citasConfirmadas.length})
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {citasConfirmadas.map((cita: any, idx: number) => (
-                <div key={idx} style={{ padding: '8px 12px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div key={idx} style={{ padding: '8px 12px', background: 'rgba(192,38,10,0.06)', border: '1px solid rgba(192,38,10,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 18, height: 18, borderRadius: 999, background: cita.profColor || TOKENS.primary, color: '#fff', fontSize: 9, fontWeight: 700, display: 'grid', placeItems: 'center' }}>
@@ -2499,7 +2499,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 22 }}>
           {[1, 2, 3].map((n) => (
             <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: n < 3 ? 1 : undefined }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, background: (n === 1 && selectedCliente) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? 'rgba(99,102,241,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${(n === 1 && selectedCliente) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? 'rgba(99,102,241,0.4)' : TOKENS.border}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, background: (n === 1 && selectedCliente) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${(n === 1 && selectedCliente) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? 'rgba(244,80,30,0.4)' : TOKENS.border}` }}>
                 <div style={{ width: 18, height: 18, borderRadius: 999, background: (n === 1 && selectedCliente) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? TOKENS.primary : 'rgba(148,163,184,0.18)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'grid', placeItems: 'center' }}>
                   {n}
                 </div>
@@ -2514,7 +2514,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
 
         {/* FormField Cliente */}
         {citasConfirmadas.length > 0 ? (
-          <div style={{ marginBottom: 14, padding: '10px 14px', background: 'rgba(99,102,241,0.06)', border: `1px solid rgba(99,102,241,0.2)`, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ marginBottom: 14, padding: '10px 14px', background: 'rgba(244,80,30,0.06)', border: `1px solid rgba(244,80,30,0.2)`, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Clienta:</div>
             <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.primaryHi }}>{clientes.find((c: any) => c.id === selectedCliente)?.nombre || ''}</div>
           </div>
@@ -2555,8 +2555,8 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
                 onClick={() => setSelectedCliente(c.id)}
                 style={{
                   padding: '8px 12px',
-                  background: selectedCliente === c.id ? 'rgba(99,102,241,0.18)' : TOKENS.bgCard,
-                  border: `1px solid ${selectedCliente === c.id ? 'rgba(99,102,241,0.4)' : TOKENS.border}`,
+                  background: selectedCliente === c.id ? 'rgba(244,80,30,0.18)' : TOKENS.bgCard,
+                  border: `1px solid ${selectedCliente === c.id ? 'rgba(244,80,30,0.4)' : TOKENS.border}`,
                   borderRadius: 8,
                   color: selectedCliente === c.id ? TOKENS.primaryHi : TOKENS.textSec,
                   cursor: 'pointer',
@@ -2566,12 +2566,12 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
                   transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 4px 12px rgba(99,102,241,0.2)`;
-                  e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)';
+                  e.currentTarget.style.boxShadow = `0 4px 12px rgba(244,80,30,0.2)`;
+                  e.currentTarget.style.borderColor = 'rgba(244,80,30,0.4)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.boxShadow = 'none';
-                  e.currentTarget.style.borderColor = selectedCliente === c.id ? 'rgba(99,102,241,0.4)' : TOKENS.border;
+                  e.currentTarget.style.borderColor = selectedCliente === c.id ? 'rgba(244,80,30,0.4)' : TOKENS.border;
                 }}
               >
                 {c.nombre}
@@ -2608,7 +2608,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
 
         {/* Selected client card */}
         {selectedCliente && clienteSeleccionado && citasConfirmadas.length === 0 && (
-          <div style={{ marginBottom: 14, padding: '10px 12px', borderRadius: 10, background: 'rgba(99,102,241,0.08)', border: `1px solid rgba(99,102,241,0.30)`, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ marginBottom: 14, padding: '10px 12px', borderRadius: 10, background: 'rgba(244,80,30,0.08)', border: `1px solid rgba(244,80,30,0.30)`, display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 32, height: 32, borderRadius: 999, background: `linear-gradient(135deg, ${TOKENS.primary}, ${TOKENS.primaryHi})`, display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
               {clienteSeleccionado.nombre.charAt(0).toUpperCase()}
             </div>
@@ -2639,8 +2639,8 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
                   onClick={() => setSelectedServicio(s.id)}
                   style={{
                     padding: '12px',
-                    background: selectedServicio === s.id ? 'rgba(99,102,241,0.12)' : TOKENS.bgCard,
-                    border: `1px solid ${selectedServicio === s.id ? 'rgba(99,102,241,0.4)' : TOKENS.border}`,
+                    background: selectedServicio === s.id ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard,
+                    border: `1px solid ${selectedServicio === s.id ? 'rgba(244,80,30,0.4)' : TOKENS.border}`,
                     borderRadius: 10,
                     color: TOKENS.text,
                     cursor: 'pointer',
@@ -2653,11 +2653,11 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.borderColor = TOKENS.primary;
-                    e.currentTarget.style.boxShadow = `0 4px 16px rgba(99,102,241,0.15)`;
+                    e.currentTarget.style.boxShadow = `0 4px 16px rgba(244,80,30,0.15)`;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.borderColor = selectedServicio === s.id ? 'rgba(99,102,241,0.4)' : TOKENS.border;
+                    e.currentTarget.style.borderColor = selectedServicio === s.id ? 'rgba(244,80,30,0.4)' : TOKENS.border;
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
@@ -2820,7 +2820,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
                   )}
                   {horaSugerida && (
                     <div style={{ marginBottom: 8 }}>
-                      <div style={{ fontSize: 9, fontWeight: 600, color: '#a78bfa', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' }}>Hora sugerida (fin servicio anterior)</div>
+                      <div style={{ fontSize: 9, fontWeight: 600, color: '#e0340e', letterSpacing: 0.5, marginBottom: 4, textTransform: 'uppercase' }}>Hora sugerida (fin servicio anterior)</div>
                       <button
                         onClick={() => {
                           setHoraPersonalizada('');
@@ -2833,9 +2833,9 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
                           fontSize: 12,
                           fontWeight: 700,
                           cursor: 'pointer',
-                          border: `1.5px solid ${selectedHora === horaSugerida && !horaPersonalizada ? '#a78bfa' : 'rgba(167,139,250,0.4)'}`,
-                          background: selectedHora === horaSugerida && !horaPersonalizada ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.06)',
-                          color: '#a78bfa',
+                          border: `1.5px solid ${selectedHora === horaSugerida && !horaPersonalizada ? '#e0340e' : 'rgba(167,139,250,0.4)'}`,
+                          background: selectedHora === horaSugerida && !horaPersonalizada ? 'rgba(192,38,10,0.2)' : 'rgba(192,38,10,0.06)',
+                          color: '#e0340e',
                           transition: 'all 0.2s ease',
                         }}
                       >
@@ -2878,9 +2878,9 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
                             padding: esReposo ? '5px 0 4px' : '8px 0',
                             borderRadius: 8,
                             background: selected
-                              ? `linear-gradient(180deg,#7c83ff,#6366f1)`
+                              ? `linear-gradient(180deg,#ff7a2e,#f4501e)`
                               : esReposo ? 'rgba(245,158,11,0.08)' : TOKENS.bgCard,
-                            border: `1px solid ${selected ? '#6366f1' : esReposo ? 'rgba(245,158,11,0.45)' : TOKENS.border}`,
+                            border: `1px solid ${selected ? '#f4501e' : esReposo ? 'rgba(245,158,11,0.45)' : TOKENS.border}`,
                             color: selected ? '#fff' : esReposo ? '#f59e0b' : TOKENS.textSec,
                             fontSize: 11,
                             fontWeight: 600,
@@ -2896,14 +2896,14 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
                             e.currentTarget.style.transform = 'scale(1.08)';
                             if (!selected) {
                               e.currentTarget.style.borderColor = esReposo ? '#f59e0b' : TOKENS.primary;
-                              e.currentTarget.style.boxShadow = esReposo ? `0 4px 12px rgba(245,158,11,0.25)` : `0 4px 12px rgba(99,102,241,0.2)`;
+                              e.currentTarget.style.boxShadow = esReposo ? `0 4px 12px rgba(245,158,11,0.25)` : `0 4px 12px rgba(244,80,30,0.2)`;
                             } else {
-                              e.currentTarget.style.boxShadow = `0 6px 20px rgba(99,102,241,0.4)`;
+                              e.currentTarget.style.boxShadow = `0 6px 20px rgba(244,80,30,0.4)`;
                             }
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.borderColor = selected ? '#6366f1' : esReposo ? 'rgba(245,158,11,0.45)' : TOKENS.border;
+                            e.currentTarget.style.borderColor = selected ? '#f4501e' : esReposo ? 'rgba(245,158,11,0.45)' : TOKENS.border;
                             e.currentTarget.style.boxShadow = 'none';
                           }}
                         >
@@ -3094,17 +3094,17 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
                   onClick={handleEncadenarServicio}
                   style={{
                     padding: '9px 18px',
-                    background: 'rgba(139,92,246,0.1)',
-                    border: '1px solid rgba(139,92,246,0.35)',
-                    color: '#a78bfa',
+                    background: 'rgba(192,38,10,0.1)',
+                    border: '1px solid rgba(192,38,10,0.35)',
+                    color: '#e0340e',
                     borderRadius: 8,
                     cursor: 'pointer',
                     fontSize: 12,
                     fontWeight: 600,
                     transition: 'all 0.2s ease',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139,92,246,0.18)'; e.currentTarget.style.borderColor = '#a78bfa'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(139,92,246,0.1)'; e.currentTarget.style.borderColor = 'rgba(139,92,246,0.35)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(192,38,10,0.18)'; e.currentTarget.style.borderColor = '#e0340e'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(192,38,10,0.1)'; e.currentTarget.style.borderColor = 'rgba(192,38,10,0.35)'; }}
                 >
                   + Encadenar otro
                 </button>
@@ -3114,26 +3114,26 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
                 disabled={!puedeGuardar}
                 style={{
                   padding: '9px 18px',
-                  background: !puedeGuardar ? 'rgba(99,102,241,0.5)' : `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
+                  background: !puedeGuardar ? 'rgba(244,80,30,0.5)' : `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`,
                   color: '#fff',
                   border: 'none',
                   borderRadius: 8,
                   cursor: !puedeGuardar ? 'not-allowed' : 'pointer',
                   fontSize: 12,
                   fontWeight: 600,
-                  boxShadow: !puedeGuardar ? 'none' : `0 4px 12px rgba(99,102,241,0.4)`,
+                  boxShadow: !puedeGuardar ? 'none' : `0 4px 12px rgba(244,80,30,0.4)`,
                   transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                   transform: 'translateY(0)',
                 }}
                 onMouseEnter={(e) => {
                   if (puedeGuardar) {
                     e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = `0 8px 24px rgba(99,102,241,0.6)`;
+                    e.currentTarget.style.boxShadow = `0 8px 24px rgba(244,80,30,0.6)`;
                   }
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = puedeGuardar ? `0 4px 12px rgba(99,102,241,0.4)` : 'none';
+                  e.currentTarget.style.boxShadow = puedeGuardar ? `0 4px 12px rgba(244,80,30,0.4)` : 'none';
                 }}
               >
                 {guardando ? '...' : totalCitas > 1 ? `Reservar ${totalCitas} citas` : 'Reservar cita'}
@@ -3173,8 +3173,8 @@ function TimeNumBox({ value, label }: { value: string; label: string }) {
     <div style={{
       display: 'flex', alignItems: 'baseline', gap: 2,
       padding: '5px 10px', borderRadius: 8,
-      background: 'rgba(99,102,241,0.13)',
-      border: '1px solid rgba(99,102,241,0.22)',
+      background: 'rgba(244,80,30,0.13)',
+      border: '1px solid rgba(244,80,30,0.22)',
       minWidth: label === 'h' ? 46 : 52,
       justifyContent: 'center',
     }}>
@@ -3823,8 +3823,8 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
             .sort((a: any, b: any) => (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0));
           if (siblings.length <= 1) return null;
           return (
-            <div style={{ padding: '12px 32px', borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(139,92,246,0.04)' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+            <div style={{ padding: '12px 32px', borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(192,38,10,0.04)' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#e0340e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
                 Servicio encadenado ({siblings.length} servicios)
               </div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -3839,13 +3839,13 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                       key={sib.id}
                       style={{
                         padding: '6px 10px',
-                        background: isCurrent ? 'rgba(139,92,246,0.15)' : TOKENS.bgCard,
-                        border: `1px solid ${isCurrent ? '#a78bfa' : TOKENS.border}`,
+                        background: isCurrent ? 'rgba(192,38,10,0.15)' : TOKENS.bgCard,
+                        border: `1px solid ${isCurrent ? '#e0340e' : TOKENS.border}`,
                         borderRadius: 8,
                         minWidth: 0,
                       }}
                     >
-                      <div style={{ fontSize: 11, fontWeight: 600, color: isCurrent ? '#a78bfa' : TOKENS.text }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: isCurrent ? '#e0340e' : TOKENS.text }}>
                         {idx + 1}. {sibSrv?.nombre || 'Servicio'}
                       </div>
                       <div style={{ fontSize: 9, color: TOKENS.textTer, marginTop: 2 }}>
@@ -3914,7 +3914,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                   background: 'none',
                   border: 'none',
                   padding: 0,
-                  color: '#a78bfa',
+                  color: '#e0340e',
                   fontSize: 11,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -3927,9 +3927,9 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                 + Encadenar servicio
               </button>
             ) : (
-              <div style={{ borderLeft: '3px solid #a78bfa', paddingLeft: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ borderLeft: '3px solid #e0340e', paddingLeft: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#e0340e', textTransform: 'uppercase', letterSpacing: 0.8 }}>
                     Encadenar servicio
                   </div>
                   <button onClick={() => setShowChainForm(false)} style={{ background: 'none', border: 'none', color: TOKENS.textTer, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>x</button>
@@ -3949,9 +3949,9 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                           fontSize: 11,
                           fontWeight: 600,
                           cursor: 'pointer',
-                          border: chainServicioId === s.id ? '1px solid #a78bfa' : `1px solid ${TOKENS.border}`,
-                          background: chainServicioId === s.id ? 'rgba(139,92,246,0.15)' : TOKENS.bgCard,
-                          color: chainServicioId === s.id ? '#a78bfa' : TOKENS.text,
+                          border: chainServicioId === s.id ? '1px solid #e0340e' : `1px solid ${TOKENS.border}`,
+                          background: chainServicioId === s.id ? 'rgba(192,38,10,0.15)' : TOKENS.bgCard,
+                          color: chainServicioId === s.id ? '#e0340e' : TOKENS.text,
                           transition: 'all 0.15s',
                         }}
                       >
@@ -3976,9 +3976,9 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                             fontSize: 11,
                             fontWeight: 600,
                             cursor: 'pointer',
-                            border: chainProfId === p.id ? `1px solid ${p.color || '#a78bfa'}` : `1px solid ${TOKENS.border}`,
-                            background: chainProfId === p.id ? `${p.color || '#a78bfa'}22` : TOKENS.bgCard,
-                            color: chainProfId === p.id ? (p.color || '#a78bfa') : TOKENS.text,
+                            border: chainProfId === p.id ? `1px solid ${p.color || '#e0340e'}` : `1px solid ${TOKENS.border}`,
+                            background: chainProfId === p.id ? `${p.color || '#e0340e'}22` : TOKENS.bgCard,
+                            color: chainProfId === p.id ? (p.color || '#e0340e') : TOKENS.text,
                             transition: 'all 0.15s',
                           }}
                         >
@@ -3991,7 +3991,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
 
                 {/* Preview de horario */}
                 {chainTimingPreview && chainProfId && (
-                  <div style={{ padding: '8px 10px', background: 'rgba(139,92,246,0.06)', borderRadius: 6, border: `1px solid rgba(139,92,246,0.15)` }}>
+                  <div style={{ padding: '8px 10px', background: 'rgba(192,38,10,0.06)', borderRadius: 6, border: `1px solid rgba(192,38,10,0.15)` }}>
                     <div style={{ fontSize: 10, color: TOKENS.textTer }}>
                       {chainTimingPreview.inicio.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {chainTimingPreview.fin.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} ({chainTimingPreview.durTotal} min) · {chainTimingPreview.precio}
                     </div>
@@ -4015,7 +4015,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                     disabled={!chainServicioId || !chainProfId || chainGuardando}
                     style={{
                       padding: '6px 14px',
-                      background: !chainServicioId || !chainProfId || chainGuardando ? 'rgba(139,92,246,0.3)' : 'linear-gradient(180deg,#9b8afb 0%,#8b5cf6 100%)',
+                      background: !chainServicioId || !chainProfId || chainGuardando ? 'rgba(192,38,10,0.3)' : 'linear-gradient(180deg,#9b8afb 0%,#c0260a 100%)',
                       color: '#fff',
                       border: 'none',
                       borderRadius: 6,
@@ -4422,7 +4422,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                         }}
                         onMouseEnter={(e) => {
                           if (estado !== k) {
-                            e.currentTarget.style.background = 'rgba(99,102,241,0.06)';
+                            e.currentTarget.style.background = 'rgba(244,80,30,0.06)';
                           }
                         }}
                         onMouseLeave={(e) => {
@@ -4569,8 +4569,8 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
               style={{
                 padding: 12,
                 borderRadius: 12,
-                background: showFormula ? 'rgba(139,92,246,0.06)' : 'rgba(148,163,184,0.04)',
-                border: `1px solid ${showFormula ? 'rgba(139,92,246,0.30)' : TOKENS.border}`,
+                background: showFormula ? 'rgba(192,38,10,0.06)' : 'rgba(148,163,184,0.04)',
+                border: `1px solid ${showFormula ? 'rgba(192,38,10,0.30)' : TOKENS.border}`,
                 transition: 'all 0.2s ease',
               }}
             >
@@ -4590,7 +4590,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                   textAlign: 'left',
                 }}
               >
-                <span style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(139,92,246,0.14)', color: '#8b5cf6', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                <span style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(192,38,10,0.14)', color: '#c0260a', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
                 </span>
                 <div style={{ flex: 1 }}>
@@ -4736,14 +4736,14 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
               disabled={!selectedCliente || !selectedServicio || !selectedProf || guardando}
               style={{
                 padding: '9px 18px',
-                background: !selectedCliente || !selectedServicio || !selectedProf || guardando ? 'rgba(99,102,241,0.5)' : `linear-gradient(180deg,#7c83ff 0%,#6366f1 100%)`,
+                background: !selectedCliente || !selectedServicio || !selectedProf || guardando ? 'rgba(244,80,30,0.5)' : `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`,
                 color: '#fff',
                 border: 'none',
                 borderRadius: 8,
                 cursor: !selectedCliente || !selectedServicio || !selectedProf || guardando ? 'not-allowed' : 'pointer',
                 fontSize: 12,
                 fontWeight: 600,
-                boxShadow: !selectedCliente || !selectedServicio || !selectedProf || guardando ? 'none' : `0 4px 12px rgba(99,102,241,0.4)`,
+                boxShadow: !selectedCliente || !selectedServicio || !selectedProf || guardando ? 'none' : `0 4px 12px rgba(244,80,30,0.4)`,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
@@ -4772,9 +4772,9 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                     onClick={() => setCanceladoPor(op)}
                     style={{
                       flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                      background: canceladoPor === op ? 'rgba(99,102,241,0.12)' : 'transparent',
-                      border: `1px solid ${canceladoPor === op ? 'rgba(99,102,241,0.5)' : TOKENS.border}`,
-                      color: canceladoPor === op ? '#818cf8' : TOKENS.textSec,
+                      background: canceladoPor === op ? 'rgba(244,80,30,0.12)' : 'transparent',
+                      border: `1px solid ${canceladoPor === op ? 'rgba(244,80,30,0.5)' : TOKENS.border}`,
+                      color: canceladoPor === op ? '#ff7a2e' : TOKENS.textSec,
                       transition: 'all 0.15s',
                     }}
                   >
@@ -4879,7 +4879,7 @@ function SearchDropdown({ open, setOpen, q, setQ, placeholder, trigger, children
           padding: '8px 12px',
           borderRadius: 10,
           background: TOKENS.bgCard,
-          border: `1px solid ${open ? 'rgba(99,102,241,0.40)' : TOKENS.border}`,
+          border: `1px solid ${open ? 'rgba(244,80,30,0.40)' : TOKENS.border}`,
           cursor: 'pointer',
           textAlign: 'left',
           transition: 'all 0.2s ease',
@@ -4951,7 +4951,7 @@ function DropdownItem({ onClick, active, children }: any) {
         padding: '8px 10px',
         borderRadius: 8,
         background: active ? TOKENS.primarySoft : 'transparent',
-        border: `1px solid ${active ? 'rgba(99,102,241,0.30)' : 'transparent'}`,
+        border: `1px solid ${active ? 'rgba(244,80,30,0.30)' : 'transparent'}`,
         cursor: 'pointer',
         textAlign: 'left',
         marginBottom: 2,
@@ -4959,7 +4959,7 @@ function DropdownItem({ onClick, active, children }: any) {
       }}
       onMouseEnter={(e) => {
         if (!active) {
-          e.currentTarget.style.background = 'rgba(99,102,241,0.06)';
+          e.currentTarget.style.background = 'rgba(244,80,30,0.06)';
         }
       }}
       onMouseLeave={(e) => {
@@ -5187,7 +5187,7 @@ function SequenceBar({ activo, espera, activo2, primary, warning }: any) {
           <div
             style={{
               flex: activo / total,
-              background: `linear-gradient(180deg, #818cf8, #6366f1)`,
+              background: `linear-gradient(180deg, #ff7a2e, #f4501e)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -5225,7 +5225,7 @@ function SequenceBar({ activo, espera, activo2, primary, warning }: any) {
           <div
             style={{
               flex: activo2 / total,
-              background: `linear-gradient(180deg, #818cf8, #6366f1)`,
+              background: `linear-gradient(180deg, #ff7a2e, #f4501e)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -5257,7 +5257,7 @@ function Avatar({ name, size }: any) {
   };
 
   const hash = name?.split('').reduce((h: any, c: any) => h + c.charCodeAt(0), 0) || 0;
-  const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'];
+  const colors = ['#f4501e', '#c0260a', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'];
   const color = colors[hash % colors.length];
 
   return (
@@ -5360,7 +5360,7 @@ function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clie
               key={i}
               onClick={() => onSelectDay(d)}
               style={{
-                background: isToday ? 'rgba(99,102,241,0.08)' : TOKENS.bgCard,
+                background: isToday ? 'rgba(244,80,30,0.08)' : TOKENS.bgCard,
                 border: `1px solid ${isToday ? TOKENS.primary : TOKENS.border}`,
                 borderRadius: 12,
                 padding: 10,
@@ -5474,7 +5474,7 @@ function MonthView({ citas, profesionales, servicios, clientes, servicioMap, cli
               key={i}
               onClick={() => onSelectDay(new Date(year, month, d))}
               style={{
-                background: isToday ? 'rgba(99,102,241,0.10)' : TOKENS.bgCard,
+                background: isToday ? 'rgba(244,80,30,0.10)' : TOKENS.bgCard,
                 border: `1px solid ${isToday ? TOKENS.primary : TOKENS.border}`,
                 borderRadius: 10,
                 padding: 8,
@@ -5491,7 +5491,7 @@ function MonthView({ citas, profesionales, servicios, clientes, servicioMap, cli
               </div>
               {dayCitas.length > 0 && (
                 <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                  {confirmadas > 0 && <span style={{ fontSize: 9, padding: '1px 4px', background: 'rgba(99,102,241,0.12)', color: TOKENS.primaryHi, borderRadius: 3, fontWeight: 600 }}>{confirmadas} conf</span>}
+                  {confirmadas > 0 && <span style={{ fontSize: 9, padding: '1px 4px', background: 'rgba(244,80,30,0.12)', color: TOKENS.primaryHi, borderRadius: 3, fontWeight: 600 }}>{confirmadas} conf</span>}
                   {completadas > 0 && <span style={{ fontSize: 9, padding: '1px 4px', background: 'rgba(34,197,94,0.12)', color: '#22c55e', borderRadius: 3, fontWeight: 600 }}>{completadas} comp</span>}
                 </div>
               )}
@@ -5514,7 +5514,7 @@ function ClienteHistorialModal({ cliente, onClose, citas, servicioMap, profesion
   }, [citas, cliente.id]);
 
   const estadoColors: Record<string, { bg: string; color: string }> = {
-    confirmada: { bg: 'rgba(99,102,241,0.12)', color: TOKENS.primaryHi },
+    confirmada: { bg: 'rgba(244,80,30,0.12)', color: TOKENS.primaryHi },
     completada: { bg: 'rgba(34,197,94,0.12)', color: '#22c55e' },
     cancelada: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444' },
     no_presentada: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
@@ -5537,7 +5537,7 @@ function ClienteHistorialModal({ cliente, onClose, citas, servicioMap, profesion
         </div>
         {/* Stats */}
         <div style={{ padding: '12px 24px', display: 'flex', gap: 12, borderBottom: `1px solid ${TOKENS.border}` }}>
-          <div style={{ padding: '6px 12px', background: 'rgba(99,102,241,0.08)', borderRadius: 8, fontSize: 11, color: TOKENS.primaryHi, fontWeight: 600 }}>
+          <div style={{ padding: '6px 12px', background: 'rgba(244,80,30,0.08)', borderRadius: 8, fontSize: 11, color: TOKENS.primaryHi, fontWeight: 600 }}>
             {clienteCitas.filter((c: any) => c.estado === 'completada').length} completadas
           </div>
           <div style={{ padding: '6px 12px', background: 'rgba(239,68,68,0.08)', borderRadius: 8, fontSize: 11, color: '#ef4444', fontWeight: 600 }}>

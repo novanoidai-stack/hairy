@@ -59,8 +59,8 @@ const TOKENS = {
   warningSoft: 'rgba(224,138,0,0.16)',
   danger: '#e23b34',
   dangerSoft: 'rgba(226,59,52,0.14)',
-  violet: '#7c5cff',
-  violetSoft: 'rgba(124,92,255,0.14)',
+  violet: '#c0260a',
+  violetSoft: 'rgba(192,38,10,0.14)',
   cyan: '#0891b2',
   cyanSoft: 'rgba(8,145,178,0.14)',
   rose: '#e11d6b',
@@ -94,8 +94,8 @@ const ANIMATIONS = `
     50% { opacity: 0.5; }
   }
   @keyframes glow {
-    0%, 100% { box-shadow: 0 0 8px rgba(99,102,241,0.3); }
-    50% { box-shadow: 0 0 16px rgba(99,102,241,0.6); }
+    0%, 100% { box-shadow: 0 0 8px rgba(244,80,30,0.3); }
+    50% { box-shadow: 0 0 16px rgba(244,80,30,0.6); }
   }
   @keyframes shimmer {
     0% { background-position: -600px 0; }

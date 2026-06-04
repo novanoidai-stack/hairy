@@ -36,11 +36,11 @@ const TIPOS_BLOQUEO = [
   { key: 'vacaciones', label: 'Vacaciones', color: '#f59e0b' },
   { key: 'reunion', label: 'Reunión', color: '#3b82f6' },
   { key: 'baja', label: 'Baja', color: '#ef4444' },
-  { key: 'formacion', label: 'Formación', color: '#8b5cf6' },
+  { key: 'formacion', label: 'Formación', color: '#c0260a' },
   { key: 'descanso', label: 'Descanso', color: '#10b981' },
 ];
 
-const COLORES = ['#6366f1', '#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'];
+const COLORES = ['#f4501e', '#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#c0260a', '#ec4899'];
 
 export default function EquipoScreen() {
   const { c } = useTheme();
@@ -52,7 +52,7 @@ export default function EquipoScreen() {
 
   const [modalProfVisible, setModalProfVisible] = useState(false);
   const [nombreProf, setNombreProf] = useState('');
-  const [colorProf, setColorProf] = useState('#6366f1');
+  const [colorProf, setColorProf] = useState('#f4501e');
   const [guardandoProf, setGuardandoProf] = useState(false);
 
   const [modalBloquesVisible, setModalBloquesVisible] = useState(false);
@@ -110,7 +110,7 @@ export default function EquipoScreen() {
     }
     setModalProfVisible(false);
     setNombreProf('');
-    setColorProf('#6366f1');
+    setColorProf('#f4501e');
     cargarEquipo();
   }
 

@@ -126,7 +126,7 @@ const DAY_LABELS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado
 const DEFAULT_CONFIG: ConfigState = {
   nombre: '', direccion: '', telefono: '', email: '',
   moneda: 'EUR', timezone: 'Europe/Madrid',
-  brandColor: '#6366f1', theme: 'dark',
+  brandColor: '#f4501e', theme: 'dark',
   slotInterval: 15, defaultView: 'dia', startOfWeek: 'lun',
   showOutsideHours: false, compactEmpty: true,
   antelacionGlobal: 60, antelacionMax: 60, permitirMismoDia: true,
@@ -655,7 +655,7 @@ function TabButton({ t, active, onClick }: { t: TabDef; active: boolean; onClick
         display: 'flex', alignItems: 'center', gap: 11,
         padding: '9px 12px', borderRadius: 10, position: 'relative',
         background: active ? T.primarySoft : (hov ? 'rgba(148,163,184,0.05)' : 'transparent'),
-        border: `1px solid ${active ? 'rgba(99,102,241,0.25)' : 'transparent'}`,
+        border: `1px solid ${active ? 'rgba(244,80,30,0.25)' : 'transparent'}`,
         color: active ? T.text : T.textSecondary,
         fontSize: 13, fontWeight: active ? 600 : 500,
         cursor: 'pointer', transition: 'all .2s ease',
@@ -727,7 +727,7 @@ function TabGeneral({ config, setC }: { config: ConfigState; setC: (k: keyof Con
               width: 72, height: 72, borderRadius: 14,
               background: `linear-gradient(135deg, ${T.primaryHi}, ${T.primary})`,
               display: 'grid', placeItems: 'center',
-              boxShadow: '0 8px 28px rgba(99,102,241,.35)', color: '#fff',
+              boxShadow: '0 8px 28px rgba(244,80,30,.35)', color: '#fff',
             }}>
               <SettingsIcon name="scissors" size={28} />
             </div>
@@ -740,8 +740,8 @@ function TabGeneral({ config, setC }: { config: ConfigState; setC: (k: keyof Con
         <FieldRow label="Color de marca" hint="Acento usado en botones primarios y estados activos.">
           <div style={{ display: 'flex', gap: 8 }}>
             {[
-              { v: '#6366f1', name: 'Indigo' },
-              { v: '#8b5cf6', name: 'Violeta' },
+              { v: '#f4501e', name: 'Indigo' },
+              { v: '#c0260a', name: 'Violeta' },
               { v: '#ec4899', name: 'Rosa' },
               { v: '#06b6d4', name: 'Cian' },
               { v: '#10b981', name: 'Verde' },
@@ -1037,7 +1037,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                   <div
                     key={s.id}
                     style={{ display: 'grid', gridTemplateColumns: '1fr 110px 110px 110px 80px', padding: '14px 16px', alignItems: 'center', borderBottom: i < arr.length - 1 ? `1px solid ${T.border}` : 'none', transition: 'background 0.2s' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.04)'; }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(244,80,30,0.04)'; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                   >
                     {/* Nombre */}
@@ -1188,7 +1188,7 @@ function TabAgenda({ config, setC, bloqueoCounts }: {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 4 }}>
           {[
             { l: 'Vacaciones', c: '#10b981', k: 'vacaciones' },
-            { l: 'Formacion',  c: '#8b5cf6', k: 'formacion' },
+            { l: 'Formacion',  c: '#c0260a', k: 'formacion' },
             { l: 'Baja',       c: '#ef4444', k: 'baja' },
             { l: 'Reunion',    c: '#3b82f6', k: 'reunion' },
             { l: 'Descanso',   c: '#f59e0b', k: 'descanso' },
@@ -1688,14 +1688,14 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 8,
-    background: '#0b1220', border: `1px solid ${T.border}`,
+    background: '#ffffff', border: `1px solid ${T.border}`,
     color: T.text, fontSize: 13, outline: 'none', fontFamily: 'inherit',
     boxSizing: 'border-box',
   };
 
   const accentColor = isProfMode ? prof!.color : T.primary;
-  const accentSoft = isProfMode ? `${prof!.color}1a` : 'rgba(99,102,241,0.18)';
-  const accentBorder = isProfMode ? `${prof!.color}55` : 'rgba(99,102,241,0.4)';
+  const accentSoft = isProfMode ? `${prof!.color}1a` : 'rgba(244,80,30,0.18)';
+  const accentBorder = isProfMode ? `${prof!.color}55` : 'rgba(244,80,30,0.4)';
   const accentText = isProfMode ? prof!.color : T.primaryHi;
 
   const handleSave = async () => {
@@ -1725,7 +1725,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
-      <div style={{ width: 520, maxWidth: '100%', maxHeight: '85vh', background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 18, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ width: 520, maxWidth: '100%', maxHeight: '85vh', background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 18, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 22px', paddingBottom: 0 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: T.text }}>
@@ -1798,7 +1798,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {['Corte', 'Color', 'Tratamiento', 'Peinado', 'Otro'].map(c => (
                     <button key={c} onClick={() => setCategoria(c)}
-                      style={{ padding: '6px 12px', borderRadius: 999, background: categoria === c ? 'rgba(99,102,241,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${categoria === c ? 'rgba(99,102,241,0.4)' : T.border}`, color: categoria === c ? T.primaryHi : T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                      style={{ padding: '6px 12px', borderRadius: 999, background: categoria === c ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${categoria === c ? 'rgba(244,80,30,0.4)' : T.border}`, color: categoria === c ? T.primaryHi : T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
                       {c}
                     </button>
                   ))}
@@ -1811,7 +1811,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {[15, 30, 45, 60, 90].map(m => (
                     <button key={m} onClick={() => setDurActiva(m)}
-                      style={{ flex: '1 1 calc(20% - 5px)', padding: '8px 6px', borderRadius: 8, background: durActiva === m ? 'rgba(99,102,241,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${durActiva === m ? 'rgba(99,102,241,0.4)' : T.border}`, color: durActiva === m ? T.primaryHi : T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                      style={{ flex: '1 1 calc(20% - 5px)', padding: '8px 6px', borderRadius: 8, background: durActiva === m ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${durActiva === m ? 'rgba(244,80,30,0.4)' : T.border}`, color: durActiva === m ? T.primaryHi : T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
                       {m}
                     </button>
                   ))}
@@ -1839,7 +1839,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                   {addons.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                       {addons.map((a: any) => editingAddonId === a.id ? (
-                        <div key={a.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: '1px solid rgba(99,102,241,0.4)' }}>
+                        <div key={a.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: '1px solid rgba(244,80,30,0.4)' }}>
                           <input value={editAddonNombre} onChange={e => setEditAddonNombre(e.target.value)} placeholder="Nombre" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                           <div style={{ display: 'flex', gap: 8 }}>
                             <div style={{ flex: 1 }}>
@@ -1868,7 +1868,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                       ) : (
                         <div key={a.id}
                           onClick={() => { setEditingAddonId(a.id); setEditAddonNombre(a.nombre); setEditAddonDur(a.duracion_min); setEditAddonPrecio(String(a.precio)); }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.4)'; }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(244,80,30,0.4)'; }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = T.border; }}
                           style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s ease' }}>
                           <div>
@@ -1931,7 +1931,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                   {variants.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                       {variants.map((v: any) => editingVarId === v.id ? (
-                        <div key={v.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: '1px solid rgba(99,102,241,0.4)' }}>
+                        <div key={v.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: '1px solid rgba(244,80,30,0.4)' }}>
                           <input value={editVarNombre} onChange={e => setEditVarNombre(e.target.value)} placeholder="Nombre variante" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                           <div style={{ display: 'flex', gap: 8 }}>
                             <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div><input value={editVarPrecio} onChange={e => setEditVarPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
@@ -1959,7 +1959,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                       ) : (
                         <div key={v.id}
                           onClick={() => { setEditingVarId(v.id); setEditVarNombre(v.nombre); setEditVarPrecio(String(v.precio)); setEditVarDur(v.duracion_activa_min); setEditVarEspera(v.duracion_espera_min); setEditVarExtra(v.duracion_activa_extra_min); }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.4)'; }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(244,80,30,0.4)'; }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = T.border; }}
                           style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s ease' }}>
                           <div>
@@ -2035,7 +2035,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                               placeholder={String(precio || '--')}
                               style={{
                                 width: '100%', padding: '6px 10px', borderRadius: 6,
-                                background: T.bg, border: `1px solid ${changed ? 'rgba(99,102,241,0.4)' : T.border}`,
+                                background: T.bg, border: `1px solid ${changed ? 'rgba(244,80,30,0.4)' : T.border}`,
                                 color: T.text, fontSize: 12, outline: 'none', fontFamily: 'inherit',
                                 boxSizing: 'border-box' as const, transition: 'border-color 0.15s ease',
                               }}

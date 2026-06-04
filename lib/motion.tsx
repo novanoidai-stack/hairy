@@ -118,7 +118,7 @@ const MOTION_CSS = `
   .m-btn-icon:hover:not(:disabled) {
     transform: scale(1.12);
     background: rgba(148,163,184,0.12) !important;
-    border-color: rgba(99,102,241,0.40) !important;
+    border-color: rgba(244,80,30,0.40) !important;
   }
   .m-btn-icon:active:not(:disabled) {
     transform: scale(0.95);
@@ -142,8 +142,8 @@ const MOTION_CSS = `
   }
   .m-card-hover:hover {
     transform: translateY(-1px);
-    border-color: rgba(99,102,241,0.30) !important;
-    background: rgba(99,102,241,0.04) !important;
+    border-color: rgba(244,80,30,0.30) !important;
+    background: rgba(244,80,30,0.04) !important;
   }
 
   /* Chips / tags / pills clicables */
@@ -182,8 +182,8 @@ const MOTION_CSS = `
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
   }
   .m-input:focus {
-    border-color: rgba(99,102,241,0.55) !important;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+    border-color: rgba(244,80,30,0.55) !important;
+    box-shadow: 0 0 0 3px rgba(244,80,30,0.12);
   }
 
   /* Reduce motion: respeta preferencias del usuario */

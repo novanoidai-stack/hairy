@@ -171,7 +171,7 @@ const s = StyleSheet.create({
   navBtn: { padding: spacing.sm },
   fechaCenter: { alignItems: 'center', gap: 4 },
   fechaDia: { fontSize: fontSize.md, fontWeight: fontWeight.semibold, textTransform: 'capitalize' },
-  hoyBadge: { backgroundColor: '#6366f1', borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 2 },
+  hoyBadge: { backgroundColor: '#f4501e', borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 2 },
   hoyText: { color: '#fff', fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
   profHeader: {
     flexDirection: 'row',

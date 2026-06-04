@@ -192,7 +192,7 @@ export function Toggle({ on, onChange, disabled, label, sub, accent }: TogglePro
         aria-checked={on}
         style={{
           width: 36, height: 20, borderRadius: 999,
-          background: on ? (disabled ? 'rgba(99,102,241,0.25)' : `${c}55`) : 'rgba(148,163,184,0.16)',
+          background: on ? (disabled ? 'rgba(244,80,30,0.25)' : `${c}55`) : 'rgba(148,163,184,0.16)',
           position: 'relative' as const, transition: 'background .2s ease',
           flexShrink: 0, border: `1px solid ${on ? c + '40' : T.border}`,
         }}
@@ -579,11 +579,11 @@ interface BadgeProps {
 
 const BADGE_TONES: Record<BadgeTone, { bg: string; color: string; border: string }> = {
   neutral: { bg: 'rgba(148,163,184,0.10)', color: T.textSec, border: T.border },
-  primary: { bg: T.primarySoft, color: T.primaryHi, border: 'rgba(99,102,241,0.3)' },
+  primary: { bg: T.primarySoft, color: T.primaryHi, border: 'rgba(244,80,30,0.3)' },
   success: { bg: 'rgba(16,185,129,0.12)', color: T.success, border: 'rgba(16,185,129,0.28)' },
   warning: { bg: 'rgba(245,158,11,0.12)', color: T.warning, border: 'rgba(245,158,11,0.28)' },
   danger:  { bg: 'rgba(239,68,68,0.12)', color: T.danger, border: 'rgba(239,68,68,0.28)' },
-  violet:  { bg: 'rgba(139,92,246,0.12)', color: T.violet, border: 'rgba(139,92,246,0.28)' },
+  violet:  { bg: 'rgba(192,38,10,0.12)', color: T.violet, border: 'rgba(192,38,10,0.28)' },
   soon:    { bg: 'rgba(245,158,11,0.10)', color: T.warning, border: 'rgba(245,158,11,0.22)' },
 };
 
@@ -637,7 +637,7 @@ export function SoonBanner({ icon, title, desc }: SoonBannerProps) {
     <div style={{
       display: 'flex', alignItems: 'flex-start', gap: 14,
       padding: '18px 20px', borderRadius: 14,
-      background: 'linear-gradient(135deg, rgba(245,158,11,0.06), rgba(99,102,241,0.04))',
+      background: 'linear-gradient(135deg, rgba(245,158,11,0.06), rgba(244,80,30,0.04))',
       border: '1px solid rgba(245,158,11,0.18)',
       marginBottom: 16,
     }}>
@@ -717,11 +717,11 @@ const BTN_VARIANTS: Record<BtnVariant, { base: Record<string, any>; hover: Recor
   },
   primary: {
     base: {
-      background: 'linear-gradient(180deg, #7c83ff 0%, #6366f1 100%)',
+      background: 'linear-gradient(180deg, #ff7a2e 0%, #f4501e 100%)',
       border: 'none', color: '#fff',
-      boxShadow: 'rgba(99,102,241,.35) 0 6px 18px',
+      boxShadow: 'rgba(244,80,30,.35) 0 6px 18px',
     },
-    hover: { transform: 'translateY(-1px)', boxShadow: 'rgba(99,102,241,.55) 0 10px 28px' },
+    hover: { transform: 'translateY(-1px)', boxShadow: 'rgba(244,80,30,.55) 0 10px 28px' },
   },
   danger: {
     base: { background: 'transparent', border: `1px solid ${T.border}`, color: T.danger },
@@ -779,7 +779,7 @@ interface IconBtnProps {
 
 const ICONBTN_TONES: Record<IconBtnTone, { c: string; hc: string; hbg: string; hb: string }> = {
   neutral: { c: T.textSec, hc: T.text, hbg: 'rgba(148,163,184,.08)', hb: T.borderHi },
-  primary: { c: T.primary, hc: T.primaryHi, hbg: T.primarySoft, hb: 'rgba(99,102,241,.4)' },
+  primary: { c: T.primary, hc: T.primaryHi, hbg: T.primarySoft, hb: 'rgba(244,80,30,.4)' },
   danger:  { c: T.danger, hc: T.danger, hbg: 'rgba(239,68,68,.10)', hb: 'rgba(239,68,68,.4)' },
 };
 

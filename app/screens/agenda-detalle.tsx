@@ -12,7 +12,7 @@ import { TText, TTextInput } from '@/components/ui/TText';
 import { CITA_STATUS } from '@/lib/constants';
 
 const ESTADOS_META: Record<string, { label: string; color: string }> = {
-  [CITA_STATUS.CONFIRMADA]:     { label: 'Confirmada',       color: '#6366f1' },
+  [CITA_STATUS.CONFIRMADA]:     { label: 'Confirmada',       color: '#f4501e' },
   [CITA_STATUS.COMPLETADA]:     { label: 'Completada',       color: '#22c55e' },
   [CITA_STATUS.CANCELADA]:      { label: 'Cancelada',        color: '#94a3b8' },
   [CITA_STATUS.NO_PRESENTADA]:  { label: 'No presentada',   color: '#ef4444' },
@@ -103,7 +103,7 @@ export default function AgendaDetalleScreen() {
     }
   }
 
-  if (loading) return <View style={[s.center, { backgroundColor: c.bg }]}><ActivityIndicator color="#6366f1" /></View>;
+  if (loading) return <View style={[s.center, { backgroundColor: c.bg }]}><ActivityIndicator color="#f4501e" /></View>;
   if (!cita) return null;
 
   const estadoActual = ESTADOS_META[cita.estado] ?? { label: cita.estado, color: '#94a3b8' };
@@ -226,10 +226,10 @@ export default function AgendaDetalleScreen() {
               {(['clienta', 'negocio'] as const).map((opcion) => (
                 <TouchableOpacity
                   key={opcion}
-                  style={[s.canceladoPorBtn, canceladoPor === opcion && s.canceladoPorBtnActive, { borderColor: canceladoPor === opcion ? '#6366f1' : c.border }]}
+                  style={[s.canceladoPorBtn, canceladoPor === opcion && s.canceladoPorBtnActive, { borderColor: canceladoPor === opcion ? '#f4501e' : c.border }]}
                   onPress={() => setCanceladoPor(opcion)}
                 >
-                  <TText style={[s.canceladoPorBtnText, { color: canceladoPor === opcion ? '#6366f1' : c.textSecondary }]}>
+                  <TText style={[s.canceladoPorBtnText, { color: canceladoPor === opcion ? '#f4501e' : c.textSecondary }]}>
                     {opcion === 'clienta' ? 'Clienta' : 'Negocio'}
                   </TText>
                 </TouchableOpacity>
@@ -352,7 +352,7 @@ function FormulaSection({ cita, onSave, actualizando }: {
         onPress={() => setExpanded(v => !v)}
         style={[s.formulaToggle, { backgroundColor: c.surface, borderColor: c.border }]}
       >
-        <Ionicons name="color-palette-outline" size={18} color={'#8b5cf6'} />
+        <Ionicons name="color-palette-outline" size={18} color={'#c0260a'} />
         <View style={{ flex: 1 }}>
           <TText style={[s.sectionTitle, { color: c.text, fontWeight: fontWeight.semibold }]}>Formula de color / quimica</TText>
           <TText style={[s.formulaSub, { color: c.textTertiary }]}>
@@ -689,9 +689,9 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
       {/* Mover cita */}
       <TouchableOpacity
         onPress={() => { setMoveOpen(v => !v); setExtOpen(false); }}
-        style={[s.formulaToggle, { backgroundColor: '#6366f112', borderColor: '#6366f140' }]}
+        style={[s.formulaToggle, { backgroundColor: '#f4501e12', borderColor: '#f4501e40' }]}
       >
-        <Ionicons name="arrow-forward-circle-outline" size={18} color="#6366f1" />
+        <Ionicons name="arrow-forward-circle-outline" size={18} color="#f4501e" />
         <View style={{ flex: 1 }}>
           <TText style={[s.sectionTitle, { color: c.text, fontWeight: fontWeight.semibold }]}>Cambiar hora de inicio</TText>
           <TText style={[s.formulaSub, { color: c.textTertiary }]}>Duracion se mantiene ({durTotalMin} min)</TText>
@@ -735,7 +735,7 @@ function AjustarHorarioSection({ cita, onCitaUpdated }: {
             <TouchableOpacity
               onPress={handleMover}
               disabled={saving}
-              style={[s.formulaSaveBtn, { flex: 1, backgroundColor: '#6366f1' }, saving && { opacity: 0.6 }]}
+              style={[s.formulaSaveBtn, { flex: 1, backgroundColor: '#f4501e' }, saving && { opacity: 0.6 }]}
             >
               <TText style={s.formulaSaveBtnText}>{saving ? '...' : 'Mover'}</TText>
             </TouchableOpacity>
@@ -834,7 +834,7 @@ const s = StyleSheet.create({
   formulaBox: { padding: spacing.md, borderRadius: radius.md, borderWidth: 1, gap: spacing.md },
   formulaEditBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.sm, borderWidth: 1 },
   formulaEditBtnText: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
-  formulaSaveBtn: { flex: 1, backgroundColor: '#8b5cf6', paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  formulaSaveBtn: { flex: 1, backgroundColor: '#c0260a', paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   formulaSaveBtnText: { color: '#fff', fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
   panel: { width: 480, maxHeight: '85%' as any, borderRadius: 20, overflow: 'hidden' },
@@ -853,7 +853,7 @@ const s = StyleSheet.create({
   dialogLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, marginTop: spacing.md, marginBottom: spacing.xs },
   canceladoPorRow: { flexDirection: 'row', gap: spacing.sm },
   canceladoPorBtn: { flex: 1, paddingVertical: spacing.sm, borderRadius: radius.md, borderWidth: 1, alignItems: 'center' },
-  canceladoPorBtnActive: { backgroundColor: 'rgba(99,102,241,0.1)' },
+  canceladoPorBtnActive: { backgroundColor: 'rgba(244,80,30,0.1)' },
   canceladoPorBtnText: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
   motivoInput: { borderWidth: 1, borderRadius: radius.md, padding: spacing.sm, fontSize: fontSize.sm, minHeight: 60, textAlignVertical: 'top', marginBottom: spacing.xs },
 });
