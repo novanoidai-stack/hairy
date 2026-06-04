@@ -191,7 +191,7 @@ export default function EquipoWeb() {
       });
 
       setProfesionales(enriched);
-      setSelected(enriched.length > 0 ? enriched[0].id : null);
+      // No auto-abrir: el grid de miembros queda a pantalla completa hasta que se pulse uno.
       setLoading(false);
     }
     cargar();
@@ -351,10 +351,10 @@ export default function EquipoWeb() {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 420px', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: profSel && selected ? '1fr 420px' : '1fr 0px', overflow: 'hidden', transition: 'grid-template-columns 0.35s cubic-bezier(0.16,1,0.3,1)' }}>
         {/* Cards grid */}
         <div style={{ overflowY: 'auto', padding: 24 }}>
-          <div onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridAutoRows: '1fr', gap: 16 }}>
+          <div onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: profSel && selected ? 'repeat(3, 1fr)' : 'repeat(4, 1fr)', gridAutoRows: '1fr', gap: 16 }}>
             {profesionales.map((p, idx) => {
               const isSel = p.id === selected;
               return (
