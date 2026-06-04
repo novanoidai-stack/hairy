@@ -91,6 +91,22 @@ export default function RootLayout() {
     else if (session && inAuthGroup) router.replace('/(tabs)');
   }, [session, segments]);
 
+  // Puente de navegacion para la vista previa (demo.html embebe /app en un iframe).
+  // Cada paso de la guia manda { type:'mecha-nav', route } y aqui movemos la app.
+  // Solo aceptamos mensajes del mismo origen para evitar navegacion externa.
+  useEffect(() => {
+    if (!isWeb || typeof window === 'undefined') return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      const data = e.data as { type?: string; route?: string } | null;
+      if (data && data.type === 'mecha-nav' && typeof data.route === 'string') {
+        router.push(data.route as never);
+      }
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [isWeb]);
+
   if (!isWeb && !fontsLoaded) {
     return null;
   }
