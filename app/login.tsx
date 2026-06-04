@@ -5,6 +5,13 @@ import {
 } from 'react-native';
 import { signIn } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { MechaMark } from '@/components/ui/MechaMark';
+
+// Tipografia del wordmark: Bricolage en web (igual que la landing), peso fuerte en nativo.
+const WORDMARK_FONT = Platform.select({
+  web: "'Bricolage Grotesque', 'Inter', system-ui, sans-serif" as any,
+  default: undefined,
+});
 
 export default function LoginScreen() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -62,106 +69,161 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={s.inner} keyboardShouldPersistTaps="handled">
-        <Text style={s.logo}>hairy</Text>
-        <Text style={s.sub}>{mode === 'login' ? 'Gestión de peluquería' : 'Crea tu cuenta'}</Text>
+        <View style={s.card}>
+          <View style={s.brandRow}>
+            <MechaMark size={40} />
+            <Text style={s.wordmark}>Mecha</Text>
+            <View style={s.tag}><Text style={s.tagText}>OS</Text></View>
+          </View>
+          <Text style={s.sub}>{mode === 'login' ? 'Gestión inteligente de tu salón' : 'Crea tu cuenta'}</Text>
 
-        {mode === 'register' && (
-          <>
-            <TextInput
-              style={s.input}
-              placeholder="Nombre"
-              placeholderTextColor="#64748b"
-              value={nombre}
-              onChangeText={setNombre}
-            />
-            <TextInput
-              style={s.input}
-              placeholder="Apellido"
-              placeholderTextColor="#64748b"
-              value={apellido}
-              onChangeText={setApellido}
-            />
-            <TextInput
-              style={s.input}
-              placeholder="Nombre del negocio"
-              placeholderTextColor="#64748b"
-              value={nombreNegocio}
-              onChangeText={setNombreNegocio}
-            />
-            <TextInput
-              style={s.input}
-              placeholder="Código postal"
-              placeholderTextColor="#64748b"
-              value={codigoPostal}
-              onChangeText={setCodigoPostal}
-              keyboardType="number-pad"
-            />
-          </>
-        )}
-        <TextInput
-          style={s.input}
-          placeholder="Email"
-          placeholderTextColor="#64748b"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <TextInput
-          style={s.input}
-          placeholder="Contraseña"
-          placeholderTextColor="#64748b"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+          {mode === 'register' && (
+            <>
+              <TextInput
+                style={s.input}
+                placeholder="Nombre"
+                placeholderTextColor="#8a7d70"
+                value={nombre}
+                onChangeText={setNombre}
+              />
+              <TextInput
+                style={s.input}
+                placeholder="Apellido"
+                placeholderTextColor="#8a7d70"
+                value={apellido}
+                onChangeText={setApellido}
+              />
+              <TextInput
+                style={s.input}
+                placeholder="Nombre del negocio"
+                placeholderTextColor="#8a7d70"
+                value={nombreNegocio}
+                onChangeText={setNombreNegocio}
+              />
+              <TextInput
+                style={s.input}
+                placeholder="Código postal"
+                placeholderTextColor="#8a7d70"
+                value={codigoPostal}
+                onChangeText={setCodigoPostal}
+                keyboardType="number-pad"
+              />
+            </>
+          )}
+          <TextInput
+            style={s.input}
+            placeholder="Email"
+            placeholderTextColor="#8a7d70"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <TextInput
+            style={s.input}
+            placeholder="Contraseña"
+            placeholderTextColor="#8a7d70"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
-        {error ? <Text style={s.error}>{error}</Text> : null}
-        {success ? <Text style={s.successText}>{success}</Text> : null}
+          {error ? <Text style={s.error}>{error}</Text> : null}
+          {success ? <Text style={s.successText}>{success}</Text> : null}
 
-        <TouchableOpacity
-          style={s.btn}
-          onPress={mode === 'login' ? handleLogin : handleRegister}
-          disabled={loading}
-        >
-          <Text style={s.btnText}>
-            {loading ? '...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={s.btn}
+            onPress={mode === 'login' ? handleLogin : handleRegister}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            <Text style={s.btnText}>
+              {loading ? '...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={s.switchBtn}
-          onPress={() => {
-            setMode(mode === 'login' ? 'register' : 'login');
-            setError('');
-            setSuccess('');
-            setEmail('');
-            setPassword('');
-            setNombre('');
-            setApellido('');
-            setNombreNegocio('');
-            setCodigoPostal('');
-          }}
-        >
-          <Text style={s.switchText}>
-            {mode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={s.switchBtn}
+            onPress={() => {
+              setMode(mode === 'login' ? 'register' : 'login');
+              setError('');
+              setSuccess('');
+              setEmail('');
+              setPassword('');
+              setNombre('');
+              setApellido('');
+              setNombreNegocio('');
+              setCodigoPostal('');
+            }}
+          >
+            <Text style={s.switchText}>
+              {mode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f172a' },
-  inner: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  logo: { fontSize: 42, fontWeight: '800', color: '#fff', textAlign: 'center', letterSpacing: -1 },
-  sub: { color: '#64748b', textAlign: 'center', marginBottom: 40, fontSize: 15 },
-  input: { backgroundColor: '#1e293b', color: '#f1f5f9', borderRadius: 12, padding: 16, marginBottom: 12, fontSize: 15, borderWidth: 1, borderColor: '#334155' },
-  btn: { backgroundColor: '#6366f1', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 4 },
+  container: { flex: 1, backgroundColor: '#f6f1ea' },
+  inner: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  card: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: '#fffdfb',
+    borderRadius: 20,
+    paddingVertical: 32,
+    paddingHorizontal: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(40,30,24,0.08)',
+    ...Platform.select({
+      web: { boxShadow: '0 18px 50px rgba(40,30,24,0.10)' } as any,
+      default: {
+        shadowColor: '#281e18',
+        shadowOpacity: 0.1,
+        shadowRadius: 24,
+        shadowOffset: { width: 0, height: 12 },
+        elevation: 6,
+      },
+    }),
+  },
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  wordmark: { fontSize: 32, fontWeight: '800', color: '#1c1814', letterSpacing: -0.5, fontFamily: WORDMARK_FONT },
+  tag: {
+    backgroundColor: 'rgba(244,80,30,0.12)',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginTop: 4,
+  },
+  tagText: { color: '#c0260a', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
+  sub: { color: '#5c5249', textAlign: 'center', marginTop: 8, marginBottom: 28, fontSize: 15 },
+  input: {
+    backgroundColor: '#ffffff',
+    color: '#1c1814',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 12,
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(40,30,24,0.14)',
+  },
+  btn: {
+    backgroundColor: '#f4501e',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 4,
+    ...Platform.select({
+      web: { boxShadow: '0 8px 22px rgba(244,80,30,0.30)' } as any,
+      default: {},
+    }),
+  },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  error: { color: '#f87171', marginBottom: 8, textAlign: 'center', fontSize: 14 },
-  successText: { color: '#34d399', marginBottom: 8, textAlign: 'center', fontSize: 14 },
-  switchBtn: { marginTop: 20, alignItems: 'center' },
-  switchText: { color: '#6366f1', fontSize: 14 },
+  error: { color: '#e23b34', marginBottom: 8, textAlign: 'center', fontSize: 14 },
+  successText: { color: '#0f9d6b', marginBottom: 8, textAlign: 'center', fontSize: 14 },
+  switchBtn: { marginTop: 18, alignItems: 'center' },
+  switchText: { color: '#f4501e', fontSize: 14, fontWeight: '600' },
 });
