@@ -14,7 +14,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       <View style={{ flex: 1, flexDirection: 'row', backgroundColor: c.bg }}>
         <Sidebar />
         <View style={{ flex: 1 }}>
-          <Tabs screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } as any, unmountOnBlur: false, contentStyle: { backgroundColor: '#0b1220' } } as any}>
+          <Tabs screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } as any, unmountOnBlur: false, contentStyle: { backgroundColor: '#f6f1ea' } } as any}>
             <Tabs.Screen name="index" />
             <Tabs.Screen name="clientes" />
             <Tabs.Screen name="equipo" />
@@ -30,10 +30,10 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       screenOptions={{
         headerShown: false,
         tabBarStyle: { backgroundColor: c.tabBar, borderTopColor: c.tabBarBorder, height: 60, paddingBottom: 8 },
-        tabBarActiveTintColor: '#6366f1',
+        tabBarActiveTintColor: '#f4501e',
         tabBarInactiveTintColor: c.textTertiary,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
-        contentStyle: { backgroundColor: '#0b1220' },
+        contentStyle: { backgroundColor: '#f6f1ea' },
       } as any}
     >
       <Tabs.Screen name="index" options={{ title: 'Agenda', tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} /> }} />

@@ -17,17 +17,17 @@ import './globals.css';
 // Load Google Fonts for web + inject default text color
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
   const link = document.createElement('link');
-  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap';
+  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&display=swap';
   link.rel = 'stylesheet';
   document.head.appendChild(link);
 
-  // Inject global CSS with white as default
+  // Inject global CSS with warm charcoal as default text on light bg
   const style = document.createElement('style');
   style.textContent = `
-    * { color: #f8fafc; }
-    input::placeholder, textarea::placeholder { color: #64748b !important; }
-    input, select, textarea { background-color: #141f33; color: #f8fafc !important; border-color: rgba(148,163,184,0.10); }
-    option { background-color: #141f33; color: #f8fafc !important; }
+    * { color: #1c1814; }
+    input::placeholder, textarea::placeholder { color: #8a7d70 !important; }
+    input, select, textarea { background-color: #ffffff; color: #1c1814 !important; border-color: rgba(40,30,24,0.14); }
+    option { background-color: #ffffff; color: #1c1814 !important; }
   `;
   document.head.appendChild(style);
 }
@@ -87,8 +87,18 @@ export default function RootLayout() {
   useEffect(() => {
     if (session === undefined) return;
     const inAuthGroup = segments[0] === 'login';
-    if (!session && !inAuthGroup) router.replace('/login');
-    else if (session && inAuthGroup) router.replace('/(tabs)');
+    if (!session && !inAuthGroup) {
+      // El login canonico es el de la landing (acceso.html), mismo origen que /app en el deploy.
+      // En el deploy real (app servida bajo /app) mandamos ahi: el usuario entra una sola vez.
+      // En dev suelto (expo start, ruta en raiz) usamos el login interno como fallback.
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.pathname.startsWith('/app')) {
+        window.location.href = '/acceso.html';
+      } else {
+        router.replace('/login');
+      }
+    } else if (session && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
   }, [session, segments]);
 
   // Puente de navegacion para la vista previa (demo.html embebe /app en un iframe).
@@ -113,8 +123,8 @@ export default function RootLayout() {
 
   if (session === undefined) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}>
-        <ActivityIndicator size="large" color="#6366f1" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f6f1ea' }}>
+        <ActivityIndicator size="large" color="#f4501e" />
       </View>
     );
   }
@@ -127,9 +137,9 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="screens/agenda-detalle" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Cita', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
-        <Stack.Screen name="screens/nueva-cita" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Nueva cita', headerBackTitle: 'Agenda', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
-        <Stack.Screen name="screens/configuracion" options={{ headerShown: true, title: 'Configuración', headerStyle: { backgroundColor: '#0f172a' }, headerTintColor: '#fff' }} />
+        <Stack.Screen name="screens/agenda-detalle" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Cita', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
+        <Stack.Screen name="screens/nueva-cita" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Nueva cita', headerBackTitle: 'Agenda', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
+        <Stack.Screen name="screens/configuracion" options={{ headerShown: true, title: 'Configuración', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
       </Stack>
     </ThemedRoot>
     </SafeAreaProvider>

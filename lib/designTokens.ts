@@ -1,10 +1,10 @@
-// Design tokens from Claude Design rediseño
+// Design tokens — Mecha (tema CLARO cálido / crema · acento fuego)
 //
-// TYPOGRAPHY HIERARCHY (4 text color levels):
-// - text: #f8fafc      → títulos, nombres destacados, valores seleccionados
-// - textSecondary: #94a3b8 → texto del cuerpo, descripciones, valores en reposo
-// - textTertiary: #64748b  → labels UPPERCASE, placeholders, meta info, "Sin teléfono"
-// - textMuted: #475569     → estados deshabilitados
+// TYPOGRAPHY HIERARCHY (4 niveles de color de texto sobre fondo claro):
+// - text: #1c1814        → títulos, nombres destacados, valores seleccionados
+// - textSecondary: #5c5249 → texto del cuerpo, descripciones, valores en reposo
+// - textTertiary: #8a7d70  → labels UPPERCASE, placeholders, meta info, "Sin teléfono"
+// - textMuted: #b3a89d     → estados deshabilitados
 //
 // FONT WEIGHTS (Inter):
 // - 400 → texto corrido, descripciones
@@ -19,46 +19,49 @@
 // - -moz-osx-font-smoothing: grayscale
 // - text-rendering: optimizeLegibility
 // This is set on the root element automatically.
+//
+// MARCA MECHA (de la landing Hairy/web/assets/mecha.css):
+// acento fuego #f4501e (hi/deep #c0260a) · gradiente cálido #ff8a3d→#ff9d2e→#ffce4a
 
 export const DESIGN_TOKENS = {
-  // Backgrounds
-  bg: '#0b1220',
-  bgPanel: '#0f172a',
-  bgCard: '#141f33',
-  bgCardHi: '#1a2540',
+  // Backgrounds — crema cálido sobre el que destacan tarjetas blancas
+  bg: '#f6f1ea',        // lienzo de la app (crema cálido)
+  bgPanel: '#fffdfb',   // sidebar / topbars / paneles (casi blanco cálido)
+  bgCard: '#ffffff',    // tarjetas limpias
+  bgCardHi: '#fbf6f0',  // tarjeta elevada / hover (crema sutil)
 
-  // Borders
-  border: 'rgba(148,163,184,0.10)',
-  borderHi: 'rgba(148,163,184,0.18)',
+  // Borders — tinte cálido oscuro para que se vean sobre blanco/crema
+  border: 'rgba(40,30,24,0.08)',
+  borderHi: 'rgba(40,30,24,0.14)',
 
-  // Text
-  text: '#f8fafc',
-  textSecondary: '#94a3b8',
-  textTertiary: '#64748b',
-  textMuted: '#475569',
-  textSec: '#94a3b8',
-  textTer: '#64748b',
+  // Text — carbón cálido, alto contraste
+  text: '#1c1814',
+  textSecondary: '#5c5249',
+  textTertiary: '#8a7d70',
+  textMuted: '#b3a89d',
+  textSec: '#5c5249',
+  textTer: '#8a7d70',
 
-  // Primary (Indigo)
-  primary: '#6366f1',
-  primaryHi: '#818cf8',
-  primarySoft: 'rgba(99,102,241,0.14)',
-  primaryGlow: 'rgba(99,102,241,0.45)',
+  // Primary (Fuego Mecha)
+  primary: '#f4501e',
+  primaryHi: '#c0260a',                 // acento profundo: legible como texto/icono activo sobre claro
+  primarySoft: 'rgba(244,80,30,0.12)',
+  primaryGlow: 'rgba(244,80,30,0.30)',
 
   // Status colors
-  success: '#10b981',
-  successSoft: 'rgba(16,185,129,0.14)',
-  warning: '#f59e0b',
-  warningSoft: 'rgba(245,158,11,0.14)',
-  danger: '#ef4444',
-  dangerSoft: 'rgba(239,68,68,0.14)',
+  success: '#0f9d6b',
+  successSoft: 'rgba(15,157,107,0.14)',
+  warning: '#e08a00',
+  warningSoft: 'rgba(224,138,0,0.16)',
+  danger: '#e23b34',
+  dangerSoft: 'rgba(226,59,52,0.14)',
 
   // Additional
-  violet: '#8b5cf6',
-  violetSoft: 'rgba(139,92,246,0.14)',
-  cyan: '#06b6d4',
-  cyanSoft: 'rgba(6,182,212,0.14)',
-  rose: '#ec4899',
+  violet: '#7c5cff',
+  violetSoft: 'rgba(124,92,255,0.14)',
+  cyan: '#0891b2',
+  cyanSoft: 'rgba(8,145,178,0.14)',
+  rose: '#e11d6b',
 
   // Spacing
   spacing: {
@@ -101,9 +104,9 @@ export const DESIGN_TOKENS = {
 
 // Status metadata
 export const STATUS_META = {
-  pendiente: { label: 'Pendiente', color: '#f59e0b', soft: 'rgba(245,158,11,0.14)' },
-  confirmada: { label: 'Confirmada', color: '#6366f1', soft: 'rgba(99,102,241,0.14)' },
-  completada: { label: 'Completada', color: '#10b981', soft: 'rgba(16,185,129,0.14)' },
-  no_show: { label: 'No-show', color: '#ef4444', soft: 'rgba(239,68,68,0.14)' },
-  cancelada: { label: 'Cancelada', color: '#94a3b8', soft: 'rgba(148,163,184,0.14)' },
+  pendiente: { label: 'Pendiente', color: '#e08a00', soft: 'rgba(224,138,0,0.16)' },
+  confirmada: { label: 'Confirmada', color: '#f4501e', soft: 'rgba(244,80,30,0.12)' },
+  completada: { label: 'Completada', color: '#0f9d6b', soft: 'rgba(15,157,107,0.14)' },
+  no_show: { label: 'No-show', color: '#e23b34', soft: 'rgba(226,59,52,0.14)' },
+  cancelada: { label: 'Cancelada', color: '#8a7d70', soft: 'rgba(138,125,112,0.14)' },
 };

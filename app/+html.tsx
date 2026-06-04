@@ -10,12 +10,12 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: `
           html, body, #root {
-            background-color: #0b1220 !important;
+            background-color: #f6f1ea !important;
           }
           * { box-sizing: border-box; }
         `}} />
       </head>
-      <body style={{ backgroundColor: '#0b1220' }}>{children}</body>
+      <body style={{ backgroundColor: '#f6f1ea' }}>{children}</body>
     </html>
   );
 }

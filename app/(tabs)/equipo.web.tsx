@@ -16,18 +16,18 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
 };
 
 const TOKENS = {
-  bg: '#0b1220',
-  bgPanel: '#0f172a',
-  bgCard: '#141f33',
-  border: 'rgba(148,163,184,0.10)',
-  borderHi: 'rgba(148,163,184,0.18)',
-  text: '#f8fafc',
-  textSec: '#94a3b8',
-  textTer: '#64748b',
-  primary: '#6366f1',
-  primaryHi: '#818cf8',
-  primarySoft: 'rgba(99,102,241,0.14)',
-  success: '#10b981',
+  bg: '#f6f1ea',
+  bgPanel: '#fffdfb',
+  bgCard: '#ffffff',
+  border: 'rgba(40,30,24,0.08)',
+  borderHi: 'rgba(40,30,24,0.14)',
+  text: '#1c1814',
+  textSec: '#5c5249',
+  textTer: '#8a7d70',
+  primary: '#f4501e',
+  primaryHi: '#c0260a',
+  primarySoft: 'rgba(244,80,30,0.12)',
+  success: '#0f9d6b',
 };
 
 interface Profesional {

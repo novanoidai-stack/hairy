@@ -1,31 +1,32 @@
 import { useThemeMode } from './themeContext';
 
 export const colors = {
-  primary: '#6366f1',
-  primaryLight: '#818cf8',
-  primaryDark: '#4f46e5',
-  primarySoft: '#eef2ff',
+  // Fuego Mecha
+  primary: '#f4501e',
+  primaryLight: '#ff8a3d',
+  primaryDark: '#c0260a',
+  primarySoft: '#fdece6',
 
-  success: '#10b981',
-  successSoft: '#d1fae5',
-  warning: '#f59e0b',
-  warningSoft: '#fef3c7',
-  danger: '#ef4444',
-  dangerSoft: '#fee2e2',
+  success: '#0f9d6b',
+  successSoft: '#dff5ec',
+  warning: '#e08a00',
+  warningSoft: '#fdeccd',
+  danger: '#e23b34',
+  dangerSoft: '#fbe2e0',
 
   light: {
-    bg: '#ffffff',
-    bgSecondary: '#f8fafc',
-    bgTertiary: '#f1f5f9',
+    bg: '#f6f1ea',
+    bgSecondary: '#fffdfb',
+    bgTertiary: '#fbf6f0',
     surface: '#ffffff',
-    surfaceHover: '#f8fafc',
-    border: '#e2e8f0',
-    borderStrong: '#cbd5e1',
-    text: '#0f172a',
-    textSecondary: '#475569',
-    textTertiary: '#94a3b8',
-    tabBar: '#ffffff',
-    tabBarBorder: '#e2e8f0',
+    surfaceHover: '#fbf6f0',
+    border: 'rgba(40,30,24,0.08)',
+    borderStrong: 'rgba(40,30,24,0.14)',
+    text: '#1c1814',
+    textSecondary: '#5c5249',
+    textTertiary: '#8a7d70',
+    tabBar: '#fffdfb',
+    tabBarBorder: 'rgba(40,30,24,0.08)',
   },
   dark: {
     // Design tokens from Claude Design

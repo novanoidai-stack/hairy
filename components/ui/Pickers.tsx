@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 
 const T = {
-  bg: '#0b1220',
-  bgCard: '#141f33',
-  border: 'rgba(148,163,184,0.10)',
-  borderHi: 'rgba(99,102,241,0.25)',
-  text: '#f8fafc',
-  textSec: '#94a3b8',
-  textTer: '#64748b',
-  primary: '#6366f1',
-  primarySoft: 'rgba(99,102,241,0.14)',
+  bg: '#f6f1ea',
+  bgCard: '#ffffff',
+  border: 'rgba(40,30,24,0.08)',
+  borderHi: 'rgba(244,80,30,0.25)',
+  text: '#1c1814',
+  textSec: '#5c5249',
+  textTer: '#8a7d70',
+  primary: '#f4501e',
+  primarySoft: 'rgba(244,80,30,0.12)',
 };
 
 const ITEM_H = 36;

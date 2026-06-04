@@ -1,11 +1,20 @@
 import { View, TouchableOpacity, StyleSheet, Animated, Platform } from 'react-native';
 import { TText } from '@/components/ui/TText';
+import { MechaMark } from '@/components/ui/MechaMark';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 
 const tokens = DESIGN_TOKENS;
+
+const COLLAPSE_KEY = '@mecha:sidebar';
+
+const WORDMARK_FONT = Platform.select({
+  web: "'Bricolage Grotesque', 'Inter', system-ui, sans-serif",
+  default: undefined,
+}) as string | undefined;
 
 const NAV_ITEMS = [
   { label: 'Agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
@@ -21,8 +30,23 @@ export function Sidebar() {
   const pathname = usePathname();
   const configActive = pathname.includes('configuracion');
 
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(COLLAPSE_KEY)
+      .then(v => { if (v === '1') setCollapsed(true); })
+      .catch(() => {});
+  }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed(prev => {
+      const next = !prev;
+      AsyncStorage.setItem(COLLAPSE_KEY, next ? '1' : '0').catch(() => {});
+      return next;
+    });
+  };
+
   // Salir del software de vuelta a la web publica, sin cerrar sesion.
-  // Navega la ventana superior (funciona tanto en /app directo como embebido en la demo).
   const exitToWeb = () => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     try {
@@ -37,7 +61,6 @@ export function Sidebar() {
   const navHoverAnims = useRef(NAV_ITEMS.map(() => new Animated.Value(0))).current;
   const configHoverAnim = useRef(new Animated.Value(0)).current;
   const accountScaleAnim = useRef(new Animated.Value(1)).current;
-  const badgePulse = useRef(new Animated.Value(1)).current;
   const [accountHovered, setAccountHovered] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [configHovered, setConfigHovered] = useState(false);
@@ -55,46 +78,56 @@ export function Sidebar() {
     ).start();
   }, []);
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(badgePulse, { toValue: 1.08, duration: 1500, useNativeDriver: true }),
-        Animated.timing(badgePulse, { toValue: 1, duration: 1500, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-
   const hoverIn = (anim: Animated.Value) => {
     Animated.timing(anim, { toValue: 1, duration: HOVER_DURATION, useNativeDriver: true }).start();
   };
-
   const hoverOut = (anim: Animated.Value) => {
     Animated.timing(anim, { toValue: 0, duration: HOVER_DURATION, useNativeDriver: true }).start();
   };
 
+  const webTitle = (label: string) => (collapsed ? ({ title: label } as any) : {});
+
   return (
-    <View style={s.sidebar}>
-      {/* Logo */}
-      <View style={s.logoContainer}>
-        <Animated.View style={[s.logoBadge, { transform: [{ scale: badgePulse }] }]}>
-          <Ionicons name="cut" size={16} color="#fff" />
-        </Animated.View>
-        <View>
-          <TText style={s.logoText}>hairy</TText>
-          <TText style={s.logoSubtext}>studio · pro</TText>
-        </View>
+    <View style={[s.sidebar, collapsed && s.sidebarCollapsed]}>
+      {/* Logo + toggle */}
+      <View style={[s.logoContainer, collapsed && s.logoContainerCollapsed]}>
+        <TouchableOpacity
+          style={s.brand}
+          onPress={() => router.push('/(tabs)' as any)}
+          activeOpacity={0.8}
+          {...webTitle('Mecha — Inicio')}
+        >
+          <MechaMark size={collapsed ? 30 : 32} />
+          {!collapsed && (
+            <View style={s.brandRow}>
+              <TText style={s.logoText}>Mecha</TText>
+              <View style={s.brandTag}><TText style={s.brandTagText}>OS</TText></View>
+            </View>
+          )}
+        </TouchableOpacity>
+        {!collapsed && (
+          <TouchableOpacity style={s.collapseBtn} onPress={toggleCollapsed} {...({ title: 'Contraer menú' } as any)}>
+            <Ionicons name="chevron-back" size={16} color={tokens.textTertiary} />
+          </TouchableOpacity>
+        )}
       </View>
 
+      {collapsed && (
+        <TouchableOpacity style={s.collapseBtnFull} onPress={toggleCollapsed} {...({ title: 'Expandir menú' } as any)}>
+          <Ionicons name="chevron-forward" size={16} color={tokens.textTertiary} />
+        </TouchableOpacity>
+      )}
+
       {/* Search */}
-      <View style={s.searchBox}>
-        <Ionicons name="search-outline" size={14} color={tokens.textTertiary} />
-        <TText style={s.searchPlaceholder}>Buscar…</TText>
-        <TText style={s.searchShortcut}>⌘K</TText>
-      </View>
+      <TouchableOpacity style={[s.searchBox, collapsed && s.searchBoxCollapsed]} {...webTitle('Buscar')}>
+        <Ionicons name="search-outline" size={collapsed ? 18 : 14} color={tokens.textTertiary} />
+        {!collapsed && <TText style={s.searchPlaceholder}>Buscar…</TText>}
+        {!collapsed && <TText style={s.searchShortcut}>⌘K</TText>}
+      </TouchableOpacity>
 
       {/* Navigation */}
       <View style={s.navSection}>
-        <TText style={s.navSectionLabel}>PRINCIPAL</TText>
+        {!collapsed && <TText style={s.navSectionLabel}>PRINCIPAL</TText>}
         {NAV_ITEMS.map((item, idx) => {
           const isActive =
             pathname === item.href ||
@@ -105,7 +138,7 @@ export function Sidebar() {
           const hoverAnim = navHoverAnims[idx];
           const combinedX = Animated.add(
             entryAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }),
-            hoverAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 4] })
+            hoverAnim.interpolate({ inputRange: [0, 1], outputRange: [0, collapsed ? 0 : 4] })
           );
 
           return (
@@ -114,19 +147,21 @@ export function Sidebar() {
               style={{ opacity: entryAnim, transform: [{ translateX: combinedX }] }}
             >
               <TouchableOpacity
-                style={[s.navItem, isActive && s.navItemActive, !isActive && hoveredIdx === idx && s.navItemHovered]}
+                style={[s.navItem, collapsed && s.navItemCollapsed, isActive && s.navItemActive, !isActive && hoveredIdx === idx && s.navItemHovered]}
                 onPress={() => router.push(item.href as any)}
-                {...{ onMouseEnter: () => { hoverIn(hoverAnim); setHoveredIdx(idx); }, onMouseLeave: () => { hoverOut(hoverAnim); setHoveredIdx(null); } } as any}
+                {...{ onMouseEnter: () => { hoverIn(hoverAnim); setHoveredIdx(idx); }, onMouseLeave: () => { hoverOut(hoverAnim); setHoveredIdx(null); }, ...webTitle(item.label) } as any}
               >
-                {isActive && <View style={s.navItemBar} />}
+                {isActive && !collapsed && <View style={s.navItemBar} />}
                 <Ionicons
                   name={(isActive ? item.activeIcon : item.icon) as any}
-                  size={18}
-                  color={isActive ? tokens.primaryHi : tokens.textSecondary}
+                  size={collapsed ? 20 : 18}
+                  color={isActive ? tokens.primary : tokens.textSecondary}
                 />
-                <TText style={[s.navLabel, isActive && s.navLabelActive]}>
-                  {item.label}
-                </TText>
+                {!collapsed && (
+                  <TText style={[s.navLabel, isActive && s.navLabelActive]}>
+                    {item.label}
+                  </TText>
+                )}
               </TouchableOpacity>
             </Animated.View>
           );
@@ -138,41 +173,43 @@ export function Sidebar() {
         <Animated.View
           style={{
             transform: [
-              { translateX: configHoverAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 4] }) },
+              { translateX: configHoverAnim.interpolate({ inputRange: [0, 1], outputRange: [0, collapsed ? 0 : 4] }) },
             ],
           }}
         >
           <TouchableOpacity
-            style={[s.navItem, configActive && s.navItemActive, !configActive && configHovered && s.navItemHovered]}
+            style={[s.navItem, collapsed && s.navItemCollapsed, configActive && s.navItemActive, !configActive && configHovered && s.navItemHovered]}
             onPress={() => router.push('/(tabs)/configuracion' as any)}
-            {...{ onMouseEnter: () => { hoverIn(configHoverAnim); setConfigHovered(true); }, onMouseLeave: () => { hoverOut(configHoverAnim); setConfigHovered(false); } } as any}
+            {...{ onMouseEnter: () => { hoverIn(configHoverAnim); setConfigHovered(true); }, onMouseLeave: () => { hoverOut(configHoverAnim); setConfigHovered(false); }, ...webTitle('Configuración') } as any}
           >
-            {configActive && <View style={s.navItemBar} />}
+            {configActive && !collapsed && <View style={s.navItemBar} />}
             <Ionicons
               name={configActive ? 'settings' : 'settings-outline'}
-              size={18}
-              color={configActive ? tokens.primaryHi : tokens.textSecondary}
+              size={collapsed ? 20 : 18}
+              color={configActive ? tokens.primary : tokens.textSecondary}
             />
-            <TText style={[s.navLabel, configActive && s.navLabelActive]}>
-              Configuración
-            </TText>
+            {!collapsed && (
+              <TText style={[s.navLabel, configActive && s.navLabelActive]}>
+                Configuración
+              </TText>
+            )}
           </TouchableOpacity>
         </Animated.View>
 
         {/* Volver al sitio web (salir del software sin cerrar sesion) */}
         <TouchableOpacity
-          style={[s.navItem, exitHovered && s.navItemHovered]}
+          style={[s.navItem, collapsed && s.navItemCollapsed, exitHovered && s.navItemHovered]}
           onPress={exitToWeb}
-          {...{ onMouseEnter: () => setExitHovered(true), onMouseLeave: () => setExitHovered(false) } as any}
+          {...{ onMouseEnter: () => setExitHovered(true), onMouseLeave: () => setExitHovered(false), ...webTitle('Volver al sitio web') } as any}
         >
-          <Ionicons name="arrow-back-outline" size={18} color={tokens.textSecondary} />
-          <TText style={s.navLabel}>Volver al sitio web</TText>
+          <Ionicons name="arrow-back-outline" size={collapsed ? 20 : 18} color={tokens.textSecondary} />
+          {!collapsed && <TText style={s.navLabel}>Volver al sitio web</TText>}
         </TouchableOpacity>
 
         {/* Account card */}
         <Animated.View style={{ transform: [{ scale: accountScaleAnim }] }}>
           <TouchableOpacity
-            style={[s.accountCard, accountHovered && s.accountCardHovered]}
+            style={[s.accountCard, collapsed && s.accountCardCollapsed, accountHovered && s.accountCardHovered]}
             {...{
               onMouseEnter: () => {
                 setAccountHovered(true);
@@ -181,17 +218,22 @@ export function Sidebar() {
               onMouseLeave: () => {
                 setAccountHovered(false);
                 Animated.timing(accountScaleAnim, { toValue: 1, duration: HOVER_DURATION, useNativeDriver: true }).start();
-              }
+              },
+              ...webTitle('Rosa Mendoza · Salón Bonita')
             } as any}
           >
             <View style={s.accountAvatar}>
               <TText style={s.accountInitial}>RM</TText>
             </View>
-            <View style={{ flex: 1 }}>
-              <TText style={s.accountName}>Rosa Mendoza</TText>
-              <TText style={s.accountRole}>Salón Bonita · Admin</TText>
-            </View>
-            <Ionicons name="chevron-forward" size={14} color={tokens.textTertiary} />
+            {!collapsed && (
+              <>
+                <View style={{ flex: 1 }}>
+                  <TText style={s.accountName}>Rosa Mendoza</TText>
+                  <TText style={s.accountRole}>Salón Bonita · Admin</TText>
+                </View>
+                <Ionicons name="chevron-forward" size={14} color={tokens.textTertiary} />
+              </>
+            )}
           </TouchableOpacity>
         </Animated.View>
       </View>
@@ -210,33 +252,75 @@ const s = StyleSheet.create({
     paddingTop: tokens.spacing.md,
     paddingBottom: tokens.spacing.lg,
     justifyContent: 'space-between',
+    transition: 'width 0.2s ease' as any,
+  },
+  sidebarCollapsed: {
+    width: 76,
+    paddingHorizontal: tokens.spacing.sm,
+    alignItems: 'center',
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: tokens.spacing.md,
     marginBottom: tokens.spacing.xxl,
   },
-  logoBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: tokens.radius.sm,
-    backgroundColor: tokens.primary,
+  logoContainerCollapsed: {
     justifyContent: 'center',
+    marginBottom: tokens.spacing.lg,
+  },
+  brand: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: tokens.spacing.sm,
   },
-  logoText: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: tokens.text,
-    letterSpacing: -0.5,
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  logoSubtext: {
+  brandTag: {
+    borderWidth: 1,
+    borderColor: tokens.borderHi,
+    borderRadius: 5,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  brandTagText: {
     fontSize: 9,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     color: tokens.textTertiary,
     textTransform: 'uppercase',
-    marginTop: 2,
+    fontWeight: '700',
+  },
+  logoText: {
+    fontFamily: WORDMARK_FONT,
+    fontSize: 23,
+    fontWeight: '800',
+    color: tokens.text,
+    letterSpacing: -0.9,
+  },
+  collapseBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: tokens.radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.bgCardHi,
+    borderWidth: 1,
+    borderColor: tokens.border,
+  },
+  collapseBtnFull: {
+    width: 32,
+    height: 32,
+    borderRadius: tokens.radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.bgCardHi,
+    borderWidth: 1,
+    borderColor: tokens.border,
+    marginBottom: tokens.spacing.md,
   },
   searchBox: {
     flexDirection: 'row',
@@ -248,6 +332,13 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.border,
     marginBottom: tokens.spacing.xl,
+  },
+  searchBoxCollapsed: {
+    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    padding: 0,
+    marginBottom: tokens.spacing.lg,
   },
   searchPlaceholder: {
     flex: 1,
@@ -286,13 +377,20 @@ const s = StyleSheet.create({
     borderRadius: tokens.radius.md,
     position: 'relative',
   },
+  navItemCollapsed: {
+    justifyContent: 'center',
+    paddingHorizontal: 0,
+    width: 44,
+    height: 44,
+    gap: 0,
+  },
   navItemActive: {
     backgroundColor: tokens.primarySoft,
     borderWidth: 1,
-    borderColor: 'rgba(99,102,241,0.25)',
+    borderColor: 'rgba(244,80,30,0.28)',
   },
   navItemHovered: {
-    backgroundColor: 'rgba(148,163,184,0.07)',
+    backgroundColor: 'rgba(40,30,24,0.05)',
   },
   navItemBar: {
     position: 'absolute',
@@ -301,7 +399,8 @@ const s = StyleSheet.create({
     height: 18,
     width: 3,
     backgroundColor: tokens.primary,
-    borderRadius: '0 3px 3px 0' as any,
+    borderTopRightRadius: 3,
+    borderBottomRightRadius: 3,
     transform: [{ translateY: -9 }],
   },
   navLabel: {
@@ -325,9 +424,13 @@ const s = StyleSheet.create({
     marginTop: tokens.spacing.lg,
     transition: 'background-color 0.2s ease, border-color 0.2s ease' as any,
   },
+  accountCardCollapsed: {
+    justifyContent: 'center',
+    padding: tokens.spacing.sm,
+  },
   accountCardHovered: {
-    borderColor: 'rgba(99,102,241,0.3)',
-    backgroundColor: 'rgba(99,102,241,0.05)',
+    borderColor: 'rgba(244,80,30,0.32)',
+    backgroundColor: 'rgba(244,80,30,0.06)',
   },
   accountAvatar: {
     width: 34,
