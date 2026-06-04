@@ -178,7 +178,7 @@
       <svg class="brand-mark" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg>
       <span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">Panel</span></span>
     </a>
-    <div class="who"><span>Sesión: <span class="em" id="meEmail"></span></span><button class="ad-out" id="outBtn">Salir</button></div>
+    <div class="who"><span>Sesión: <span class="em" id="meEmail"></span></span><a class="ad-out" href="/app">Ir al software</a><a class="ad-out" href="index.html">Ver la web</a><button class="ad-out" id="outBtn">Salir</button></div>
   </div>
 
   <div class="ad-tabs">
@@ -284,8 +284,10 @@
   }
 
   function denyAccess(text) {
-    msg(gateMsg, 'err', text || 'Esta cuenta no tiene acceso al panel.');
-    if (api && api.signOut) api.signOut();
+    // Cuenta logueada pero SIN permiso staff: NO cerramos sesion (eso "desiniciaba"
+    // la sesion al volver). Es un usuario normal -> lo mandamos a la web manteniendo
+    // su sesion. replace() para que el boton atras no rebote de vuelta al panel.
+    window.location.replace('index.html');
   }
 
   // Sesion existente al cargar
