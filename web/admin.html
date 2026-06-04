@@ -323,8 +323,14 @@
 
   var outBtn = $('outBtn');
   if (outBtn) outBtn.addEventListener('click', function () {
-    if (api && api.signOut) api.signOut();
-    window.location.reload();
+    // signOut es asincrono: hay que esperar a que limpie la sesion de
+    // localStorage ANTES de recargar, o el gate vuelve a entrar solo.
+    if (api && api.signOut) {
+      api.signOut().then(function () { window.location.reload(); })
+        .catch(function () { window.location.reload(); });
+    } else {
+      window.location.reload();
+    }
   });
 
   // ---------- DATA ----------
