@@ -19,7 +19,7 @@ export default function NuevaCitaScreen() {
   const { c, isDark } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ profesionalId?: string; hora?: string }>();
+  const params = useLocalSearchParams<{ profesionalId?: string; hora?: string; clienteId?: string }>();
   const { triggerRefresh } = useCalendarRefresh();
 
   const [profesionales, setProfesionales] = useState<any[]>([]);
@@ -28,7 +28,7 @@ export default function NuevaCitaScreen() {
 
   const [profSeleccionado, setProfSeleccionado] = useState<string>(params.profesionalId ?? '');
   const [servicioSeleccionado, setServicioSeleccionado] = useState('');
-  const [clienteSeleccionado, setClienteSeleccionado] = useState('');
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(params.clienteId ?? '');
   const [clienteSearch, setClienteSearch] = useState('');
   const [inicio, setInicio] = useState<Date>(params.hora ? new Date(params.hora) : new Date());
   const [loading, setLoading] = useState(true);

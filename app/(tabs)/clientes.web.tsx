@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 // @ts-ignore
 import { createPortal } from 'react-dom';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
@@ -214,6 +214,7 @@ function computeAlerts(cl: Cliente): Alert[] {
 
 export default function ClientesWeb() {
   const params = useLocalSearchParams<{ clienteId?: string }>();
+  const router = useRouter();
   const { refreshTrigger, triggerRefresh } = useCalendarRefresh();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [citas, setCitas] = useState<Cita[]>([]);
@@ -302,12 +303,11 @@ export default function ClientesWeb() {
     setServicios(srvData ?? []);
     setProfesionales(profData ?? []);
     setFichasTecnicas(fichasData ?? []);
-    // Si llega clienteId por URL, pre-seleccionar ese; si no, el primero
+    // Solo pre-seleccionar si llega clienteId por URL (p.ej. "ver cliente" desde agenda).
+    // Por defecto NO se abre ninguna ficha: la lista queda a pantalla completa.
     const targetId = (params?.clienteId as string | undefined) || null;
     if (targetId && enrichedClients.find((cl) => cl.id === targetId)) {
       setSelected(targetId);
-    } else if (enrichedClients.length > 0 && !selected) {
-      setSelected(enrichedClients[0].id);
     }
     setLoading(false);
   }
@@ -377,7 +377,7 @@ export default function ClientesWeb() {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: panelExpanded ? '0fr 1fr' : '1fr 420px', overflow: 'hidden', transition: 'grid-template-columns 0.35s cubic-bezier(0.16,1,0.3,1)' }}>
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: !c ? '1fr 0px' : (panelExpanded ? '0fr 1fr' : '1fr 420px'), overflow: 'hidden', transition: 'grid-template-columns 0.35s cubic-bezier(0.16,1,0.3,1)' }}>
         {/* List */}
         <div style={{ overflowY: 'auto', overflowX: 'hidden', padding: panelExpanded ? 0 : 24, minWidth: 0 }}>
           {/* Search */}
@@ -533,7 +533,7 @@ export default function ClientesWeb() {
             {/* Quick actions */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
               {[
-                { l: 'Nueva cita', icon: 'calendar', p: true, action: () => console.log('Crear cita para', c.nombre) },
+                { l: 'Reservar cita', icon: 'calendar', p: true, action: () => router.push({ pathname: '/screens/nueva-cita', params: { clienteId: c.id } } as any) },
                 { l: 'Llamar', icon: 'phone', action: () => { if (c.telefono) window.location.href = `tel:${c.telefono}`; } },
                 { l: 'Editar', icon: 'edit', action: () => { setEditingCliente(c); setShowClienteModal(true); } },
               ].map((a, i) => (
