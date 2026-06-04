@@ -21,6 +21,8 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
     alert: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
     cake: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg>`,
     clock: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    mail: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
+    user: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
     sparkle: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.7a2 2 0 0 0 1.4 1.4L21 12l-5.7 1.9a2 2 0 0 0-1.4 1.4L12 21l-1.9-5.7a2 2 0 0 0-1.4-1.4L3 12l5.7-1.9a2 2 0 0 0 1.4-1.4L12 3z"/></svg>`,
     droplet: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
     chevronLeft: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>`,
@@ -499,20 +501,42 @@ export default function ClientesWeb() {
                 <Icon name={panelExpanded ? 'minimize' : 'maximize'} size={14} color={TOKENS.textSec} />
               </button>
             </div>
-            {/* Profile head */}
-            <div style={{ display: 'flex', flexDirection: panelExpanded ? 'row' : 'column', alignItems: 'center', justifyContent: panelExpanded ? 'flex-start' : 'center', gap: panelExpanded ? 18 : 0, textAlign: panelExpanded ? 'left' : 'center', marginBottom: 14 }}>
-              <Avatar name={c.nombre} size={panelExpanded ? 56 : 72} />
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: panelExpanded ? 'flex-start' : 'center' }}>
-              <div style={{ marginTop: panelExpanded ? 0 : 12, fontSize: 18, fontWeight: 700, color: TOKENS.text }}>{c.nombre}</div>
-              <div style={{ marginTop: 4, fontSize: 12, color: TOKENS.textSec }}>{c.telefono || c.email || ''}</div>
-              <div style={{ marginTop: 8 }}>
-                <Pill color={c.tag === 'VIP' ? TOKENS.warning : c.tag === 'Habitual' ? TOKENS.primary : TOKENS.success}>
-                  <Icon name="star" size={11} color={c.tag === 'VIP' ? TOKENS.warning : c.tag === 'Habitual' ? TOKENS.primary : TOKENS.success} />
-                  <span style={{ marginLeft: 4 }}>{c.tag}{c.primeraVisita ? ` · Cliente desde ${c.primeraVisita.getFullYear()}` : ''}</span>
-                </Pill>
-              </div>
-              </div>
-            </div>
+            {/* Ficha formal del cliente */}
+            {(() => {
+              const tagColor = c.tag === 'VIP' ? TOKENS.warning : c.tag === 'Habitual' ? TOKENS.primary : TOKENS.success;
+              const cumpleStr = c.fecha_nacimiento
+                ? (() => { const d = new Date(c.fecha_nacimiento); return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long' }); })()
+                : '—';
+              const desdeStr = c.primeraVisita
+                ? c.primeraVisita.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+                : '—';
+              return (
+                <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: panelExpanded ? 22 : 18, marginBottom: 14, boxShadow: '0 1px 3px rgba(40,30,24,0.05)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <Avatar name={c.nombre} size={panelExpanded ? 66 : 56} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: panelExpanded ? 23 : 20, fontWeight: 700, color: TOKENS.text, letterSpacing: -0.4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.nombre}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                        <Pill color={tagColor}>
+                          <Icon name="star" size={11} color={tagColor} />
+                          <span style={{ marginLeft: 4 }}>{c.tag}</span>
+                        </Pill>
+                        {c.actividad === 'Inactiva' && <Pill color={TOKENS.textTer}>Inactiva</Pill>}
+                        {c.actividad === 'Riesgo abandono' && <Pill color={TOKENS.warning}>Riesgo abandono</Pill>}
+                        {c.riesgo === 'Alto riesgo' && <Pill color={TOKENS.danger}>No-show</Pill>}
+                        {c.riesgo === 'Incidencias' && <Pill color={TOKENS.warning}>Incidencias</Pill>}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: panelExpanded ? 'repeat(4, 1fr)' : '1fr 1fr', gap: '14px 18px', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
+                    <ContactRow icon="phone" label="Teléfono" value={c.telefono || '—'} accent={c.telefono ? TOKENS.primary : undefined} />
+                    <ContactRow icon="mail" label="Email" value={c.email || '—'} accent={c.email ? TOKENS.cyan : undefined} />
+                    <ContactRow icon="cake" label="Cumpleaños" value={cumpleStr} accent={cumpleStr !== '—' ? '#fb923c' : undefined} />
+                    <ContactRow icon="calendar" label="Cliente desde" value={desdeStr} accent={desdeStr !== '—' ? TOKENS.success : undefined} />
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Alertas */}
             {alerts.length > 0 && (
@@ -1268,6 +1292,22 @@ function FieldKV({ label, value, full }: { label: string; value: string; full?: 
     <div style={{ gridColumn: full ? '1 / -1' : 'auto' }}>
       <div style={{ fontSize: 9, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
       <div style={{ fontSize: 12, color: TOKENS.text, marginTop: 2 }}>{value}</div>
+    </div>
+  );
+}
+
+// Fila de dato de contacto para la ficha formal del cliente
+function ContactRow({ icon, label, value, accent }: { icon: string; label: string; value: string; accent?: string }) {
+  const isEmpty = value === '—' || !value;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+      <div style={{ width: 34, height: 34, borderRadius: 9, background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+        <Icon name={icon} size={15} color={accent || TOKENS.textTer} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 9, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 700 }}>{label}</div>
+        <div style={{ fontSize: 13, color: isEmpty ? TOKENS.textTer : TOKENS.text, fontWeight: isEmpty ? 500 : 600, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={isEmpty ? undefined : value}>{value}</div>
+      </div>
     </div>
   );
 }
