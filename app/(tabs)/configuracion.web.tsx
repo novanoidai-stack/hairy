@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, type ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, canAccessConfig } from '@/lib/auth';
 import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
@@ -101,6 +101,17 @@ interface PlantillaTexto {
   texto: string;
 }
 
+interface AccountInfo {
+  nombre: string;
+  apellido: string;
+  email: string;
+  role: string;
+  nombreNegocio: string;
+  negocioId: string;
+  telefono: string;
+  creadoEn: string;
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -123,12 +134,15 @@ const TABS: TabDef[] = [
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion', soon: true },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion', soon: true },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion', soon: true },
+  { id: 'cuenta',         label: 'Cuenta',         icon: 'lock',      section: 'Cuenta' },
+  { id: 'soporte',        label: 'Soporte',        icon: 'mail',      section: 'Cuenta' },
 ];
 
 const TAB_SECTIONS = [
   { name: 'Negocio',       items: TABS.filter(t => t.section === 'Negocio') },
   { name: 'Operativa',     items: TABS.filter(t => t.section === 'Operativa') },
   { name: 'Comunicacion',  items: TABS.filter(t => t.section === 'Comunicacion') },
+  { name: 'Cuenta',        items: TABS.filter(t => t.section === 'Cuenta') },
 ];
 
 const DAY_LABELS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
@@ -169,6 +183,14 @@ const ROL_LABEL: Record<string, string> = {
   estilista_senior: 'Estilista senior', direccion: 'Direccion',
 };
 
+const ROLE_LABEL: Record<string, string> = {
+  owner: 'Propietario', admin: 'Administrador', employee: 'Profesional',
+};
+
+// Canal de contacto oficial (mismo que en las paginas legales de la landing)
+const SOPORTE_EMAIL = 'novanoidai@gmail.com';
+const SOPORTE_TEL = '+34690792975';
+
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
@@ -179,6 +201,7 @@ export default function ConfiguracionWeb() {
   const [saving, setSaving] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const [negocioId, setNegocioId] = useState('');
+  const [account, setAccount] = useState<AccountInfo | null>(null);
 
   // Config state (JSONB)
   const [config, setConfig] = useState<ConfigState>(DEFAULT_CONFIG);
@@ -219,6 +242,16 @@ export default function ConfiguracionWeb() {
       if (!canAccessConfig(profile)) { setAccessDenied(true); setLoading(false); return; }
       const nid = profile.negocio_id;
       setNegocioId(nid);
+      setAccount({
+        nombre: profile.nombre || '',
+        apellido: profile.apellido || '',
+        email: profile.email || '',
+        role: profile.role || '',
+        nombreNegocio: profile.nombre_negocio || '',
+        negocioId: nid,
+        telefono: profile.phone || '',
+        creadoEn: profile.created_at || '',
+      });
 
       const [
         { data: srvData },
@@ -585,16 +618,35 @@ export default function ConfiguracionWeb() {
             </div>
           ))}
 
-          {/* Footer help card */}
-          <div style={{ marginTop: 'auto', padding: 12, borderRadius: 12, background: T.bgCard, border: `1px solid ${T.border}` }}>
+          {/* Footer help card → abre la pagina de soporte */}
+          <button
+            onClick={() => setTab('soporte')}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(244,80,30,0.3)';
+              (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.borderColor = T.border;
+              (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+            }}
+            style={{
+              marginTop: 'auto', padding: 12, borderRadius: 12, width: '100%', textAlign: 'left',
+              background: T.bgCard, border: `1px solid ${T.border}`, cursor: 'pointer',
+              transition: 'border-color .15s ease, transform .15s ease',
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <SettingsIcon name="info" size={13} color={T.primary} />
               <span style={{ fontSize: 11.5, fontWeight: 700, color: T.text }}>Centro de ayuda</span>
             </div>
             <div style={{ fontSize: 10.5, color: T.textTertiary, lineHeight: 1.55, marginBottom: 10 }}>
-              Guias y videos cortos para configurar tu salon.
+              Contacta con el equipo de Mecha y resuelve cualquier duda.
             </div>
-          </div>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: T.primaryHi }}>
+              Ir a soporte
+              <SettingsIcon name="chevR" size={10} color={T.primaryHi} />
+            </span>
+          </button>
         </nav>
 
         {/* Content */}
@@ -636,6 +688,8 @@ export default function ConfiguracionWeb() {
             {tab === 'notificaciones' && <TabNotificaciones />}
             {tab === 'politicas' && <TabPoliticas />}
             {tab === 'reserva' && <TabReservaOnline />}
+            {tab === 'cuenta' && <TabCuenta account={account} profCount={profesionales.length} />}
+            {tab === 'soporte' && <TabSoporte account={account} />}
           </div>
         </div>
       </div>
@@ -789,15 +843,233 @@ function TabGeneral({ config, setC }: { config: ConfigState; setC: (k: keyof Con
         </FieldRow>
       </Section>
 
-      <Section title="Cuenta y suscripcion" desc="Informacion del plan contratado. Para cambios de facturacion, contacta con soporte.">
+    </>
+  );
+}
+
+// ===========================================================================
+// Read-only value pill (cuenta)
+// ===========================================================================
+
+function ReadValue({ children, mono, width }: { children: ReactNode; mono?: boolean; width?: number | string }) {
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', minHeight: 36,
+      width: width ?? 'auto', minWidth: 200, maxWidth: '100%',
+      padding: '0 12px', borderRadius: 9,
+      background: T.bg, border: `1px solid ${T.border}`,
+      color: T.text, fontSize: 13, fontWeight: 600,
+      fontFamily: mono ? "'JetBrains Mono', monospace" : 'inherit',
+      letterSpacing: mono ? 0.2 : 0,
+      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// ===========================================================================
+// Tab: Cuenta — informacion real de la cuenta + plan
+// ===========================================================================
+
+function TabCuenta({ account, profCount }: { account: AccountInfo | null; profCount: number }) {
+  const [copied, setCopied] = useState(false);
+  const a = account;
+  const nombreCompleto = a ? (`${a.nombre} ${a.apellido}`.trim() || '--') : '--';
+  const roleLabel = a?.role ? (ROLE_LABEL[a.role] ?? a.role) : '--';
+  const memberSince = a?.creadoEn
+    ? new Date(a.creadoEn).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '--';
+  const plazasLibres = Math.max(0, 10 - profCount);
+
+  const copyId = () => {
+    if (!a?.negocioId) return;
+    try {
+      navigator.clipboard?.writeText(a.negocioId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch { /* clipboard no disponible */ }
+  };
+
+  return (
+    <>
+      <Section title="Tu cuenta" desc="Datos de la cuenta con la que has iniciado sesion. Para cambiar el email de acceso o la contraseña, escribe al equipo de soporte.">
+        <FieldRow label="Nombre" hint="Como apareces en el equipo y en el historial de citas.">
+          <ReadValue>{nombreCompleto}</ReadValue>
+        </FieldRow>
+        <FieldRow label="Email de acceso" hint="Tu identificador para iniciar sesion. No se puede cambiar desde aqui.">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <ReadValue mono>{a?.email || '--'}</ReadValue>
+            <Badge tone="success">Verificado</Badge>
+          </div>
+        </FieldRow>
+        <FieldRow label="Rol" hint="Define que puedes ver y editar dentro de Mecha.">
+          <Badge tone="primary">{roleLabel}</Badge>
+        </FieldRow>
+        <FieldRow label="Miembro desde" hint="Fecha en la que se creo esta cuenta.">
+          <ReadValue>{memberSince}</ReadValue>
+        </FieldRow>
+      </Section>
+
+      <Section title="Negocio" desc="El salon al que pertenece esta cuenta. Comparte el identificador con soporte para localizar tu cuenta mas rapido.">
+        <FieldRow label="Nombre del salon" hint="Se edita desde General > Datos del negocio.">
+          <ReadValue>{a?.nombreNegocio || '--'}</ReadValue>
+        </FieldRow>
+        <FieldRow label="ID de negocio" hint="Referencia interna unica de tu salon.">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <ReadValue mono width={320}>{a?.negocioId || '--'}</ReadValue>
+            <IconBtn icon={copied ? 'check' : 'copy'} tone={copied ? 'primary' : 'neutral'} onClick={copyId} title="Copiar ID" />
+            {copied && <span style={{ fontSize: 11, fontWeight: 600, color: T.primaryHi }}>Copiado</span>}
+          </div>
+        </FieldRow>
+      </Section>
+
+      <Section title="Plan y suscripcion" desc="Resumen de tu plan actual. Para ampliar plazas o gestionar la facturacion, contacta con soporte.">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-          <StatBox label="Plan actual" value="Studio - Pro" sub="Renovacion 14 jul" accent={T.primaryHi} />
-          <StatBox label="Profesionales" value="6 / 10" sub="4 plazas disponibles" />
-          <StatBox label="Citas este mes" value="--" sub="Datos en informes" accent={T.success} />
+          <StatBox label="Plan actual" value="Studio - Pro" sub="Facturacion mensual" accent={T.primaryHi} />
+          <StatBox label="Profesionales activos" value={`${profCount} / 10`} sub={`${plazasLibres} ${plazasLibres === 1 ? 'plaza disponible' : 'plazas disponibles'}`} />
+          <StatBox label="Estado" value="Activo" sub="Al corriente de pago" accent={T.success} />
         </div>
         <div style={{ marginTop: 14, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Btn variant="ghost" size="sm">Gestionar plan</Btn>
+          <Btn
+            variant="ghost" size="sm" icon="mail"
+            onClick={() => {
+              const negocio = a?.nombreNegocio || '';
+              const subject = encodeURIComponent('Mecha - Gestion de plan' + (negocio ? ` (${negocio})` : ''));
+              const body = encodeURIComponent(
+                `Hola equipo de Mecha,\n\nQuiero revisar mi plan o facturacion.\n\n` +
+                `Salon: ${negocio || '--'}\nID de negocio: ${a?.negocioId || '--'}\nEmail: ${a?.email || '--'}\n\nGracias.`
+              );
+              window.location.href = `mailto:${SOPORTE_EMAIL}?subject=${subject}&body=${body}`;
+            }}
+          >
+            Gestionar plan
+          </Btn>
         </div>
+      </Section>
+    </>
+  );
+}
+
+// ===========================================================================
+// Tab: Soporte — el usuario nos escribe (mailto desde su propio cliente)
+// ===========================================================================
+
+function TabSoporte({ account }: { account: AccountInfo | null }) {
+  const a = account;
+
+  const buildMailto = (asunto: string, extra?: string) => {
+    const negocio = a?.nombreNegocio || '';
+    const subject = encodeURIComponent(`Mecha - ${asunto}` + (negocio ? ` (${negocio})` : ''));
+    const body = encodeURIComponent(
+      `Hola equipo de Mecha,\n\n${extra ?? 'Cuentanos en que podemos ayudarte...'}\n\n` +
+      `------------------------------\n` +
+      `Salon: ${negocio || '--'}\n` +
+      `ID de negocio: ${a?.negocioId || '--'}\n` +
+      `Email de la cuenta: ${a?.email || '--'}\n` +
+      `Rol: ${a?.role ? (ROLE_LABEL[a.role] ?? a.role) : '--'}`
+    );
+    return `mailto:${SOPORTE_EMAIL}?subject=${subject}&body=${body}`;
+  };
+
+  const TEMAS: { icon: string; title: string; desc: string; asunto: string; intro: string }[] = [
+    { icon: 'warning', title: 'Reportar un problema', desc: 'Algo no funciona como deberia. Cuentanos que ha pasado y lo revisamos.', asunto: 'Reporte de problema', intro: 'He encontrado un problema:\n\n(describe que estabas haciendo y que ha fallado)' },
+    { icon: 'star', title: 'Sugerencia o mejora', desc: 'Cuentanos que echas en falta. Tus ideas guian lo que construimos.', asunto: 'Sugerencia', intro: 'Me gustaria proponer una mejora:\n\n(describe tu idea)' },
+    { icon: 'percent', title: 'Facturacion y plan', desc: 'Dudas sobre tu suscripcion, facturas o ampliar plazas de profesionales.', asunto: 'Facturacion y plan', intro: 'Tengo una consulta sobre mi plan / facturacion:\n\n(escribe tu duda)' },
+    { icon: 'info', title: 'Como se usa algo', desc: 'No encuentras una funcion o no sabes como configurarla. Te guiamos.', asunto: 'Ayuda con el uso', intro: 'Necesito ayuda para usar Mecha:\n\n(escribe tu pregunta)' },
+  ];
+
+  return (
+    <>
+      {/* Hero de soporte */}
+      <div style={{
+        display: 'flex', alignItems: 'flex-start', gap: 16,
+        padding: '22px 24px', borderRadius: 16, marginBottom: 16,
+        background: 'linear-gradient(135deg, rgba(244,80,30,0.08), rgba(192,38,10,0.04))',
+        border: `1px solid rgba(244,80,30,0.18)`,
+      }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: 13, flexShrink: 0,
+          background: `linear-gradient(135deg, ${T.primaryHi}, ${T.primary})`,
+          display: 'grid', placeItems: 'center', color: '#fff',
+          boxShadow: '0 8px 24px rgba(244,80,30,.32)',
+        }}>
+          <SettingsIcon name="mail" size={22} color="#fff" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h2 style={{ margin: '2px 0 6px', fontSize: 18, fontWeight: 700, color: T.text, letterSpacing: -0.3 }}>
+            Estamos aqui para ayudarte
+          </h2>
+          <p style={{ margin: 0, fontSize: 13, color: T.textSecondary, lineHeight: 1.6, maxWidth: 620 }}>
+            Escribenos y un humano de verdad te responde. Adjuntamos automaticamente los datos de tu salon
+            para resolverlo cuanto antes, asi no tienes que buscar nada.
+          </p>
+        </div>
+      </div>
+
+      {/* Motivos de contacto */}
+      <Section title="Cuentanos en que podemos ayudarte" desc="Elige un tema y te abrimos un correo ya preparado en tu aplicacion de email. Solo tienes que escribir y enviar.">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, paddingTop: 4 }}>
+          {TEMAS.map(t => (
+            <button
+              key={t.asunto}
+              onClick={() => { window.location.href = buildMailto(t.asunto, t.intro); }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(244,80,30,0.3)';
+                (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+                (e.currentTarget as HTMLElement).style.background = T.bgCardHi;
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = T.border;
+                (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+                (e.currentTarget as HTMLElement).style.background = T.bg;
+              }}
+              style={{
+                display: 'flex', alignItems: 'flex-start', gap: 12, textAlign: 'left',
+                padding: 16, borderRadius: 12, cursor: 'pointer',
+                background: T.bg, border: `1px solid ${T.border}`,
+                transition: 'all .15s ease',
+              }}
+            >
+              <span style={{
+                width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+                background: T.primarySoft, display: 'grid', placeItems: 'center',
+              }}>
+                <SettingsIcon name={t.icon} size={18} color={T.primaryHi} />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 3 }}>{t.title}</span>
+                <span style={{ display: 'block', fontSize: 11.5, color: T.textTertiary, lineHeight: 1.5 }}>{t.desc}</span>
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', color: T.textTertiary, paddingTop: 2 }}>
+                <SettingsIcon name="chevR" size={14} />
+              </span>
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      {/* Canales directos */}
+      <Section title="Canales directos" desc="Tambien puedes contactarnos por estos medios. Horario de atencion de lunes a viernes, 9:00 - 19:00.">
+        <FieldRow label="Email de soporte" hint="Respuesta habitual en menos de 24 horas laborables.">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <ReadValue mono>{SOPORTE_EMAIL}</ReadValue>
+            <Btn
+              variant="primary" size="sm" icon="mail"
+              onClick={() => { window.location.href = buildMailto('Consulta'); }}
+            >
+              Escribir email
+            </Btn>
+          </div>
+        </FieldRow>
+        <FieldRow label="Telefono" hint="Para urgencias durante el horario de atencion.">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <ReadValue mono>{SOPORTE_TEL}</ReadValue>
+            <Btn variant="ghost" size="sm" icon="phone" onClick={() => { window.location.href = `tel:${SOPORTE_TEL}`; }}>
+              Llamar
+            </Btn>
+          </div>
+        </FieldRow>
       </Section>
     </>
   );
