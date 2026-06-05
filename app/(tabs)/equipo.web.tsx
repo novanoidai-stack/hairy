@@ -11,6 +11,10 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
     moreVertical: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>`,
     edit: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>`,
     trash: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
+    arrowLeft: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`,
+    phone: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
+    mail: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>`,
+    percent: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>`,
   };
   return <div style={{ display: 'inline-flex', color }} dangerouslySetInnerHTML={{ __html: icons[name] || '' }} />;
 };
@@ -84,6 +88,9 @@ const ANIMATIONS = `
   @keyframes pulse {
     0%, 100% { opacity: 0.4; }
     50% { opacity: 0.15; }
+  }
+  @media (max-width: 1100px) {
+    .equipo-detail-grid { grid-template-columns: 1fr !important; }
   }
 `;
 
@@ -351,10 +358,11 @@ export default function EquipoWeb() {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: profSel && selected ? '1fr 420px' : '1fr 0px', overflow: 'hidden', transition: 'grid-template-columns 0.35s cubic-bezier(0.16,1,0.3,1)' }}>
-        {/* Cards grid */}
-        <div style={{ overflowY: 'auto', padding: 24 }}>
-          <div onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: profSel && selected ? 'repeat(3, 1fr)' : 'repeat(4, 1fr)', gridAutoRows: '1fr', gap: 16 }}>
+      <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+        {/* Cards grid — visible cuando no hay miembro seleccionado */}
+        {!(profSel && selected) && (
+        <div style={{ overflowY: 'auto', padding: 24, height: '100%' }}>
+          <div onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '1fr', gap: 16 }}>
             {profesionales.map((p, idx) => {
               const isSel = p.id === selected;
               return (
@@ -484,6 +492,18 @@ export default function EquipoWeb() {
                       )}
                     </div>
                   )}
+
+                  {/* Footer: rendimiento del mes */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 10, borderTop: `1px solid ${TOKENS.border}` }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>{p.activo ? `${p.ingresos ?? 0}€` : '—'}</span>
+                      <span style={{ fontSize: 9, color: TOKENS.textTer, fontWeight: 600, letterSpacing: 0.5 }}>INGRESOS</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>{p.activo ? (p.clientesUnicos ?? 0) : '—'}</span>
+                      <span style={{ fontSize: 9, color: TOKENS.textTer, fontWeight: 600, letterSpacing: 0.5 }}>CLIENTAS</span>
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -516,47 +536,95 @@ export default function EquipoWeb() {
             </div>
           </div>
         </div>
+        )}
 
-        {/* Right: blocks panel */}
+        {/* Detalle del miembro a pantalla completa */}
         {profSel && selected && (
-          <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ borderLeft: `1px solid ${TOKENS.border}`, padding: 24, overflowY: 'auto', background: 'linear-gradient(180deg, rgba(244,80,30,0.04), transparent 30%)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  background: `linear-gradient(135deg, ${profSel.color}, ${profSel.color}aa)`,
-                  display: 'grid',
-                  placeItems: 'center',
-                  color: '#fff',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  boxShadow: `0 4px 12px ${profSel.color}55`,
-                }}
-              >
-                {profSel.nombre.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+          <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
+            {/* Cabecera: volver · identidad · acciones */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22, flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setSelected(null)}
+                onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.transform = 'translateX(-2px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = 'translateX(0)'; }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 14px', background: 'transparent', border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.textSec, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s ease, border-color 0.15s ease, transform 0.15s ease' }}>
+                <Icon name="arrowLeft" size={16} color={TOKENS.textSec} />
+                Volver al equipo
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 240 }}>
+                <div
+                  style={{
+                    width: 58,
+                    height: 58,
+                    borderRadius: 16,
+                    background: `linear-gradient(135deg, ${profSel.color}, ${profSel.color}aa)`,
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: '#fff',
+                    fontWeight: 700,
+                    fontSize: 19,
+                    boxShadow: `0 6px 18px ${profSel.color}55`,
+                  }}
+                >
+                  {profSel.nombre.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.4 }}>{profSel.nombre}</div>
+                    {!profSel.activo && <Pill color={TOKENS.textTer}>Inactivo</Pill>}
+                  </div>
+                  <div style={{ fontSize: 13, color: TOKENS.textSec, marginTop: 3 }}>
+                    {CATEGORIAS_PROF.find(c => c.value === profSel.categoria)?.label || 'Oficial'}
+                    {profSel.tipo_relacion === 'autonomo' ? ' · Autónomo' : profSel.tipo_relacion === 'formacion' ? ' · En formación' : ''}
+                  </div>
+                </div>
               </div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>{profSel.nombre}</div>
-                <div style={{ fontSize: 11, color: TOKENS.textSec }}>{CATEGORIAS_PROF.find(c => c.value === profSel.categoria)?.label || 'Oficial'}{profSel.tipo_relacion === 'autonomo' ? ' (Autonomo)' : profSel.tipo_relacion === 'formacion' ? ' (En formacion)' : ''}</div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={() => setEditingProf(profSel)}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.borderColor = TOKENS.borderHi; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.border; }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 15px', background: 'transparent', border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s ease, border-color 0.15s ease' }}>
+                  <Icon name="edit" size={15} color={TOKENS.textSec} />
+                  Editar
+                </button>
+                <button
+                  onClick={() => toggleActivo(profSel)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 15px', background: profSel.activo ? 'rgba(226,59,52,0.08)' : 'rgba(15,157,107,0.10)', border: `1px solid ${profSel.activo ? 'rgba(226,59,52,0.22)' : 'rgba(15,157,107,0.25)'}`, borderRadius: 10, color: profSel.activo ? '#e23b34' : TOKENS.success, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                  {profSel.activo ? 'Desactivar' : 'Activar'}
+                </button>
               </div>
             </div>
 
-            {/* Info del profesional */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+            {/* Layout 2 columnas */}
+            <div className="equipo-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.05fr) minmax(0,0.95fr)', gap: 24, alignItems: 'start' }}>
+              {/* Columna izquierda: identidad · metricas · horario */}
+              <div>
+
+            {/* Info de contacto / contrato */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
               {profSel.comision_pct != null && profSel.comision_pct > 0 && (
-                <div style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(16,185,129,0.08)', fontSize: 11, fontWeight: 600, color: TOKENS.success }}>
-                  Comision: {profSel.comision_pct}%
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 9, background: 'rgba(15,157,107,0.08)', border: '1px solid rgba(15,157,107,0.18)', fontSize: 12, fontWeight: 600, color: TOKENS.success }}>
+                  <Icon name="percent" size={13} color={TOKENS.success} />
+                  Comisión {profSel.comision_pct}%
                 </div>
               )}
-              {profSel.telefono && (
-                <div style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.06)', fontSize: 11, color: TOKENS.textSec }}>
+              {profSel.telefono ? (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 9, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, fontSize: 12, color: TOKENS.textSec }}>
+                  <Icon name="phone" size={13} color={TOKENS.textTer} />
                   {profSel.telefono}
+                </div>
+              ) : (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 9, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, fontSize: 12, color: TOKENS.textTer }}>
+                  <Icon name="phone" size={13} color={TOKENS.textTer} />
+                  Sin teléfono
                 </div>
               )}
               {profSel.email && (
-                <div style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.06)', fontSize: 11, color: TOKENS.textSec }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 9, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, fontSize: 12, color: TOKENS.textSec }}>
+                  <Icon name="mail" size={13} color={TOKENS.textTer} />
                   {profSel.email}
                 </div>
               )}
@@ -578,11 +646,11 @@ export default function EquipoWeb() {
             <Section title="Metricas del mes">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 6 }}>
                 <MetricCard label="Citas" value={String(profSel.citas ?? 0)} color={TOKENS.primary} />
-                <MetricCard label="Ingresos" value={`${profSel.ingresos ?? 0}EUR`} color={TOKENS.success} />
-                <MetricCard label="Ticket medio" value={`${profSel.ticketMedio ?? 0}EUR`} color="#06b6d4" />
+                <MetricCard label="Ingresos" value={`${profSel.ingresos ?? 0}€`} color={TOKENS.success} />
+                <MetricCard label="Ticket medio" value={`${profSel.ticketMedio ?? 0}€`} color="#06b6d4" />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                <MetricCard label="Comisiones" value={`${profSel.comisionesDevengadas ?? 0}EUR`} color="#f59e0b" />
+                <MetricCard label="Comisiones" value={`${profSel.comisionesDevengadas ?? 0}€`} color="#f59e0b" />
                 <MetricCard label="Ocupacion" value={`${profSel.ocupacion ?? 0}%`} color="#c0260a" />
                 <MetricCard label="Clientas" value={String(profSel.clientesUnicos ?? 0)} color="#ec4899" />
               </div>
@@ -697,6 +765,9 @@ export default function EquipoWeb() {
                 );
               })()}
             </Section>
+              </div>
+              {/* Columna derecha: bloqueos · leyenda */}
+              <div>
 
             {/* Bloques header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -822,6 +893,8 @@ export default function EquipoWeb() {
                 ))}
               </div>
             </Section>
+              </div>{/* fin columna derecha */}
+            </div>{/* fin grid 2 columnas */}
           </div>
         )}
 
