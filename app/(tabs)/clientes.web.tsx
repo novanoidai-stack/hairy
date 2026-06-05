@@ -22,6 +22,7 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
     cake: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg>`,
     clock: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
     mail: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,
+    check: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`,
     user: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
     sparkle: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.7a2 2 0 0 0 1.4 1.4L21 12l-5.7 1.9a2 2 0 0 0-1.4 1.4L12 21l-1.9-5.7a2 2 0 0 0-1.4-1.4L3 12l5.7-1.9a2 2 0 0 0 1.4-1.4L12 3z"/></svg>`,
     droplet: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
@@ -223,6 +224,7 @@ export default function ClientesWeb() {
   const [servicios, setServicios] = useState<any[]>([]);
   const [profesionales, setProfesionales] = useState<any[]>([]);
   const [fichasTecnicas, setFichasTecnicas] = useState<any[]>([]);
+  const [catalogoAlergias, setCatalogoAlergias] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -241,7 +243,7 @@ export default function ClientesWeb() {
     }
     setNegocioId(profile.negocio_id);
 
-    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }] = await Promise.all([
+    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }] = await Promise.all([
       supabase
         .from('clientes')
         .select('id, nombre, telefono, email, fecha_nacimiento, alergias, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias')
@@ -264,7 +266,15 @@ export default function ClientesWeb() {
         .select('*')
         .eq('negocio_id', profile.negocio_id)
         .order('created_at', { ascending: false }),
+      supabase
+        .from('negocio_config')
+        .select('config')
+        .eq('negocio_id', profile.negocio_id)
+        .maybeSingle(),
     ]);
+
+    const cfg: any = (cfgRow?.config && typeof cfgRow.config === 'object') ? cfgRow.config : {};
+    setCatalogoAlergias(Array.isArray(cfg.catalogoAlergias) ? cfg.catalogoAlergias : []);
 
     const enrichedClients = (clts ?? []).map((cl: any) => {
       const clientCitas = (citsData ?? []).filter((c: Cita) => c.cliente_id === cl.id);
@@ -312,6 +322,22 @@ export default function ClientesWeb() {
       setSelected(targetId);
     }
     setLoading(false);
+  }
+
+  // Guarda una alergia nueva en el catalogo del salon (negocio_config),
+  // sin pisar el resto de la configuracion existente.
+  async function addAlergiaToCatalog(term: string) {
+    const t = term.trim();
+    if (!t || !negocioId) return;
+    if (catalogoAlergias.some((a) => a.toLowerCase() === t.toLowerCase())) return;
+    const next = [...catalogoAlergias, t];
+    setCatalogoAlergias(next);
+    const { data: row } = await supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle();
+    const cfg: any = (row?.config && typeof row.config === 'object') ? row.config : {};
+    await supabase.from('negocio_config').upsert(
+      { negocio_id: negocioId, config: { ...cfg, catalogoAlergias: next }, updated_at: new Date().toISOString() },
+      { onConflict: 'negocio_id' }
+    );
   }
 
   // Recarga al montar y cada vez que algo dispara el refresh global
@@ -601,7 +627,7 @@ export default function ClientesWeb() {
               // Modo compacto: contenido segun pestaña activa
               <div key={activeTab} className="m-tab-content">
                 {activeTab === 'resumen' && <ResumenTab cliente={c} citas={citas} servicios={servicios} />}
-                {activeTab === 'notas' && <NotasTab cliente={c} onUpdated={(updated) => {
+                {activeTab === 'notas' && <NotasTab cliente={c} catalogoAlergias={catalogoAlergias} onSaveToCatalog={addAlergiaToCatalog} onUpdated={(updated) => {
                   setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
                   triggerRefresh();
                 }} />}
@@ -619,7 +645,7 @@ export default function ClientesWeb() {
                 {/* Fila 2: Notas + Color/Quimica (50/50) */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
                   <Panel title="Alergias" accent={TOKENS.danger}>
-                    <NotasTab cliente={c} onUpdated={(updated) => {
+                    <NotasTab cliente={c} catalogoAlergias={catalogoAlergias} onSaveToCatalog={addAlergiaToCatalog} onUpdated={(updated) => {
                       setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
                   triggerRefresh();
                     }} />
@@ -740,29 +766,60 @@ function ResumenTab({ cliente, citas, servicios }: { cliente: Cliente; citas: Ci
 }
 
 // ── Tab: Alergias
-function NotasTab({ cliente, onUpdated }: {
+function NotasTab({ cliente, onUpdated, catalogoAlergias = [], onSaveToCatalog }: {
   cliente: Cliente;
   citas?: Cita[];
   profesionales?: any[];
   servicios?: any[];
   onUpdated: (updated: Partial<Cliente> & { id: string }) => void;
+  catalogoAlergias?: string[];
+  onSaveToCatalog?: (term: string) => Promise<void>;
 }) {
   const [alergias, setAlergias] = useState((cliente.alergias ?? '').trim());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [custom, setCustom] = useState('');
+  const [guardarEnCatalogo, setGuardarEnCatalogo] = useState(false);
 
   useEffect(() => {
     setAlergias((cliente.alergias ?? '').trim());
   }, [cliente.id]);
 
-  async function save() {
+  // Términos actuales (separados por coma o salto de línea)
+  const terms = alergias.split(/[,\n]/).map((t) => t.trim()).filter(Boolean);
+  const hasTerm = (t: string) => terms.some((x) => x.toLowerCase() === t.toLowerCase());
+
+  async function persist(next: string) {
+    const trimmed = next.trim();
+    setAlergias(trimmed);
     setError('');
     setSaving(true);
-    const payload = { alergias: alergias.trim() || null };
+    const payload = { alergias: trimmed || null };
     const { error } = await supabase.from('clientes').update(payload).eq('id', cliente.id);
     setSaving(false);
     if (error) { setError(error.message); return; }
     onUpdated({ id: cliente.id, ...payload });
+  }
+
+  function save() { void persist(alergias); }
+
+  function toggleTerm(t: string) {
+    if (hasTerm(t)) {
+      void persist(terms.filter((x) => x.toLowerCase() !== t.toLowerCase()).join(', '));
+    } else {
+      void persist(terms.length ? `${terms.join(', ')}, ${t}` : t);
+    }
+  }
+
+  async function addCustom() {
+    const t = custom.trim();
+    if (!t) return;
+    if (!hasTerm(t)) {
+      await persist(terms.length ? `${terms.join(', ')}, ${t}` : t);
+    }
+    if (guardarEnCatalogo && onSaveToCatalog) await onSaveToCatalog(t);
+    setCustom('');
+    setGuardarEnCatalogo(false);
   }
 
   const hayAlergias = alergias.trim().length > 0;
@@ -777,6 +834,37 @@ function NotasTab({ cliente, onUpdated }: {
             Atencion: este cliente tiene alergias registradas
           </div>
         </div>
+      )}
+
+      {/* Alergias frecuentes: toggle rápido desde el catálogo del centro */}
+      {catalogoAlergias.length > 0 && (
+        <Section title="Alergias frecuentes">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {catalogoAlergias.map((a) => {
+              const active = hasTerm(a);
+              return (
+                <button
+                  key={a}
+                  onClick={() => toggleTerm(a)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '6px 11px', borderRadius: 999, cursor: 'pointer',
+                    background: active ? TOKENS.dangerSoft : TOKENS.bgCardHi,
+                    border: `1px solid ${active ? 'rgba(239,68,68,0.45)' : TOKENS.border}`,
+                    color: active ? TOKENS.danger : TOKENS.textSec,
+                    fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
+                  }}
+                >
+                  <Icon name={active ? 'check' : 'plus'} size={12} color={active ? TOKENS.danger : TOKENS.textTer} />
+                  {a}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: 10, color: TOKENS.textTer, marginTop: 8 }}>
+            Toca para añadir o quitar. Gestiona la lista en Configuracion &gt; Plantillas.
+          </div>
+        </Section>
       )}
 
       <Section title="Alergias del cliente">
@@ -802,6 +890,60 @@ function NotasTab({ cliente, onUpdated }: {
         />
         <div style={{ fontSize: 10, color: TOKENS.textTer, marginTop: 4, height: 12 }}>
           {saving ? 'Guardando...' : 'Se guarda al salir del campo'}
+        </div>
+
+        {/* Añadir alergia personalizada con opción de guardar en el catálogo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+          <input
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void addCustom(); } }}
+            placeholder="Añadir otra alergia..."
+            style={{
+              flex: 1, minWidth: 160, padding: '8px 11px',
+              background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`,
+              borderRadius: 9, color: TOKENS.text, fontSize: 12,
+              fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
+            }}
+          />
+          <button
+            onClick={() => setGuardarEnCatalogo((v) => !v)}
+            title="Guardar tambien en alergias frecuentes del centro"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              padding: '8px 10px', borderRadius: 9, cursor: 'pointer',
+              background: guardarEnCatalogo ? TOKENS.bgCardHi : 'transparent',
+              border: `1px solid ${guardarEnCatalogo ? TOKENS.borderHi : TOKENS.border}`,
+              color: guardarEnCatalogo ? TOKENS.text : TOKENS.textSec,
+              fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+            }}
+          >
+            <span style={{
+              width: 16, height: 16, borderRadius: 5, flexShrink: 0,
+              display: 'grid', placeItems: 'center',
+              background: guardarEnCatalogo ? TOKENS.primary : 'transparent',
+              border: `1px solid ${guardarEnCatalogo ? TOKENS.primary : TOKENS.borderHi}`,
+            }}>
+              {guardarEnCatalogo && <Icon name="check" size={10} color="#fff" />}
+            </span>
+            Guardar en frecuentes
+          </button>
+          <button
+            onClick={() => void addCustom()}
+            disabled={!custom.trim()}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 14px', borderRadius: 9,
+              cursor: custom.trim() ? 'pointer' : 'not-allowed',
+              background: custom.trim() ? TOKENS.primary : TOKENS.bgCardHi,
+              border: `1px solid ${custom.trim() ? TOKENS.primary : TOKENS.border}`,
+              color: custom.trim() ? '#fff' : TOKENS.textTer,
+              fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+            }}
+          >
+            <Icon name="plus" size={13} color={custom.trim() ? '#fff' : TOKENS.textTer} />
+            Añadir
+          </button>
         </div>
       </Section>
 
