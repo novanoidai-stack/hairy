@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { can, roleOf } from './permissions';
 
 export interface UserProfile {
   id: string;
@@ -7,7 +8,7 @@ export interface UserProfile {
   apellido?: string;
   nombre_negocio?: string;
   codigo_postal?: string;
-  role: 'owner' | 'employee' | 'admin';
+  role: 'owner' | 'admin' | 'employee' | 'recepcion';
   negocio_id: string;
   phone: string;
   avatar_url?: string;
@@ -40,13 +41,17 @@ export async function signOut() {
 }
 
 export function isOwner(profile: UserProfile | null): boolean {
-  return profile?.role === 'owner' || profile?.role === 'admin';
+  return roleOf(profile) === 'propietario';
 }
 
 export function canAccessInformes(profile: UserProfile | null): boolean {
-  return profile?.role === 'owner' || profile?.role === 'admin';
+  return can(profile, 'informes.ver');
 }
 
 export function canAccessConfig(profile: UserProfile | null): boolean {
-  return profile?.role === 'owner' || profile?.role === 'admin';
+  return can(profile, 'config.ver');
 }
+
+// Reexport del sistema de capacidades para uso conveniente desde la UI.
+export { can, roleOf, roleLabel, ROLE_LABEL, ASSIGNABLE_ROLES, ROLE_TO_VALUE } from './permissions';
+export type { Role, Capability } from './permissions';
