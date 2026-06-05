@@ -238,17 +238,8 @@ export default function InformesScreen() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
 
   // UI
-  const [expandedSections, setExpandedSections] = useState<Set<SeccionId>>(new Set(['ocupacion', 'ingresos']));
   const [comisionPct, setComisionPct] = useState<number>(30);
   const [comisionCustom, setComisionCustom] = useState<string>('');
-
-  const toggleSection = (id: SeccionId) => {
-    setExpandedSections(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
 
   // -------------------------------------------------------------------------
   // Data loading
@@ -598,6 +589,252 @@ export default function InformesScreen() {
   ];
 
   // -------------------------------------------------------------------------
+  // Export PDF — informe imprimible con marca (ventana nueva -> Guardar como PDF)
+  // -------------------------------------------------------------------------
+  const exportPDF = useCallback(() => {
+    const esc = (s: unknown) => String(s).replace(/[&<>"]/g, (c) => (
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' } as Record<string, string>)[c]
+    ));
+    const generado = format(new Date(), "d 'de' MMMM yyyy 'a las' HH:mm", { locale: es });
+    const periodoNombre = periodos.find(p => p.key === periodo)?.label ?? '';
+
+    // KPIs resumen
+    const kpis = [
+      { label: 'Citas totales', value: String(totalCitas) },
+      { label: 'Ingresos', value: `${fmtEur(totalIngresos)} €` },
+      { label: 'Citas / profesional', value: `${Math.round(ocupacionGlobal * 10) / 10}` },
+      { label: 'No-shows', value: `${noShows.length} (${fmtPct(tasaNoShow)})` },
+      { label: 'Espera media', value: `${Math.round(esperaData.avgGlobal)} min` },
+      { label: 'Reposo aprovechado', value: fmtPct(reposoData.pctGlobal) },
+      { label: 'Clientes activos', value: String(retencionData.clientesActivos) },
+      { label: 'Frecuencia media', value: `${Math.round(retencionData.avgFreq)} días` },
+    ];
+    const kpiHtml = kpis.map(k => `<div class="kpi"><div class="kpi-label">${esc(k.label)}</div><div class="kpi-value">${esc(k.value)}</div></div>`).join('');
+
+    // Distribucion de citas
+    const empty3 = '<tr><td colspan="3" class="empty">Sin datos en este periodo</td></tr>';
+    const empty2 = '<tr><td colspan="2" class="empty">Sin datos en este periodo</td></tr>';
+    const ocupProf = ocupacionData.porProf.map(p => `<tr><td>${esc(p.nombre)}</td><td class="num">${p.citas}</td><td class="num">${fmtPct(p.pct)}</td></tr>`).join('') || empty3;
+    const ocupFranja = FRANJAS.map((f, i) => {
+      const cnt = ocupacionData.franjaCount[i]; const tot = ocupacionData.total;
+      return `<tr><td>${esc(f)}</td><td class="num">${cnt}</td><td class="num">${tot > 0 ? fmtPct((cnt / tot) * 100) : '0%'}</td></tr>`;
+    }).join('');
+    const ocupDia = [1, 2, 3, 4, 5, 6, 0].map(d => {
+      const cnt = ocupacionData.diaCount[d]; const tot = ocupacionData.total;
+      return `<tr><td>${esc(DIAS_SEMANA[d])}</td><td class="num">${cnt}</td><td class="num">${tot > 0 ? fmtPct((cnt / tot) * 100) : '0%'}</td></tr>`;
+    }).join('');
+
+    // No-shows
+    const nsProf = Object.entries(noShowData.porProf).sort(([, a], [, b]) => b - a)
+      .map(([id, c]) => `<tr><td>${esc(profMap.get(id)?.nombre || id)}</td><td class="num">${c}</td></tr>`).join('')
+      || '<tr><td colspan="2" class="empty">Sin no-shows</td></tr>';
+    const nsSrv = Object.entries(noShowData.porServicio).sort(([, a], [, b]) => b - a)
+      .map(([id, c]) => `<tr><td>${esc(srvMap.get(id)?.nombre || id)}</td><td class="num">${c}</td></tr>`).join('')
+      || '<tr><td colspan="2" class="empty">Sin no-shows</td></tr>';
+
+    // Espera por profesional
+    const esperaRows = profsActivos.map(p => {
+      const gaps = esperaData.porProf[p.id] || [];
+      const avg = gaps.length > 0 ? Math.round(gaps.reduce((a, b) => a + b, 0) / gaps.length) : 0;
+      return `<tr><td>${esc(p.nombre)}</td><td class="num">${avg} min</td></tr>`;
+    }).join('') || empty2;
+
+    // Reposo por profesional
+    const reposoRows = profsActivos.map(p => {
+      const r = reposoData.porProf[p.id];
+      if (!r) return '';
+      const pct = r.totalMin > 0 ? (r.usedMin / r.totalMin) * 100 : 0;
+      return `<tr><td>${esc(p.nombre)}</td><td class="num">${Math.round(r.usedMin)}/${Math.round(r.totalMin)} min</td><td class="num">${fmtPct(pct)}</td></tr>`;
+    }).filter(Boolean).join('') || empty3;
+
+    // Ingresos
+    const ingProf = Object.entries(ingresosData.porProf).sort(([, a], [, b]) => b - a)
+      .map(([id, amt]) => `<tr><td>${esc(profMap.get(id)?.nombre || id)}</td><td class="num">${fmtEur(amt)} €</td></tr>`).join('') || empty2;
+    const ingSrv = Object.entries(ingresosData.porServicio).sort(([, a], [, b]) => b - a).slice(0, 10)
+      .map(([id, amt]) => `<tr><td>${esc(srvMap.get(id)?.nombre || id)}</td><td class="num">${fmtEur(amt)} €</td></tr>`).join('') || empty2;
+    const ingClt = Object.entries(ingresosData.porCliente).sort(([, a], [, b]) => b - a).slice(0, 10)
+      .map(([id, amt]) => `<tr><td>${esc(cltMap.get(id)?.nombre || id)}</td><td class="num">${fmtEur(amt)} €</td></tr>`).join('') || empty2;
+
+    // Servicios
+    const srvRank = serviciosData.ranking.map((s, i) => `<tr><td class="num">${i + 1}</td><td>${esc(s.nombre)}</td><td class="num">${s.count}</td></tr>`).join('') || empty3;
+    const srvCombos = serviciosData.topCombos.map(c => `<tr><td>${esc(c.combo)}</td><td class="num">${c.count}x</td></tr>`).join('')
+      || '<tr><td colspan="2" class="empty">Sin combinaciones</td></tr>';
+
+    // Retencion
+    const retCards = [
+      { label: 'Frecuencia media', value: `${Math.round(retencionData.avgFreq)} días` },
+      { label: 'Días sin visita (media)', value: `${Math.round(retencionData.avgSinVisita)} días` },
+      { label: 'Clientes nuevos', value: String(retencionData.nuevos) },
+      { label: 'Recurrentes (3+)', value: String(retencionData.recurrentes) },
+      { label: 'En riesgo (60+ días)', value: String(retencionData.inactivos) },
+      { label: 'Fidelizados', value: String(retencionData.clientesActivos - retencionData.inactivos) },
+    ].map(k => `<div class="kpi"><div class="kpi-label">${esc(k.label)}</div><div class="kpi-value">${esc(k.value)}</div></div>`).join('');
+
+    // Comisiones
+    const comRows = comisionesData.map(p => `<tr><td>${esc(p.nombre)}</td><td class="num">${p.citas}</td><td class="num">${fmtEur(p.ingresos)} €</td><td class="num">${fmtEur(p.comision)} €</td></tr>`).join('')
+      || '<tr><td colspan="4" class="empty">Sin datos</td></tr>';
+    const comTotCitas = comisionesData.reduce((s, p) => s + p.citas, 0);
+    const comTotIng = comisionesData.reduce((s, p) => s + p.ingresos, 0);
+    const comTotCom = comisionesData.reduce((s, p) => s + p.comision, 0);
+
+    const html = `<!doctype html><html lang="es"><head><meta charset="utf-8">
+<title>Informe Mecha - ${esc(periodoLabel)}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1c1814; background: #fff; padding: 30px 34px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 3px solid #f4501e; padding-bottom: 14px; margin-bottom: 22px; }
+  .brand { font-size: 27px; font-weight: 800; letter-spacing: -0.6px; }
+  .brand .dot { color: #f4501e; }
+  .brand .sub { font-size: 12px; font-weight: 600; color: #8a7d70; letter-spacing: 0.4px; margin-top: 2px; }
+  .meta { text-align: right; font-size: 12px; color: #5c5249; line-height: 1.6; }
+  .meta strong { color: #1c1814; }
+  h2 { font-size: 14px; font-weight: 700; margin: 22px 0 10px; padding-left: 10px; border-left: 4px solid #f4501e; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .kpi { border: 1px solid rgba(40,30,24,0.12); border-radius: 10px; padding: 11px 13px; }
+  .kpi-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #8a7d70; font-weight: 700; }
+  .kpi-value { font-size: 19px; font-weight: 800; margin-top: 4px; letter-spacing: -0.3px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  th { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #8a7d70; font-weight: 700; padding: 6px 9px; border-bottom: 2px solid rgba(40,30,24,0.14); }
+  td { padding: 6px 9px; border-bottom: 1px solid rgba(40,30,24,0.07); }
+  th.num, td.num { text-align: right; }
+  tr:nth-child(even) td { background: #faf7f3; }
+  tfoot td { font-weight: 800; border-top: 2px solid rgba(40,30,24,0.20); background: #fff !important; }
+  .empty { color: #8a7d70; font-style: italic; }
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .cols3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  .coltitle { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #5c5249; margin-bottom: 6px; }
+  section { page-break-inside: avoid; margin-bottom: 6px; }
+  .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid rgba(40,30,24,0.12); font-size: 9.5px; color: #8a7d70; text-align: center; }
+  @page { margin: 13mm; }
+  @media print { body { padding: 0; } }
+</style></head>
+<body>
+  <div class="head">
+    <div>
+      <div class="brand">mecha<span class="dot">.</span></div>
+      <div class="sub">Informe de actividad</div>
+    </div>
+    <div class="meta">
+      <div>Periodo: <strong>${esc(periodoNombre)}</strong></div>
+      <div>${esc(periodoLabel)}</div>
+      <div>Generado el ${esc(generado)}</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Resumen</h2>
+    <div class="kpis">${kpiHtml}</div>
+  </section>
+
+  <section>
+    <h2>Distribución de citas</h2>
+    <div class="cols3">
+      <div>
+        <div class="coltitle">Por profesional</div>
+        <table><thead><tr><th>Profesional</th><th class="num">Citas</th><th class="num">%</th></tr></thead><tbody>${ocupProf}</tbody></table>
+      </div>
+      <div>
+        <div class="coltitle">Por franja horaria</div>
+        <table><thead><tr><th>Franja</th><th class="num">Citas</th><th class="num">%</th></tr></thead><tbody>${ocupFranja}</tbody></table>
+      </div>
+      <div>
+        <div class="coltitle">Por día</div>
+        <table><thead><tr><th>Día</th><th class="num">Citas</th><th class="num">%</th></tr></thead><tbody>${ocupDia}</tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>No-shows · ${esc(noShows.length)} de ${esc(totalCitas)} citas (${esc(fmtPct(tasaNoShow))})</h2>
+    <div class="cols2">
+      <div>
+        <div class="coltitle">Por profesional</div>
+        <table><thead><tr><th>Profesional</th><th class="num">No-shows</th></tr></thead><tbody>${nsProf}</tbody></table>
+      </div>
+      <div>
+        <div class="coltitle">Por servicio</div>
+        <table><thead><tr><th>Servicio</th><th class="num">No-shows</th></tr></thead><tbody>${nsSrv}</tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tiempos productivos</h2>
+    <div class="cols2">
+      <div>
+        <div class="coltitle">Espera media entre citas</div>
+        <table><thead><tr><th>Profesional</th><th class="num">Media</th></tr></thead><tbody>${esperaRows}</tbody></table>
+      </div>
+      <div>
+        <div class="coltitle">Reposo aprovechado · ${esc(fmtPct(reposoData.pctGlobal))} global</div>
+        <table><thead><tr><th>Profesional</th><th class="num">Usado</th><th class="num">%</th></tr></thead><tbody>${reposoRows}</tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ingresos · ${esc(fmtEur(totalIngresos))} €</h2>
+    <div class="cols3">
+      <div>
+        <div class="coltitle">Por profesional</div>
+        <table><thead><tr><th>Profesional</th><th class="num">Ingresos</th></tr></thead><tbody>${ingProf}</tbody></table>
+      </div>
+      <div>
+        <div class="coltitle">Por servicio</div>
+        <table><thead><tr><th>Servicio</th><th class="num">Ingresos</th></tr></thead><tbody>${ingSrv}</tbody></table>
+      </div>
+      <div>
+        <div class="coltitle">Por cliente</div>
+        <table><thead><tr><th>Cliente</th><th class="num">Ingresos</th></tr></thead><tbody>${ingClt}</tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Servicios</h2>
+    <div class="cols2">
+      <div>
+        <div class="coltitle">Ranking</div>
+        <table><thead><tr><th class="num">#</th><th>Servicio</th><th class="num">Citas</th></tr></thead><tbody>${srvRank}</tbody></table>
+      </div>
+      <div>
+        <div class="coltitle">Combinaciones frecuentes</div>
+        <table><thead><tr><th>Combinación</th><th class="num">Veces</th></tr></thead><tbody>${srvCombos}</tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Retención de clientes</h2>
+    <div class="kpis">${retCards}</div>
+  </section>
+
+  <section>
+    <h2>Comisiones · ${esc(comisionPct)}% aplicado</h2>
+    <table>
+      <thead><tr><th>Profesional</th><th class="num">Citas</th><th class="num">Ingresos</th><th class="num">Comisión</th></tr></thead>
+      <tbody>${comRows}</tbody>
+      <tfoot><tr><td>Total</td><td class="num">${comTotCitas}</td><td class="num">${fmtEur(comTotIng)} €</td><td class="num">${fmtEur(comTotCom)} €</td></tr></tfoot>
+    </table>
+  </section>
+
+  <div class="foot">Informe generado por Mecha · gestión inteligente de salón · ${esc(generado)}</div>
+</body></html>`;
+
+    const win = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1100');
+    if (!win) { window.alert('Activa las ventanas emergentes para descargar el informe en PDF.'); return; }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { try { win.print(); } catch { /* el usuario puede imprimir manualmente */ } }, 400);
+  }, [
+    periodo, periodoLabel, totalCitas, totalIngresos, ocupacionGlobal, noShows, tasaNoShow,
+    esperaData, reposoData, retencionData, ocupacionData, noShowData, ingresosData, serviciosData,
+    comisionesData, comisionPct, profsActivos, profMap, srvMap, cltMap, periodos,
+  ]);
+
+  // -------------------------------------------------------------------------
   // Render helpers
   // -------------------------------------------------------------------------
 
@@ -619,16 +856,14 @@ export default function InformesScreen() {
     </div>
   );
 
-  const SectionHeader = ({ id, icon, iconColor, title, subtitle }: { id: SeccionId; icon: string; iconColor: string; title: string; subtitle: string }) => (
+  // Cabecera estatica de seccion (siempre visible, parte superior de la tarjeta)
+  const SectionHeader = ({ icon, iconColor, title, subtitle }: { id?: SeccionId; icon: string; iconColor: string; title: string; subtitle: string }) => (
     <div
-      onClick={() => toggleSection(id)}
       style={{
-        display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', cursor: 'pointer',
-        borderRadius: 12, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`,
-        transition: 'all 0.2s ease',
+        display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px',
+        borderRadius: '14px 14px 0 0', background: TOKENS.bgCard,
+        border: `1px solid ${TOKENS.border}`, borderBottom: `1px solid ${TOKENS.border}`,
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = TOKENS.borderHi; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = TOKENS.border; }}
     >
       <div style={{
         width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -637,29 +872,21 @@ export default function InformesScreen() {
         <Icon name={icon} size={18} color={iconColor} />
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text }}>{title}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>{title}</div>
         <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 1 }}>{subtitle}</div>
-      </div>
-      <div style={{
-        transition: 'transform 0.3s cubic-bezier(0.16,1,0.3,1)',
-        transform: expandedSections.has(id) ? 'rotate(180deg)' : 'rotate(0deg)',
-      }}>
-        <Icon name="chevronDown" size={16} color={TOKENS.textTer} />
       </div>
     </div>
   );
 
-  const SectionBody = ({ id, children }: { id: SeccionId; children: React.ReactNode }) => {
-    if (!expandedSections.has(id)) return null;
-    return (
-      <div className="section-card" style={{
-        padding: 16, borderRadius: 12, background: TOKENS.bgCard,
-        border: `1px solid ${TOKENS.border}`, marginTop: 4,
-      }}>
-        {children}
-      </div>
-    );
-  };
+  // Cuerpo de seccion (siempre renderizado, parte inferior de la tarjeta)
+  const SectionBody = ({ children }: { id?: SeccionId; children: React.ReactNode }) => (
+    <div className="section-card" style={{
+      padding: 18, borderRadius: '0 0 14px 14px', background: TOKENS.bgCard,
+      border: `1px solid ${TOKENS.border}`, borderTop: 'none', marginTop: 0,
+    }}>
+      {children}
+    </div>
+  );
 
   // -------------------------------------------------------------------------
   // Render
@@ -697,7 +924,7 @@ export default function InformesScreen() {
             ))}
           </div>
 
-          {/* Export button */}
+          {/* Export CSV */}
           <button
             onClick={exportCompleto}
             style={{
@@ -709,8 +936,25 @@ export default function InformesScreen() {
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = TOKENS.primary; (e.currentTarget as HTMLElement).style.color = TOKENS.primaryHi; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = TOKENS.border; (e.currentTarget as HTMLElement).style.color = TOKENS.textSec; }}
           >
-            <Icon name="download" size={14} color="currentColor" />
-            Exportar CSV
+            <Icon name="fileText" size={14} color="currentColor" />
+            CSV
+          </button>
+
+          {/* Descargar PDF */}
+          <button
+            onClick={exportPDF}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px',
+              borderRadius: 10, border: 'none', cursor: 'pointer',
+              background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff',
+              fontSize: 12, fontWeight: 600, boxShadow: '0 6px 18px rgba(244,80,30,0.40)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 22px rgba(244,80,30,0.50)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(244,80,30,0.40)'; }}
+          >
+            <Icon name="download" size={14} color="#fff" />
+            Descargar PDF
           </button>
         </div>
       </div>
