@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
+import { getUserProfile, can, type UserProfile, type Capability } from '@/lib/auth';
 
 const tokens = DESIGN_TOKENS;
 
@@ -16,11 +17,11 @@ const WORDMARK_FONT = Platform.select({
   default: undefined,
 }) as string | undefined;
 
-const NAV_ITEMS = [
+const NAV_ITEMS: { label: string; icon: string; activeIcon: string; href: string; cap?: Capability }[] = [
   { label: 'Agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
-  { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes' },
-  { label: 'Equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo' },
-  { label: 'Informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes' },
+  { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver' },
+  { label: 'Equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver' },
+  { label: 'Informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver' },
 ];
 
 const HOVER_DURATION = 200;
@@ -31,6 +32,16 @@ export function Sidebar() {
   const configActive = pathname.includes('configuracion');
 
   const [collapsed, setCollapsed] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
+
+  // Gating por rol (Modular 3, sec 7). Defensivo: mientras carga (undefined) o
+  // sin sesion (null) se muestra todo; con una cuenta real se aplican las
+  // capacidades del rol. Las pantallas bloquean ademas con setAccessDenied.
+  useEffect(() => {
+    getUserProfile().then(setProfile).catch(() => setProfile(null));
+  }, []);
+  const allows = (cap?: Capability) =>
+    !cap || profile === undefined || profile === null || can(profile, cap);
 
   useEffect(() => {
     AsyncStorage.getItem(COLLAPSE_KEY)
@@ -129,6 +140,7 @@ export function Sidebar() {
       <View style={s.navSection}>
         {!collapsed && <TText style={s.navSectionLabel}>PRINCIPAL</TText>}
         {NAV_ITEMS.map((item, idx) => {
+          if (!allows(item.cap)) return null;
           const isActive =
             pathname === item.href ||
             pathname.endsWith(item.label.toLowerCase()) ||
@@ -170,6 +182,7 @@ export function Sidebar() {
 
       {/* Bottom section */}
       <View>
+        {allows('config.ver') && (
         <Animated.View
           style={{
             transform: [
@@ -195,6 +208,7 @@ export function Sidebar() {
             )}
           </TouchableOpacity>
         </Animated.View>
+        )}
 
         {/* Volver al sitio web (salir del software sin cerrar sesion) */}
         <TouchableOpacity
