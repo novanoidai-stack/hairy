@@ -90,6 +90,15 @@ interface ConfigState {
   bonusObjetivo: boolean;
   bonusObjetivoImporte: number;
   bonusEstrella: boolean;
+  // Plantillas reutilizables (catalogos del salon)
+  catalogoAlergias: string[];
+  plantillasFormula: PlantillaTexto[];
+  plantillasNota: PlantillaTexto[];
+}
+
+interface PlantillaTexto {
+  nombre: string;
+  texto: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -110,6 +119,7 @@ const TABS: TabDef[] = [
   { id: 'servicios',      label: 'Servicios',      icon: 'scissors',  section: 'Operativa' },
   { id: 'agenda',         label: 'Agenda',         icon: 'calendar',  section: 'Operativa' },
   { id: 'comisiones',     label: 'Comisiones',     icon: 'percent',   section: 'Operativa' },
+  { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion', soon: true },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion', soon: true },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion', soon: true },
@@ -137,6 +147,9 @@ const DEFAULT_CONFIG: ConfigState = {
   comisionBase: 30, comisionBaseImporte: 'neto',
   comisionAddons: true, comisionPropinas: false, comisionPeriodo: 'mensual',
   bonusProducto: 10, bonusObjetivo: true, bonusObjetivoImporte: 250, bonusEstrella: false,
+  catalogoAlergias: ['Parafenilendiamina (PPD)', 'Amoniaco', 'Resorcina', 'Persulfatos', 'Fragancias', 'Niquel', 'Latex'],
+  plantillasFormula: [],
+  plantillasNota: [],
 };
 
 const DEFAULT_DIA: DiaHorario = { abierto: false, apertura: '09:00', cierre: '20:00', pausa_inicio: '', pausa_fin: '' };
@@ -616,6 +629,9 @@ export default function ConfiguracionWeb() {
                 profesionales={profesionales}
                 comisionesProf={comisionesProf} setComisionesProf={setComisionesProf}
               />
+            )}
+            {tab === 'plantillas' && (
+              <TabPlantillas config={config} setC={setC} />
             )}
             {tab === 'notificaciones' && <TabNotificaciones />}
             {tab === 'politicas' && <TabPoliticas />}
@@ -1371,6 +1387,142 @@ function CommissionEditor({ value, isOverride, accent, onChange }: {
         }} />
       <span style={{ fontSize: 11, color: isOverride ? accent : T.textTertiary, fontWeight: 700 }}>%</span>
     </div>
+  );
+}
+
+// ===========================================================================
+// Plantillas reutilizables
+// ===========================================================================
+
+function TabPlantillas({ config, setC }: { config: ConfigState; setC: (k: keyof ConfigState, v: any) => void }) {
+  const [nuevaAlergia, setNuevaAlergia] = useState('');
+
+  const addAlergia = () => {
+    const v = nuevaAlergia.trim();
+    if (!v) return;
+    const exists = (config.catalogoAlergias || []).some(a => a.toLowerCase() === v.toLowerCase());
+    if (!exists) setC('catalogoAlergias', [...(config.catalogoAlergias || []), v]);
+    setNuevaAlergia('');
+  };
+  const removeAlergia = (i: number) => {
+    setC('catalogoAlergias', (config.catalogoAlergias || []).filter((_, idx) => idx !== i));
+  };
+
+  return (
+    <>
+      <Section
+        title="Alergias frecuentes"
+        desc="Etiquetas que apareceran como acceso rapido al registrar alergias de un cliente. Recuerda guardar los cambios."
+        action={<Badge>{(config.catalogoAlergias || []).length}</Badge>}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+          {(config.catalogoAlergias || []).length === 0 && (
+            <span style={{ fontSize: 12, color: T.textTer }}>Aun no has anadido ninguna alergia frecuente.</span>
+          )}
+          {(config.catalogoAlergias || []).map((a, i) => (
+            <span key={`${a}-${i}`} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 8px 6px 12px', borderRadius: 999,
+              background: 'rgba(226,59,52,0.10)', border: `1px solid rgba(226,59,52,0.28)`,
+              color: T.danger, fontSize: 12, fontWeight: 600,
+            }}>
+              {a}
+              <button
+                onClick={() => removeAlergia(i)}
+                title="Quitar"
+                style={{ display: 'grid', placeItems: 'center', width: 18, height: 18, borderRadius: 999, border: 'none', background: 'rgba(226,59,52,0.16)', color: T.danger, cursor: 'pointer', padding: 0 }}
+              >
+                <SettingsIcon name="x" size={11} color={T.danger} />
+              </button>
+            </span>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <STextInput value={nuevaAlergia} onChange={setNuevaAlergia} placeholder="Anadir alergia frecuente (ej. Tinte oscuro)" width={320} />
+          <Btn variant="soft" icon="plus" onClick={addAlergia}>Anadir</Btn>
+        </div>
+      </Section>
+
+      <PlantillaEditor
+        title="Formulas guardadas"
+        desc="Presets de color/quimica que tu equipo podra reutilizar al crear una ficha tecnica."
+        items={config.plantillasFormula || []}
+        onChange={(v) => setC('plantillasFormula', v)}
+        placeholderNombre="Nombre (ej. Cobrizo intenso)"
+        placeholderTexto="Formula (ej. Igora 7-77 + 8-77 a partes iguales, oxidante 20 vol, 35 min)"
+      />
+
+      <PlantillaEditor
+        title="Plantillas de notas e historial"
+        desc="Textos recurrentes para anotar en la ficha del cliente sin tener que reescribirlos."
+        items={config.plantillasNota || []}
+        onChange={(v) => setC('plantillasNota', v)}
+        placeholderNombre="Nombre (ej. Cuero sensible)"
+        placeholderTexto="Nota (ej. Aplicar proteccion en el contorno. Evitar amoniaco.)"
+      />
+    </>
+  );
+}
+
+function PlantillaEditor({ title, desc, items, onChange, placeholderNombre, placeholderTexto }: {
+  title: string;
+  desc: string;
+  items: PlantillaTexto[];
+  onChange: (v: PlantillaTexto[]) => void;
+  placeholderNombre: string;
+  placeholderTexto: string;
+}) {
+  const [nombre, setNombre] = useState('');
+  const [texto, setTexto] = useState('');
+
+  const add = () => {
+    const n = nombre.trim();
+    const t = texto.trim();
+    if (!n || !t) return;
+    onChange([...items, { nombre: n, texto: t }]);
+    setNombre('');
+    setTexto('');
+  };
+  const remove = (i: number) => onChange(items.filter((_, idx) => idx !== i));
+  const update = (i: number, key: keyof PlantillaTexto, val: string) =>
+    onChange(items.map((it, idx) => (idx === i ? { ...it, [key]: val } : it)));
+
+  const taStyle: any = {
+    width: '100%', minHeight: 60, padding: '8px 10px',
+    background: T.bg, border: `1px solid ${T.border}`, borderRadius: 9,
+    color: T.text, fontSize: 12.5, fontFamily: 'inherit', outline: 'none',
+    resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.5,
+  };
+
+  return (
+    <Section title={title} desc={desc} action={<Badge>{items.length}</Badge>}>
+      {items.length === 0 && (
+        <div style={{ fontSize: 12, color: T.textTer, marginBottom: 14 }}>Aun no has guardado ninguna plantilla.</div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+        {items.map((it, i) => (
+          <div key={i} style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, padding: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <div style={{ flex: 1 }}>
+                <STextInput value={it.nombre} onChange={(v) => update(i, 'nombre', v)} placeholder={placeholderNombre} />
+              </div>
+              <IconBtn icon="trash" tone="danger" onClick={() => remove(i)} title="Eliminar plantilla" />
+            </div>
+            <textarea value={it.texto} onChange={(e) => update(i, 'texto', e.target.value)} placeholder={placeholderTexto} style={taStyle} />
+          </div>
+        ))}
+      </div>
+      <div style={{ background: T.bgCardHi, border: `1px dashed ${T.borderHi}`, borderRadius: 12, padding: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.textSec, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>Nueva plantilla</div>
+        <div style={{ marginBottom: 8 }}>
+          <STextInput value={nombre} onChange={setNombre} placeholder={placeholderNombre} />
+        </div>
+        <textarea value={texto} onChange={(e) => setTexto(e.target.value)} placeholder={placeholderTexto} style={taStyle} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+          <Btn variant="soft" icon="plus" onClick={add} disabled={!nombre.trim() || !texto.trim()}>Guardar plantilla</Btn>
+        </div>
+      </div>
+    </Section>
   );
 }
 
