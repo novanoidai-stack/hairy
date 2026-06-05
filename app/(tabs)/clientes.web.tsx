@@ -1031,6 +1031,9 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.violet, letterSpacing: 0.4, textTransform: 'uppercase' }}>{fechaStr}</span>
                     <Pill color={TOKENS.violet}>{tipoLabel}</Pill>
+                    {ficha.cerrada && (
+                      <span style={{ padding: '2px 6px', borderRadius: 4, background: 'rgba(245,158,11,0.10)', color: TOKENS.warning, fontSize: 9, fontWeight: 700, letterSpacing: 0.4 }}>CERRADA</span>
+                    )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {prof && (
@@ -1161,6 +1164,8 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
+  const isLocked = mode === 'edit' && ficha?.cerrada === true;
+
   const TIPOS_SERVICIO = [
     { key: 'coloracion_global', label: 'Color global' }, { key: 'color_raiz', label: 'Color raiz' },
     { key: 'mechas', label: 'Mechas' }, { key: 'balayage', label: 'Balayage' },
@@ -1204,7 +1209,46 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
   }
 
   function toggleTecnica(t: string) {
+    if (isLocked) return;
     setTecnicas(tecnicas.includes(t) ? tecnicas.filter((x) => x !== t) : [...tecnicas, t]);
+  }
+
+  async function duplicarUltimaFormula() {
+    const { data } = await supabase
+      .from('fichas_tecnicas_color')
+      .select('*')
+      .eq('cliente_id', clienteId)
+      .eq('negocio_id', negocioId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!data) { setError('No hay formulas anteriores para copiar'); return; }
+
+    setTipoServicio(data.tipo_servicio ?? 'coloracion_global');
+    setMarcaProducto(data.marca_producto ?? '');
+    setFormulaEntries(
+      Array.isArray(data.formula) && data.formula.length > 0
+        ? data.formula.map((f: any) => ({ numero: f.numero ?? '', gramos: String(f.gramos ?? '') }))
+        : [{ numero: '', gramos: '' }]
+    );
+    setOxidanteVol(data.oxidante_volumen != null ? String(data.oxidante_volumen) : '');
+    setOxidanteProp(data.oxidante_proporcion ?? '');
+    setTiempoExp(data.tiempo_exposicion_min != null ? String(data.tiempo_exposicion_min) : '');
+    setTecnicas(data.tecnica_aplicacion ?? []);
+    setBaseNatural(data.base_natural ?? '');
+    setColorPrevio(data.color_previo ?? '');
+    setPorcCanas(data.porcentaje_canas != null ? String(data.porcentaje_canas) : '');
+    setError('');
+  }
+
+  async function cerrarFicha() {
+    if (!ficha?.id) return;
+    if (!confirm('Al cerrar la ficha no se podra editar. Continuar?')) return;
+    setLoading(true);
+    await supabase.from('fichas_tecnicas_color').update({ cerrada: true }).eq('id', ficha.id);
+    setLoading(false);
+    await onSaved();
   }
 
   async function handleSave() {
@@ -1274,12 +1318,27 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
             <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(192,38,10,0.14)', color: TOKENS.violet, display: 'grid', placeItems: 'center' }}>
               <Icon name="droplet" size={16} color={TOKENS.violet} />
             </div>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: TOKENS.text }}>{mode === 'edit' ? 'Editar ficha de color' : 'Nueva ficha de color'}</h3>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: TOKENS.text }}>{isLocked ? 'Ficha de color (cerrada)' : mode === 'edit' ? 'Editar ficha de color' : 'Nueva ficha de color'}</h3>
+            {isLocked && (
+              <span style={{ padding: '3px 8px', borderRadius: 6, background: 'rgba(245,158,11,0.12)', color: TOKENS.warning, fontSize: 10, fontWeight: 700, letterSpacing: 0.4 }}>CERRADA</span>
+            )}
           </div>
           <button className="m-btn-icon m-btn-icon-close" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
             <Icon name="x" size={14} color={TOKENS.textSec} />
           </button>
         </div>
+
+        {mode === 'add' && (
+          <button
+            onClick={duplicarUltimaFormula}
+            style={{ width: '100%', padding: '10px 14px', background: 'rgba(244,80,30,0.08)', border: '1px solid rgba(244,80,30,0.25)', borderRadius: 10, color: TOKENS.primaryHi, fontSize: 12, fontWeight: 600, cursor: 'pointer', marginBottom: 14, textAlign: 'center' }}
+          >
+            Copiar ultima formula de esta clienta
+          </button>
+        )}
+
+        {/* Form wrapper - disabled when locked */}
+        <div style={{ pointerEvents: isLocked ? 'none' : 'auto', opacity: isLocked ? 0.6 : 1 }}>
 
         {/* Seccion: Servicio y profesional */}
         <SectionLabel>Servicio</SectionLabel>
@@ -1392,29 +1451,48 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
           <Field label="Incidencias (si las hubo)"><textarea value={incidencias} onChange={(e) => setIncidencias(e.target.value)} placeholder="Irritacion, mancha, reaccion..." style={textareaStyle} /></Field>
         </div>
 
+        </div>{/* End form wrapper */}
+
         {error && <div style={{ padding: '10px 12px', background: TOKENS.dangerSoft, border: `1px solid rgba(239,68,68,0.30)`, borderRadius: 10, color: TOKENS.danger, fontSize: 12, marginBottom: 12 }}>{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', paddingTop: 14, borderTop: `1px solid ${TOKENS.border}` }}>
-          {mode === 'edit' ? (
-            <button
-              className="m-btn-danger"
-              onClick={handleDelete}
-              disabled={loading}
-              style={{ padding: '9px 14px', background: 'transparent', border: `1px solid rgba(239,68,68,0.35)`, color: TOKENS.danger, borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            >
-              <Icon name="trash" size={14} color={TOKENS.danger} />
-              Eliminar ficha
-            </button>
-          ) : <span />}
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="m-btn-secondary" onClick={onClose} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
-              Cancelar
-            </button>
-            <button className="m-btn-primary" onClick={handleSave} disabled={loading} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#e0340e 0%,#c0260a 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(192,38,10,0.40)' }}>
-              {loading ? 'Guardando...' : 'Guardar'}
+        {isLocked ? (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 14, borderTop: `1px solid ${TOKENS.border}` }}>
+            <button onClick={onClose} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+              Cerrar
             </button>
           </div>
-        </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', paddingTop: 14, borderTop: `1px solid ${TOKENS.border}` }}>
+            {mode === 'edit' ? (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  className="m-btn-danger"
+                  onClick={handleDelete}
+                  disabled={loading}
+                  style={{ padding: '9px 14px', background: 'transparent', border: `1px solid rgba(239,68,68,0.35)`, color: TOKENS.danger, borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Icon name="trash" size={14} color={TOKENS.danger} />
+                  Eliminar
+                </button>
+                <button
+                  onClick={cerrarFicha}
+                  disabled={loading}
+                  style={{ padding: '9px 14px', background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.30)', color: TOKENS.warning, borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+                >
+                  Cerrar ficha
+                </button>
+              </div>
+            ) : <span />}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="m-btn-secondary" onClick={onClose} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                Cancelar
+              </button>
+              <button className="m-btn-primary" onClick={handleSave} disabled={loading} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#e0340e 0%,#c0260a 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(192,38,10,0.40)' }}>
+                {loading ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>,
     document.body
