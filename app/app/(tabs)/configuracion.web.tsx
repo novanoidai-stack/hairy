@@ -45,6 +45,26 @@ interface Override {
   activo?: boolean | null;
 }
 
+interface DuracionProf {
+  id?: string;
+  profesional_id: string;
+  servicio_id: string;
+  duracion_activa_min: number;
+  duracion_espera_min: number;
+  duracion_activa_extra_min: number;
+}
+
+interface ServiceVariant {
+  id?: string;
+  servicio_id?: string;
+  nombre: string;
+  precio: number;
+  duracion_activa_min: number;
+  duracion_espera_min?: number;
+  duracion_activa_extra_min?: number;
+  activo?: boolean;
+}
+
 interface DiaHorario {
   abierto: boolean;
   apertura: string;
@@ -185,6 +205,11 @@ export default function ConfiguracionWeb() {
   const [profesionales, setProfesionales] = useState<any[]>([]);
   const [profId, setProfId] = useState<string | null>(null);
   const [allOverrides, setAllOverrides] = useState<Override[]>([]);
+  const [duracionesProf, setDuracionesProf] = useState<DuracionProf[]>([]);
+  const [variantCounts, setVariantCounts] = useState<Record<string, number>>({});
+
+  // Category pricing state: { serviceId: { categoria: precio } }
+  const [catPricing, setCatPricing] = useState<Record<string, Record<string, number>>>({});
 
   // Bloqueo counts for Agenda tab summary
   const [bloqueoCounts, setBloqueoCounts] = useState<Record<string, number>>({});
@@ -272,6 +297,15 @@ export default function ConfiguracionWeb() {
         setAllOverrides(ovData ?? []);
       }
 
+      // Duration overrides (duraciones_profesional)
+      if (profData && profData.length > 0) {
+        const { data: durData } = await supabase
+          .from('duraciones_profesional')
+          .select('*')
+          .in('profesional_id', profData.map((p: any) => p.id));
+        setDuracionesProf(durData ?? []);
+      }
+
       // Bloqueo counts
       const { data: blqData } = await supabase
         .from('bloqueos_profesional')
@@ -281,6 +315,35 @@ export default function ConfiguracionWeb() {
       const counts: Record<string, number> = {};
       (blqData ?? []).forEach((b: any) => { counts[b.tipo] = (counts[b.tipo] || 0) + 1; });
       setBloqueoCounts(counts);
+
+      // Variant counts per service
+      if (srvData && srvData.length > 0) {
+        const { data: varData } = await supabase
+          .from('service_variants')
+          .select('servicio_id')
+          .eq('negocio_id', nid)
+          .in('servicio_id', srvData.map((s: any) => s.id));
+        const varCounts: Record<string, number> = {};
+        (varData ?? []).forEach((v: any) => {
+          varCounts[v.servicio_id] = (varCounts[v.servicio_id] || 0) + 1;
+        });
+        setVariantCounts(varCounts);
+      }
+
+      // Category pricing per service
+      if (srvData && srvData.length > 0) {
+        const { data: catData } = await supabase
+          .from('service_category_pricing')
+          .select('servicio_id, categoria, precio')
+          .eq('negocio_id', nid)
+          .in('servicio_id', srvData.map((s: any) => s.id));
+        const catMap: Record<string, Record<string, number>> = {};
+        (catData ?? []).forEach((row: any) => {
+          if (!catMap[row.servicio_id]) catMap[row.servicio_id] = {};
+          catMap[row.servicio_id][row.categoria] = row.precio;
+        });
+        setCatPricing(catMap);
+      }
 
       setLoading(false);
     }
@@ -480,6 +543,69 @@ export default function ConfiguracionWeb() {
     }
   };
 
+  const handleSaveDurProf = async (serviceId: string, profIdArg: string, field: string, value: number) => {
+    try {
+      const existing = duracionesProf.find(d => d.servicio_id === serviceId && d.profesional_id === profIdArg);
+      const service = services.find(s => s.id === serviceId);
+      if (!service) throw new Error('Servicio no encontrado');
+
+      if (existing) {
+        const { error } = await supabase
+          .from('duraciones_profesional')
+          .update({ [field]: value })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('duraciones_profesional')
+          .insert({
+            profesional_id: profIdArg,
+            servicio_id: serviceId,
+            duracion_activa_min: field === 'duracion_activa_min' ? value : (service.duracion_activa_min || 30),
+            duracion_espera_min: field === 'duracion_espera_min' ? value : (service.duracion_espera_min || 0),
+            duracion_activa_extra_min: field === 'duracion_activa_extra_min' ? value : (service.duracion_activa_extra_min || 0),
+          });
+        if (error) throw error;
+      }
+
+      // Reload durations
+      const profIds = profesionales.map(p => p.id);
+      if (profIds.length > 0) {
+        const { data } = await supabase
+          .from('duraciones_profesional')
+          .select('*')
+          .in('profesional_id', profIds);
+        setDuracionesProf(data ?? []);
+      }
+    } catch (e: any) {
+      alert('Error al guardar duracion: ' + e.message);
+    }
+  };
+
+  const handleResetDurProf = async (serviceId: string, profIdArg: string) => {
+    try {
+      const existing = duracionesProf.find(d => d.servicio_id === serviceId && d.profesional_id === profIdArg);
+      if (existing) {
+        const { error } = await supabase
+          .from('duraciones_profesional')
+          .delete()
+          .eq('id', existing.id);
+        if (error) throw error;
+
+        const profIds = profesionales.map(p => p.id);
+        if (profIds.length > 0) {
+          const { data } = await supabase
+            .from('duraciones_profesional')
+            .select('*')
+            .in('profesional_id', profIds);
+          setDuracionesProf(data ?? []);
+        }
+      }
+    } catch (e: any) {
+      alert('Error al restablecer: ' + e.message);
+    }
+  };
+
   // ─── Config setter helpers ─────────────────────────────────────────────
   const setC = useCallback((key: keyof ConfigState, val: any) => {
     setConfig(prev => ({ ...prev, [key]: val }));
@@ -601,10 +727,14 @@ export default function ConfiguracionWeb() {
                 services={services} profesionales={profesionales}
                 profId={profId} setProfId={setProfId}
                 allOverrides={allOverrides} getOverride={getOverride}
+                duracionesProf={duracionesProf}
                 profSelData={profSelData}
+                variantCounts={variantCounts}
+                catPricing={catPricing}
                 onEdit={setEdit} onToggle={handleToggleServicio}
                 onDelete={handleDeleteService} onSaveOverride={handleSaveOverride}
                 onResetOverride={handleResetOverride}
+                onSaveDurProf={handleSaveDurProf} onResetDurProf={handleResetDurProf}
               />
             )}
             {tab === 'agenda' && (
@@ -927,17 +1057,23 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
 // Tab: Servicios
 // ===========================================================================
 
-function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, profSelData, onEdit, onToggle, onDelete, onSaveOverride, onResetOverride }: {
+function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, duracionesProf, profSelData, variantCounts, catPricing, onEdit, onToggle, onDelete, onSaveOverride, onResetOverride, onSaveDurProf, onResetDurProf }: {
   services: Servicio[]; profesionales: any[];
   profId: string | null; setProfId: (id: string | null) => void;
   allOverrides: Override[]; getOverride: (sid: string) => Override | undefined;
+  duracionesProf: DuracionProf[];
   profSelData: any;
+  variantCounts: Record<string, number>;
+  catPricing: Record<string, Record<string, number>>;
   onEdit: (s: Servicio) => void; onToggle: (s: Servicio) => void;
   onDelete: (id: string) => void;
   onSaveOverride: (sid: string, patch: Partial<Override>) => Promise<void>;
   onResetOverride: (sid: string) => Promise<void>;
+  onSaveDurProf: (serviceId: string, profId: string, field: string, value: number) => Promise<void>;
+  onResetDurProf: (serviceId: string, profId: string) => Promise<void>;
 }) {
   const [search, setSearch] = useState('');
+  const [expandedDur, setExpandedDur] = useState<string | null>(null);
   const filtered = useMemo(() => {
     if (!search.trim()) return services;
     const q = search.toLowerCase();
@@ -1034,24 +1170,43 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                 const hasOv = !!ov;
 
                 return (
-                  <div
-                    key={s.id}
-                    style={{ display: 'grid', gridTemplateColumns: '1fr 110px 110px 110px 80px', padding: '14px 16px', alignItems: 'center', borderBottom: i < arr.length - 1 ? `1px solid ${T.border}` : 'none', transition: 'background 0.2s' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.04)'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-                  >
+                  <>
+                    <div
+                      key={s.id}
+                      style={{ display: 'grid', gridTemplateColumns: '1fr 110px 110px 110px 80px', padding: '14px 16px', alignItems: 'center', borderBottom: expandedDur === s.id ? 'none' : (i < arr.length - 1 ? `1px solid ${T.border}` : 'none'), transition: 'background 0.2s' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.04)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                    >
                     {/* Nombre */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                       {profId && hasOv && (
                         <div style={{ width: 6, height: 6, borderRadius: 999, flexShrink: 0, background: profColor, boxShadow: `0 0 8px ${profColor}` }} />
                       )}
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: T.text }}>{s.nombre}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: T.text, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          {s.nombre}
+                          {!profId && s.id && variantCounts[s.id] > 0 && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: 6, background: 'rgba(99,102,241,0.15)', border: `1px solid rgba(99,102,241,0.3)`, fontSize: 10, fontWeight: 700, color: T.primaryHi, flexShrink: 0 }}>
+                              {variantCounts[s.id]}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
                     {/* Duracion */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <div
+                      style={{
+                        display: 'flex', flexDirection: 'column', gap: 1,
+                        cursor: profId ? 'pointer' : 'default',
+                        padding: '4px 8px',
+                        borderRadius: 6,
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => profId && (e.currentTarget.style.background = 'rgba(99,102,241,0.08)')}
+                      onMouseLeave={e => profId && (e.currentTarget.style.background = 'transparent')}
+                      onClick={() => profId && s.id && setExpandedDur(expandedDur === s.id ? null : s.id)}
+                    >
                       {durChanged ? (
                         <>
                           <span style={{ fontSize: 12, color: profColor, fontWeight: 600 }}>{efectivoDur} min</span>
@@ -1064,14 +1219,32 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
 
                     {/* Precio */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      {profId && ov?.precio != null ? (
-                        <>
-                          <span style={{ fontSize: 13, color: profColor, fontWeight: 700 }}>{Number(efectivoPrecio).toFixed(0)} EUR</span>
-                          <span style={{ fontSize: 10, color: T.textTertiary, textDecoration: 'line-through' }}>{s.precio} EUR</span>
-                        </>
-                      ) : (
-                        <span style={{ fontSize: 13, fontWeight: 700, color: T.success }}>{s.precio} EUR</span>
-                      )}
+                      {(() => {
+                        // If profesional selected, check for override, then category pricing
+                        if (profId && profSelData?.categoria) {
+                          // 1. Check override
+                          if (ov?.precio != null) {
+                            return (
+                              <>
+                                <span style={{ fontSize: 13, color: profColor, fontWeight: 700 }}>{Number(ov.precio).toFixed(0)} EUR</span>
+                                <span style={{ fontSize: 10, color: T.textTertiary, textDecoration: 'line-through' }}>{s.precio} EUR</span>
+                              </>
+                            );
+                          }
+                          // 2. Check category pricing
+                          const catPrice = catPricing[s.id!]?.[profSelData.categoria];
+                          if (catPrice != null) {
+                            return (
+                              <>
+                                <span style={{ fontSize: 13, color: profColor, fontWeight: 700 }}>{Number(catPrice).toFixed(0)} EUR</span>
+                                <span style={{ fontSize: 10, color: T.textTertiary, textDecoration: 'line-through' }}>{s.precio} EUR</span>
+                              </>
+                            );
+                          }
+                        }
+                        // Default: show base price
+                        return <span style={{ fontSize: 13, fontWeight: 700, color: T.success }}>{s.precio} EUR</span>;
+                      })()}
                     </div>
 
                     {/* Toggle */}
@@ -1098,7 +1271,39 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                       )}
                     </div>
                   </div>
-                );
+
+                  {/* Expanded duration editor */}
+                  {expandedDur === s.id && profId && s.id && (() => {
+                    const dp = duracionesProf.find(d => d.servicio_id === s.id && d.profesional_id === profId);
+                    const catActiva = s.duracion_activa_min || 30;
+                    const catEspera = s.duracion_espera_min || 0;
+                    const catExtra = s.duracion_activa_extra_min || 0;
+                    const effActiva = dp ? dp.duracion_activa_min : catActiva;
+                    const effEspera = dp ? dp.duracion_espera_min : catEspera;
+                    const effExtra = dp ? dp.duracion_activa_extra_min : catExtra;
+
+                    return (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, padding: '10px 16px', background: T.bg, borderBottom: `1px solid ${T.border}` }}>
+                        <div>
+                          <div style={{ fontSize: 10, color: T.textTertiary, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>ACTIVA</div>
+                          <NumberInput value={effActiva} onChange={v => onSaveDurProf(s.id!, profId, 'duracion_activa_min', typeof v === 'number' ? v : parseInt(String(v), 10))} unit="min" step={5} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: T.textTertiary, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>ESPERA</div>
+                          <NumberInput value={effEspera} onChange={v => onSaveDurProf(s.id!, profId, 'duracion_espera_min', typeof v === 'number' ? v : parseInt(String(v), 10))} unit="min" step={5} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: T.textTertiary, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>EXTRA</div>
+                          <NumberInput value={effExtra} onChange={v => onSaveDurProf(s.id!, profId, 'duracion_activa_extra_min', typeof v === 'number' ? v : parseInt(String(v), 10))} unit="min" step={5} />
+                        </div>
+                        <div style={{ alignSelf: 'flex-end' }}>
+                          {dp && <IconBtn icon="x" size={28} tone="danger" onClick={() => onResetDurProf(s.id!, profId)} title="Restablecer" />}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              );
               })}
             </div>
           </div>
