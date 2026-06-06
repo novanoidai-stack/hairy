@@ -154,6 +154,7 @@ const TABS: TabDef[] = [
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion', soon: true },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion', soon: true },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion', soon: true },
+  { id: 'accesos',        label: 'Accesos y roles', icon: 'shield',   section: 'Cuenta' },
   { id: 'cuenta',         label: 'Cuenta',         icon: 'lock',      section: 'Cuenta' },
   { id: 'soporte',        label: 'Soporte',        icon: 'mail',      section: 'Cuenta' },
 ];
@@ -221,6 +222,7 @@ export default function ConfiguracionWeb() {
   const [saving, setSaving] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const [negocioId, setNegocioId] = useState('');
+  const [userId, setUserId] = useState('');
   const [account, setAccount] = useState<AccountInfo | null>(null);
 
   // Config state (JSONB)
@@ -267,6 +269,7 @@ export default function ConfiguracionWeb() {
       if (!canAccessConfig(profile)) { setAccessDenied(true); setLoading(false); return; }
       const nid = profile.negocio_id;
       setNegocioId(nid);
+      setUserId(profile.id);
       setAccount({
         nombre: profile.nombre || '',
         apellido: profile.apellido || '',
@@ -818,6 +821,7 @@ export default function ConfiguracionWeb() {
             {tab === 'notificaciones' && <TabNotificaciones />}
             {tab === 'politicas' && <TabPoliticas />}
             {tab === 'reserva' && <TabReservaOnline />}
+            {tab === 'accesos' && <TabAccesos negocioId={negocioId} currentUserId={userId} currentRole={account?.role ?? ''} />}
             {tab === 'cuenta' && <TabCuenta account={account} profCount={profesionales.length} />}
             {tab === 'soporte' && <TabSoporte account={account} />}
           </div>
@@ -1001,6 +1005,111 @@ function ReadValue({ children, mono, width }: { children: ReactNode; mono?: bool
 // ===========================================================================
 // Tab: Cuenta — informacion real de la cuenta + plan
 // ===========================================================================
+
+interface CuentaMiembro { id: string; nombre: string; apellido?: string; email: string; role: string }
+
+const ACCESO_ROLE_OPTIONS = [
+  { value: 'owner', label: 'Propietario' },
+  { value: 'admin', label: 'Direccion' },
+  { value: 'recepcion', label: 'Recepcion' },
+  { value: 'employee', label: 'Profesional' },
+];
+
+const ACCESO_ERROR_MSG: Record<string, string> = {
+  not_authorized: 'No tienes permiso para cambiar roles.',
+  owner_change_requires_owner: 'Solo un Propietario puede asignar o retirar el rol Propietario.',
+  last_owner: 'Debe quedar al menos un Propietario en el negocio.',
+  cross_tenant: 'Esa cuenta no pertenece a tu negocio.',
+  invalid_role: 'Rol no valido.',
+  target_not_found: 'No se encontro la cuenta.',
+};
+
+function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: string; currentUserId: string; currentRole: string }) {
+  const [cuentas, setCuentas] = useState<CuentaMiembro[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ id: string; text: string; ok: boolean } | null>(null);
+
+  const isOwner = currentRole === 'owner';
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, nombre, apellido, email, role')
+      .eq('negocio_id', negocioId)
+      .order('role');
+    setCuentas((data as CuentaMiembro[]) ?? []);
+    setLoading(false);
+  }, [negocioId]);
+
+  useEffect(() => { if (negocioId) load(); }, [negocioId, load]);
+
+  // Direccion (admin) no puede asignar Propietario; se mantiene la opcion solo
+  // para mostrar correctamente el rol de una cuenta que ya es Propietario.
+  const optionsFor = (targetRole: string) =>
+    isOwner || targetRole === 'owner'
+      ? ACCESO_ROLE_OPTIONS
+      : ACCESO_ROLE_OPTIONS.filter(o => o.value !== 'owner');
+
+  async function cambiarRol(id: string, nuevoRol: string) {
+    setSavingId(id);
+    setMsg(null);
+    const { error } = await supabase.rpc('set_member_role', { target_user_id: id, new_role: nuevoRol });
+    setSavingId(null);
+    if (error) {
+      const key = (error.message || '').match(/[a-z_]+/)?.[0] ?? '';
+      setMsg({ id, text: ACCESO_ERROR_MSG[key] ?? 'No se pudo cambiar el rol.', ok: false });
+      return;
+    }
+    setCuentas(prev => prev.map(c => (c.id === id ? { ...c, role: nuevoRol } : c)));
+    setMsg({ id, text: 'Rol actualizado.', ok: true });
+  }
+
+  return (
+    <Section title="Accesos y roles" desc="Define que ve y puede hacer cada cuenta del salon. Recepcion gestiona agenda y clientes; Direccion accede ademas a configuracion e informes; Propietario tiene acceso total.">
+      {loading ? (
+        <div style={{ color: T.textTertiary, fontSize: 13, padding: '8px 0' }}>Cargando cuentas...</div>
+      ) : cuentas.length === 0 ? (
+        <div style={{ color: T.textTertiary, fontSize: 13, padding: '8px 0' }}>No hay cuentas con acceso en este negocio todavia.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {cuentas.map(c => {
+            const esYo = c.id === currentUserId;
+            const esOwnerTarget = c.role === 'owner';
+            const bloqueado = esYo || (!isOwner && esOwnerTarget);
+            return (
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 999, background: 'rgba(244,80,30,0.12)', color: T.primaryHi, display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                  {(c.nombre || c.email || '?').trim().charAt(0).toUpperCase()}
+                </div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: T.text, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{`${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || 'Sin nombre'}</span>
+                    {esYo && <Badge tone="neutral">Tu cuenta</Badge>}
+                  </div>
+                  <div style={{ fontSize: 11, color: T.textTertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.email}</div>
+                  {msg && msg.id === c.id && (
+                    <div style={{ fontSize: 11, marginTop: 3, color: msg.ok ? T.success : T.danger }}>{msg.text}</div>
+                  )}
+                </div>
+                <div style={{ flexShrink: 0 }}>
+                  <SSelect
+                    width={150}
+                    value={c.role}
+                    disabled={bloqueado || savingId === c.id}
+                    onChange={v => cambiarRol(c.id, v)}
+                    options={optionsFor(c.role)}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Section>
+  );
+}
 
 function TabCuenta({ account, profCount }: { account: AccountInfo | null; profCount: number }) {
   const [copied, setCopied] = useState(false);
