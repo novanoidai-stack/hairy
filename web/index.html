@@ -81,11 +81,11 @@
   /* ---------- ACCOUNT CHIP (sesion activa) ---------- */
   .acct{position:relative;display:none}
   .acct.on{display:inline-flex}
-  .acct-btn{display:inline-flex;align-items:center;gap:8px;padding:5px 11px 5px 5px;border:1px solid var(--border-hi);
-    border-radius:999px;background:var(--card);color:var(--text);cursor:pointer;font:inherit;font-size:14px;font-weight:600;transition:border-color .2s}
-  .acct-btn:hover{border-color:var(--accent)}
-  .acct-av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--grad);
-    color:#0b0a12;font-weight:800;font-size:14px;text-transform:uppercase;flex-shrink:0;line-height:1}
+  .acct-btn{display:inline-flex;align-items:center;gap:9px;padding:5px 14px 5px 5px;border:1px solid var(--border-hi);
+    border-radius:999px;background:var(--card);color:var(--text);cursor:pointer;font:inherit;font-size:14px;font-weight:600;transition:border-color .2s,box-shadow .2s}
+  .acct-btn:hover{border-color:var(--accent);box-shadow:0 8px 20px -8px var(--accent-glow)}
+  .acct-av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--grad);
+    color:#0b0a12;font-weight:800;font-size:16px;text-transform:uppercase;flex-shrink:0;line-height:1;box-shadow:0 0 0 3px var(--accent-soft),0 4px 12px var(--accent-glow)}
   .acct-ca{width:14px;height:14px;color:var(--text-ter);transition:transform .2s}
   .acct.open .acct-ca{transform:rotate(180deg)}
   .acct-menu{position:absolute;top:calc(100% + 10px);right:0;min-width:236px;background:linear-gradient(180deg,var(--card-hi),var(--card));
@@ -194,7 +194,7 @@
         Hecho a medida para salones de peluquería — no una app genérica
       </span>
       <h1 class="reveal d1">Tu agenda llena.<br />Tus no-shows, <span class="em">a cero</span>.</h1>
-      <p class="hero-sub reveal d2">Mecha rellena los huecos, encadena los servicios y pone una <strong>IA a atender por WhatsApp</strong>, reservar las citas y cobrar el <strong>depósito por Stripe</strong> — mientras tú solo cortas. Los salones que la usan pasan del <strong>18% de ausencias a cerca del 1%</strong>. No es una app de citas genérica: está hecha para cómo funciona <em>de verdad</em> una peluquería.</p>
+      <p class="hero-sub reveal d2">El software pensado por y para salones de peluquería: <strong>llena tu agenda</strong>, convierte el <strong>reposo del tinte en una segunda cita</strong> y deja que una <strong>IA atienda por WhatsApp 24/7</strong>, reserve y cobre el depósito por Stripe. Menos huecos, menos ausencias y más facturación por silla — sin que tú dejes de cortar. No es una app de citas genérica: entiende cómo trabaja <em>de verdad</em> una peluquería.</p>
       <div class="hero-actions reveal d3">
         <a href="demo.html" class="btn btn-primary btn-lg">Ver demo gratis
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
@@ -1193,6 +1193,58 @@
     </div>
   </section>
 </main>
+
+<!-- ============ EQUIPO / SUGERENCIAS ============ -->
+<style>
+  .makers{border-top:1px solid var(--border)}
+  .makers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
+  @media(max-width:820px){.makers-grid{grid-template-columns:1fr}}
+  .maker{background:linear-gradient(180deg,var(--card-hi),var(--card));border:1px solid var(--border-hi);border-radius:18px;padding:22px 22px 18px;display:flex;flex-direction:column;gap:12px}
+  .maker-top{display:flex;align-items:center;gap:13px}
+  .maker-av{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:var(--grad);color:#0b0a12;font-family:var(--display);font-weight:800;font-size:19px;flex-shrink:0}
+  .maker-id .nm{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.02em}
+  .maker-id .rl{font-size:12.5px;color:var(--accent-hi);font-weight:600;margin-top:2px}
+  .maker p{font-size:13.5px;color:var(--text-sec);line-height:1.55;flex:1;margin:0}
+  .maker-links{display:flex;gap:8px;flex-wrap:wrap}
+  .maker-links a{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--text-sec);border:1px solid var(--border-hi);border-radius:999px;padding:6px 12px;transition:border-color .2s,color .2s}
+  .maker-links a:hover{color:var(--text);border-color:var(--accent)}
+  .maker-links svg{width:14px;height:14px}
+  .makers-contact{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;margin-top:30px;font-size:14px;color:var(--text-sec)}
+  .makers-contact a{display:inline-flex;align-items:center;gap:7px;font-weight:700;color:var(--accent-hi);border:1px solid var(--accent-soft);background:var(--accent-soft);border-radius:999px;padding:8px 15px}
+  .makers-contact svg{width:16px;height:16px}
+</style>
+<section class="makers section" id="equipo">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="eyebrow center">Quién está detrás</span>
+      <h2 class="sec-title">Hecho por <span class="display" style="font-style:italic">desarrolladores</span>, para tu salón</h2>
+      <p class="sec-sub">Mecha lo construimos a mano, pensando en salones de verdad. Y seguimos: estamos <strong>totalmente abiertos a cualquier sugerencia</strong>. Somos desarrolladores de software — si echas algo en falta o lo quieres a tu manera, <strong>nos lo dices y lo hacemos</strong>.</p>
+    </div>
+    <div class="makers-grid reveal">
+      <div class="maker">
+        <div class="maker-top"><span class="maker-av">CO</span><div class="maker-id"><div class="nm">Carlos Ocaña Martínez</div><div class="rl">Producto · Frontend / UX</div></div></div>
+        <p>Diseño y experiencia de Mecha: que todo se entienda a la primera y dé gusto usarlo.</p>
+        <div class="maker-links"><a href="#TODO-linkedin-carlos" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H22.4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.52-2.3 3.1V21H10z"/></svg>LinkedIn</a></div>
+      </div>
+      <div class="maker">
+        <div class="maker-top"><span class="maker-av">AI</span><div class="maker-id"><div class="nm">Alexandro Iscrulescu</div><div class="rl">Backend · Datos</div></div></div>
+        <p>El motor de Mecha: base de datos, seguridad y todo lo que hace que funcione sin fallar.</p>
+        <div class="maker-links"><a href="#TODO-linkedin-alexandro" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H22.4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.52-2.3 3.1V21H10z"/></svg>LinkedIn</a></div>
+      </div>
+      <div class="maker">
+        <div class="maker-top"><span class="maker-av">JS</span><div class="maker-id"><div class="nm">Jose Suárez</div><div class="rl">Producto · Sector salón</div></div></div>
+        <p>El conocimiento del sector: que Mecha encaje con cómo se trabaja de verdad en un salón.</p>
+        <div class="maker-links"><a href="#TODO-linkedin-jose" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H22.4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.52-2.3 3.1V21H10z"/></svg>LinkedIn</a></div>
+      </div>
+    </div>
+    <div class="makers-contact reveal">
+      <span>¿Una idea o una duda? Hablamos:</span>
+      <a href="mailto:TODO@mecha.app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>Email de Mecha</a>
+      <a href="#TODO-instagram-mecha" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><line x1="17.5" y1="6.5" x2="17.5" y2="6.5" /></svg>Instagram</a>
+      <a href="#TODO-linkedin-mecha" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H22.4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.52-2.3 3.1V21H10z"/></svg>LinkedIn</a>
+    </div>
+  </div>
+</section>
 
 <!-- ============ FOOTER ============ -->
 <footer class="footer">

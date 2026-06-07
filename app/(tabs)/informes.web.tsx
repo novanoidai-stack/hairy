@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { NEGOCIO_ID_FALLBACK, CITA_STATUS, HORARIO_APERTURA, HORARIO_CIERRE } from '@/lib/constants';
 import {
@@ -310,6 +311,18 @@ export default function InformesScreen() {
   const [accessDenied, setAccessDenied] = useState(false);
   const [periodo, setPeriodo] = useState<Periodo>('mes');
   const [negocioId, setNegocioId] = useState('');
+  // Demo guiada: enfocar los botones de descarga (PDF/CSV) cuando la guia lo pide.
+  const [demoExport, setDemoExport] = useState(false);
+  const exportRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onDemo = (e: Event) => {
+      const a = (e as CustomEvent).detail?.action;
+      setDemoExport(a === 'informes-export');
+    };
+    window.addEventListener('mecha-demo', onDemo);
+    return () => window.removeEventListener('mecha-demo', onDemo);
+  }, []);
 
   // Data
   const [citas, setCitas] = useState<Cita[]>([]);
@@ -977,6 +990,8 @@ export default function InformesScreen() {
   return (
     <div style={{ flex: 1, height: '100vh', display: 'flex', flexDirection: 'column', background: TOKENS.bg, overflow: 'hidden' }}>
       <style>{ANIMATIONS}</style>
+      {/* Demo guiada: spotlight sobre los botones de descarga PDF/CSV */}
+      <DemoSpotlight targetRef={exportRef} active={demoExport} label="Descarga PDF · CSV" padding={8} radius={12} />
 
       {/* Topbar */}
       <div className="informe-topbar" style={{
@@ -1007,6 +1022,7 @@ export default function InformesScreen() {
             ))}
           </div>
 
+          <div ref={(el) => { exportRef.current = el; }} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {/* Export CSV */}
           <button
             onClick={exportCompleto}
@@ -1039,6 +1055,7 @@ export default function InformesScreen() {
             <Icon name="download" size={14} color="#fff" />
             Descargar PDF
           </button>
+          </div>
         </div>
       </div>
 
