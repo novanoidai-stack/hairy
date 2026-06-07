@@ -11,6 +11,7 @@ export interface UserProfile {
   role: 'owner' | 'admin' | 'employee' | 'recepcion';
   negocio_id: string;
   phone: string;
+  plan?: string;
   avatar_url?: string;
   created_at: string;
   updated_at: string;
@@ -30,6 +31,16 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     .eq('id', user.id)
     .maybeSingle();
   return data;
+}
+
+// Pertenece la cuenta autenticada al equipo Mecha? (RPC is_staff, security definer)
+export async function isStaff(): Promise<boolean> {
+  try {
+    const { data } = await supabase.rpc('is_staff');
+    return data === true;
+  } catch {
+    return false;
+  }
 }
 
 export async function signIn(email: string, password: string) {

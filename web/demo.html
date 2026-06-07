@@ -88,6 +88,20 @@
   .dm-tour-acts .ghost:hover{color:var(--text);border-color:var(--accent)}
   .dm-tour-acts .ghost[disabled]{opacity:.4;pointer-events:none}
 
+  /* ---------- POINTER / FLECHA ---------- */
+  /* Senala la zona del paso actual sobre el software. Es una pista de region
+     (no apunta a un pixel exacto del iframe): el panel que se abre es la senal fuerte. */
+  .dm-point{position:absolute;z-index:8;display:none;align-items:center;gap:7px;pointer-events:none;
+    font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#fff;
+    background:var(--grad);padding:7px 12px 7px 9px;border-radius:999px;box-shadow:0 12px 32px -8px var(--accent-glow);white-space:nowrap;
+    transition:top .45s var(--ease),left .45s var(--ease),right .45s var(--ease),bottom .45s var(--ease),opacity .3s}
+  .dm-point.show{display:inline-flex;animation:dmBob 1.5s ease-in-out infinite}
+  .dm-point .ar{width:15px;height:15px;flex-shrink:0;transition:transform .3s}
+  .dm-point.up .ar{transform:rotate(0)} .dm-point.down .ar{transform:rotate(180deg)}
+  .dm-point.left .ar{transform:rotate(-90deg)} .dm-point.right .ar{transform:rotate(90deg)}
+  @keyframes dmBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  @media(max-width:720px){ .dm-point{font-size:10px;padding:6px 10px 6px 8px} }
+
   /* ---------- ACCESS / INTRO GATE ---------- */
   .dm-gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:22px;
     background:rgba(7,10,20,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -180,6 +194,12 @@
       </div>
     </div>
     <iframe class="dm-appframe" id="appFrame" title="Mecha — software real e interactivo" referrerpolicy="same-origin" style="display:none"></iframe>
+
+    <!-- POINTER / FLECHA: senala la zona del paso actual -->
+    <div class="dm-point" id="point">
+      <svg class="ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+      <span id="pointLabel">Aquí</span>
+    </div>
 
     <!-- GUIDED TOUR -->
     <div class="dm-tour" id="tour">
@@ -313,20 +333,47 @@
     ia:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg>',
     org:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>',
     fich:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>',
-    rep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>'
+    rep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+    nueva:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>',
+    avisos:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>'
   };
+  // Cada paso lleva el iframe a una pantalla (route) y, si toca, abre un panel
+  // real (action) y coloca una flecha sobre su zona (point).
   var STEPS=[
-    {ic:'agenda',route:'/(tabs)',t:'Tu agenda real',d:'Esta es tu agenda de verdad. Cada columna es un profesional y cada bloque, una cita. Los huecos muertos se marcan solos para que no pierdas tiempo.'},
-    {ic:'clientes',route:'/(tabs)/clientes',t:'Fichas de cliente',d:'Cada cliente guarda su historial: formula de color, alergias, notas y preferencias. Todo a un toque, sin papeles ni libretas.'},
-    {ic:'ia',route:'/(tabs)',t:'Asistente IA por WhatsApp',d:'La IA atiende a tus clientes por WhatsApp, reserva la cita y cobra el deposito por Stripe. Tu solo cortas; ella llena la agenda.'},
-    {ic:'org',route:'/(tabs)',t:'Organizador con IA',d:'Pulsa "Organizar mi dia" y la IA recoloca tus citas para no dejar huecos sueltos. Tambien puedes pedirselo hablando, como a un companero.'},
-    {ic:'fich',route:'/(tabs)/equipo',t:'Fichajes legales',d:'Tu equipo ficha entrada y salida con un clic. Integrado con Elevascore, 100% legal en Espana, con informes listos para descargar.'},
-    {ic:'rep',route:'/(tabs)/informes',t:'Informes claros',d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Sabes como va el salon de un vistazo, sin hojas de calculo.'}
+    {ic:'agenda', route:'/(tabs)', action:'cerrar', point:'grid',
+     t:'Tu agenda real',
+     d:'Cada columna es un profesional y cada bloque, una cita. Los tiempos muertos (un tinte reposando) se marcan solos para que encajes a otra clienta sin pisar a nadie.'},
+    {ic:'nueva', route:'/(tabs)', action:'nueva-cita', point:'nueva',
+     t:'Crear una cita',
+     d:'Esta es la ventana real de nueva cita: clienta, servicio, profesional y hora. Desde la agenda, un clic en cualquier hueco la abre con la hora ya puesta.'},
+    {ic:'avisos', route:'/(tabs)', action:'notificaciones', point:'avisos',
+     t:'Avisos que no se escapan',
+     d:'Citas sin confirmar de las proximas 48 h y los cumpleanos de la semana, juntos. Pulsa cualquiera y la agenda salta a ese dia. Nada se te escapa.'},
+    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', point:'ficha',
+     t:'Fichas de cliente',
+     d:'Esta es una ficha real: formula de color, alergias, historial y preferencias. Todo a un toque, sin papeles ni libretas.'},
+    {ic:'ia', route:'/(tabs)', action:'cerrar', point:null,
+     t:'La IA trabaja por ti',
+     d:'Atiende por WhatsApp, reserva y cobra el deposito; y con "Organizar mi dia" recoloca tus citas para no dejar huecos sueltos. Tu solo cortas.'},
+    {ic:'fich', route:'/(tabs)/equipo', action:'cerrar', point:null,
+     t:'Fichajes legales',
+     d:'Tu equipo ficha entrada y salida con un clic. Integrado con Elevascore, 100% legal en Espana y con informes listos para descargar.'},
+    {ic:'rep', route:'/(tabs)/informes', action:'cerrar', point:null,
+     t:'Informes claros',
+     d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Sabes como va el salon de un vistazo, sin hojas de calculo.'}
   ];
-  var ti=0, tourStarted=false;
+  // Anclas de la flecha: region aproximada + direccion. No es un pixel exacto.
+  var POINTS={
+    grid:  {pos:{top:'34%',left:'26%'}, dir:'up',    label:'Tu agenda'},
+    nueva: {pos:{top:'16%',left:'46%'}, dir:'down',  label:'Nueva cita'},
+    avisos:{pos:{top:'62px',right:'92px'}, dir:'up', label:'Avisos'},
+    ficha: {pos:{top:'42%',right:'24%'}, dir:'right',label:'Ficha real'}
+  };
+  var ti=0, tourStarted=false, stepTimer=null;
   var tourStep=$('#tourStep'), tourSkip=$('#tourSkip'), tourIc=$('#tourIc'),
       tourTitle=$('#tourTitle'), tourText=$('#tourText'), tourDots=$('#tourDots'),
       tourPrev=$('#tourPrev'), tourNext=$('#tourNext');
+  var point=$('#point'), pointLabel=$('#pointLabel');
 
   STEPS.forEach(function(_,i){ var d=document.createElement('span'); if(i===0)d.className='on'; tourDots.appendChild(d); });
 
@@ -343,6 +390,31 @@
     }catch(e){}
   }
 
+  // Pide a la app que abra/cierre un panel real (nueva cita, ficha, avisos).
+  // _layout reemite el mensaje como CustomEvent y cada pantalla reacciona.
+  function demoAction(action){
+    if(preview||!action) return;
+    try{
+      if(frame.contentWindow){
+        frame.contentWindow.postMessage({ type:'mecha-demo', action:action }, location.origin);
+      }
+    }catch(e){}
+  }
+
+  // Coloca la flecha sobre la zona del paso (o la oculta si no hay ancla).
+  function setPointer(name){
+    point.className='dm-point';
+    var p=name&&POINTS[name];
+    if(!p){ point.style.display='none'; return; }
+    point.style.display=''; // limpia el none en linea de un setPointer(null) previo
+    point.style.top    = p.pos.top    || '';
+    point.style.bottom = p.pos.bottom || '';
+    point.style.left   = p.pos.left   || '';
+    point.style.right  = p.pos.right  || '';
+    pointLabel.textContent=p.label;
+    point.classList.add(p.dir, 'show');
+  }
+
   function renderStep(){
     var s=STEPS[ti];
     tourStep.textContent='Paso '+(ti+1)+' de '+STEPS.length;
@@ -352,10 +424,21 @@
     Array.prototype.forEach.call(tourDots.children,function(d,i){ d.classList.toggle('on', i===ti); });
     tourPrev.disabled = ti===0;
     tourNext.textContent = ti===STEPS.length-1 ? 'Entendido' : 'Siguiente';
+
+    // 1) cerrar lo que abrio el paso anterior  2) navegar a la pantalla del paso
+    demoAction('cerrar');
+    setPointer(null);
     navFrame(s.route);
+    // 3) dar un respiro para montar/cargar la pantalla y entonces abrir el panel
+    //    real y colocar la flecha. La ficha tolera datos tardios por su lado.
+    if(stepTimer) clearTimeout(stepTimer);
+    stepTimer=setTimeout(function(){
+      if(s.action && s.action!=='cerrar') demoAction(s.action);
+      setPointer(s.point);
+    }, 340);
   }
   function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; renderStep(); tour.classList.add('show'); }
-  function closeTour(){ tour.classList.remove('show'); }
+  function closeTour(){ tour.classList.remove('show'); setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); }
   tourNext.addEventListener('click',function(){ if(ti<STEPS.length-1){ ti++; renderStep(); } else { closeTour(); } });
   tourPrev.addEventListener('click',function(){ if(ti>0){ ti--; renderStep(); } });
   tourSkip.addEventListener('click',closeTour);

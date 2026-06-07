@@ -613,3 +613,24 @@ body.no-glow .bg::before,body.no-glow .vis-glow,body.no-glow .integ-box::before{
   .fnote .ft{font-size:14px}
   .fnote .arrow{display:none}
 }
+
+/* ============================================================
+   SPECS — full specification sheet
+   ============================================================ */
+.specs{padding:96px 0}
+.specs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:38px}
+.spec-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;transition:transform .3s var(--ease),border-color .3s}
+.spec-card:hover{transform:translateY(-4px);border-color:var(--border-hi)}
+.spec-card-h{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.spec-ic{flex-shrink:0;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi)}
+.spec-ic svg{width:21px;height:21px}
+.spec-card-h h4{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.spec-list{display:flex;flex-direction:column;gap:11px}
+.spec-list li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:var(--text-sec);list-style:none}
+.spec-list .ck{flex-shrink:0;width:19px;height:19px;border-radius:6px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi);margin-top:1px}
+.spec-list .ck svg{width:12px;height:12px}
+.specs-foot{text-align:center;margin-top:32px;font-size:13.5px;color:var(--text-ter)}
+.specs-foot a{color:var(--accent-hi);text-decoration:none;font-weight:600}
+.specs-foot a:hover{text-decoration:underline}
+@media(max-width:920px){.specs-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.specs-grid{grid-template-columns:1fr}.specs{padding:64px 0}}
