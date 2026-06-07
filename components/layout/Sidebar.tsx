@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
-import { getUserProfile, can, type UserProfile, type Capability } from '@/lib/auth';
+import { getUserProfile, can, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
 
 const tokens = DESIGN_TOKENS;
 
@@ -97,6 +97,17 @@ export function Sidebar() {
   };
 
   const webTitle = (label: string) => (collapsed ? ({ title: label } as any) : {});
+
+  // Cuenta real (la que tiene sesion), no un placeholder.
+  const fullName = [profile?.nombre, profile?.apellido].filter(Boolean).join(' ').trim();
+  const accountName = fullName || 'Mi cuenta';
+  const salonName = (profile?.nombre_negocio || '').trim();
+  const roleText = profile ? roleLabel(profile) : '';
+  const accountSubtitle = [salonName, roleText].filter(Boolean).join(' · ');
+  const accountInitials = fullName
+    ? fullName.split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2)
+    : '';
+  const accountTitle = accountSubtitle ? `${accountName} · ${accountSubtitle}` : accountName;
 
   return (
     <View style={[s.sidebar, collapsed && s.sidebarCollapsed]}>
@@ -233,17 +244,17 @@ export function Sidebar() {
                 setAccountHovered(false);
                 Animated.timing(accountScaleAnim, { toValue: 1, duration: HOVER_DURATION, useNativeDriver: true }).start();
               },
-              ...webTitle('Rosa Mendoza · Salón Bonita')
+              ...webTitle(accountTitle)
             } as any}
           >
             <View style={s.accountAvatar}>
-              <TText style={s.accountInitial}>RM</TText>
+              <TText style={s.accountInitial}>{accountInitials}</TText>
             </View>
             {!collapsed && (
               <>
                 <View style={{ flex: 1 }}>
-                  <TText style={s.accountName}>Rosa Mendoza</TText>
-                  <TText style={s.accountRole}>Salón Bonita · Admin</TText>
+                  <TText style={s.accountName} numberOfLines={1}>{accountName}</TText>
+                  {accountSubtitle ? <TText style={s.accountRole} numberOfLines={1}>{accountSubtitle}</TText> : null}
                 </View>
                 <Ionicons name="chevron-forward" size={14} color={tokens.textTertiary} />
               </>

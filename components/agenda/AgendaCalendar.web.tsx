@@ -126,6 +126,7 @@ const generarSlotsHorarios = () => {
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
   const icons: any = {
     bell: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+    cake: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3M12 8v3M17 8v3"/><path d="M7 4h.01M12 4h.01M17 4h.01"/></svg>`,
     calendar: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>`,
     plus: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
     chevronLeft: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>`,
@@ -152,7 +153,9 @@ export default function AgendaCalendar() {
   const [showNewCita, setShowNewCita] = useState(false);
   const [showEditCita, setShowEditCita] = useState(false);
   const [selectedCitaEdit, setSelectedCitaEdit] = useState<any>(null);
-  const [notifications, setNotifications] = useState(0);
+  // Prellenado al crear cita desde un clic en un hueco de la rejilla (hora + profesional)
+  const [newCitaPrefill, setNewCitaPrefill] = useState<{ hora?: string; profId?: string } | null>(null);
+  const [showNotif, setShowNotif] = useState(false);
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   const [citaAddonsMap, setCitaAddonsMap] = useState<Record<string, any[]>>({});
   const [citasVencidas, setCitasVencidas] = useState<Cita[]>([]);
@@ -188,7 +191,7 @@ export default function AgendaCalendar() {
             .eq('negocio_id', negocioId)
             .eq('oculta_en_calendario', false),
           supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min').eq('negocio_id', negocioId),
-          supabase.from('clientes').select('id, nombre, telefono, alergias').eq('negocio_id', negocioId),
+          supabase.from('clientes').select('id, nombre, telefono, alergias, fecha_nacimiento').eq('negocio_id', negocioId),
           supabase.from('bloqueos_profesional').select('*').eq('negocio_id', negocioId),
           supabase.from('cita_addons').select('cita_id, service_addons(nombre)'),
         ]);
@@ -209,7 +212,6 @@ export default function AgendaCalendar() {
           addonMap[row.cita_id].push(row);
         }
         setCitaAddonsMap(addonMap);
-        setNotifications(0);
         setLoading(false);
       } catch (error) {
         console.error('Error cargando datos:', error);
@@ -218,6 +220,30 @@ export default function AgendaCalendar() {
     }
     cargar();
   }, [refreshTrigger]);
+
+  // Demo guiada: la guia de demo.html pide abrir paneles reales (nueva cita,
+  // notificaciones) via CustomEvent reemitido por _layout. Cerramos lo anterior
+  // antes de abrir lo nuevo para que los paneles no se amontonen.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onDemo = (e: Event) => {
+      const action = (e as CustomEvent).detail?.action;
+      if (action === 'nueva-cita') {
+        setShowNotif(false);
+        setNewCitaPrefill(null);
+        setShowNewCita(true);
+      } else if (action === 'notificaciones') {
+        setShowNewCita(false);
+        setShowNotif(true);
+      } else if (action === 'cerrar') {
+        setShowNewCita(false);
+        setShowNotif(false);
+        setNewCitaPrefill(null);
+      }
+    };
+    window.addEventListener('mecha-demo', onDemo);
+    return () => window.removeEventListener('mecha-demo', onDemo);
+  }, []);
 
   useEffect(() => {
     function checkVencidas() {
@@ -330,14 +356,39 @@ export default function AgendaCalendar() {
   }, [searchQuery, citas, clientes, servicios, profesionales]);
 
   // Citas en proximas 48h sin confirmar por el cliente (excluye canceladas)
-  const sinConfirmar48h = useMemo(() => {
+  const sinConfirmarList = useMemo(() => {
     const ahora = Date.now();
-    return citas.filter((c: any) => {
-      const ts = new Date(c.inicio).getTime();
-      const horas = (ts - ahora) / 3600000;
-      return horas > 0 && horas <= 48 && !c.confirmada_cliente && c.estado === CITA_STATUS.CONFIRMADA;
-    }).length;
+    return citas
+      .filter((c: any) => {
+        const ts = new Date(c.inicio).getTime();
+        const horas = (ts - ahora) / 3600000;
+        return horas > 0 && horas <= 48 && !c.confirmada_cliente && c.estado === CITA_STATUS.CONFIRMADA;
+      })
+      .sort((a: any, b: any) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
   }, [citas]);
+  const sinConfirmar48h = sinConfirmarList.length;
+
+  // Cumpleanos en los proximos 7 dias (misma logica que la ficha de cliente).
+  // Cada cliente con fecha_nacimiento valida cuenta una vez, ordenado por cercania.
+  const cumplesProximos = useMemo(() => {
+    const hoy = new Date();
+    const hoy0 = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime();
+    const out: any[] = [];
+    clientes.forEach((cl: any) => {
+      if (!cl.fecha_nacimiento) return;
+      const fn = new Date(cl.fecha_nacimiento);
+      if (isNaN(fn.getTime())) return;
+      let next = new Date(hoy.getFullYear(), fn.getMonth(), fn.getDate());
+      let diff = Math.ceil((next.getTime() - hoy0) / 86400000);
+      if (diff < 0) {
+        next = new Date(hoy.getFullYear() + 1, fn.getMonth(), fn.getDate());
+        diff = Math.ceil((next.getTime() - hoy0) / 86400000);
+      }
+      if (diff >= 0 && diff <= 7) out.push({ id: cl.id, nombre: cl.nombre, fecha: next, diff });
+    });
+    return out.sort((a, b) => a.diff - b.diff);
+  }, [clientes]);
+  const totalAvisos = sinConfirmar48h + cumplesProximos.length;
 
   const servicioMap = useMemo(() => {
     const map = new Map(servicios.map((s) => [s.id, s]));
@@ -354,12 +405,10 @@ export default function AgendaCalendar() {
     return map;
   }, [profesionales]);
 
-  const ingresosDia = useMemo(() => {
-    return citasHoy.reduce((sum, c) => {
-      const srv = servicioMap.get(c.servicio_id);
-      return sum + (srv?.precio || 0);
-    }, 0);
-  }, [citasHoy, servicioMap]);
+  const confirmadasHoy = useMemo(
+    () => citasHoy.filter((c: any) => c.estado === CITA_STATUS.CONFIRMADA).length,
+    [citasHoy]
+  );
 
   // RN-AG-073-074: metricas de aprovechamiento de tiempos muertos por profesional
   const reposoUtilMap = useMemo(() => {
@@ -444,7 +493,7 @@ export default function AgendaCalendar() {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, minWidth: 0 }}>
           <h1 style={{ margin: 0, fontSize: 19, fontWeight: 700, letterSpacing: -0.3 }}>Agenda</h1>
           <p style={{ margin: 0, fontSize: 12.5, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).charAt(0).toUpperCase() + selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).slice(1)} · {totalCitasHoy} citas · {citasHoy.filter((c) => c.estado === CITA_STATUS.CONFIRMADA).length} confirmadas
+            {selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).charAt(0).toUpperCase() + selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).slice(1)} · {totalCitasHoy} citas · {confirmadasHoy} confirmadas
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -467,10 +516,86 @@ export default function AgendaCalendar() {
               {sinConfirmar48h} sin confirmar
             </div>
           )}
-          <button className="m-btn-icon" style={{ padding: 7, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 9, color: TOKENS.textSec, position: 'relative', cursor: 'pointer', width: 33, height: 33, display: 'grid', placeItems: 'center' }}>
-            <Icon name="bell" size={18} color={TOKENS.textSec} />
-            {notifications > 0 && <span style={{ position: 'absolute', top: 5, right: 5, width: 7, height: 7, background: TOKENS.danger, borderRadius: 999, boxShadow: `0 0 0 2px ${TOKENS.bg}`, animation: 'pulse 2s infinite' }} />}
-          </button>
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowNotif((v) => !v)}
+              title="Avisos"
+              className="m-btn-icon"
+              style={{ padding: 7, background: showNotif ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${showNotif ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, borderRadius: 9, color: TOKENS.textSec, position: 'relative', cursor: 'pointer', width: 33, height: 33, display: 'grid', placeItems: 'center' }}
+            >
+              <Icon name="bell" size={18} color={showNotif ? TOKENS.primaryHi : TOKENS.textSec} />
+              {totalAvisos > 0 && <span style={{ position: 'absolute', top: 5, right: 5, width: 7, height: 7, background: sinConfirmar48h > 0 ? TOKENS.danger : '#fb923c', borderRadius: 999, boxShadow: `0 0 0 2px ${TOKENS.bg}`, animation: 'pulse 2s infinite' }} />}
+            </button>
+            {showNotif && (
+              <>
+                {/* Backdrop para cerrar al hacer clic fuera */}
+                <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 90 }} />
+                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 320, maxHeight: 420, overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(0,0,0,0.45)', zIndex: 100, padding: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>Avisos</span>
+                    {totalAvisos > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: sinConfirmar48h > 0 ? '#ef4444' : '#fb923c', background: sinConfirmar48h > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(251,146,60,0.14)', borderRadius: 999, padding: '2px 8px' }}>{totalAvisos}</span>}
+                  </div>
+                  {reposoGlobal && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.22)', borderRadius: 10, marginBottom: 10 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: 999, background: '#f59e0b', flexShrink: 0 }} />
+                      <span style={{ fontSize: 11.5, color: '#f59e0b', fontWeight: 600 }}>{reposoGlobal.pct}% del reposo aprovechado hoy</span>
+                    </div>
+                  )}
+                  {totalAvisos === 0 ? (
+                    <div style={{ fontSize: 12, color: TOKENS.textTer, textAlign: 'center', padding: '18px 0' }}>No hay avisos pendientes</div>
+                  ) : (
+                    <>
+                      {sinConfirmar48h > 0 && (
+                        <>
+                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6 }}>Sin confirmar (proximas 48h)</div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {sinConfirmarList.slice(0, 8).map((c: any) => {
+                              const ini = new Date(c.inicio);
+                              const cli = clienteMap?.get(c.cliente_id);
+                              return (
+                                <button
+                                  key={c.id}
+                                  onClick={() => { const d = new Date(c.inicio); setSelectedDate(d.getDate()); setCurrentMonth(new Date(d.getFullYear(), d.getMonth())); setShowNotif(false); }}
+                                  style={{ textAlign: 'left', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2 }}
+                                >
+                                  <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>{cli?.nombre || 'Cliente'}</span>
+                                  <span style={{ fontSize: 11, color: TOKENS.textSec }}>{ini.toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })} · {ini.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                      {cumplesProximos.length > 0 && (
+                        <>
+                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: sinConfirmar48h > 0 ? 12 : 0 }}>Cumpleanos (proximos 7 dias)</div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {cumplesProximos.slice(0, 8).map((b: any) => {
+                              const fechaFmt = b.fecha.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' });
+                              const cuando = b.diff === 0 ? 'Hoy' : b.diff === 1 ? 'Manana' : `En ${b.diff} dias`;
+                              return (
+                                <button
+                                  key={b.id}
+                                  onClick={() => { setSelectedDate(b.fecha.getDate()); setCurrentMonth(new Date(b.fecha.getFullYear(), b.fecha.getMonth())); setShowNotif(false); }}
+                                  style={{ textAlign: 'left', background: TOKENS.bgCard, border: `1px solid rgba(251,146,60,0.30)`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9 }}
+                                >
+                                  <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 8, background: 'rgba(251,146,60,0.14)' }}><Icon name="cake" size={14} color="#fb923c" /></span>
+                                  <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                                    <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.nombre}</span>
+                                    <span style={{ fontSize: 11, color: '#fb923c', fontWeight: 600 }}>{cuando} · {fechaFmt}</span>
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
           <button className="m-btn-secondary" onClick={handleToday} style={{ padding: '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="calendar" size={15} color={TOKENS.text} />
             Hoy
@@ -484,7 +609,7 @@ export default function AgendaCalendar() {
             <Icon name="x" size={15} color="#ef4444" />
             Cerrar salon
           </button>
-          <button className="m-btn-primary" onClick={() => setShowNewCita(true)} style={{ padding: '7px 13px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button className="m-btn-primary" onClick={() => { setNewCitaPrefill(null); setShowNewCita(true); }} style={{ padding: '7px 13px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="plus" size={15} color="#fff" />
             Nueva cita
           </button>
@@ -815,7 +940,7 @@ export default function AgendaCalendar() {
               <StatCard label="HOY" value={totalCitasHoy} sub="citas" tone={TOKENS.primary} />
             </div>
             <div style={{ animation: 'slideInUp 0.5s ease 0.2s both' }}>
-              <StatCard label="INGRESOS" value={`${ingresosDia}€`} sub="estimado día" tone={TOKENS.success} />
+              <StatCard label="CONFIRMADAS" value={confirmadasHoy} sub={`de ${totalCitasHoy} hoy`} tone={TOKENS.success} />
             </div>
             <div style={{ animation: 'slideInUp 0.5s ease 0.3s both' }}>
               <StatCard label="MES" value={`${totalCitasMes}`} sub={`citas / ${OCUPACION_MAX_PER_MES}`} tone={TOKENS.warning} progress={ocupacionMes / 100} />
@@ -932,7 +1057,7 @@ export default function AgendaCalendar() {
                       {selectedDateObj.toDateString() === today.toDateString() && <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.warning }}>HOY</span>}
                     </div>
                     <div style={{ fontSize: 12.5, color: TOKENS.textSec, marginTop: 2 }}>
-                      {totalCitasHoy} citas programadas · {ingresosDia}€ estimados
+                      {totalCitasHoy} citas programadas · {confirmadasHoy} confirmadas
                     </div>
                   </div>
                 </div>
@@ -946,7 +1071,7 @@ export default function AgendaCalendar() {
                   {railCollapsed ? 'Salir' : 'Pantalla completa'}
                 </button>
               </div>
-              <DayTimeline citas={filtered} profesionales={visibleProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} />
+              <DayTimeline citas={filtered} profesionales={visibleProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={railCollapsed} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} />
             </>
           )}
           {view === 'week' && (
@@ -983,7 +1108,7 @@ export default function AgendaCalendar() {
         </div>
       </div>
 
-      {showNewCita && <NewCitaModal onClose={() => setShowNewCita(false)} onSaved={(nuevaCita: any) => { if (nuevaCita) setCitas(prev => [...prev, nuevaCita]); setShowNewCita(false); }} selectedDate={selectedDateObj} />}
+      {showNewCita && <NewCitaModal onClose={() => { setShowNewCita(false); setNewCitaPrefill(null); }} onSaved={(nuevaCita: any) => { if (nuevaCita) setCitas(prev => [...prev, nuevaCita]); setShowNewCita(false); setNewCitaPrefill(null); }} selectedDate={selectedDateObj} prefillHora={newCitaPrefill?.hora} prefillProf={newCitaPrefill?.profId} />}
       {showClienteHistorial && <ClienteHistorialModal cliente={showClienteHistorial} onClose={() => setShowClienteHistorial(null)} citas={citas} servicioMap={servicioMap} profesionalMap={profesionalMap} />}
       {showEditCita && selectedCitaEdit && (
         <DetalleCitaModal
@@ -1430,7 +1555,7 @@ const BLOQUEO_LABELS: Record<string, string> = {
   descanso:   'Descanso',
 };
 
-function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial }: any) {
+function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial, vivid = false, onCreateSlot }: any) {
   const HOURS = [];
   for (let h = HORARIO_APERTURA.horas; h < HORARIO_CIERRE.horas; h++) HOURS.push(h);
   const ROW_H = 64;
@@ -1697,7 +1822,25 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
               {h}:00
             </div>
             {profesionales.map((p: any) => (
-              <div key={`${h}-${p.id}`} style={{ borderLeft: `1px solid rgba(148,163,184,0.05)` }} />
+              <div
+                key={`${h}-${p.id}`}
+                onClick={(e) => {
+                  if (!onCreateSlot) return;
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const minute = (e.clientY - rect.top) > rect.height / 2 ? 30 : 0;
+                  onCreateSlot({ hora: `${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`, profId: p.id });
+                }}
+                title="Crear cita en este hueco"
+                style={{
+                  borderLeft: `1px solid rgba(148,163,184,0.05)`,
+                  // Linea de media hora: separador tenue a mitad del slot de una hora
+                  backgroundImage: `linear-gradient(to bottom, transparent calc(50% - 0.5px), rgba(148,163,184,0.08) calc(50% - 0.5px), rgba(148,163,184,0.08) calc(50% + 0.5px), transparent calc(50% + 0.5px))`,
+                  cursor: onCreateSlot ? 'pointer' : 'default',
+                  transition: 'background-color 0.12s ease',
+                }}
+                onMouseEnter={(e) => { if (onCreateSlot) e.currentTarget.style.backgroundColor = 'rgba(244,80,30,0.06)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+              />
             ))}
           </div>
         ))}
@@ -1713,6 +1856,12 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
         }}>
           {profesionales.map((prof: any) => {
             const profColor = prof.color || TOKENS.primary;
+            // Pantalla completa (vivid): mismo tono, mayor saturacion para que las citas resalten
+            const citaBg = vivid ? `linear-gradient(180deg, ${profColor}40, ${profColor}28)` : `linear-gradient(180deg, ${profColor}28, ${profColor}18)`;
+            const citaBorder = vivid ? `${profColor}88` : `${profColor}55`;
+            const citaBorderHover = vivid ? `${profColor}cc` : `${profColor}99`;
+            const citaShadow = vivid ? `0 8px 10px ${profColor}38` : `0 8px 8px ${profColor}25`;
+            const citaShadowHover = vivid ? `0 12px 16px ${profColor}55` : `0 12px 12px ${profColor}45`;
             const profCitas = citasWithLanes.filter((c: any) => c.profesional_id === prof.id);
             return (
               <div key={prof.id} style={{ position: 'relative', pointerEvents: 'none' }}>
@@ -1790,8 +1939,8 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         height,
                         boxSizing: 'border-box',
                         pointerEvents: 'auto',
-                        background: cancelada ? 'linear-gradient(180deg, #3a3a3a18, #2a2a2a10)' : `linear-gradient(180deg, ${profColor}28, ${profColor}18)`,
-                        border: cancelada ? '1px solid #55555540' : `1px solid ${profColor}55`,
+                        background: cancelada ? 'linear-gradient(180deg, #3a3a3a18, #2a2a2a10)' : citaBg,
+                        border: cancelada ? '1px solid #55555540' : `1px solid ${citaBorder}`,
                         borderLeft: cancelada ? '3px solid #66666660' : `3px solid ${profColor}`,
                         borderTop: isChained && !cancelada ? `2px solid #e0340e` : undefined,
                         borderRadius: 8,
@@ -1801,7 +1950,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 2,
-                        boxShadow: cancelada ? 'none' : `0 8px 8px ${profColor}25`,
+                        boxShadow: cancelada ? 'none' : citaShadow,
                         transition: drag?.cita.id === cita.id ? 'none' : 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                         transform: 'scale(1)',
                         opacity: cancelada ? 0.45 : (drag?.cita.id === cita.id ? 0.25 : 1),
@@ -1809,14 +1958,14 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                       onMouseDown={(e) => { if (!cancelada) startDrag(cita, e); }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'scale(1.05)';
-                        e.currentTarget.style.boxShadow = cancelada ? 'none' : `0 12px 12px ${profColor}45`;
-                        e.currentTarget.style.borderColor = cancelada ? '#77777770' : `${profColor}99`;
+                        e.currentTarget.style.boxShadow = cancelada ? 'none' : citaShadowHover;
+                        e.currentTarget.style.borderColor = cancelada ? '#77777770' : citaBorderHover;
                         if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #e0340e';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = cancelada ? 'none' : `0 8px 8px ${profColor}25`;
-                        e.currentTarget.style.borderColor = cancelada ? '#55555540' : `${profColor}55`;
+                        e.currentTarget.style.boxShadow = cancelada ? 'none' : citaShadow;
+                        e.currentTarget.style.borderColor = cancelada ? '#55555540' : citaBorder;
                         if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #e0340e';
                       }}
                     >
@@ -1985,7 +2134,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
   );
 }
 
-function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
+function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf }: any) {
   const { triggerRefresh } = useCalendarRefresh();
   const [clientes, setClientes] = useState<any[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
@@ -1993,8 +2142,10 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
   const [citasHoy, setCitasHoy] = useState<any[]>([]);
   const [selectedCliente, setSelectedCliente] = useState('');
   const [selectedServicio, setSelectedServicio] = useState('');
-  const [selectedProf, setSelectedProf] = useState('');
+  const [selectedProf, setSelectedProf] = useState(prefillProf || '');
   const [selectedHora, setSelectedHora] = useState<string>('');
+  // Hueco elegido con un clic en la rejilla: se respeta hasta que la cita queda definida
+  const prefillRef = useRef<{ hora?: string } | null>(prefillHora ? { hora: prefillHora } : null);
   const [horaPersonalizada, setHoraPersonalizada] = useState<string>('');
   const [useCustomHora, setUseCustomHora] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -2069,16 +2220,26 @@ function NewCitaModal({ onClose, onSaved, selectedDate }: any) {
 
   // Load per-professional duration override when both prof + service are selected
   useEffect(() => {
-    // Pre-select suggested hora if chaining, otherwise clear
-    const confirmed = citasConfirmadasRef.current;
-    if (confirmed.length > 0) {
-      const lastFin = confirmed[confirmed.length - 1].fin as Date;
-      setSelectedHora(`${String(lastFin.getHours()).padStart(2, '0')}:${String(lastFin.getMinutes()).padStart(2, '0')}`);
-    } else {
+    const pre = prefillRef.current;
+    if (pre?.hora) {
+      // Hueco elegido con un clic: lo fijamos como hora personalizada y lo mantenemos
+      // hasta que el usuario haya elegido tambien servicio (cita ya definida).
+      setUseCustomHora(true);
+      setHoraPersonalizada(pre.hora);
       setSelectedHora('');
+      if (selectedServicio) prefillRef.current = null;
+    } else {
+      // Pre-select suggested hora if chaining, otherwise clear
+      const confirmed = citasConfirmadasRef.current;
+      if (confirmed.length > 0) {
+        const lastFin = confirmed[confirmed.length - 1].fin as Date;
+        setSelectedHora(`${String(lastFin.getHours()).padStart(2, '0')}:${String(lastFin.getMinutes()).padStart(2, '0')}`);
+      } else {
+        setSelectedHora('');
+      }
+      setHoraPersonalizada('');
+      setUseCustomHora(false);
     }
-    setHoraPersonalizada('');
-    setUseCustomHora(false);
     if (!selectedProf || !selectedServicio) {
       setDuracionOverride(null);
       setDuracionActivaCustom(null);
@@ -3730,12 +3891,16 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
   })();
 
   const estadoMeta: any = {
+    pendiente:                   { label: 'Pendiente',       color: '#e08a00', soft: 'rgba(224,138,0,0.16)' },
     [CITA_STATUS.CONFIRMADA]:    { label: 'Confirmada',      color: TOKENS.success, soft: `rgba(16,185,129,0.12)` },
     [CITA_STATUS.COMPLETADA]:    { label: 'Completada',      color: '#22c55e', soft: 'rgba(34,197,94,0.12)' },
     [CITA_STATUS.CANCELADA]:     { label: 'Cancelada',       color: TOKENS.danger, soft: 'rgba(239,68,68,0.12)' },
     [CITA_STATUS.NO_PRESENTADA]: { label: 'No presentada',  color: '#ef4444', soft: 'rgba(239,68,68,0.15)' },
   };
-  const meta = estadoMeta[estado];
+  // La cita puede traer un estado que este mapa no conoce (lo escribe la capa de IA
+  // o una version anterior). Sin fallback, meta.color/meta.label reventaba la vista
+  // (pantalla en blanco) al abrir el detalle. Mostramos el estado en crudo, neutro.
+  const meta = estadoMeta[estado] || { label: estado || 'Sin estado', color: TOKENS.textSec, soft: 'rgba(148,163,184,0.12)' };
 
   const serviciosFiltrados = servicios.filter((s: any) =>
     norm(s.nombre).includes(norm(qSrv))

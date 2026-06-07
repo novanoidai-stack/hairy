@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 // @ts-ignore
 import { createPortal } from 'react-dom';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -234,6 +234,9 @@ export default function ClientesWeb() {
   const [activeTab, setActiveTab] = useState<Tab>('resumen');
   const [activeTagFilter, setActiveTagFilter] = useState<string>('Todos');
   const [panelExpanded, setPanelExpanded] = useState(false);
+  // Demo guiada: si la guia pide abrir una ficha antes de que carguen los clientes,
+  // dejamos la peticion pendiente y la resolvemos en cuanto haya datos.
+  const demoFichaPending = useRef(false);
 
   async function cargar() {
     const profile = await getUserProfile();
@@ -352,6 +355,36 @@ export default function ClientesWeb() {
       setActiveTab('resumen');
     }
   }, [params?.clienteId, clientes]);
+
+  // Demo guiada: abrir/cerrar la ficha de un cliente de ejemplo desde la guia.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onDemo = (e: Event) => {
+      const action = (e as CustomEvent).detail?.action;
+      if (action === 'ficha') {
+        if (clientes.length > 0) {
+          setSelected(clientes[0].id);
+          setActiveTab('resumen');
+        } else {
+          // Aun no hay datos: lo resolvemos cuando lleguen.
+          demoFichaPending.current = true;
+        }
+      } else if (action === 'cerrar') {
+        setSelected(null);
+      }
+    };
+    window.addEventListener('mecha-demo', onDemo);
+    return () => window.removeEventListener('mecha-demo', onDemo);
+  }, [clientes]);
+
+  // Resuelve una peticion de ficha que llego antes de tener clientes cargados.
+  useEffect(() => {
+    if (demoFichaPending.current && clientes.length > 0) {
+      demoFichaPending.current = false;
+      setSelected(clientes[0].id);
+      setActiveTab('resumen');
+    }
+  }, [clientes]);
 
   const c = clientes.find((x) => x.id === selected) || null;
   const alerts = useMemo(() => (c ? computeAlerts(c) : []), [c]);
@@ -495,6 +528,24 @@ export default function ClientesWeb() {
                             <span title={`Alergias: ${alergiasTexto}`} style={{ display: 'inline-block', width: 6, height: 6, borderRadius: 999, background: TOKENS.danger, opacity: 0.7, flexShrink: 0 }} />
                           );
                         })()}
+                        {(() => {
+                          // Cumpleanos proximo (proximos 7 dias): mismo criterio que la ficha y los avisos
+                          if (!cl.fecha_nacimiento) return null;
+                          const fn = new Date(cl.fecha_nacimiento);
+                          if (isNaN(fn.getTime())) return null;
+                          const today = new Date();
+                          const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+                          let next = new Date(today.getFullYear(), fn.getMonth(), fn.getDate());
+                          let diff = Math.ceil((next.getTime() - t0) / 86400000);
+                          if (diff < 0) { next = new Date(today.getFullYear() + 1, fn.getMonth(), fn.getDate()); diff = Math.ceil((next.getTime() - t0) / 86400000); }
+                          if (diff < 0 || diff > 7) return null;
+                          const txt = diff === 0 ? 'Cumple hoy' : diff === 1 ? 'Cumple mañana' : `Cumple en ${diff} días`;
+                          return (
+                            <span title={txt} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: 999, background: 'rgba(251,146,60,0.14)', flexShrink: 0 }}>
+                              <Icon name="cake" size={11} color="#fb923c" />
+                            </span>
+                          );
+                        })()}
                       </div>
                       <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2 }}>{cl.telefono || cl.email || '—'}</div>
                     </div>
@@ -535,13 +586,16 @@ export default function ClientesWeb() {
                 : '—';
               const desdeStr = c.primeraVisita
                 ? c.primeraVisita.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-                : '—';
+                : null;
               return (
                 <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: panelExpanded ? 22 : 18, marginBottom: 14, boxShadow: '0 1px 3px rgba(40,30,24,0.05)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <Avatar name={c.nombre} size={panelExpanded ? 66 : 56} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: panelExpanded ? 23 : 20, fontWeight: 700, color: TOKENS.text, letterSpacing: -0.4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.nombre}</div>
+                      <div style={{ fontSize: 12, color: TOKENS.textTer, fontWeight: 500, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {desdeStr ? `Cliente desde ${desdeStr}` : 'Cliente nuevo'}
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
                         <Pill color={tagColor}>
                           <Icon name="star" size={11} color={tagColor} />
@@ -558,7 +612,7 @@ export default function ClientesWeb() {
                     <ContactRow icon="phone" label="Teléfono" value={c.telefono || '—'} accent={c.telefono ? TOKENS.primary : undefined} />
                     <ContactRow icon="mail" label="Email" value={c.email || '—'} accent={c.email ? TOKENS.cyan : undefined} />
                     <ContactRow icon="cake" label="Cumpleaños" value={cumpleStr} accent={cumpleStr !== '—' ? '#fb923c' : undefined} />
-                    <ContactRow icon="calendar" label="Cliente desde" value={desdeStr} accent={desdeStr !== '—' ? TOKENS.success : undefined} />
+                    <ContactRow icon="user" label="Prof. habitual" value={c.profHabitual || '—'} accent={c.profHabitual ? TOKENS.violet : undefined} />
                   </div>
                 </div>
               );

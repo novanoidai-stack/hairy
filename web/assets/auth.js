@@ -193,6 +193,53 @@
     } catch (e) { return false; }
   }
 
+  // Lee el perfil de la cuenta autenticada (su propia fila en profiles).
+  // Devuelve el objeto profile o null si no hay sesion / no existe fila.
+  // Campos utiles: plan, negocio_id, nombre, nombre_negocio, telefono, codigo_postal.
+  async function getProfile() {
+    try {
+      var s = await client.auth.getUser();
+      var uid = s && s.data && s.data.user && s.data.user.id;
+      if (!uid) return null;
+      var res = await client
+        .from('profiles')
+        .select('id, plan, negocio_id, nombre, nombre_negocio, telefono, codigo_postal')
+        .eq('id', uid)
+        .maybeSingle();
+      if (res.error) return null;
+      return res.data || null;
+    } catch (e) { return null; }
+  }
+
+  // Actualiza campos del perfil propio (RLS: "Users can update own profile").
+  // fields p.ej. { nombre_negocio, telefono, codigo_postal }. Devuelve { error, data }.
+  async function updateProfile(fields) {
+    try {
+      var s = await client.auth.getUser();
+      var uid = s && s.data && s.data.user && s.data.user.id;
+      if (!uid) return { error: { message: 'no_session' }, data: null };
+      var res = await client
+        .from('profiles')
+        .update(fields)
+        .eq('id', uid)
+        .select()
+        .maybeSingle();
+      return { error: res.error || null, data: res.data || null };
+    } catch (e) {
+      return { error: e, data: null };
+    }
+  }
+
+  // La cuenta tiene el perfil minimo para entrar al software?
+  // Pedimos nombre del negocio + telefono + codigo postal (lo que falta tras Google).
+  function profileComplete(p) {
+    if (!p) return false;
+    var hasNeg = !!(p.nombre_negocio && String(p.nombre_negocio).trim());
+    var hasTel = !!(p.telefono && String(p.telefono).trim());
+    var hasCp = !!(p.codigo_postal && String(p.codigo_postal).trim());
+    return hasNeg && hasTel && hasCp;
+  }
+
   // Consume una visita de demo (cuenta free: 3 maximo). Devuelve el estado:
   // { allowed, remaining, limit, used, plan, reason } o { allowed:false, reason:'error' }.
   async function useDemoVisit() {
@@ -229,6 +276,9 @@
     sendReset: sendReset,
     updatePassword: updatePassword,
     isStaff: isStaff,
+    getProfile: getProfile,
+    updateProfile: updateProfile,
+    profileComplete: profileComplete,
     useDemoVisit: useDemoVisit,
     demoVisitsStatus: demoVisitsStatus,
     goToApp: goToApp

@@ -85,6 +85,24 @@
   .auth-msg.ok{color:var(--accent-hi)}
   .pane{display:none}.pane.on{display:block;animation:fadeUp .35s var(--ease)}
   @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  /* Listado de opciones (chooser staff / pantalla free) */
+  .choice-list{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+  .choice{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:15px;border-radius:14px;border:1px solid var(--border-hi);background:var(--card);transition:border-color .2s,background .2s,transform .15s}
+  .choice:hover{border-color:var(--accent);background:rgba(255,255,255,.05);transform:translateY(-1px)}
+  .choice:disabled{opacity:.55;pointer-events:none}
+  .choice-ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi);flex-shrink:0}
+  .choice-ic svg{width:20px;height:20px}
+  .choice-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .choice-tx strong{font-size:15px;font-weight:700;color:var(--text)}
+  .choice-tx small{font-size:12.5px;color:var(--text-sec);line-height:1.4}
+  .choice-arr{color:var(--text-ter);flex-shrink:0;transition:transform .2s,color .2s}
+  .choice-arr svg{width:18px;height:18px}
+  .choice:hover .choice-arr{color:var(--accent-hi);transform:translateX(3px)}
+  .choice.primary{border-color:transparent;background:var(--grad-soft);box-shadow:0 10px 26px -12px var(--accent-glow)}
+  .choice.primary .choice-ic{background:rgba(255,255,255,.18);color:#fff}
+  .choice.primary .choice-tx strong,.choice.primary .choice-tx small{color:#fff}
+  .choice.primary .choice-tx small{color:rgba(255,255,255,.85)}
+  .choice.primary .choice-arr{color:rgba(255,255,255,.85)}
   @media (max-width:860px){
     .auth{grid-template-columns:1fr}
     .auth-aside{display:none}
@@ -201,6 +219,71 @@
         <p class="legal">Al crear tu cuenta aceptas los <a href="terminos.html">Términos</a> y la <a href="privacidad.html">Política de privacidad</a> de Mecha.</p>
         <p class="auth-foot">¿Ya tienes cuenta? <a href="#" id="goLogin">Inicia sesión</a></p>
       </div>
+
+      <!-- CHOOSER (equipo / staff) -->
+      <div class="pane" id="paneChooser">
+        <h1 class="auth-h">¿Qué quieres hacer?</h1>
+        <p class="auth-p">Tu cuenta de equipo tiene acceso a todo.</p>
+        <div class="choice-list">
+          <button class="choice" type="button" id="chPanel">
+            <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" /><rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" /></svg></span>
+            <span class="choice-tx"><strong>Panel de staff</strong><small>Solicitudes, cuentas y auditorías</small></span>
+            <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
+          </button>
+          <button class="choice" type="button" id="chApp">
+            <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="20" x2="9" y2="9" /></svg></span>
+            <span class="choice-tx"><strong>Entrar al software</strong><small>Tu agenda, clientes y equipo</small></span>
+            <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
+          </button>
+          <button class="choice" type="button" id="chDemo">
+            <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg></span>
+            <span class="choice-tx"><strong>Ver la demo</strong><small>El recorrido guiado del producto</small></span>
+            <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
+          </button>
+        </div>
+        <p class="auth-foot"><a href="#" id="chLogout">Cerrar sesión</a></p>
+      </div>
+
+      <!-- FREE (cuenta gratuita, sin software) -->
+      <div class="pane" id="paneFree">
+        <h1 class="auth-h">Tu cuenta gratuita</h1>
+        <p class="auth-p">Explora Mecha con la demo guiada. Cuando quieras todo el software para tu salón, pídenos acceso y lo activamos.</p>
+        <div class="choice-list">
+          <button class="choice primary" type="button" id="frDemo">
+            <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg></span>
+            <span class="choice-tx"><strong>Ver la demo</strong><small id="frDemoSub">Recorrido guiado del producto</small></span>
+            <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
+          </button>
+          <button class="choice" type="button" id="frRequest">
+            <span class="choice-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg></span>
+            <span class="choice-tx"><strong>Solicitar acceso completo</strong><small>Activamos todo el software para tu salón</small></span>
+            <span class="choice-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></span>
+          </button>
+        </div>
+        <div class="auth-msg" id="freeMsg"></div>
+        <p class="auth-foot"><a href="#" id="frLogout">Cerrar sesión</a></p>
+      </div>
+
+      <!-- COMPLETE (perfil incompleto, p. ej. tras Google) -->
+      <div class="pane" id="paneComplete">
+        <h1 class="auth-h">Completa tu salón</h1>
+        <p class="auth-p">Solo necesitamos un par de datos para preparar tu cuenta.</p>
+        <form onsubmit="return false">
+          <div class="field"><label>Nombre del salón</label>
+            <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg><input type="text" id="cpSalon" placeholder="Studio Norte" autocomplete="organization" /></div>
+          </div>
+          <div class="row-2">
+            <div class="field"><label>Teléfono</label>
+              <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" /></svg><input type="tel" id="cpPhone" placeholder="6·· ··· ···" autocomplete="tel" /></div>
+            </div>
+            <div class="field"><label>Código postal</label>
+              <div class="inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg><input type="text" id="cpCp" placeholder="28010" inputmode="numeric" autocomplete="postal-code" /></div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px" id="cpBtn">Guardar y continuar</button>
+          <div class="auth-msg" id="cpMsg"></div>
+        </form>
+      </div>
     </div>
   </main>
 </div>
@@ -253,21 +336,48 @@
   var api = window.MechaAPI;
   var nextDest = new URLSearchParams(location.search).get('next');
 
-  // Despues de autenticar: si venimos de la demo, vuelve a la demo;
-  // el equipo (staff) va al panel de solicitudes; el resto entra al software.
-  function routeAfterAuth() {
-    if (nextDest === 'demo') { window.location.href = 'demo.html'; return; }
-    if (api && api.isStaff) {
-      api.isStaff().then(function (staff) {
-        if (staff) { window.location.href = 'admin.html'; }
-        else { api.goToApp(); }
-      });
-    } else if (api) {
-      api.goToApp();
-    }
+  var seg = document.querySelector('.seg');
+
+  // Muestra una "pantalla" de la tarjeta. Las post-login (chooser/free/complete)
+  // ocultan el selector iniciar sesion / crear cuenta.
+  function showStage(id) {
+    var postLogin = id === 'paneChooser' || id === 'paneFree' || id === 'paneComplete';
+    if (seg) seg.style.display = postLogin ? 'none' : 'flex';
+    ['paneLogin', 'paneSignup', 'paneChooser', 'paneFree', 'paneComplete'].forEach(function (p) {
+      var el = document.getElementById(p);
+      if (el) el.classList.toggle('on', p === id);
+    });
   }
 
-  // Guarda contra navegaciones dobles (sesion previa + evento SIGNED_IN del SSO).
+  function gotoApp() { if (api && api.goToApp) api.goToApp(); else window.location.href = '/app'; }
+  function gotoDemo() { window.location.href = 'demo.html'; }
+  function gotoAdmin() { window.location.href = 'admin.html'; }
+
+  // Solo 'free' se queda en la pantalla limitada; el resto entra al software.
+  function routeByPlan(profile) {
+    var plan = (profile && profile.plan) ? String(profile.plan).toLowerCase() : 'free';
+    if (plan === 'free') { showStage('paneFree'); initFreePane(); }
+    else { gotoApp(); }
+  }
+
+  // Despues de autenticar: demo -> demo; equipo -> elige; perfil incompleto -> completar;
+  // free -> pantalla limitada; full -> software.
+  function routeAfterAuth() {
+    if (nextDest === 'demo') { gotoDemo(); return; }
+    Promise.resolve(api && api.isStaff ? api.isStaff() : false).then(function (staff) {
+      if (staff) { showStage('paneChooser'); return; }
+      Promise.resolve(api && api.getProfile ? api.getProfile() : null).then(function (profile) {
+        if (api && api.profileComplete && !api.profileComplete(profile)) {
+          prefillComplete(profile);
+          showStage('paneComplete');
+          return;
+        }
+        routeByPlan(profile);
+      });
+    });
+  }
+
+  // Guarda contra aperturas dobles (sesion previa + evento SIGNED_IN del SSO).
   var routed = false;
   function go() { if (routed) return; routed = true; routeAfterAuth(); }
 
@@ -279,6 +389,86 @@
   // Si ya hay sesion activa, enruta segun el tipo de cuenta.
   if (api && api.getSession) {
     api.getSession().then(function (s) { if (s) go(); });
+  }
+
+  // ---- Pantallas post-login (chooser / free / complete) ----
+  function bindClick(id, fn) { var el = document.getElementById(id); if (el) el.addEventListener('click', fn); }
+
+  function doLogout() {
+    if (api && api.signOut) { api.signOut().then(function () { location.reload(); }); }
+    else { location.reload(); }
+  }
+
+  // CHOOSER (equipo)
+  bindClick('chPanel', gotoAdmin);
+  bindClick('chApp', gotoApp);
+  bindClick('chDemo', gotoDemo);
+  bindClick('chLogout', function (e) { e.preventDefault(); doLogout(); });
+
+  // FREE
+  var freeInit = false;
+  function initFreePane() {
+    if (freeInit) return; freeInit = true;
+    if (api && api.demoVisitsStatus) {
+      api.demoVisitsStatus().then(function (st) {
+        var sub = document.getElementById('frDemoSub');
+        if (sub && st && typeof st.remaining === 'number') {
+          sub.textContent = st.remaining > 0
+            ? ('Recorrido guiado · te quedan ' + st.remaining + (st.remaining === 1 ? ' visita' : ' visitas'))
+            : 'Has usado tus visitas de demo';
+        }
+      });
+    }
+  }
+  var freeMsg = document.getElementById('freeMsg');
+  bindClick('frDemo', gotoDemo);
+  bindClick('frLogout', function (e) { e.preventDefault(); doLogout(); });
+  bindClick('frRequest', function () {
+    clearMsg(freeMsg);
+    var btn = document.getElementById('frRequest');
+    if (!api || !api.insertSolicitud) { msg(freeMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
+    if (btn) btn.disabled = true;
+    Promise.resolve(api.getProfile ? api.getProfile() : null).then(function (prof) {
+      var getEmail = (api.client && api.client.auth)
+        ? api.client.auth.getUser().then(function (u) { return u && u.data && u.data.user ? u.data.user.email : ''; })
+        : Promise.resolve('');
+      getEmail.then(function (email) {
+        api.insertSolicitud({
+          tipo: 'reserva_llamada',
+          nombre: (prof && prof.nombre) || '',
+          salon: (prof && prof.nombre_negocio) || '',
+          email: email || '',
+          telefono: (prof && prof.telefono) || '',
+          nota: 'Solicita acceso completo al software (cuenta free).'
+        }).then(function (r) {
+          if (r && r.error) { msg(freeMsg, 'err', 'No se pudo enviar. Inténtalo de nuevo.'); if (btn) btn.disabled = false; return; }
+          msg(freeMsg, 'ok', 'Recibido. Te contactaremos muy pronto para activar tu acceso completo.');
+        });
+      });
+    });
+  });
+
+  // COMPLETE (perfil incompleto, p. ej. tras Google)
+  function prefillComplete(profile) {
+    if (!profile) return;
+    var s = document.getElementById('cpSalon'); if (s && profile.nombre_negocio) s.value = profile.nombre_negocio;
+    var t = document.getElementById('cpPhone'); if (t && profile.telefono) t.value = profile.telefono;
+    var c = document.getElementById('cpCp'); if (c && profile.codigo_postal) c.value = profile.codigo_postal;
+  }
+  var cpBtn = document.getElementById('cpBtn');
+  var cpMsg = document.getElementById('cpMsg');
+  if (cpBtn) {
+    cpBtn.addEventListener('click', function () {
+      clearMsg(cpMsg);
+      var salon = val('cpSalon'), phone = val('cpPhone'), cp = val('cpCp');
+      if (!salon || !phone || !cp) { msg(cpMsg, 'err', 'Completa los tres campos para continuar.'); return; }
+      if (!api || !api.updateProfile) { msg(cpMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
+      cpBtn.disabled = true; var prev = cpBtn.textContent; cpBtn.textContent = 'Guardando...';
+      api.updateProfile({ nombre_negocio: salon, telefono: phone, codigo_postal: cp }).then(function (r) {
+        if (r && r.error) { msg(cpMsg, 'err', 'No pudimos guardar. Inténtalo de nuevo.'); cpBtn.disabled = false; cpBtn.textContent = prev; return; }
+        routeByPlan(r && r.data ? r.data : { plan: 'free', nombre_negocio: salon, telefono: phone, codigo_postal: cp });
+      });
+    });
   }
 
   // LOGIN
