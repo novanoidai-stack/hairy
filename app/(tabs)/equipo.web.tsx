@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { getUserProfile } from '@/lib/auth';
+import { getUserProfile, can } from '@/lib/auth';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 
 // Iconos SVG simples
@@ -129,6 +129,7 @@ export default function EquipoWeb() {
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [showNewProf, setShowNewProf] = useState(false);
   const [showNewBloqueo, setShowNewBloqueo] = useState(false);
   const [negocioId, setNegocioId] = useState('');
@@ -150,6 +151,9 @@ export default function EquipoWeb() {
   useEffect(() => {
     async function cargar() {
       const profile = await getUserProfile();
+      // Gating de rol: solo recepcion/direccion/propietario gestionan equipo
+      // (Modular 3). Defensivo: sin perfil real no se bloquea (demo/fallback).
+      if (profile && !can(profile, 'equipo.ver')) { setAccessDenied(true); setLoading(false); return; }
       const negocioId = profile?.negocio_id ?? NEGOCIO_ID_FALLBACK;
       setNegocioId(negocioId);
 
@@ -231,6 +235,13 @@ export default function EquipoWeb() {
     if (!selected) return;
     cargarPanelDerecho(selected);
   }, [selected]);
+
+  if (accessDenied) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: TOKENS.bg, color: TOKENS.textSec, flexDirection: 'column', gap: 8, fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: TOKENS.text }}>Acceso restringido</div>
+      <div style={{ fontSize: 13 }}>Solo recepcion y direccion pueden ver la gestion de equipo.</div>
+    </div>
+  );
 
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
