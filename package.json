@@ -5,7 +5,10 @@
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
-    "ios": "expo start --ios"
+    "ios": "expo start --ios",
+    "build:web": "expo export -p web --output-dir web/app",
+    "serve:web": "node scripts/serve-web.mjs",
+    "web:local": "expo export -p web --output-dir web/app && node scripts/serve-web.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
