@@ -88,6 +88,17 @@
     return { error: res.error || null, session: res.data && res.data.session };
   }
 
+  // Cuenta de demo compartida: permite que el enlace de la demo cargue el
+  // software real (/app, tenant demo_salon_001) SIN que el visitante tenga que
+  // crear cuenta ni iniciar sesion. Datos de muestra compartidos.
+  var DEMO_VIEWER = { email: 'demo.publico@mecha.app', password: 'MechaDemoView_2026' };
+  async function signInDemo() {
+    try {
+      var res = await client.auth.signInWithPassword(DEMO_VIEWER);
+      return { error: res.error || null, session: res.data && res.data.session };
+    } catch (e) { return { error: e }; }
+  }
+
   // Comprueba si un proveedor externo (p. ej. 'google') esta activado en el
   // proyecto, leyendo /auth/v1/settings. Asi evitamos redirigir a una pagina
   // de error cuando el proveedor todavia no esta configurado.
@@ -267,6 +278,7 @@
     insertSolicitud: insertSolicitud,
     signUpFree: signUpFree,
     signIn: signIn,
+    signInDemo: signInDemo,
     signInWithGoogle: signInWithGoogle,
     providerEnabled: providerEnabled,
     onAuth: onAuth,

@@ -186,9 +186,9 @@
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha</span></div>
   <span class="dm-pill"><span class="d"></span>Vista previa · interactiva</span>
   <span class="dm-visits" id="visits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg><span id="visitsText">Preparando…</span></span>
-  <button class="dm-share" id="shareBtn" type="button" title="Copia el enlace para que el equipo vea la demo con el tutorial" style="display:none;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:#f6f1ea;font:inherit;font-size:13px;font-weight:600;transition:background .18s ease" onmouseenter="this.style.background='rgba(255,255,255,0.13)'" onmouseleave="this.style.background='rgba(255,255,255,0.06)'">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
-    <span class="lbl">Copiar enlace</span>
+  <button class="dm-share" id="shareBtn" type="button" title="Copia el enlace y pasaselo a quien quieras: vera esta demo (con el tutorial) sin tener que registrarse." style="display:none;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,160,90,0.4);background:rgba(244,80,30,0.14);color:#ffd9c2;font:inherit;font-size:13px;font-weight:700;transition:background .18s ease" onmouseenter="this.style.background='rgba(244,80,30,0.22)'" onmouseleave="this.style.background='rgba(244,80,30,0.14)'">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
+    <span class="lbl">Compartir demo</span>
   </button>
   <div class="dm-bar-cta">
     <a class="btn btn-primary" href="reservar.html"><span class="cta-long">Quiero el acceso completo</span><span class="cta-short">Acceso completo</span>
@@ -304,7 +304,7 @@
   if(shareBtn){
     shareBtn.addEventListener('click', function(){
       var url=shareLink(), lbl=shareBtn.querySelector('.lbl');
-      function ok(){ if(lbl){ var t=lbl.getAttribute('data-base')||lbl.textContent; lbl.setAttribute('data-base',t); lbl.textContent='Enlace copiado'; setTimeout(function(){ lbl.textContent=t; },1700); } }
+      function ok(){ if(lbl){ var t=lbl.getAttribute('data-base')||lbl.textContent; lbl.setAttribute('data-base',t); lbl.textContent='Copiado · pasalo'; setTimeout(function(){ lbl.textContent=t; },1800); } }
       function fallback(){
         try{
           var ta=document.createElement('textarea'); ta.value=url; ta.style.position='fixed'; ta.style.opacity='0';
@@ -319,10 +319,11 @@
   /* ---------- carga del software real e interactivo ---------- */
   function mountApp(){
     if(maqueta){
-      // modo maqueta local: dejamos el placeholder, sin cargar /app
+      // Solo como ultimo recurso (no se pudo iniciar la sesion de demo): marco
+      // con el tour pero sin cargar /app. En condiciones normales se carga real.
       localnote.querySelector('.sp').style.display='none';
-      localnote.querySelector('h3').textContent='Vista previa del marco de la demo';
-      localnote.querySelector('p').textContent='En produccion aqui se carga tu Mecha real (/app) interactiva. Esta es solo la maqueta del marco guiado.';
+      localnote.querySelector('h3').textContent='No pudimos cargar el software ahora mismo';
+      localnote.querySelector('p').textContent='Vuelve a intentarlo en un momento. El recorrido guiado sigue disponible aqui al lado.';
       return;
     }
     frame.style.display='block';
@@ -337,26 +338,31 @@
     startTour();
   }
 
+  /* ---------- sesion de demo compartida ---------- */
+  // Garantiza una sesion para cargar /app real. Si no la hay, entra con la cuenta
+  // de demo compartida; si fallara, cae a la maqueta del marco.
+  function ensureDemoSession(){
+    if(!api||!api.getSession){ maqueta=true; return Promise.resolve(); }
+    return api.getSession().then(function(s){
+      if(s) return;                         // ya hay sesion (p. ej. el equipo logueado)
+      if(!api.signInDemo){ maqueta=true; return; }
+      return api.signInDemo().then(function(r){ if(!r||r.error){ maqueta=true; } });
+    }).catch(function(){ maqueta=true; });
+  }
+
   /* ---------- arranque ---------- */
   function boot(){
-    if(preview){ enterDemo(3); return; }
-
-    // Enlace compartible para el equipo: sin gate y sin gastar visitas. El
-    // equipo (staff) ve el software real; cualquier otra persona ve la maqueta
-    // del marco con el tour. Misma URL para todos, la experiencia se adapta.
-    if(shareMode){
-      if(!api||!api.getSession){ maqueta=true; enterDemo(null); return; }
-      api.getSession().then(function(s){
-        if(!s){ maqueta=true; enterDemo(null); return; }
-        Promise.resolve(api.isStaff?api.isStaff():false).then(function(staff){
-          if(staff) revealShare();
-          maqueta=!staff;
-          enterDemo(null);
-        });
-      });
+    // Modo publico (enlace para compartir o vista previa): carga el SOFTWARE REAL
+    // sin que el visitante inicie sesion (usa la cuenta de demo compartida). El
+    // local y el enlace muestran lo mismo que produccion. No gasta visitas.
+    if(preview || shareMode){
+      revealShare();
+      maqueta=false;
+      ensureDemoSession().then(function(){ enterDemo(null); });
       return;
     }
 
+    // Acceso directo a /demo.html: requiere sesion personal (no se entra sin login).
     if(!api||!api.getSession){ showGate(); return; }
 
     // Una visita por sesion de navegador: si ya entraste, no descuentes otra.
