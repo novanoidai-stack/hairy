@@ -1306,8 +1306,9 @@ window.MECHA_CHAT = [
     if(login) login.style.display='none';
     if(demo) demo.style.display='none';
     acct.classList.add('on');
-    // El software es solo para el equipo (staff) y cuentas full. Una cuenta free
-    // solo ve "Ver la demo": ocultamos "Entrar al software" y resaltamos la demo.
+    // El software es solo para cuentas con acceso (plan distinto de free). Una
+    // cuenta free -aunque sea del equipo- NO ve "Entrar al software", solo la
+    // demo. El equipo sigue viendo el enlace al panel (staff) aparte.
     if(appLink) appLink.style.display='none';
     if(staff) staff.style.display='none';
     if(demoItem) demoItem.classList.remove('hi');
@@ -1318,7 +1319,7 @@ window.MECHA_CHAT = [
       var staffOk=res[0]===true;
       var profile=res[1];
       var plan=profile&&profile.plan?String(profile.plan).toLowerCase():'free';
-      var canApp=staffOk||plan!=='free';
+      var canApp=plan!=='free';
       if(appLink) appLink.style.display=canApp?'flex':'none';
       if(staff) staff.style.display=staffOk?'flex':'none';
       if(demoItem&&!canApp) demoItem.classList.add('hi');

@@ -335,6 +335,15 @@
 
   var api = window.MechaAPI;
   var nextDest = new URLSearchParams(location.search).get('next');
+  // La intencion de "ver demo" se guarda para que sobreviva al ida y vuelta del
+  // SSO de Google (donde el ?next=demo de la URL se puede perder).
+  var DEMO_INTENT_KEY = 'mecha_intent_demo';
+  if (nextDest === 'demo') { try { sessionStorage.setItem(DEMO_INTENT_KEY, '1'); } catch (e) {} }
+  function wantsDemo() {
+    if (nextDest === 'demo') return true;
+    try { return sessionStorage.getItem(DEMO_INTENT_KEY) === '1'; } catch (e) { return false; }
+  }
+  function clearDemoIntent() { try { sessionStorage.removeItem(DEMO_INTENT_KEY); } catch (e) {} }
 
   var seg = document.querySelector('.seg');
 
@@ -350,7 +359,7 @@
   }
 
   function gotoApp() { if (api && api.goToApp) api.goToApp(); else window.location.href = '/app'; }
-  function gotoDemo() { window.location.href = 'demo.html'; }
+  function gotoDemo() { clearDemoIntent(); window.location.href = 'demo.html'; }
   function gotoAdmin() { window.location.href = 'admin.html'; }
 
   // Solo 'free' se queda en la pantalla limitada; el resto entra al software.
@@ -364,20 +373,18 @@
   // free -> pantalla limitada; full -> software.
   function routeAfterAuth() {
     Promise.resolve(api && api.isStaff ? api.isStaff() : false).then(function (staff) {
-      // El equipo Mecha (staff) entra sin pedir datos de salon.
-      if (staff) {
-        if (nextDest === 'demo') { gotoDemo(); return; }
-        showStage('paneChooser');
-        return;
-      }
       Promise.resolve(api && api.getProfile ? api.getProfile() : null).then(function (profile) {
-        // Antes de demo o software: exigir negocio + telefono + codigo postal.
-        if (api && api.profileComplete && !api.profileComplete(profile)) {
-          prefillComplete(profile);
-          showStage('paneComplete');
+        var incomplete = !!(api && api.profileComplete && !api.profileComplete(profile));
+        // Antes de la DEMO o del SOFTWARE pedimos datos a CUALQUIER cuenta
+        // (negocio + telefono + codigo postal), incluido el equipo.
+        if (wantsDemo()) {
+          if (incomplete) { prefillComplete(profile); showStage('paneComplete'); return; }
+          gotoDemo();
           return;
         }
-        if (nextDest === 'demo') { gotoDemo(); return; }
+        // El equipo Mecha elige destino (el panel admin no necesita datos de salon).
+        if (staff) { showStage('paneChooser'); return; }
+        if (incomplete) { prefillComplete(profile); showStage('paneComplete'); return; }
         routeByPlan(profile);
       });
     });
@@ -472,9 +479,14 @@
       cpBtn.disabled = true; var prev = cpBtn.textContent; cpBtn.textContent = 'Guardando...';
       api.updateProfile({ nombre_negocio: salon, phone: phone, codigo_postal: cp }).then(function (r) {
         if (r && r.error) { msg(cpMsg, 'err', 'No pudimos guardar. Inténtalo de nuevo.'); cpBtn.disabled = false; cpBtn.textContent = prev; return; }
-        // Datos completos: si venia a por la demo, a la demo; si no, segun su plan.
-        if (nextDest === 'demo') { gotoDemo(); return; }
-        routeByPlan(r && r.data ? r.data : { plan: 'free', nombre_negocio: salon, phone: phone, codigo_postal: cp });
+        // Datos completos: si venia a por la demo, a la demo; si es equipo, elige;
+        // si no, segun su plan.
+        if (wantsDemo()) { gotoDemo(); return; }
+        var savedProfile = r && r.data ? r.data : { plan: 'free', nombre_negocio: salon, phone: phone, codigo_postal: cp };
+        Promise.resolve(api && api.isStaff ? api.isStaff() : false).then(function (staff) {
+          if (staff) { showStage('paneChooser'); return; }
+          routeByPlan(savedProfile);
+        });
       });
     });
   }
