@@ -124,7 +124,87 @@ const ANIMATIONS = `
   .metric-row {
     transition: all 0.2s ease;
   }
+  @keyframes infoPop {
+    from { opacity: 0; transform: translate(-50%, 4px) scale(0.96); }
+    to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  }
 `;
+
+// ---------------------------------------------------------------------------
+// InfoDot: icono "i" con explicacion al pasar el raton o pulsar.
+// Texto: que mide, en que franja/periodo y para que sirve.
+// ---------------------------------------------------------------------------
+const InfoDot = ({ text, color = '#8a7d70' }: { text: string; color?: string }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        aria-label="Mas informacion"
+        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        style={{
+          width: 15, height: 15, borderRadius: '50%', border: `1px solid ${color}66`,
+          background: 'transparent', color, cursor: 'help', padding: 0, flexShrink: 0,
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 10, fontWeight: 700, lineHeight: 1, fontFamily: 'Georgia, "Times New Roman", serif',
+          fontStyle: 'italic', transition: 'all 0.15s ease',
+        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${color}1a`; (e.currentTarget as HTMLElement).style.borderColor = color; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = `${color}66`; }}
+      >
+        i
+      </button>
+      {open && (
+        <span
+          role="tooltip"
+          style={{
+            position: 'absolute', top: 'calc(100% + 9px)', left: '50%',
+            width: 224, padding: '10px 12px', borderRadius: 10, zIndex: 60,
+            background: '#241d17', color: '#f6f1ea', fontSize: 11.5, lineHeight: 1.5,
+            fontWeight: 400, fontStyle: 'normal', textTransform: 'none', letterSpacing: 'normal',
+            textAlign: 'left', boxShadow: '0 12px 34px rgba(28,24,20,0.30)', pointerEvents: 'none',
+            animation: 'infoPop 0.16s cubic-bezier(0.16,1,0.3,1) both',
+          }}
+        >
+          <span style={{
+            position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
+            width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent',
+            borderBottom: '6px solid #241d17',
+          }} />
+          {text}
+        </span>
+      )}
+    </span>
+  );
+};
+
+// Explicaciones de cada KPI del dashboard (clave = label de la tarjeta).
+const KPI_INFO: Record<string, string> = {
+  'Citas totales': 'Numero total de citas registradas en el periodo elegido (semana, mes, 3 meses o ano). Es la foto global de actividad del salon.',
+  'Ingresos': 'Suma del precio de los servicios de las citas completadas en el periodo. No cuenta no-shows ni canceladas: es tu facturacion real estimada.',
+  'Citas/profesional': 'Media de citas por profesional activo en el periodo (total de citas dividido entre profesionales). Muestra como se reparte la carga del equipo.',
+  'No-shows': 'Clientes que no se presentaron. El porcentaje es sobre el total de citas del periodo. Si sube, conviene reforzar los recordatorios.',
+  'Tiempo espera medio': 'Minutos medios que un cliente espera desde que llega hasta que empieza su servicio, calculado con las marcas de tiempo de cada cita. Cuanto mas bajo, mejor.',
+  'Reposo aprovechado': 'Porcentaje del tiempo de reposo (p. ej. mientras actua un tinte) que se reutiliza para atender a otro cliente. Mide la eficiencia de la agenda.',
+  'Clientes activos': 'Clientes distintos con al menos una cita en el periodo. Es tu base de clientes viva, no el historico total acumulado.',
+  'Retencion (frec. media)': 'Dias de media entre visitas de un mismo cliente en el periodo. Cuanto mas baja la cifra, antes vuelven: indica fidelidad.',
+};
+
+// Explicaciones de cada seccion de informe (clave = id de seccion).
+const SECTION_INFO: Record<string, string> = {
+  ocupacion: 'Reparto de las citas por profesional y por franja horaria (de 09-11 a 17-20) en el periodo. Sirve para ver quien y cuando concentra mas trabajo.',
+  noshows: 'Citas en las que el cliente no aparecio, desglosadas por profesional y por cliente reincidente. Util para decidir politicas de confirmacion o senal.',
+  espera: 'Tiempo que los clientes esperan antes de ser atendidos, medido por cita y promediado por profesional y franja. Detecta cuellos de botella en la agenda.',
+  reposo: 'Aprovechamiento de los huecos de reposo (tintes, mechas) para encajar otras tareas. Mide cuanto tiempo muerto se convierte en trabajo productivo.',
+  ingresos: 'Facturacion del periodo desglosada por dia, profesional y servicio. Solo cuenta citas completadas. Es la base para ver la tendencia de ventas.',
+  servicios: 'Ranking de servicios por numero de veces realizados e ingresos que generan en el periodo. Te dice que vende mas y que conviene priorizar.',
+  retencion: 'Fidelidad de clientes: nuevos frente a recurrentes y cada cuanto vuelven, medido sobre el periodo elegido. Ayuda a planificar campanas de recuperacion.',
+  comisiones: 'Comisiones estimadas por profesional segun los servicios completados y su porcentaje configurado, sobre los ingresos del periodo. Util para las nominas.',
+};
 
 // ---------------------------------------------------------------------------
 // Types
@@ -857,7 +937,7 @@ export default function InformesScreen() {
   );
 
   // Cabecera estatica de seccion (siempre visible, parte superior de la tarjeta)
-  const SectionHeader = ({ icon, iconColor, title, subtitle }: { id?: SeccionId; icon: string; iconColor: string; title: string; subtitle: string }) => (
+  const SectionHeader = ({ id, icon, iconColor, title, subtitle }: { id?: SeccionId; icon: string; iconColor: string; title: string; subtitle: string }) => (
     <div
       style={{
         display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px',
@@ -872,7 +952,10 @@ export default function InformesScreen() {
         <Icon name={icon} size={18} color={iconColor} />
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>{title}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>{title}</span>
+          {id && SECTION_INFO[id] && <InfoDot text={SECTION_INFO[id]} color={iconColor} />}
+        </div>
         <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 1 }}>{subtitle}</div>
       </div>
     </div>
@@ -1003,7 +1086,10 @@ export default function InformesScreen() {
                     }}>
                       <Icon name={kpi.icon} size={16} color={kpi.color} />
                     </div>
-                    <span style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 500 }}>{kpi.label}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1 }}>
+                      <span style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 500 }}>{kpi.label}</span>
+                      {KPI_INFO[kpi.label] && <InfoDot text={KPI_INFO[kpi.label]} color={kpi.color} />}
+                    </span>
                   </div>
                   <div style={{ fontSize: 22, fontWeight: 700, color: TOKENS.text, animation: 'countUp 0.6s ease both', animationDelay: `${i * 60 + 200}ms` }}>
                     {kpi.value}

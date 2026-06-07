@@ -203,7 +203,7 @@
       if (!uid) return null;
       var res = await client
         .from('profiles')
-        .select('id, plan, negocio_id, nombre, nombre_negocio, telefono, codigo_postal')
+        .select('id, plan, negocio_id, nombre, nombre_negocio, phone, codigo_postal')
         .eq('id', uid)
         .maybeSingle();
       if (res.error) return null;
@@ -235,7 +235,7 @@
   function profileComplete(p) {
     if (!p) return false;
     var hasNeg = !!(p.nombre_negocio && String(p.nombre_negocio).trim());
-    var hasTel = !!(p.telefono && String(p.telefono).trim());
+    var hasTel = !!(p.phone && String(p.phone).trim());
     var hasCp = !!(p.codigo_postal && String(p.codigo_postal).trim());
     return hasNeg && hasTel && hasCp;
   }

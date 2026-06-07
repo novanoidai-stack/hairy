@@ -122,6 +122,12 @@
   .btn-grant:disabled{opacity:.55;cursor:default;filter:none}
   .granted-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--accent-hi)}
   .granted-pill svg{width:15px;height:15px}
+  .btn-visits{display:inline-flex;align-items:center;gap:7px;font-family:inherit;font-size:13px;font-weight:600;
+    color:var(--text);background:var(--card-hi);border:1px solid var(--border-hi);border-radius:10px;
+    padding:8px 14px;cursor:pointer;transition:border-color .18s,color .18s}
+  .btn-visits:hover{border-color:var(--accent);color:var(--accent-hi)}
+  .btn-visits:disabled{opacity:.55;cursor:default}
+  .btn-visits svg{width:15px;height:15px}
 
   @media (max-width:560px){
     .ad-top{padding-top:6px}
@@ -537,6 +543,15 @@
       ? '<span class="granted-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Acceso completo activo</span>'
       : '<button class="btn-grant" data-grant="' + esc(p.id) + '">Dar acceso completo</button>';
 
+    // Las cuentas free estan limitadas a 3 visitas de demo: el equipo puede
+    // resetearlas (darle las 3 de nuevo) o darle mas. No aplica a plan full.
+    if (plan !== 'full') {
+      action += '<button class="btn-visits" data-visits="' + esc(p.id) + '" data-used="' +
+        (p.demo_visits_used != null ? esc(String(p.demo_visits_used)) : '0') + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>' +
+        'Visitas demo</button>';
+    }
+
     var nombreFull = (esc(p.nombre) || 'Sin nombre') + (p.apellido ? (' ' + esc(p.apellido)) : '');
 
     return '<div class="card-row" data-pid="' + esc(p.id) + '">' +
@@ -589,6 +604,46 @@
           if (local && updated) { local.plan = updated.plan; local.negocio_id = updated.negocio_id; }
           msg($('cueMsg'), 'ok', 'Acceso completo activado' +
             (updated && updated.negocio_id ? ' (negocio: ' + updated.negocio_id + ')' : '') + '.');
+          renderCuentas();
+        });
+      });
+    });
+
+    listEl.querySelectorAll('.btn-visits').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-visits');
+        var p = accounts.filter(function (x) { return x.id === id; })[0];
+        var quien = p ? (p.nombre_negocio || p.email || 'esta cuenta') : 'esta cuenta';
+        var used = parseInt(btn.getAttribute('data-used'), 10); if (isNaN(used)) used = 0;
+        var remaining = Math.max(0, 3 - used);
+        var raw = window.prompt(
+          'Visitas de demo para "' + quien + '".\n\n' +
+          'Ahora le quedan ' + remaining + ' de 3.\n\n' +
+          'Escribe cuántas visitas USADAS quieres dejar:\n' +
+          '  0 = darle las 3 completas otra vez (lo normal)\n' +
+          '  número negativo = darle MÁS de 3\n\n' +
+          'Visitas usadas:', '0');
+        if (raw === null) return;
+        var newUsed = parseInt(String(raw).trim(), 10);
+        if (isNaN(newUsed)) { msg($('cueMsg'), 'err', 'Escribe un número entero (por ejemplo 0).'); return; }
+        btn.disabled = true;
+        var prev = btn.innerHTML;
+        btn.textContent = 'Guardando...';
+        api.client.rpc('staff_set_demo_visits', { target_user_id: id, new_used: newUsed }).then(function (res) {
+          if (res.error) {
+            btn.disabled = false;
+            btn.innerHTML = prev;
+            var m = res.error.message || '';
+            msg($('cueMsg'), 'err', m.indexOf('not_authorized') !== -1
+              ? 'Tu cuenta no tiene permiso para esta acción.'
+              : 'No se pudieron actualizar las visitas: ' + m);
+            return;
+          }
+          var updated = res.data && res.data.length ? res.data[0] : res.data;
+          var local = accounts.filter(function (x) { return x.id === id; })[0];
+          if (local && updated) local.demo_visits_used = updated.demo_visits_used;
+          var rem = Math.max(0, 3 - newUsed);
+          msg($('cueMsg'), 'ok', 'Visitas de demo actualizadas: ' + quien + ' tiene ahora ' + rem + (rem === 1 ? ' visita.' : ' visitas.'));
           renderCuentas();
         });
       });
