@@ -72,6 +72,11 @@
     padding:20px 20px 17px;display:none}
   .dm-tour.show{display:block;animation:dmFade .4s var(--ease)}
   @keyframes dmFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  /* Posicion de la guia por paso, para no tapar lo que se senala */
+  .dm-tour.pos-bl{left:clamp(14px,2.5vw,28px);right:auto;margin:0}
+  .dm-tour.pos-br{right:clamp(14px,2.5vw,28px);left:auto;margin:0}
+  .dm-tour.pos-tl{left:clamp(14px,2.5vw,28px);right:auto;margin:0;top:clamp(76px,11vh,116px);bottom:auto}
+  .dm-tour.pos-tr{right:clamp(14px,2.5vw,28px);left:auto;margin:0;top:clamp(76px,11vh,116px);bottom:auto}
   .dm-tour-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
   .dm-tour-step{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-hi)}
   .dm-tour-skip{font-size:12px;color:var(--text-ter);background:none}
@@ -92,16 +97,20 @@
   /* ---------- POINTER / FLECHA ---------- */
   /* Senala la zona del paso actual sobre el software. Es una pista de region
      (no apunta a un pixel exacto del iframe): el panel que se abre es la senal fuerte. */
-  .dm-point{position:absolute;z-index:8;display:none;align-items:center;gap:7px;pointer-events:none;
-    font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#fff;
-    background:var(--grad);padding:7px 12px 7px 9px;border-radius:999px;box-shadow:0 12px 32px -8px var(--accent-glow);white-space:nowrap;
-    transition:top .45s var(--ease),left .45s var(--ease),right .45s var(--ease),bottom .45s var(--ease),opacity .3s}
-  .dm-point.show{display:inline-flex;animation:dmBob 1.5s ease-in-out infinite}
-  .dm-point .ar{width:22px;height:22px;flex-shrink:0;transition:transform .3s}
+  /* Flecha curva dibujada a mano (mismo estilo que la landing, .fnote .arrow):
+     trazo curvo + punta de chevron, color de acento, sin pildora. */
+  .dm-point{position:absolute;z-index:8;display:none;align-items:center;gap:9px;pointer-events:none;white-space:nowrap;
+    transition:top .5s var(--ease),left .5s var(--ease),right .5s var(--ease),bottom .5s var(--ease),opacity .3s}
+  .dm-point.show{display:inline-flex;animation:dmBob 1.7s ease-in-out infinite}
+  .dm-point .ar{width:58px;height:42px;color:var(--accent-hi);flex-shrink:0;transition:transform .3s;filter:drop-shadow(0 3px 7px rgba(0,0,0,.45))}
+  .dm-point .ar svg{width:100%;height:100%;overflow:visible}
+  .dm-point .lbl{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;
+    background:rgba(18,13,10,.84);padding:5px 11px;border-radius:8px;border:1px solid rgba(244,80,30,.42);box-shadow:0 8px 20px -6px rgba(0,0,0,.6)}
   .dm-point.up .ar{transform:rotate(0)} .dm-point.down .ar{transform:rotate(180deg)}
   .dm-point.left .ar{transform:rotate(-90deg)} .dm-point.right .ar{transform:rotate(90deg)}
-  @keyframes dmBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-  @media(max-width:720px){ .dm-point{font-size:10px;padding:6px 10px 6px 8px} }
+  .dm-point.left{flex-direction:row-reverse}
+  @keyframes dmBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @media(max-width:720px){ .dm-point .ar{width:46px;height:34px} .dm-point .lbl{font-size:10px} }
 
   /* ---------- ACCESS / INTRO GATE ---------- */
   .dm-gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:22px;
@@ -202,8 +211,8 @@
 
     <!-- POINTER / FLECHA: senala la zona del paso actual -->
     <div class="dm-point" id="point">
-      <svg class="ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C10.2 16 13.6 11 11.7 4.2"/><path d="M6.4 10.6 C8.4 8 10.2 5.8 12 3.6 C13.8 5.8 15.4 8 17.6 10.4"/></svg>
-      <span id="pointLabel">Aquí</span>
+      <span class="ar"><svg viewBox="0 0 44 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 37 C 15 27, 29 19, 22 6" /><path d="M13 15 l9 -10 9 10" /></svg></span>
+      <span class="lbl" id="pointLabel">Aquí</span>
     </div>
 
     <!-- GUIDED TOUR -->
@@ -401,27 +410,39 @@
   // Cada paso lleva el iframe a una pantalla (route) y, si toca, abre un panel
   // real (action) y coloca una flecha sobre su zona (point).
   var STEPS=[
-    {ic:'agenda', route:'/(tabs)', action:'cerrar', point:'grid',
+    {ic:'agenda', route:'/(tabs)', action:'cerrar', point:'grid', guidePos:'br',
      t:'Tu agenda real',
-     d:'Cada columna es un profesional y cada bloque, una cita. Los tiempos muertos (un tinte reposando) se marcan solos para que encajes a otra clienta sin pisar a nadie.'},
-    {ic:'nueva', route:'/(tabs)', action:'nueva-cita', point:'nueva',
+     d:'Cada columna es un profesional y cada bloque, una cita. Pulsa cualquier hueco y se crea una cita: te lo enseno paso a paso.'},
+    {ic:'nueva', route:'/(tabs)', action:'nueva-cita', point:null, guidePos:'bl',
      t:'Crear una cita',
-     d:'Esta es la ventana real de nueva cita: clienta, servicio, profesional y hora. Desde la agenda, un clic en cualquier hueco la abre con la hora ya puesta.'},
-    {ic:'avisos', route:'/(tabs)', action:'notificaciones', point:'avisos',
+     d:'Al pulsar un hueco se abre esta ventana con la hora ya puesta. Vamos por orden: clienta, servicio y hora.'},
+    {ic:'clientes', route:'/(tabs)', action:'nueva-cita', point:null, guidePos:'bl',
+     t:'1 · La clienta',
+     d:'Eliges la clienta de la lista, o la creas al momento escribiendo su nombre y telefono. Su ficha se rellena sola.'},
+    {ic:'nueva', route:'/(tabs)', action:'nueva-cita', point:null, guidePos:'bl',
+     t:'2 · El servicio',
+     d:'El servicio marca la duracion y el precio. Puedes encadenar varios servicios en la misma cita, incluso entre profesionales.'},
+    {ic:'nueva', route:'/(tabs)', action:'nueva-cita', point:null, guidePos:'bl',
+     t:'3 · La hora',
+     d:'Eliges una hora libre. Arriba siempre ves "Ahora" y la "Hora de la cita" elegida, para no equivocarte.'},
+    {ic:'rep', route:'/(tabs)', action:'nueva-cita', point:null, guidePos:'tr',
+     t:'Tiempos muertos efectivos',
+     d:'Lo mejor del salon: mientras un tinte reposa, ese rato se marca como hueco util para encajar a OTRA clienta sin pisar a nadie. Facturas mas sin alargar el dia.'},
+    {ic:'avisos', route:'/(tabs)', action:'notificaciones', point:'avisos', guidePos:'bl',
      t:'Avisos que no se escapan',
-     d:'Citas sin confirmar de las proximas 48 h y los cumpleanos de la semana, juntos. Pulsa cualquiera y la agenda salta a ese dia. Nada se te escapa.'},
-    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', point:'ficha',
+     d:'Citas sin confirmar de las proximas 48 h y los cumpleanos de la semana, juntos. Pulsa cualquiera y la agenda salta a ese dia.'},
+    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', point:'ficha', guidePos:'bl',
      t:'Fichas de cliente',
-     d:'Esta es una ficha real: formula de color, alergias, historial y preferencias. Todo a un toque, sin papeles ni libretas.'},
-    {ic:'ia', route:'/(tabs)', action:'cerrar', point:null,
+     d:'Una ficha real a pantalla completa: formula de color, alergias, historial, notas y preferencias. Todo a un toque, sin papeles.'},
+    {ic:'ia', route:'/(tabs)', action:'cerrar', point:null, guidePos:'bc',
      t:'La IA trabaja por ti',
-     d:'Atiende por WhatsApp, reserva y cobra el deposito; y con "Organizar mi dia" recoloca tus citas para no dejar huecos sueltos. Tu solo cortas.'},
-    {ic:'fich', route:'/(tabs)/equipo', action:'cerrar', point:null,
+     d:'Atiende por WhatsApp, reserva y cobra el deposito; y con "Organizar mi dia" recoloca tus citas para no dejar huecos sueltos.'},
+    {ic:'fich', route:'/(tabs)/equipo', action:'cerrar', point:null, guidePos:'bc',
      t:'Fichajes legales',
-     d:'Tu equipo ficha entrada y salida con un clic. Integrado con Elevascore, 100% legal en Espana y con informes listos para descargar.'},
-    {ic:'rep', route:'/(tabs)/informes', action:'cerrar', point:null,
+     d:'Tu equipo ficha entrada y salida con un clic. Integrado con Elevascore, 100% legal en Espana, informes listos para descargar.'},
+    {ic:'rep', route:'/(tabs)/informes', action:'cerrar', point:null, guidePos:'bc',
      t:'Informes claros',
-     d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Sabes como va el salon de un vistazo, sin hojas de calculo.'}
+     d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Sabes como va el salon de un vistazo.'}
   ];
   // Anclas de la flecha: region aproximada + direccion. No es un pixel exacto.
   var POINTS={
@@ -476,6 +497,9 @@
     point.classList.add(p.dir, 'show');
   }
 
+  // Recuerda el ultimo panel abierto para no reabrir/reiniciar la misma ventana
+  // entre pasos consecutivos (p. ej. el recorrido por la ventana de nueva cita).
+  var lastAction=null;
   function renderStep(){
     var s=STEPS[ti];
     tourStep.textContent='Paso '+(ti+1)+' de '+STEPS.length;
@@ -486,20 +510,26 @@
     tourPrev.disabled = ti===0;
     tourNext.textContent = ti===STEPS.length-1 ? 'Entendido' : 'Siguiente';
 
-    // 1) cerrar lo que abrio el paso anterior  2) navegar a la pantalla del paso
-    demoAction('cerrar');
+    // Coloca la guia en la esquina del paso para no tapar lo que senala.
+    tour.classList.remove('pos-bl','pos-br','pos-tl','pos-tr');
+    if(s.guidePos && s.guidePos!=='bc') tour.classList.add('pos-'+s.guidePos);
+
     setPointer(null);
     navFrame(s.route);
-    // 3) dar un respiro para montar/cargar la pantalla y entonces abrir el panel
-    //    real y colocar la flecha. La ficha tolera datos tardios por su lado.
+    var act=s.action||'cerrar';
     if(stepTimer) clearTimeout(stepTimer);
     stepTimer=setTimeout(function(){
-      if(s.action && s.action!=='cerrar') demoAction(s.action);
+      // Solo tocamos el panel si cambia respecto al paso anterior (sin parpadeo).
+      if(act!==lastAction){
+        demoAction('cerrar');
+        if(act!=='cerrar') demoAction(act);
+        lastAction=act;
+      }
       setPointer(s.point);
     }, 340);
   }
-  function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; renderStep(); tour.classList.add('show'); }
-  function closeTour(){ tour.classList.remove('show'); setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); }
+  function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; lastAction=null; renderStep(); tour.classList.add('show'); }
+  function closeTour(){ tour.classList.remove('show'); setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); lastAction='cerrar'; }
   tourNext.addEventListener('click',function(){ if(ti<STEPS.length-1){ ti++; renderStep(); } else { closeTour(); } });
   tourPrev.addEventListener('click',function(){ if(ti>0){ ti--; renderStep(); } });
   tourSkip.addEventListener('click',closeTour);
