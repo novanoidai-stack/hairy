@@ -1024,11 +1024,30 @@ const ACCESO_ERROR_MSG: Record<string, string> = {
   target_not_found: 'No se encontro la cuenta.',
 };
 
+const ACCESO_ALTA_ERROR: Record<string, string> = {
+  invalid_email: 'Email no valido.',
+  missing_nombre: 'Indica el nombre.',
+  invalid_role: 'Rol no valido.',
+  email_exists: 'Ya existe una cuenta con ese email.',
+  not_authorized: 'No tienes permiso para crear accesos.',
+  not_authenticated: 'Sesion no valida, vuelve a entrar.',
+  no_negocio: 'Tu cuenta no tiene un negocio asignado.',
+  create_failed: 'No se pudo crear la cuenta.',
+  profile_failed: 'No se pudo asignar el perfil.',
+};
+
 function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: string; currentUserId: string; currentRole: string }) {
   const [cuentas, setCuentas] = useState<CuentaMiembro[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ id: string; text: string; ok: boolean } | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [formEmail, setFormEmail] = useState('');
+  const [formNombre, setFormNombre] = useState('');
+  const [formRol, setFormRol] = useState('recepcion');
+  const [creando, setCreando] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [creada, setCreada] = useState<{ email: string; password: string } | null>(null);
 
   const isOwner = currentRole === 'owner';
 
@@ -1066,8 +1085,48 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
     setMsg({ id, text: 'Rol actualizado.', ok: true });
   }
 
+  async function crearAcceso() {
+    setFormError('');
+    setCreada(null);
+    const email = formEmail.trim().toLowerCase();
+    const nombre = formNombre.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setFormError('Email no valido.'); return; }
+    if (!nombre) { setFormError('Indica el nombre.'); return; }
+    setCreando(true);
+    const { data, error } = await supabase.functions.invoke('crear-acceso-empleado', {
+      body: { email, nombre, rol: formRol },
+    });
+    setCreando(false);
+    if (error || (data && data.error)) {
+      const code = (data && data.error) || 'error';
+      setFormError(ACCESO_ALTA_ERROR[code] ?? 'No se pudo crear el acceso.');
+      return;
+    }
+    setCreada({ email: data.email, password: data.password });
+    setFormEmail(''); setFormNombre(''); setFormRol('recepcion');
+    load();
+  }
+
   return (
-    <Section title="Accesos y roles" desc="Define que ve y puede hacer cada cuenta del salon. Recepcion gestiona agenda y clientes; Direccion accede ademas a configuracion e informes; Propietario tiene acceso total.">
+    <Section title="Accesos y roles" desc="Define que ve y puede hacer cada cuenta del salon. Recepcion gestiona agenda y clientes; Direccion accede ademas a configuracion e informes; Propietario tiene acceso total." action={<Btn variant="primary" size="sm" onClick={() => { setShowForm(v => !v); setCreada(null); setFormError(''); }}>{showForm ? 'Cancelar' : 'Anadir acceso'}</Btn>}>
+      {showForm && (
+        <div style={{ marginBottom: 14, padding: 14, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <STextInput value={formNombre} onChange={setFormNombre} placeholder="Nombre y apellidos" />
+            <STextInput value={formEmail} onChange={setFormEmail} placeholder="email@salon.com" />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <SSelect width={170} value={formRol} onChange={setFormRol} options={ACCESO_ROLE_OPTIONS.filter(o => o.value !== 'owner')} />
+            <Btn variant="primary" size="sm" onClick={crearAcceso} disabled={creando}>{creando ? 'Creando...' : 'Crear acceso'}</Btn>
+            {formError && <span style={{ fontSize: 12, color: T.danger }}>{formError}</span>}
+          </div>
+          {creada && (
+            <div style={{ padding: 10, background: 'rgba(15,157,107,0.10)', border: '1px solid rgba(15,157,107,0.30)', borderRadius: 10, fontSize: 12, color: T.text }}>
+              Cuenta creada para <b>{creada.email}</b>. Contrasena temporal: <code style={{ background: T.bgCardHi, padding: '2px 6px', borderRadius: 6, fontWeight: 700 }}>{creada.password}</code>. Comunicasela; al entrar podra cambiarla.
+            </div>
+          )}
+        </div>
+      )}
       {loading ? (
         <div style={{ color: T.textTertiary, fontSize: 13, padding: '8px 0' }}>Cargando cuentas...</div>
       ) : cuentas.length === 0 ? (
