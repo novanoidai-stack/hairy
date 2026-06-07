@@ -434,9 +434,18 @@
     {ic:'nueva', route:'/(tabs)', action:'cita-hora', guidePos:'tr',
      t:'3 · La hora',
      d:'Y elijo una hora libre. Arriba siempre ves "Ahora" y la "Hora de la cita" elegida, para no equivocarte.'},
-    {ic:'rep', route:'/(tabs)', action:'cita-reposo', guidePos:'tr',
-     t:'Tiempos muertos efectivos',
-     d:'Fijate en los huecos en ambar: mientras un tinte reposa, ese rato se marca como hueco util para encajar a OTRO cliente sin pisar a nadie. Facturas mas sin alargar el dia.'},
+    {ic:'nueva', route:'/(tabs)', action:'cita-detalle', guidePos:'tr',
+     t:'Tu cita por dentro',
+     d:'Asi queda la cita. Al abrirla ves y editas TODO: el servicio que cobras, el cliente, el profesional y la hora. Te enseno los bloques clave.'},
+    {ic:'fich', route:'/(tabs)', action:'detalle-estado', guidePos:'tr',
+     t:'El estado de la cita',
+     d:'Confirmada, en curso, finalizada, cobrada, no presentada... El estado manda: marca el color en la agenda y lo que cuenta en los informes.'},
+    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia', guidePos:'tl',
+     t:'Secuencia: tiempos muertos',
+     d:'El corazon del salon: tiempo activo -> reposo -> segundo activo. Durante el reposo (un tinte procesando) ese hueco queda LIBRE para encajar a otro cliente. Eso son los tiempos muertos efectivos: facturas mas sin alargar el dia.'},
+    {ic:'clientes', route:'/(tabs)', action:'detalle-formula', guidePos:'tl',
+     t:'Formula guardada',
+     d:'Producto, tono, tiempo y resultado quedan guardados para repetir el color exacto la proxima vez. Puedes partir de las plantillas que creas en Configuracion.'},
     {ic:'avisos', route:'/(tabs)', action:'notificaciones', guidePos:'bl',
      t:'Avisos que no se escapan',
      d:'Citas sin confirmar de las proximas 48 h y los cumpleanos de la semana, juntos. Pulsa cualquiera y la agenda salta a ese dia.'},
@@ -455,7 +464,11 @@
   ];
   // El modal de nueva cita es el mismo panel para 'nueva-cita' y las sub-acciones
   // 'cita-*': no se cierra entre esos pasos, solo cambia el foco.
-  function groupOf(a){ return (a==='nueva-cita'||(a&&a.indexOf('cita-')===0))?'cita':a; }
+  function groupOf(a){
+    if(a==='cita-detalle'||(a&&a.indexOf('detalle-')===0)) return 'detalle'; // modal de detalle de cita
+    if(a==='nueva-cita'||(a&&a.indexOf('cita-')===0)) return 'cita';         // modal de nueva cita
+    return a;
+  }
   var ti=0, tourStarted=false, stepTimer=null;
   var tourStep=$('#tourStep'), tourSkip=$('#tourSkip'), tourIc=$('#tourIc'),
       tourTitle=$('#tourTitle'), tourText=$('#tourText'), tourDots=$('#tourDots'),
