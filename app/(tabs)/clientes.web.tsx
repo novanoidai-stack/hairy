@@ -95,6 +95,7 @@ interface Cliente {
   email?: string | null;
   fecha_nacimiento?: string | null;
   alergias?: string | null;
+  notas?: string | null;
   visitas?: number;
   ultimaVisita?: Date | null;
   ultimaVisitaStr?: string;
@@ -225,6 +226,8 @@ export default function ClientesWeb() {
   const [profesionales, setProfesionales] = useState<any[]>([]);
   const [fichasTecnicas, setFichasTecnicas] = useState<any[]>([]);
   const [catalogoAlergias, setCatalogoAlergias] = useState<string[]>([]);
+  // Plantillas de notas del salon (Configuracion > Plantillas) para la ficha
+  const [plantillasNota, setPlantillasNota] = useState<{ nombre: string; texto: string }[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -249,7 +252,7 @@ export default function ClientesWeb() {
     const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }] = await Promise.all([
       supabase
         .from('clientes')
-        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias')
+        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias')
         .eq('negocio_id', profile.negocio_id)
         .order('nombre'),
       supabase
@@ -278,6 +281,7 @@ export default function ClientesWeb() {
 
     const cfg: any = (cfgRow?.config && typeof cfgRow.config === 'object') ? cfgRow.config : {};
     setCatalogoAlergias(Array.isArray(cfg.catalogoAlergias) ? cfg.catalogoAlergias : []);
+    setPlantillasNota(Array.isArray(cfg.plantillasNota) ? cfg.plantillasNota : []);
 
     const enrichedClients = (clts ?? []).map((cl: any) => {
       const clientCitas = (citsData ?? []).filter((c: Cita) => c.cliente_id === cl.id);
@@ -680,7 +684,14 @@ export default function ClientesWeb() {
             {!panelExpanded ? (
               // Modo compacto: contenido segun pestaña activa
               <div key={activeTab} className="m-tab-content">
-                {activeTab === 'resumen' && <ResumenTab cliente={c} citas={citas} servicios={servicios} />}
+                {activeTab === 'resumen' && (
+                  <>
+                    <ResumenTab cliente={c} citas={citas} servicios={servicios} />
+                    <NotasClienteSection cliente={c} plantillas={plantillasNota} onUpdated={(updated) => {
+                      setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
+                    }} />
+                  </>
+                )}
                 {activeTab === 'notas' && <NotasTab cliente={c} catalogoAlergias={catalogoAlergias} onSaveToCatalog={addAlergiaToCatalog} onUpdated={(updated) => {
                   setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
                   triggerRefresh();
@@ -694,6 +705,13 @@ export default function ClientesWeb() {
                 {/* Fila 1: Resumen (banda completa) */}
                 <Panel title="Resumen" accent={TOKENS.primary}>
                   <ResumenTab cliente={c} citas={citas} servicios={servicios} />
+                </Panel>
+
+                {/* Fila 1.5: Notas y preferencias persistentes del cliente */}
+                <Panel title="Notas y preferencias" accent={TOKENS.primary}>
+                  <NotasClienteSection cliente={c} plantillas={plantillasNota} bare onUpdated={(updated) => {
+                    setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
+                  }} />
                 </Panel>
 
                 {/* Fila 2: Notas + Color/Quimica (50/50) */}
@@ -817,6 +835,106 @@ function ResumenTab({ cliente, citas, servicios }: { cliente: Cliente; citas: Ci
       </Section>
     </>
   );
+}
+
+// ── Notas y preferencias persistentes del cliente (campo clientes.notas).
+// Siempre visible en la ficha; admite cargar plantillas de notas del salon.
+function NotasClienteSection({ cliente, plantillas = [], onUpdated, bare = false }: {
+  cliente: Cliente;
+  plantillas?: { nombre: string; texto: string }[];
+  onUpdated: (updated: Partial<Cliente> & { id: string }) => void;
+  bare?: boolean;
+}) {
+  const [notas, setNotas] = useState((cliente.notas ?? '').trim());
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  useEffect(() => { setNotas((cliente.notas ?? '').trim()); }, [cliente.id]);
+
+  async function persist(next: string) {
+    const trimmed = next.trim();
+    setError(''); setSaving(true);
+    const payload = { notas: trimmed || null };
+    const { error } = await supabase.from('clientes').update(payload).eq('id', cliente.id);
+    setSaving(false);
+    if (error) { setError(error.message); return; }
+    onUpdated({ id: cliente.id, ...payload });
+  }
+  function save() { void persist(notas); }
+
+  // Inserta una plantilla: si ya hay notas, la anade en una linea nueva.
+  function aplicarPlantilla(texto: string) {
+    const base = notas.trim();
+    const next = base ? `${base}\n${texto}` : texto;
+    setNotas(next);
+    setPickerOpen(false);
+    void persist(next);
+  }
+
+  const body = (
+    <>
+      <textarea
+        value={notas}
+        onChange={(e) => setNotas(e.target.value)}
+        onBlur={save}
+        placeholder="Preferencias y detalles del cliente: 'le gusta el pelo mas corto', 'acabado con mas brillo', bebida, conversacion, etc."
+        style={{
+          width: '100%', minHeight: 120, padding: 12,
+          background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`,
+          borderRadius: 10, color: TOKENS.text, fontSize: 12, fontFamily: 'inherit',
+          outline: 'none', resize: 'vertical', boxSizing: 'border-box',
+        }}
+      />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 10, color: error ? TOKENS.danger : TOKENS.textTer }}>
+          {saving ? 'Guardando...' : (error || 'Se guarda al salir del campo')}
+        </div>
+        {plantillas.length > 0 && (
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setPickerOpen((o) => !o)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 11px',
+                borderRadius: 8, cursor: 'pointer', background: TOKENS.bgCardHi,
+                border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec,
+                fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
+              }}
+            >
+              <Icon name="plus" size={12} color={TOKENS.textTer} /> Plantillas
+            </button>
+            {pickerOpen && (
+              <div style={{
+                position: 'absolute', right: 0, bottom: 'calc(100% + 6px)', zIndex: 20,
+                minWidth: 230, maxHeight: 240, overflowY: 'auto', background: TOKENS.bgPanel,
+                border: `1px solid ${TOKENS.borderHi}`, borderRadius: 10,
+                boxShadow: '0 12px 30px rgba(0,0,0,0.35)', padding: 6,
+              }}>
+                {plantillas.map((p, i) => (
+                  <button
+                    key={i}
+                    onClick={() => aplicarPlantilla(p.texto)}
+                    title={p.texto}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px',
+                      borderRadius: 7, cursor: 'pointer', background: 'transparent', border: 'none',
+                      color: TOKENS.text, fontSize: 12, fontFamily: 'inherit',
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = TOKENS.bgCardHi; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  >
+                    <div style={{ fontWeight: 700, marginBottom: 2 }}>{p.nombre}</div>
+                    <div style={{ fontSize: 10, color: TOKENS.textTer, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.texto}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  );
+  return bare ? body : <Section title="Notas y preferencias">{body}</Section>;
 }
 
 // ── Tab: Alergias
