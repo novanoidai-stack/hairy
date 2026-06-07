@@ -26,6 +26,10 @@ const MOTION_CSS = `
     from { opacity: 0; transform: scale(0.96); }
     to { opacity: 1; transform: scale(1); }
   }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px) scale(0.99); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
   @keyframes pulse {
     0%, 100% { opacity: 0.4; }
     50% { opacity: 0.15; }
@@ -41,6 +45,7 @@ const MOTION_CSS = `
   .m-slide-right    { animation: slideInRight 0.5s cubic-bezier(0.16,1,0.3,1) both; }
   .m-slide-down     { animation: slideDown 0.35s cubic-bezier(0.16,1,0.3,1) both; }
   .m-scale-in       { animation: scaleIn 0.3s cubic-bezier(0.16,1,0.3,1) both; }
+  .m-rise           { animation: rise 0.5s cubic-bezier(0.16,1,0.3,1) both; }
 
   /* Stagger automatico para listas (max 12 items para no exagerar) */
   .m-stagger > *:nth-child(1)  { animation: slideInUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.00s both; }
@@ -141,9 +146,10 @@ const MOTION_CSS = `
     transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
   }
   .m-card-hover:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     border-color: rgba(244,80,30,0.30) !important;
     background: rgba(244,80,30,0.04) !important;
+    box-shadow: 0 12px 28px rgba(40,30,24,0.10);
   }
 
   /* Chips / tags / pills clicables */
@@ -159,8 +165,9 @@ const MOTION_CSS = `
     transition: transform 0.18s ease, border-color 0.18s ease;
   }
   .m-stat:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     border-color: rgba(148,163,184,0.22) !important;
+    box-shadow: 0 8px 20px rgba(40,30,24,0.08);
   }
 
   /* Modales y overlays */
@@ -188,7 +195,7 @@ const MOTION_CSS = `
 
   /* Reduce motion: respeta preferencias del usuario */
   @media (prefers-reduced-motion: reduce) {
-    .m-fade-in, .m-slide-up, .m-slide-right, .m-slide-down, .m-scale-in,
+    .m-fade-in, .m-slide-up, .m-slide-right, .m-slide-down, .m-scale-in, .m-rise,
     .m-stagger > *, .m-overlay-enter, .m-modal-enter, .m-dropdown,
     .m-tab-content, .m-pulse-red, .m-pulse {
       animation: none !important;
