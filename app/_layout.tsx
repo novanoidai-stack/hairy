@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { supabase } from '@/lib/supabase';
+import { getUserProfile, isStaff } from '@/lib/auth';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -86,31 +87,62 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (session === undefined) return;
+    // WEB: el UNICO acceso es el login de la landing (acceso.html), mismo origen
+    // que /app — tanto en Vercel como en el espejo local. No hay login interno en
+    // web: si no hay sesion, siempre se vuelve a la landing para entrar por
+    // "Entrar al software". (El login interno solo existe en nativo, ver abajo.)
+    if (Platform.OS === 'web') {
+      if (!session && typeof window !== 'undefined') {
+        window.location.href = '/acceso.html';
+      }
+      return;
+    }
+    // NATIVO (iOS/Android): no hay landing web, asi que el login interno
+    // (app/login.tsx) es el acceso de la app.
     const inAuthGroup = segments[0] === 'login';
     if (!session && !inAuthGroup) {
-      // El login canonico es el de la landing (acceso.html), mismo origen que /app en el deploy.
-      // En el deploy real (app servida bajo /app) mandamos ahi: el usuario entra una sola vez.
-      // En dev suelto (expo start, ruta en raiz) usamos el login interno como fallback.
-      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.pathname.startsWith('/app')) {
-        window.location.href = '/acceso.html';
-      } else {
-        router.replace('/login');
-      }
+      router.replace('/login');
     } else if (session && inAuthGroup) {
       router.replace('/(tabs)');
     }
   }, [session, segments]);
 
+  // El software es solo para el equipo (staff) y las cuentas full.
+  // Una cuenta free que abre /app directamente (ventana principal, no el iframe
+  // de la demo) se manda a /acceso.html, su pantalla. Dentro de la demo (iframe)
+  // si puede mirar: alli el limite son sus visitas, no el plan.
+  useEffect(() => {
+    if (!isWeb || !session || typeof window === 'undefined') return;
+    const embedded = window.top !== window.self;
+    const inApp = window.location.pathname.startsWith('/app');
+    if (embedded || !inApp) return;
+    let cancel = false;
+    (async () => {
+      const [profile, staff] = await Promise.all([getUserProfile(), isStaff()]);
+      if (cancel) return;
+      const plan = (profile?.plan || 'free').toLowerCase();
+      if (!staff && plan === 'free') {
+        window.location.href = '/acceso.html';
+      }
+    })();
+    return () => { cancel = true; };
+  }, [session, isWeb]);
+
   // Puente de navegacion para la vista previa (demo.html embebe /app en un iframe).
   // Cada paso de la guia manda { type:'mecha-nav', route } y aqui movemos la app.
-  // Solo aceptamos mensajes del mismo origen para evitar navegacion externa.
+  // Ademas { type:'mecha-demo', action } abre paneles reales (nueva cita, ficha,
+  // notificaciones): lo reemitimos como CustomEvent para que cada pantalla escuche
+  // sin acoplarse al puente. Solo aceptamos mensajes del mismo origen.
   useEffect(() => {
     if (!isWeb || typeof window === 'undefined') return;
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
-      const data = e.data as { type?: string; route?: string } | null;
-      if (data && data.type === 'mecha-nav' && typeof data.route === 'string') {
+      const data = e.data as { type?: string; route?: string; action?: string } | null;
+      if (!data) return;
+      if (data.type === 'mecha-nav' && typeof data.route === 'string') {
         router.push(data.route as never);
+      } else if (data.type === 'mecha-demo' && typeof data.action === 'string') {
+        window.dispatchEvent(new CustomEvent('mecha-demo', { detail: { action: data.action } }));
       }
     };
     window.addEventListener('message', onMessage);
