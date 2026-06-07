@@ -161,6 +161,9 @@ export default function AgendaCalendar() {
   // Demo guiada: enfoque tipo spotlight sobre una zona (p.ej. el panel de avisos).
   const [demoFocus, setDemoFocus] = useState<string | null>(null);
   const notifPanelRef = useRef<HTMLElement | null>(null);
+  // Citas frescas accesibles desde el listener de demo (que se registra una vez).
+  const citasRef = useRef<Cita[]>([]);
+  citasRef.current = citas;
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   const [citaAddonsMap, setCitaAddonsMap] = useState<Record<string, any[]>>({});
   const [citasVencidas, setCitasVencidas] = useState<Cita[]>([]);
@@ -237,18 +240,38 @@ export default function AgendaCalendar() {
       // (cita-cliente / cita-servicio / cita-hora / cita-reposo) las gestiona el
       // propio NewCitaModal (auto-seleccion + spotlight de su zona), por eso aqui
       // solo nos aseguramos de que el modal este abierto y sin avisos por encima.
-      if (action === 'nueva-cita' || (typeof action === 'string' && action.indexOf('cita-') === 0)) {
+      if (action === 'cita-detalle' || (typeof action === 'string' && action.indexOf('detalle-') === 0)) {
+        // El recorrido abre una cita YA creada y la explica bloque a bloque
+        // (servicio, estado, secuencia de tiempos, formula). El DetalleCitaModal
+        // escucha las sub-acciones 'detalle-*' y enfoca cada zona con spotlight.
         setShowNotif(false);
+        setShowNewCita(false);
+        setDemoFocus(null);
+        if (action === 'cita-detalle') {
+          const pool = citasRef.current || [];
+          const conReposo = (c: any) => c.fin_activa && c.fin_espera && new Date(c.fin_espera).getTime() > new Date(c.fin_activa).getTime();
+          const pick = pool.find((c: any) => c.formula_producto || c.formula_tono)
+            || pool.find(conReposo)
+            || pool.find((c: any) => c.estado === CITA_STATUS.CONFIRMADA)
+            || pool[0];
+          if (pick) { setSelectedCitaEdit(pick); setShowEditCita(true); }
+        }
+      } else if (action === 'nueva-cita' || (typeof action === 'string' && action.indexOf('cita-') === 0)) {
+        setShowNotif(false);
+        setShowEditCita(false);
         setDemoFocus(null);
         if (action === 'nueva-cita') setNewCitaPrefill(null);
         setShowNewCita(true);
       } else if (action === 'notificaciones') {
         setShowNewCita(false);
+        setShowEditCita(false);
         setShowNotif(true);
         setDemoFocus('avisos');
       } else if (action === 'cerrar') {
         setShowNewCita(false);
         setShowNotif(false);
+        setShowEditCita(false);
+        setSelectedCitaEdit(null);
         setNewCitaPrefill(null);
         setDemoFocus(null);
       }
@@ -4079,6 +4102,37 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
     norm(c.nombre).includes(norm(qCli))
   );
 
+  // --- Demo guiada: explicar la cita bloque a bloque. La guia abre este detalle
+  // (cita-detalle) y enfoca con spotlight: servicio, cliente, estado, secuencia
+  // (tiempo activo -> reposo -> 2o activo = tiempos muertos) y formula.
+  const [demoZone, setDemoZone] = useState<string | null>(null);
+  const dCliRef = useRef<HTMLElement | null>(null);
+  const dSrvRef = useRef<HTMLElement | null>(null);
+  const dEstRef = useRef<HTMLElement | null>(null);
+  const dSeqRef = useRef<HTMLElement | null>(null);
+  const dFormRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onDemo = (e: Event) => {
+      const a = (e as CustomEvent).detail?.action;
+      if (typeof a !== 'string' || a.indexOf('detalle-') !== 0) return;
+      const zone = a.slice('detalle-'.length);
+      if (zone === 'formula') setShowFormula(true);
+      setDemoZone(zone);
+    };
+    window.addEventListener('mecha-demo', onDemo);
+    return () => window.removeEventListener('mecha-demo', onDemo);
+  }, []);
+  useEffect(() => {
+    if (!demoZone) return;
+    const m: Record<string, { current: HTMLElement | null }> = { cliente: dCliRef, servicio: dSrvRef, estado: dEstRef, secuencia: dSeqRef, formula: dFormRef };
+    const el = m[demoZone]?.current;
+    if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [demoZone]);
+  const demoRefMap: Record<string, { current: HTMLElement | null }> = { cliente: dCliRef, servicio: dSrvRef, estado: dEstRef, secuencia: dSeqRef, formula: dFormRef };
+  const demoActiveRef = (demoZone && demoRefMap[demoZone]) || dSeqRef;
+  const demoLabel = demoZone === 'cliente' ? 'Cliente' : demoZone === 'servicio' ? 'Servicio' : demoZone === 'estado' ? 'Estado de la cita' : demoZone === 'secuencia' ? 'Secuencia · tiempos muertos' : demoZone === 'formula' ? 'Formula guardada' : '';
+
   return (
     <div
       className="m-overlay-enter"
@@ -4093,6 +4147,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
       }}
       onClick={onClose}
     >
+      <DemoSpotlight targetRef={demoActiveRef} active={!!demoZone} label={demoLabel} padding={12} radius={14} />
       <div
         className="m-modal-enter"
         style={{
@@ -4389,7 +4444,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
           {/* Left column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
             {/* Cliente */}
-            <div>
+            <div ref={(el) => { dCliRef.current = el; }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                 <Label>Cliente</Label>
                 {selectedCliente?.id && (
@@ -4530,7 +4585,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
             </div>
 
             {/* Servicio */}
-            <div>
+            <div ref={(el) => { dSrvRef.current = el; }}>
               <Label>Servicio</Label>
               <SearchDropdown
                 open={openSrv}
@@ -4698,7 +4753,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
             </div>
 
             {/* Estado */}
-            <div>
+            <div ref={(el) => { dEstRef.current = el; }}>
               <Label>Estado</Label>
               <div style={{ position: 'relative' }}>
                 <button
@@ -4859,6 +4914,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
 
             {/* Secuencia */}
             <div
+              ref={(el) => { dSeqRef.current = el; }}
               style={{
                 padding: 12,
                 borderRadius: 12,
@@ -4918,6 +4974,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
 
             {/* Fórmula de color / química */}
             <div
+              ref={(el) => { dFormRef.current = el; }}
               style={{
                 padding: 12,
                 borderRadius: 12,
