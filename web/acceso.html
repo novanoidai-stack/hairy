@@ -363,15 +363,21 @@
   // Despues de autenticar: demo -> demo; equipo -> elige; perfil incompleto -> completar;
   // free -> pantalla limitada; full -> software.
   function routeAfterAuth() {
-    if (nextDest === 'demo') { gotoDemo(); return; }
     Promise.resolve(api && api.isStaff ? api.isStaff() : false).then(function (staff) {
-      if (staff) { showStage('paneChooser'); return; }
+      // El equipo Mecha (staff) entra sin pedir datos de salon.
+      if (staff) {
+        if (nextDest === 'demo') { gotoDemo(); return; }
+        showStage('paneChooser');
+        return;
+      }
       Promise.resolve(api && api.getProfile ? api.getProfile() : null).then(function (profile) {
+        // Antes de demo o software: exigir negocio + telefono + codigo postal.
         if (api && api.profileComplete && !api.profileComplete(profile)) {
           prefillComplete(profile);
           showStage('paneComplete');
           return;
         }
+        if (nextDest === 'demo') { gotoDemo(); return; }
         routeByPlan(profile);
       });
     });
@@ -438,7 +444,7 @@
           nombre: (prof && prof.nombre) || '',
           salon: (prof && prof.nombre_negocio) || '',
           email: email || '',
-          telefono: (prof && prof.telefono) || '',
+          telefono: (prof && prof.phone) || '',
           nota: 'Solicita acceso completo al software (cuenta free).'
         }).then(function (r) {
           if (r && r.error) { msg(freeMsg, 'err', 'No se pudo enviar. Inténtalo de nuevo.'); if (btn) btn.disabled = false; return; }
@@ -452,7 +458,7 @@
   function prefillComplete(profile) {
     if (!profile) return;
     var s = document.getElementById('cpSalon'); if (s && profile.nombre_negocio) s.value = profile.nombre_negocio;
-    var t = document.getElementById('cpPhone'); if (t && profile.telefono) t.value = profile.telefono;
+    var t = document.getElementById('cpPhone'); if (t && profile.phone) t.value = profile.phone;
     var c = document.getElementById('cpCp'); if (c && profile.codigo_postal) c.value = profile.codigo_postal;
   }
   var cpBtn = document.getElementById('cpBtn');
@@ -464,9 +470,11 @@
       if (!salon || !phone || !cp) { msg(cpMsg, 'err', 'Completa los tres campos para continuar.'); return; }
       if (!api || !api.updateProfile) { msg(cpMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
       cpBtn.disabled = true; var prev = cpBtn.textContent; cpBtn.textContent = 'Guardando...';
-      api.updateProfile({ nombre_negocio: salon, telefono: phone, codigo_postal: cp }).then(function (r) {
+      api.updateProfile({ nombre_negocio: salon, phone: phone, codigo_postal: cp }).then(function (r) {
         if (r && r.error) { msg(cpMsg, 'err', 'No pudimos guardar. Inténtalo de nuevo.'); cpBtn.disabled = false; cpBtn.textContent = prev; return; }
-        routeByPlan(r && r.data ? r.data : { plan: 'free', nombre_negocio: salon, telefono: phone, codigo_postal: cp });
+        // Datos completos: si venia a por la demo, a la demo; si no, segun su plan.
+        if (nextDest === 'demo') { gotoDemo(); return; }
+        routeByPlan(r && r.data ? r.data : { plan: 'free', nombre_negocio: salon, phone: phone, codigo_postal: cp });
       });
     });
   }

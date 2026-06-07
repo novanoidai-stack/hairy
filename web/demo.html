@@ -176,6 +176,10 @@
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha</span></div>
   <span class="dm-pill"><span class="d"></span>Vista previa · interactiva</span>
   <span class="dm-visits" id="visits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg><span id="visitsText">Preparando…</span></span>
+  <button class="dm-share" id="shareBtn" type="button" title="Copia el enlace para que el equipo vea la demo con el tutorial" style="display:none;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:#f6f1ea;font:inherit;font-size:13px;font-weight:600;transition:background .18s ease" onmouseenter="this.style.background='rgba(255,255,255,0.13)'" onmouseleave="this.style.background='rgba(255,255,255,0.06)'">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
+    <span class="lbl">Copiar enlace</span>
+  </button>
   <div class="dm-bar-cta">
     <a class="btn btn-primary" href="reservar.html"><span class="cta-long">Quiero el acceso completo</span><span class="cta-short">Acceso completo</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
@@ -263,10 +267,15 @@
   var VISIT_FLAG='mecha_demo_visit';
   var qs=new URLSearchParams(location.search);
   var preview=qs.get('preview')==='1';
+  // Enlace compartible para el equipo: sin gate ni consumo de visitas.
+  var shareMode=qs.get('share')==='1';
+  // "maqueta": mostramos el marco con placeholder en vez de cargar /app real.
+  // En preview siempre; en share se decide tras saber si es staff.
+  var maqueta=preview;
 
   var gate=$('#gate'), end=$('#end'), frame=$('#appFrame'), localnote=$('#localnote');
   var visitsEl=$('#visits'), visitsText=$('#visitsText');
-  var tour=$('#tour');
+  var tour=$('#tour'), shareBtn=$('#shareBtn');
 
   function showGate(){ gate.classList.remove('hide'); }
   function hideGate(){ gate.classList.add('hide'); }
@@ -279,9 +288,27 @@
     if(n<=1) visitsEl.classList.add('low');
   }
 
+  /* ---------- enlace compartible (solo equipo/staff) ---------- */
+  function shareLink(){ return location.origin + location.pathname + '?share=1'; }
+  function revealShare(){ if(shareBtn) shareBtn.style.display='inline-flex'; }
+  if(shareBtn){
+    shareBtn.addEventListener('click', function(){
+      var url=shareLink(), lbl=shareBtn.querySelector('.lbl');
+      function ok(){ if(lbl){ var t=lbl.getAttribute('data-base')||lbl.textContent; lbl.setAttribute('data-base',t); lbl.textContent='Enlace copiado'; setTimeout(function(){ lbl.textContent=t; },1700); } }
+      function fallback(){
+        try{
+          var ta=document.createElement('textarea'); ta.value=url; ta.style.position='fixed'; ta.style.opacity='0';
+          document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok();
+        }catch(e){ window.prompt('Copia el enlace de la demo:', url); }
+      }
+      if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(ok,fallback); }
+      else { fallback(); }
+    });
+  }
+
   /* ---------- carga del software real e interactivo ---------- */
   function mountApp(){
-    if(preview){
+    if(maqueta){
       // modo maqueta local: dejamos el placeholder, sin cargar /app
       localnote.querySelector('.sp').style.display='none';
       localnote.querySelector('h3').textContent='Vista previa del marco de la demo';
@@ -303,6 +330,23 @@
   /* ---------- arranque ---------- */
   function boot(){
     if(preview){ enterDemo(3); return; }
+
+    // Enlace compartible para el equipo: sin gate y sin gastar visitas. El
+    // equipo (staff) ve el software real; cualquier otra persona ve la maqueta
+    // del marco con el tour. Misma URL para todos, la experiencia se adapta.
+    if(shareMode){
+      if(!api||!api.getSession){ maqueta=true; enterDemo(null); return; }
+      api.getSession().then(function(s){
+        if(!s){ maqueta=true; enterDemo(null); return; }
+        Promise.resolve(api.isStaff?api.isStaff():false).then(function(staff){
+          if(staff) revealShare();
+          maqueta=!staff;
+          enterDemo(null);
+        });
+      });
+      return;
+    }
+
     if(!api||!api.getSession){ showGate(); return; }
 
     // Una visita por sesion de navegador: si ya entraste, no descuentes otra.
@@ -312,16 +356,30 @@
 
     api.getSession().then(function(s){
       if(!s){ showGate(); return; }
-      api.useDemoVisit().then(function(res){
-        if(res&&res.allowed){
-          try{ sessionStorage.setItem(VISIT_FLAG, JSON.stringify({allowed:true,remaining:res.remaining})); }catch(e){}
-          enterDemo(res.remaining);
-        } else if(res&&res.reason==='no_profile'){
-          // cuenta sin perfil aun (confirmacion por email pendiente): la app lo resuelve al entrar
-          enterDemo(null);
-        } else {
-          showEnd();
+      // Antes de la demo exigimos perfil completo (negocio + telefono + codigo
+      // postal). El equipo Mecha (staff) queda exento. Si falta algo, mandamos a
+      // completar datos y se vuelve solo a la demo (acceso.html?next=demo).
+      Promise.all([
+        api.isStaff?api.isStaff():Promise.resolve(false),
+        api.getProfile?api.getProfile():Promise.resolve(null)
+      ]).then(function(chk){
+        var staff=chk[0]===true, profile=chk[1];
+        if(staff) revealShare();
+        if(!staff && api.profileComplete && !api.profileComplete(profile)){
+          location.href='acceso.html?next=demo';
+          return;
         }
+        api.useDemoVisit().then(function(res){
+          if(res&&res.allowed){
+            try{ sessionStorage.setItem(VISIT_FLAG, JSON.stringify({allowed:true,remaining:res.remaining})); }catch(e){}
+            enterDemo(res.remaining);
+          } else if(res&&res.reason==='no_profile'){
+            // cuenta sin perfil aun (confirmacion por email pendiente): la app lo resuelve al entrar
+            enterDemo(null);
+          } else {
+            showEnd();
+          }
+        });
       });
     });
   }
@@ -381,7 +439,7 @@
   // Mismo origen: usamos postMessage y la app hace router.push(route) sin recargar.
   var lastRoute=null;
   function navFrame(route){
-    if(preview||!route||route===lastRoute) return;
+    if(maqueta||!route||route===lastRoute) return;
     lastRoute=route;
     try{
       if(frame.contentWindow){
@@ -393,7 +451,7 @@
   // Pide a la app que abra/cierre un panel real (nueva cita, ficha, avisos).
   // _layout reemite el mensaje como CustomEvent y cada pantalla reacciona.
   function demoAction(action){
-    if(preview||!action) return;
+    if(maqueta||!action) return;
     try{
       if(frame.contentWindow){
         frame.contentWindow.postMessage({ type:'mecha-demo', action:action }, location.origin);
