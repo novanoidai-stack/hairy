@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { validarHorarioLaboral } from '@/lib/horarios';
 import { getUserProfile } from '@/lib/auth';
 import { TimeDrumPicker } from '@/components/ui/Pickers';
 import { useCalendarRefresh } from '@/lib/calendarContext';
@@ -2539,6 +2540,15 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
           return;
         }
 
+        // Check horario laboral del profesional (respeta turnos / horario partido)
+        const errHorario = await validarHorarioLaboral(cita.profesional_id, cInicio, cFin);
+        if (errHorario) {
+          const profName = profesionales.find((p: any) => p.id === cita.profesional_id)?.nombre || 'Profesional';
+          setErrMsg(`${profName} (servicio ${i + 1}): ${errHorario}`);
+          setGuardando(false);
+          return;
+        }
+
         // Check overlap contra DB (ambas fases activas)
         const { data: candidatas } = await supabase
           .from('citas')
@@ -3629,6 +3639,19 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
       const originalInicio = new Date(cita.inicio);
       const originalFin = new Date(cita.fin);
       const inicioMoved = inicioDate.getTime() !== originalInicio.getTime();
+      const profMoved = selectedProf.id !== cita.profesional_id;
+
+      // Horario laboral del profesional (respeta turnos / horario partido).
+      // Solo al mover la cita o cambiar de profesional, para no bloquear
+      // ediciones (notas, formula) de citas ya existentes.
+      if (inicioMoved || profMoved) {
+        const errHorarioEdit = await validarHorarioLaboral(selectedProf.id, inicioDate, fin);
+        if (errHorarioEdit) {
+          setErrMsg(errHorarioEdit);
+          setGuardando(false);
+          return;
+        }
+      }
 
       if (inicioMoved && citasHoy) {
         // MOVER: validar solapamiento, sin cascade

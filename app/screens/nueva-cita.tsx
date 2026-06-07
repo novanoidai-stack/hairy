@@ -10,6 +10,7 @@ import { format, addMinutes as dateFnsAddMinutes } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
+import { validarHorarioLaboral } from '@/lib/horarios';
 import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { TText, TTextInput } from '@/components/ui/TText';
@@ -236,24 +237,12 @@ export default function NuevaCitaScreen() {
         return;
       }
 
-      // 2. Check working hours (only if configured)
+      // 2. Check working hours: respeta turnos / horario partido (Modular 3 s5).
       const diaSemana = inicio.getDay();
-      const { data: horario } = await supabase
-        .from('horarios_profesional')
-        .select('hora_inicio, hora_fin')
-        .eq('profesional_id', profSeleccionado)
-        .eq('dia_semana', diaSemana)
-        .eq('activo', true)
-        .maybeSingle();
-
-      if (horario) {
-        const minInicio = inicio.getHours() * 60 + inicio.getMinutes();
-        const [h1, m1] = (horario.hora_inicio as string).split(':').map(Number);
-        const [h2, m2] = (horario.hora_fin as string).split(':').map(Number);
-        if (minInicio < h1 * 60 + m1 || minInicio + duracionTotal > h2 * 60 + m2) {
-          bloquear(`Fuera de horario (${(horario.hora_inicio as string).slice(0,5)}–${(horario.hora_fin as string).slice(0,5)} los ${diaNombre(diaSemana)})`);
-          return;
-        }
+      const errHorario = await validarHorarioLaboral(profSeleccionado, inicio, fin);
+      if (errHorario) {
+        bloquear(`${errHorario} los ${diaNombre(diaSemana)}`);
+        return;
       }
 
       // 3. No solapar en fase activa
