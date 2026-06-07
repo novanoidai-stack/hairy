@@ -1822,25 +1822,41 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
               {h}:00
             </div>
             {profesionales.map((p: any) => (
-              <div
-                key={`${h}-${p.id}`}
-                onClick={(e) => {
-                  if (!onCreateSlot) return;
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const minute = (e.clientY - rect.top) > rect.height / 2 ? 30 : 0;
-                  onCreateSlot({ hora: `${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`, profId: p.id });
-                }}
-                title="Crear cita en este hueco"
-                style={{
-                  borderLeft: `1px solid rgba(148,163,184,0.05)`,
-                  // Linea de media hora: separador tenue a mitad del slot de una hora
-                  backgroundImage: `linear-gradient(to bottom, transparent calc(50% - 0.5px), rgba(148,163,184,0.08) calc(50% - 0.5px), rgba(148,163,184,0.08) calc(50% + 0.5px), transparent calc(50% + 0.5px))`,
-                  cursor: onCreateSlot ? 'pointer' : 'default',
-                  transition: 'background-color 0.12s ease',
-                }}
-                onMouseEnter={(e) => { if (onCreateSlot) e.currentTarget.style.backgroundColor = 'rgba(244,80,30,0.06)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-              />
+              // Cada hora se parte en dos medias horas (:00 y :30). Cada mitad se
+              // resalta sola al pasar el raton y muestra su hora exacta, asi el
+              // clic crea la cita justo en la media hora elegida.
+              <div key={`${h}-${p.id}`} style={{ borderLeft: `1px solid rgba(148,163,184,0.05)`, display: 'flex', flexDirection: 'column' }}>
+                {[0, 30].map((minute) => {
+                  const horaSlot = `${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+                  return (
+                    <div
+                      key={minute}
+                      onClick={() => { if (onCreateSlot) onCreateSlot({ hora: horaSlot, profId: p.id }); }}
+                      title={`Crear cita a las ${horaSlot}`}
+                      style={{
+                        flex: 1,
+                        borderTop: minute === 30 ? `1px dashed rgba(148,163,184,0.14)` : 'none',
+                        cursor: onCreateSlot ? 'pointer' : 'default',
+                        transition: 'background-color 0.12s ease',
+                        display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 7px',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!onCreateSlot) return;
+                        e.currentTarget.style.backgroundColor = 'rgba(244,80,30,0.09)';
+                        const lbl = e.currentTarget.querySelector('span') as HTMLElement | null;
+                        if (lbl) lbl.style.opacity = '1';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        const lbl = e.currentTarget.querySelector('span') as HTMLElement | null;
+                        if (lbl) lbl.style.opacity = '0';
+                      }}
+                    >
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#e0340e', opacity: 0, transition: 'opacity 0.12s ease', pointerEvents: 'none' }}>{horaSlot}</span>
+                    </div>
+                  );
+                })}
+              </div>
             ))}
           </div>
         ))}
@@ -2172,6 +2188,15 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [allProfSrvOverrides, setAllProfSrvOverrides] = useState<any[]>([]);
   const today = selectedDate || new Date();
+
+  // Reloj en vivo: muestra la hora actual arriba del formulario como referencia
+  // rapida al crear la cita. Se refresca cada 30 s.
+  const [ahora, setAhora] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setAhora(new Date()), 30000);
+    return () => clearInterval(t);
+  }, []);
+  const ahoraStr = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
 
   useEffect(() => {
     async function cargar() {
@@ -2633,6 +2658,20 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
           </button>
         </div>
 
+        {/* Reloj actual + hora elegida: referencia rapida al crear la cita */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 13px', borderRadius: 11, background: 'rgba(148,163,184,0.08)', border: `1px solid ${TOKENS.border}` }}>
+            <span style={{ width: 7, height: 7, borderRadius: 999, background: '#16a34a', boxShadow: '0 0 0 3px rgba(22,163,74,0.18)', flexShrink: 0 }} />
+            <span style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600 }}>Ahora</span>
+            <span style={{ fontSize: 14, color: TOKENS.text, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{ahoraStr}</span>
+          </div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 13px', borderRadius: 11, background: horaActual ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.06)', border: `1px solid ${horaActual ? 'rgba(244,80,30,0.38)' : TOKENS.border}`, transition: 'all 0.2s ease' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={horaActual ? '#e0340e' : TOKENS.textTer} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>
+            <span style={{ fontSize: 11, color: horaActual ? '#e0340e' : TOKENS.textTer, fontWeight: 600 }}>Hora de la cita</span>
+            <span style={{ fontSize: 14, color: horaActual ? '#e0340e' : TOKENS.textTer, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{horaActual || '--:--'}</span>
+          </div>
+        </div>
+
         {/* Tarjetas de servicios confirmados (encadenados) */}
         {citasConfirmadas.length > 0 && (
           <div style={{ marginBottom: 16 }}>
@@ -2928,11 +2967,6 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
             <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
               Hora · {today.toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })}
             </div>
-            {today.toDateString() === new Date().toDateString() && (
-              <div style={{ fontSize: 10, color: TOKENS.textTer, marginBottom: 8, textAlign: 'center', borderBottom: `1px dashed ${TOKENS.borderHi}`, paddingBottom: 6 }}>
-                Ahora: {new Date().getHours().toString().padStart(2, '0')}:{new Date().getMinutes().toString().padStart(2, '0')}
-              </div>
-            )}
             {(() => {
               const slots = generarSlotsHorarios();
               // RN-AG-070/071: añadir fin_activa exacto como slot extra si no es múltiplo de 15
