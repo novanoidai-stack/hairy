@@ -366,15 +366,18 @@ export default function ClientesWeb() {
     const onDemo = (e: Event) => {
       const action = (e as CustomEvent).detail?.action;
       if (action === 'ficha') {
+        // En el tour abrimos la ficha a pantalla completa para que luzca.
         if (clientes.length > 0) {
           setSelected(clientes[0].id);
           setActiveTab('resumen');
+          setPanelExpanded(true);
         } else {
           // Aun no hay datos: lo resolvemos cuando lleguen.
           demoFichaPending.current = true;
         }
       } else if (action === 'cerrar') {
         setSelected(null);
+        setPanelExpanded(false);
       }
     };
     window.addEventListener('mecha-demo', onDemo);
@@ -387,6 +390,7 @@ export default function ClientesWeb() {
       demoFichaPending.current = false;
       setSelected(clientes[0].id);
       setActiveTab('resumen');
+      setPanelExpanded(true);
     }
   }, [clientes]);
 
@@ -592,7 +596,8 @@ export default function ClientesWeb() {
                 ? c.primeraVisita.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
                 : null;
               return (
-                <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: panelExpanded ? 22 : 18, marginBottom: 14, boxShadow: '0 1px 3px rgba(40,30,24,0.05)' }}>
+                <div style={{ position: 'relative', overflow: 'hidden', background: panelExpanded ? 'linear-gradient(135deg,#ffffff 0%,#fff7f2 58%,#ffe9dc 100%)' : TOKENS.bgCard, border: `1px solid ${panelExpanded ? 'rgba(244,80,30,0.20)' : TOKENS.border}`, borderRadius: panelExpanded ? 20 : 16, padding: panelExpanded ? 28 : 18, marginBottom: 14, boxShadow: panelExpanded ? '0 18px 48px rgba(244,80,30,0.10), 0 2px 10px rgba(40,30,24,0.06)' : '0 1px 3px rgba(40,30,24,0.05)' }}>
+                  {panelExpanded && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg,#e0340e,#ff7a2e,#ffcf4a)' }} />}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <Avatar name={c.nombre} size={panelExpanded ? 66 : 56} />
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -701,7 +706,7 @@ export default function ClientesWeb() {
               </div>
             ) : (
               // Modo expandido: todas las secciones a la vez en cuadricula
-              <div className="m-tab-content" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div className="m-tab-content m-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 {/* Fila 1: Resumen (banda completa) */}
                 <Panel title="Resumen" accent={TOKENS.primary}>
                   <ResumenTab cliente={c} citas={citas} servicios={servicios} />
@@ -2375,18 +2380,19 @@ function MiniStat({ label, value, tone, big }: any) {
 function Panel({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
   return (
     <div style={{
-      background: 'linear-gradient(180deg, rgba(148,163,184,0.04) 0%, transparent 60%)',
+      background: TOKENS.bgCard,
       border: `1px solid ${TOKENS.border}`,
-      borderRadius: 14,
-      padding: 18,
+      borderRadius: 16,
+      padding: 20,
       position: 'relative',
       overflow: 'hidden',
+      boxShadow: '0 2px 12px rgba(40,30,24,0.05)',
     }}>
       {/* Accent bar superior */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${accent} 0%, ${accent}33 100%)` }} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${accent} 0%, ${accent}33 100%)` }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 16 }}>
         <div style={{ width: 4, height: 16, borderRadius: 2, background: accent }} />
-        <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text, letterSpacing: 0.4, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: TOKENS.text, letterSpacing: 0.5, textTransform: 'uppercase' }}>
           {title}
         </div>
       </div>
