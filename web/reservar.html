@@ -362,6 +362,10 @@
           <h2>¡Llamada reservada!</h2>
           <div class="conf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg><span id="doneWhen">—</span></div>
           <p class="note" id="doneNote">Te hemos enviado la confirmación por email. Te llamaremos a la hora elegida.</p>
+          <a id="doneMeet" class="btn btn-primary" href="#" target="_blank" rel="noopener" style="display:none;margin-top:14px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg>
+            Unirse a Google Meet
+          </a>
 
           <div class="bk-next">
             <div class="nh">Qué pasa ahora</div>
@@ -553,12 +557,19 @@
     el.addEventListener('input',function(){ this.closest('.bk-field').classList.remove('invalid'); });
   });
 
+  // Endpoint (OMNI/web_vercel) que crea el evento de Google Calendar + Meet y
+  // envia la invitacion al cliente por email. Cuenta Google fija de Mecha.
+  var MECHA_CALL_URL='https://web-git-main-novanoidai-stacks-projects.vercel.app/api/public/mecha-call';
   $('#confirmBtn').addEventListener('click',function(){
     if(!validate()){
       var first=$('.bk-field.invalid'); if(first) first.querySelector('input,select').focus();
       return;
     }
     var name=$('#fName').value.trim().split(' ')[0];
+    // Fecha + hora elegidas -> ISO (hora local de Espana)
+    var dt=null;
+    if(state.day){ dt=new Date(state.day); if(state.slot){ var hm=String(state.slot).split(':'); dt.setHours(parseInt(hm[0],10)||0, parseInt(hm[1],10)||0, 0, 0); } }
+    var fechaHoraISO = dt ? dt.toISOString() : null;
     // Enviamos la solicitud de reserva a Supabase (no bloquea la confirmacion)
     if(window.MechaAPI){ window.MechaAPI.insertSolicitud({
       tipo:'reserva_llamada',
@@ -572,8 +583,24 @@
       fecha_preferida:state.day?fmtLong(state.day):null,
       hora_preferida:state.slot||null
     }); }
+    // Crea el evento + Google Meet y manda el link al cliente por email (no bloquea).
+    try{
+      fetch(MECHA_CALL_URL,{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          nombre:$('#fName').value.trim(),
+          email:$('#fEmail').value.trim(),
+          telefono:$('#fPhone').value.trim(),
+          salon:$('#fSalon').value.trim(),
+          notas:$('#fNote').value.trim()||null,
+          fecha_hora: fechaHoraISO
+        })
+      }).then(function(r){ return r.ok?r.json():null; }).then(function(d){
+        if(d&&d.meetLink){ var b=$('#doneMeet'); if(b){ b.href=d.meetLink; b.style.display='inline-flex'; } }
+      }).catch(function(){});
+    }catch(e){}
     $('#doneWhen').textContent=fmtLong(state.day)+' · '+state.slot+'h';
-    $('#doneNote').innerHTML='Gracias, <b style="color:var(--text)">'+name+'</b>. Te hemos enviado la confirmación por email y te llamaremos al teléfono que nos has dejado.';
+    $('#doneNote').innerHTML='Gracias, <b style="color:var(--text)">'+name+'</b>. Te hemos enviado a tu email la invitación con el <b style="color:var(--text)">enlace de Google Meet</b> y un recordatorio. La llamada es <b style="color:var(--text)">gratis y breve</b>.';
     gotoStep(3);
   });
 
