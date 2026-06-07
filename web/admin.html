@@ -138,6 +138,7 @@
   .plan.free{color:#a5b4fc;background:rgba(129,140,248,.12);border-color:rgba(129,140,248,.32)}
   .plan.full{color:#34d399;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.3)}
   .plan.demo{color:#ff8a3d;background:rgba(244,80,30,.12);border-color:rgba(244,80,30,.3)}
+  .plan.staff{color:#c4b5fd;background:rgba(139,92,246,.16);border-color:rgba(139,92,246,.4)}
 
   /* ---- grant action ---- */
   .btn-grant{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;
@@ -443,6 +444,16 @@
     if (r.tipo === 'reserva_llamada' || r.hora_preferida) grid += cell('Hora preferida', r.hora_preferida);
     if (r.num_profesionales) grid += cell('Profesionales', r.num_profesionales);
     if (r.herramienta_actual) grid += cell('Herramienta actual', r.herramienta_actual);
+    if (r.salon) grid += cell('Salon', r.salon);
+    // Cualquier dato extra recogido en la auditoria (jsonb meta): se muestra todo.
+    if (r.meta && typeof r.meta === 'object') {
+      Object.keys(r.meta).forEach(function (k) {
+        var v = r.meta[k];
+        if (v !== null && v !== undefined && v !== '') {
+          grid += cell(k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '), typeof v === 'object' ? JSON.stringify(v) : String(v));
+        }
+      });
+    }
 
     var note = r.nota ? '<div class="r-note">' + esc(r.nota) + '</div>' : '';
 
@@ -506,36 +517,52 @@
 
   // ---------- CUENTAS ----------
   var accounts = [];
+  var staffEmails = {};
   var cuentasLoaded = false;
+
+  function isStaffAccount(p) { return !!(p && p.email && staffEmails[String(p.email).toLowerCase()]); }
+  // Clasificacion de la cuenta: equipo (staff) > con acceso (full) > demo (free).
+  function accountKind(p) {
+    if (isStaffAccount(p)) return 'staff';
+    if ((p.plan || 'free') !== 'free') return 'full';
+    return 'free';
+  }
 
   function loadCuentas() {
     var listEl = $('listCue');
     listEl.innerHTML = '<div class="ad-loading">Cargando cuentas...</div>';
     clearMsg($('cueMsg'));
-    // El panel de staff lee todas las cuentas: lo autoriza la policy RLS is_staff()
-    // sobre profiles (no aplica el filtro por negocio_id propio del resto de la app).
-    api.client.from('profiles').select('*').order('created_at', { ascending: false })
-      .then(function (res) {
-        if (res.error) {
-          listEl.innerHTML = '';
-          msg($('cueMsg'), 'err', 'No se pudieron cargar las cuentas: ' + (res.error.message || ''));
-          return;
-        }
-        accounts = res.data || [];
-        cuentasLoaded = true;
-        renderCuentas();
-      });
+    // El panel de staff lee todas las cuentas (RLS is_staff() sobre profiles) y la
+    // lista de correos del equipo (RPC staff_emails) para distinguir las cuentas.
+    Promise.all([
+      api.client.from('profiles').select('*').order('created_at', { ascending: false }),
+      api.client.rpc('staff_emails')
+    ]).then(function (out) {
+      var res = out[0], st = out[1];
+      if (res.error) {
+        listEl.innerHTML = '';
+        msg($('cueMsg'), 'err', 'No se pudieron cargar las cuentas: ' + (res.error.message || ''));
+        return;
+      }
+      accounts = res.data || [];
+      staffEmails = {};
+      if (st && !st.error && Array.isArray(st.data)) st.data.forEach(function (e) { staffEmails[String(e).toLowerCase()] = true; });
+      cuentasLoaded = true;
+      renderCuentas();
+    });
   }
 
   function renderCuentasStats() {
     var total = accounts.length;
-    var free = accounts.filter(function (p) { return (p.plan || 'free') === 'free'; }).length;
-    var full = accounts.filter(function (p) { return p.plan === 'full'; }).length;
+    var staffN = accounts.filter(isStaffAccount).length;
+    var free = accounts.filter(function (p) { return accountKind(p) === 'free'; }).length;
+    var full = accounts.filter(function (p) { return accountKind(p) === 'full'; }).length;
     var enDemo = accounts.filter(function (p) { return p.negocio_id === 'demo_salon_001'; }).length;
     var stats = [
       { n: total, l: 'Cuentas' },
-      { n: free, l: 'Free' },
-      { n: full, l: 'Full' },
+      { n: staffN, l: 'Equipo' },
+      { n: full, l: 'Con acceso' },
+      { n: free, l: 'Free (solo demo)' },
       { n: enDemo, l: 'En demo' }
     ];
     $('statsCue').innerHTML = stats.map(function (s) {
@@ -588,7 +615,8 @@
     return '<div class="card-row" data-pid="' + esc(p.id) + '">' +
       '<div class="r-head">' +
         '<div class="r-id">' +
-          '<span class="plan ' + planClass + '">' + esc(plan) + '</span>' +
+          (isStaffAccount(p) ? '<span class="plan staff">equipo</span>' : '') +
+          '<span class="plan ' + planClass + '">' + (plan === 'full' ? 'con acceso' : esc(plan)) + '</span>' +
           (isDemo ? '<span class="plan demo">en demo</span>' : '') +
           '<span class="r-name">' + nombreFull + '</span>' +
           (p.nombre_negocio ? '<span class="r-salon">· ' + esc(p.nombre_negocio) + '</span>' : '') +
