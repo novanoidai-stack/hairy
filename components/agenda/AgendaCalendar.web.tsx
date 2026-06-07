@@ -2755,14 +2755,20 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
     }
   };
 
-  if (loading) return <div style={{ background: '#0b1220', height: '100vh', width: '100%' }} />;
+  // Mientras carga, mostramos el MISMO fondo difuminado del modal (no una pantalla
+  // negra a pantalla completa, que provocaba un parpadeo en negro al abrir la cita).
+  if (loading) return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, animation: 'fadeIn 0.25s ease' }}>
+      <div style={{ width: 40, height: 40, borderRadius: 999, border: '3px solid rgba(255,255,255,0.14)', borderTopColor: '#f4501e', animation: 'spin 0.9s linear infinite' }} />
+    </div>
+  );
 
   const clienteSeleccionado = clientes.find(c => c.id === selectedCliente);
   const demoZoneRef = demoZone === 'cliente' ? clienteZoneRef : demoZone === 'servicio' ? servicioZoneRef : horaZoneRef;
   const demoZoneLabel = demoZone === 'cliente' ? 'Elige cliente' : demoZone === 'servicio' ? 'Elige servicio' : demoZone === 'hora' ? 'Elige la hora' : demoZone === 'reposo' ? 'Tiempos muertos' : '';
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24, animation: 'fadeIn 0.3s ease' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24, animation: 'fadeIn 0.3s ease' }}>
       <DemoSpotlight targetRef={demoZoneRef} active={!!demoZone} label={demoZoneLabel} padding={10} radius={14} />
       <div style={{ width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 24, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)', animation: 'scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
@@ -3189,7 +3195,8 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
 
                       if (occupied1 || occupied2 || blockedByAusencia) return null;
 
-                      const selected = (selectedHora === time && !horaPersonalizada);
+                      // Resaltar en naranja tambien el hueco prellenado al clicar en la rejilla
+                      const selected = (selectedHora === time && !horaPersonalizada) || (useCustomHora && horaPersonalizada === time);
                       const esReposo = reposaSlots.has(time);
 
                       return (
