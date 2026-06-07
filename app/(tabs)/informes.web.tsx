@@ -1367,7 +1367,7 @@ export default function InformesScreen() {
             </div>
 
             {/* ============================================================= */}
-            {/* 9.7: Retencion de clientas                                    */}
+            {/* 9.7: Retencion de clientes                                    */}
             {/* ============================================================= */}
             <div style={{ marginBottom: 14 }}>
               <SectionHeader id="retencion" icon="heart" iconColor={TOKENS.rose} title="Retencion de clientes" subtitle={`${retencionData.clientesActivos} clientes activos en el periodo`} />

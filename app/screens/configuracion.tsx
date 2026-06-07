@@ -342,7 +342,7 @@ export default function ConfiguracionScreen() {
               <View style={[s.infoBox, { backgroundColor: tokens.primarySoft, borderColor: tokens.primary + '33' }]}>
                 <Ionicons name="information-circle-outline" size={16} color={tokens.primary} />
                 <TText style={{ color: tokens.primary, fontSize: tokens.fontSize.xs, flex: 1 }}>
-                  Durante el tiempo de reposo el profesional puede atender a otra clienta (ej. mientras procesa un tinte). El tiempo activo extra permite un segundo periodo activo después del reposo.
+                  Durante el tiempo de reposo el profesional puede atender a otro cliente (ej. mientras procesa un tinte). El tiempo activo extra permite un segundo periodo activo después del reposo.
                 </TText>
               </View>
 

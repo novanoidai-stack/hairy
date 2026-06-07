@@ -462,7 +462,7 @@ export default function NuevaCitaScreen() {
         )}
 
         {/* ── Cliente ── */}
-        <Section title="Clienta (opcional)">
+        <Section title="Cliente (opcional)">
           <View style={[s.searchBox, { backgroundColor: c.surface, borderColor: c.border }]}>
             <Ionicons name="search-outline" size={16} color={c.textTertiary} />
             <TTextInput
@@ -487,7 +487,7 @@ export default function NuevaCitaScreen() {
               <Ionicons name="person-outline" size={16} color={c.textTertiary} />
             </View>
             <TText style={[s.clienteNombre, { color: !clienteSeleccionado ? '#f4501e' : c.textSecondary }]}>
-              Sin clienta asignada
+              Sin cliente asignado
             </TText>
             {!clienteSeleccionado && <Ionicons name="checkmark-circle" size={18} color="#f4501e" style={{ marginLeft: 'auto' as any }} />}
           </TouchableOpacity>

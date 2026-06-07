@@ -185,7 +185,7 @@ export default function EquipoScreen() {
     }
 
     const resumen = citasAfectadas
-      .map((c: any) => `- ${c.clientes?.nombre ?? 'Clienta'} (${format(parseISO(c.inicio), 'dd/MM HH:mm', { locale: es })})`)
+      .map((c: any) => `- ${c.clientes?.nombre ?? 'Cliente'} (${format(parseISO(c.inicio), 'dd/MM HH:mm', { locale: es })})`)
       .join('\n');
 
     Alert.alert(
@@ -262,7 +262,7 @@ export default function EquipoScreen() {
       }
 
       if (!asignada) {
-        noReasignadas.push(`${cita.clientes?.nombre ?? 'Clienta'} (${format(parseISO(cita.inicio), 'HH:mm dd/MM', { locale: es })})`);
+        noReasignadas.push(`${cita.clientes?.nombre ?? 'Cliente'} (${format(parseISO(cita.inicio), 'HH:mm dd/MM', { locale: es })})`);
       }
     }
 

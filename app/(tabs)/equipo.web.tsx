@@ -663,7 +663,7 @@ export default function EquipoWeb() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 <MetricCard label="Comisiones" value={`${profSel.comisionesDevengadas ?? 0}€`} color="#f59e0b" />
                 <MetricCard label="Ocupacion" value={`${profSel.ocupacion ?? 0}%`} color="#c0260a" />
-                <MetricCard label="Clientas" value={String(profSel.clientesUnicos ?? 0)} color="#ec4899" />
+                <MetricCard label="Clientes" value={String(profSel.clientesUnicos ?? 0)} color="#ec4899" />
               </div>
             </Section>
 

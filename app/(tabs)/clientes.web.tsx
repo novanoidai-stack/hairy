@@ -31,6 +31,7 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
     x: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
     maximize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
     minimize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
+    download: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
   };
   return <div style={{ display: 'inline-flex', color }} dangerouslySetInnerHTML={{ __html: icons[name] || '' }} />;
 };
@@ -308,7 +309,7 @@ export default function ClientesWeb() {
       const riesgo = computeRiesgo(noshows);
       const diasInactiva = ultimaVisita ? Math.floor((Date.now() - ultimaVisita.getTime()) / (1000 * 60 * 60 * 24)) : null;
 
-      // Profesional habitual: el que mas citas tiene con esta clienta
+      // Profesional habitual: el que mas citas tiene con este cliente
       const profCount: Record<string, number> = {};
       clientCitas.forEach((c: Cita) => { if (c.profesional_id) profCount[c.profesional_id] = (profCount[c.profesional_id] || 0) + 1; });
       const topProf = Object.entries(profCount).sort((a, b) => b[1] - a[1])[0];
@@ -644,11 +645,12 @@ export default function ClientesWeb() {
             )}
 
             {/* Quick actions */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 14 }}>
               {[
                 { l: 'Reservar cita', icon: 'calendar', p: true, action: () => router.push({ pathname: '/screens/nueva-cita', params: { clienteId: c.id } } as any) },
                 { l: 'Llamar', icon: 'phone', action: () => { if (c.telefono) window.location.href = `tel:${c.telefono}`; } },
                 { l: 'Editar', icon: 'edit', action: () => { setEditingCliente(c); setShowClienteModal(true); } },
+                { l: 'Ficha PDF', icon: 'download', action: () => { void exportFichaPDF(c, citas, servicios); } },
               ].map((a, i) => (
                 <button
                   key={i}
@@ -695,6 +697,7 @@ export default function ClientesWeb() {
                     <NotasClienteSection cliente={c} plantillas={plantillasNota} onUpdated={(updated) => {
                       setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
                     }} />
+                    <div style={{ marginTop: 14 }}><FotosClienteSection cliente={c} negocioId={negocioId} /></div>
                   </>
                 )}
                 {activeTab === 'notas' && <NotasTab cliente={c} catalogoAlergias={catalogoAlergias} onSaveToCatalog={addAlergiaToCatalog} onUpdated={(updated) => {
@@ -717,6 +720,11 @@ export default function ClientesWeb() {
                   <NotasClienteSection cliente={c} plantillas={plantillasNota} bare onUpdated={(updated) => {
                     setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
                   }} />
+                </Panel>
+
+                {/* Fila 1.6: Fotos de servicios (galeria de cortes/colores, como la landing) */}
+                <Panel title="Fotos de servicios" accent={TOKENS.primary}>
+                  <FotosClienteSection cliente={c} negocioId={negocioId} bare />
                 </Panel>
 
                 {/* Fila 2: Notas + Color/Quimica (50/50) */}
@@ -1510,7 +1518,7 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
             onClick={duplicarUltimaFormula}
             style={{ width: '100%', padding: '10px 14px', background: 'rgba(244,80,30,0.08)', border: '1px solid rgba(244,80,30,0.25)', borderRadius: 10, color: TOKENS.primaryHi, fontSize: 12, fontWeight: 600, cursor: 'pointer', marginBottom: 14, textAlign: 'center' }}
           >
-            Copiar ultima formula de esta clienta
+            Copiar ultima formula de este cliente
           </button>
         )}
 
@@ -2399,6 +2407,209 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
       {children}
     </div>
   );
+}
+
+// Galeria de fotos de servicios del cliente (cortes/colores). Sube a Supabase
+// Storage (bucket cliente-fotos) y guarda la referencia en cliente_fotos. Asi el
+// cliente ve sus cortes anteriores, igual que en la ficha de la landing.
+function FotosClienteSection({ cliente, negocioId, bare = false, gridRef }: { cliente: Cliente; negocioId: string; bare?: boolean; gridRef?: (el: HTMLElement | null) => void }) {
+  const [fotos, setFotos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState('');
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase
+      .from('cliente_fotos')
+      .select('id, storage_path, url, nota, created_at')
+      .eq('cliente_id', cliente.id)
+      .order('created_at', { ascending: false });
+    setFotos(data ?? []);
+    setLoading(false);
+  }
+  useEffect(() => { load(); }, [cliente.id]);
+
+  async function onFiles(files: FileList | null) {
+    if (!files || files.length === 0 || !negocioId) return;
+    setUploading(true); setErr('');
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      const uid = u?.user?.id ?? null;
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith('image/')) continue;
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const c: any = (globalThis as any).crypto;
+        const rand = c && typeof c.randomUUID === 'function' ? c.randomUUID() : `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        const path = `${negocioId}/${cliente.id}/${rand}.${ext}`;
+        const up = await supabase.storage.from('cliente-fotos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false });
+        if (up.error) { setErr('No se pudo subir alguna foto.'); continue; }
+        const pub = supabase.storage.from('cliente-fotos').getPublicUrl(path).data.publicUrl;
+        await supabase.from('cliente_fotos').insert({ cliente_id: cliente.id, negocio_id: negocioId, storage_path: path, url: pub, created_by: uid });
+      }
+      await load();
+    } catch {
+      setErr('No se pudo subir alguna foto.');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }
+
+  async function remove(f: any) {
+    setFotos((prev) => prev.filter((x) => x.id !== f.id));
+    try {
+      await supabase.storage.from('cliente-fotos').remove([f.storage_path]);
+      await supabase.from('cliente_fotos').delete().eq('id', f.id);
+    } catch { await load(); }
+  }
+
+  const subirBtn = (
+    <button
+      onClick={() => fileRef.current?.click()}
+      disabled={uploading}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: `1px solid ${TOKENS.primary}`, background: TOKENS.primarySoft, color: TOKENS.primaryHi, fontSize: 12, fontWeight: 700, cursor: uploading ? 'default' : 'pointer', opacity: uploading ? 0.6 : 1 }}
+    >
+      <Icon name="plus" size={13} color={TOKENS.primaryHi} />
+      {uploading ? 'Subiendo…' : 'Subir foto'}
+    </button>
+  );
+
+  return (
+    <div ref={(el) => { gridRef?.(el); }}>
+      <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => onFiles((e.target as HTMLInputElement).files)} />
+      {!bare && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: TOKENS.text, letterSpacing: 0.5, textTransform: 'uppercase' }}>Fotos de servicios</div>
+          {subirBtn}
+        </div>
+      )}
+      {bare && <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>{subirBtn}</div>}
+      {err ? <div style={{ fontSize: 11, color: TOKENS.danger, marginBottom: 8 }}>{err}</div> : null}
+      {loading ? (
+        <div style={{ fontSize: 12, color: TOKENS.textTer, padding: '8px 0' }}>Cargando fotos…</div>
+      ) : fotos.length === 0 ? (
+        <button onClick={() => fileRef.current?.click()} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '26px 16px', borderRadius: 14, border: `1.5px dashed ${TOKENS.borderHi}`, background: TOKENS.bgCardHi, cursor: 'pointer' }}>
+          <Icon name="sparkle" size={22} color={TOKENS.primary} />
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: TOKENS.textSec }}>Sube el antes y el después de cada corte</span>
+          <span style={{ fontSize: 11, color: TOKENS.textTer }}>La próxima vez sabes exactamente cómo quedó</span>
+        </button>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: 10 }}>
+          {fotos.map((f) => (
+            <div key={f.id} onClick={() => setLightbox(f.url)} style={{ position: 'relative', aspectRatio: '1 / 1', borderRadius: 12, overflow: 'hidden', border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCardHi, cursor: 'pointer' }}>
+              <img src={f.url} alt="Foto de servicio" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              <button title="Eliminar foto" onClick={(e) => { e.stopPropagation(); remove(f); }} style={{ position: 'absolute', top: 5, right: 5, width: 24, height: 24, borderRadius: 7, border: 'none', background: 'rgba(18,13,10,0.55)', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+                <Icon name="trash" size={12} color="#fff" />
+              </button>
+            </div>
+          ))}
+          <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ aspectRatio: '1 / 1', borderRadius: 12, border: `1.5px dashed ${TOKENS.primary}`, background: TOKENS.primarySoft, color: TOKENS.primaryHi, cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+            <Icon name="plus" size={20} color={TOKENS.primaryHi} />
+          </button>
+        </div>
+      )}
+      {lightbox && createPortal(
+        <div onClick={() => setLightbox(null)} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(8,6,4,0.86)', display: 'grid', placeItems: 'center', padding: 28, cursor: 'zoom-out' }}>
+          <img src={lightbox} alt="Foto de servicio" style={{ maxWidth: '92vw', maxHeight: '90vh', borderRadius: 14, boxShadow: '0 30px 80px rgba(0,0,0,0.6)' }} />
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+// Descarga la ficha del cliente como PDF (ventana imprimible con marca Mecha,
+// el navegador la guarda como PDF). Mismo enfoque que el export de Informes.
+async function exportFichaPDF(c: any, citas: Cita[], servicios: any[]) {
+  const esc = (s: unknown) => String(s ?? '').replace(/[&<>"]/g, (ch) => (({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' } as Record<string, string>)[ch]));
+  const srvMap = new Map(servicios.map((s: any) => [s.id, s]));
+
+  const hist = citas
+    .filter((x) => x.cliente_id === c.id)
+    .slice()
+    .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime());
+  const histHtml = hist.slice(0, 40).map((x: any) => {
+    const d = new Date(x.inicio);
+    const srv = srvMap.get(x.servicio_id);
+    return `<tr><td>${esc(d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }))}</td><td>${esc(srv?.nombre || '—')}</td><td>${esc(x.estado || '')}</td></tr>`;
+  }).join('') || '<tr><td colspan="3" class="empty">Sin historial</td></tr>';
+
+  const ultFormula: any = hist.find((x: any) => x.formula_producto || x.formula_tono);
+  const formulaHtml = ultFormula
+    ? `<div class="chips">${[ultFormula.formula_producto, ultFormula.formula_tono, ultFormula.formula_tiempo_min ? `${ultFormula.formula_tiempo_min} min` : '', ultFormula.formula_resultado].filter(Boolean).map((t: any) => `<span class="chip">${esc(t)}</span>`).join('')}</div>${ultFormula.formula_notas ? `<p class="muted">${esc(ultFormula.formula_notas)}</p>` : ''}`
+    : '<p class="muted">Sin fórmula registrada</p>';
+
+  let fotosHtml = '';
+  try {
+    const { data: fts } = await supabase.from('cliente_fotos').select('url').eq('cliente_id', c.id).order('created_at', { ascending: false });
+    if (fts && fts.length) {
+      fotosHtml = `<h2>Fotos de servicios</h2><div class="photos">${fts.slice(0, 12).map((f: any) => `<img src="${esc(f.url)}" />`).join('')}</div>`;
+    }
+  } catch { /* las fotos son opcionales en el PDF */ }
+
+  const generado = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+  const desde = c.primeraVisita ? c.primeraVisita.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : '—';
+  const ticket = `${Math.round((c.gastado || 0) / Math.max(c.visitas || 1, 1))} €`;
+  const alergias = (c.alergias ?? '').trim();
+  const notas = (c.notas ?? '').trim();
+
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Ficha — ${esc(c.nombre)}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1c1814; background:#fff; padding:30px 34px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .head { display:flex; align-items:flex-end; justify-content:space-between; border-bottom:3px solid #f4501e; padding-bottom:14px; margin-bottom:20px; }
+  .brand { font-size:25px; font-weight:800; letter-spacing:-0.6px; }
+  .brand .dot { color:#f4501e; }
+  .meta { text-align:right; font-size:12px; color:#5c5249; line-height:1.6; }
+  .meta strong { color:#1c1814; }
+  h1 { font-size:22px; font-weight:800; letter-spacing:-0.5px; margin-bottom:2px; }
+  .sub { font-size:12.5px; color:#8a7d70; font-weight:600; }
+  h2 { font-size:13px; font-weight:700; margin:20px 0 9px; padding-left:9px; border-left:4px solid #f4501e; text-transform:uppercase; letter-spacing:0.4px; }
+  .stats { display:flex; gap:10px; margin-top:14px; }
+  .stat { flex:1; border:1px solid rgba(40,30,24,0.12); border-radius:12px; padding:12px; text-align:center; }
+  .stat .v { font-size:20px; font-weight:800; }
+  .stat .k { font-size:10px; color:#8a7d70; text-transform:uppercase; letter-spacing:0.6px; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid rgba(40,30,24,0.08); }
+  th { font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#8a7d70; }
+  .empty { color:#8a7d70; font-style:italic; }
+  .muted { color:#5c5249; font-size:12.5px; line-height:1.5; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { background:rgba(244,80,30,0.10); color:#c0260a; border:1px solid rgba(244,80,30,0.25); border-radius:999px; padding:4px 10px; font-size:11.5px; font-weight:600; }
+  .alert { background:rgba(226,59,52,0.08); border:1px solid rgba(226,59,52,0.3); color:#b91c1c; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:600; }
+  .photos { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .photos img { width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:8px; border:1px solid rgba(40,30,24,0.1); }
+  @media print { body { padding:0; } }
+</style></head><body>
+  <div class="head">
+    <div class="brand">Mecha<span class="dot">.</span></div>
+    <div class="meta">Ficha de cliente<br><strong>${esc(generado)}</strong></div>
+  </div>
+  <h1>${esc(c.nombre)}</h1>
+  <div class="sub">${esc(c.telefono || 'Sin teléfono')}${c.email ? ' · ' + esc(c.email) : ''} · cliente desde ${esc(desde)}</div>
+  <div class="stats">
+    <div class="stat"><div class="v">${esc(c.visitas ?? 0)}</div><div class="k">visitas</div></div>
+    <div class="stat"><div class="v">${esc(c.gastado ?? 0)} €</div><div class="k">gastado</div></div>
+    <div class="stat"><div class="v">${esc(ticket)}</div><div class="k">ticket medio</div></div>
+  </div>
+  ${alergias ? `<h2>Alergias</h2><div class="alert">${esc(alergias)}</div>` : ''}
+  <h2>Fórmula de color</h2>${formulaHtml}
+  ${notas ? `<h2>Notas</h2><p class="muted">${esc(notas)}</p>` : ''}
+  ${fotosHtml}
+  <h2>Historial</h2>
+  <table><thead><tr><th>Fecha</th><th>Servicio</th><th>Estado</th></tr></thead><tbody>${histHtml}</tbody></table>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  if (!win) { window.alert('Activa las ventanas emergentes para descargar la ficha en PDF.'); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { try { win.print(); } catch { /* el usuario puede imprimir manualmente */ } }, 400);
 }
 
 function Section({ title, children }: any) {

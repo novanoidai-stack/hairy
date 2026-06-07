@@ -1818,7 +1818,7 @@ function TabAgenda({ config, setC, bloqueoCounts }: {
         </FieldRow>
       </Section>
 
-      <Section title="No-show y retrasos" desc="Que hace la agenda cuando una clienta no aparece o llega tarde. La cita pasa a un estado especial que afecta a los informes.">
+      <Section title="No-show y retrasos" desc="Que hace la agenda cuando una cliente no aparece o llega tarde. La cita pasa a un estado especial que afecta a los informes.">
         <FieldRow label="Tiempo para marcar no-show" hint="Minutos desde la hora prevista de la cita antes de marcarla automaticamente como NO_PRESENTADA.">
           <NumberInput value={config.noShowGrace} onChange={v => setC('noShowGrace', v)} unit="min" min={5} max={120} step={5} />
         </FieldRow>
@@ -1841,7 +1841,7 @@ function TabAgenda({ config, setC, bloqueoCounts }: {
             <NumberInput value={config.alertaReposoUmbral} onChange={v => setC('alertaReposoUmbral', v)} unit="reposos" min={2} max={10} step={1} disabled={!config.alertaReposo} width={130} />
           </div>
         </FieldRow>
-        <FieldRow label="Permitir aprovechar reposo en otra clienta" hint="Sugerir automaticamente huecos productivos durante un reposo (servicios cortos como flequillo o brushing).">
+        <FieldRow label="Permitir aprovechar reposo en otra cliente" hint="Sugerir automaticamente huecos productivos durante un reposo (servicios cortos como flequillo o brushing).">
           <Toggle on={config.aprovecharReposo} onChange={v => setC('aprovecharReposo', v)} />
         </FieldRow>
       </Section>
@@ -2202,7 +2202,7 @@ function TabNotificaciones() {
         </FieldRow>
       </Section>
 
-      <Section soon disabled title="Recordatorios automaticos" desc="Cuando se envian los avisos a la clienta antes de su cita.">
+      <Section soon disabled title="Recordatorios automaticos" desc="Cuando se envian los avisos a la cliente antes de su cita.">
         {[
           { l: '48 h antes', on: true },
           { l: '24 h antes', on: true },
@@ -2254,8 +2254,8 @@ function TabPoliticas() {
     <>
       <SoonBanner icon="shield" title="Politicas de cancelacion y depositos -- fase 4"
         desc="Reglas que protegen el calendario frente a cancelaciones tardias y no-shows. Se activaran junto con el modulo de pagos." />
-      <Section soon disabled title="Cancelacion de citas" desc="Reglas que se aplican cuando una clienta cancela su propia cita desde el portal o por mensaje.">
-        <FieldRow label="Antelacion minima para cancelar sin penalizacion" hint="Si la clienta cancela con menos antelacion, se le aplica la penalizacion configurada abajo.">
+      <Section soon disabled title="Cancelacion de citas" desc="Reglas que se aplican cuando una cliente cancela su propia cita desde el portal o por mensaje.">
+        <FieldRow label="Antelacion minima para cancelar sin penalizacion" hint="Si la cliente cancela con menos antelacion, se le aplica la penalizacion configurada abajo.">
           <NumberInput disabled value={24} onChange={() => {}} unit="h" max={168} />
         </FieldRow>
         <FieldRow label="Aplicar penalizacion por cancelacion tardia" hint="Si esta activo, se cobra un cargo cuando la cancelacion se hace fuera del plazo.">
@@ -2295,7 +2295,7 @@ function TabPoliticas() {
       </Section>
 
       <Section soon disabled title="No-shows reincidentes" desc="Como proteger la agenda de clientes que no se presentan repetidamente.">
-        <FieldRow label="Maximo de no-shows tolerados" hint="A partir de este numero, la clienta no podra reservar sin pago anticipado.">
+        <FieldRow label="Maximo de no-shows tolerados" hint="A partir de este numero, la cliente no podra reservar sin pago anticipado.">
           <NumberInput disabled value={2} onChange={() => {}} unit="en 6 meses" min={1} max={10} width={170} />
         </FieldRow>
         <FieldRow label="Avisar al cliente del bloqueo" hint="Enviar un mensaje al cliente explicando la nueva restriccion.">
@@ -2310,15 +2310,15 @@ function TabReservaOnline() {
   return (
     <>
       <SoonBanner icon="globe" title="Reserva online -- fase 7"
-        desc="Tu propia pagina publica en la que las clientas pueden reservar 24/7. Configuraras aqui que se muestra y que servicios se exponen." />
-      <Section soon disabled title="Portal publico" desc="Activacion de la pagina y URL en la que reciben las clientas para reservar.">
+        desc="Tu propia pagina publica en la que las clientes pueden reservar 24/7. Configuraras aqui que se muestra y que servicios se exponen." />
+      <Section soon disabled title="Portal publico" desc="Activacion de la pagina y URL en la que reciben las clientes para reservar.">
         <FieldRow label="Portal activo" hint="Si esta apagado, el enlace devuelve un mensaje de 'proximamente'.">
           <Toggle disabled on={false} onChange={() => {}} />
         </FieldRow>
         <FieldRow label="URL publica" hint="Dominio en el que se aloja el portal. Puedes vincular un dominio propio mas adelante.">
           <STextInput disabled value="reservas.hairy.studio/salon-bonita" onChange={() => {}} width={360} leadingIcon="link" />
         </FieldRow>
-        <FieldRow label="Idioma del portal" hint="Idioma por defecto en el que se muestra a las clientas.">
+        <FieldRow label="Idioma del portal" hint="Idioma por defecto en el que se muestra a las clientes.">
           <SSelect disabled width={180} value="es" onChange={() => {}} options={[
             { value: 'es', label: 'Espanol' },
             { value: 'ca', label: 'Catala' },
@@ -2328,7 +2328,7 @@ function TabReservaOnline() {
         </FieldRow>
       </Section>
 
-      <Section soon disabled title="Visibilidad" desc="Que informacion se ensena a la clienta antes de cerrar la reserva.">
+      <Section soon disabled title="Visibilidad" desc="Que informacion se ensena a la cliente antes de cerrar la reserva.">
         <FieldRow label="Mostrar precios" hint="Mostrar el precio en el listado o solo despues de seleccionar profesional y horario.">
           <Segmented disabled value="catalogo" onChange={() => {}} options={[
             { value: 'catalogo', label: 'En el catalogo' },
@@ -2336,10 +2336,10 @@ function TabReservaOnline() {
             { value: 'nunca', label: 'Nunca' },
           ]} />
         </FieldRow>
-        <FieldRow label="Mostrar duracion" hint="Indicar a la clienta cuanto va a durar el servicio aproximadamente.">
+        <FieldRow label="Mostrar duracion" hint="Indicar a la cliente cuanto va a durar el servicio aproximadamente.">
           <Toggle disabled on={true} onChange={() => {}} />
         </FieldRow>
-        <FieldRow label="Mostrar profesional asignado" hint="Si esta apagado, la clienta no puede elegir profesional.">
+        <FieldRow label="Mostrar profesional asignado" hint="Si esta apagado, la cliente no puede elegir profesional.">
           <Toggle disabled on={true} onChange={() => {}} />
         </FieldRow>
       </Section>
