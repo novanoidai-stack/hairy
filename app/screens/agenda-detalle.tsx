@@ -133,7 +133,7 @@ export default function AgendaDetalleScreen() {
           {cita.clientes && (
             <>
               <Divider />
-              <Row icon="people-outline" label="Clienta" value={cita.clientes.nombre} sub={cita.clientes.telefono} />
+              <Row icon="people-outline" label="Cliente" value={cita.clientes.nombre} sub={cita.clientes.telefono} />
             </>
           )}
           <Divider />
@@ -157,7 +157,7 @@ export default function AgendaDetalleScreen() {
           {cita.cancelado_por && (
             <>
               <Divider />
-              <Row icon="close-circle-outline" label="Cancelado por" value={cita.cancelado_por === 'clienta' ? 'Clienta' : 'Negocio'} />
+              <Row icon="close-circle-outline" label="Cancelado por" value={cita.cancelado_por === 'clienta' ? 'Cliente' : 'Negocio'} />
             </>
           )}
           {cita.motivo_cancelacion && (
@@ -230,7 +230,7 @@ export default function AgendaDetalleScreen() {
                   onPress={() => setCanceladoPor(opcion)}
                 >
                   <TText style={[s.canceladoPorBtnText, { color: canceladoPor === opcion ? '#f4501e' : c.textSecondary }]}>
-                    {opcion === 'clienta' ? 'Clienta' : 'Negocio'}
+                    {opcion === 'clienta' ? 'Cliente' : 'Negocio'}
                   </TText>
                 </TouchableOpacity>
               ))}
@@ -241,7 +241,7 @@ export default function AgendaDetalleScreen() {
             <TTextInput
               value={motivoCancelacion}
               onChangeText={setMotivoCancelacion}
-              placeholder="Ej: clienta no puede venir..."
+              placeholder="Ej: el cliente no puede venir..."
               style={[s.motivoInput, { backgroundColor: c.bg, borderColor: c.border, color: c.text }]}
               multiline
             />

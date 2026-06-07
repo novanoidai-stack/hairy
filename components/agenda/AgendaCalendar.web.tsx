@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { validarHorarioLaboral } from '@/lib/horarios';
 import { getUserProfile } from '@/lib/auth';
 import { TimeDrumPicker } from '@/components/ui/Pickers';
+import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { syncAlergiasACliente } from '@/lib/syncAlergias';
 import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
@@ -157,6 +158,9 @@ export default function AgendaCalendar() {
   // Prellenado al crear cita desde un clic en un hueco de la rejilla (hora + profesional)
   const [newCitaPrefill, setNewCitaPrefill] = useState<{ hora?: string; profId?: string } | null>(null);
   const [showNotif, setShowNotif] = useState(false);
+  // Demo guiada: enfoque tipo spotlight sobre una zona (p.ej. el panel de avisos).
+  const [demoFocus, setDemoFocus] = useState<string | null>(null);
+  const notifPanelRef = useRef<HTMLElement | null>(null);
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   const [citaAddonsMap, setCitaAddonsMap] = useState<Record<string, any[]>>({});
   const [citasVencidas, setCitasVencidas] = useState<Cita[]>([]);
@@ -229,17 +233,24 @@ export default function AgendaCalendar() {
     if (typeof window === 'undefined') return;
     const onDemo = (e: Event) => {
       const action = (e as CustomEvent).detail?.action;
-      if (action === 'nueva-cita') {
+      // 'nueva-cita' abre el modal; las sub-acciones del recorrido guiado
+      // (cita-cliente / cita-servicio / cita-hora / cita-reposo) las gestiona el
+      // propio NewCitaModal (auto-seleccion + spotlight de su zona), por eso aqui
+      // solo nos aseguramos de que el modal este abierto y sin avisos por encima.
+      if (action === 'nueva-cita' || (typeof action === 'string' && action.indexOf('cita-') === 0)) {
         setShowNotif(false);
-        setNewCitaPrefill(null);
+        setDemoFocus(null);
+        if (action === 'nueva-cita') setNewCitaPrefill(null);
         setShowNewCita(true);
       } else if (action === 'notificaciones') {
         setShowNewCita(false);
         setShowNotif(true);
+        setDemoFocus('avisos');
       } else if (action === 'cerrar') {
         setShowNewCita(false);
         setShowNotif(false);
         setNewCitaPrefill(null);
+        setDemoFocus(null);
       }
     };
     window.addEventListener('mecha-demo', onDemo);
@@ -509,7 +520,7 @@ export default function AgendaCalendar() {
           )}
           {sinConfirmar48h > 0 && (
             <div
-              title="Citas en las proximas 48h que la clienta aun no ha confirmado"
+              title="Citas en las proximas 48h que el cliente aun no ha confirmado"
               className="m-pulse-red"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.30)', color: '#ef4444', borderRadius: 999, fontSize: 12, fontWeight: 700 }}
             >
@@ -531,7 +542,7 @@ export default function AgendaCalendar() {
               <>
                 {/* Backdrop para cerrar al hacer clic fuera */}
                 <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 90 }} />
-                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 320, maxHeight: 420, overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(0,0,0,0.45)', zIndex: 100, padding: 12 }}>
+                <div ref={(el) => { notifPanelRef.current = el; }} style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 320, maxHeight: 420, overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(0,0,0,0.45)', zIndex: 100, padding: 12 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span>Avisos</span>
                     {totalAvisos > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: sinConfirmar48h > 0 ? '#ef4444' : '#fb923c', background: sinConfirmar48h > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(251,146,60,0.14)', borderRadius: 999, padding: '2px 8px' }}>{totalAvisos}</span>}
@@ -1110,6 +1121,8 @@ export default function AgendaCalendar() {
       </div>
 
       {showNewCita && <NewCitaModal onClose={() => { setShowNewCita(false); setNewCitaPrefill(null); }} onSaved={(nuevaCita: any) => { if (nuevaCita) setCitas(prev => [...prev, nuevaCita]); setShowNewCita(false); setNewCitaPrefill(null); }} selectedDate={selectedDateObj} prefillHora={newCitaPrefill?.hora} prefillProf={newCitaPrefill?.profId} />}
+      {/* Demo guiada: spotlight sobre el panel de avisos (no la campana ni "Cerrar salon") */}
+      <DemoSpotlight targetRef={notifPanelRef} active={demoFocus === 'avisos'} label="Avisos" padding={8} radius={16} />
       {showClienteHistorial && <ClienteHistorialModal cliente={showClienteHistorial} onClose={() => setShowClienteHistorial(null)} citas={citas} servicioMap={servicioMap} profesionalMap={profesionalMap} />}
       {showEditCita && selectedCitaEdit && (
         <DetalleCitaModal
@@ -1218,7 +1231,7 @@ export default function AgendaCalendar() {
           await registrarHistorial(c.id, nId, [
             { campo: 'inicio', anterior: c.inicio, nuevo: payload.inicio },
             { campo: 'fin', anterior: c.fin, nuevo: payload.fin },
-          ], `Clienta llega tarde (+${minutos} min)`);
+          ], `Cliente llega tarde (+${minutos} min)`);
           setCitas((prev) => prev.map((x) => x.id === c.id ? updated : x));
           setShowClientaTarde(null);
         }
@@ -1227,7 +1240,7 @@ export default function AgendaCalendar() {
           <div onClick={() => setShowClientaTarde(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'grid', placeItems: 'center', zIndex: 9999, animation: 'fadeIn 0.2s ease' }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: 420, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 16, padding: 28, animation: 'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
               <h3 style={{ margin: 0, marginBottom: 6, fontSize: 18, fontWeight: 700, color: TOKENS.text }}>
-                Clienta no ha llegado
+                Cliente no ha llegado
               </h3>
               <p style={{ margin: 0, marginBottom: 18, fontSize: 12, color: TOKENS.textSec }}>
                 La cita deberia haber empezado hace {minutosRetraso} minutos.
@@ -2086,7 +2099,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                               onMouseDown={(e) => { if (onClienteHistorial) e.stopPropagation(); }}
                               onClick={(e) => { if (onClienteHistorial) { e.stopPropagation(); const cli = clientes.find((cl: any) => cl.id === cita.cliente_id); if (cli) onClienteHistorial(cli); } }}
                               style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelada ? 'line-through' : 'none', cursor: onClienteHistorial ? 'pointer' : 'default' }}
-                              title="Ver historial de esta clienta"
+                              title="Ver historial de este cliente"
                             >
                               {nombreCliente}
                             </div>
@@ -2189,6 +2202,94 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [allProfSrvOverrides, setAllProfSrvOverrides] = useState<any[]>([]);
   const today = selectedDate || new Date();
+
+  // --- Demo guiada: el recorrido de demo.html pide rellenar el formulario paso a
+  // paso (cliente -> servicio -> hora) y enfocar cada zona con un spotlight. El
+  // modal escucha las sub-acciones (cita-cliente / cita-servicio / cita-hora /
+  // cita-reposo), auto-selecciona valores de ejemplo y marca la zona a iluminar.
+  const [demoZone, setDemoZone] = useState<'cliente' | 'servicio' | 'hora' | 'reposo' | null>(null);
+  const clienteZoneRef = useRef<HTMLElement | null>(null);
+  const servicioZoneRef = useRef<HTMLElement | null>(null);
+  const horaZoneRef = useRef<HTMLElement | null>(null);
+  const pendingDemoRef = useRef<string | null>(null);
+  const dataRef = useRef<{ clientes: any[]; servicios: any[]; profesionales: any[] }>({ clientes: [], servicios: [], profesionales: [] });
+  dataRef.current = { clientes, servicios, profesionales };
+
+  // Elige un hueco del grid de horas (normal o de reposo) cuando ya esta pintado;
+  // reintenta un poco porque el grid aparece tras cargar las duraciones.
+  const pickDemoSlot = (kind: 'hora' | 'reposo') => {
+    let tries = 0;
+    const tryPick = () => {
+      tries++;
+      const zone = horaZoneRef.current;
+      const btn = zone
+        ? (kind === 'reposo'
+            ? (zone.querySelector('button[data-slot][data-reposo="1"]') as HTMLButtonElement | null) || (zone.querySelector('button[data-slot]') as HTMLButtonElement | null)
+            : (zone.querySelector('button[data-slot][data-reposo="0"]') as HTMLButtonElement | null) || (zone.querySelector('button[data-slot]') as HTMLButtonElement | null))
+        : null;
+      if (btn) { btn.click(); return; }
+      if (tries < 14) setTimeout(tryPick, 170);
+    };
+    setTimeout(tryPick, 220);
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const applyZone = (action: string) => {
+      const d = dataRef.current;
+      if (action === 'cita-cliente') {
+        if (d.clientes[0]) setSelectedCliente(d.clientes[0].id);
+        setDemoZone('cliente');
+      } else if (action === 'cita-servicio') {
+        if (d.clientes[0]) setSelectedCliente((p) => p || d.clientes[0].id);
+        if (d.servicios[0]) setSelectedServicio(d.servicios[0].id);
+        setDemoZone('servicio');
+      } else if (action === 'cita-hora') {
+        if (d.servicios[0]) setSelectedServicio((p) => p || d.servicios[0].id);
+        if (d.profesionales[0]) setSelectedProf((p: string) => p || d.profesionales[0].id);
+        setDemoZone('hora');
+        pickDemoSlot('hora');
+      } else if (action === 'cita-reposo') {
+        if (d.servicios[0]) setSelectedServicio((p) => p || d.servicios[0].id);
+        if (d.profesionales[0]) setSelectedProf((p: string) => p || d.profesionales[0].id);
+        setDemoZone('reposo');
+        pickDemoSlot('reposo');
+      } else if (action === 'cerrar') {
+        setDemoZone(null);
+      }
+    };
+    const onDemo = (e: Event) => {
+      const action = (e as CustomEvent).detail?.action;
+      if (typeof action !== 'string') return;
+      if (action !== 'cerrar' && action.indexOf('cita-') !== 0) return;
+      if (action !== 'cerrar' && dataRef.current.clientes.length === 0) {
+        pendingDemoRef.current = action; // aun cargando: se aplica al llegar los datos
+        return;
+      }
+      applyZone(action);
+    };
+    window.addEventListener('mecha-demo', onDemo);
+    return () => window.removeEventListener('mecha-demo', onDemo);
+  }, []);
+
+  // Reaplica la accion guiada que llego antes de tener datos cargados.
+  useEffect(() => {
+    if (pendingDemoRef.current && clientes.length > 0) {
+      const a = pendingDemoRef.current;
+      pendingDemoRef.current = null;
+      window.dispatchEvent(new CustomEvent('mecha-demo', { detail: { action: a } }));
+    }
+  }, [clientes, servicios, profesionales]);
+
+  // Centra la zona enfocada dentro del modal para que el spotlight la recorte bien.
+  useEffect(() => {
+    if (!demoZone) return;
+    const ref = demoZone === 'cliente' ? clienteZoneRef : demoZone === 'servicio' ? servicioZoneRef : horaZoneRef;
+    const el = ref.current;
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [demoZone]);
 
   // Reloj en vivo: muestra la hora actual arriba del formulario como referencia
   // rapida al crear la cita. Se refresca cada 30 s.
@@ -2657,9 +2758,12 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
   if (loading) return <div style={{ background: '#0b1220', height: '100vh', width: '100%' }} />;
 
   const clienteSeleccionado = clientes.find(c => c.id === selectedCliente);
+  const demoZoneRef = demoZone === 'cliente' ? clienteZoneRef : demoZone === 'servicio' ? servicioZoneRef : horaZoneRef;
+  const demoZoneLabel = demoZone === 'cliente' ? 'Elige cliente' : demoZone === 'servicio' ? 'Elige servicio' : demoZone === 'hora' ? 'Elige la hora' : demoZone === 'reposo' ? 'Tiempos muertos' : '';
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24, animation: 'fadeIn 0.3s ease' }}>
+      <DemoSpotlight targetRef={demoZoneRef} active={!!demoZone} label={demoZoneLabel} padding={10} radius={14} />
       <div style={{ width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 24, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)', animation: 'scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
           <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: TOKENS.text }}>Nueva cita</h3>
@@ -2742,12 +2846,12 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
         {/* FormField Cliente */}
         {citasConfirmadas.length > 0 ? (
           <div style={{ marginBottom: 14, padding: '10px 14px', background: 'rgba(244,80,30,0.06)', border: `1px solid rgba(244,80,30,0.2)`, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Clienta:</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Cliente:</div>
             <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.primaryHi }}>{clientes.find((c: any) => c.id === selectedCliente)?.nombre || ''}</div>
           </div>
         ) : (
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Clienta</div>
+        <div ref={(el) => { clienteZoneRef.current = el; }} style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Cliente</div>
           <input
             type="text"
             placeholder="Buscar cliente..."
@@ -2850,7 +2954,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
         )}
 
         {/* FormField Servicio */}
-        <div style={{ marginBottom: 14 }}>
+        <div ref={(el) => { servicioZoneRef.current = el; }} style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Servicio</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {(selectedProf ? serviciosFiltrados : servicios).map((s) => {
@@ -2973,7 +3077,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
 
         {/* FormField Hora - 5 columns, 10 slots */}
         {selectedProf && selectedServicio && (
-          <div style={{ marginBottom: 18 }}>
+          <div ref={(el) => { horaZoneRef.current = el; }} style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
               Hora · {today.toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })}
             </div>
@@ -3091,6 +3195,8 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
                       return (
                         <button
                           key={time}
+                          data-slot={time}
+                          data-reposo={esReposo ? '1' : '0'}
                           onClick={() => {
                             setHoraPersonalizada('');
                             selected ? setSelectedHora('') : setSelectedHora(time);
@@ -4278,7 +4384,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
             {/* Cliente */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <Label>Clienta</Label>
+                <Label>Cliente</Label>
                 {selectedCliente?.id && (
                   <button
                     type="button"
@@ -5017,7 +5123,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                       transition: 'all 0.15s',
                     }}
                   >
-                    {op === 'clienta' ? 'Clienta' : 'Negocio'}
+                    {op === 'clienta' ? 'Cliente' : 'Negocio'}
                   </button>
                 ))}
               </div>
@@ -5029,7 +5135,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
               <textarea
                 value={motivoCancelacion}
                 onChange={(e) => setMotivoCancelacion(e.target.value)}
-                placeholder="Ej: clienta no puede venir..."
+                placeholder="Ej: el cliente no puede venir..."
                 rows={3}
                 style={{ width: '100%', background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, borderRadius: 8, padding: '8px 10px', fontSize: 13, color: TOKENS.text, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
               />
