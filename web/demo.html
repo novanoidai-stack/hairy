@@ -66,19 +66,20 @@
   .dm-localnote p{font-size:13.5px;color:var(--text-sec);line-height:1.55}
 
   /* ---------- GUIDED TOUR ---------- */
-  .dm-tour{position:absolute;left:clamp(14px,2.5vw,30px);bottom:clamp(14px,2.5vw,30px);z-index:9;width:min(360px,calc(100% - 28px));
-    background:linear-gradient(180deg,var(--card-hi),var(--card));border:1px solid var(--border-hi);border-radius:var(--r-lg);
-    box-shadow:var(--shadow-pop);padding:18px 18px 16px;display:none}
+  .dm-tour{position:absolute;left:0;right:0;margin:0 auto;bottom:clamp(16px,3vw,34px);z-index:9;width:min(430px,calc(100% - 28px));
+    background:linear-gradient(180deg,rgba(30,23,18,.95),rgba(19,14,11,.975));border:1px solid rgba(244,80,30,.32);border-radius:var(--r-lg);
+    box-shadow:0 26px 64px -14px rgba(0,0,0,.74), 0 0 0 1px rgba(0,0,0,.30);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    padding:20px 20px 17px;display:none}
   .dm-tour.show{display:block;animation:dmFade .4s var(--ease)}
   @keyframes dmFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   .dm-tour-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
   .dm-tour-step{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-hi)}
   .dm-tour-skip{font-size:12px;color:var(--text-ter);background:none}
   .dm-tour-skip:hover{color:var(--text)}
-  .dm-tour h4{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.02em;margin-bottom:6px;display:flex;align-items:center;gap:9px}
-  .dm-tour h4 .ic{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi)}
-  .dm-tour h4 .ic svg{width:17px;height:17px}
-  .dm-tour p{font-size:13.5px;color:var(--text-sec);line-height:1.55;min-height:60px}
+  .dm-tour h4{font-family:var(--display);font-weight:800;font-size:19.5px;letter-spacing:-.02em;margin-bottom:7px;display:flex;align-items:center;gap:10px;color:#fff}
+  .dm-tour h4 .ic{width:32px;height:32px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi)}
+  .dm-tour h4 .ic svg{width:18px;height:18px}
+  .dm-tour p{font-size:14px;color:rgba(255,255,255,.82);line-height:1.6;min-height:60px}
   .dm-dots{display:flex;gap:6px;margin:14px 0 14px}
   .dm-dots span{width:7px;height:7px;border-radius:50%;background:var(--border-hi);transition:all .25s}
   .dm-dots span.on{background:var(--accent-hi);width:18px;border-radius:4px}
@@ -96,7 +97,7 @@
     background:var(--grad);padding:7px 12px 7px 9px;border-radius:999px;box-shadow:0 12px 32px -8px var(--accent-glow);white-space:nowrap;
     transition:top .45s var(--ease),left .45s var(--ease),right .45s var(--ease),bottom .45s var(--ease),opacity .3s}
   .dm-point.show{display:inline-flex;animation:dmBob 1.5s ease-in-out infinite}
-  .dm-point .ar{width:15px;height:15px;flex-shrink:0;transition:transform .3s}
+  .dm-point .ar{width:22px;height:22px;flex-shrink:0;transition:transform .3s}
   .dm-point.up .ar{transform:rotate(0)} .dm-point.down .ar{transform:rotate(180deg)}
   .dm-point.left .ar{transform:rotate(-90deg)} .dm-point.right .ar{transform:rotate(90deg)}
   @keyframes dmBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
@@ -201,7 +202,7 @@
 
     <!-- POINTER / FLECHA: senala la zona del paso actual -->
     <div class="dm-point" id="point">
-      <svg class="ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+      <svg class="ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C10.2 16 13.6 11 11.7 4.2"/><path d="M6.4 10.6 C8.4 8 10.2 5.8 12 3.6 C13.8 5.8 15.4 8 17.6 10.4"/></svg>
       <span id="pointLabel">Aquí</span>
     </div>
 
@@ -424,7 +425,7 @@
   var POINTS={
     grid:  {pos:{top:'34%',left:'26%'}, dir:'up',    label:'Tu agenda'},
     nueva: {pos:{top:'16%',left:'46%'}, dir:'down',  label:'Nueva cita'},
-    avisos:{pos:{top:'62px',right:'92px'}, dir:'up', label:'Avisos'},
+    avisos:{pos:{top:'54px',right:'46px'}, dir:'up', label:'Campana de avisos'},
     ficha: {pos:{top:'42%',right:'24%'}, dir:'right',label:'Ficha real'}
   };
   var ti=0, tourStarted=false, stepTimer=null;
