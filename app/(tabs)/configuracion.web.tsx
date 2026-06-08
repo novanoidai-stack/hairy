@@ -4,6 +4,7 @@ import { getUserProfile, canAccessConfig } from '@/lib/auth';
 import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import qrcode from 'qrcode-generator';
+import { useResponsive } from '@/lib/hooks/useResponsive';
 import {
   Section, FieldRow, FieldStack, Toggle, NumberInput, STextInput, SSelect,
   Segmented, TimeInput, Badge, SoonBadge, SoonBanner, StatBox,
@@ -218,7 +219,15 @@ const SOPORTE_TEL = '+34690792975';
 // ---------------------------------------------------------------------------
 
 export default function ConfiguracionWeb() {
-  const [tab, setTab] = useState('general');
+  const { isMobile, isTablet } = useResponsive();
+  const [tab, setTab] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isMobile && tab === null) {
+      setTab('general');
+    }
+  }, [isMobile, tab]);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -681,58 +690,87 @@ export default function ConfiguracionWeb() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: T.bg, color: T.text, fontFamily: 'Inter, sans-serif' }}>
       {/* ── Topbar ──────────────────────────────────────────────────────── */}
       <header style={{
-        padding: '18px 28px 16px',
+        padding: isMobile ? '12px 16px' : '18px 28px 16px',
         borderBottom: `1px solid ${T.border}`,
         background: T.bg,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        gap: 16, position: 'sticky', top: 0, zIndex: 20,
+        gap: 12, position: 'sticky', top: 0, zIndex: 20,
       }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, color: T.textTertiary, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>
-            <span>Configuracion</span>
-            <SettingsIcon name="chevR" size={9} />
-            <span style={{ color: T.textSecondary }}>{currentTab?.section}</span>
-            <SettingsIcon name="chevR" size={9} />
-            <span style={{ color: T.text }}>{currentTab?.label}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+          {isMobile && tab !== null && (
+            <button
+              onClick={() => setTab(null)}
+              style={{
+                display: ' SaFlex' as any, // fallback
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 32, height: 32, borderRadius: 8, background: T.bgCard,
+                border: `1px solid ${T.border}`, color: T.textSecondary, cursor: 'pointer',
+                marginRight: 4, flexShrink: 0
+              }}
+            >
+              <SettingsIcon name="chevron-back" size={16} color={T.textSecondary} />
+            </button>
+          )}
+          <div style={{ minWidth: 0 }}>
+            {!isMobile && currentTab ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, color: T.textTertiary, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>
+                <span>Configuracion</span>
+                <SettingsIcon name="chevR" size={9} />
+                <span style={{ color: T.textSecondary }}>{currentTab.section}</span>
+                <SettingsIcon name="chevR" size={9} />
+                <span style={{ color: T.text }}>{currentTab.label}</span>
+              </div>
+            ) : (
+              isMobile && !currentTab && (
+                <div style={{ fontSize: 11, color: T.textTertiary, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2 }}>Configuración</div>
+              )
+            )}
+            <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 700, letterSpacing: -0.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {currentTab ? currentTab.label : 'Ajustes'}
+            </h1>
           </div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: -0.4 }}>{currentTab?.label}</h1>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {dirty ? (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '5px 10px 5px 8px', borderRadius: 999,
-              background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,.28)', color: T.warning,
-              fontSize: 11.5, fontWeight: 600,
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: 999, background: T.warning, animation: 'pulseDot 1.4s ease-in-out infinite' }} />
-              Cambios sin guardar
-            </div>
-          ) : (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '5px 10px', borderRadius: 999,
-              background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,.22)', color: T.success,
-              fontSize: 11.5, fontWeight: 600,
-            }}>
-              <SettingsIcon name="check" size={11} /> Todo guardado
-            </div>
-          )}
-          <Btn variant="ghost" size="md" disabled={!dirty} onClick={handleDiscard}>Descartar</Btn>
-          <Btn variant="primary" size="md" icon="check" disabled={!dirty || saving} onClick={handleSaveAll}>
-            {saving ? 'Guardando...' : 'Guardar cambios'}
-          </Btn>
-        </div>
+        {(!isMobile || tab !== null) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 10, flexShrink: 0 }}>
+            {!isMobile && (dirty ? (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '5px 10px 5px 8px', borderRadius: 999,
+                background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,.28)', color: T.warning,
+                fontSize: 11.5, fontWeight: 600,
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: 999, background: T.warning, animation: 'pulseDot 1.4s ease-in-out infinite' }} />
+                Cambios sin guardar
+              </div>
+            ) : (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '5px 10px', borderRadius: 999,
+                background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,.22)', color: T.success,
+                fontSize: 11.5, fontWeight: 600,
+              }}>
+                <SettingsIcon name="check" size={11} /> Todo guardado
+              </div>
+            ))}
+            <Btn variant="ghost" size={isMobile ? 'sm' : 'md'} disabled={!dirty} onClick={handleDiscard}>
+              {isMobile ? 'Descartar' : 'Descartar'}
+            </Btn>
+            <Btn variant="primary" size={isMobile ? 'sm' : 'md'} icon="check" disabled={!dirty || saving} onClick={handleSaveAll}>
+              {saving ? '...' : (isMobile ? 'Guardar' : 'Guardar cambios')}
+            </Btn>
+          </div>
+        )}
       </header>
 
       {/* ── Grid: tabs rail + content ──────────────────────────────────── */}
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '232px 1fr', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '232px 1fr', overflow: 'hidden' }}>
         {/* Tabs rail */}
         <nav style={{
+          display: (isMobile && tab !== null) ? 'none' : 'flex',
           borderRight: `1px solid ${T.border}`,
-          padding: '24px 14px',
-          display: 'flex', flexDirection: 'column', gap: 6,
+          padding: isMobile ? '12px 12px 32px' : '24px 14px',
+          flexDirection: 'column', gap: 6,
           overflowY: 'auto', background: T.bgPanel,
         }}>
           {TAB_SECTIONS.map((sec, sIdx) => (
@@ -780,7 +818,7 @@ export default function ConfiguracionWeb() {
         </nav>
 
         {/* Content */}
-        <div key={tab} style={{ overflowY: 'auto', padding: '24px 28px 60px' }}>
+        <div key={tab || 'none'} style={{ display: (isMobile && tab === null) ? 'none' : 'block', overflowY: 'auto', padding: isMobile ? '16px 16px 60px' : '24px 28px 60px' }}>
           <div style={{ maxWidth: 1080, margin: '0 auto' }}>
             {tab === 'general' && (
               <TabGeneral config={config} setC={setC} />
@@ -2237,7 +2275,7 @@ function TabNotificaciones() {
               <div style={{ fontSize: 12.5, fontWeight: 600, color: T.text }}>{t.l}</div>
               <Btn disabled size="sm" variant="ghost" icon="edit">Editar</Btn>
             </div>
-            <div style={{ fontSize: 11.5, color: T.textSecondary, lineHeight: 1.55, padding: 10, background: '#0a111f', borderRadius: 8, border: `1px solid ${T.border}` }}>
+            <div style={{ fontSize: 11.5, color: T.textSecondary, lineHeight: 1.55, padding: 10, background: T.bgCardHi, borderRadius: 8, border: `1px solid ${T.border}` }}>
               {t.body.split(/(\{[^}]+\})/).map((part, idx) => part.startsWith('{') ?
                 <span key={idx} style={{ color: T.primaryHi, fontWeight: 600 }}>{part}</span> :
                 <span key={idx}>{part}</span>
@@ -3002,9 +3040,11 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                   </div>
                   <button
                     onClick={() => setReservableOnline(!reservableOnline)}
-                    style={{ width: 40, height: 22, borderRadius: 11, background: reservableOnline ? T.primary : 'rgba(148,163,184,0.2)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s ease' }}
+                    style={{ padding: '11px 8px', margin: '-11px -8px', border: 'none', background: 'none', cursor: 'pointer' }}
                   >
-                    <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', position: 'absolute', top: 3, left: reservableOnline ? 21 : 3, transition: 'left 0.2s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+                    <div style={{ width: 40, height: 22, borderRadius: 11, background: reservableOnline ? T.primary : 'rgba(148,163,184,0.2)', position: 'relative', transition: 'background 0.2s ease' }}>
+                      <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', position: 'absolute', top: 3, left: reservableOnline ? 21 : 3, transition: 'left 0.2s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+                    </div>
                   </button>
                 </div>
 
@@ -3015,9 +3055,11 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                   </div>
                   <button
                     onClick={() => setPrepagoRequerido(!prepagoRequerido)}
-                    style={{ width: 40, height: 22, borderRadius: 11, background: prepagoRequerido ? '#f59e0b' : 'rgba(148,163,184,0.2)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s ease' }}
+                    style={{ padding: '11px 8px', margin: '-11px -8px', border: 'none', background: 'none', cursor: 'pointer' }}
                   >
-                    <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', position: 'absolute', top: 3, left: prepagoRequerido ? 21 : 3, transition: 'left 0.2s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+                    <div style={{ width: 40, height: 22, borderRadius: 11, background: prepagoRequerido ? T.warning : 'rgba(148,163,184,0.2)', position: 'relative', transition: 'background 0.2s ease' }}>
+                      <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', position: 'absolute', top: 3, left: prepagoRequerido ? 21 : 3, transition: 'left 0.2s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+                    </div>
                   </button>
                 </div>
 

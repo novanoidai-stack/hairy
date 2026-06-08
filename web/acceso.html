@@ -44,7 +44,7 @@
   .auth-h{font-size:28px;letter-spacing:-.02em;margin-bottom:6px}
   .auth-p{font-size:14.5px;color:var(--text-sec);margin-bottom:26px}
   .seg{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:13px;margin-bottom:26px}
-  .seg button{flex:1;font-size:13.5px;font-weight:600;padding:9px;border-radius:9px;color:var(--text-sec);transition:all .2s}
+  .seg button{flex:1;font-size:13.5px;font-weight:600;padding:12px 9px;min-height:44px;border-radius:9px;color:var(--text-sec);transition:all .2s;display:inline-grid;place-items:center;box-sizing:border-box}
   .seg button.on{background:var(--grad-soft);color:#fff;box-shadow:0 6px 16px -8px var(--accent-glow)}
   .field{margin-bottom:15px}
   .field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-sec);margin-bottom:7px}
@@ -56,6 +56,9 @@
   .field .pw-toggle{cursor:pointer}
   .field .inp{min-width:0}
   .row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){
+    .row-2{grid-template-columns:1fr}
+  }
   .row-2 > .field{min-width:0}
   .auth-extra{display:flex;align-items:center;justify-content:space-between;margin:4px 0 22px;font-size:13px}
   .auth-extra .rem{display:flex;align-items:center;gap:8px;color:var(--text-sec);cursor:pointer}
@@ -65,7 +68,7 @@
   .auth-extra .rem.on .box svg{opacity:1}
   .auth-extra a{color:var(--accent-hi);font-weight:600}
   .auth-sso{display:flex;flex-direction:column;gap:10px;margin-top:18px}
-  .sso-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border-radius:12px;border:1px solid var(--border-hi);background:rgba(255,255,255,.03);font-size:14px;font-weight:600;color:var(--text);transition:all .2s}
+  .sso-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;min-height:44px;box-sizing:border-box;border-radius:12px;border:1px solid var(--border-hi);background:rgba(255,255,255,.03);font-size:14px;font-weight:600;color:var(--text);transition:all .2s}
   .sso-btn:hover{border-color:var(--accent);background:rgba(255,255,255,.06)}
   .sso-btn svg{width:18px;height:18px}
   .sso-btn.is-soon{opacity:.5;cursor:not-allowed;position:relative}
@@ -151,7 +154,7 @@
         <div class="who"><span class="av">SL</span><div><div class="nm">Sofía León</div><div class="rl">Studio Norte · Madrid</div></div></div>
       </div>
     </div>
-    <div class="bot"><span style="font-size:12px;color:var(--text-ter)">© 2026 Mecha · Hecho para salones de peluquería · <a href="privacidad.html" style="color:var(--text-ter);text-decoration:underline">Privacidad</a></span></div>
+    <div class="bot"><span style="font-size:12px;color:var(--text-sec)">© 2026 Mecha · Hecho para salones de peluquería · <a href="privacidad.html" style="color:var(--text-sec);text-decoration:underline">Privacidad</a></span></div>
   </aside>
 
   <!-- MAIN -->

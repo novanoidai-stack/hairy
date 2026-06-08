@@ -287,11 +287,74 @@
     });
   }
 
+  /* ---------- MOBILE MENU ---------- */
+  function mobileMenu() {
+    var navIn = $('.nav-in');
+    if (!navIn) return;
+
+    var toggle = document.createElement('button');
+    toggle.className = 'nav-toggle';
+    toggle.setAttribute('aria-label', 'Menú');
+    toggle.innerHTML = '<span></span>';
+    navIn.appendChild(toggle);
+
+    var overlay = document.createElement('div');
+    overlay.className = 'mobile-menu-overlay';
+
+    var linksContainer = document.createElement('div');
+    linksContainer.className = 'mobile-menu-links';
+
+    var links = $$('.nav-links a');
+    if (links.length) {
+      links.forEach(function (l) {
+        var a = document.createElement('a');
+        a.href = l.getAttribute('href');
+        a.textContent = l.textContent;
+        linksContainer.appendChild(a);
+      });
+    }
+
+    var ctaContainer = document.createElement('div');
+    ctaContainer.className = 'mobile-menu-cta';
+
+    var loginLink = document.createElement('a');
+    loginLink.href = 'acceso.html';
+    loginLink.className = 'login';
+    loginLink.textContent = 'Iniciar sesión';
+    loginLink.style.fontSize = '16px';
+    loginLink.style.color = 'var(--text-sec)';
+    loginLink.style.padding = '8px 12px';
+
+    var demoLink = document.createElement('a');
+    demoLink.href = 'demo.html';
+    demoLink.className = 'btn btn-primary btn-lg btn-block';
+    demoLink.textContent = 'Ver demo gratis';
+
+    ctaContainer.appendChild(loginLink);
+    ctaContainer.appendChild(demoLink);
+
+    overlay.appendChild(linksContainer);
+    overlay.appendChild(ctaContainer);
+    body.appendChild(overlay);
+
+    toggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      body.classList.toggle('nav-menu-open');
+    });
+
+    $$('a', overlay).forEach(function (a) {
+      a.addEventListener('click', function () {
+        body.classList.remove('nav-menu-open');
+      });
+    });
+  }
+
   /* ---------- INIT ---------- */
   function init() {
     tweaks();      // sets __mechaTweaks before intro reads it
     runIntro();
     navScroll();
+    mobileMenu();
     reveal();
     fichaNotes();
     counters();

@@ -85,7 +85,7 @@
   .bk-cal{border:1px solid var(--border-hi);background:var(--card);border-radius:18px;padding:16px 16px 18px;margin-bottom:26px}
   .bk-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
   .bk-cal-title{font-family:var(--display);font-weight:700;font-size:16.5px;letter-spacing:-.01em;text-transform:capitalize}
-  .bk-cal-nav{width:34px;height:34px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg-2);display:grid;place-items:center;cursor:pointer;color:var(--text-sec);transition:all .18s var(--ease)}
+  .bk-cal-nav{width:44px;height:44px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg-2);display:grid;place-items:center;cursor:pointer;color:var(--text-sec);transition:all .18s var(--ease)}
   .bk-cal-nav:hover:not(:disabled){border-color:var(--accent);color:var(--accent-hi)}
   .bk-cal-nav:disabled{opacity:.28;cursor:not-allowed}
   .bk-cal-nav svg{width:16px;height:16px}
@@ -110,7 +110,7 @@
   .bk-slot-group .gh{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--text-sec);margin-bottom:10px}
   .bk-slot-group .gh svg{width:15px;height:15px;color:var(--accent-hi)}
   .bk-slots{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-  .bk-slot{padding:11px 0;border-radius:11px;border:1.5px solid var(--border);background:var(--card);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text);cursor:pointer;transition:all .18s var(--ease);text-align:center}
+  .bk-slot{padding:12px 0;min-height:44px;display:inline-grid;place-items:center;box-sizing:border-box;border-radius:11px;border:1.5px solid var(--border);background:var(--card);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text);cursor:pointer;transition:all .18s var(--ease);text-align:center}
   .bk-slot:hover:not(.off){border-color:var(--accent);color:var(--accent-hi)}
   .bk-slot.sel{border-color:var(--accent);background:var(--grad-soft);color:#fff;box-shadow:0 8px 20px -10px var(--accent-glow)}
   .bk-slot.off{opacity:.32;cursor:not-allowed;text-decoration:line-through}
@@ -131,10 +131,10 @@
   .bk-input::placeholder,.bk-area::placeholder{color:var(--text-ter)}
   .bk-input:focus,.bk-select:focus,.bk-area:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
   .bk-area{resize:vertical;min-height:74px;line-height:1.5;font-family:inherit}
-  .bk-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235e6a86' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+  .bk-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a9ab8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
   .bk-row2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
   .bk-chips{display:flex;flex-wrap:wrap;gap:9px}
-  .bk-chip{padding:10px 15px;border-radius:11px;border:1.5px solid var(--border);background:var(--card);font-size:13.5px;font-weight:600;color:var(--text-sec);cursor:pointer;transition:all .18s var(--ease)}
+  .bk-chip{padding:12px 18px;min-height:44px;box-sizing:border-box;display:inline-grid;place-items:center;border-radius:11px;border:1.5px solid var(--border);background:var(--card);font-size:13.5px;font-weight:600;color:var(--text-sec);cursor:pointer;transition:all .18s var(--ease)}
   .bk-chip:hover{border-color:var(--border-hi);color:var(--text)}
   .bk-chip.sel{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-hi)}
   .bk-err{font-size:12.5px;color:var(--danger);margin-top:6px;display:none}
@@ -177,6 +177,11 @@
     .bk-slots{grid-template-columns:repeat(3,1fr)}
     .bk-row2{grid-template-columns:1fr}
     .bk-step span.lbl{display:none}
+  }
+  @media(max-width:400px){
+    .bk-slots{grid-template-columns:repeat(2,1fr)}
+    .bk-card{padding:20px 16px 20px}
+    .bk-btn{padding:11px 18px;font-size:14px}
   }
 </style>
 </head>

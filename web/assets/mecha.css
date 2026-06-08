@@ -20,7 +20,7 @@ input,select,textarea{font-family:inherit}
   --success:#10b981; --success-hi:#34d399; --warning:#f59e0b; --danger:#ef4444;
   --bg:#070a14; --bg-2:#0b1020; --card:#101729; --card-hi:#16203a;
   --border:rgba(148,163,184,.12); --border-hi:rgba(148,163,184,.22);
-  --text:#f6f8ff; --text-sec:#9aa6c2; --text-ter:#5e6a86;
+  --text:#f6f8ff; --text-sec:#9aa6c2; --text-ter:#8a9ab8;
   --maxw:1180px;
   --r-sm:9px; --r-md:13px; --r-lg:20px; --r-xl:28px;
   --serif:'Newsreader',Georgia,serif;
@@ -198,7 +198,7 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
 .foot-bot{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;
   align-items:center;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--text-ter)}
 .foot-bot .soc{display:flex;gap:10px}
-.foot-bot .soc a{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);display:grid;
+.foot-bot .soc a{width:44px;height:44px;border-radius:9px;border:1px solid var(--border);display:grid;
   place-items:center;color:var(--text-sec);transition:all .2s}
 .foot-bot .soc a:hover{color:var(--text);border-color:var(--accent)}
 .foot-bot .soc svg{width:16px;height:16px}
@@ -208,7 +208,96 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
 /* ============================================================
    RESPONSIVE (core)
    ============================================================ */
+/* Hamburger Toggle Button */
+.nav-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-hi);
+  background: rgba(255, 255, 255, .03);
+  place-items: center;
+  cursor: pointer;
+  z-index: 1001;
+  transition: all .2s ease;
+  position: relative;
+}
+.nav-toggle span, .nav-toggle span::before, .nav-toggle span::after {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  position: absolute;
+  transition: all .25s cubic-bezier(.22,.61,.36,1);
+}
+.nav-toggle span { position: relative; }
+.nav-toggle span::before { top: -6px; }
+.nav-toggle span::after { bottom: -6px; }
+
+/* Open state styles */
+.nav-menu-open {
+  overflow: hidden; /* Lock body scrolling when menu is open */
+}
+.nav-menu-open .nav-toggle {
+  background: rgba(255, 255, 255, .1);
+  border-color: var(--accent);
+}
+.nav-menu-open .nav-toggle span { background: transparent; }
+.nav-menu-open .nav-toggle span::before { transform: rotate(45deg); top: 0; }
+.nav-menu-open .nav-toggle span::after { transform: rotate(-45deg); bottom: 0; }
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 10, 20, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+.nav-menu-open .mobile-menu-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+.mobile-menu-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.mobile-menu-links a {
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  transition: color .2s ease;
+}
+.mobile-menu-links a:hover {
+  color: var(--accent-hi);
+}
+.mobile-menu-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+  width: 80%;
+  max-width: 300px;
+}
+
 @media (max-width:900px){
+  .nav-toggle { display: grid; }
+  .nav-cta { display: none; }
   .nav-links{display:none}
   .hero-mock{transform:none}
   .foot-grid{grid-template-columns:1fr 1fr;gap:30px}

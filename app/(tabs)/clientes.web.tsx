@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
+import { useResponsive } from '@/lib/hooks/useResponsive';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -218,6 +219,7 @@ function computeAlerts(cl: Cliente): Alert[] {
 }
 
 export default function ClientesWeb() {
+  const { isMobile, isTablet } = useResponsive();
   const params = useLocalSearchParams<{ clienteId?: string }>();
   const router = useRouter();
   const { refreshTrigger, triggerRefresh } = useCalendarRefresh();
@@ -430,9 +432,9 @@ export default function ClientesWeb() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
       {/* Topbar */}
-      <div className="m-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
+      <div className="m-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? '12px 16px' : '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, letterSpacing: -0.4 }}>Clientes</h1>
+          <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4 }}>Clientes</h1>
           <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: TOKENS.textSec }}>{clientes.length} clientes activos</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
@@ -447,9 +449,9 @@ export default function ClientesWeb() {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: !c ? '1fr 0px' : (panelExpanded ? '0fr 1fr' : '1fr 420px'), overflow: 'hidden', transition: 'grid-template-columns 0.35s cubic-bezier(0.16,1,0.3,1)' }}>
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (!c ? '1fr 0px' : (panelExpanded ? '0fr 1fr' : '1fr 420px')), overflow: 'hidden', transition: 'grid-template-columns 0.35s cubic-bezier(0.16,1,0.3,1)' }}>
         {/* List */}
-        <div style={{ overflowY: 'auto', overflowX: 'hidden', padding: panelExpanded ? 0 : 24, minWidth: 0 }}>
+        <div style={{ display: (isMobile && selected) ? 'none' : 'block', overflowY: 'auto', overflowX: 'hidden', padding: (panelExpanded || (isMobile && selected)) ? 0 : (isMobile ? 12 : 24), minWidth: 0 }}>
           {/* Search */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: '11px 14px', marginBottom: 16 }}>
             <Icon name="search" size={16} color={TOKENS.textSec} />
@@ -492,11 +494,11 @@ export default function ClientesWeb() {
 
           {/* Table */}
           <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 0.8fr 32px', padding: '10px 16px', fontSize: 10, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(244,80,30,0.04)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 80px 32px' : '2fr 1fr 1fr 0.8fr 32px', padding: '10px 16px', fontSize: 10, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(244,80,30,0.04)' }}>
               <div>Cliente</div>
-              <div>Ultima visita</div>
-              <div>Total gastado</div>
-              <div style={{ textAlign: 'right' }}>Visitas</div>
+              {!isMobile && <div>Ultima visita</div>}
+              {!isMobile && <div>Total gastado</div>}
+              <div style={{ textAlign: 'right' }}>{isMobile ? 'Visitas' : 'Visitas'}</div>
               <div />
             </div>
             {visibleClientes.length === 0 && (
@@ -513,7 +515,7 @@ export default function ClientesWeb() {
                   onClick={() => { setSelected(cl.id); setActiveTab('resumen'); }}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '2fr 1fr 1fr 0.8fr 32px',
+                    gridTemplateColumns: isMobile ? '1fr 80px 32px' : '2fr 1fr 1fr 0.8fr 32px',
                     padding: '12px 16px',
                     borderBottom: i < visibleClientes.length - 1 ? `1px solid ${TOKENS.border}` : 'none',
                     alignItems: 'center',
@@ -521,15 +523,15 @@ export default function ClientesWeb() {
                     background: isSel ? 'rgba(244,80,30,0.08)' : 'transparent',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                     <Avatar name={cl.nombre} />
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text }}>{cl.nombre}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cl.nombre}</div>
                         <Pill color={tagColor}>{cl.tag}</Pill>
-                        {cl.actividad === 'Inactiva' && <Pill color={TOKENS.textTer}>Inactiva</Pill>}
-                        {cl.actividad === 'Riesgo abandono' && <Pill color="#f59e0b">Riesgo</Pill>}
-                        {cl.riesgo === 'Alto riesgo' && <Pill color={TOKENS.danger}>No-show</Pill>}
+                        {!isMobile && cl.actividad === 'Inactiva' && <Pill color={TOKENS.textTer}>Inactiva</Pill>}
+                        {!isMobile && cl.actividad === 'Riesgo abandono' && <Pill color={TOKENS.warning}>Riesgo</Pill>}
+                        {!isMobile && cl.riesgo === 'Alto riesgo' && <Pill color={TOKENS.danger}>No-show</Pill>}
                         {(() => {
                           const alergiasTexto = (cl.alergias ?? '').trim();
                           if (!alergiasTexto) return null;
@@ -556,11 +558,13 @@ export default function ClientesWeb() {
                           );
                         })()}
                       </div>
-                      <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2 }}>{cl.telefono || cl.email || '—'}</div>
+                      <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {isMobile ? `${cl.visitas} vis. · ${cl.gastado}€` : (cl.telefono || cl.email || '—')}
+                      </div>
                     </div>
                   </div>
-                  <div style={{ fontSize: 12, color: TOKENS.textSec }}>{cl.ultimaVisitaStr || '—'}</div>
-                  <div style={{ fontSize: 13, color: TOKENS.success, fontWeight: 600 }}>{cl.gastado} €</div>
+                  {!isMobile && <div style={{ fontSize: 12, color: TOKENS.textSec }}>{cl.ultimaVisitaStr || '—'}</div>}
+                  {!isMobile && <div style={{ fontSize: 13, color: TOKENS.success, fontWeight: 600 }}>{cl.gastado} €</div>}
                   <div style={{ textAlign: 'right', fontSize: 13, color: TOKENS.text, fontWeight: 600 }}>{cl.visitas}</div>
                   <div style={{ color: TOKENS.textTer, display: 'grid', placeItems: 'center' }}>
                     <Icon name="moreVertical" size={16} color={TOKENS.textTer} />
@@ -574,18 +578,29 @@ export default function ClientesWeb() {
 
         {/* Detail panel */}
         {c && (
-          <div key={c.id} className="m-slide-right" style={{ borderLeft: `1px solid ${TOKENS.border}`, padding: panelExpanded ? '24px 0' : 24, overflowY: 'auto', background: 'linear-gradient(180deg, rgba(244,80,30,0.04), transparent 30%)', minWidth: 0 }}>
-          <div style={{ maxWidth: panelExpanded ? 1400 : 'none', margin: panelExpanded ? '0 auto' : 0, padding: panelExpanded ? '0 32px' : 0 }}>
-            {/* Toggle expand */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
-              <button
-                className="m-btn-icon"
-                onClick={() => setPanelExpanded((v) => !v)}
-                title={panelExpanded ? 'Reducir ficha' : 'Expandir ficha'}
-                style={{ width: 30, height: 30, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}
-              >
-                <Icon name={panelExpanded ? 'minimize' : 'maximize'} size={14} color={TOKENS.textSec} />
-              </button>
+          <div key={c.id} className="m-slide-right" style={{ borderLeft: isMobile ? 'none' : `1px solid ${TOKENS.border}`, padding: panelExpanded ? '24px 0' : (isMobile ? '12px 0' : 24), overflowY: 'auto', background: 'linear-gradient(180deg, rgba(244,80,30,0.04), transparent 30%)', minWidth: 0 }}>
+          <div style={{ maxWidth: panelExpanded ? 1400 : 'none', margin: panelExpanded ? '0 auto' : 0, padding: panelExpanded ? '0 32px' : (isMobile ? '0 16px' : 0) }}>
+            {/* Toggle expand / Back button */}
+            <div style={{ display: 'flex', justifyContent: isMobile ? 'space-between' : 'flex-end', alignItems: 'center', marginBottom: 12 }}>
+              {isMobile && (
+                <button
+                  onClick={() => { setSelected(null); setPanelExpanded(false); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                >
+                  <Icon name="chevronLeft" size={16} color={TOKENS.text} />
+                  <span>Volver al listado</span>
+                </button>
+              )}
+              {!isMobile && (
+                <button
+                  className="m-btn-icon"
+                  onClick={() => setPanelExpanded((v) => !v)}
+                  title={panelExpanded ? 'Reducir ficha' : 'Expandir ficha'}
+                  style={{ width: 30, height: 30, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}
+                >
+                  <Icon name={panelExpanded ? 'minimize' : 'maximize'} size={14} color={TOKENS.textSec} />
+                </button>
+              )}
             </div>
             {/* Ficha formal del cliente */}
             {(() => {
@@ -597,7 +612,7 @@ export default function ClientesWeb() {
                 ? c.primeraVisita.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
                 : null;
               return (
-                <div style={{ position: 'relative', overflow: 'hidden', background: panelExpanded ? 'linear-gradient(135deg,#ffffff 0%,#fff7f2 58%,#ffe9dc 100%)' : TOKENS.bgCard, border: `1px solid ${panelExpanded ? 'rgba(244,80,30,0.20)' : TOKENS.border}`, borderRadius: panelExpanded ? 20 : 16, padding: panelExpanded ? 28 : 18, marginBottom: 14, boxShadow: panelExpanded ? '0 18px 48px rgba(244,80,30,0.10), 0 2px 10px rgba(40,30,24,0.06)' : '0 1px 3px rgba(40,30,24,0.05)' }}>
+                <div style={{ position: 'relative', overflow: 'hidden', background: panelExpanded ? 'linear-gradient(135deg,#ffffff 0%,#fff7f2 58%,#ffe9dc 100%)' : TOKENS.bgCard, border: `1px solid ${panelExpanded ? 'rgba(244,80,30,0.20)' : TOKENS.border}`, borderRadius: panelExpanded ? 20 : 16, padding: panelExpanded ? 28 : (isMobile ? 16 : 18), marginBottom: 14, boxShadow: panelExpanded ? '0 18px 48px rgba(244,80,30,0.10), 0 2px 10px rgba(40,30,24,0.06)' : '0 1px 3px rgba(40,30,24,0.05)' }}>
                   {panelExpanded && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg,#e0340e,#ff7a2e,#ffcf4a)' }} />}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <Avatar name={c.nombre} size={panelExpanded ? 66 : 56} />
@@ -618,7 +633,7 @@ export default function ClientesWeb() {
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: panelExpanded ? 'repeat(4, 1fr)' : '1fr 1fr', gap: '14px 18px', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (panelExpanded ? 'repeat(4, 1fr)' : '1fr 1fr'), gap: isMobile ? '10px' : '14px 18px', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
                     <ContactRow icon="phone" label="Teléfono" value={c.telefono || '—'} accent={c.telefono ? TOKENS.primary : undefined} />
                     <ContactRow icon="mail" label="Email" value={c.email || '—'} accent={c.email ? TOKENS.cyan : undefined} />
                     <ContactRow icon="cake" label="Cumpleaños" value={cumpleStr} accent={cumpleStr !== '—' ? '#fb923c' : undefined} />
@@ -645,7 +660,7 @@ export default function ClientesWeb() {
             )}
 
             {/* Quick actions */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 8, marginBottom: 14 }}>
               {[
                 { l: 'Reservar cita', icon: 'calendar', p: true, action: () => router.push({ pathname: '/screens/nueva-cita', params: { clienteId: c.id } } as any) },
                 { l: 'Llamar', icon: 'phone', action: () => { if (c.telefono) window.location.href = `tel:${c.telefono}`; } },
@@ -728,7 +743,7 @@ export default function ClientesWeb() {
                 </Panel>
 
                 {/* Fila 2: Notas + Color/Quimica (50/50) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: (isMobile || isTablet) ? '1fr' : '1fr 1fr', gap: 18 }}>
                   <Panel title="Alergias" accent={TOKENS.danger}>
                     <NotasTab cliente={c} catalogoAlergias={catalogoAlergias} onSaveToCatalog={addAlergiaToCatalog} onUpdated={(updated) => {
                       setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
@@ -1730,9 +1745,9 @@ function HistorialTab({ cliente, citas, servicios, profesionales = [], fichasTec
 
   const estadoStyle: Record<string, { bg: string; color: string; label: string }> = {
     confirmada: { bg: 'rgba(244,80,30,0.12)', color: TOKENS.primaryHi, label: 'Confirmada' },
-    completada: { bg: 'rgba(34,197,94,0.12)', color: '#22c55e', label: 'Completada' },
-    cancelada: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444', label: 'Cancelada' },
-    no_presentada: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', label: 'No presentada' },
+    completada: { bg: 'rgba(15,157,107,0.12)', color: TOKENS.success, label: 'Completada' },
+    cancelada: { bg: 'rgba(226,59,52,0.12)', color: TOKENS.danger, label: 'Cancelada' },
+    no_presentada: { bg: 'rgba(224,138,0,0.12)', color: TOKENS.warning, label: 'No presentada' },
   };
 
   const completadas = clientCitas.filter((c) => c.estado === 'completada').length;
@@ -2015,6 +2030,7 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
   onSaved: () => void;
   onDeleted: () => void;
 }) {
+  const { isMobile } = useResponsive();
   const isEdit = !!cliente;
   const initialBday = (() => {
     if (!cliente?.fecha_nacimiento) return { mm: null as number | null, dd: null as number | null };
@@ -2090,8 +2106,8 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
   };
 
   return (
-    <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
-      <div className="m-modal-enter" style={{ width: 460, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
+    <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: isMobile ? 12 : 24 }}>
+      <div className="m-modal-enter" style={{ width: isMobile ? '100%' : 460, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>{isEdit ? 'Editar cliente' : 'Nuevo cliente'}</h3>
           <button className="m-btn-icon m-btn-icon-close" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
@@ -2501,8 +2517,8 @@ function FotosClienteSection({ cliente, negocioId, bare = false, gridRef }: { cl
           {fotos.map((f) => (
             <div key={f.id} onClick={() => setLightbox(f.url)} style={{ position: 'relative', aspectRatio: '1 / 1', borderRadius: 12, overflow: 'hidden', border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCardHi, cursor: 'pointer' }}>
               <img src={f.url} alt="Foto de servicio" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              <button title="Eliminar foto" onClick={(e) => { e.stopPropagation(); remove(f); }} style={{ position: 'absolute', top: 5, right: 5, width: 24, height: 24, borderRadius: 7, border: 'none', background: 'rgba(18,13,10,0.55)', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
-                <Icon name="trash" size={12} color="#fff" />
+              <button title="Eliminar foto" onClick={(e) => { e.stopPropagation(); remove(f); }} style={{ position: 'absolute', top: 2, right: 2, width: 40, height: 40, borderRadius: 20, border: 'none', background: 'rgba(18,13,10,0.7)', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+                <Icon name="trash" size={15} color="#fff" />
               </button>
             </div>
           ))}

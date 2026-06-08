@@ -139,7 +139,7 @@ const InfoDot = ({ text, color = '#8a7d70' }: { text: string; color?: string }) 
   const [open, setOpen] = useState(false);
   return (
     <span
-      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
@@ -148,16 +148,23 @@ const InfoDot = ({ text, color = '#8a7d70' }: { text: string; color?: string }) 
         aria-label="Mas informacion"
         onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
         style={{
-          width: 15, height: 15, borderRadius: '50%', border: `1px solid ${color}66`,
-          background: 'transparent', color, cursor: 'help', padding: 0, flexShrink: 0,
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 10, fontWeight: 700, lineHeight: 1, fontFamily: 'Georgia, "Times New Roman", serif',
-          fontStyle: 'italic', transition: 'all 0.15s ease',
+          width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          border: 'none', background: 'transparent', cursor: 'help', padding: 0, margin: '-14px',
+          color, flexShrink: 0,
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${color}1a`; (e.currentTarget as HTMLElement).style.borderColor = color; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = `${color}66`; }}
       >
-        i
+        <span
+          style={{
+            width: 16, height: 16, borderRadius: '50%', border: `1px solid ${color}66`,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 10, fontWeight: 700, lineHeight: 1, fontFamily: 'Georgia, "Times New Roman", serif',
+            fontStyle: 'italic', transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${color}1a`; (e.currentTarget as HTMLElement).style.borderColor = color; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = `${color}66`; }}
+        >
+          i
+        </span>
       </button>
       {open && (
         <span
@@ -307,6 +314,7 @@ function descargarCSV(filename: string, headers: string[], rows: string[][]) {
 // Component
 // ---------------------------------------------------------------------------
 export default function InformesScreen() {
+  const { isMobile, isTablet } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [periodo, setPeriodo] = useState<Periodo>('mes');
@@ -997,6 +1005,7 @@ export default function InformesScreen() {
       <div className="informe-topbar" style={{
         padding: '20px 28px 16px', borderBottom: `1px solid ${TOKENS.border}`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: 12,
       }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: TOKENS.text, margin: 0 }}>Informes</h1>
@@ -1076,7 +1085,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* 9.10: Dashboard KPIs                                          */}
             {/* ============================================================= */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 24 }}>
               {[
                 { label: 'Citas totales', value: totalCitas, icon: 'calendar', color: TOKENS.primary, bg: TOKENS.primarySoft },
                 { label: 'Ingresos', value: `${fmtEur(totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
@@ -1103,8 +1112,8 @@ export default function InformesScreen() {
                     }}>
                       <Icon name={kpi.icon} size={16} color={kpi.color} />
                     </div>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1 }}>
-                      <span style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 500 }}>{kpi.label}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }} title={kpi.label}>{kpi.label}</span>
                       {KPI_INFO[kpi.label] && <InfoDot text={KPI_INFO[kpi.label]} color={kpi.color} />}
                     </span>
                   </div>
@@ -1172,7 +1181,7 @@ export default function InformesScreen() {
             <div style={{ marginBottom: 14 }}>
               <SectionHeader id="noshows" icon="alertTriangle" iconColor={TOKENS.danger} title="Tasa de no-shows" subtitle={`${noShows.length} no-shows de ${totalCitas} citas (${fmtPct(tasaNoShow)})`} />
               <SectionBody id="noshows">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                   {/* By professional */}
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Por profesional</div>
@@ -1281,7 +1290,7 @@ export default function InformesScreen() {
                   </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (isTablet ? '1fr 1fr' : '1fr 1fr 1fr'), gap: 16 }}>
                   {/* By Professional */}
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Por profesional</div>
@@ -1344,7 +1353,7 @@ export default function InformesScreen() {
             <div style={{ marginBottom: 14 }}>
               <SectionHeader id="servicios" icon="scissors" iconColor={TOKENS.primary} title="Servicios mas solicitados" subtitle={`${serviciosData.totalServicios} servicios realizados`} />
               <SectionBody id="servicios">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                   {/* Ranking */}
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Ranking</div>
@@ -1389,7 +1398,7 @@ export default function InformesScreen() {
             <div style={{ marginBottom: 14 }}>
               <SectionHeader id="retencion" icon="heart" iconColor={TOKENS.rose} title="Retencion de clientes" subtitle={`${retencionData.clientesActivos} clientes activos en el periodo`} />
               <SectionBody id="retencion">
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
                   {[
                     { label: 'Frecuencia media', value: `${Math.round(retencionData.avgFreq)} dias`, color: TOKENS.rose },
                     { label: 'Dias sin visita (media)', value: `${Math.round(retencionData.avgSinVisita)} dias`, color: TOKENS.warning },
@@ -1407,7 +1416,7 @@ export default function InformesScreen() {
                   ))}
                 </div>
 
-                <div style={{ display: 'flex', gap: 16 }}>
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16 }}>
                   <div style={{ flex: 1, padding: '10px 14px', borderRadius: 8, background: TOKENS.dangerSoft, border: `1px solid ${TOKENS.danger}22` }}>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.danger, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>En riesgo (60+ dias sin visita)</div>
                     <div style={{ fontSize: 22, fontWeight: 700, color: TOKENS.danger }}>{retencionData.inactivos}</div>
@@ -1476,46 +1485,48 @@ export default function InformesScreen() {
                 </div>
 
                 {/* Table */}
-                <div style={{ borderRadius: 10, overflow: 'hidden', border: `1px solid ${TOKENS.border}` }}>
-                  {/* Header */}
-                  <div style={{
-                    display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px 14px',
-                    background: TOKENS.bgPanel, borderBottom: `1px solid ${TOKENS.border}`,
-                    fontSize: 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5,
-                  }}>
-                    <div>Profesional</div>
-                    <div style={{ textAlign: 'right' }}>Citas</div>
-                    <div style={{ textAlign: 'right' }}>Ingresos</div>
-                    <div style={{ textAlign: 'right' }}>Comision</div>
-                  </div>
-
-                  {/* Rows */}
-                  {comisionesData.map((p, i) => (
-                    <div key={p.profId} className="metric-row" style={{
+                <div style={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
+                  <div style={{ borderRadius: 10, overflow: 'hidden', border: `1px solid ${TOKENS.border}`, minWidth: isMobile ? 540 : 'auto' }}>
+                    {/* Header */}
+                    <div style={{
                       display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px 14px',
-                      borderBottom: i < comisionesData.length - 1 ? `1px solid ${TOKENS.border}` : 'none',
-                      animation: 'fadeIn 0.3s ease both', animationDelay: `${i * 50}ms`,
+                      background: TOKENS.bgPanel, borderBottom: `1px solid ${TOKENS.border}`,
+                      fontSize: 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5,
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 4, height: 20, borderRadius: 2, background: p.color }} />
-                        <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>{p.nombre}</span>
-                      </div>
-                      <div style={{ fontSize: 12, color: TOKENS.textSec, textAlign: 'right' }}>{p.citas}</div>
-                      <div style={{ fontSize: 12, color: TOKENS.success, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.ingresos)} EUR</div>
-                      <div style={{ fontSize: 12, color: TOKENS.warning, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.comision)} EUR</div>
+                      <div>Profesional</div>
+                      <div style={{ textAlign: 'right' }}>Citas</div>
+                      <div style={{ textAlign: 'right' }}>Ingresos</div>
+                      <div style={{ textAlign: 'right' }}>Comision</div>
                     </div>
-                  ))}
 
-                  {/* Totals */}
-                  <div style={{
-                    display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px 14px',
-                    background: TOKENS.bgPanel, borderTop: `1px solid ${TOKENS.border}`,
-                    fontSize: 12, fontWeight: 700, color: TOKENS.text,
-                  }}>
-                    <div>Total</div>
-                    <div style={{ textAlign: 'right' }}>{comisionesData.reduce((s, p) => s + p.citas, 0)}</div>
-                    <div style={{ textAlign: 'right', color: TOKENS.success }}>{fmtEur(comisionesData.reduce((s, p) => s + p.ingresos, 0))} EUR</div>
-                    <div style={{ textAlign: 'right', color: TOKENS.warning }}>{fmtEur(comisionesData.reduce((s, p) => s + p.comision, 0))} EUR</div>
+                    {/* Rows */}
+                    {comisionesData.map((p, i) => (
+                      <div key={p.profId} className="metric-row" style={{
+                        display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px 14px',
+                        borderBottom: i < comisionesData.length - 1 ? `1px solid ${TOKENS.border}` : 'none',
+                        animation: 'fadeIn 0.3s ease both', animationDelay: `${i * 50}ms`,
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ width: 4, height: 20, borderRadius: 2, background: p.color }} />
+                          <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>{p.nombre}</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: TOKENS.textSec, textAlign: 'right' }}>{p.citas}</div>
+                        <div style={{ fontSize: 12, color: TOKENS.success, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.ingresos)} EUR</div>
+                        <div style={{ fontSize: 12, color: TOKENS.warning, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.comision)} EUR</div>
+                      </div>
+                    ))}
+
+                    {/* Totals */}
+                    <div style={{
+                      display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px 14px',
+                      background: TOKENS.bgPanel, borderTop: `1px solid ${TOKENS.border}`,
+                      fontSize: 12, fontWeight: 700, color: TOKENS.text,
+                    }}>
+                      <div>Total</div>
+                      <div style={{ textAlign: 'right' }}>{comisionesData.reduce((s, p) => s + p.citas, 0)}</div>
+                      <div style={{ textAlign: 'right', color: TOKENS.success }}>{fmtEur(comisionesData.reduce((s, p) => s + p.ingresos, 0))} EUR</div>
+                      <div style={{ textAlign: 'right', color: TOKENS.warning }}>{fmtEur(comisionesData.reduce((s, p) => s + p.comision, 0))} EUR</div>
+                    </div>
                   </div>
                 </div>
               </SectionBody>
