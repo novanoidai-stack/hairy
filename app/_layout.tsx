@@ -66,6 +66,9 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
   const isWeb = Platform.OS === 'web';
+  // Portal de reserva publica (app/r/[slug]): es anonimo, sin sesion. Queda exento
+  // de los guards de auth (web y nativo) para que el cliente final pueda reservar.
+  const isPublicRoute = String(segments[0]) === 'r';
 
   useEffect(() => {
     if (fontError) {
@@ -92,7 +95,7 @@ export default function RootLayout() {
     // web: si no hay sesion, siempre se vuelve a la landing para entrar por
     // "Entrar al software". (El login interno solo existe en nativo, ver abajo.)
     if (Platform.OS === 'web') {
-      if (!session && typeof window !== 'undefined') {
+      if (!session && !isPublicRoute && typeof window !== 'undefined') {
         window.location.href = '/acceso.html';
       }
       return;
@@ -100,7 +103,7 @@ export default function RootLayout() {
     // NATIVO (iOS/Android): no hay landing web, asi que el login interno
     // (app/login.tsx) es el acceso de la app.
     const inAuthGroup = segments[0] === 'login';
-    if (!session && !inAuthGroup) {
+    if (!session && !inAuthGroup && !isPublicRoute) {
       router.replace('/login');
     } else if (session && inAuthGroup) {
       router.replace('/(tabs)');
@@ -169,6 +172,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="r/[slug]" />
         <Stack.Screen name="screens/agenda-detalle" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Cita', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
         <Stack.Screen name="screens/nueva-cita" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Nueva cita', headerBackTitle: 'Agenda', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
         <Stack.Screen name="screens/configuracion" options={{ headerShown: true, title: 'Configuración', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
