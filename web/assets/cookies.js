@@ -1,20 +1,14 @@
-/* Mecha - consentimiento de cookies (RGPD / LSSI / guia AEPD).
+/* Mecha - consentimiento de cookies (RGPD / LSSI / guía AEPD).
    Principios que cumple:
-   - Consentimiento PREVIO: ninguna cookie no necesaria (p. ej. Google Analytics)
-     se carga hasta que el usuario acepta. Por defecto, denegado.
-   - Rechazar es tan facil como aceptar (dos botones equivalentes) + configurar.
-   - Granular: necesarias (siempre) y analiticas (opt-in, sin marcar por defecto).
-   - Revocable: se puede reabrir el panel y cambiar la decision cuando se quiera.
-   - Se vuelve a preguntar pasados ~12 meses.
-
-   Uso: incluir este script en todas las paginas publicas.
-   Para activar Google Analytics, define el ID antes de cargar el script:
-     <script>window.MECHA_GA_ID = 'G-XXXXXXXXXX';</script>
-   Si no hay ID, el bloque de analiticas simplemente no carga nada (sin romper). */
+   - Consentimiento PREVIO: ninguna cookie no necesaria (Google Analytics) se carga hasta que el usuario acepta.
+   - Rechazar es tan fácil como aceptar (dos botones equivalentes).
+   - Granularidad real mediante switches personalizados.
+   - Revocable mediante FAB (icono de escudo flotante interactivo) o API pública.
+   - Almacenamiento local por 12 meses. */
 (function () {
   var STORAGE_KEY = 'mecha_cookie_consent';
   var VERSION = 1;
-  var REASK_DAYS = 365; // volver a preguntar pasado ~1 ano
+  var REASK_DAYS = 365;
   var GA_ID = window.MECHA_GA_ID || null;
 
   function now() { return Date.now(); }
@@ -49,7 +43,6 @@
     function gtag() { window.dataLayer.push(arguments); }
     window.gtag = gtag;
     gtag('js', new Date());
-    // IP anonimizada por defecto en GA4. Sin cookies de publicidad.
     gtag('config', GA_ID, { anonymize_ip: true });
   }
 
@@ -57,79 +50,87 @@
     if (c && c.analytics) loadGA();
   }
 
-  /* ---------- estilos del banner (inyectados, usan los tokens de mecha.css) ---------- */
+  /* ---------- Estilos del banner (inyectados) ---------- */
   function injectStyles() {
     if (document.getElementById('mecha-cookies-style')) return;
     var css = ''
-      + '.mck-bar{position:fixed;left:0;right:0;bottom:0;z-index:9000;display:flex;gap:16px;align-items:center;'
-      + 'flex-wrap:wrap;justify-content:center;padding:16px clamp(14px,3vw,28px);'
-      + 'background:rgba(11,16,32,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);'
-      + 'border-top:1px solid var(--border-hi,#26314d);box-shadow:0 -16px 40px -20px rgba(0,0,0,.6)}'
-      + '.mck-bar .mck-txt{flex:1 1 360px;min-width:260px;font-size:13.5px;line-height:1.55;color:var(--text-sec,#aab4c8)}'
-      + '.mck-bar .mck-txt b{color:var(--text,#f1f5f9);font-weight:700}'
-      + '.mck-bar .mck-txt a{color:var(--accent-hi,#ff9a5a);text-decoration:underline;text-underline-offset:2px}'
-      + '.mck-acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center}'
-      + '.mck-btn{font-size:13.5px;font-weight:700;padding:11px 18px;border-radius:11px;cursor:pointer;border:1px solid transparent;transition:all .18s;white-space:nowrap}'
-      + '.mck-btn-ghost{background:transparent;border-color:var(--border-hi,#26314d);color:var(--text,#f1f5f9)}'
-      + '.mck-btn-ghost:hover{border-color:var(--accent,#f4501e);background:rgba(255,255,255,.04)}'
-      + '.mck-btn-primary{background:var(--grad,linear-gradient(120deg,#f4501e,#ffb03c));color:#0b0a12;box-shadow:0 10px 26px -12px var(--accent-glow,rgba(244,80,30,.7))}'
-      + '.mck-btn-primary:hover{filter:brightness(1.05)}'
-      + '.mck-link{font-size:13px;font-weight:600;color:var(--text-sec,#aab4c8);background:none;cursor:pointer;text-decoration:underline;text-underline-offset:2px}'
-      + '.mck-link:hover{color:var(--text,#f1f5f9)}'
-      + '.mck-overlay{position:fixed;inset:0;z-index:9001;display:none;place-items:center;padding:22px;'
-      + 'background:rgba(7,10,20,.7);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}'
-      + '.mck-overlay.show{display:grid}'
-      + '.mck-modal{width:100%;max-width:440px;background:var(--card-hi,#141f33);border:1px solid var(--border-hi,#26314d);'
-      + 'border-radius:var(--r-lg,18px);box-shadow:var(--shadow-pop,0 30px 80px -30px #000);padding:24px 24px 20px;position:relative;overflow:hidden}'
-      + '.mck-modal::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad,linear-gradient(120deg,#f4501e,#ffb03c))}'
-      + '.mck-modal h3{font-size:19px;font-weight:700;letter-spacing:-.01em;margin:4px 0 6px;color:var(--text,#f1f5f9)}'
-      + '.mck-modal p{font-size:13px;color:var(--text-sec,#aab4c8);line-height:1.55;margin-bottom:16px}'
-      + '.mck-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:14px 0;border-top:1px solid var(--border,#1c2438)}'
-      + '.mck-row .mck-info{flex:1}'
-      + '.mck-row .mck-info .t{font-size:14px;font-weight:700;color:var(--text,#f1f5f9);margin-bottom:3px}'
-      + '.mck-row .mck-info .d{font-size:12.5px;color:var(--text-sec,#aab4c8);line-height:1.5}'
-      + '.mck-sw{position:relative;width:42px;height:24px;border-radius:999px;background:var(--border-hi,#26314d);flex-shrink:0;cursor:pointer;transition:background .18s;margin-top:2px}'
-      + '.mck-sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .18s}'
-      + '.mck-sw.on{background:var(--accent,#f4501e)}'
-      + '.mck-sw.on::after{left:20px}'
-      + '.mck-sw.locked{opacity:.6;cursor:not-allowed}'
-      + '.mck-modal-acts{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}'
-      + '.mck-modal-acts .mck-btn{flex:1;text-align:center;justify-content:center}'
-      + '.mck-fab{position:fixed;left:16px;bottom:16px;z-index:8000;width:38px;height:38px;border-radius:50%;'
-      + 'display:none;place-items:center;cursor:pointer;background:var(--card-hi,#141f33);border:1px solid var(--border-hi,#26314d);color:var(--text-sec,#aab4c8)}'
-      + '.mck-fab.show{display:grid}'
-      + '.mck-fab:hover{color:var(--text,#f1f5f9);border-color:var(--accent,#f4501e)}'
-      + '.mck-fab svg{width:18px;height:18px}'
-      + '@media(max-width:640px){.mck-bar{flex-direction:column;align-items:stretch;gap:12px}'
-      + '.mck-acts{justify-content:stretch}.mck-acts .mck-btn{flex:1;text-align:center}}';
+      + '@keyframes mckSlideUp { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }'
+      + '@keyframes mckFadeIn { from { opacity: 0; } to { opacity: 1; } }'
+      + '@keyframes mckScaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }'
+      + '.mck-bar-wrap { position: fixed; right: 24px; bottom: 24px; width: calc(100% - 48px); max-width: 420px; z-index: 9000; display: none; animation: mckSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }'
+      + '.mck-bar { background: rgba(11, 16, 32, 0.90); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border: 1px solid rgba(244, 80, 30, 0.18); border-radius: 20px; padding: 24px; box-shadow: 0 20px 48px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 16px; }'
+      + '.mck-txt { font-size: 13.5px; line-height: 1.6; color: #9aa6c2; font-family: sans-serif; }'
+      + '.mck-txt b { color: #fff; font-weight: 700; }'
+      + '.mck-txt a { color: #ff8a3d; text-decoration: underline; text-underline-offset: 3px; font-weight: 600; transition: color 0.2s; }'
+      + '.mck-txt a:hover { color: #ffce4a; }'
+      + '.mck-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }'
+      + '.mck-acts-bot { grid-column: span 2; display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }'
+      + '.mck-btn { font-size: 13px; font-weight: 700; padding: 12px 18px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s ease; text-align: center; font-family: sans-serif; }'
+      + '.mck-btn-reject { background: rgba(255, 255, 255, 0.04); border-color: rgba(148, 163, 184, 0.15); color: #f6f8ff; }'
+      + '.mck-btn-reject:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(244, 80, 30, 0.4); transform: translateY(-1px); }'
+      + '.mck-btn-accept { background: linear-gradient(120deg, #f4501e, #ff8a3d); color: #fff; box-shadow: 0 4px 15px rgba(244, 80, 30, 0.3); }'
+      + '.mck-btn-accept:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 6px 20px rgba(244, 80, 30, 0.45); }'
+      + '.mck-link { font-size: 12.5px; font-weight: 600; color: #8a9ab8; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; transition: color 0.2s; background: none; border: none; padding: 4px 0; font-family: sans-serif; }'
+      + '.mck-link:hover { color: #fff; }'
+      + '.mck-overlay { position: fixed; inset: 0; z-index: 9500; background: rgba(7, 10, 20, 0.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: none; place-items: center; padding: 24px; animation: mckFadeIn 0.3s ease; }'
+      + '.mck-overlay.show { display: grid; }'
+      + '.mck-modal { width: 100%; max-width: 440px; background: #101729; border: 1px solid rgba(244, 80, 30, 0.25); border-radius: 24px; box-shadow: 0 30px 80px -20px rgba(0,0,0,0.8); padding: 30px; position: relative; overflow: hidden; animation: mckScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; font-family: sans-serif; }'
+      + '.mck-modal::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #f4501e, #ff8a3d, #ffce4a); }'
+      + '.mck-modal h3 { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px; letter-spacing: -0.02em; }'
+      + '.mck-modal p { font-size: 13px; color: #9aa6c2; line-height: 1.6; margin-bottom: 24px; }'
+      + '.mck-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 0; border-top: 1px solid rgba(148, 163, 184, 0.08); }'
+      + '.mck-row:first-of-type { border-top: none; padding-top: 0; }'
+      + '.mck-info { flex: 1; }'
+      + '.mck-info .t { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }'
+      + '.mck-info .d { font-size: 12px; color: #8a9ab8; line-height: 1.5; }'
+      + '.mck-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }'
+      + '.mck-switch input { opacity: 0; width: 0; height: 0; }'
+      + '.mck-slider { position: absolute; cursor: pointer; inset: 0; background-color: #1e293b; border-radius: 34px; transition: all 0.3s ease; border: 1px solid rgba(148, 163, 184, 0.1); }'
+      + '.mck-slider::before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: #fff; border-radius: 50%; transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.3); }'
+      + 'input:checked + .mck-slider { background-color: #f4501e; border-color: rgba(244, 80, 30, 0.3); }'
+      + 'input:checked + .mck-slider::before { transform: translateX(20px); }'
+      + 'input:disabled + .mck-slider { opacity: 0.6; cursor: not-allowed; background-color: #0f172a; }'
+      + '.mck-modal-acts { display: flex; gap: 12px; margin-top: 24px; }'
+      + '.mck-modal-acts .mck-btn { flex: 1; }'
+      + '.mck-fab { position: fixed; left: 24px; bottom: 24px; z-index: 8000; width: 46px; height: 46px; border-radius: 50%; display: none; place-items: center; cursor: pointer; background: rgba(16, 23, 41, 0.92); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid rgba(244, 80, 30, 0.25); color: #ff8a3d; box-shadow: 0 10px 24px rgba(0,0,0,0.3); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }'
+      + '.mck-fab.show { display: grid; }'
+      + '.mck-fab:hover { transform: scale(1.08) rotate(15deg); border-color: #ff8a3d; color: #fff; background: #f4501e; box-shadow: 0 12px 28px rgba(244, 80, 30, 0.4); }'
+      + '.mck-fab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }'
+      + '@media(max-width:640px){'
+      + '  .mck-bar-wrap { right: 12px; bottom: 12px; width: calc(100% - 24px); }'
+      + '  .mck-bar { padding: 20px; gap: 14px; }'
+      + '  .mck-acts { grid-template-columns: 1fr 1fr; }'
+      + '  .mck-modal { padding: 24px; }'
+      + '  .mck-fab { left: 12px; bottom: 12px; width: 40px; height: 40px; }'
+      + '}';
     var style = document.createElement('style');
     style.id = 'mecha-cookies-style';
     style.textContent = css;
     document.head.appendChild(style);
   }
 
-  /* ---------- banner ---------- */
-  var barEl = null, overlayEl = null, fabEl = null, analyticsOn = false;
+  /* ---------- Banner & Modal Elements ---------- */
+  var wrapEl = null, overlayEl = null, fabEl = null, analyticsOn = false;
 
   function buildBar() {
-    var bar = document.createElement('div');
-    bar.className = 'mck-bar';
-    bar.setAttribute('role', 'dialog');
-    bar.setAttribute('aria-live', 'polite');
-    bar.setAttribute('aria-label', 'Aviso de cookies');
-    bar.innerHTML =
-      '<div class="mck-txt"><b>Cuidamos tu privacidad.</b> Usamos cookies necesarias para que la web funcione y, solo si lo aceptas, cookies de medicion (Google Analytics) para mejorarla. '
-      + 'Puedes aceptarlas, rechazarlas o configurarlas. Mas info en <a href="cookies.html">Politica de cookies</a>.</div>'
-      + '<div class="mck-acts">'
-      + '<button type="button" class="mck-btn mck-btn-ghost" id="mckReject">Rechazar</button>'
-      + '<button type="button" class="mck-link" id="mckConfig">Configurar</button>'
-      + '<button type="button" class="mck-btn mck-btn-primary" id="mckAccept">Aceptar</button>'
+    var wrap = document.createElement('div');
+    wrap.className = 'mck-bar-wrap';
+    wrap.innerHTML =
+      '<div class="mck-bar" role="dialog" aria-live="polite" aria-label="Aviso de cookies">'
+      + '  <div class="mck-txt"><b>Cuidamos tu privacidad.</b> Usamos cookies necesarias para que la web funcione y, solo si lo aceptas, cookies de analítica (Google Analytics) para mejorar el servicio. Más info en la <a href="cookies.html">Política de cookies</a>.</div>'
+      + '  <div class="mck-acts">'
+      + '    <button type="button" class="mck-btn mck-btn-reject" id="mckReject">Rechazar</button>'
+      + '    <button type="button" class="mck-btn mck-btn-accept" id="mckAccept">Aceptar todas</button>'
+      + '    <div class="mck-acts-bot">'
+      + '      <button type="button" class="mck-link" id="mckConfig">Configurar cookies</button>'
+      + '    </div>'
+      + '  </div>'
       + '</div>';
-    document.body.appendChild(bar);
-    bar.querySelector('#mckAccept').addEventListener('click', function () { decide(true); });
-    bar.querySelector('#mckReject').addEventListener('click', function () { decide(false); });
-    bar.querySelector('#mckConfig').addEventListener('click', openModal);
-    return bar;
+    document.body.appendChild(wrap);
+    wrap.querySelector('#mckAccept').addEventListener('click', function () { decide(true); });
+    wrap.querySelector('#mckReject').addEventListener('click', function () { decide(false); });
+    wrap.querySelector('#mckConfig').addEventListener('click', openModal);
+    return wrap;
   }
 
   function buildModal() {
@@ -137,28 +138,41 @@
     ov.className = 'mck-overlay';
     ov.innerHTML =
       '<div class="mck-modal" role="dialog" aria-modal="true" aria-label="Configurar cookies">'
-      + '<h3>Configura tus cookies</h3>'
-      + '<p>Decide que cookies permites. Las necesarias no se pueden desactivar porque sin ellas la web no funciona.</p>'
-      + '<div class="mck-row"><div class="mck-info"><div class="t">Necesarias</div>'
-      + '<div class="d">Imprescindibles para iniciar sesion, mantener la sesion y la seguridad. Siempre activas.</div></div>'
-      + '<div class="mck-sw on locked" aria-disabled="true"></div></div>'
-      + '<div class="mck-row"><div class="mck-info"><div class="t">Analiticas (Google Analytics)</div>'
-      + '<div class="d">Nos ayudan a entender de forma agregada como se usa la web para mejorarla. Solo se activan si las permites.</div></div>'
-      + '<div class="mck-sw" id="mckSwAnalytics" role="switch" aria-checked="false" tabindex="0"></div></div>'
-      + '<div class="mck-modal-acts">'
-      + '<button type="button" class="mck-btn mck-btn-ghost" id="mckSave">Guardar preferencias</button>'
-      + '<button type="button" class="mck-btn mck-btn-primary" id="mckAcceptAll">Aceptar todas</button>'
-      + '</div></div>';
+      + '  <h3>Preferencias de cookies</h3>'
+      + '  <p>Decide qué cookies permites instalar. Las necesarias no se pueden desactivar ya que son imprescindibles para la funcionalidad técnica básica de la web y la aplicación.</p>'
+      + '  <div class="mck-row">'
+      + '    <div class="mck-info">'
+      + '      <div class="t">Necesarias y de seguridad</div>'
+      + '      <div class="d">Persistencia de sesión segura (Supabase auth tokens) y registro de tu consentimiento de privacidad. Siempre activas.</div>'
+      + '    </div>'
+      + '    <label class="mck-switch" aria-label="Cookies necesarias">'
+      + '      <input type="checkbox" checked disabled>'
+      + '      <span class="mck-slider"></span>'
+      + '    </label>'
+      + '  </div>'
+      + '  <div class="mck-row">'
+      + '    <div class="mck-info">'
+      + '      <div class="t">Analíticas (Google Analytics)</div>'
+      + '      <div class="d">Recopilación de estadísticas de usabilidad de forma totalmente anónima (IP anonimizada). Ayuda a mejorar la velocidad y herramientas de Mecha.</div>'
+      + '    </div>'
+      + '    <label class="mck-switch" aria-label="Cookies analíticas">'
+      + '      <input type="checkbox" id="mckSwAnalytics">'
+      + '      <span class="mck-slider"></span>'
+      + '    </label>'
+      + '  </div>'
+      + '  <div class="mck-modal-acts">'
+      + '    <button type="button" class="mck-btn mck-btn-reject" id="mckSave">Guardar selección</button>'
+      + '    <button type="button" class="mck-btn mck-btn-accept" id="mckAcceptAll">Aceptar todas</button>'
+      + '  </div>'
+      + '</div>';
     document.body.appendChild(ov);
-    var sw = ov.querySelector('#mckSwAnalytics');
-    function toggle() {
-      analyticsOn = !analyticsOn;
-      sw.classList.toggle('on', analyticsOn);
-      sw.setAttribute('aria-checked', analyticsOn ? 'true' : 'false');
-    }
-    sw.addEventListener('click', toggle);
-    sw.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
-    ov.querySelector('#mckSave').addEventListener('click', function () { decide(analyticsOn); });
+    
+    var cb = ov.querySelector('#mckSwAnalytics');
+    
+    // Sincronizar estado visual inicial con el valor de la variable
+    cb.checked = analyticsOn;
+
+    ov.querySelector('#mckSave').addEventListener('click', function () { decide(cb.checked); });
     ov.querySelector('#mckAcceptAll').addEventListener('click', function () { decide(true); });
     ov.addEventListener('click', function (e) { if (e.target === ov) closeModal(); });
     return ov;
@@ -168,21 +182,39 @@
     var f = document.createElement('button');
     f.type = 'button';
     f.className = 'mck-fab';
-    f.setAttribute('aria-label', 'Preferencias de cookies');
-    f.title = 'Preferencias de cookies';
-    f.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="14" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="8" r="1" fill="currentColor"/></svg>';
+    f.setAttribute('aria-label', 'Configuración de privacidad y cookies');
+    f.title = 'Configuración de privacidad';
+    f.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="1" fill="currentColor"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/></svg>';
     f.addEventListener('click', openModal);
     document.body.appendChild(f);
     return f;
   }
 
-  function showBar() { if (!barEl) barEl = buildBar(); barEl.style.display = 'flex'; if (fabEl) fabEl.classList.remove('show'); }
-  function hideBar() { if (barEl) barEl.style.display = 'none'; if (fabEl) fabEl.classList.add('show'); }
-  function openModal() { if (!overlayEl) overlayEl = buildModal(); overlayEl.classList.add('show'); }
-  function closeModal() { if (overlayEl) overlayEl.classList.remove('show'); }
+  function showBar() {
+    if (!wrapEl) wrapEl = buildBar();
+    wrapEl.style.display = 'block';
+    if (fabEl) fabEl.classList.remove('show');
+  }
+
+  function hideBar() {
+    if (wrapEl) wrapEl.style.display = 'none';
+    if (fabEl) fabEl.classList.add('show');
+  }
+
+  function openModal() {
+    if (!overlayEl) overlayEl = buildModal();
+    // Asegurar que el checkbox refleje el estado actual
+    overlayEl.querySelector('#mckSwAnalytics').checked = analyticsOn;
+    overlayEl.classList.add('show');
+  }
+
+  function closeModal() {
+    if (overlayEl) overlayEl.classList.remove('show');
+  }
 
   function decide(analytics) {
-    var c = saveConsent(analytics);
+    analyticsOn = !!analytics;
+    var c = saveConsent(analyticsOn);
     closeModal();
     hideBar();
     applyConsent(c);
@@ -193,6 +225,7 @@
     if (!fabEl) fabEl = buildFab();
     var c = readConsent();
     if (c) {
+      analyticsOn = c.analytics;
       applyConsent(c);
       hideBar();
     } else {
@@ -200,10 +233,16 @@
     }
   }
 
-  // API publica para reabrir el panel (p. ej. enlace "Configurar cookies" en cookies.html)
+  // API pública de Mecha para las páginas de políticas legales
   window.MechaCookies = {
     open: openModal,
-    reset: function () { try { localStorage.removeItem(STORAGE_KEY); } catch (e) {} showBar(); }
+    reset: function () {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {}
+      analyticsOn = false;
+      showBar();
+    }
   };
 
   if (document.readyState === 'loading') {

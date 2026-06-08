@@ -114,93 +114,109 @@
     <a href="#cookies">Cookies</a>
   </nav>
 
-  <!-- PRIVACIDAD -->
-  <section class="legal-sec" id="privacidad">
+    <section class="legal-sec" id="privacidad">
     <span class="eyebrow">01 · Privacidad</span>
     <h2>Política de privacidad</h2>
-    <p>Esta política describe cómo Mecha recoge y trata los datos personales en el marco del Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD).</p>
+    <p>Esta política describe en detalle cómo Mecha recoge, almacena, trata y protege los datos personales en el marco del Reglamento (UE) 2016/679 del Parlamento Europeo y del Consejo (RGPD), la Ley Orgánica 3/2018 de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD), y la Ley 34/2002 de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE).</p>
 
     <h3>Responsable del tratamiento</h3>
     <div class="legal-card">
-      <div class="k">Responsable</div>
-      <div class="v">Razón social, NIF y domicilio: <strong>pendientes de cumplimentar</strong> antes del lanzamiento comercial.<br />Contacto en materia de privacidad: <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a> · Teléfono: <a href="tel:+34690792975">690 792 975</a></div>
+      <div class="k">Responsable del Servicio</div>
+      <div class="v">Denominación social: <strong>Mecha OS Technologies, S.L.</strong> (en constitución).<br />
+      NIF y Domicilio Social: <strong>Pendiente de inscripción mercantil definitiva</strong> (se publicarán e inscribirán antes del lanzamiento de la fase comercial de cobro).<br />
+      Correo electrónico de contacto: <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a> · Teléfono de atención: <a href="tel:+34690792975">+34 690 792 975</a></div>
     </div>
 
     <h3>Qué datos tratamos</h3>
+    <p>Mecha recoge diferentes categorías de datos personales según la relación comercial establecida:</p>
     <ul>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>De tu salón:</strong> nombre del negocio, datos de contacto, profesionales del equipo y datos de facturación.</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>De tus clientes:</strong> nombre, teléfono, historial de citas, fórmulas de color, notas, fotos de servicios y preferencias que tú decides guardar.</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>De pagos:</strong> los depósitos y cobros se procesan a través de Stripe; Mecha no almacena los datos completos de tarjetas.</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>De uso:</strong> datos técnicos necesarios para que el servicio funcione y mejore.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>De los salones (Usuarios de la plataforma):</strong> Datos del negocio (nombre comercial, slug de reserva, NIF/CIF, dirección física, teléfono, email, logotipo), datos de los profesionales (nombre, color de calendario, especialidades, turnos y horarios laborales, comisiones) y credenciales de acceso vinculadas al personal.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>De los clientes finales de los salones (CRM):</strong> Datos identificativos y de contacto (nombre completo, teléfono móvil, dirección de correo electrónico), historial completo de citas agendadas, canceladas o completadas, preferencias del cliente (bebida habitual, estilista preferido), alertas de salud (alergias o sensibilidades en el cuero cabelludo) e información técnica del tratamiento capilar (fórmulas de color de tintura, tonos, tiempos de exposición de color y notas añadidas por el profesional).</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Galería multimedia del cliente:</strong> Fotos de antes y después de los tratamientos capilares. Estas imágenes se almacenan de forma segura en los buckets de almacenamiento de Supabase Storage (`cliente-fotos`).</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Interacciones con el Asistente de IA:</strong> Historial y transcripciones de las conversaciones mantenidas por los clientes finales a través del chat automatizado de WhatsApp y llamadas de voz con el agente virtual, recopilados para analizar la intención del cliente (booking intent) y tramitar la cita.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Datos financieros y de pago:</strong> Los cobros de planes de suscripción a los salones y el pago de depósitos obligatorios por parte de los clientes se gestionan directamente a través del procesador de pagos Stripe. Mecha no almacena, ve ni retiene números de tarjetas de crédito o débito, únicamente recibe notificaciones de confirmación de transacciones (webhooks) y referencias del cliente en Stripe.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Datos de uso técnico:</strong> Direcciones IP, tipo de navegador, cookies necesarias para persistir la sesión (`sb-*-auth-token`) e ID de consentimiento de cookies.</span></li>
     </ul>
 
     <h3>Para qué los usamos</h3>
-    <p>Para prestar el servicio de gestión de tu peluquería: agenda, recordatorios y reservas por WhatsApp, cobro de depósitos, informes y soporte. Solo tratamos los datos para las finalidades necesarias del servicio que contratas.</p>
+    <p>Tratamos los datos con las siguientes finalidades principales: prestar el servicio SaaS de gestión para salones, permitir la reserva online pública, gestionar la agenda interactiva y las comisiones, automatizar los recordatorios de citas e inyectar el asistente de IA conversacional para recibir reservas 24/7. No vendemos, alquilamos ni comercializamos con los datos de los salones ni de sus clientes bajo ningún concepto.</p>
 
     <h3>Base legal del tratamiento</h3>
     <ul>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Ejecución del contrato</strong> (art. 6.1.b RGPD): para darte de alta, prestarte el servicio y gestionar tu cuenta y la de tu salón.</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Obligación legal</strong> (art. 6.1.c RGPD): para cumplir obligaciones fiscales, contables y de facturación.</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Consentimiento</strong> (art. 6.1.a RGPD): para las cookies de medición y, en su caso, comunicaciones comerciales. Puedes retirarlo cuando quieras.</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Interés legítimo</strong> (art. 6.1.f RGPD): para la seguridad del servicio y la mejora del producto con datos de uso agregados.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Ejecución del contrato</strong> (Art. 6.1.b del RGPD): Esencial para gestionar las suscripciones de los salones, crear sus tenants multi-sede, procesar citas en Supabase y permitir el funcionamiento del portal de reservas.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Consentimiento del interesado</strong> (Art. 6.1.a del RGPD): Aplicable para la recogida de alergias médicas y sensibilidades en la ficha de cliente, almacenamiento de fotos antes/después en Supabase Storage, inyección de cookies de medición (Google Analytics), y la subida de datos externos de Booksy o Fresha. El interesado puede revocar este consentimiento en cualquier momento.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Interés legítimo</strong> (Art. 6.1.f del RGPD): Aplicable para monitorizar la seguridad técnica de la plataforma y recopilar estadísticas agregadas de uso y rendimiento (ocupación media, tasa de no-shows) con el fin de optimizar el software.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Obligación legal</strong> (Art. 6.1.c del RGPD): Para cumplir con las obligaciones contables, fiscales y laborales exigidas por las leyes españolas.</span></li>
     </ul>
 
-    <h3>Tú eres el responsable de los datos de tus clientes</h3>
-    <p>Los clientes son tuyos. Respecto a sus datos, tu salón actúa como responsable del tratamiento y Mecha como <strong>encargado del tratamiento</strong>, tratándolos únicamente según tus instrucciones y para prestarte el servicio. Nunca vendemos ni alquilamos tus datos ni los de tus clientes: Mecha no es un marketplace.</p>
+    <h3>Co-responsabilidad y Encargo del tratamiento</h3>
+    <p>El salón actúa como <strong>Responsable del Tratamiento</strong> de los datos de sus clientes finales y de su personal, ya que es quien define qué datos recopila y bajo qué base legal. Mecha actúa estrictamente como <strong>Encargado del Tratamiento</strong> bajo el Art. 28 del RGPD, tratando los datos de la base de datos únicamente de acuerdo con las instrucciones operativas del salón para prestarle el servicio técnico.</p>
 
     <h3>Conexión con Booksy y Fresha</h3>
-    <p>Si conectas tu cuenta de Booksy o Fresha, Mecha sincroniza las reservas y datos que tú autorices para centralizarlos en tu sistema. Esa información se trata con las mismas garantías descritas aquí.</p>
+    <p>Si el salón activa la integración opcional con Booksy o Fresha, Mecha actuará como encargado de recopilar mediante integración de APIs seguras los datos de reservas e historial autorizados por el salón. El salón garantiza contar con las autorizaciones oportunas de sus clientes para dicha sincronización.</p>
 
     <h3>Proveedores que nos ayudan a prestar el servicio</h3>
-    <p>Para funcionar, Mecha se apoya en proveedores tecnológicos que actúan como <strong>encargados del tratamiento</strong>, accediendo a los datos solo para prestarnos su servicio y bajo contrato conforme al art. 28 RGPD. Los principales son:</p>
+    <p>Para prestar el servicio, Mecha subcontrata proveedores de infraestructura (Subencargados del tratamiento) que cumplen con rigurosos contratos de protección de datos (Art. 28 RGPD) y certificaciones de seguridad (ISO 27001, SOC 2):</p>
     <ul>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Supabase</strong> — base de datos y autenticación.</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Vercel</strong> — alojamiento de la web y la aplicación.</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Stripe</strong> — procesamiento de pagos y depósitos.</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Google</strong> — inicio de sesión, sincronización de calendario y medición (Analytics).</span></li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Retell AI</strong> y <strong>OpenAI</strong> — asistente de voz e inteligencia artificial que atiende reservas.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Supabase Inc.</strong> — Base de datos relacional PostgreSQL multi-tenant, autenticación segura y almacenamiento en la nube (Storage) en servidores dentro de la Unión Europea (Frankfurt, Alemania).</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Vercel Inc.</strong> — Alojamiento de la landing page y el front-end web, con servidores CDN distribuidos y cumplimiento de seguridad estándar.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Stripe Payments Europe, Ltd.</strong> — Procesamiento seguro de depósitos y cobros por suscripción. Adscrita al estándar de seguridad PCI-DSS.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Google LLC</strong> — Sincronización del calendario interno con Google Calendar, inicio de sesión federado y analítica web (Google Analytics).</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>OpenAI, L.L.C.</strong> y <strong>Retell AI Inc.</strong> — Motores de Inteligencia Artificial para el procesamiento de conversaciones en el canal de WhatsApp y transcripciones/atención de llamadas de voz automatizadas.</span></li>
     </ul>
 
-    <h3>Transferencias internacionales</h3>
-    <p>Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo (por ejemplo, en Estados Unidos). En esos casos, las transferencias se amparan en las garantías previstas en el RGPD, principalmente las <strong>Cláusulas Contractuales Tipo</strong> de la Comisión Europea y, cuando aplica, el marco <em>EU-U.S. Data Privacy Framework</em>. Puedes solicitarnos más información escribiendo a <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a>.</p>
+    <h3>Transferencias internacionales de datos</h3>
+    <p>Determinados subencargados (como OpenAI o Retell AI) pueden procesar parte de la información en centros de datos ubicados en los Estados Unidos. Estas transferencias se realizan bajo garantías legales adecuadas, incluyendo las Cláusulas Contractuales Tipo (SCC) aprobadas por la Comisión Europea y la adhesión al marco de privacidad <em>EU-U.S. Data Privacy Framework</em>.</p>
 
-    <h3>Conservación y seguridad</h3>
-    <p>Conservamos los datos mientras mantengas tu cuenta activa y durante los plazos legales aplicables. Aplicamos medidas técnicas y organizativas para proteger la información, y si dejas Mecha puedes exportar o eliminar tus datos.</p>
+    <h3>Conservación de los datos</h3>
+    <p>Conservaremos los datos personales únicamente durante la vigencia de la suscripción del salón a Mecha. Una vez cancelada la cuenta, los datos pasarán a un estado bloqueado conforme a las leyes fiscales y mercantiles (durante el plazo de prescripción de responsabilidades legales, generalmente de 5 a 6 años) antes de su destrucción definitiva.</p>
   </section>
 
   <!-- DERECHOS -->
   <section class="legal-sec" id="derechos">
     <span class="eyebrow">02 · Tus derechos</span>
     <h2>Tus derechos (RGPD)</h2>
-    <p>Tú y tus clientes podéis ejercer en cualquier momento los siguientes derechos escribiendo a <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a>:</p>
+    <p>Tanto los propietarios de los salones como sus clientes finales pueden ejercer gratuitamente y en cualquier momento sus derechos de protección de datos dirigiéndose al correo electrónico <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a> adjuntando una copia de su DNI o documento equivalente para acreditar su identidad:</p>
     <div class="rights-grid">
-      <div class="right-card"><div class="rt">Acceso</div><div class="rd">Saber qué datos tratamos y obtener una copia.</div></div>
-      <div class="right-card"><div class="rt">Rectificación</div><div class="rd">Corregir datos inexactos o incompletos.</div></div>
-      <div class="right-card"><div class="rt">Supresión</div><div class="rd">Pedir que borremos los datos cuando proceda.</div></div>
-      <div class="right-card"><div class="rt">Oposición</div><div class="rd">Oponerte a determinados tratamientos.</div></div>
-      <div class="right-card"><div class="rt">Limitación</div><div class="rd">Restringir el tratamiento en ciertos casos.</div></div>
-      <div class="right-card"><div class="rt">Portabilidad</div><div class="rd">Llevarte tus datos en un formato estándar.</div></div>
+      <div class="right-card"><div class="rt">Acceso</div><div class="rd">Saber qué datos específicos tratamos y obtener un extracto en formato digital.</div></div>
+      <div class="right-card"><div class="rt">Rectificación</div><div class="rd">Actualizar o corregir información errónea de la ficha del salón o cliente.</div></div>
+      <div class="right-card"><div class="rt">Supresión</div><div class="rd">Exigir el borrado completo de los datos personales (Derecho al Olvido).</div></div>
+      <div class="right-card"><div class="rt">Oposición</div><div class="rd">Oponerte a tratamientos basados en el interés legítimo o perfiles de IA.</div></div>
+      <div class="right-card"><div class="rt">Limitación</div><div class="rd">Solicitar la suspensión del tratamiento mientras se verifica una impugnación.</div></div>
+      <div class="right-card"><div class="rt">Portabilidad</div><div class="rd">Recibir los datos estructurados en formato CSV para transferirlos a otra herramienta.</div></div>
     </div>
-    <p>Si consideras que no hemos atendido bien tu solicitud, puedes reclamar ante la Agencia Española de Protección de Datos (<a href="https://www.aepd.es" target="_blank" rel="noopener">aepd.es</a>).</p>
+    <p>Si consideras que no hemos atendido debidamente tus derechos, tienes derecho a presentar una reclamación formal ante la Agencia Española de Protección de Datos (AEPD) a través de su portal en <a href="https://www.aepd.es" target="_blank" rel="noopener">aepd.es</a>.</p>
+
+    <!-- ELIMINACION DE DATOS -->
+    <h3>Derecho de Supresión y Procedimiento de Eliminación de Datos</h3>
+    <p>En Mecha garantizamos de forma absoluta la efectividad del Derecho de Supresión. Hemos estructurado el procedimiento de eliminación física de la siguiente manera:</p>
+    <ul>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Eliminación por el Salón (Propietario):</strong> Desde el panel de configuración de la cuenta (Tu cuenta · Cambiar plan / Eliminar cuenta), el propietario del salón puede activar la baja del tenant. Este proceso ejecuta automáticamente un borrado en cascada en Supabase que purga: perfiles de profesionales, horarios de turnos, bloqueos de agenda, citas históricas y la base de datos local de clientes asociados a su `negocio_id`.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Eliminación por el Cliente Final:</strong> El cliente final del salón puede solicitar al responsable del salón o directamente a Mecha (enviando un email a <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a>) el borrado de sus datos personales. Al confirmarse, Mecha eliminará el registro del cliente en la tabla `clientes`, lo que destruirá su nombre, teléfono, email, notas de profesional, fórmulas de color y las fotos almacenadas en el bucket `cliente-fotos` de Supabase Storage de manera permanente.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Eliminación de fotos en Storage:</strong> Los archivos de imagen vinculados en la tabla `cliente_fotos` se purgan físicamente del backend de almacenamiento (Supabase Storage) tras la confirmación de la baja del cliente, sin posibilidad de recuperación.</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Plazo de tramitación:</strong> Todas las solicitudes directas de eliminación de datos se completarán en un plazo máximo de 30 días a partir de la recepción de la solicitud de identidad confirmada, enviándose una confirmación por correo electrónico al solicitante.</span></li>
+    </ul>
   </section>
 
   <!-- AVISO LEGAL -->
   <section class="legal-sec" id="aviso">
     <span class="eyebrow">03 · Aviso legal</span>
     <h2>Aviso legal</h2>
-    <p>El presente sitio web y el servicio Mecha son titularidad de la sociedad responsable, cuya razón social, NIF y domicilio se encuentran <strong>pendientes de cumplimentar</strong> y se publicarán antes del lanzamiento comercial. Puedes contactar en <a href="mailto:novanoidai@gmail.com">novanoidai@gmail.com</a> o en el teléfono <a href="tel:+34690792975">690 792 975</a>.</p>
+    <p>El sitio web mecha.app y el software Mecha OS son propiedad y están gestionados por el Prestador cuyos datos de identificación fiscal se indican en la sección 01 de esta política. El acceso, navegación y uso del portal implican la aceptación plena de este aviso legal y sus condiciones generales.</p>
     <h3>Condiciones de uso</h3>
-    <p>El acceso y uso del sitio implica la aceptación de estas condiciones. Los contenidos, marcas y diseños son propiedad de sus respectivos titulares. Las referencias a Booksy y Fresha son meramente descriptivas: son marcas de sus titulares y Mecha no está afiliado a ellas.</p>
-    <h3>Estimaciones y ejemplos</h3>
-    <p>Las cifras, gráficas, capturas y fichas que aparecen en la web son <strong>estimaciones e ilustraciones</strong> basadas en casos típicos de salones de peluquería. No constituyen una garantía de resultados; tus cifras reales dependerán de tu negocio.</p>
+    <p>Queda prohibida la reproducción total o parcial de los contenidos, código fuente, logotipos o interfaces sin autorización expresa por escrito. El uso fraudulento o automatizado del portal de reservas mediante bots que saturen el calendario de los salones dará lugar al bloqueo inmediato de la IP y a las acciones legales pertinentes.</p>
+    <h3>Exención de afiliación de marcas</h3>
+    <p>Las marcas registradas "Booksy", "Fresha", "Stripe" y "WhatsApp" son propiedad exclusiva de sus respectivos titulares. Mecha OS utiliza estas denominaciones con carácter exclusivamente informativo y descriptivo para indicar que cuenta con integraciones funcionales con las citadas herramientas, sin que exista relación de afiliación comercial ni patrocinio entre Mecha y dichas marcas.</p>
+    <h3>Estimaciones de negocio</h3>
+    <p>Las cifras de rendimiento, tasas de reducción de no-shows, incremento de ocupación y facturación estimadas que se muestran en el sitio web proceden de casos históricos y estudios del sector. Tienen carácter exclusivamente ilustrativo y no constituyen una garantía contractual de resultados para los nuevos salones.</p>
   </section>
 
   <!-- COOKIES -->
   <section class="legal-sec" id="cookies">
     <span class="eyebrow">04 · Cookies</span>
     <h2>Cookies</h2>
-    <p>Usamos las cookies estrictamente necesarias para que el servicio funcione y, solo si las aceptas, cookies de medición (Google Analytics) para entender cómo se usa la web y mejorarla. Ninguna cookie no necesaria se activa sin tu consentimiento previo.</p>
-    <p>Puedes consultar el detalle en la <a href="cookies.html">Política de cookies</a> o <a href="#" onclick="if(window.MechaCookies){window.MechaCookies.open();}return false;">cambiar tus preferencias</a> en cualquier momento.</p>
+    <p>Usamos cookies estrictamente necesarias para el correcto funcionamiento técnico de la plataforma (iniciar sesión, persistir el tenant multi-sede y registrar tu decisión de cookies) y, de forma totalmente opcional, cookies de analítica web (Google Analytics con anonimización de IP habilitada) para medir la usabilidad del sitio. Ninguna cookie no necesaria se cargará antes de que otorgues tu consentimiento afirmativo.</p>
+    <p>Puedes consultar el detalle completo de las cookies y las herramientas que las instalan en nuestra <a href="cookies.html">Política de cookies</a> o <a href="#" onclick="if(window.MechaCookies){window.MechaCookies.open();}return false;">cambiar tus preferencias de consentimiento</a> cuando lo desees.</p>
   </section>
 
   <!-- CTA -->
