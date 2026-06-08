@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { getUserProfile, canAccessConfig } from '@/lib/auth';
 import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
+import qrcode from 'qrcode-generator';
 import {
   Section, FieldRow, FieldStack, Toggle, NumberInput, STextInput, SSelect,
   Segmented, TimeInput, Badge, SoonBadge, SoonBanner, StatBox,
@@ -153,7 +154,7 @@ const TABS: TabDef[] = [
   { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion', soon: true },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion', soon: true },
-  { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion', soon: true },
+  { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
   { id: 'accesos',        label: 'Accesos y roles', icon: 'shield',   section: 'Cuenta' },
   { id: 'cuenta',         label: 'Cuenta',         icon: 'lock',      section: 'Cuenta' },
   { id: 'soporte',        label: 'Soporte',        icon: 'mail',      section: 'Cuenta' },
@@ -820,7 +821,7 @@ export default function ConfiguracionWeb() {
             )}
             {tab === 'notificaciones' && <TabNotificaciones />}
             {tab === 'politicas' && <TabPoliticas />}
-            {tab === 'reserva' && <TabReservaOnline />}
+            {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
             {tab === 'accesos' && <TabAccesos negocioId={negocioId} currentUserId={userId} currentRole={account?.role ?? ''} />}
             {tab === 'cuenta' && <TabCuenta account={account} profCount={profesionales.length} />}
             {tab === 'soporte' && <TabSoporte account={account} />}
@@ -2306,20 +2307,145 @@ function TabPoliticas() {
   );
 }
 
-function TabReservaOnline() {
+// Normaliza un texto a slug de URL: minusculas, sin acentos, solo [a-z0-9-].
+function slugifyPortal(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+}
+
+// Gestion del portal de reserva publica de ESTE salon (tabla negocio_portal).
+// Cada negocio activa su portal, elige su enlace (slug) y que se muestra.
+function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultTelefono }: {
+  negocioId: string;
+  defaultNombre?: string;
+  defaultDireccion?: string;
+  defaultTelefono?: string;
+}) {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [activo, setActivo] = useState(true);
+  const [slug, setSlug] = useState('');
+  const [savedSlug, setSavedSlug] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [direccion, setDireccion] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [idioma, setIdioma] = useState('es');
+  const [mostrarPrecios, setMostrarPrecios] = useState('catalogo');
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!negocioId) return;
+    let cancel = false;
+    (async () => {
+      setLoading(true);
+      const { data } = await supabase.from('negocio_portal').select('*').eq('negocio_id', negocioId).maybeSingle();
+      if (cancel) return;
+      if (data) {
+        setActivo(!!data.portal_activo);
+        setSlug(data.slug || '');
+        setSavedSlug(data.slug || '');
+        setNombre(data.nombre_publico || defaultNombre || '');
+        setDireccion(data.direccion || defaultDireccion || '');
+        setTelefono(data.telefono || defaultTelefono || '');
+        setIdioma(data.idioma || 'es');
+        setMostrarPrecios(data.mostrar_precios || 'catalogo');
+      } else {
+        setActivo(true);
+        setSlug(slugifyPortal(defaultNombre || ''));
+        setNombre(defaultNombre || '');
+        setDireccion(defaultDireccion || '');
+        setTelefono(defaultTelefono || '');
+      }
+      setLoading(false);
+    })();
+    return () => { cancel = true; };
+  }, [negocioId]);
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  // En produccion la SPA se sirve bajo /app (app.json experiments.baseUrl); en dev, en raiz.
+  const appBase = typeof window !== 'undefined' && window.location.pathname.startsWith('/app') ? '/app' : '';
+  const enlace = savedSlug ? `${origin}${appBase}/r/${savedSlug}` : '';
+  const qrSvg = useMemo(() => {
+    if (!enlace) return '';
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(enlace);
+      qr.make();
+      return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+    } catch {
+      return '';
+    }
+  }, [enlace]);
+
+  const guardar = useCallback(async () => {
+    setMsg(null);
+    const s = slugifyPortal(slug);
+    if (s.length < 3) { setMsg({ ok: false, text: 'El enlace debe tener al menos 3 caracteres (letras, numeros o guiones).' }); return; }
+    setSaving(true);
+    const { error } = await supabase.from('negocio_portal').upsert({
+      negocio_id: negocioId,
+      slug: s,
+      nombre_publico: nombre.trim() || null,
+      direccion: direccion.trim() || null,
+      telefono: telefono.trim() || null,
+      idioma,
+      portal_activo: activo,
+      mostrar_precios: mostrarPrecios,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'negocio_id' });
+    setSaving(false);
+    if (error) {
+      const code = (error as { code?: string }).code;
+      if (code === '23505' || /duplicate|unique/i.test(error.message)) {
+        setMsg({ ok: false, text: 'Ese enlace ya lo usa otro salon. Elige otro distinto.' });
+      } else {
+        setMsg({ ok: false, text: 'No se pudo guardar: ' + error.message });
+      }
+      return;
+    }
+    setSlug(s);
+    setSavedSlug(s);
+    setMsg({ ok: true, text: 'Portal guardado correctamente.' });
+  }, [negocioId, slug, nombre, direccion, telefono, idioma, activo, mostrarPrecios]);
+
+  if (loading) {
+    return <div style={{ padding: 40, textAlign: 'center', color: T.textTertiary }}>Cargando portal...</div>;
+  }
+
   return (
     <>
-      <SoonBanner icon="globe" title="Reserva online -- fase 7"
-        desc="Tu propia pagina publica en la que las clientes pueden reservar 24/7. Configuraras aqui que se muestra y que servicios se exponen." />
-      <Section soon disabled title="Portal publico" desc="Activacion de la pagina y URL en la que reciben las clientes para reservar.">
-        <FieldRow label="Portal activo" hint="Si esta apagado, el enlace devuelve un mensaje de 'proximamente'.">
-          <Toggle disabled on={false} onChange={() => {}} />
+      <Section title="Portal publico" desc="Tu pagina para que las clientes reserven 24/7. Aqui activas el portal y eliges su enlace.">
+        <FieldRow label="Portal activo" hint="Si esta apagado, el enlace muestra 'reservas no disponibles' y nadie puede reservar online.">
+          <Toggle on={activo} onChange={setActivo} label={activo ? 'Activo' : 'Apagado'} />
         </FieldRow>
-        <FieldRow label="URL publica" hint="Dominio en el que se aloja el portal. Puedes vincular un dominio propio mas adelante.">
-          <STextInput disabled value="reservas.hairy.studio/salon-bonita" onChange={() => {}} width={360} leadingIcon="link" />
+        <FieldRow label="Enlace de reserva" hint="La direccion publica que compartes con tus clientes. Solo letras, numeros y guiones.">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 13, color: T.textTertiary }}>{origin}/r/</span>
+              <STextInput value={slug} onChange={(v) => setSlug(slugifyPortal(v))} placeholder="mi-salon" width={200} />
+            </div>
+            {enlace && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 12, color: T.textSecondary, fontFamily: 'monospace' }}>{enlace}</span>
+                <Btn variant="primary" size="sm" onClick={() => { if (typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(enlace); setMsg({ ok: true, text: 'Enlace copiado.' }); } }}>Copiar</Btn>
+                <Btn variant="ghost" size="sm" onClick={() => { if (typeof window !== 'undefined') window.open(enlace, '_blank'); }}>Abrir</Btn>
+              </div>
+            )}
+            {!savedSlug && <span style={{ fontSize: 12, color: T.textTertiary }}>Guarda para activar el enlace.</span>}
+            {qrSvg && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                <div style={{ width: 104, height: 104, background: '#fff', border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: qrSvg }} />
+                <span style={{ fontSize: 12, color: T.textTertiary, maxWidth: 220 }}>Imprime o comparte este codigo QR: lleva directo a tu pagina de reserva.</span>
+              </div>
+            )}
+          </div>
         </FieldRow>
         <FieldRow label="Idioma del portal" hint="Idioma por defecto en el que se muestra a las clientes.">
-          <SSelect disabled width={180} value="es" onChange={() => {}} options={[
+          <SSelect width={180} value={idioma} onChange={setIdioma} options={[
             { value: 'es', label: 'Espanol' },
             { value: 'ca', label: 'Catala' },
             { value: 'en', label: 'English' },
@@ -2328,21 +2454,35 @@ function TabReservaOnline() {
         </FieldRow>
       </Section>
 
-      <Section soon disabled title="Visibilidad" desc="Que informacion se ensena a la cliente antes de cerrar la reserva.">
-        <FieldRow label="Mostrar precios" hint="Mostrar el precio en el listado o solo despues de seleccionar profesional y horario.">
-          <Segmented disabled value="catalogo" onChange={() => {}} options={[
+      <Section title="Datos publicos" desc="Lo que ven las clientes en la cabecera del portal.">
+        <FieldRow label="Nombre publico" hint="El nombre de tu salon tal y como aparece en el portal.">
+          <STextInput value={nombre} onChange={setNombre} placeholder="Mi salon" width={280} />
+        </FieldRow>
+        <FieldRow label="Direccion" hint="Direccion que se muestra bajo el nombre. Opcional.">
+          <STextInput value={direccion} onChange={setDireccion} placeholder="Calle, numero, ciudad" width={360} />
+        </FieldRow>
+        <FieldRow label="Telefono" hint="Telefono de contacto para las clientes. Opcional.">
+          <STextInput value={telefono} onChange={setTelefono} placeholder="600 000 000" width={200} />
+        </FieldRow>
+      </Section>
+
+      <Section title="Visibilidad" desc="Que informacion se ensena a la cliente.">
+        <FieldRow label="Mostrar precios" hint="Mostrar el precio en el listado de servicios, solo al confirmar, o nunca.">
+          <Segmented value={mostrarPrecios} onChange={setMostrarPrecios} options={[
             { value: 'catalogo', label: 'En el catalogo' },
-            { value: 'final', label: 'Solo al confirmar' },
+            { value: 'tras_seleccion', label: 'Solo al confirmar' },
             { value: 'nunca', label: 'Nunca' },
           ]} />
         </FieldRow>
-        <FieldRow label="Mostrar duracion" hint="Indicar a la cliente cuanto va a durar el servicio aproximadamente.">
-          <Toggle disabled on={true} onChange={() => {}} />
-        </FieldRow>
-        <FieldRow label="Mostrar profesional asignado" hint="Si esta apagado, la cliente no puede elegir profesional.">
-          <Toggle disabled on={true} onChange={() => {}} />
+        <FieldRow label="Servicios visibles" hint="Cada servicio se expone o no desde Servicios (interruptor 'Reservable online').">
+          <span style={{ fontSize: 13, color: T.textSecondary }}>Se gestiona por servicio en la pestana Servicios.</span>
         </FieldRow>
       </Section>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+        <Btn variant="primary" onClick={guardar} disabled={saving}>{saving ? 'Guardando...' : 'Guardar portal'}</Btn>
+        {msg && <span style={{ fontSize: 13, color: msg.ok ? T.success : T.danger }}>{msg.text}</span>}
+      </div>
     </>
   );
 }
