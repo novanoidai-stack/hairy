@@ -6,6 +6,7 @@
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
+import { useResponsive } from '@/lib/hooks/useResponsive';
 
 const T = DESIGN_TOKENS;
 
@@ -132,12 +133,13 @@ interface FieldRowProps {
 }
 
 export function FieldRow({ label, hint, htmlFor, children, full, disabled, action }: FieldRowProps) {
+  const { isMobile } = useResponsive();
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: full ? '1fr' : '220px 1fr',
+      gridTemplateColumns: (full || isMobile) ? '1fr' : '220px 1fr',
       alignItems: 'flex-start',
-      gap: full ? 6 : 24,
+      gap: (full || isMobile) ? 8 : 24,
       padding: '14px 0',
       borderTop: `1px solid ${T.border}`,
       opacity: disabled ? 0.55 : 1,
@@ -507,10 +509,11 @@ interface DayPickerProps {
 }
 
 export function DayPicker({ value, onChange, disabled }: DayPickerProps) {
+  const { isMobile } = useResponsive();
   const days = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
   const labels = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
   return (
-    <div style={{ display: 'flex', gap: 6, opacity: disabled ? 0.5 : 1 }}>
+    <div style={{ display: 'flex', gap: isMobile ? 4 : 6, flexWrap: 'wrap', opacity: disabled ? 0.5 : 1 }}>
       {days.map((d, i) => {
         const on = value.includes(i);
         const isWeekend = i >= 5;
@@ -521,7 +524,7 @@ export function DayPicker({ value, onChange, disabled }: DayPickerProps) {
             title={labels[i]}
             onClick={() => onChange(on ? value.filter(v => v !== i) : [...value, i].sort())}
             style={{
-              width: 38, height: 38, borderRadius: 10,
+              width: isMobile ? 32 : 38, height: isMobile ? 32 : 38, borderRadius: 10,
               background: on ? T.primarySoft : T.bg,
               border: `1px solid ${on ? T.primary + '66' : T.border}`,
               color: on ? T.primaryHi : (isWeekend ? T.textTer : T.textSec),

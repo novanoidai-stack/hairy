@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, can } from '@/lib/auth';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
+import { useResponsive } from '@/lib/hooks/useResponsive';
+
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -95,11 +97,11 @@ const ANIMATIONS = `
 `;
 
 const TIPO_CONFIG: Record<string, { label: string; color: string }> = {
-  vacaciones: { label: 'Vacaciones', color: '#f59e0b' },
+  vacaciones: { label: 'Vacaciones', color: '#e08a00' },
   formacion:  { label: 'Formación',  color: '#c0260a' },
   reunion:    { label: 'Reunión',    color: '#3b82f6' },
-  baja:       { label: 'Baja',       color: '#ef4444' },
-  descanso:   { label: 'Descanso',   color: '#10b981' },
+  baja:       { label: 'Baja',       color: '#e23b34' },
+  descanso:   { label: 'Descanso',   color: '#0f9d6b' },
 };
 
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -126,6 +128,7 @@ function fmtRecurrencia(json: string | null): string | null {
 }
 
 export default function EquipoWeb() {
+  const { isMobile, isTablet } = useResponsive();
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -347,24 +350,26 @@ export default function EquipoWeb() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
       <style>{ANIMATIONS}</style>
       {/* Topbar */}
-      <div className="equipo-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
+      <div className="equipo-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? '12px 16px' : '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, letterSpacing: -0.4 }}>Equipo</h1>
-          <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: TOKENS.textSec }}>5 profesionales · 4 activos · gestiona disponibilidad y bloqueos</p>
+          <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4 }}>Equipo</h1>
+          <p style={{ margin: 0, marginTop: 4, fontSize: isMobile ? 12 : 13, color: TOKENS.textSec }}>
+            {isMobile ? 'Profesionales y disponibilidad' : '5 profesionales · 4 activos · gestiona disponibilidad y bloqueos'}
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
             className="m-btn-secondary"
-            style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+            style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="calendar" size={16} color={TOKENS.text} />
-            Horarios base
+            {isMobile ? 'Horarios' : 'Horarios base'}
           </button>
           <button
             className="m-btn-primary"
             onClick={() => setShowNewProf(true)}
-            style={{ padding: '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px rgba(244,80,30,0.45)`, display: 'flex', alignItems: 'center', gap: 6 }}>
+            style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px rgba(244,80,30,0.45)`, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="plus" size={16} color="#fff" />
-            Añadir profesional
+            {isMobile ? 'Añadir' : 'Añadir profesional'}
           </button>
         </div>
       </div>
@@ -372,8 +377,8 @@ export default function EquipoWeb() {
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         {/* Cards grid — visible cuando no hay miembro seleccionado */}
         {!(profSel && selected) && (
-        <div style={{ overflowY: 'auto', padding: 24, height: '100%' }}>
-          <div onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '1fr', gap: 16 }}>
+        <div style={{ overflowY: 'auto', padding: isMobile ? 12 : 24, height: '100%' }}>
+          <div onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)'), gap: 16 }}>
             {profesionales.map((p, idx) => {
               const isSel = p.id === selected;
               return (
@@ -551,7 +556,7 @@ export default function EquipoWeb() {
 
         {/* Detalle del miembro a pantalla completa */}
         {profSel && selected && (
-          <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
+          <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: isMobile ? '12px 16px 24px' : '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
             {/* Cabecera: volver · identidad · acciones */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22, flexWrap: 'wrap' }}>
               <button
@@ -563,7 +568,7 @@ export default function EquipoWeb() {
                 Volver al equipo
               </button>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 240 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: isMobile ? '100%' : 240, order: isMobile ? 3 : 'unset' }}>
                 <div
                   style={{
                     width: 58,
@@ -582,7 +587,7 @@ export default function EquipoWeb() {
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.4 }}>{profSel.nombre}</div>
+                    <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, letterSpacing: -0.4 }}>{profSel.nombre}</div>
                     {!profSel.activo && <Pill color={TOKENS.textTer}>Inactivo</Pill>}
                   </div>
                   <div style={{ fontSize: 13, color: TOKENS.textSec, marginTop: 3 }}>
@@ -592,25 +597,25 @@ export default function EquipoWeb() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 10, width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end' }}>
                 <button
                   onClick={() => setEditingProf(profSel)}
                   onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.borderColor = TOKENS.borderHi; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.border; }}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 15px', background: 'transparent', border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s ease, border-color 0.15s ease' }}>
+                  style={{ flex: isMobile ? 1 : 'none', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: 7, padding: '9px 15px', background: 'transparent', border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s ease, border-color 0.15s ease' }}>
                   <Icon name="edit" size={15} color={TOKENS.textSec} />
                   Editar
                 </button>
                 <button
                   onClick={() => toggleActivo(profSel)}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 15px', background: profSel.activo ? 'rgba(226,59,52,0.08)' : 'rgba(15,157,107,0.10)', border: `1px solid ${profSel.activo ? 'rgba(226,59,52,0.22)' : 'rgba(15,157,107,0.25)'}`, borderRadius: 10, color: profSel.activo ? '#e23b34' : TOKENS.success, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                  style={{ flex: isMobile ? 1 : 'none', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: 7, padding: '9px 15px', background: profSel.activo ? 'rgba(226,59,52,0.08)' : 'rgba(15,157,107,0.10)', border: `1px solid ${profSel.activo ? 'rgba(226,59,52,0.22)' : 'rgba(15,157,107,0.25)'}`, borderRadius: 10, color: profSel.activo ? '#e23b34' : TOKENS.success, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                   {profSel.activo ? 'Desactivar' : 'Activar'}
                 </button>
               </div>
             </div>
 
             {/* Layout 2 columnas */}
-            <div className="equipo-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.05fr) minmax(0,0.95fr)', gap: 24, alignItems: 'start' }}>
+            <div className="equipo-detail-grid" style={{ display: 'grid', gridTemplateColumns: (isMobile || isTablet) ? '1fr' : 'minmax(0,1.05fr) minmax(0,0.95fr)', gap: 24, alignItems: 'start' }}>
               {/* Columna izquierda: identidad · metricas · horario */}
               <div>
 
@@ -654,43 +659,43 @@ export default function EquipoWeb() {
             )}
 
             {/* Metricas del mes */}
-            <Section title="Metricas del mes">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 6 }}>
+            <Section title="Métricas del mes">
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 8 }}>
                 <MetricCard label="Citas" value={String(profSel.citas ?? 0)} color={TOKENS.primary} />
                 <MetricCard label="Ingresos" value={`${profSel.ingresos ?? 0}€`} color={TOKENS.success} />
                 <MetricCard label="Ticket medio" value={`${profSel.ticketMedio ?? 0}€`} color="#06b6d4" />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 <MetricCard label="Comisiones" value={`${profSel.comisionesDevengadas ?? 0}€`} color="#f59e0b" />
-                <MetricCard label="Ocupacion" value={`${profSel.ocupacion ?? 0}%`} color="#c0260a" />
+                <MetricCard label="Ocupación" value={`${profSel.ocupacion ?? 0}%`} color="#c0260a" />
                 <MetricCard label="Clientes" value={String(profSel.clientesUnicos ?? 0)} color="#ec4899" />
               </div>
             </Section>
 
             {/* Horario base */}
             <Section title="Horario base">
-              <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 14, display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4 }}>
-                {DIAS_SEMANA.map((dia, i) => {
-                  const dbDia = i === 6 ? 0 : i + 1;
-                  const dayH = horarios.filter((x) => x.dia_semana === dbDia).sort((a, b) => (a.turno ?? 1) - (b.turno ?? 1));
-                  const hasH = dayH.length > 0;
-                  const isEditing = editDia === dbDia;
-                  return (
-                    <div key={i}
-                      onClick={() => openEditDia(dbDia)}
-                      onMouseEnter={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.background = hasH ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.1)'; }}}
-                      onMouseLeave={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.05)'; }}}
-                      style={{ textAlign: 'center', padding: 6, borderRadius: 8, background: isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.05)', transition: 'transform 0.15s ease, background 0.15s ease', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: isEditing ? TOKENS.text : hasH ? TOKENS.primaryHi : TOKENS.textTer }}>{dia}</div>
-                      {dayH.length === 0 && <div style={{ fontSize: 9, color: TOKENS.textTer, marginTop: 2 }}>Cerrado</div>}
-                      {dayH.map((h, hi) => (
-                        <div key={hi} style={{ fontSize: dayH.length > 1 ? 8 : 9, color: TOKENS.textSec, marginTop: hi === 0 ? 2 : 0, lineHeight: 1.3 }}>
-                          {fmtHora(h.hora_inicio)}-{fmtHora(h.hora_fin)}
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
+              <div style={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch', paddingBottom: 6 }}>
+                <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 14, display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, minWidth: isMobile ? 520 : 'auto' }}>
+                  {DIAS_SEMANA.map((dia, i) => {
+                    const dbDia = i === 6 ? 0 : i + 1;
+                    const dayH = horarios.filter((x) => x.dia_semana === dbDia).sort((a, b) => (a.turno ?? 1) - (b.turno ?? 1));
+                    const hasH = dayH.length > 0;
+                    const isEditing = editDia === dbDia;
+                    return (
+                      <div key={i}
+                        onClick={() => openEditDia(dbDia)}
+                        onMouseEnter={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.background = hasH ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.1)'; }}}
+                        onMouseLeave={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.05)'; }}}
+                        style={{ textAlign: 'center', padding: 6, borderRadius: 8, background: isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.05)', transition: 'transform 0.15s ease, background 0.15s ease', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: isEditing ? TOKENS.text : hasH ? TOKENS.primaryHi : TOKENS.textTer }}>{dia}</div>
+                        {dayH.length === 0 && <div style={{ fontSize: 9, color: TOKENS.textTer, marginTop: 2 }}>Cerrado</div>}
+                        {dayH.map((h, hi) => (
+                          <div key={hi} style={{ fontSize: dayH.length > 1 ? 8 : 9, color: TOKENS.textSec, marginTop: hi === 0 ? 2 : 0, lineHeight: 1.3 }}>
+                            {fmtHora(h.hora_inicio)}-{fmtHora(h.hora_fin)}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
               {/* Editor inline de horario */}
               {editDia !== null && (() => {
@@ -813,7 +818,7 @@ export default function EquipoWeb() {
                 <div style={{ fontSize: 12, color: TOKENS.textTer, padding: '10px 0' }}>Sin bloqueos próximos</div>
               )}
               {bloqueos.map((b) => {
-                const cfg = TIPO_CONFIG[b.tipo] ?? { label: b.tipo, color: '#94a3b8' };
+                const cfg = TIPO_CONFIG[b.tipo] ?? { label: b.tipo, color: TOKENS.textTer };
                 const mismodia = new Date(b.inicio).toDateString() === new Date(b.fin).toDateString();
                 const fechaStr = mismodia
                   ? fmtFecha(b.inicio)
@@ -840,9 +845,9 @@ export default function EquipoWeb() {
                     <button
                       onClick={(e) => { e.stopPropagation(); setMenuBloqueoId(menuBloqueoId === b.id ? null : b.id); }}
                       style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: 6,
+                        width: 44,
+                        height: 44,
+                        borderRadius: 10,
                         background: menuBloqueoId === b.id ? 'rgba(148,163,184,0.12)' : 'transparent',
                         border: 'none',
                         color: TOKENS.textTer,
@@ -854,7 +859,7 @@ export default function EquipoWeb() {
                       <Icon name="moreVertical" size={16} color={TOKENS.textTer} />
                     </button>
                     {menuBloqueoId === b.id && (
-                      <div style={{ position: 'absolute', right: 0, top: 28, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 10, padding: 4, minWidth: 160, zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', animation: 'scaleIn 0.15s ease' }}>
+                      <div style={{ position: 'absolute', right: 0, top: 44, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 10, padding: 4, minWidth: 160, zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', animation: 'scaleIn 0.15s ease' }}>
                         <button
                           onClick={() => { setEditBloqueo(b); setMenuBloqueoId(null); }}
                           onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,80,30,0.12)'; }}
@@ -932,6 +937,7 @@ const ESPECIALIDADES_CATALOGO = [
 ];
 
 function NewProfModal({ onClose, negocioId, onCreated }: any) {
+  const { isMobile } = useResponsive();
   const [nombre, setNombre] = useState('');
   const [color, setColor] = useState('#f4501e');
   const [categoria, setCategoria] = useState('oficial');
@@ -973,8 +979,8 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
   };
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
-      <div style={{ width: 420, maxWidth: '100%', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
+    <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: isMobile ? 12 : 24 }}>
+      <div style={{ width: isMobile ? '100%' : 420, maxWidth: '100%', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>Nuevo profesional</h3>
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18 }}>
@@ -1138,6 +1144,7 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
 }
 
 function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose: () => void; onSaved: () => void }) {
+  const { isMobile } = useResponsive();
   const [nombre, setNombre] = useState(prof.nombre);
   const [color, setColor] = useState(prof.color);
   const [categoria, setCategoria] = useState(prof.categoria ?? 'oficial');
@@ -1181,8 +1188,8 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
   const labelStyle: React.CSSProperties = { fontSize: 11, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 };
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
-      <div style={{ width: 480, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
+    <div style={{ position: 'absolute', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: isMobile ? 12 : 24 }}>
+      <div style={{ width: isMobile ? '100%' : 480, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>Editar profesional</h3>
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18 }}>x</button>
@@ -1256,12 +1263,12 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
 }
 
 const TIPOS_BLOQUEO = [
-  { value: 'vacaciones', label: 'Vacaciones', color: '#f59e0b' },
+  { value: 'vacaciones', label: 'Vacaciones', color: '#e08a00' },
   { value: 'formacion',  label: 'Formacion',  color: '#c0260a' },
   { value: 'reunion',    label: 'Reunion',    color: '#3b82f6' },
-  { value: 'baja',       label: 'Baja',       color: '#ef4444' },
-  { value: 'descanso',   label: 'Descanso',   color: '#10b981' },
-  { value: 'otro',       label: 'Otro',       color: '#94a3b8' },
+  { value: 'baja',       label: 'Baja',       color: '#e23b34' },
+  { value: 'descanso',   label: 'Descanso',   color: '#0f9d6b' },
+  { value: 'otro',       label: 'Otro',       color: '#8a7d70' },
 ];
 
 const FRECUENCIAS = [
@@ -1326,6 +1333,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const { isMobile } = useResponsive();
   const [tipo, setTipo] = useState('vacaciones');
   const [fechaInicio, setFechaInicio] = useState('');
   const [horaInicio, setHoraInicio] = useState('09:00');
@@ -1628,13 +1636,13 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 480,
+          width: isMobile ? '100%' : 480,
           maxHeight: '90vh',
           overflowY: 'auto',
           background: TOKENS.bgPanel,
           border: `1px solid ${TOKENS.borderHi}`,
           borderRadius: 16,
-          padding: 28,
+          padding: isMobile ? 16 : 28,
           animation: 'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)',
         }}
       >
@@ -2097,6 +2105,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
 }
 
 function EditBloqueoModal({ bloqueo, onClose, onSaved }: { bloqueo: any; onClose: () => void; onSaved: () => void }) {
+  const { isMobile } = useResponsive();
   const [tipo, setTipo] = useState(bloqueo.tipo || 'vacaciones');
   const [motivo, setMotivo] = useState(bloqueo.motivo || '');
   const dIni = new Date(bloqueo.inicio);
@@ -2155,8 +2164,8 @@ function EditBloqueoModal({ bloqueo, onClose, onSaved }: { bloqueo: any; onClose
   const labelStyle: React.CSSProperties = { display: 'block', fontSize: 11, color: TOKENS.textSec, fontWeight: 600, marginBottom: 6 };
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease' }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 16, padding: 28, width: 440, maxHeight: '80vh', overflowY: 'auto', animation: 'scaleIn 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease', padding: isMobile ? 12 : 24 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 16, padding: isMobile ? 16 : 28, width: isMobile ? '100%' : 440, maxHeight: '80vh', overflowY: 'auto', animation: 'scaleIn 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Editar bloqueo</h2>
 
         {/* Tipo */}

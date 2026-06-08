@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { validarHorarioLaboral } from '@/lib/horarios';
@@ -8,6 +8,8 @@ import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { syncAlergiasACliente } from '@/lib/syncAlergias';
 import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
+import { useResponsive } from '@/lib/hooks/useResponsive';
+
 import {
   NEGOCIO_ID_FALLBACK,
   HORARIO_APERTURA,
@@ -142,6 +144,7 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
 
 export default function AgendaCalendar() {
   const { refreshTrigger } = useCalendarRefresh();
+  const { isMobile, isTablet } = useResponsive();
   const [citas, setCitas] = useState<Cita[]>([]);
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
@@ -364,6 +367,13 @@ export default function AgendaCalendar() {
 
   const visibleProfs = useMemo(() => profesionales.filter((p) => p.activo), [profesionales]);
 
+  const isReallyCollapsed = railCollapsed || isMobile || isTablet;
+
+  const timelineProfs = useMemo(() => {
+    if (selectedProf === 'todos') return visibleProfs;
+    return visibleProfs.filter((p) => p.id === selectedProf);
+  }, [visibleProfs, selectedProf]);
+
   const filtered = useMemo(() => {
     let result = selectedProf === 'todos' ? citasHoy : citasHoy.filter((c) => c.profesional_id === selectedProf);
     if (filterServicio !== 'todos') result = result.filter((c) => c.servicio_id === filterServicio);
@@ -516,7 +526,7 @@ export default function AgendaCalendar() {
     setCurrentMonth(today);
   };
 
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0b1220', color: TOKENS.text }}>Cargando...</div>;
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: TOKENS.bg, color: TOKENS.text }}>Cargando...</div>;
 
   const monthName = currentMonth.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' });
 
@@ -652,7 +662,7 @@ export default function AgendaCalendar() {
       </div>
 
       {/* 8.3+8.4: Barra de filtros y buscador */}
-      <div className="m-fade-in" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 32px', borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(148,163,184,0.02)', position: 'relative', zIndex: 50 }}>
+      <div className="m-fade-in" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 32px', borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(148,163,184,0.02)', position: 'relative', zIndex: 50, flexWrap: 'wrap' }}>
         {/* View switcher (8.5) */}
         <div style={{ display: 'flex', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: 'hidden' }}>
           {(['day', 'week', 'month'] as const).map((v) => (
@@ -966,9 +976,9 @@ export default function AgendaCalendar() {
         </div>
       )}
 
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: railCollapsed ? '1fr' : '340px 1fr', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isReallyCollapsed ? '1fr' : '340px 1fr', overflow: 'hidden' }}>
         {/* Left rail */}
-        {!railCollapsed && (
+        {!isReallyCollapsed && (
         <div style={{ borderRight: `1px solid ${TOKENS.border}`, padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div style={{ animation: 'slideInUp 0.5s ease 0.1s both' }}>
@@ -987,12 +997,12 @@ export default function AgendaCalendar() {
 
           <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <button className="m-btn-icon m-btn-icon-rotate-l" onClick={handlePrevMonth} style={{ width: 28, height: 28, borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
-                <Icon name="chevronLeft" size={16} color={TOKENS.textSec} />
+              <button className="m-btn-icon m-btn-icon-rotate-l" onClick={handlePrevMonth} style={{ width: 40, height: 40, borderRadius: 10, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0 }}>
+                <Icon name="chevronLeft" size={18} color={TOKENS.textSec} />
               </button>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: TOKENS.text, textTransform: 'capitalize', letterSpacing: -0.2 }}>{monthName}</div>
-              <button className="m-btn-icon m-btn-icon-rotate-r" onClick={handleNextMonth} style={{ width: 28, height: 28, borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
-                <Icon name="chevronRight" size={16} color={TOKENS.textSec} />
+              <button className="m-btn-icon m-btn-icon-rotate-r" onClick={handleNextMonth} style={{ width: 40, height: 40, borderRadius: 10, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0 }}>
+                <Icon name="chevronRight" size={18} color={TOKENS.textSec} />
               </button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2, marginBottom: 4 }}>
@@ -1070,7 +1080,7 @@ export default function AgendaCalendar() {
         )}
 
         {/* Main content area */}
-        <div style={{ overflowY: 'auto', padding: railCollapsed ? '20px 28px' : 24 }}>
+        <div style={{ overflowY: 'auto', padding: isMobile ? '16px 16px' : (isReallyCollapsed ? '20px 28px' : 24) }}>
           {view === 'day' && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12 }}>
@@ -1086,27 +1096,91 @@ export default function AgendaCalendar() {
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 0 }}>
-                      <h2 style={{ margin: 0, fontSize: 21, fontWeight: 700, letterSpacing: -0.3, textTransform: 'capitalize' }}>
+                      <h2 style={{ margin: 0, fontSize: isMobile ? 18 : 21, fontWeight: 700, letterSpacing: -0.3, textTransform: 'capitalize' }}>
                         {selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'short' })}
                       </h2>
                       {selectedDateObj.toDateString() === today.toDateString() && <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.warning }}>HOY</span>}
                     </div>
-                    <div style={{ fontSize: 12.5, color: TOKENS.textSec, marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 2 }}>
                       {totalCitasHoy} citas programadas · {confirmadasHoy} confirmadas
                     </div>
                   </div>
                 </div>
                 {/* Toggle pantalla completa */}
-                <button
-                  onClick={() => setRailCollapsed((v) => !v)}
-                  title={railCollapsed ? 'Mostrar panel lateral' : 'Pantalla completa'}
-                  style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', background: railCollapsed ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${railCollapsed ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, color: railCollapsed ? TOKENS.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}
-                >
-                  <Icon name={railCollapsed ? 'minimize' : 'maximize'} size={15} color={railCollapsed ? TOKENS.primaryHi : TOKENS.textSec} />
-                  {railCollapsed ? 'Salir' : 'Pantalla completa'}
-                </button>
+                {!isMobile && !isTablet && (
+                  <button
+                    onClick={() => setRailCollapsed((v) => !v)}
+                    title={railCollapsed ? 'Mostrar panel lateral' : 'Pantalla completa'}
+                    style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', background: railCollapsed ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${railCollapsed ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, color: railCollapsed ? TOKENS.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}
+                  >
+                    <Icon name={railCollapsed ? 'minimize' : 'maximize'} size={15} color={railCollapsed ? TOKENS.primaryHi : TOKENS.textSec} />
+                    {railCollapsed ? 'Salir' : 'Pantalla completa'}
+                  </button>
+                )}
               </div>
-              <DayTimeline citas={filtered} profesionales={visibleProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={railCollapsed} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} />
+
+              {/* Selector de profesionales en movil/tablet */}
+              {(isMobile || isTablet) && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  overflowX: 'auto',
+                  paddingBottom: 12,
+                  marginBottom: 12,
+                  width: '100%',
+                  WebkitOverflowScrolling: 'touch',
+                }}>
+                  <button
+                    onClick={() => setSelectedProf('todos')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 20,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      background: selectedProf === 'todos' ? TOKENS.primary : TOKENS.bgCard,
+                      border: `1px solid ${selectedProf === 'todos' ? TOKENS.primary : TOKENS.border}`,
+                      color: selectedProf === 'todos' ? '#fff' : TOKENS.textSec,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    Todos
+                  </button>
+                  {visibleProfs.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => setSelectedProf(p.id)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: 20,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        background: selectedProf === p.id ? p.color : TOKENS.bgCard,
+                        border: `1px solid ${selectedProf === p.id ? p.color : TOKENS.border}`,
+                        color: selectedProf === p.id ? '#fff' : TOKENS.textSec,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.15s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <span style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 999,
+                        background: selectedProf === p.id ? '#fff' : p.color,
+                      }} />
+                      {p.nombre.split(' ')[0]}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <DayTimeline citas={filtered} profesionales={timelineProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={isReallyCollapsed} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} />
             </>
           )}
           {view === 'week' && (
@@ -1578,11 +1652,11 @@ function ViewTab({ children, active, onClick }: any) {
 }
 
 const BLOQUEO_COLORS: Record<string, string> = {
-  vacaciones: '#10b981',
+  vacaciones: '#0f9d6b',
   reunion:    '#3b82f6',
-  baja:       '#ef4444',
+  baja:       '#e23b34',
   formacion:  '#c0260a',
-  descanso:   '#f59e0b',
+  descanso:   '#e08a00',
 };
 const BLOQUEO_LABELS: Record<string, string> = {
   vacaciones: 'Vacaciones',
@@ -1593,6 +1667,7 @@ const BLOQUEO_LABELS: Record<string, string> = {
 };
 
 function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial, vivid = false, onCreateSlot }: any) {
+  const { isMobile, isTablet } = useResponsive();
   const HOURS = [];
   for (let h = HORARIO_APERTURA.horas; h < HORARIO_CIERRE.horas; h++) HOURS.push(h);
   const ROW_H = 64;
@@ -1783,8 +1858,19 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
 
   return (
     <>
-    <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, overflow: 'hidden' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(244,80,30,0.04)' }}>
+    <div style={{
+      background: TOKENS.bgCard,
+      border: `1px solid ${TOKENS.border}`,
+      borderRadius: 16,
+      overflowX: isMobile || isTablet ? 'auto' : 'hidden',
+      width: '100%',
+      WebkitOverflowScrolling: 'touch',
+    }}>
+      <div style={{
+        minWidth: (isMobile || isTablet) && profesionales.length > 1 ? profesionales.length * 160 + 56 : '100%',
+        position: 'relative',
+      }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(244,80,30,0.04)' }}>
         <div />
         {profesionales.map((p: any) => (
           <div key={p.id} style={{ padding: '12px 14px', borderLeft: `1px solid ${TOKENS.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1951,9 +2037,9 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         overflow: 'hidden',
                       }}
                     >
-                      <div style={{ fontSize: 10, color: bColor, fontWeight: 700, whiteSpace: 'nowrap' }}>{BLOQUEO_LABELS[b.tipo] || b.tipo}</div>
+                      <div style={{ fontSize: 10, color: TOKENS.text, fontWeight: 700, whiteSpace: 'nowrap' }}>{BLOQUEO_LABELS[b.tipo] || b.tipo}</div>
                       {b.motivo && blockHeight > 32 && (
-                        <div style={{ fontSize: 9, color: `${bColor}bb`, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.motivo}</div>
+                        <div style={{ fontSize: 9, color: TOKENS.textSec, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.motivo}</div>
                       )}
                     </div>
                   );
@@ -2062,11 +2148,15 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                                 title="Desmarcar completada"
                                 onMouseDown={(e) => e.stopPropagation()}
                                 onClick={(e) => { e.stopPropagation(); toggleCompletada(cita.id, cita.estado); }}
-                                style={{ width: 16, height: 16, borderRadius: 999, background: '#22c55e', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s ease' }}
-                                onMouseEnter={(e) => { e.currentTarget.style.background = '#16a34a'; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.background = '#22c55e'; }}
+                                style={{ width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', margin: '-14px', flexShrink: 0 }}
                               >
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                <div
+                                  style={{ width: 16, height: 16, borderRadius: 999, background: '#0f9d6b', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0, transition: 'all 0.15s ease' }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = '#0c7d55'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = '#0f9d6b'; }}
+                                >
+                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
                               </div>
                             );
                           } else {
@@ -2075,10 +2165,14 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                                 title="Marcar como completada"
                                 onMouseDown={(e) => e.stopPropagation()}
                                 onClick={(e) => { e.stopPropagation(); toggleCompletada(cita.id, cita.estado); }}
-                                style={{ width: 16, height: 16, borderRadius: 999, border: '2px solid rgba(148,163,184,0.4)', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s ease' }}
-                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#22c55e'; e.currentTarget.style.background = 'rgba(34,197,94,0.15)'; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(148,163,184,0.4)'; e.currentTarget.style.background = 'transparent'; }}
-                              />
+                                style={{ width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', margin: '-14px', flexShrink: 0 }}
+                              >
+                                <div
+                                  style={{ width: 16, height: 16, borderRadius: 999, border: `2px solid ${TOKENS.borderHi}`, background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s ease' }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#0f9d6b'; e.currentTarget.style.background = 'rgba(15,157,107,0.15)'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.background = 'transparent'; }}
+                                />
+                              </div>
                             );
                           }
                         }
@@ -2146,6 +2240,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
         </div>
       </div>
     </div>
+    </div>
 
       {/* Ghost element — sigue al cursor durante el arrastre */}
       {drag && (
@@ -2189,6 +2284,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
 
 function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf }: any) {
   const { triggerRefresh } = useCalendarRefresh();
+  const { isMobile, isTablet } = useResponsive();
   const [clientes, setClientes] = useState<any[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
   const [profesionales, setProfesionales] = useState<any[]>([]);
@@ -2790,10 +2886,35 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
   const demoZoneRef = demoZone === 'cliente' ? clienteZoneRef : demoZone === 'servicio' ? servicioZoneRef : horaZoneRef;
   const demoZoneLabel = demoZone === 'cliente' ? 'Elige cliente' : demoZone === 'servicio' ? 'Elige servicio' : demoZone === 'hora' ? 'Elige la hora' : demoZone === 'reposo' ? 'Tiempos muertos' : '';
 
+  const isMobileOrTablet = isMobile || isTablet;
+
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24, animation: 'fadeIn 0.3s ease' }}>
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(11,18,32,0.65)',
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
+      display: 'flex',
+      alignItems: isMobileOrTablet ? 'flex-end' : 'center',
+      justifyContent: 'center',
+      zIndex: 100,
+      padding: isMobileOrTablet ? 0 : 24,
+      animation: 'fadeIn 0.3s ease'
+    }}>
       <DemoSpotlight targetRef={demoZoneRef} active={!!demoZone} label={demoZoneLabel} padding={10} radius={14} />
-      <div style={{ width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 24, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)', animation: 'scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+      <div style={{
+        width: '100%',
+        maxWidth: isMobileOrTablet ? '100%' : 580,
+        maxHeight: isMobileOrTablet ? '85vh' : '90vh',
+        overflowY: 'auto',
+        background: TOKENS.bgPanel,
+        border: isMobileOrTablet ? 'none' : `1px solid ${TOKENS.borderHi}`,
+        borderRadius: isMobileOrTablet ? '24px 24px 0 0' : 18,
+        padding: isMobileOrTablet ? '20px 20px 32px' : 24,
+        boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)',
+        animation: isMobileOrTablet ? 'slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' : 'scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
           <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: TOKENS.text }}>Nueva cita</h3>
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18, transition: 'all 0.2s ease', transform: 'scale(1) rotate(0deg)' }} onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.border; e.currentTarget.style.color = TOKENS.text; e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.color = TOKENS.textSec; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}>
@@ -3545,6 +3666,7 @@ function TimeNumBox({ value, label }: { value: string; label: string }) {
 function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesionales, citasHoy, allCitas }: any) {
   const router = useRouter();
   const { triggerRefresh } = useCalendarRefresh();
+  const { isMobile, isTablet } = useResponsive();
   const cliente = clientes.find((c: any) => c.id === cita.cliente_id);
   const servicio = servicios.find((s: any) => s.id === cita.servicio_id);
   const prof = profesionales.find((p: any) => p.id === cita.profesional_id);
@@ -4133,6 +4255,8 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
   const demoActiveRef = (demoZone && demoRefMap[demoZone]) || dSeqRef;
   const demoLabel = demoZone === 'cliente' ? 'Cliente' : demoZone === 'servicio' ? 'Servicio' : demoZone === 'estado' ? 'Estado de la cita' : demoZone === 'secuencia' ? 'Secuencia · tiempos muertos' : demoZone === 'formula' ? 'Formula guardada' : '';
 
+  const isMobileOrTablet = isMobile || isTablet;
+
   return (
     <div
       className="m-overlay-enter"
@@ -4141,7 +4265,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
         inset: 0,
         background: 'rgba(0,0,0,0.7)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isMobileOrTablet ? 'flex-end' : 'center',
         justifyContent: 'center',
         zIndex: 1000,
       }}
@@ -4152,16 +4276,17 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
         className="m-modal-enter"
         style={{
           background: TOKENS.bgPanel,
-          borderRadius: 16,
+          borderRadius: isMobileOrTablet ? '24px 24px 0 0' : 16,
           maxWidth: 900,
-          width: '95%',
-          maxHeight: '90vh',
+          width: isMobileOrTablet ? '100%' : '95%',
+          maxHeight: isMobileOrTablet ? '90vh' : '90vh',
           overflow: 'hidden',
-          border: `1px solid ${TOKENS.border}`,
+          border: isMobileOrTablet ? 'none' : `1px solid ${TOKENS.border}`,
           boxShadow: `0 20px 60px rgba(0,0,0,0.4)`,
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
+          animation: isMobileOrTablet ? 'slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' : 'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -4440,7 +4565,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
         )}
 
         {/* Body */}
-        <div style={{ padding: '28px 32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>
+        <div style={{ padding: isMobileOrTablet ? '20px 20px 40px' : '28px 32px', display: 'grid', gridTemplateColumns: isMobileOrTablet ? '1fr' : '1fr 1fr', gap: isMobileOrTablet ? 20 : 28 }}>
           {/* Left column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
             {/* Cliente */}
@@ -4740,7 +4865,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                   width: '100%',
                   boxSizing: 'border-box',
                   padding: '10px 12px',
-                  background: '#0b1220',
+                  background: TOKENS.bgCard,
                   border: `1px solid ${TOKENS.border}`,
                   borderRadius: 10,
                   color: TOKENS.text,
@@ -5093,9 +5218,10 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '20px 32px',
+            padding: isMobileOrTablet ? '16px 20px 24px' : '20px 32px',
             borderTop: `1px solid ${TOKENS.border}`,
             gap: 12,
+            flexWrap: 'wrap',
           }}
         >
           {cita.estado === CITA_STATUS.CONFIRMADA && (
@@ -5243,7 +5369,7 @@ function FormulaInput({ label, value, onChange, placeholder, multiline, inputMod
           width: '100%',
           boxSizing: 'border-box',
           padding: '8px 10px',
-          background: '#0b1220',
+          background: TOKENS.bgCard,
           border: `1px solid ${TOKENS.border}`,
           borderRadius: 8,
           color: TOKENS.text,
