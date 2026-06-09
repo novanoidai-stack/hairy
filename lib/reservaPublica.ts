@@ -111,3 +111,44 @@ export function fechaISOaClave(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
+
+// --- Resenas (C3) ---
+export interface ResenaItem {
+  puntuacion: number;
+  comentario: string | null;
+  autor: string | null;
+  fecha: string;
+}
+export interface ResenaResumen {
+  media: number;
+  total: number;
+  ultimas: ResenaItem[];
+}
+
+// Media, total y ultimas resenas visibles del negocio (por slug). null si el portal no existe.
+export async function getResenasPublicas(slug: string): Promise<ResenaResumen | null> {
+  const { data, error } = await supabase.rpc('resenas_publicas', { p_slug: slug });
+  if (error) throw error;
+  return (data as ResenaResumen | null) ?? null;
+}
+
+// Crea una resena (anon) para el negocio del slug.
+export async function crearResenaPublica(args: {
+  slug: string;
+  puntuacion: number;
+  comentario?: string;
+  autorNombre?: string;
+  profesionalId?: string | null;
+  servicioId?: string | null;
+}): Promise<{ resena_id: string; ok: boolean }> {
+  const { data, error } = await supabase.rpc('crear_resena_publica', {
+    p_slug: args.slug,
+    p_puntuacion: args.puntuacion,
+    p_comentario: args.comentario ?? null,
+    p_autor_nombre: args.autorNombre ?? null,
+    p_profesional_id: args.profesionalId ?? null,
+    p_servicio_id: args.servicioId ?? null,
+  });
+  if (error) throw error;
+  return data as { resena_id: string; ok: boolean };
+}

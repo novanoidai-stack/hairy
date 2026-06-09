@@ -33,15 +33,18 @@
   .dm-bar-cta{display:flex;align-items:center;gap:10px}
   .dm-bar .btn{padding:9px 16px;font-size:13.5px}
   .dm-bar .cta-short{display:none}
-  .ver-back{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--text-sec)}
-  .ver-back:hover{color:var(--text)}
-  .ver-back svg{width:16px;height:16px}
+  .ver-back{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--text-sec);
+    padding:6px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.03);transition:all .2s}
+  .ver-back:hover{color:var(--text);border-color:var(--border-hi);background:rgba(255,255,255,.07)}
+  .ver-back svg{width:15px;height:15px}
   @media(max-width:720px){
-    .dm-bar{gap:10px;padding:10px 14px}
-    .dm-bar .brand .nm,.dm-bar .ver-back span{display:none}
+    .dm-bar{gap:8px;padding:8px 12px;justify-content:space-between}
+    .dm-bar .brand{display:none}
+    .dm-bar .ver-back span{display:inline}
+    .dm-bar .ver-back{padding:6px 10px;font-size:12.5px}
     .dm-pill{display:none}
-    .dm-visits{white-space:nowrap;font-size:12px;padding:5px 10px;gap:6px;flex-shrink:0}
-    .dm-bar .btn{padding:11px 16px;font-size:12px}
+    .dm-visits{white-space:nowrap;font-size:11.5px;padding:5px 8px;gap:6px;flex-shrink:0}
+    .dm-bar .btn{padding:8px 12px;font-size:12.5px}
     .dm-bar .cta-long{display:none}
     .dm-bar .cta-short{display:inline}
   }
@@ -69,7 +72,7 @@
   .dm-tour{position:absolute;left:0;right:0;margin:0 auto;bottom:clamp(16px,3vw,34px);z-index:9;width:min(430px,calc(100% - 28px));
     background:linear-gradient(180deg,rgba(30,23,18,.95),rgba(19,14,11,.975));border:1px solid rgba(244,80,30,.32);border-radius:var(--r-lg);
     box-shadow:0 26px 64px -14px rgba(0,0,0,.74), 0 0 0 1px rgba(0,0,0,.30);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    padding:20px 20px 17px;display:none}
+    padding:20px 20px 17px;display:none;transition:bottom 0.3s, padding 0.3s, width 0.3s}
   .dm-tour.show{display:block;animation:dmFade .4s var(--ease)}
   @keyframes dmFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   /* Posicion de la guia por paso, para no tapar lo que se senala */
@@ -79,6 +82,9 @@
   .dm-tour.pos-tr{right:clamp(14px,2.5vw,28px);left:auto;margin:0;top:clamp(76px,11vh,116px);bottom:auto}
   .dm-tour-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
   .dm-tour-step{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-hi)}
+  .dm-tour-toggle{font-size:11.5px;font-weight:700;color:var(--accent-hi);background:none;border:none;cursor:pointer;
+    padding:4px 8px;border-radius:6px;transition:background .2s;margin-left:auto;margin-right:12px;border:1px solid rgba(244,80,30,.22)}
+  .dm-tour-toggle:hover{background:rgba(244,80,30,.12);border-color:rgba(244,80,30,.45)}
   .dm-tour-skip{font-size:12px;color:var(--text-sec);background:none}
   .dm-tour-skip:hover{color:var(--text)}
   .dm-tour h4{font-family:var(--display);font-weight:800;font-size:19.5px;letter-spacing:-.02em;margin-bottom:7px;display:flex;align-items:center;gap:10px;color:#fff}
@@ -93,6 +99,37 @@
   .dm-tour-acts .ghost{flex:0 0 auto;padding:10px 14px;font-size:13.5px;color:var(--text-sec);border:1px solid var(--border-hi);border-radius:11px;background:none}
   .dm-tour-acts .ghost:hover{color:var(--text);border-color:var(--accent)}
   .dm-tour-acts .ghost[disabled]{opacity:.4;pointer-events:none}
+
+  /* Minimized state styles */
+  .dm-tour.minimized {
+    padding: 8px 12px;
+    width: min(430px, calc(100% - 16px)) !important;
+    bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .dm-tour.minimized .dm-tour-top {
+    margin-bottom: 0;
+    flex: 1;
+    justify-content: flex-start;
+  }
+  .dm-tour.minimized #tourSkip,
+  .dm-tour.minimized .dm-tour-body {
+    display: none !important;
+  }
+  .dm-tour.minimized .dm-tour-acts {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .dm-tour.minimized .dm-tour-acts .btn,
+  .dm-tour.minimized .dm-tour-acts .ghost {
+    padding: 6px 12px;
+    font-size: 12.5px;
+    border-radius: 8px;
+    height: auto;
+  }
 
   /* ---------- POINTER / FLECHA ---------- */
   /* Senala la zona del paso actual sobre el software. Es una pista de region
@@ -157,9 +194,20 @@
     .dm-stage{padding:0}
     .dm-appwrap{border-radius:0;border-left:0;border-right:0}
     .dm-tour{left:10px;right:10px;bottom:10px;width:auto}
+    /* Shift minimized tour upward so it sits perfectly above the app's bottom tab bar */
+    .dm-tour.minimized {
+      bottom: 68px !important;
+      left: 8px !important;
+      right: 8px !important;
+      width: auto !important;
+    }
   }
   @media(max-width:480px){
     .dm-tour{padding:16px 16px 12px;bottom:8px;left:8px;right:8px}
+    .dm-tour.minimized {
+      bottom: 68px !important;
+      padding: 8px 12px !important;
+    }
     .dm-tour h4{font-size:17px;margin-bottom:5px}
     .dm-tour p{font-size:12.5px;line-height:1.5;min-height:auto;margin-bottom:8px}
     .dm-dots{margin:8px 0 10px}
@@ -225,11 +273,14 @@
     <div class="dm-tour" id="tour">
       <div class="dm-tour-top">
         <span class="dm-tour-step" id="tourStep">Paso 1 de 6</span>
+        <button class="dm-tour-toggle" id="tourToggle" type="button">Minimizar</button>
         <button class="dm-tour-skip" id="tourSkip">Saltar guía</button>
       </div>
-      <h4><span class="ic" id="tourIc"></span><span id="tourTitle">Tu agenda real</span></h4>
-      <p id="tourText"></p>
-      <div class="dm-dots" id="tourDots"></div>
+      <div class="dm-tour-body" id="tourBody">
+        <h4><span class="ic" id="tourIc"></span><span id="tourTitle">Tu agenda real</span></h4>
+        <p id="tourText"></p>
+        <div class="dm-dots" id="tourDots"></div>
+      </div>
       <div class="dm-tour-acts">
         <button class="ghost" id="tourPrev">Atrás</button>
         <button class="btn btn-primary" id="tourNext">Siguiente</button>
@@ -545,10 +596,18 @@
     }, 340);
   }
   function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; lastAction=null; renderStep(); tour.classList.add('show'); }
-  function closeTour(){ tour.classList.remove('show'); setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); lastAction='cerrar'; }
+  function closeTour(){ tour.classList.remove('show','minimized'); if(tourToggle) tourToggle.textContent='Minimizar'; setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); lastAction='cerrar'; }
   tourNext.addEventListener('click',function(){ if(ti<STEPS.length-1){ ti++; renderStep(); } else { closeTour(); } });
   tourPrev.addEventListener('click',function(){ if(ti>0){ ti--; renderStep(); } });
   tourSkip.addEventListener('click',closeTour);
+
+  var tourToggle = $('#tourToggle');
+  if(tourToggle){
+    tourToggle.addEventListener('click', function(){
+      var isMin = tour.classList.toggle('minimized');
+      tourToggle.textContent = isMin ? 'Leer ▴' : 'Minimizar';
+    });
+  }
 
   boot();
 })();
