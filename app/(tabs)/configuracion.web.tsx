@@ -2418,6 +2418,19 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     }
   }, [enlace]);
 
+  const enlaceResena = savedSlug ? `${origin}${appBase}/resena/${savedSlug}` : '';
+  const qrResenaSvg = useMemo(() => {
+    if (!enlaceResena) return '';
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(enlaceResena);
+      qr.make();
+      return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+    } catch {
+      return '';
+    }
+  }, [enlaceResena]);
+
   const guardar = useCallback(async () => {
     setMsg(null);
     const s = slugifyPortal(slug);
@@ -2478,6 +2491,27 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
                 <div style={{ width: 104, height: 104, background: '#fff', border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: qrSvg }} />
                 <span style={{ fontSize: 12, color: T.textTertiary, maxWidth: 220 }}>Imprime o comparte este codigo QR: lleva directo a tu pagina de reserva.</span>
               </div>
+            )}
+          </div>
+        </FieldRow>
+        <FieldRow label="Enlace de valoracion" hint="Comparte esta pagina (o su QR) para que tus clientes dejen su opinion tras la visita.">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {enlaceResena ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 12, color: T.textSecondary, fontFamily: 'monospace' }}>{enlaceResena}</span>
+                  <Btn variant="primary" size="sm" onClick={() => { if (typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(enlaceResena); setMsg({ ok: true, text: 'Enlace copiado.' }); } }}>Copiar</Btn>
+                  <Btn variant="ghost" size="sm" onClick={() => { if (typeof window !== 'undefined') window.open(enlaceResena, '_blank'); }}>Abrir</Btn>
+                </div>
+                {qrResenaSvg && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                    <div style={{ width: 104, height: 104, background: '#fff', border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: qrResenaSvg }} />
+                    <span style={{ fontSize: 12, color: T.textTertiary, maxWidth: 220 }}>Codigo QR de tu pagina de valoraciones.</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <span style={{ fontSize: 12, color: T.textTertiary }}>Guarda el enlace de reserva para activar tambien el de valoracion.</span>
             )}
           </div>
         </FieldRow>

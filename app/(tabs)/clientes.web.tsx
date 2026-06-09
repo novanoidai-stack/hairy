@@ -113,6 +113,7 @@ interface Cliente {
   profHabitual?: string;
   bloqueado?: boolean;
   bloqueo_motivo?: string | null;
+  etiquetas?: string[];
 }
 
 type Tab = 'resumen' | 'notas' | 'color' | 'historial';
@@ -257,7 +258,7 @@ export default function ClientesWeb() {
     const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }] = await Promise.all([
       supabase
         .from('clientes')
-        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo')
+        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas')
         .eq('negocio_id', profile.negocio_id)
         .order('nombre'),
       supabase
@@ -645,6 +646,33 @@ export default function ClientesWeb() {
                         >
                           {c.bloqueado ? 'Desbloquear' : 'Bloquear'}
                         </button>
+                      </div>
+                      {/* C6: etiquetas manuales */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                        {(c.etiquetas ?? []).map((et) => (
+                          <span key={et} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 8px', borderRadius: 999, background: TOKENS.violetSoft, color: TOKENS.violet, fontSize: 11, fontWeight: 600 }}>
+                            {et}
+                            <button
+                              aria-label={`Quitar ${et}`}
+                              onClick={async () => {
+                                const next = (c.etiquetas ?? []).filter((x) => x !== et);
+                                await supabase.from('clientes').update({ etiquetas: next }).eq('id', c.id);
+                                setClientes((prev) => prev.map((x) => (x.id === c.id ? { ...x, etiquetas: next } : x)));
+                              }}
+                              style={{ border: 'none', background: 'transparent', color: TOKENS.violet, cursor: 'pointer', padding: 0, fontSize: 13, lineHeight: 1 }}
+                            >×</button>
+                          </span>
+                        ))}
+                        <button
+                          onClick={async () => {
+                            const nueva = (window.prompt('Nueva etiqueta:', '') || '').trim();
+                            if (!nueva) return;
+                            const next = Array.from(new Set([...(c.etiquetas ?? []), nueva]));
+                            await supabase.from('clientes').update({ etiquetas: next }).eq('id', c.id);
+                            setClientes((prev) => prev.map((x) => (x.id === c.id ? { ...x, etiquetas: next } : x)));
+                          }}
+                          style={{ padding: '2px 9px', borderRadius: 999, border: `1px dashed ${TOKENS.borderHi}`, background: 'transparent', color: TOKENS.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                        >+ etiqueta</button>
                       </div>
                     </div>
                   </div>
