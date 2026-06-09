@@ -16,6 +16,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
         <View style={{ flex: 1 }}>
           <Tabs screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } as any, unmountOnBlur: false, contentStyle: { backgroundColor: '#f6f1ea' } } as any}>
             <Tabs.Screen name="index" />
+            <Tabs.Screen name="lista-espera" />
             <Tabs.Screen name="clientes" />
             <Tabs.Screen name="equipo" />
             <Tabs.Screen name="informes" />
@@ -42,6 +43,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       <Tabs.Screen name="equipo" options={{ title: 'Equipo', tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} /> }} />
       <Tabs.Screen name="informes" options={{ title: 'Informes', tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart" size={size} color={color} /> }} />
       <Tabs.Screen name="configuracion" options={{ title: 'Ajustes', tabBarIcon: ({ color, size }) => <Ionicons name="settings" size={size} color={color} /> }} />
+      <Tabs.Screen name="lista-espera" options={{ href: null }} />
     </Tabs>
   );
 }

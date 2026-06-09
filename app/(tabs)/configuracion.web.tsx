@@ -701,7 +701,6 @@ export default function ConfiguracionWeb() {
             <button
               onClick={() => setTab(null)}
               style={{
-                display: ' SaFlex' as any, // fallback
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 width: 32, height: 32, borderRadius: 8, background: T.bgCard,
                 border: `1px solid ${T.border}`, color: T.textSecondary, cursor: 'pointer',

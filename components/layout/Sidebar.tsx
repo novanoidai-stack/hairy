@@ -19,6 +19,7 @@ const WORDMARK_FONT = Platform.select({
 
 const NAV_ITEMS: { label: string; icon: string; activeIcon: string; href: string; cap?: Capability }[] = [
   { label: 'Agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
+  { label: 'Lista de espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas' },
   { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver' },
   { label: 'Equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver' },
   { label: 'Informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver' },
@@ -152,9 +153,11 @@ export function Sidebar() {
         {!collapsed && <TText style={s.navSectionLabel}>PRINCIPAL</TText>}
         {NAV_ITEMS.map((item, idx) => {
           if (!allows(item.cap)) return null;
+          const hrefSlug = item.href.split('/').pop() || '';
           const isActive =
             pathname === item.href ||
             pathname.endsWith(item.label.toLowerCase()) ||
+            (item.href !== '/(tabs)' && !!hrefSlug && pathname.endsWith(hrefSlug)) ||
             (item.href === '/(tabs)' && (pathname === '/' || pathname === '/(tabs)'));
 
           const entryAnim = navAnimations[idx];
