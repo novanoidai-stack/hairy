@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
 import {
-  getPortalInfo, getDisponibilidad, crearCitaPublica, fechaISOaClave,
-  type PortalInfo, type PortalServicio, type PortalProfesional, type SlotDisponible, type CrearCitaResult,
+  getPortalInfo, getDisponibilidad, crearCitaPublica, fechaISOaClave, getResenasPublicas,
+  type PortalInfo, type PortalServicio, type PortalProfesional, type SlotDisponible, type CrearCitaResult, type ResenaResumen,
 } from '@/lib/reservaPublica';
 
 // ---------------------------------------------------------------------------
@@ -96,6 +96,7 @@ export default function PortalReservaWeb() {
   const [info, setInfo] = useState<PortalInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [resenas, setResenas] = useState<ResenaResumen | null>(null);
 
   const [step, setStep] = useState<Step>('servicio');
   const [servicio, setServicio] = useState<PortalServicio | null>(null);
@@ -122,9 +123,9 @@ export default function PortalReservaWeb() {
     (async () => {
       setLoading(true);
       try {
-        const data = await getPortalInfo(slug);
+        const [data, res] = await Promise.all([getPortalInfo(slug), getResenasPublicas(slug)]);
         if (cancel) return;
-        if (!data) { setNotFound(true); } else { setInfo(data); }
+        if (!data) { setNotFound(true); } else { setInfo(data); setResenas(res); }
       } catch {
         if (!cancel) setNotFound(true);
       } finally {
@@ -251,7 +252,7 @@ export default function PortalReservaWeb() {
   const stepIndex = STEPS.findIndex(s => s.key === step);
 
   return (
-    <Shell negocio={info.negocio}>
+    <Shell negocio={info.negocio} resenas={resenas}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
 
       {/* Stepper */}
@@ -508,7 +509,7 @@ const primaryBtn: React.CSSProperties = {
   background: T.primary, color: '#fff', fontSize: 15, fontWeight: 700,
 };
 
-function Shell({ children, negocio }: { children: React.ReactNode; negocio?: PortalInfo['negocio'] }) {
+function Shell({ children, negocio, resenas }: { children: React.ReactNode; negocio?: PortalInfo['negocio']; resenas?: ResenaResumen | null }) {
   return (
     <div style={{ minHeight: '100vh', background: T.bg, padding: '0 16px 48px', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <div style={{ maxWidth: 600, margin: '0 auto' }}>

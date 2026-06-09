@@ -342,6 +342,12 @@
       body.classList.toggle('nav-menu-open');
     });
 
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) {
+        body.classList.remove('nav-menu-open');
+      }
+    });
+
     $$('a', overlay).forEach(function (a) {
       a.addEventListener('click', function () {
         body.classList.remove('nav-menu-open');

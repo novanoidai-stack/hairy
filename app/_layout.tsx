@@ -68,7 +68,7 @@ export default function RootLayout() {
   const isWeb = Platform.OS === 'web';
   // Portal de reserva publica (app/r/[slug]): es anonimo, sin sesion. Queda exento
   // de los guards de auth (web y nativo) para que el cliente final pueda reservar.
-  const isPublicRoute = String(segments[0]) === 'r';
+  const isPublicRoute = ['r', 'resena'].includes(String(segments[0]));
 
   useEffect(() => {
     if (fontError) {
@@ -173,6 +173,7 @@ export default function RootLayout() {
         <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="r/[slug]" />
+        <Stack.Screen name="resena/[slug]" />
         <Stack.Screen name="screens/agenda-detalle" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Cita', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
         <Stack.Screen name="screens/nueva-cita" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Nueva cita', headerBackTitle: 'Agenda', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
         <Stack.Screen name="screens/configuracion" options={{ headerShown: true, title: 'Configuración', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
