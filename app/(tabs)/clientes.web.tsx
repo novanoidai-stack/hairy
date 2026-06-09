@@ -785,6 +785,16 @@ export default function ClientesWeb() {
                   <FotosClienteSection cliente={c} negocioId={negocioId} bare />
                 </Panel>
 
+                {/* Fila 1.7: Consentimientos RGPD */}
+                <Panel title="Consentimientos" accent={TOKENS.cyan}>
+                  <ConsentimientosSection cliente={c} negocioId={negocioId} />
+                </Panel>
+
+                {/* Fila 1.8: Fidelizacion */}
+                <Panel title="Fidelización" accent={TOKENS.warning}>
+                  <FidelizacionCard visitas={c.visitas || 0} />
+                </Panel>
+
                 {/* Fila 2: Notas + Color/Quimica (50/50) */}
                 <div style={{ display: 'grid', gridTemplateColumns: (isMobile || isTablet) ? '1fr' : '1fr 1fr', gap: 18 }}>
                   <Panel title="Alergias" accent={TOKENS.danger}>
@@ -2471,6 +2481,95 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
 // Galeria de fotos de servicios del cliente (cortes/colores). Sube a Supabase
 // Storage (bucket cliente-fotos) y guarda la referencia en cliente_fotos. Asi el
 // cliente ve sus cortes anteriores, igual que en la ficha de la landing.
+// C11: tarjeta de fidelizacion (sellos). Cuenta las visitas completadas del
+// cliente; cada OBJETIVO visitas = un premio. v1 con objetivo fijo.
+function FidelizacionCard({ visitas }: { visitas: number }) {
+  const OBJETIVO = 10;
+  const completados = visitas % OBJETIVO;
+  const premios = Math.floor(visitas / OBJETIVO);
+  const faltan = OBJETIVO - completados;
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+        {Array.from({ length: OBJETIVO }).map((_, i) => (
+          <div key={i} style={{
+            width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1.5px solid ${i < completados ? TOKENS.primary : TOKENS.border}`,
+            background: i < completados ? TOKENS.primarySoft : 'transparent',
+            color: i < completados ? TOKENS.primary : TOKENS.textTer, fontSize: 12, fontWeight: 700,
+          }}>{i + 1}</div>
+        ))}
+      </div>
+      <div style={{ fontSize: 13, color: TOKENS.textSec }}>
+        {completados}/{OBJETIVO} sellos · {completados === 0 ? 'Tarjeta nueva' : `faltan ${faltan} visita${faltan === 1 ? '' : 's'} para el premio`}
+        {premios > 0 && ` · ${premios} premio${premios === 1 ? '' : 's'} ya conseguido${premios === 1 ? '' : 's'}`}
+      </div>
+    </div>
+  );
+}
+
+// C7: consentimientos RGPD del cliente. Cada cambio se registra (log) en
+// consentimientos_cliente; el estado actual es el ultimo registro por tipo.
+function ConsentimientosSection({ cliente, negocioId }: { cliente: Cliente; negocioId: string }) {
+  const TIPOS = [
+    { key: 'tratamiento_datos', label: 'Tratamiento de datos (RGPD)' },
+    { key: 'imagen', label: 'Uso de imagen (fotos antes/después)' },
+    { key: 'comunicaciones_comerciales', label: 'Comunicaciones comerciales' },
+  ];
+  const [estado, setEstado] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancel = false;
+    supabase
+      .from('consentimientos_cliente')
+      .select('tipo, aceptado, revocado, fecha')
+      .eq('cliente_id', cliente.id)
+      .order('fecha', { ascending: false })
+      .then(({ data }) => {
+        if (cancel) return;
+        const m: Record<string, boolean> = {};
+        (data ?? []).forEach((r: any) => { if (!(r.tipo in m)) m[r.tipo] = !!r.aceptado && !r.revocado; });
+        setEstado(m);
+        setLoading(false);
+      });
+    return () => { cancel = true; };
+  }, [cliente.id]);
+
+  const toggle = async (tipo: string) => {
+    const nuevo = !estado[tipo];
+    setEstado((prev) => ({ ...prev, [tipo]: nuevo }));
+    await supabase.from('consentimientos_cliente').insert({
+      negocio_id: negocioId,
+      cliente_id: cliente.id,
+      tipo,
+      aceptado: nuevo,
+      revocado: !nuevo,
+      metodo_obtencion: 'app',
+      fecha: new Date().toISOString(),
+    });
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {TIPOS.map((t) => (
+        <div key={t.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '9px 0', borderBottom: `1px solid ${TOKENS.border}` }}>
+          <span style={{ fontSize: 13, color: TOKENS.text }}>{t.label}</span>
+          <button
+            onClick={() => toggle(t.key)}
+            disabled={loading}
+            aria-label={t.label}
+            style={{ width: 42, height: 24, borderRadius: 12, border: 'none', background: estado[t.key] ? TOKENS.success : 'rgba(40,30,24,0.15)', cursor: loading ? 'default' : 'pointer', position: 'relative', flexShrink: 0, transition: 'background 0.18s ease' }}
+          >
+            <span style={{ position: 'absolute', top: 3, left: estado[t.key] ? 21 : 3, width: 18, height: 18, borderRadius: 9, background: '#fff', transition: 'left 0.18s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
+          </button>
+        </div>
+      ))}
+      <span style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 4 }}>Cada cambio queda registrado con su fecha (RGPD).</span>
+    </div>
+  );
+}
+
 function FotosClienteSection({ cliente, negocioId, bare = false, gridRef }: { cliente: Cliente; negocioId: string; bare?: boolean; gridRef?: (el: HTMLElement | null) => void }) {
   const [fotos, setFotos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
