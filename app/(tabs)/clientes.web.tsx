@@ -111,6 +111,8 @@ interface Cliente {
   noshows_count?: number;
   diasInactiva?: number;
   profHabitual?: string;
+  bloqueado?: boolean;
+  bloqueo_motivo?: string | null;
 }
 
 type Tab = 'resumen' | 'notas' | 'color' | 'historial';
@@ -255,7 +257,7 @@ export default function ClientesWeb() {
     const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }] = await Promise.all([
       supabase
         .from('clientes')
-        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias')
+        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo')
         .eq('negocio_id', profile.negocio_id)
         .order('nombre'),
       supabase
@@ -630,6 +632,19 @@ export default function ClientesWeb() {
                         {c.actividad === 'Riesgo abandono' && <Pill color={TOKENS.warning}>Riesgo abandono</Pill>}
                         {c.riesgo === 'Alto riesgo' && <Pill color={TOKENS.danger}>No-show</Pill>}
                         {c.riesgo === 'Incidencias' && <Pill color={TOKENS.warning}>Incidencias</Pill>}
+                        {c.bloqueado && <Pill color={TOKENS.danger}>Bloqueado</Pill>}
+                        <button
+                          title={c.bloqueado && c.bloqueo_motivo ? `Motivo: ${c.bloqueo_motivo}` : (c.bloqueado ? 'Cliente bloqueado' : 'Impedir que reserve online')}
+                          onClick={async () => {
+                            const nuevo = !c.bloqueado;
+                            const motivo = nuevo ? (window.prompt('Motivo del bloqueo (opcional):', c.bloqueo_motivo || '') || null) : null;
+                            const { error } = await supabase.from('clientes').update({ bloqueado: nuevo, bloqueo_motivo: motivo }).eq('id', c.id);
+                            if (!error) setClientes((prev) => prev.map((x) => (x.id === c.id ? { ...x, bloqueado: nuevo, bloqueo_motivo: motivo } : x)));
+                          }}
+                          style={{ marginLeft: 4, padding: '3px 10px', borderRadius: 999, border: `1px solid ${c.bloqueado ? TOKENS.border : 'rgba(226,59,52,0.40)'}`, background: 'transparent', color: c.bloqueado ? TOKENS.textSec : TOKENS.danger, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          {c.bloqueado ? 'Desbloquear' : 'Bloquear'}
+                        </button>
                       </div>
                     </div>
                   </div>
