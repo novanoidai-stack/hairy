@@ -638,3 +638,61 @@ body.no-glow .bg::before,body.no-glow .vis-glow,body.no-glow .integ-box::before{
 .specs-foot a:hover{text-decoration:underline}
 @media(max-width:920px){.specs-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.specs-grid{grid-template-columns:1fr}.specs{padding:64px 0}}
+
+/* ============================================================
+   MOBILE OVERRIDES (scroll-trap, hero-mock, text-aligns)
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Scroll-trap fix: disable pointer events on the 3D phone stage */
+  .phone-stage, .phone {
+    pointer-events: none !important;
+  }
+  
+  /* Hero Mockup Calendar: single-column layout fit */
+  .app {
+    grid-template-columns: 1fr !important;
+  }
+  .app-side {
+    display: none !important;
+  }
+  .app-top {
+    padding: 12px 14px !important;
+  }
+  .app-top h3 {
+    font-size: 16px !important;
+  }
+  .app-top .sub {
+    font-size: 10px !important;
+  }
+  .tl {
+    grid-template-columns: 46px 1fr !important;
+    padding: 0 12px 12px !important;
+  }
+  /* Show only Carla (2nd header cell, 1st timeline column) */
+  .tl-h:nth-child(3),
+  .tl-h:nth-child(4) {
+    display: none !important;
+  }
+  .tl-col:nth-of-type(2),
+  .tl-col:nth-of-type(3) {
+    display: none !important;
+  }
+  .tl-now {
+    left: 46px !important;
+  }
+
+  /* Centering text blocks for single-column responsiveness */
+  .demo-txt, .diff-txt, .integ-txt {
+    text-align: center !important;
+  }
+  .demo-feats {
+    align-items: center !important;
+  }
+  .demo-feat {
+    text-align: left !important;
+  }
+  .sec-head {
+    text-align: center !important;
+  }
+}
+
