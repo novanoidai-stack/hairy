@@ -458,8 +458,11 @@ export default function ClientesWeb() {
           {/* Search */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: '11px 14px', marginBottom: 16 }}>
             <Icon name="search" size={16} color={TOKENS.textSec} />
-            <input placeholder="Buscar por nombre, telefono o email..." value={searchText} onChange={(e) => setSearchText(e.target.value)} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: TOKENS.text, fontSize: 13 }} />
-            <span style={{ fontSize: 11, color: TOKENS.textTer }}>{visibleClientes.length} resultados</span>
+            <input placeholder={isMobile ? 'Buscar cliente...' : 'Buscar por nombre, telefono o email...'} value={searchText} onChange={(e) => setSearchText(e.target.value)} style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: TOKENS.text, fontSize: 13 }} />
+            {/* En movil el contador chocaba con el placeholder dentro del input: solo se muestra cuando hay busqueda activa */}
+            {(!isMobile || searchText.trim().length > 0) && (
+              <span style={{ fontSize: 11, color: TOKENS.textTer, flexShrink: 0, whiteSpace: 'nowrap' }}>{visibleClientes.length} resultados</span>
+            )}
           </div>
 
           {/* Tag chips */}
@@ -2585,7 +2588,17 @@ function FotosClienteSection({ cliente, negocioId, bare = false, gridRef }: { cl
       .select('id, storage_path, url, nota, created_at')
       .eq('cliente_id', cliente.id)
       .order('created_at', { ascending: false });
-    setFotos(data ?? []);
+    const rows = data ?? [];
+    // El bucket es PRIVADO (las fotos de clientas son dato personal): se pintan
+    // con URLs firmadas temporales a partir de storage_path. La columna url
+    // (publica, de la epoca del bucket abierto) ya no sirve para renderizar.
+    const paths = rows.map((r: any) => r.storage_path).filter(Boolean);
+    if (paths.length > 0) {
+      const { data: signed } = await supabase.storage.from('cliente-fotos').createSignedUrls(paths, 3600);
+      const byPath = new Map((signed ?? []).map((s: any) => [s.path, s.signedUrl]));
+      rows.forEach((r: any) => { r.url = byPath.get(r.storage_path) || null; });
+    }
+    setFotos(rows.filter((r: any) => !!r.url));
     setLoading(false);
   }
   useEffect(() => { load(); }, [cliente.id]);
@@ -2604,8 +2617,8 @@ function FotosClienteSection({ cliente, negocioId, bare = false, gridRef }: { cl
         const path = `${negocioId}/${cliente.id}/${rand}.${ext}`;
         const up = await supabase.storage.from('cliente-fotos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false });
         if (up.error) { setErr('No se pudo subir alguna foto.'); continue; }
-        const pub = supabase.storage.from('cliente-fotos').getPublicUrl(path).data.publicUrl;
-        await supabase.from('cliente_fotos').insert({ cliente_id: cliente.id, negocio_id: negocioId, storage_path: path, url: pub, created_by: uid });
+        // Bucket privado: no se guarda URL publica; load() firma desde storage_path.
+        await supabase.from('cliente_fotos').insert({ cliente_id: cliente.id, negocio_id: negocioId, storage_path: path, url: null, created_by: uid });
       }
       await load();
     } catch {
