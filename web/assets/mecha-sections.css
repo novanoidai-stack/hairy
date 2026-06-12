@@ -640,6 +640,26 @@ body.no-glow .bg::before,body.no-glow .vis-glow,body.no-glow .integ-box::before{
 @media(max-width:620px){.specs-grid{grid-template-columns:1fr}.specs{padding:64px 0}}
 
 /* ============================================================
+   SCROLL-TRAP (tactil): el telefono 3D y su chat son una ANIMACION,
+   no una zona interactiva. En CUALQUIER pantalla tactil (movil grande,
+   tablet, portatil tactil — no solo <768px) el dedo debe desplazar la
+   PAGINA: sin pointer-events en el telefono, chat sin scroll tactil y
+   sin overscroll-behavior:contain (que cortaba el encadenado del
+   scroll hacia la pagina e "impedia bajar por la landing").
+   El autoscroll del chat por JS (waBody.scrollTop) sigue funcionando
+   aunque el overflow quede oculto.
+   ============================================================ */
+@media (hover: none), (pointer: coarse) {
+  .phone-stage, .phone {
+    pointer-events: none !important;
+  }
+  .wa-body {
+    overflow-y: hidden !important;
+    overscroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
    MOBILE OVERRIDES (scroll-trap, hero-mock, text-aligns)
    ============================================================ */
 @media (max-width: 768px) {
@@ -647,7 +667,7 @@ body.no-glow .bg::before,body.no-glow .vis-glow,body.no-glow .integ-box::before{
   .phone-stage, .phone {
     pointer-events: none !important;
   }
-  
+
   /* Hero Mockup Calendar: single-column layout fit */
   .app {
     grid-template-columns: 1fr !important;
