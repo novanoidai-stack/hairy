@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { supabase } from '@/lib/supabase';
+import { supabase, IS_DEMO_MODE, signInDemoViewer } from '@/lib/supabase';
 import { getUserProfile, isStaff } from '@/lib/auth';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -96,6 +96,14 @@ export default function RootLayout() {
     // "Entrar al software". (El login interno solo existe en nativo, ver abajo.)
     if (Platform.OS === 'web') {
       if (!session && !isPublicRoute && typeof window !== 'undefined') {
+        // Modo demo (iframe de demo.html): sesion aislada con la cuenta demo
+        // compartida. Asi TODOS los visitantes ven la misma demo, sin tocar la
+        // sesion personal del sitio. Si el login de demo falla, no redirigimos
+        // (el marco de demo.html ya muestra su propio aviso).
+        if (IS_DEMO_MODE) {
+          signInDemoViewer().catch(() => {});
+          return;
+        }
         window.location.href = '/acceso.html';
       }
       return;
@@ -114,8 +122,10 @@ export default function RootLayout() {
   // Una cuenta free que abre /app directamente (ventana principal, no el iframe
   // de la demo) se manda a /acceso.html, su pantalla. Dentro de la demo (iframe)
   // si puede mirar: alli el limite son sus visitas, no el plan.
+  // Las rutas publicas (portal de reserva /r/ y valoraciones /resena/) quedan
+  // exentas: son para el cliente final, da igual que sesion tenga el navegador.
   useEffect(() => {
-    if (!isWeb || !session || typeof window === 'undefined') return;
+    if (!isWeb || !session || typeof window === 'undefined' || isPublicRoute) return;
     const embedded = window.top !== window.self;
     const inApp = window.location.pathname.startsWith('/app');
     if (embedded || !inApp) return;
@@ -129,7 +139,7 @@ export default function RootLayout() {
       }
     })();
     return () => { cancel = true; };
-  }, [session, isWeb]);
+  }, [session, isWeb, isPublicRoute]);
 
   // Puente de navegacion para la vista previa (demo.html embebe /app en un iframe).
   // Cada paso de la guia manda { type:'mecha-nav', route } y aqui movemos la app.
