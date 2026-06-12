@@ -112,7 +112,7 @@ export default function ResenaWeb() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18, paddingBottom: 16, borderBottom: `1px solid ${T.border}` }}>
                   <StarsRow value={resumen.media} size={16} />
                   <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{resumen.media}</span>
-                  <span style={{ fontSize: 13, color: T.textTer }}>· {resumen.total} valoracion{resumen.total === 1 ? '' : 'es'}</span>
+                  <span style={{ fontSize: 13, color: T.textTer }}>· {resumen.total} {resumen.total === 1 ? 'valoración' : 'valoraciones'}</span>
                 </div>
               )}
 

@@ -1261,7 +1261,7 @@ function TabCuenta({ account, profCount }: { account: AccountInfo | null; profCo
       </Section>
 
       <Section title="Plan y suscripcion" desc="Resumen de tu plan actual. Para ampliar plazas o gestionar la facturacion, contacta con soporte.">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
           <StatBox label="Plan actual" value="Studio - Pro" sub="Facturacion mensual" accent={T.primaryHi} />
           <StatBox label="Profesionales activos" value={`${profCount} / 10`} sub={`${plazasLibres} ${plazasLibres === 1 ? 'plaza disponible' : 'plazas disponibles'}`} />
           <StatBox label="Estado" value="Activo" sub="Al corriente de pago" accent={T.success} />
@@ -1419,6 +1419,9 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
   config: ConfigState; setC: (k: keyof ConfigState, v: any) => void;
   diasHorario: Record<number, DiaHorario>; setDiasHorario: (v: Record<number, DiaHorario>) => void;
 }) {
+  // En movil la fila '160px 1fr auto' aplastaba las horas fuera de pantalla:
+  // pasa a dos lineas (dia + copiar / horas debajo a ancho completo).
+  const { isMobile } = useResponsive();
   const toggleDay = (i: number) => {
     setDiasHorario({ ...diasHorario, [i]: { ...diasHorario[i], abierto: !diasHorario[i].abierto } });
   };
@@ -1470,7 +1473,14 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
             const open = d.abierto;
             const isWeekend = i >= 5;
             return (
-              <div key={i} style={{
+              <div key={i} style={isMobile ? {
+                display: 'flex', flexWrap: 'wrap',
+                alignItems: 'center', gap: 10,
+                padding: '12px 0',
+                borderBottom: i < 6 ? `1px solid ${T.border}` : 'none',
+                opacity: open ? 1 : 0.55,
+                transition: 'opacity .2s',
+              } : {
                 display: 'grid', gridTemplateColumns: '160px 1fr auto',
                 alignItems: 'center', gap: 16,
                 padding: '12px 0',
@@ -1478,7 +1488,7 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
                 opacity: open ? 1 : 0.55,
                 transition: 'opacity .2s',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, ...(isMobile ? { order: 0, flex: '1 1 auto' } : {}) }}>
                   <Toggle on={open} onChange={() => toggleDay(i)} />
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: open ? T.text : T.textSecondary }}>{DAY_LABELS[i]}</div>
@@ -1488,7 +1498,7 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', ...(isMobile ? { order: 2, flexBasis: '100%' } : {}) }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 11, color: T.textTertiary, width: 28 }}>De</span>
                     <TimeInput value={d.apertura || ''} onChange={v => setDayValue(i, 'apertura', v)} disabled={!open} />
@@ -1504,7 +1514,7 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
                   </div>
                 </div>
 
-                <div>
+                <div style={isMobile ? { order: 1, marginLeft: 'auto' } : undefined}>
                   <IconBtn icon="copy" size={28} title="Copiar este horario al resto de la semana" onClick={() => copyToAll(i)} disabled={!open} />
                 </div>
               </div>
@@ -1551,6 +1561,8 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
 // Tab: Servicios
 // ===========================================================================
 
+// En movil la fila de servicio pasa de grid de 5 columnas con 410px fijos
+// (que dejaba el NOMBRE a ancho 0) a dos lineas: nombre + datos.
 function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, duracionesProf, profSelData, variantCounts, catPricing, onEdit, onToggle, onDelete, onSaveOverride, onResetOverride, onSaveDurProf, onResetDurProf }: {
   services: Servicio[]; profesionales: any[];
   profId: string | null; setProfId: (id: string | null) => void;
@@ -1566,6 +1578,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
   onSaveDurProf: (serviceId: string, profId: string, field: string, value: number) => Promise<void>;
   onResetDurProf: (serviceId: string, profId: string) => Promise<void>;
 }) {
+  const { isMobile } = useResponsive();
   const [search, setSearch] = useState('');
   const [expandedDur, setExpandedDur] = useState<string | null>(null);
   const filtered = useMemo(() => {
@@ -1667,13 +1680,15 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                   <>
                     <div
                       key={s.id}
-                      style={{ display: 'grid', gridTemplateColumns: '1fr 110px 110px 110px 80px', padding: '14px 16px', alignItems: 'center', borderBottom: expandedDur === s.id ? 'none' : (i < arr.length - 1 ? `1px solid ${T.border}` : 'none'), transition: 'background 0.2s' }}
+                      style={isMobile
+                        ? { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, padding: '12px 14px', borderBottom: expandedDur === s.id ? 'none' : (i < arr.length - 1 ? `1px solid ${T.border}` : 'none'), transition: 'background 0.2s' }
+                        : { display: 'grid', gridTemplateColumns: '1fr 110px 110px 110px 80px', padding: '14px 16px', alignItems: 'center', borderBottom: expandedDur === s.id ? 'none' : (i < arr.length - 1 ? `1px solid ${T.border}` : 'none'), transition: 'background 0.2s' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(244,80,30,0.04)'; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                     >
 
-                    {/* Nombre */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    {/* Nombre (en movil ocupa su propia linea completa) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, ...(isMobile ? { flexBasis: '100%' } : {}) }}>
                       {profId && hasOv && (
                         <div style={{ width: 6, height: 6, borderRadius: 999, flexShrink: 0, background: profColor, boxShadow: `0 0 8px ${profColor}` }} />
                       )}
@@ -1756,8 +1771,8 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                       </span>
                     </div>
 
-                    {/* Acciones */}
-                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                    {/* Acciones (en movil, al final de la segunda linea) */}
+                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end', ...(isMobile ? { marginLeft: 'auto' } : {}) }}>
                       <IconBtn icon="edit" size={28} onClick={() => onEdit(s)} title="Editar" />
                       {profId ? (
                         hasOv && <IconBtn icon="x" size={28} tone="primary" onClick={() => s.id && onResetOverride(s.id)} title="Restablecer a catalogo" />
@@ -1778,7 +1793,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                     const effExtra = dp ? dp.duracion_activa_extra_min : catExtra;
 
                     return (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, padding: '10px 16px', background: T.bg, borderBottom: `1px solid ${T.border}` }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : '1fr 1fr 1fr auto', gap: 8, padding: '10px 16px', background: T.bg, borderBottom: `1px solid ${T.border}` }}>
                         <div>
                           <div style={{ fontSize: 10, color: T.textTertiary, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>ACTIVA</div>
                           <NumberInput value={effActiva} onChange={v => onSaveDurProf(s.id!, profId, 'duracion_activa_min', typeof v === 'number' ? v : parseInt(String(v), 10))} unit="min" step={5} />
@@ -1885,7 +1900,7 @@ function TabAgenda({ config, setC, bloqueoCounts }: {
       </Section>
 
       <Section title="Bloqueos y descansos" desc="Vacaciones, formaciones y reuniones. Se gestionan en la pantalla de Equipo.">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 4 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 4 }}>
           {[
             { l: 'Vacaciones', c: '#10b981', k: 'vacaciones' },
             { l: 'Formacion',  c: '#c0260a', k: 'formacion' },
@@ -1919,6 +1934,10 @@ function TabComisiones({ config, setC, profesionales, comisionesProf, setComisio
   profesionales: any[];
   comisionesProf: Record<string, number>; setComisionesProf: (v: Record<string, number>) => void;
 }) {
+  // En movil la tabla '1fr 130px 110px 80px' aplastaba el nombre: se oculta la
+  // columna Rol y las demas pasan a auto.
+  const { isMobile } = useResponsive();
+  const gridCols = isMobile ? 'minmax(0,1fr) auto auto' : '1fr 130px 110px 80px';
   const setProfCom = (id: string, val: number) => {
     setComisionesProf({ ...comisionesProf, [id]: val });
   };
@@ -1967,12 +1986,12 @@ function TabComisiones({ config, setC, profesionales, comisionesProf, setComisio
         <div style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, overflow: 'hidden' }}>
           {/* Header */}
           <div style={{
-            display: 'grid', gridTemplateColumns: '1fr 130px 110px 80px',
+            display: 'grid', gridTemplateColumns: gridCols,
             padding: '10px 14px', borderBottom: `1px solid ${T.border}`,
             fontSize: 10, letterSpacing: 1.2, color: T.textTertiary, fontWeight: 700, textTransform: 'uppercase',
           }}>
             <div>Profesional</div>
-            <div>Rol</div>
+            {!isMobile && <div>Rol</div>}
             <div style={{ textAlign: 'center' }}>Comision</div>
             <div style={{ textAlign: 'right' }} />
           </div>
@@ -1982,7 +2001,7 @@ function TabComisiones({ config, setC, profesionales, comisionesProf, setComisio
             const effective = ov ?? config.comisionBase;
             return (
               <div key={p.id} style={{
-                display: 'grid', gridTemplateColumns: '1fr 130px 110px 80px',
+                display: 'grid', gridTemplateColumns: gridCols,
                 alignItems: 'center', padding: '12px 14px',
                 borderBottom: `1px solid ${T.border}`,
                 transition: 'background .15s',
@@ -2003,7 +2022,7 @@ function TabComisiones({ config, setC, profesionales, comisionesProf, setComisio
                   </div>
                 </div>
 
-                <div style={{ fontSize: 11.5, color: T.textSecondary }}>{ROL_LABEL[p.categoria] || p.categoria || '--'}</div>
+                {!isMobile && <div style={{ fontSize: 11.5, color: T.textSecondary }}>{ROL_LABEL[p.categoria] || p.categoria || '--'}</div>}
 
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                   <CommissionEditor value={effective} isOverride={ov != null} accent={p.color}
@@ -2418,6 +2437,20 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     }
   }, [enlace]);
 
+  // Descarga un QR (SVG) como archivo, para imprimirlo o mandarlo a la imprenta.
+  const descargarQR = useCallback((svg: string, nombreArchivo: string) => {
+    if (!svg || typeof document === 'undefined') return;
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombreArchivo;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, []);
+
   const enlaceResena = savedSlug ? `${origin}${appBase}/resena/${savedSlug}` : '';
   const qrResenaSvg = useMemo(() => {
     if (!enlaceResena) return '';
@@ -2475,7 +2508,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         <FieldRow label="Enlace de reserva" hint="La direccion publica que compartes con tus clientes. Solo letras, numeros y guiones.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 13, color: T.textTertiary }}>{origin}/r/</span>
+              <span style={{ fontSize: 13, color: T.textTertiary }}>{origin}{appBase}/r/</span>
               <STextInput value={slug} onChange={(v) => setSlug(slugifyPortal(v))} placeholder="mi-salon" width={200} />
             </div>
             {enlace && (
@@ -2487,9 +2520,12 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
             )}
             {!savedSlug && <span style={{ fontSize: 12, color: T.textTertiary }}>Guarda para activar el enlace.</span>}
             {qrSvg && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
                 <div style={{ width: 104, height: 104, background: '#fff', border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: qrSvg }} />
-                <span style={{ fontSize: 12, color: T.textTertiary, maxWidth: 220 }}>Imprime o comparte este codigo QR: lleva directo a tu pagina de reserva.</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 220 }}>
+                  <span style={{ fontSize: 12, color: T.textTertiary }}>Imprime o comparte este codigo QR: lleva directo a tu pagina de reserva.</span>
+                  <Btn variant="ghost" size="sm" onClick={() => descargarQR(qrSvg, `qr-reserva-${savedSlug}.svg`)}>Descargar QR</Btn>
+                </div>
               </div>
             )}
           </div>
@@ -2504,9 +2540,12 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
                   <Btn variant="ghost" size="sm" onClick={() => { if (typeof window !== 'undefined') window.open(enlaceResena, '_blank'); }}>Abrir</Btn>
                 </div>
                 {qrResenaSvg && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
                     <div style={{ width: 104, height: 104, background: '#fff', border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: qrResenaSvg }} />
-                    <span style={{ fontSize: 12, color: T.textTertiary, maxWidth: 220 }}>Codigo QR de tu pagina de valoraciones.</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 220 }}>
+                      <span style={{ fontSize: 12, color: T.textTertiary }}>Codigo QR de tu pagina de valoraciones.</span>
+                      <Btn variant="ghost" size="sm" onClick={() => descargarQR(qrResenaSvg, `qr-valoracion-${savedSlug}.svg`)}>Descargar QR</Btn>
+                    </div>
                   </div>
                 )}
               </>
