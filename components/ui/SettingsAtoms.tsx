@@ -99,11 +99,14 @@ export function Section({ title, desc, action, soon, disabled, children, dense, 
       opacity: disabled ? 0.65 : 1,
       position: 'relative' as const,
     }}>
+      {/* flexWrap + base flexible del titulo: sin esto, una action ancha (p. ej.
+          el selector de plantillas de Horarios) aplastaba el titulo a una
+          palabra por linea en movil */}
       <header style={{
         display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-        gap: 16, marginBottom: 18,
+        gap: 16, marginBottom: 18, flexWrap: 'wrap',
       }}>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: '1 1 220px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, letterSpacing: -0.1, color: T.text }}>{title}</h3>
             {soon && <SoonBadge />}
@@ -112,7 +115,7 @@ export function Section({ title, desc, action, soon, disabled, children, dense, 
             <p style={{ margin: 0, fontSize: 11.5, color: T.textTer, lineHeight: 1.55, maxWidth: 540 }}>{desc}</p>
           )}
         </div>
-        {action && <div>{action}</div>}
+        {action && <div style={{ maxWidth: '100%' }}>{action}</div>}
       </header>
       <div>{children}</div>
     </section>

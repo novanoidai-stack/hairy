@@ -1058,7 +1058,9 @@ export default function InformesScreen() {
           <h1 style={{ fontSize: 22, fontWeight: 700, color: TOKENS.text, margin: 0 }}>Informes</h1>
           <div style={{ fontSize: 12, color: TOKENS.textTer, marginTop: 2 }}>{periodoLabel}</div>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        {/* flexWrap: en movil el selector de periodo y los botones CSV/PDF no
+            caben en una linea; sin esto el PDF quedaba cortado fuera de pantalla */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Periodo selector */}
           <div style={{ display: 'flex', gap: 4, background: TOKENS.bgCard, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}` }}>
             {periodos.map(p => (
@@ -1132,7 +1134,9 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* 9.10: Dashboard KPIs                                          */}
             {/* ============================================================= */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 24 }}>
+            {/* minmax(0,1fr): sin el minimo 0 las tarjetas no encogen por debajo
+                de su contenido y la columna derecha se sale de la pantalla en movil */}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 24 }}>
               {[
                 { label: 'Citas totales', value: totalCitas, icon: 'calendar', color: TOKENS.primary, bg: TOKENS.primarySoft },
                 { label: 'Ingresos', value: `${fmtEur(totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
@@ -1144,10 +1148,10 @@ export default function InformesScreen() {
                 { label: 'Retencion (frec. media)', value: `${Math.round(retencionData.avgFreq)} dias`, icon: 'heart', color: TOKENS.rose, bg: TOKENS.roseSoft },
               ].map((kpi, i) => (
                 <div key={kpi.label} className="kpi-card" style={{
-                  padding: '16px 18px', borderRadius: 14, background: TOKENS.bgCard,
+                  padding: isMobile ? '12px 12px' : '16px 18px', borderRadius: 14, background: TOKENS.bgCard,
                   border: `1px solid ${TOKENS.border}`, animationDelay: `${i * 60}ms`,
                   display: 'flex', flexDirection: 'column', gap: 8, cursor: 'default',
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.2s ease', minWidth: 0,
                 }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = kpi.color + '44'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = TOKENS.border; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
@@ -1464,7 +1468,7 @@ export default function InformesScreen() {
             <div style={{ marginBottom: 14 }}>
               <SectionHeader id="retencion" icon="heart" iconColor={TOKENS.rose} title="Retencion de clientes" subtitle={`${retencionData.clientesActivos} clientes activos en el periodo`} />
               <SectionBody id="retencion">
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
                   {[
                     { label: 'Frecuencia media', value: `${Math.round(retencionData.avgFreq)} dias`, color: TOKENS.rose },
                     { label: 'Dias sin visita (media)', value: `${Math.round(retencionData.avgSinVisita)} dias`, color: TOKENS.warning },

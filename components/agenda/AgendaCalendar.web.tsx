@@ -138,6 +138,7 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
     maximize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
     minimize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
     x: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+    clock: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
   };
   return <div style={{ display: 'inline-flex', color }} dangerouslySetInnerHTML={{ __html: icons[name] || '' }} />;
 };
@@ -145,6 +146,7 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
 export default function AgendaCalendar() {
   const { refreshTrigger } = useCalendarRefresh();
   const { isMobile, isTablet } = useResponsive();
+  const router = useRouter();
   const [citas, setCitas] = useState<Cita[]>([]);
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
@@ -533,16 +535,21 @@ export default function AgendaCalendar() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
       <style>{ANIMATIONS}</style>
-      {/* Topbar */}
-      <div className="m-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 28px', borderBottom: `1px solid ${TOKENS.border}` }}>
+      {/* Topbar — en movil: fila compacta (titulo + campana + acciones), sin la
+          fecha larga (ya se ve en la cabecera del dia) y sin pills informativas
+          (su contenido vive en el panel de avisos). Antes la campana y los
+          botones se montaban encima del titulo. */}
+      <div className="m-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: isMobile ? 8 : 12, padding: isMobile ? '10px 14px' : '11px 28px', borderBottom: `1px solid ${TOKENS.border}` }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, minWidth: 0 }}>
-          <h1 style={{ margin: 0, fontSize: 19, fontWeight: 700, letterSpacing: -0.3 }}>Agenda</h1>
-          <p style={{ margin: 0, fontSize: 12.5, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).charAt(0).toUpperCase() + selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).slice(1)} · {totalCitasHoy} citas · {confirmadasHoy} confirmadas
-          </p>
+          <h1 style={{ margin: 0, fontSize: 19, fontWeight: 700, letterSpacing: -0.3, flexShrink: 0 }}>Agenda</h1>
+          {!isMobile && (
+            <p style={{ margin: 0, fontSize: 12.5, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).charAt(0).toUpperCase() + selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).slice(1)} · {totalCitasHoy} citas · {confirmadasHoy} confirmadas
+            </p>
+          )}
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          {reposoGlobal && (
+        <div style={{ display: 'flex', gap: isMobile ? 6 : 10, alignItems: 'center', flexShrink: 0 }}>
+          {!isMobile && reposoGlobal && (
             <div
               title={`${reposoGlobal.usedMin} de ${reposoGlobal.totalMin} min de reposo aprovechados hoy`}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', color: '#f59e0b', borderRadius: 999, fontSize: 12, fontWeight: 700 }}
@@ -551,7 +558,7 @@ export default function AgendaCalendar() {
               {reposoGlobal.pct}% reposo aprovechado
             </div>
           )}
-          {sinConfirmar48h > 0 && (
+          {!isMobile && sinConfirmar48h > 0 && (
             <div
               title="Citas en las proximas 48h que el cliente aun no ha confirmado"
               className="m-pulse-red"
@@ -641,22 +648,24 @@ export default function AgendaCalendar() {
               </>
             )}
           </div>
-          <button className="m-btn-secondary" onClick={handleToday} style={{ padding: '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button className="m-btn-secondary" onClick={handleToday} title="Ir a hoy" style={{ padding: isMobile ? 7 : '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33 }}>
             <Icon name="calendar" size={15} color={TOKENS.text} />
-            Hoy
+            {!isMobile && 'Hoy'}
           </button>
           <button
             onClick={() => setShowCierreSalon(true)}
-            style={{ padding: '7px 12px', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444', borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s ease' }}
+            title="Cerrar salon"
+            aria-label="Cerrar salon"
+            style={{ padding: isMobile ? 7 : '7px 12px', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444', borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s ease', whiteSpace: 'nowrap', minHeight: 33 }}
             onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.20)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.10)'; }}
           >
             <Icon name="x" size={15} color="#ef4444" />
-            Cerrar salon
+            {!isMobile && 'Cerrar salon'}
           </button>
-          <button className="m-btn-primary" onClick={() => { setNewCitaPrefill(null); setShowNewCita(true); }} style={{ padding: '7px 13px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button className="m-btn-primary" onClick={() => { setNewCitaPrefill(null); setShowNewCita(true); }} style={{ padding: '7px 13px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33 }}>
             <Icon name="plus" size={15} color="#fff" />
-            Nueva cita
+            {isMobile ? 'Cita' : 'Nueva cita'}
           </button>
         </div>
       </div>
@@ -688,6 +697,23 @@ export default function AgendaCalendar() {
             </button>
           ))}
         </div>
+
+        {/* Lista de espera: en movil/tablet no hay sidebar, asi que este es su
+            unico punto de entrada (en la tab bar no cabe una sexta pestana). */}
+        <button
+          onClick={() => router.push('/(tabs)/lista-espera' as never)}
+          title="Lista de espera"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',
+            background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10,
+            cursor: 'pointer', fontSize: 12, fontWeight: 600, color: TOKENS.textSec, whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.color = TOKENS.primaryHi; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.color = TOKENS.textSec; }}
+        >
+          <Icon name="clock" size={14} color="currentColor" />
+          {isMobile ? 'Espera' : 'Lista de espera'}
+        </button>
 
         <div style={{ width: 1, height: 20, background: TOKENS.border, opacity: 0.5 }} />
 
@@ -5844,6 +5870,9 @@ function Pill({ children, color, soft }: any) {
 // 8.5: WeekView
 // =============================================
 function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, selectedDateObj, filterServicio, filterEstado, selectedProf, onSelectDay, onEditCita }: any) {
+  // En movil la rejilla de 7 columnas (~45px cada una a 375px) era ilegible:
+  // numeros recortados y citas truncadas a una letra. Pasamos a lista vertical.
+  const { isMobile } = useResponsive();
   const weekStart = useMemo(() => {
     const d = new Date(selectedDateObj);
     const day = d.getDay();
@@ -5890,14 +5919,14 @@ function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clie
         </h2>
         <span style={{ fontSize: 12.5, fontWeight: 600, color: TOKENS.textSec }}>{totalSemana} cita{totalSemana !== 1 ? 's' : ''} esta semana</span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(7, 1fr)', gap: 10, alignItems: 'start' }}>
         {days.map((d, i) => {
           const key = d.toDateString();
           const dayCitas = (citasByDay[key] || []).slice().sort((a: any, b: any) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
           const isToday = key === todayStr;
           const isWeekend = i >= 5;
           return (
-            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 6 : 8, minWidth: 0 }}>
               {/* Cabecera del dia: nombre legible + numero en circulo */}
               <button
                 onClick={() => onSelectDay(d)}
@@ -5923,10 +5952,12 @@ function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clie
                 }}>{d.getDate()}</span>
               </button>
 
-              {/* Cuerpo: lista de citas con profesional diferenciado */}
-              <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 7, minHeight: 220, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {/* Cuerpo: lista de citas con profesional diferenciado.
+                  En movil sin altura minima: un dia vacio es una linea, no un
+                  bloque de 220px. */}
+              <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 7, minHeight: isMobile ? 0 : 220, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {dayCitas.length === 0 ? (
-                  <div style={{ flex: 1, display: 'grid', placeItems: 'center', fontSize: 11, color: TOKENS.textTer }}>Sin citas</div>
+                  <div style={{ flex: 1, display: 'grid', placeItems: 'center', fontSize: 11, color: TOKENS.textTer, padding: isMobile ? '6px 0' : 0 }}>Sin citas</div>
                 ) : (
                   <>
                     {dayCitas.slice(0, 7).map((c: any) => {
