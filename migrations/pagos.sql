@@ -61,3 +61,61 @@ as $function$
   from public.servicios s
   where s.id = p_servicio_id;
 $function$;
+
+-- Requiere la senal de una reserva: calcula el total (sumando los servicios del
+-- encadenado si la cita pertenece a un grupo) y crea/actualiza un pago pendiente
+-- ligado a la cita cabecera del grupo. Idempotente. Devuelve el pago (o NULL si
+-- la reserva no requiere senal). Pensada para llamarse al confirmar la reserva.
+create or replace function public.requerir_senal_cita(p_cita_id uuid)
+returns public.pagos
+language plpgsql security definer set search_path to 'public'
+as $function$
+declare
+  v_cita public.citas;
+  v_cabecera uuid;
+  v_total int;
+  v_pago public.pagos;
+begin
+  select * into v_cita from public.citas where id = p_cita_id;
+  if not found then raise exception 'cita_not_found'; end if;
+
+  -- Solo el negocio dueño (o el service_role, sin auth.uid()) puede pedirla.
+  if auth.uid() is not null and v_cita.negocio_id is distinct from public.my_negocio_id_text() then
+    raise exception 'cross_tenant';
+  end if;
+
+  if v_cita.grupo_id is not null then
+    select coalesce(sum(public.importe_senal_servicio(c.servicio_id)), 0)
+      into v_total
+      from public.citas c where c.grupo_id = v_cita.grupo_id;
+    select id into v_cabecera from public.citas
+      where grupo_id = v_cita.grupo_id
+      order by orden_en_grupo nulls first, inicio limit 1;
+  else
+    v_total := public.importe_senal_servicio(v_cita.servicio_id);
+    v_cabecera := v_cita.id;
+  end if;
+
+  if coalesce(v_total, 0) <= 0 then
+    return null;
+  end if;
+
+  select * into v_pago from public.pagos
+    where cita_id = v_cabecera and tipo = 'senal' and estado = 'pendiente'
+    limit 1;
+
+  if found then
+    update public.pagos set importe_cents = v_total, updated_at = now()
+      where id = v_pago.id returning * into v_pago;
+  else
+    insert into public.pagos (negocio_id, cita_id, cliente_id, tipo, importe_cents, estado)
+    values (v_cita.negocio_id, v_cabecera, v_cita.cliente_id, 'senal', v_total, 'pendiente')
+    returning * into v_pago;
+  end if;
+
+  return v_pago;
+end;
+$function$;
+
+revoke all on function public.requerir_senal_cita(uuid) from public, anon;
+grant execute on function public.requerir_senal_cita(uuid) to authenticated;
