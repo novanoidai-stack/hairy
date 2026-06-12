@@ -1,0 +1,14 @@
+-- Migracion: la cuenta de demo compartida no gasta visitas
+-- Proyecto Supabase Mecha: vtrggiogjrhqtwbhbgia
+-- APLICADA en remoto el 12/06/2026 via MCP (apply_migration: demo_viewer_exento_de_visitas)
+--
+-- Problema: demo.publico@mecha.app (la cuenta del enlace compartible y de la
+-- sesion aislada del iframe de la demo) es plan free, asi que use_demo_visit()
+-- le aplicaba el limite de 3 visitas. Al agotarse, la demo mostraba "Has usado
+-- tus 3 visitas" para CUALQUIERA que entrase por esa via, y el flujo
+-- "Ver demo -> iniciar sesion" parecia roto (no llegabas nunca a la demo).
+--
+-- Arreglo: use_demo_visit() y demo_visits_status() devuelven allowed=true sin
+-- contador para ese email; ademas se resetea su demo_visits_used. El limite de
+-- 3 visitas sigue intacto para las cuentas free de los prospectos.
+-- (Cuerpos completos de las funciones en el historial remoto de migraciones.)

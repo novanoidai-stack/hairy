@@ -40,28 +40,37 @@ export default function LoginScreen() {
     if (!codigoPostal.trim()) { setError('Introduce el código postal'); return; }
     setLoading(true);
     setError('');
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // El perfil lo crea el trigger handle_new_user a partir de esta metadata,
+    // SIEMPRE en el tenant demo compartido (demo_salon_001) y plan free — igual
+    // que el alta de la web (signup-free). El negocio propio se asigna despues,
+    // cuando el equipo Mecha da el acceso completo (staff_grant_full_access).
+    // Antes este formulario insertaba el perfil a mano con un negocio_id propio:
+    // chocaba con el trigger y rompia la demo compartida.
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          nombre: `${nombre.trim()} ${apellido.trim()}`,
+          salon: nombreNegocio.trim(),
+        },
+      },
+    });
     if (error) { setError(error.message); setLoading(false); return; }
     if (data.user) {
-      const negocioId = `${nombreNegocio.toLowerCase().replace(/\s+/g, '_')}_${codigoPostal}`;
+      // Completa los campos que el trigger no conoce (best-effort: si el alta
+      // requiere confirmar el email aun no hay sesion y RLS lo impedira).
       try {
-        // Crear el perfil (negocio_id se genera automáticamente)
-        const { error: profileError } = await supabase.from('profiles').insert({
-          id: data.user.id,
-          email,
-          nombre: `${nombre} ${apellido}`,
-          apellido,
-          nombre_negocio: nombreNegocio,
-          codigo_postal: codigoPostal,
-          negocio_id: negocioId,
-          role: 'owner',
-        });
-        if (profileError) throw profileError;
-
-        setSuccess('Cuenta creada. Revisa tu email para confirmarla.');
-      } catch (err: any) {
-        setError(err.message || 'Error al crear la cuenta');
-      }
+        await supabase
+          .from('profiles')
+          .update({ apellido: apellido.trim(), codigo_postal: codigoPostal.trim() })
+          .eq('id', data.user.id);
+      } catch { /* sin sesion todavia: no pasa nada */ }
+      setSuccess(
+        data.session
+          ? 'Cuenta creada. Entrando…'
+          : 'Cuenta creada. Revisa tu email para confirmarla.',
+      );
     }
     setLoading(false);
   }

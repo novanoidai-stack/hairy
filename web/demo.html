@@ -385,7 +385,10 @@
     }
     frame.style.display='block';
     frame.addEventListener('load',function(){ localnote.style.display='none'; });
-    frame.src=APP_URL;
+    // ?demo=1: dentro del iframe la app usa una sesion AISLADA con la cuenta de
+    // demo compartida (ver lib/supabase.ts). Todo el mundo ve la MISMA demo,
+    // este o no logueado fuera, y su sesion personal no se toca.
+    frame.src=APP_URL+(APP_URL.indexOf('?')>=0?'&':'?')+'demo=1';
   }
 
   function enterDemo(remaining){
@@ -395,27 +398,18 @@
     startTour();
   }
 
-  /* ---------- sesion de demo compartida ---------- */
-  // Garantiza una sesion para cargar /app real. Si no la hay, entra con la cuenta
-  // de demo compartida; si fallara, cae a la maqueta del marco.
-  function ensureDemoSession(){
-    if(!api||!api.getSession){ maqueta=true; return Promise.resolve(); }
-    return api.getSession().then(function(s){
-      if(s) return;                         // ya hay sesion (p. ej. el equipo logueado)
-      if(!api.signInDemo){ maqueta=true; return; }
-      return api.signInDemo().then(function(r){ if(!r||r.error){ maqueta=true; } });
-    }).catch(function(){ maqueta=true; });
-  }
-
   /* ---------- arranque ---------- */
+  // La sesion de la demo la gestiona la PROPIA app dentro del iframe (?demo=1,
+  // sesion aislada con la cuenta demo compartida). Aqui ya no iniciamos sesion:
+  // antes, signInDemo() pisaba la sesion personal del visitante (mismo
+  // localStorage) y cada cuenta veia una demo distinta. Ese era el bug.
   function boot(){
     // Modo publico (enlace para compartir o vista previa): carga el SOFTWARE REAL
-    // sin que el visitante inicie sesion (usa la cuenta de demo compartida). El
-    // local y el enlace muestran lo mismo que produccion. No gasta visitas.
+    // sin que el visitante inicie sesion. No gasta visitas.
     if(preview || shareMode){
       revealShare();
       maqueta=false;
-      ensureDemoSession().then(function(){ enterDemo(null); });
+      enterDemo(null);
       return;
     }
 
@@ -617,6 +611,7 @@
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0b0a12" /><g transform="scale(2.5)"><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="#ff7a2e" /><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#ffd9a8" /></g></svg>
 </template>
 
+<script>window.MECHA_COOKIES_NO_FAB = true; /* el FAB tapaba la tab bar del software en movil */</script>
 <script src="assets/cookies.js"></script>
 </body>
 </html>

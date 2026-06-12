@@ -222,7 +222,11 @@
 
   function init() {
     injectStyles();
-    if (!fabEl) fabEl = buildFab();
+    // Paginas de "app a pantalla completa" (p. ej. demo.html) pueden desactivar
+    // el FAB flotante con window.MECHA_COOKIES_NO_FAB = true: en movil tapaba
+    // la pestana "Agenda" de la tab bar del software embebido. La configuracion
+    // de cookies sigue accesible desde la landing y cookies.html (MechaCookies.open).
+    if (!fabEl && !window.MECHA_COOKIES_NO_FAB) fabEl = buildFab();
     var c = readConsent();
     if (c) {
       analyticsOn = c.analytics;
