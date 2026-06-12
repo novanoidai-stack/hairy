@@ -1,0 +1,360 @@
+# 🔥 MEGA INFORME MECHA — La foto real, sin maquillaje
+
+> **Fecha:** 10 de junio de 2026
+> **Autores:** Carlos + Claude
+> **Sustituye a:** `INFORME_MAESTRO_MECHA.md` (8 jun) — quedó obsoleto en 48 horas: 9 de sus 14 tareas "pendientes" ya están hechas (§2).
+> **Método:** lectura directa del código a fecha de hoy + **pruebas en vivo** (demo real navegada en viewport móvil 375px) + **auditoría de la base de datos de producción** (advisors de Supabase + SQL directo). Donde se afirma algo, hay evidencia: archivo, línea, captura o consulta.
+> **Qué tiene este informe que no tenía el anterior:** auditoría de seguridad real (con 2 vulnerabilidades críticas encontradas **y ya corregidas hoy**, §4), auditoría móvil con evidencia visual (§5), contraste contra los documentos del socio (dossier de requisitos + módulos M-CJ y capa IA, §6), y la especificación exacta de la "base lista para Alexandro" (§7).
+
+---
+
+## 0. Cómo leer esto
+
+| Sección | Qué responde |
+|---|---|
+| §1 | ¿Dónde está Mecha HOY de verdad? (resumen ejecutivo) |
+| §2 | Lo que el informe del día 8 daba por pendiente y ya está hecho |
+| §3 | Lo que sigue faltando de verdad (gaps confirmados) |
+| §4 | Seguridad: lo que encontramos, lo que ya se corrigió, lo que queda |
+| §5 | Móvil: qué está roto exactamente, pantalla a pantalla |
+| §6 | Contraste contra los documentos del socio (¿cumplimos lo innegociable?) |
+| §7 | La base para Alexandro: qué existe, qué falta, contrato exacto |
+| §8 | Pagos: diseño propuesto (señal online + QR en el local) |
+| §9 | Riesgos que nadie está mirando (legal, SEO, abuso) |
+| §10 | Roadmap a producción, priorizado y con criterio |
+| §11 | Decisiones pendientes para Jose |
+
+---
+
+## 1. Resumen ejecutivo
+
+### 1.1 La frase
+Mecha ya **no tiene el "agujero nº1"** que diagnosticaba el informe anterior: el cliente final **ya puede reservarse solo** por el portal público, con QR, reseñas y lista de espera. El producto ha pasado en dos días de "gestión interna excelente, cara al cliente inexistente" a "gestión interna excelente, cara al cliente v1 funcional". Lo que separa a Mecha de producción ya no es funcionalidad de software: es **(a) dinero** (cero pasarela de pago, cero caja — el módulo con más spec del socio y 0% de código), **(b) el motor de mensajería/IA** (todo lo que envía algo al exterior), **(c) calidad móvil del software** (la web app se rompe en pantallas <768px en agenda e informes), y **(d) madurez operativa** (anti-abuso del portal público, fiscalidad, RGPD real).
+
+### 1.2 Estado por área (corregido a 10 de junio)
+
+| Área | Estado real | Nota |
+|---|---|---|
+| Agenda / reservas interno | **~95%** | Sin cambios; sigue siendo lo mejor del producto |
+| Clientes / CRM | **~95%** ⬆ | + bloqueo de clientes, etiquetas manuales, consentimientos RGPD, fidelización v1 |
+| Informes | **~80%** ⬆ | + gráficos de tendencia (C4 hecho) |
+| Configuración | **~90%** ⬆ | + sección Reserva online funcional con slug y QR |
+| **Portal de reserva pública** | **~75%** ⬆⬆ | ERA 0%. Hecho: flujo completo de 6 pasos, RPCs seguras, QR. Falta: anti-abuso, cancelar/modificar por el cliente, señal real (Stripe) |
+| Reseñas | **~70%** ⬆⬆ | ERA 0%. Captura pública + media en portal. Falta: moderación y disparo post-cita (motor) |
+| Lista de espera | **~60%** ⬆⬆ | ERA 0%. Tabla + gestión interna. Falta: matching automático de huecos y aviso WhatsApp (motor) |
+| **Pagos / caja** | **0%** | Sin cambios. Ni Stripe en package.json. El doc M-CJ del socio (14 págs) está 0% implementado |
+| Recordatorios / mensajería | **~15%** | UI de config lista; cero envío real. **Bloquea el valor de waitlist y reseñas** |
+| IA (voz + WhatsApp) | **~20% de base** | No es 0: las RPCs públicas son la mitad del contrato que necesita Alexandro (§7) |
+| Responsive móvil del software | **~55%** | Clientes/Ajustes bien; Agenda/Informes rotos en <768px (§5) |
+| Seguridad | **Hoy: sólida** | 2 críticas encontradas y corregidas hoy (§4). Quedan medias |
+
+### 1.3 Las tres verdades incómodas
+
+1. **El software cobra protagonismo que la caja no respalda.** La landing promete "cobra el depósito por Stripe" y el portal dice "te indicaremos cómo abonar la señal"… y no existe ni una línea de integración de pago. El módulo de caja es además el de mayor responsabilidad fiscal (VeriFactu, tickets inmutables) según el propio socio. Es el gap más caro de cerrar y nadie lo tiene asignado con fecha.
+2. **Hasta hoy, cualquier persona del mundo podía vaciar dos tablas de la base de datos de producción sin login** (§4.1). Está corregido, pero la lección es: cada migración nueva necesita pasar el linter de Supabase antes de mergear. La velocidad de estos días (9 features en 2 días) es admirable y peligrosa a la vez.
+3. **El producto de verdad es la web y la web se rompe en el móvil justo donde más duele**: la agenda (la pantalla que el peluquero mira 50 veces al día) y los informes (la pantalla que el dueño enseña). Booksy y Fresha son mobile-first; nuestra primera impresión en un móvil es una cabecera con iconos montados encima del título (§5.2).
+
+---
+
+## 2. Corrección al informe del día 8 (qué se hizo ya)
+
+El informe maestro asignaba a Carlos 14 tareas (C1–C14). Estado real hoy, verificado en git y código:
+
+| Tarea | Informe día 8 | Realidad 10 jun | Evidencia |
+|---|---|---|---|
+| C1 Reserva online pública ⭐ | "pendiente, L (8–12 d)" | ✅ **HECHA** | `app/r/[slug].web.tsx` (595 líneas), `migrations/portal-reserva-publica.sql`, commit `1a677a9` |
+| C2 Lista de espera | pendiente | ✅ HECHA (v1 interna) | `app/(tabs)/lista-espera.web.tsx`, `migrations/lista-espera.sql`, commit `1057d46` |
+| C3 Reseñas | pendiente | ✅ HECHA (captura + media en portal) | `app/resena/[slug].web.tsx`, `migrations/resenas.sql`, commits `95d142e`, `d02e9a7` |
+| C4 Gráficos de tendencia | pendiente | ✅ HECHA | commit `d02e9a7` |
+| C5 Bloquear clientes | pendiente | ✅ HECHA | `migrations/bloquear-clientes.sql`, commit `cf23d3a` |
+| C6 Etiquetas manuales | pendiente | ✅ HECHA | `migrations/etiquetas-clientes.sql`, commit `d02e9a7` |
+| C7 Consentimientos RGPD | pendiente | ✅ HECHA | commit `a495cf6` |
+| C10 QR del portal | pendiente | ✅ HECHA | en `configuracion.web.tsx` (sección Reserva online), commit `1057d46` |
+| C11 Fidelización (tarjeta) | pendiente | ✅ HECHA (v1) | commit `a495cf6` |
+| C8 Buffer entre citas | pendiente | ❌ pendiente | — |
+| C9 Recursos / salas | pendiente | ❌ pendiente | — |
+| C12 Multi-location UI | pendiente | ❌ pendiente | — |
+| C13 Paridad web↔nativo | continuo | ❌ pendiente (y ha crecido: las 4 pantallas nuevas no tienen versión nativa real) | `app/r/[slug].tsx` = 19 líneas stub |
+| C14 Consolidar design tokens | pendiente | ❌ pendiente (y ha crecido: `app/r/[slug].web.tsx:12` redefine `const T = {...}` otra vez) | — |
+
+**Lección operativa:** los informes estáticos caducan en días. Este informe incluye método (linter de seguridad, prueba móvil) para re-auditar en 30 minutos, no solo conclusiones.
+
+---
+
+## 3. Gaps reales confirmados hoy
+
+**Dinero (el bloque entero):**
+- Stripe / pasarela ❌ (no está ni en `package.json`)
+- Caja M-CJ completa ❌: ticket fiscal correlativo, cuenta familiar, tickets pendientes, pago dividido, propinas, cierre de caja — **0% del doc del socio de 14 páginas**. Nota: las tablas `grupos_familiares` y `grupo_familiar_miembros` **ya existen en la BD** con RLS — alguien empezó el modelo y no hay UI.
+- Cobro de señal en el portal ❌: `crear_cita_publica` deja la cita `pendiente` con `deposito_requerido=true`… y ahí muere el flujo. No hay webhook ni enlace de pago (§8).
+
+**Motor de mensajería (bloquea 3 features ya construidas):**
+- Recordatorios reales ❌, aviso automático de waitlist ❌, petición de reseña post-cita ❌, confirmación de reserva por WhatsApp/email ❌. La cita del portal se crea y **el cliente no recibe nada** (solo pantalla de confirmación).
+
+**Portal público (v1 entregada, v1.5 necesaria):**
+- Anti-abuso ❌: sin captcha, sin límite por teléfono/IP. Cualquiera puede llenar la agenda entera de un salón con reservas falsas en un bucle de 200 llamadas a la RPC (§9.3).
+- Cancelar/modificar cita por el cliente ❌ (el dossier lo marca como criterio de lanzamiento: "cancelar o modificar sin llamar al salón").
+- Auto-apuntarse a lista de espera desde el portal cuando no hay huecos ❌ (hoy la lista es solo interna).
+- Zona horaria hardcodeada `Europe/Madrid` (`portal-reserva-publica.sql:120`) — ok v1, recordar al escalar.
+
+**Operativa:**
+- Buffer configurable ❌ · Recursos/salas ❌ · Multi-location UI ❌ (BD preparada).
+- Vista mes móvil y semana móvil rotas (§5).
+
+**IA (de Alexandro, pero con deuda de base nuestra — §7):**
+- Identificar cliente por teléfono (RPC) ❌ · modificar/cancelar cita vía API ❌ · canal parametrizable (hoy `'web'` fijo) ❌ · autoría IA en historial ❌ · credencial de servicio para n8n (no anon) ❌.
+
+---
+
+## 4. Seguridad — auditoría de la BD de producción (10 jun)
+
+### 4.1 Críticas — encontradas y **CORREGIDAS HOY** ✅
+
+Aplicado en remoto (migración `security_hardening_exec_sql_addons`) y versionado en `migrations/security-hardening-exec-sql-addons.sql`:
+
+1. **`public.exec_sql(text)` — puerta trasera de SQL arbitrario.** Función de desarrollo (`BEGIN EXECUTE sql; END;`) ejecutable por `anon` vía `/rest/v1/rpc/exec_sql`. Cualquiera con la anon key (que está en el JS público de la web) podía ejecutar SQL contra producción. Solo la usaba un script del snapshot viejo (`project/uploads/`). **Eliminada.** Verificado: ahora devuelve 404.
+2. **`cita_addons` y `service_addons` abiertas al mundo.** El rol `anon` tenía TODOS los privilegios (incluido `TRUNCATE`) y la única política era `USING (true)`: lectura/escritura/borrado **cross-tenant sin login**. **Corregido**: revocado todo a `anon`, revocado `TRUNCATE/REFERENCES/TRIGGER` a `authenticated`, y políticas sustituidas por el patrón multi-tenant del proyecto (`negocio_id` del perfil). Verificado: anon → 401; la app y el portal siguen funcionando (probado en vivo).
+
+### 4.2 Medias — pendientes (orden de ataque recomendado)
+
+3. **Bucket `cliente-fotos` público y listable.** Las fotos antes/después de clientas de TODOS los salones se pueden listar y ver sin login. Es dato personal (RGPD) y la landing promete "alojada cifrada bajo RGPD". → Pasar el bucket a privado + signed URLs (toca `FotosClienteSection`; medio día).
+4. **`Documentacion/` no está en `.gitignore`** y contiene `client_secret_*.json` de Google OAuth y un service account JSON de GCP (`Documentacion/n8n/`). Hoy está untracked, pero un `git add .` descuidado los publica. → Añadir `Documentacion/` a `.gitignore` ya, y **rotar esas credenciales** (llevan meses en un portátil; el service account da acceso a GCP).
+5. **Leaked password protection desactivada** en Supabase Auth (un clic en el dashboard).
+6. **`staff_set_demo_visits` ejecutable por `anon`** — defiende dentro con `is_staff()`, pero el grant sobra (revocar a anon).
+7. **Funciones con `search_path` mutable**: `set_updated_at`, `my_negocio_id`, `generar_negocio_id`, `demo_visit_limit` → añadir `set search_path = public` (las nuevas del portal ya lo hacen bien).
+
+### 4.3 Buenas noticias verificadas
+- **Las 31 tablas tienen RLS activado.** El patrón multi-tenant por `negocio_id` es consistente.
+- El portal público **no** expone SELECT directo: todo pasa por funciones `security definer` con validación de slug + `portal_activo` — diseño correcto.
+- `.env` y `web/app/` correctamente ignorados en git.
+
+---
+
+## 5. Móvil — qué está roto exactamente (probado en vivo, viewport 375×812)
+
+Método: demo real navegada con la cuenta `demo.publico` en un viewport de iPhone. No es opinión: son capturas.
+
+### 5.1 Landing (`web/index.html`) — **mejor de lo que crees**
+- Hero, nav con hamburguesa, badges, tabla comparativa y demo-gate **se adaptan bien** a 375px. El trabajo del commit `e73e79e` (tap targets) se nota.
+- Pendiente menor: `.diff-vis` y `.integ-box` desbordan ~11px (6 elementos); cabecera con cookie-banner ocupa media pantalla en la primera visita.
+- Veredicto: **pulido fino, no reconstrucción.**
+
+### 5.2 Software (web app) — **aquí está lo "pésimo", concentrado en 4 puntos**
+
+| # | Pantalla | Qué pasa en <768px | Gravedad |
+|---|---|---|---|
+| M1 | **Agenda (cabecera)** | La campana de notificaciones se pinta **encima** del título ("Ag🔔nd"); "Cerrar salón" y "Nueva cita" parten en 2 líneas y se amontonan | 🔴 Primera impresión rota |
+| M2 | **Agenda (vista semana)** | Chips de día recortados (el badge naranja tapa el número), títulos de cita truncados a 1 letra ("11:00 A"), columnas ilegibles | 🔴 Inutilizable |
+| M3 | **Informes** | La cuadrícula de KPIs mantiene 2 columnas fijas: la columna derecha queda **cortada por el borde** (Ingresos, No-shows, Reposo… medio fuera de pantalla) con scroll horizontal | 🔴 La pantalla "de enseñar" no se puede enseñar |
+| M4 | **Tab bar inferior** | El logo flotante de marca se superpone a la pestaña "Agenda": ilegible y medio intapable | 🟠 |
+| M5 | Buscador de clientes | El placeholder choca con el contador "5 resultados" dentro del input | 🟡 |
+| M6 | Agenda (vista día) | 2 columnas de profesional visibles de 3, sin indicador de scroll horizontal | 🟡 |
+
+- **Clientes y Ajustes están BIEN en móvil** — la lista, filtros y menú funcionan. El patrón responsive existe (`useResponsive`, 28–32 usos por pantalla); el problema es que la cabecera de agenda, la grilla semana y la grilla de KPIs no lo aplican.
+- `lista-espera.web.tsx` tiene **0 usos** de `isMobile` — nueva pantalla nacida sin responsive: el patrón de deuda se repite si no se corta.
+- **Portal de reserva** (`app/r/[slug].web.tsx`): mobile-first de verdad (max-width 600, columnas fluidas). Es la pantalla que abrirán desde el QR y está bien. ✅
+
+### 5.3 Estimación de arreglo
+M1+M4: 1 día. M3: 1 día (colapsar KPIs a 1 columna con `isMobile`, ya hay hook). M2: 2–3 días (la semana móvil merece su propio layout: lista vertical por día, no grilla comprimida). M5+M6: horas. **Total: ~1 semana para que el software sea presentable en móvil.**
+
+---
+
+## 6. Contraste contra los documentos del socio
+
+Fuente: `Documentacion/dossier_requisitos_innegociables.html` + docs modulares 5 (caja) y 6 (capa IA).
+
+### 6.1 Los 6 bloques innegociables del dossier
+
+| Bloque | Estado | Detalle |
+|---|---|---|
+| 1. Agenda inteligente multi-profesional | 🟢 ~95% | Fases activa/reposo, paralelos, anti doble-reserva: hecho y mejor que la spec. Falta: duración por profesional (la tabla `duraciones_profesional` existe en BD — ¿hay UI?) |
+| 2. Ficha de cliente con historial real | 🟢 ~95% | Ficha técnica color, alergias, fotos, notas: hecho. Falta: alertas de cumpleaños |
+| 3. Sistema anti no-show | 🟡 ~40% | Política y UI de config: sí. Recordatorios reales: NO. Depósito real: NO. La lista de espera (parte del bloque según el dossier): v1 sin aviso automático. **El bloque de mayor ROI según el socio está a medias** |
+| 4. Reserva omnicanal sin fricción | 🟡 ~50% | Online directa sin login: ✅ (cumple "menos de 3 pasos"… son 5 pasos, revisar). WhatsApp/IA: ❌ (Alexandro). Instagram: ❌. Confirmación inmediata por canal del cliente: ❌ (no se envía nada) |
+| 5. Equipo y rentabilidad | 🟢 ~85% | Roles, turnos, comisiones, métricas: hecho |
+| 6. Informes operativos | 🟢 ~80% | Real y profundo + tendencias. El dossier pide "visual, no Excel": cumplido |
+
+### 6.2 Criterios de "suficiente para lanzar" del dossier (los 8)
+
+| Criterio | ¿Hoy? |
+|---|---|
+| Profesional: crear cita en <30s | ✅ |
+| Profesional: agenda del día de un vistazo | ✅ (en desktop; en móvil M1/M2) |
+| Profesional: historial de cliente en <3 clics | ✅ |
+| Profesional: facturación de la semana sin cálculo manual | ✅ |
+| Profesional: disponibilidad confiable | ✅ |
+| Cliente: reservar sin cuenta al primer intento | ✅ (desde el 8 jun) |
+| Cliente: confirmación inmediata por su canal habitual | ❌ (motor de envío) |
+| Cliente: cancelar/modificar sin llamar | ❌ |
+| Cliente: recordatorio sin pedirlo | ❌ |
+
+**Traducción: 6 de 9. Los 3 que faltan dependen del motor de mensajería + 1 RPC nuestra (cancelar). Eso ES el lanzamiento.**
+
+### 6.3 Lo que el socio dice que NO hagamos aún (y vamos bien)
+Inventario, app nativa del cliente final, contabilidad, marketplace: ninguno empezado. ✅ Disciplina correcta. (Ojo: C13 "paridad nativa" debe leerse con esta lente — el dossier pide web/PWA primero para el cliente; la app nativa es para el equipo del salón.)
+
+---
+
+## 7. La base para Alexandro (n8n + Retell) — contrato exacto
+
+El doc modular 6 define qué debe poder hacer el agente. Mapeo contra lo que existe:
+
+### 7.1 Lo que YA puede usar n8n/Retell hoy (sin tocar nada)
+- `portal_info(slug)` → catálogo de servicios + profesionales. ✅
+- `disponibilidad_publica(slug, servicio, fecha, [profesional])` → huecos reales. ✅ **Esto es oro: la lógica de disponibilidad ya está encapsulada en el servidor.**
+- `crear_cita_publica(...)` → crea cita validando solapes/horario/antelación. ✅
+- `resenas_publicas(slug)` → media de valoraciones. ✅
+
+### 7.2 Lo que FALTA para cumplir el doc 6 (trabajo nuestro, no de Alexandro)
+
+| # | Pieza | Para qué capacidad del doc 6 | Esfuerzo |
+|---|---|---|---|
+| A1 | RPC `identificar_cliente(slug, telefono)` → nombre, profesional habitual, última visita (datos mínimos, RN-IA-006) | "Hola María, ¿tu corte con Lucía?" (RN-IA-010/011) | S (1 d) |
+| A2 | RPC `citas_de_cliente(slug, telefono)` + `cancelar_cita_publica` + `modificar_cita_publica` (aplicando política de cancelación) | Modificación/cancelación (crítticas en MVP) — **y la web la necesita igual** (§6.2) | M (2–3 d) |
+| A3 | Parámetro `p_canal` en `crear_cita_publica` (`whatsapp` / `agente_voz` / `asistente_ia` — los valores ya existen en `CITA_CANAL`) + `p_autor` para el historial (RN-IA-003: autoría IA visible) | Trazabilidad de qué hizo la IA | S (medio día) |
+| A4 | **Credencial de servicio**: los agentes NO deben usar la anon key. Crear un rol/clave `service_agent` (o edge function proxy con API key) con rate limit | Seguridad del canal IA | M (1–2 d, decidir con Alexandro) |
+| A5 | Tabla `conversaciones_ia` (canal, telefono, resumen, cita_id, timestamps) | RN-IA-007 (RGPD) + el panel "qué hizo la IA" | S–M (1–2 d) |
+| A6 | Webhook saliente al crearse/cancelarse cita (Database Webhooks de Supabase → n8n) | Dispara confirmaciones, avisos de waitlist, petición de reseña — **una sola pieza alimenta 3 features** | S (1 d) |
+
+**Con A1–A6 (≈1 semana), Alexandro conecta n8n/Retell sin pedirnos nada más.** Sin A4 y A6, su trabajo nace cojo: lo digo porque el objetivo era "que él solo tenga que conectar".
+
+### 7.3 Lista de espera v2 (el flujo completo que pediste)
+1. Cancelación de cita → trigger → busca en `lista_espera` candidatos compatibles (servicio, profesional, franja, rango de fechas) ordenados por `prioridad, created_at` → marca `avisado` + `avisado_at`. **[Carlos: función SQL de matching, 1–2 d]**
+2. Webhook (A6) → n8n → WhatsApp al cliente con enlace directo al hueco en el portal (`/r/slug?slot=...`, pre-seleccionado). **[Alexandro + Carlos el deep-link: 1 d]**
+3. Notificación in-app a recepción ("hueco del jueves ofrecido a María"). **[Carlos, 1 d]**
+4. Si el cliente no responde en X min (config), pasa al siguiente. **[n8n]**
+El modelo de datos ya soporta todo esto (estados `esperando/avisado/resuelta/cancelada` ya existen en `migrations/lista-espera.sql`).
+
+---
+
+## 8. Pagos — diseño propuesto (decisión para Jose, ejecución Alexandro, UI Carlos)
+
+Lo que pediste: pagar desde la web y desde el local con QR, sincronizado. Propuesta concreta para discutir:
+
+### Fase P1 — Señal anti no-show (2 semanas de Alexandro, desbloquea la promesa de la landing)
+- Stripe Checkout (no Elements: menos PCI, más rápido): `crear_cita_publica` con `deposito_requerido` → edge function crea sesión de Checkout → redirect → **webhook `checkout.session.completed`** marca `deposito_pagado=true` y `estado='confirmada'`. El campo y los estados **ya existen** en la tabla `citas`.
+- Si no paga en 15 min, la cita `pendiente` expira y libera el hueco (cron de Supabase).
+- UI Carlos: paso de pago en el portal + badge "señal pagada" en agenda y ficha.
+
+### Fase P2 — Cobro en el local con QR (1 semana sobre P1)
+- Al marcar cita `completada` → botón "Cobrar" → genera **ticket interno + enlace de pago Stripe** → se muestra **QR en pantalla** (el cliente lo escanea y paga en su móvil) o se envía por WhatsApp. El prepago de P1 se descuenta automáticamente (regla RN-CJ-010 del doc del socio).
+- Sin TPV físico en v1 (decisión: ¿Stripe Terminal después?).
+
+### Fase P3 — Caja M-CJ completa (el doc de 14 páginas: VeriFactu, numeración correlativa, cuenta familiar, pendientes, propinas, cierre)
+- **No improvisar esto.** Requiere fiscalista (lo dice el propio doc) y es un proyecto de 4–6 semanas. Las tablas `grupos_familiares` ya existen — retomarlas aquí.
+- ⚠️ Hasta P3, **no afirmar "ticket fiscal"** en ningún sitio: un ticket no fiscal emitido como fiscal es problema con Hacienda, no un bug.
+
+---
+
+## 9. Riesgos que nadie está mirando
+
+1. **SEO con reseñas inventadas (riesgo de penalización real).** `web/index.html:73-143` lleva structured data `Product` con `aggregateRating: 4.9, reviewCount: 124` y dos `Review` con autores ficticios. Google penaliza el rich-snippet abuse y puede degradar TODO el dominio. Además es publicidad engañosa (consumidores). → Quitar el bloque `aggregateRating/review` YA; dejar FAQ/SoftwareApplication. Cuando haya reseñas reales del producto (no del salón), volver a ponerlas. [Carlos, 10 min]
+2. **Marketing por delante del producto.** La landing afirma en indicativo: "cobra el depósito por Stripe", "IA atiende por WhatsApp 24/7", "no-shows al 1,2%". Para la demo comercial vale; para cobrar a un salón real es incumplimiento. → Política: cada claim en indicativo debe estar en producción o pasarse a "(muy pronto)". Revisión de copy 1 h.
+3. **Abuso del portal público.** `crear_cita_publica` no tiene captcha ni límites. Un competidor malicioso llena la agenda de un salón en 1 minuto. → v1.5: límite por teléfono (máx. 2 citas activas), límite por IP en edge function proxy, Cloudflare Turnstile en el paso 5. [Carlos+Alexandro, 2 d]
+4. **RGPD operativo.** Hay consentimientos (C7 ✅), pero: bucket de fotos público (§4.2-3), sin proceso de borrado/exportación de datos del cliente final, y las conversaciones IA futuras necesitan A5. La landing promete "derecho al olvido en 30 días" — hoy no hay botón que lo ejecute.
+5. **Bus factor = 1.** Todo el código vivo lo ha escrito una persona en 3 semanas. Sin tests (0 archivos de test en el repo), sin CI. Mínimo: GitHub Actions con typecheck + lint + linter de Supabase en cada PR. [1 d]
+6. **La cuenta demo compartida** escribe en un tenant compartido (`demo_block_*` solo bloquea DELETE/UPDATE en algunas tablas). Dos visitantes simultáneos se ven las citas de prueba el uno al otro. Aceptable como decisión, pero documentarla; y el contador "3 visitas" castiga al prospecto que vuelve (¿de verdad queremos eso? — decisión para Jose).
+
+---
+
+## 10. Roadmap a producción (priorizado, con dueño)
+
+### Sprint 1 — "Presentable y seguro" (esta semana, Carlos)
+1. ~~Seguridad crítica BD~~ ✅ **hecho hoy** (exec_sql + addons).
+2. Móvil M1–M6 del software (§5.3) — ~1 semana. **El mayor ROI visual disponible.**
+3. Quitar reseñas falsas del structured data + revisión de claims (§9.1, §9.2) — 1 h.
+4. `.gitignore` Documentacion/ + rotar credenciales Google (§4.2-4) — 1 h.
+5. Bucket fotos a privado + signed URLs (§4.2-3) — medio día.
+
+### Sprint 2 — "Base IA + cerrar el círculo del cliente" (semana 2, Carlos; desbloquea a Alexandro)
+6. A1–A6 del contrato IA (§7.2) — RPCs de identificar/cancelar/modificar, canal+autoría, webhook saliente, tabla conversaciones. ~1 semana.
+7. Cancelar/modificar cita desde el portal (reusa A2) — cumple el criterio del dossier.
+8. Matching de lista de espera (§7.3.1) + notificación in-app.
+
+### Sprint 3 — "Dinero" (semanas 3–4, Alexandro con UI de Carlos)
+9. Stripe P1 (señal) → 10. P2 (QR en local).
+11. En paralelo Carlos: anti-abuso del portal (§9.3), C8 buffer, alertas de cumpleaños (gap del dossier barato).
+
+### Sprint 4 — "Escala" (mes 2)
+12. Motor de recordatorios completo (Alexandro, la UI fase 4 ya existe) → activa los 3 criterios de lanzamiento restantes del dossier.
+13. Caja M-CJ con fiscalista (P3). 14. Multi-location UI (C12). 15. CI + tests de las RPCs públicas (las funciones SQL son perfectamente testeables).
+
+### Qué NO hacer (disciplina del dossier)
+Inventario · app nativa del cliente final · marketplace · precios dinámicos · contabilidad. Y **no más features nuevas de cara al cliente hasta cerrar Sprint 1**: cada pantalla nueva sin responsive ni linter añade deuda de la que ya hemos pagado intereses hoy.
+
+---
+
+## 11. Decisiones pendientes para Jose
+
+1. **¿Señal obligatoria en v1 del portal?** Recomendación: opcional por servicio (ya modelado así: `prepago_requerido` por servicio), activar tras P1.
+2. **Pricing.** El structured data de la landing dice 0€/49€ — ¿es oficial? Definirlo antes de P1 (afecta a qué cobra Stripe).
+3. **Demo: ¿mantener el límite de 3 visitas?** Castiga al prospecto interesado que vuelve. Alternativa: ilimitada con marca de agua "DEMO" + datos que se resetean cada noche.
+4. **Caja fiscal: ¿cuándo contratamos la revisión del fiscalista?** P3 no puede empezar sin ella (lo dice el doc del socio).
+5. **¿Quién aprueba los claims de la landing?** Proponer la regla del §9.2.
+6. **Marketplace sí/no** — sigue abierta del informe anterior; no urge, pero condiciona el dominio público y el SEO local por salón (los portales `/r/slug` son indexables: ¿queremos eso ya?).
+
+---
+
+## Anexo A — Evidencia de la auditoría de hoy
+
+- **BD producción:** advisors de Supabase (security) + consultas a `pg_policies`, `information_schema.table_privileges`, `pg_proc` — 10 jun 2026. Resultados clave en §4. Migración correctiva aplicada y verificada (portal_info 200 / exec_sql 404 / service_addons anon 401).
+- **Móvil:** demo navegada en vivo (viewport 375×812, cuenta demo.publico) — agenda día/semana, clientes, informes, ajustes, login, landing, demo-gate. Hallazgos M1–M6 en §5.
+- **Documentos del socio:** dossier innegociables (HTML), doc modular 5 caja (PDF 14 págs), doc modular 6 capa IA (PDF 17 págs) — leídos íntegros; mapeo en §6–§8.
+- **Código:** árbol completo de `app/`, `web/`, `lib/`, `migrations/`, `supabase/functions/` + git log hasta `a495cf6` (9 jun).
+
+## Anexo B — Mapa de archivos nuevos desde el informe anterior
+
+- Portal: `app/r/[slug].web.tsx` · `lib/reservaPublica.ts` · `migrations/portal-reserva-publica.sql`
+- Reseñas: `app/resena/[slug].web.tsx` · `migrations/resenas.sql`
+- Lista de espera: `app/(tabs)/lista-espera.web.tsx` · `migrations/lista-espera.sql`
+- CRM: `migrations/bloquear-clientes.sql` · `migrations/etiquetas-clientes.sql`
+- Seguridad: `migrations/security-hardening-exec-sql-addons.sql` (hoy)
+
+---
+
+*Informe generado el 10 de junio de 2026 a partir de código, base de datos y pruebas en vivo. Caduca: re-auditar con el método del Anexo A tras cada sprint.*
+
+---
+
+## ADENDO — Sesión de arreglos del 10 de junio (tarde)
+
+Tras el informe, se ejecutó la primera tanda de correcciones. Estado:
+
+### A. Bug de la demo compartida — ARREGLADO ✅
+**Síntoma:** cada cuenta veía una demo distinta. **Causas reales (3):**
+1. El registro DENTRO de la app (`app/login.tsx`) creaba a cada cuenta su propio `negocio_id` (`nombre_codigopostal`), saltándose el diseño de tenant demo compartido — así nacieron las cuentas de prueba `prueba_46980`, `nose_03801`, `fewf_02801`. Además chocaba con el trigger `handle_new_user` (clave duplicada). → Ahora el registro pasa la metadata y el trigger crea SIEMPRE el perfil en `demo_salon_001` (igual que la web).
+2. `demo.html` reutilizaba la sesión personal si existía (el iframe mostraba TU negocio, no la demo).
+3. En modo compartir, `signInDemo()` PISABA la sesión personal del visitante (mismo localStorage).
+
+**Diseño nuevo:** el iframe de la demo carga `/app?demo=1`; dentro, la app usa una **sesión aislada** (`storageKey: 'mecha-demo-auth'`, `lib/supabase.ts`) y entra sola con la cuenta demo compartida. Todo el mundo ve la misma demo, esté o no logueado, y su sesión personal no se toca. Abrir `/app?demo=1` directamente (sin iframe) NO activa el modo demo.
+
+### B. Landing — ARREGLADO ✅
+- Eliminada la sección "Cómo funciona la tecnología que revoluciona tu salón" (bloque GEO de ~60 líneas con cita y estadísticas inventadas).
+- Eliminado el `aggregateRating`/`review` falso del JSON-LD (riesgo de penalización Google). Verificado: los 4 bloques JSON-LD restantes parsean OK.
+- **Scroll bloqueado en móvil:** el chat del teléfono 3D (`.wa-body`, `overflow-y:auto` + `overscroll-behavior:contain`) atrapaba el dedo. Ahora en CUALQUIER pantalla táctil (`@media (hover:none),(pointer:coarse)`) el teléfono es solo animación: sin pointer-events y chat sin scroll táctil.
+- El FAB de cookies tapaba la pestaña "Agenda" de la tab bar en la demo móvil → desactivado en `demo.html` (`MECHA_COOKIES_NO_FAB`).
+
+### C. Software móvil (M1–M6) — ARREGLADO ✅ (pendiente del deploy)
+- M1 cabecera agenda: fila compacta; fecha larga y pills solo en escritorio; botones que no parten en 2 líneas ("Cita", iconos para Hoy/Cerrar).
+- M2 vista semana: lista vertical en móvil (antes 7 columnas de ~45px ilegibles); días vacíos = una línea, no un bloque de 220px.
+- M3 informes: el código fuente ya era responsive — lo roto era el BUILD VIEJO desplegado (anterior a los commits del día 9). Recompilado.
+- M4 = FAB cookies (ver B). M5 buscador clientes: contador fuera del input en móvil. M6: el paneo horizontal nativo de columnas funciona; se deja.
+- NUEVO: la **lista de espera era inalcanzable en móvil** (solo vivía en el sidebar de escritorio) → botón en la barra de filtros de la agenda.
+
+### D. Verificación C1–C11 — hecho, con arreglos
+- Portal (C1) ✅ · Reseñas (C3) ✅ · Bloqueo en servidor con mensaje neutro (C5) ✅ · Etiquetas/consentimientos/fidelización ✅.
+- QR (C10): prefijo mostrado corregido (`/app/r/`, antes omitía `/app`) y añadido botón **Descargar QR** (reserva y valoración).
+- **Cómo funciona el QR:** Ajustes → Reserva online → eliges tu enlace (slug) → se genera en local (librería `qrcode-generator`, SVG, sin servicios externos) apuntando a `https://tudominio/app/r/<slug>`; botones Copiar / Abrir / Descargar. Segundo QR para `/app/resena/<slug>` (valoraciones).
+
+### E. Seguridad ronda 2 — APLICADA EN PRODUCCIÓN ✅
+(migraciones `security_round2_antiabuso_portal` y `cliente_fotos_bucket_privado`)
+- **Anti-abuso de reservas anónimas:** máx. 3 citas futuras activas por teléfono; máx. 30 reservas web/hora por negocio; validación de longitudes. Verificado en vivo.
+- **Anti-spam de reseñas:** máx. 3/día por IP y 30/día por negocio (vía `request_ip()`, no invocable desde fuera); comentario ≤1000.
+- **Bucket `cliente-fotos` PRIVADO** + políticas por carpeta de negocio. Antes: cualquiera podía VER las fotos de clientas de todos los salones, y cualquier autenticado podía BORRAR las de otros salones. La app ahora pinta con URLs firmadas (1 h).
+- `staff_set_demo_visits` revocada a anon; `search_path` fijado en las 4 funciones que lo tenían mutable.
+- **Pendiente manual (1 clic, dashboard):** Auth → activar "Leaked password protection".
+
+
+### F. Segunda pasada (12 jun, tarde) — flujo de demo + móvil profundo ✅
+- **"Ver demo → login → me devuelve fuera":** la cuenta demo compartida agotaba sus 3 visitas y bloqueaba la demo para todos. `demo.publico@mecha.app` queda exenta del contador (migración `demo_viewer_exento_de_visitas`); el límite de 3 visitas sigue para los prospectos. Flujo verificado: login → demo con tutorial, "Demo activa".
+- **Móvil, pantalla por pantalla (verificado en build):** Horarios (el título se aplastaba a una palabra por línea y las horas se salían — ahora apila), Servicios (los NOMBRES de los servicios eran invisibles, columna a ancho 0 — ahora dos líneas por servicio), Comisiones (tabla con nombres legibles, columna Rol oculta en móvil), Informes (CSV/«Descargar PDF» quedaban cortados fuera — ahora envuelven), átomo `Section` (cabeceras con action ancha ya no aplastan el título — arregla todas las secciones de Ajustes de golpe), StatBox/bloqueos a rejillas auto-fit. Verificados también en móvil: agenda día/semana, nueva cita (bottom sheet), ficha de cliente, equipo, lista de espera (accesible vía botón "Espera"), portal y QR con su "Descargar QR".
