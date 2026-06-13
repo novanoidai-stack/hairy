@@ -196,6 +196,38 @@
 .gap-cap{margin-top:8px;font-size:12.5px;color:var(--text-sec);display:flex;align-items:center;gap:8px}
 .gap-cap b{color:var(--success-hi)}
 
+/* mini-agenda (tiempos muertos) — columna vertical estilo software, sin overflow en movil */
+.am{display:flex;flex-direction:column;gap:13px}
+.am-head{font-size:11.5px;color:var(--text-ter);font-weight:600;letter-spacing:.04em;display:flex;align-items:center;gap:7px}
+.am-dot{width:8px;height:8px;border-radius:50%;background:#fbbf24;flex-shrink:0}
+.am-col{display:flex;flex-direction:column;gap:7px}
+.am-appt{border-radius:10px;padding:11px 13px;border:1px solid var(--border);border-left:3px solid var(--border-hi);min-width:0}
+.am-appt.active{background:linear-gradient(180deg,rgba(244,80,30,.15),rgba(244,80,30,.07));border-color:rgba(244,80,30,.28);border-left-color:var(--accent)}
+.am-appt.rest{background:repeating-linear-gradient(45deg,rgba(245,158,11,.10),rgba(245,158,11,.10) 8px,transparent 8px,transparent 16px);border:1px dashed rgba(245,158,11,.45);border-left:3px solid #f59e0b}
+.am-t{font-size:11px;color:var(--text-ter);font-weight:600}
+.am-n{font-size:14.5px;font-weight:700;color:var(--text);margin-top:2px;line-height:1.2}
+.am-s{font-size:12px;color:var(--text-sec);margin-top:1px}
+.am-fit{display:flex;align-items:center;gap:10px;margin-top:9px;padding:9px 11px;border-radius:9px;
+  background:linear-gradient(180deg,rgba(16,185,129,.22),rgba(16,185,129,.1));border:1px solid rgba(16,185,129,.45)}
+.am-fit-plus{width:24px;height:24px;border-radius:50%;background:var(--success);color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px;flex-shrink:0}
+.am-fit-n{font-size:13px;font-weight:700;color:#eafff5}
+.am-fit-s{font-size:11px;color:rgba(214,255,238,.8)}
+.am-cap{font-size:12.5px;color:var(--text-sec);display:flex;align-items:center;gap:8px;margin-top:2px}
+.am-cap b{color:var(--success-hi)}
+
+/* vs cards (destacados frente a Booksy/Fresha, sin tabla) */
+.vs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:10px}
+.vs-card{position:relative;background:linear-gradient(180deg,var(--card-hi),var(--card));border:1px solid var(--border-hi);border-radius:18px;padding:24px 22px;transition:transform .3s var(--ease),border-color .3s}
+.vs-card:hover{transform:translateY(-4px);border-color:var(--accent)}
+.vs-tag{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 11px;border-radius:999px;background:var(--grad-soft);color:#fff}
+.vs-tag.neutral{background:var(--accent-soft);color:var(--accent-hi)}
+.vs-card h4{font-size:18px;font-weight:700;letter-spacing:-.01em;margin:13px 0 8px}
+.vs-card p{font-size:13.5px;color:var(--text-sec);line-height:1.55;margin:0}
+.vs-card p b{color:var(--text);font-weight:600}
+.vs-card .vs-them{display:block;margin-top:10px;font-size:12px;color:var(--text-ter)}
+.vs-card .vs-them b{color:#ff9a7a;font-weight:600}
+@media(max-width:680px){.vs-grid{grid-template-columns:1fr;gap:12px}.vs-card{padding:20px 18px}.vs-card h4{font-size:16.5px}}
+
 /* chained */
 .chain-vis{display:flex;flex-direction:column;gap:14px}
 .chain-block{display:flex;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
