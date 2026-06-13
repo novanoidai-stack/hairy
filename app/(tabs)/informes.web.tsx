@@ -1509,10 +1509,10 @@ export default function InformesScreen() {
             <div style={{ marginBottom: 14 }}>
               <SectionHeader id="comisiones" icon="percent" iconColor={TOKENS.amber} title="Comisiones por profesional" subtitle={`Porcentaje aplicado: ${comisionPct}%`} />
               <SectionBody id="comisiones">
-                {/* Commission % selector */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '8px 12px', borderRadius: 8, background: TOKENS.amberSoft }}>
+                {/* Commission % selector — envuelve en movil para no salirse */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '8px 12px', borderRadius: 8, background: TOKENS.amberSoft, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>Porcentaje de comision:</span>
-                  <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
                     {[20, 25, 30, 35, 40].map(pct => (
                       <button
                         key={pct}
@@ -1554,48 +1554,49 @@ export default function InformesScreen() {
                   </div>
                 </div>
 
-                {/* Table */}
-                <div style={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
-                  <div style={{ borderRadius: 10, overflow: 'hidden', border: `1px solid ${TOKENS.border}`, minWidth: isMobile ? 540 : 'auto' }}>
+                {/* Table — en movil cabe sin scroll horizontal: columnas mas
+                    estrechas, padding apretado y "€" en vez de " EUR". */}
+                <div style={{ width: '100%' }}>
+                  <div style={{ borderRadius: 10, overflow: 'hidden', border: `1px solid ${TOKENS.border}` }}>
                     {/* Header */}
                     <div style={{
-                      display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px 14px',
+                      display: 'grid', gridTemplateColumns: isMobile ? '1.5fr 0.7fr 1fr 1fr' : '2fr 1fr 1fr 1fr', padding: isMobile ? '9px 10px' : '10px 14px',
                       background: TOKENS.bgPanel, borderBottom: `1px solid ${TOKENS.border}`,
-                      fontSize: 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5,
+                      fontSize: isMobile ? 10 : 11, fontWeight: 600, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: isMobile ? 0.2 : 0.5,
                     }}>
                       <div>Profesional</div>
                       <div style={{ textAlign: 'right' }}>Citas</div>
                       <div style={{ textAlign: 'right' }}>Ingresos</div>
-                      <div style={{ textAlign: 'right' }}>Comision</div>
+                      <div style={{ textAlign: 'right' }}>{isMobile ? 'Comis.' : 'Comision'}</div>
                     </div>
 
                     {/* Rows */}
                     {comisionesData.map((p, i) => (
                       <div key={p.profId} className="metric-row" style={{
-                        display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px 14px',
+                        display: 'grid', gridTemplateColumns: isMobile ? '1.5fr 0.7fr 1fr 1fr' : '2fr 1fr 1fr 1fr', padding: isMobile ? '9px 10px' : '10px 14px',
                         borderBottom: i < comisionesData.length - 1 ? `1px solid ${TOKENS.border}` : 'none',
                         animation: 'fadeIn 0.3s ease both', animationDelay: `${i * 50}ms`,
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{ width: 4, height: 20, borderRadius: 2, background: p.color }} />
-                          <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>{p.nombre}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 8, minWidth: 0 }}>
+                          <div style={{ width: 4, height: 20, borderRadius: 2, background: p.color, flexShrink: 0 }} />
+                          <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</span>
                         </div>
                         <div style={{ fontSize: 12, color: TOKENS.textSec, textAlign: 'right' }}>{p.citas}</div>
-                        <div style={{ fontSize: 12, color: TOKENS.success, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.ingresos)} EUR</div>
-                        <div style={{ fontSize: 12, color: TOKENS.warning, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.comision)} EUR</div>
+                        <div style={{ fontSize: 12, color: TOKENS.success, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.ingresos)}{isMobile ? ' €' : ' EUR'}</div>
+                        <div style={{ fontSize: 12, color: TOKENS.warning, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.comision)}{isMobile ? ' €' : ' EUR'}</div>
                       </div>
                     ))}
 
                     {/* Totals */}
                     <div style={{
-                      display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px 14px',
+                      display: 'grid', gridTemplateColumns: isMobile ? '1.5fr 0.7fr 1fr 1fr' : '2fr 1fr 1fr 1fr', padding: isMobile ? '9px 10px' : '10px 14px',
                       background: TOKENS.bgPanel, borderTop: `1px solid ${TOKENS.border}`,
                       fontSize: 12, fontWeight: 700, color: TOKENS.text,
                     }}>
                       <div>Total</div>
                       <div style={{ textAlign: 'right' }}>{comisionesData.reduce((s, p) => s + p.citas, 0)}</div>
-                      <div style={{ textAlign: 'right', color: TOKENS.success }}>{fmtEur(comisionesData.reduce((s, p) => s + p.ingresos, 0))} EUR</div>
-                      <div style={{ textAlign: 'right', color: TOKENS.warning }}>{fmtEur(comisionesData.reduce((s, p) => s + p.comision, 0))} EUR</div>
+                      <div style={{ textAlign: 'right', color: TOKENS.success }}>{fmtEur(comisionesData.reduce((s, p) => s + p.ingresos, 0))}{isMobile ? ' €' : ' EUR'}</div>
+                      <div style={{ textAlign: 'right', color: TOKENS.warning }}>{fmtEur(comisionesData.reduce((s, p) => s + p.comision, 0))}{isMobile ? ' €' : ' EUR'}</div>
                     </div>
                   </div>
                 </div>

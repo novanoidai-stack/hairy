@@ -27,6 +27,11 @@
 
 <meta name="theme-color" content="#070a14" />
 
+<!-- Vuelta de un SSO (Google aterriza en la Site URL = esta landing con el
+     access_token en el hash): no mostramos la intro, estamos a punto de
+     redirigir al destino real. Debe ejecutarse antes que mecha.js. -->
+<script>try{if(location.hash.indexOf('access_token')>=0)sessionStorage.setItem('mecha_intro','1');}catch(e){}</script>
+
 <!-- Structured data: SoftwareApplication -->
 <script type="application/ld+json">
 {
@@ -308,11 +313,10 @@
     </a>
     <div class="nav-links">
       <a href="#asistente">Asistente IA</a>
-      <a href="#diferenciales">Diferenciales</a>
+      <a href="#diferenciales">Agenda</a>
       <a href="#fichas">Fichas</a>
       <a href="#comparativa">Comparativa</a>
-      <a href="#especificaciones">Especificaciones</a>
-      <a href="#plataforma">Plataforma</a>
+      <a href="especificaciones.html">Especificaciones</a>
     </div>
     <div class="nav-cta">
       <a href="acceso.html" class="login" id="navLogin">Iniciar sesión</a>
@@ -342,10 +346,10 @@
     <div class="wrap hero-in">
       <span class="hero-badge reveal">
         <span class="tag">Para peluquerías</span>
-        Hecho a medida para salones de peluquería — no una app genérica
+        Hecho a medida, no una app genérica
       </span>
       <h1 class="reveal d1">Tu agenda llena.<br />Tus no-shows, <span class="em">a cero</span>.</h1>
-      <p class="hero-sub reveal d2">El software pensado por y para salones de peluquería: <strong>llena tu agenda</strong>, convierte el <strong>reposo del tinte en una segunda cita</strong> y deja que una <strong>IA atienda por WhatsApp 24/7</strong>, reserve y cobre el depósito por Stripe. Menos huecos, menos ausencias y más facturación por silla — sin que tú dejes de cortar. No es una app de citas genérica: entiende cómo trabaja <em>de verdad</em> una peluquería.</p>
+      <p class="hero-sub reveal d2">La agenda con IA para peluquerías: <strong>se llena sola</strong>, recuerda las citas y <strong>cobra la señal por WhatsApp</strong>.</p>
       <div class="hero-actions reveal d3">
         <a href="demo.html" class="btn btn-primary btn-lg">Ver demo gratis
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
@@ -417,41 +421,26 @@
     </div>
   </section>
 
-  <!-- ============ SOCIAL STRIP ============ -->
-  <section class="section" style="padding:30px 0 10px">
-    <div class="wrap" style="text-align:center">
-      <p style="font-size:13px;letter-spacing:.04em;color:var(--text-ter);margin-bottom:20px">Pensado de arriba abajo para salones de peluquería</p>
-      <div style="display:flex;gap:34px;justify-content:center;align-items:center;flex-wrap:wrap;opacity:.6">
-        <span style="font-family:var(--serif);font-size:20px">Studio Norte</span>
-        <span style="font-weight:700;font-size:17px;letter-spacing:.04em">La Barbería 1910</span>
-        <span style="font-family:var(--serif);font-style:italic;font-size:21px">Mística Hair</span>
-        <span style="font-weight:800;font-size:16px;letter-spacing:.1em;text-transform:uppercase">Klint</span>
-        <span style="font-family:var(--serif);font-size:20px">Salón Aurora</span>
-      </div>
-      <p style="font-size:11px;color:var(--text-ter);margin-top:16px;font-style:italic;opacity:.7">Logos de ejemplo — los sustituimos por tus salones reales cuando los tengas.</p>
-    </div>
-  </section>
-
   <!-- ============ AI DEMO (MOVED UP) — 3D phone + Stripe ============ -->
   <section class="demo" id="asistente">
     <div class="wrap">
       <div class="demo-grid">
         <div class="demo-txt reveal">
           <span class="eyebrow">El asistente que nunca cuelga</span>
-          <h2>Reserva, confirma y <span class="grad-txt">cobra el depósito</span> — sola, por WhatsApp</h2>
-          <p>Tu cliente escribe a las 23:40. La IA de Mecha entiende lo que pide, encuentra el hueco perfecto, propone pagar ahora o más tarde y envía el enlace de pago de Stripe. Tú te despiertas con la cita confirmada y el depósito cobrado.</p>
+          <h2>Reserva, confirma y <span class="grad-txt">cobra la señal</span> — sola, por WhatsApp</h2>
+          <p>Tu cliente escribe a las 23:40. Tú te despiertas con la cita confirmada y la señal cobrada.</p>
           <div class="demo-feats">
             <div class="demo-feat">
               <span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
-              <div><h4>Conversa como una persona</h4><p>Entiende lenguaje natural: "el sábado por la tarde para mechas con Sofía".</p></div>
+              <div><h4>Habla como una persona</h4><p>"El sábado por la tarde para mechas con Sofía."</p></div>
             </div>
             <div class="demo-feat">
               <span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span>
-              <div><h4>Cobra el depósito por Stripe</h4><p>"¿Prefieres pagar ahora o más tarde?" La señal bloquea el hueco y mata el no-show.</p></div>
+              <div><h4>Cobra la señal por Stripe</h4><p>La señal bloquea el hueco y mata el no-show.</p></div>
             </div>
             <div class="demo-feat">
               <span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></span>
-              <div><h4>24/7, también de madrugada</h4><p>Cada mensaje contestado al instante. La agenda se llena mientras duermes.</p></div>
+              <div><h4>24/7, también de madrugada</h4><p>Responde al instante mientras duermes.</p></div>
             </div>
           </div>
           <a href="demo.html" class="btn btn-primary">Verlo en una demo gratis
@@ -486,12 +475,11 @@
       <div class="integ-box reveal">
         <div class="integ-txt">
           <span class="eyebrow">No tires lo que ya tienes</span>
-          <h3>¿Ya usas Booksy o Fresha? Conéctalo a Mecha</h3>
-          <p>No tienes que dejar tus plataformas de un día para otro. Conecta Booksy o Fresha y centraliza todo en Mecha — sigues recibiendo reservas y reseñas de fuera, y las trabajas desde un único sitio.</p>
+          <h3>¿Ya usas Booksy o Fresha? Conéctalo</h3>
           <ul class="integ-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Las reservas de <strong>Booksy y Fresha</strong> entran directas en tu agenda de Mecha.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Aprovecha las <strong>reseñas</strong> que ya acumulaste — no empiezas de cero.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Migra a tu ritmo. <strong>Tú decides</strong> cuándo dejarlas, si es que las dejas.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Sus reservas <strong>entran solas</strong> en tu agenda.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Conservas tus <strong>reseñas y clientes</strong>.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Migras <strong>a tu ritmo</strong> — o no migras.</span></li>
           </ul>
         </div>
         <div class="integ-diagram">
@@ -517,8 +505,8 @@
     <div class="wrap">
       <div class="sec-head center reveal">
         <span class="eyebrow center">El impacto estimado</span>
-        <h2 class="sec-title">Lo que puede cambiar en tu peluquería <span class="display" style="font-style:italic">desde las primeras semanas</span></h2>
-        <p class="sec-sub">Menos huecos vacíos, menos ausencias y más ingresos por la misma jornada. Cifras estimadas a partir de casos típicos de salones — en la demo las ajustamos a tu peluquería real.</p>
+        <h2 class="sec-title">Lo que cambia en tu salón <span class="display" style="font-style:italic">desde las primeras semanas</span></h2>
+        <p class="sec-sub">Estimaciones de salones típicos, no una garantía — en la demo las ajustamos a tu salón.</p>
       </div>
 
       <div class="met-grid">
@@ -526,7 +514,7 @@
           <div class="mc-top"><span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg></span><span class="mc-trend">−93%</span></div>
           <div class="val" data-count="93" data-suffix="%">0<span class="u">%</span></div>
           <div class="lbl">menos no-shows</div>
-          <div class="note">Recordatorio + depósito por Stripe vía IA.</div>
+          <div class="note">Recordatorio + señal por Stripe vía IA.</div>
         </div>
         <div class="met-card tone-accent reveal d1">
           <div class="mc-top"><span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" /><circle cx="12" cy="12" r="4" /></svg></span><span class="mc-trend">+32%</span></div>
@@ -548,51 +536,6 @@
         </div>
       </div>
 
-      <div class="met-feature">
-        <div class="met-panel reveal">
-          <h3>El fin de los no-shows</h3>
-          <p class="pp">Tasa media de ausencias según el método de confirmación.</p>
-          <div class="area-chart" id="areaChart">
-            <svg viewBox="0 0 460 200" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#8b7bff" stop-opacity=".4" />
-                  <stop offset="1" stop-color="#8b7bff" stop-opacity="0" />
-                </linearGradient>
-                <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0" stop-color="#ef4444" /><stop offset="1" stop-color="#34d399" />
-                </linearGradient>
-              </defs>
-              <g class="area-grid"><line x1="0" y1="50" x2="460" y2="50" /><line x1="0" y1="100" x2="460" y2="100" /><line x1="0" y1="150" x2="460" y2="150" /></g>
-              <path class="area-fill" d="M0,20 L153,120 L306,165 L460,186 L460,200 L0,200 Z" />
-              <path class="area-line" d="M0,20 L153,120 L306,165 L460,186" />
-              <circle class="area-dot" cx="460" cy="186" r="5" />
-            </svg>
-            <div class="area-lab">
-              <span><b>18%</b>Sin recordatorio</span>
-              <span><b>8%</b>SMS / email</span>
-              <span><b>3%</b>+ Depósito</span>
-              <span><b>1.2%</b>Mecha + IA</span>
-            </div>
-          </div>
-        </div>
-        <div class="met-panel reveal d1">
-          <h3>Ocupación de sillas</h3>
-          <p class="pp">Media de tu salón tras activar tiempos muertos productivos.</p>
-          <div class="gauge-wrap">
-            <div class="gauge" id="gauge">
-              <svg width="170" height="170" viewBox="0 0 170 170">
-                <defs><linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7bff" /><stop offset="1" stop-color="#22d3ee" /></linearGradient></defs>
-                <circle class="track" cx="85" cy="85" r="70" />
-                <circle class="prog" cx="85" cy="85" r="70" />
-              </svg>
-              <div class="gauge-center"><span class="gv" data-count="78" data-suffix="%">0%</span><span class="gl">ocupación media</span></div>
-            </div>
-            <div class="gauge-foot">Antes: 59% · Ahora: <b style="color:var(--cyan)">78%</b></div>
-          </div>
-        </div>
-      </div>
-      <p class="fichas-disc" style="margin-top:30px">Estimaciones orientativas basadas en patrones habituales de salones de peluquería; no son una garantía de resultados. Tus cifras reales dependen de tu salón — te las proyectamos en la demo.</p>
     </div>
   </section>
 
@@ -601,19 +544,17 @@
     <div class="wrap">
       <div class="sec-head center reveal">
         <span class="eyebrow center">Por qué Mecha es diferente</span>
-        <h2 class="sec-title">Diseñado para cómo funciona <span class="display" style="font-style:italic">de verdad</span> un salón</h2>
-        <p class="sec-sub">Las apps genéricas tratan una cita como un bloque cerrado. La realidad de tu salón es otra: tintes que reposan, manos que se relevan, clientes que vuelven. Mecha lo entiende.</p>
+        <h2 class="sec-title">Hecho para cómo trabaja <span class="display" style="font-style:italic">de verdad</span> un salón</h2>
       </div>
 
       <div class="diff-row reveal">
         <div class="diff-txt">
           <span class="diff-tag" style="background:rgba(245,158,11,.13);color:#fbbf24"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>Tiempos muertos productivos</span>
           <h3>Mientras un tinte reposa, atiendes a otro cliente</h3>
-          <p>Cada minuto de espera es una cita que podrías estar dando. Mecha detecta los huecos de reposo y te propone encajar otro servicio — sin solapamientos ni líos.</p>
           <ul class="diff-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Detección automática</strong> de tiempos de reposo en color, mechas o tratamientos.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Sugerencia inteligente</strong> de qué cita encaja en ese hueco.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Hasta <strong>2 servicios en paralelo</strong> por profesional, sin caos.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Mecha <strong>detecta el reposo</strong> de color y mechas.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Y te propone <strong>otra cita en ese hueco</strong>, sin solapes.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Más facturación</strong> sin alargar tu jornada.</span></li>
           </ul>
         </div>
         <div class="diff-vis">
@@ -637,11 +578,10 @@
         <div class="diff-txt">
           <span class="diff-tag" style="background:var(--accent-soft);color:var(--accent-hi)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>Servicios encadenados</span>
           <h3>Una cita, varias manos, cero descoordinación</h3>
-          <p>Color con un colorista, corte con un estilista y peinado con otro profesional. Mecha encadena los servicios entre profesionales en la secuencia correcta y reserva el tiempo de cada uno automáticamente.</p>
           <ul class="diff-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Multi-profesional</strong> en una sola reserva, en orden.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Cada especialista ve <strong>solo su parte</strong> en su agenda.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>El cliente recibe <strong>una única confirmación</strong> clara.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Color, corte y peinado <strong>en una sola reserva</strong>.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Cada profesional ve <strong>solo su parte</strong>.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>El cliente recibe <strong>una única confirmación</strong>.</span></li>
           </ul>
         </div>
         <div class="diff-vis">
@@ -662,30 +602,6 @@
         </div>
       </div>
 
-      <div class="diff-row reveal">
-        <div class="diff-txt">
-          <span class="diff-tag" style="background:rgba(168,85,247,.14);color:#c084fc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg>Capa de inteligencia artificial</span>
-          <h3>Un cerebro que predice, prioriza y reubica</h3>
-          <p>Más allá de reservar, la IA de Mecha puntúa el riesgo de no-show de cada cita, reordena el día para maximizar ingresos y avisa cuando un cliente lleva demasiado sin volver.</p>
-          <ul class="diff-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Predicción de no-shows</strong> por cliente, franja e historial.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Reubicación automática</strong> del hueco cuando alguien cancela.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Avisos de <strong>retención</strong>: "este cliente suele venir cada 8 semanas, ya van 9".</span></li>
-          </ul>
-        </div>
-        <div class="diff-vis">
-          <span class="vis-glow" style="background:rgba(168,85,247,.32)"></span>
-          <div class="ia-card">
-            <div class="ia-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg></span><div><div style="font-size:13px;font-weight:700">Sugerencias de hoy</div><div style="font-size:11px;color:var(--text-ter)">3 acciones para ganar margen</div></div></div>
-            <div class="ia-feed">
-              <div class="fh"><span style="color:var(--text-ter)">PRIORIDAD</span><span style="color:var(--text-ter)">IMPACTO</span></div>
-              <div class="fr"><span class="fd" style="background:#ef4444"></span><span style="flex:1">Cita de las 17:30 con riesgo alto de no-show — pedir depósito</span><b style="color:var(--success-hi)">+38&nbsp;€</b></div>
-              <div class="fr"><span class="fd" style="background:#fbbf24"></span><span style="flex:1">Hueco de reposo a las 11:00 — encaja un corte express</span><b style="color:var(--success-hi)">+22&nbsp;€</b></div>
-              <div class="fr"><span class="fd" style="background:var(--accent-hi)"></span><span style="flex:1">Carmen no viene desde hace 9 semanas — enviar recordatorio</span><b style="color:var(--success-hi)">+65&nbsp;€</b></div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -694,26 +610,14 @@
     <div class="wrap">
       <div class="sec-head center reveal">
         <span class="eyebrow center">Mucho más que una agenda</span>
-        <h2 class="sec-title">De la primera reserva al cliente que vuelve</h2>
-        <p class="sec-sub">Mecha cubre el ciclo completo de tu salón. No solo apuntas citas: gestionas el negocio entero, de punta a punta.</p>
+        <h2 class="sec-title">De la reserva al cliente que vuelve</h2>
       </div>
 
       <div class="flow reveal">
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span><h5>1 · Reserva</h5><p>Por WhatsApp, web, QR o desde recepción.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span><h5>2 · Depósito</h5><p>Señal por Stripe que bloquea el hueco.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /></svg></span><h5>3 · Agenda</h5><p>Encadenado, tiempos muertos y reposos.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></span><h5>4 · Cobro</h5><p>Cierra la cita, efectivo, tarjeta o bizum.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg></span><h5>5 · Informes</h5><p>Ocupación, ingresos y comisiones.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span><h5>6 · Fidelización</h5><p>La IA avisa y trae de vuelta a tus clientes.</p></div>
-      </div>
-
-      <div class="auto-grid">
-        <div class="auto-card reveal"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span><h4>Ficha de cliente con memoria</h4><p>Historial, fórmulas de color, notas y fotos. Cada profesional sabe qué pidió el cliente la última vez.</p></div>
-        <div class="auto-card reveal d1"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /></svg></span><h4>Equipo y comisiones</h4><p>Horarios, especialidades por profesional y comisiones calculadas solas a fin de mes.</p></div>
-        <div class="auto-card reveal d2"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span><h4>Multi-sede</h4><p>Varias sedes con visión unificada de agenda, equipo e ingresos. Pensado para cadenas.</p></div>
-        <div class="auto-card reveal"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg></span><h4>Lista de espera inteligente</h4><p>Cuando se libera un hueco, Mecha avisa al siguiente cliente en espera y lo rellena solo.</p></div>
-        <div class="auto-card reveal d1"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg></span><h4>Productos e inventario</h4><p>Controla el stock de color y producto y vincúlalo al consumo de cada servicio.</p></div>
-        <div class="auto-card reveal d2"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg></span><h4>Reserva omnicanal</h4><p>WhatsApp, web propia, QR en el local e Instagram — todas las reservas en una sola agenda.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span><h5>1 · Reserva</h5><p>WhatsApp, web o QR.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span><h5>2 · Señal</h5><p>Bloquea el hueco.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></span><h5>3 · Servicio</h5><p>Agenda y cobro.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span><h5>4 · Vuelve</h5><p>La IA le recuerda volver.</p></div>
       </div>
     </div>
   </section>
@@ -724,18 +628,16 @@
       <div class="sec-head center reveal">
         <span class="eyebrow center">Organizador con IA</span>
         <h2 class="sec-title">Tu agenda se ordena <span class="display" style="font-style:italic">sola</span></h2>
-        <p class="sec-sub">Deja de recolocar citas a mano. Pulsa un botón y la IA de Mecha reordena el día, rellena los huecos y te lo deja todo cuadrado. Y si prefieres pedírselo con palabras, tienes un asistente dentro de la propia agenda.</p>
       </div>
 
       <div class="diff-row reveal">
         <div class="diff-txt">
           <span class="diff-tag" style="background:var(--accent-soft);color:var(--accent-hi)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg>Reorganiza con un botón</span>
           <h3>Pulsa "Organizar mi día" y la IA cuadra tu agenda</h3>
-          <p>Mecha analiza tus citas, los tiempos de reposo y los huecos sueltos, y te propone una versión más compacta del día. Tú decides: la aplicas con un clic o la descartas.</p>
           <ul class="diff-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Propuestas claras</strong>: ves qué se mueve y por qué antes de aceptar.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Menos huecos muertos</strong> y más citas en la misma jornada.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Cero descontrol</strong>: nada se mueve sin tu confirmación.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Te propone <strong>un día más compacto</strong>, con menos huecos.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Ves qué se mueve</strong> antes de aceptar.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Nada cambia <strong>sin tu confirmación</strong>.</span></li>
           </ul>
         </div>
         <div class="diff-vis">
@@ -759,76 +661,6 @@
         </div>
       </div>
 
-      <div class="diff-row flip reveal">
-        <div class="diff-txt">
-          <span class="diff-tag" style="background:rgba(99,102,241,.14);color:#a5b4fc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>Asistente en la agenda</span>
-          <h3>Háblale a tu agenda como a un compañero</h3>
-          <p>Dentro de la agenda tienes un mini chat con la IA. Pídele que mueva una cita, que avise a un cliente o que te libere una franja, en lenguaje normal. Lo hace al momento.</p>
-          <ul class="diff-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>En lenguaje natural</strong>: "muéveme la de las 12 a la tarde".</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Avisa al cliente</strong> por WhatsApp sin salir de la agenda.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Sin menús ni clics</strong> infinitos: lo pides y ya está.</span></li>
-          </ul>
-        </div>
-        <div class="diff-vis">
-          <span class="vis-glow" style="background:rgba(99,102,241,.32)"></span>
-          <div class="org-chat">
-            <div class="org-chat-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg></span><div><div class="t">Asistente de agenda</div><div class="s">Siempre dentro de Mecha</div></div></div>
-            <div class="org-chat-body">
-              <div class="ocm you">Muéveme la cita de las 12 a la tarde</div>
-              <div class="ocm ai">Hecho. He movido el corte de Marco a las 16:30. ¿Aviso al cliente por WhatsApp?</div>
-              <div class="ocm you">Sí, y dile que tiene 10 min de cortesía</div>
-              <div class="ocm ai">Listo, mensaje enviado. La franja de 12:00 a 13:00 queda libre. ¿La bloqueo o la abro a reservas?</div>
-            </div>
-            <div class="org-chat-input"><span class="ph">Escribe a tu agenda...</span><span class="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg></span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ FICHAJES — Elevascore time tracking ============ -->
-  <section class="diff" id="fichajes">
-    <div class="wrap">
-      <div class="sec-head center reveal">
-        <span class="eyebrow center">Control horario - con Elevascore</span>
-        <h2 class="sec-title">Fichajes legales, <span class="display" style="font-style:italic">a un clic</span></h2>
-        <p class="sec-sub">Mecha se integra con Elevascore, el software de control horario 100% legal en España. Tu equipo ficha entrada y salida desde la misma app, y los informes salen solos: sin hojas de cálculo ni sustos con la inspección.</p>
-      </div>
-
-      <div class="diff-row reveal">
-        <div class="diff-txt">
-          <span class="diff-tag" style="background:rgba(16,185,129,.14);color:#34d399"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>Fichaje integrado</span>
-          <h3>Tu equipo ficha desde Mecha, sin cambiar de app</h3>
-          <p>Entrada, salida y descansos a golpe de un botón. Mecha y Elevascore registran cada jornada y generan el informe que la ley te pide, listo para descargar.</p>
-          <ul class="diff-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>100% legal en España</strong>: cumple el registro horario obligatorio.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Un clic para fichar</strong> entrada, salida y pausas.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Informes automáticos</strong> de horas por persona, listos en PDF.</span></li>
-          </ul>
-        </div>
-        <div class="diff-vis">
-          <span class="vis-glow" style="background:rgba(16,185,129,.3)"></span>
-          <div class="fich">
-            <div class="fich-head">
-              <div class="fich-brand"><span class="fich-logo">E</span><div><div class="fich-name">Elevascore</div><div class="fich-sub">Control horario integrado</div></div></div>
-              <span class="fich-legal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>Legal - España</span>
-            </div>
-            <button class="fich-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>Fichar entrada</button>
-            <div class="fich-clock">08<span class="sep">:</span>59<span class="sep">:</span>42</div>
-            <div class="fich-log">
-              <div class="fich-row"><span class="who"><span class="dot in"></span>Sofía León</span><span class="time">Entrada - 08:32</span></div>
-              <div class="fich-row"><span class="who"><span class="dot in"></span>Carla M.</span><span class="time">Entrada - 08:45</span></div>
-              <div class="fich-row"><span class="who"><span class="dot out"></span>Diego R.</span><span class="time">Salida - 14:00</span></div>
-            </div>
-            <div class="fich-report">
-              <div class="fr-item"><div class="v">163 h</div><div class="k">este mes</div></div>
-              <div class="fr-item"><div class="v">0</div><div class="k">incidencias</div></div>
-              <div class="fr-item"><div class="v">PDF</div><div class="k">informe listo</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -838,7 +670,7 @@
       <div class="sec-head center reveal">
         <span class="eyebrow center">La ficha de cada cliente</span>
         <h2 class="sec-title">Una ficha que <span class="display" style="font-style:italic">moldeas tú</span>, no al revés</h2>
-        <p class="sec-sub">Cada cliente es un mundo, y su ficha también. En Mecha personalizas qué guardas de cada uno: fórmulas de color, fotos, notas, etiquetas y preferencias propias. Pasa el ratón y mira todo lo que puedes adaptar.</p>
+        <p class="sec-sub">Fórmulas de color, fotos, notas y preferencias — tú decides qué guardas.</p>
       </div>
 
       <div class="ficha-stage reveal">
@@ -846,17 +678,17 @@
         <div class="ficha-col left">
           <div class="fnote" data-fn="1">
             <span class="ft"><span class="b">1</span>Etiquetas a tu medida</span>
-            <span class="fd">Crea las etiquetas que tengan sentido para tu peluquería: "Fiel", "Alérgica al amoníaco", "Solo tardes"… las que quieras.</span>
+            <span class="fd">"Fiel", "Alérgica al amoníaco", "Solo tardes"… las que quieras.</span>
             <span class="arrow"><svg viewBox="0 0 64 34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4 C 30 4, 44 14, 60 26" /><path d="M50 28 l11 -2 -4 -10" /></svg></span>
           </div>
           <div class="fnote" data-fn="2">
             <span class="ft"><span class="b">2</span>Fórmula de color guardada</span>
-            <span class="fd">Nunca vuelvas a preguntar "¿qué te hice la última vez?". La fórmula exacta, el volumen y el tiempo, listos para repetir.</span>
+            <span class="fd">La fórmula exacta, el volumen y el tiempo, listos para repetir.</span>
             <span class="arrow"><svg viewBox="0 0 64 34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16 C 28 16, 42 16, 60 16" /><path d="M50 9 l11 7 -11 7" /></svg></span>
           </div>
           <div class="fnote" data-fn="3">
             <span class="ft"><span class="b">3</span>Notas y campos propios</span>
-            <span class="fd">Escribe lo que necesites de cada cliente. Tú decides qué campos importan en tu salón.</span>
+            <span class="fd">Tú decides qué campos importan en tu salón.</span>
             <span class="arrow"><svg viewBox="0 0 64 34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 28 C 30 28, 44 18, 60 8" /><path d="M50 6 l11 2 -3 11" /></svg></span>
           </div>
         </div>
@@ -916,12 +748,12 @@
         <div class="ficha-col right">
           <div class="fnote" data-fn="4">
             <span class="ft"><span class="b">4</span>Preferencias propias</span>
-            <span class="fd">Profesional de confianza, bebida, manías… cada detalle que hace que el cliente se sienta como en casa.</span>
+            <span class="fd">Profesional de confianza, bebida, manías… cada detalle.</span>
             <span class="arrow"><svg viewBox="0 0 64 34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M62 16 C 36 16, 22 16, 4 16" /><path d="M14 9 l-11 7 11 7" /></svg></span>
           </div>
           <div class="fnote" data-fn="5">
             <span class="ft"><span class="b">5</span>Fotos de cada servicio</span>
-            <span class="fd">Sube el antes y el después. La próxima vez sabes exactamente cómo quedó, sin depender de la memoria.</span>
+            <span class="fd">El antes y el después, sin depender de la memoria.</span>
             <span class="arrow"><svg viewBox="0 0 64 34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M62 4 C 36 4, 22 14, 4 26" /><path d="M14 28 l-11 -2 4 -10" /></svg></span>
           </div>
         </div>
@@ -936,8 +768,7 @@
     <div class="wrap">
       <div class="sec-head center reveal">
         <span class="eyebrow center">No competimos con ellos · los sumamos</span>
-        <h2 class="sec-title">Todo lo que hacen Booksy y Fresha, <span class="display" style="font-style:italic">dentro de Mecha</span> — y mucho más</h2>
-        <p class="sec-sub">Esto no es Mecha <em>contra</em> Booksy o Fresha. Los conectamos a Mecha y los adherimos a tu sistema: sigues recibiendo todo lo de fuera, y además tienes lo que ellos no ofrecen. No cambias de herramienta — te quedas con la tuya y le sumas un cerebro encima.</p>
+        <h2 class="sec-title">Lo que Mecha hace y <span class="display" style="font-style:italic">ellos no</span></h2>
       </div>
 
       <div class="ctable reveal">
@@ -948,67 +779,30 @@
           <div class="ccell"><span class="chead">Fresha</span></div>
         </div>
 
-        <div class="crow cat"><div class="ccell feat">Agenda y operativa</div><div class="ccell col-us"></div><div class="ccell"></div><div class="ccell"></div></div>
         <div class="crow">
-          <div class="ccell feat">Tiempos muertos productivos<small>Atender otra cita durante el reposo</small></div>
+          <div class="ccell feat">Tiempos muertos productivos<small>Otra cita durante el reposo</small></div>
           <div class="ccell col-us"><span class="us-badge">Único</span></div>
           <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
           <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
         </div>
         <div class="crow">
-          <div class="ccell feat">Servicios encadenados multi-profesional<small>Color, corte y peinado en una cita</small></div>
+          <div class="ccell feat">IA que reserva por WhatsApp 24/7</div>
+          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
+          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
+          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
+        </div>
+        <div class="crow">
+          <div class="ccell feat">Señal anti no-show pedida por la IA</div>
+          <div class="ccell col-us"><span class="us-badge">Único</span></div>
+          <div class="ccell"><span class="ck-part">Solo señal</span></div>
+          <div class="ccell"><span class="ck-part">Solo señal</span></div>
+        </div>
+        <div class="crow">
+          <div class="ccell feat">Servicios encadenados multi-profesional</div>
           <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
           <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
           <div class="ccell"><span class="ck-part">Parcial</span></div>
         </div>
-        <div class="crow">
-          <div class="ccell feat">Reorganización en cadena<small>Mover una cita reajusta las siguientes</small></div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-part">Manual</span></div>
-          <div class="ccell"><span class="ck-part">Manual</span></div>
-        </div>
-        <div class="crow">
-          <div class="ccell feat">Drag &amp; drop con validación<small>Sin solapar horarios ni profesionales</small></div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-        </div>
-
-        <div class="crow cat"><div class="ccell feat">Anti no-show</div><div class="ccell col-us"></div><div class="ccell"></div><div class="ccell"></div></div>
-        <div class="crow">
-          <div class="ccell feat">Depósito por Stripe vía IA<small>"¿Pagar ahora o más tarde?" por WhatsApp</small></div>
-          <div class="ccell col-us"><span class="us-badge">Único</span></div>
-          <div class="ccell"><span class="ck-part">Solo señal</span></div>
-          <div class="ccell"><span class="ck-part">Solo señal</span></div>
-        </div>
-        <div class="crow">
-          <div class="ccell feat">Predicción de no-shows con IA<small>Puntúa el riesgo de cada cita</small></div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-        </div>
-        <div class="crow">
-          <div class="ccell feat">Reubicación automática de huecos<small>Cancela una, entra la siguiente</small></div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-part">Lista espera</span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-        </div>
-
-        <div class="crow cat"><div class="ccell feat">Inteligencia y atención</div><div class="ccell col-us"></div><div class="ccell"></div><div class="ccell"></div></div>
-        <div class="crow">
-          <div class="ccell feat">Reserva conversacional por WhatsApp<small>IA que habla como una persona</small></div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-        </div>
-        <div class="crow">
-          <div class="ccell feat">Avisos de retención<small>Trae de vuelta a quien no vuelve</small></div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-part">Básico</span></div>
-          <div class="ccell"><span class="ck-part">Básico</span></div>
-        </div>
-
-        <div class="crow cat"><div class="ccell feat">Modelo y datos</div><div class="ccell col-us"></div><div class="ccell"></div><div class="ccell"></div></div>
         <div class="crow">
           <div class="ccell feat">Tus clientes son tuyos<small>No es un marketplace que los comparte</small></div>
           <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
@@ -1016,311 +810,27 @@
           <div class="ccell"><span class="ck-part">Limitado</span></div>
         </div>
         <div class="crow">
-          <div class="ccell feat">Conecta tu Booksy / Fresha<small>Migra a tu ritmo, sin perder nada</small></div>
+          <div class="ccell feat">Conecta tu Booksy / Fresha</div>
           <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
           <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
           <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-        </div>
-        <div class="crow">
-          <div class="ccell feat">Soporte en español, gente real<small>Te ayudamos a montarlo todo</small></div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-part">Variable</span></div>
-          <div class="ccell"><span class="ck-part">Variable</span></div>
         </div>
       </div>
 
-      <div class="compare-why reveal">
-        <div class="why-card"><div class="wn">01</div><h4>Diseñado en el salón, no en una hoja de cálculo</h4><p>Reposos, encadenados y relevos entre manos son la base de Mecha, no un parche. Por eso te cuadra la agenda que otras dejan rota.</p></div>
-        <div class="why-card"><div class="wn">02</div><h4>La IA cobra, no solo recuerda</h4><p>El depósito por Stripe pedido por la propia IA es lo que de verdad mata el no-show. Recordar está bien; cobrar la señal es lo que cambia la caja.</p></div>
-        <div class="why-card"><div class="wn">03</div><h4>Tu negocio, tus datos</h4><p>Mecha no es un marketplace que alquila tus clientes. Son tuyos. Y si vienes de Booksy o Fresha, te los traes contigo.</p></div>
-      </div>
       <p class="compare-foot">Comparativa orientativa basada en funciones públicas de cada plataforma a fecha de publicación. Las funciones de terceros pueden cambiar.</p>
     </div>
   </section>
 
-  <!-- ============ FULL SPECS ============ -->
-  <section class="specs" id="especificaciones">
-    <div class="wrap">
-      <div class="sec-head center reveal">
+  <!-- ============ ESPECIFICACIONES (enlace a la pagina completa) ============ -->
+  <section class="section" id="especificaciones" style="padding:26px 0 70px">
+    <div class="wrap" style="text-align:center">
+      <div class="reveal" style="max-width:680px;margin:0 auto;padding:40px 28px;border:1px solid var(--border-hi);border-radius:22px;background:linear-gradient(180deg,var(--card-hi),var(--card))">
         <span class="eyebrow center">Todo lo que incluye</span>
-        <h2 class="sec-title">Especificaciones completas, <span class="display" style="font-style:italic">sin letra pequeña</span></h2>
-        <p class="sec-sub">Esto es Mecha al detalle. Todo lo de abajo viene de serie — no son extras que se pagan aparte ni promesas para "más adelante".</p>
-      </div>
-
-      <div class="specs-grid">
-        <div class="spec-card reveal">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" /></svg></span>
-            <h4>Agenda inteligente</h4>
-          </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Vista de día y semana con rejilla de slots de 15 minutos</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Tiempos muertos productivos: otra cita durante el reposo</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Servicios encadenados entre varios profesionales</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Fases de servicio (activa, reposo, transición) diferenciadas</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Arrastrar y soltar con validación de solapamientos</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Bloqueos, descansos y excepciones de horario</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Línea de hora actual y estados de cita en vivo</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>"Organizar mi día": la IA compacta la jornada</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Lista de espera que rellena los huecos libres</span></li>
-          </ul>
-        </div>
-
-        <div class="spec-card reveal d1">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
-            <h4>Asistente de IA</h4>
-          </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Reserva conversacional por WhatsApp, 24 horas</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Atención por voz: contesta llamadas como una persona</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Cobra el depósito por Stripe al confirmar la cita</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Recordatorios y confirmaciones automáticas</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Reubica el hueco cuando alguien cancela</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Predicción del riesgo de no-show por cita</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Avisos de retención para quien deja de venir</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Asistente dentro de la agenda, en lenguaje natural</span></li>
-          </ul>
-        </div>
-
-        <div class="spec-card reveal d2">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span>
-            <h4>Clientes y fichas</h4>
-          </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Ficha con historial completo de cada cliente</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Memoria de color: fórmulas, tiempos y notas</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Fotos de antes y después por servicio</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Alergias y alertas visibles antes de empezar</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Cumpleaños con avisos automáticos</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Segmentación: fieles, en riesgo y nuevos</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Profesional habitual y ticket medio por cliente</span></li>
-          </ul>
-        </div>
-
-        <div class="spec-card reveal">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
-            <h4>Equipo y fichajes</h4>
-          </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Fichaje legal de entrada y salida (Elevascore)</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Informe horario en PDF, listo para inspección</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Horarios, turnos y ausencias por profesional</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Especialidades y servicios por miembro</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Comisiones calculadas solas a fin de mes</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Ocupación e ingresos por persona</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Roles y permisos por puesto</span></li>
-          </ul>
-        </div>
-
-        <div class="spec-card reveal d1">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg></span>
-            <h4>Caja, informes e inventario</h4>
-          </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Ingresos por día, semana y mes</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Ocupación, ticket medio y tasa de no-show</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Ranking de servicios y de profesionales</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Comparativa con periodos anteriores</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Cobro en efectivo, tarjeta o bizum</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Control de stock de color y producto</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Consumo de producto vinculado a cada servicio</span></li>
-          </ul>
-        </div>
-
-        <div class="spec-card reveal d2">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></svg></span>
-            <h4>Integraciones y plataforma</h4>
-          </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Reserva omnicanal: WhatsApp, web, QR e Instagram</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Conecta tu Booksy o Fresha, sin perder nada</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Pagos y depósitos con Stripe</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Sincronización con Google Calendar</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Multi-sede con visión unificada para cadenas</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Disponible en web, iOS y Android</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Tus datos son tuyos: cifrados y con copia de seguridad</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Soporte en español: te lo montamos todo</span></li>
-          </ul>
-        </div>
-      </div>
-
-      <p class="specs-foot reveal">¿Echas algo en falta? <a href="reservar.html">Cuéntanoslo en una llamada</a> y te decimos si ya está o cuándo llega.</p>
-    </div>
-  </section>
-
-  <!-- ============ PLATFORM TABS ============ -->
-  <section class="aio" id="plataforma">
-    <div class="wrap">
-      <div class="sec-head center reveal">
-        <span class="eyebrow center">Toda la plataforma</span>
-        <h2 class="sec-title">Echa un vistazo por dentro</h2>
-        <p class="sec-sub">Una vista de la app de Mecha con datos de ejemplo. Cambia de pestaña y mira cómo se siente el día a día.</p>
-      </div>
-
-      <div class="aio-tabs reveal">
-        <button class="aio-tab on" data-panel="p-agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="2" x2="8" y2="6" /></svg>Agenda + Nueva cita</button>
-        <button class="aio-tab" data-panel="p-clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>Clientes</button>
-        <button class="aio-tab" data-panel="p-equipo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>Equipo</button>
-        <button class="aio-tab" data-panel="p-informes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>Informes</button>
-      </div>
-
-      <div class="aio-stage reveal d1">
-        <!-- AGENDA + NUEVA CITA -->
-        <div class="aio-panel on" id="p-agenda">
-          <div class="app" id="agendaApp" style="grid-template-columns:182px 1fr">
-            <aside class="app-side">
-              <div class="brand" style="padding:4px 2px 10px"><svg class="brand-mark" style="width:26px;height:26px" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg><span class="brand-row"><span class="brand-name" style="font-size:18px">Mecha</span></span></div>
-              <nav class="app-nav">
-                <span class="lbl">Principal</span>
-                <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /></svg>Agenda</a>
-                <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>Clientes</a>
-                <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>Equipo</a>
-                <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>Informes</a>
-              </nav>
-            </aside>
-            <div class="app-main">
-              <div class="app-top">
-                <div><h3>Agenda</h3><div class="sub">Jueves, 15 octubre · 9 citas hoy</div></div>
-                <div class="acts"><span class="app-chip pri" data-nc-open><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>Nueva cita</span></div>
-              </div>
-              <div class="tl">
-                <div class="tl-h gut"></div>
-                <div class="tl-h"><span class="dot" style="background:#818cf8"></span>Carla</div>
-                <div class="tl-h"><span class="dot" style="background:#34d399"></span>Diego</div>
-                <div class="tl-h"><span class="dot" style="background:#fbbf24"></span>Sofía</div>
-                <div class="tl-hours"><div class="tl-hr">09:00</div><div class="tl-hr">10:00</div><div class="tl-hr">11:00</div><div class="tl-hr">12:00</div><div class="tl-hr">13:00</div></div>
-                <div class="tl-col">
-                  <div class="appt" style="top:6px;height:46px;background:rgba(99,102,241,.16);border-color:#818cf8"><div class="t">09:00–09:45</div><div class="n">María L.</div><div class="s">Color + corte</div></div>
-                  <div class="appt repos" style="top:56px;height:34px"><div class="t">09:45–10:15</div><div class="n">Reposo tinte</div></div>
-                  <div class="appt" style="top:92px;height:40px;background:rgba(99,102,241,.16);border-color:#818cf8"><div class="t">10:15–10:55</div><div class="n">Laura P.</div><div class="s">Corte express</div></div>
-                </div>
-                <div class="tl-col">
-                  <div class="appt" style="top:6px;height:38px;background:rgba(16,185,129,.14);border-color:#34d399"><div class="t">09:00–09:30</div><div class="n">Javier M.</div><div class="s">Corte + barba</div></div>
-                  <div class="appt" style="top:108px;height:46px;background:rgba(16,185,129,.14);border-color:#34d399"><div class="t">10:30–11:15</div><div class="n">Marc T.</div><div class="s">Corte + diseño</div></div>
-                </div>
-                <div class="tl-col">
-                  <div class="appt" style="top:18px;height:54px;background:rgba(245,158,11,.13);border-color:#fbbf24"><div class="t">09:15–10:15</div><div class="n">Carmen V.</div><div class="s">Balayage</div></div>
-                  <div class="appt repos" style="top:74px;height:30px"><div class="t">10:15–10:40</div><div class="n">Reposo</div></div>
-                </div>
-                <div class="tl-now" style="top:128px"></div>
-              </div>
-            </div>
-
-            <!-- NUEVA CITA MODAL -->
-            <div class="nc-overlay" id="ncModal">
-              <div class="nc-modal">
-                <div class="nc-head">
-                  <h4>Nueva cita</h4>
-                  <button class="x" id="ncClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
-                </div>
-                <div class="nc-steps">
-                  <button class="nc-step on" data-step="1"><span class="num">1</span>Cliente y servicio</button>
-                  <button class="nc-step" data-step="2"><span class="num">2</span>Hueco y depósito</button>
-                </div>
-
-                <!-- step 1 -->
-                <div class="nc-pane on nc-body" data-step="1">
-                  <div>
-                    <div class="nc-lbl">Cliente</div>
-                    <div class="nc-client"><span class="av">AG</span><div><div class="nm">Ana García</div><div class="meta">+34 6·· ··· 412 · 14 visitas · cliente fiel</div></div></div>
-                  </div>
-                  <div>
-                    <div class="nc-lbl">Servicios</div>
-                    <div class="nc-services">
-                      <div class="nc-srv sel"><div class="sn">Mechas balayage</div><div class="sd"><span>90 min</span><span class="pr">75 €</span></div></div>
-                      <div class="nc-srv sel"><div class="sn">Tratamiento</div><div class="sd"><span>20 min</span><span class="pr">18 €</span></div></div>
-                      <div class="nc-srv"><div class="sn">Corte</div><div class="sd"><span>25 min</span><span class="pr">22 €</span></div></div>
-                      <div class="nc-srv"><div class="sn">Peinado</div><div class="sd"><span>20 min</span><span class="pr">15 €</span></div></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="nc-lbl">Profesional</div>
-                    <div class="nc-pros">
-                      <span class="nc-pro on"><span class="pd" style="background:#fbbf24"></span>Sofía</span>
-                      <span class="nc-pro"><span class="pd" style="background:#818cf8"></span>Carla</span>
-                      <span class="nc-pro"><span class="pd" style="background:#34d399"></span>Diego</span>
-                    </div>
-                  </div>
-                  <div class="nc-foot"><span class="summary">2 servicios · 110 min · <b>93 €</b></span><button class="nc-cta">Siguiente<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg></button></div>
-                </div>
-
-                <!-- step 2 -->
-                <div class="nc-pane nc-body" data-step="2">
-                  <div>
-                    <div class="nc-lbl">Huecos sugeridos por la IA</div>
-                    <div class="nc-slots">
-                      <span class="nc-slot">Hoy 12:30</span>
-                      <span class="nc-slot sel">Sáb 11:00<span class="opt">aprovecha reposo</span></span>
-                      <span class="nc-slot">Sáb 16:30</span>
-                      <span class="nc-slot">Lun 10:00</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="nc-lbl">Depósito anti no-show</div>
-                    <div class="nc-deposit">
-                      <span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span>
-                      <div><div class="dt">Señal de 20 € por Stripe</div><div class="dd">La IA envía el enlace de pago por WhatsApp al confirmar.</div></div>
-                    </div>
-                  </div>
-                  <div class="nc-foot"><span class="summary">Sáb 11:00 · Sofía · <b>93 €</b></span><button class="nc-cta">Confirmar y enviar<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg></button></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <p style="text-align:center;font-size:12px;color:var(--text-ter);padding:12px;background:#0b1020">Pulsa <b style="color:var(--text-sec)">"Nueva cita"</b> arriba para ver el flujo completo de creación de cita.</p>
-        </div>
-
-        <!-- CLIENTES -->
-        <div class="aio-panel" id="p-clientes">
-          <div class="cli-list" style="background:#070a14">
-            <div class="cli-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>Buscar por nombre, teléfono o servicio…</div>
-            <div class="cli-chips"><span class="cli-chip on">Todos</span><span class="cli-chip">Fieles</span><span class="cli-chip">En riesgo</span><span class="cli-chip">Nuevos</span></div>
-            <div class="cli-row sel"><div class="who"><span class="av" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">AG</span><div><div class="nm">Ana García</div><div class="tel">+34 6·· ··· 412</div></div></div><div class="vis">14 visitas</div><div class="spent">1.240 €</div><div><span class="cli-tag" style="background:rgba(16,185,129,.16);color:#34d399">Fiel</span></div></div>
-            <div class="cli-row"><div class="who"><span class="av" style="background:linear-gradient(135deg,#818cf8,#6366f1)">CV</span><div><div class="nm">Carmen Vela</div><div class="tel">+34 6·· ··· 198</div></div></div><div class="vis">9 sem. sin venir</div><div class="spent">890 €</div><div><span class="cli-tag" style="background:rgba(239,68,68,.16);color:#f87171">En riesgo</span></div></div>
-            <div class="cli-row"><div class="who"><span class="av" style="background:linear-gradient(135deg,#34d399,#10b981)">JM</span><div><div class="nm">Javier Marín</div><div class="tel">+34 6·· ··· 553</div></div></div><div class="vis">6 visitas</div><div class="spent">410 €</div><div><span class="cli-tag" style="background:rgba(148,163,184,.16);color:#9aa6c2">Regular</span></div></div>
-            <div class="cli-row"><div class="who"><span class="av" style="background:linear-gradient(135deg,#22d3ee,#0891b2)">LP</span><div><div class="nm">Laura Pons</div><div class="tel">+34 6·· ··· 077</div></div></div><div class="vis">1ª visita</div><div class="spent">22 €</div><div><span class="cli-tag" style="background:rgba(109,94,252,.18);color:#a99bff">Nueva</span></div></div>
-          </div>
-        </div>
-
-        <!-- EQUIPO -->
-        <div class="aio-panel" id="p-equipo">
-          <div class="eq-grid" style="background:#070a14">
-            <div class="eq-card"><span class="eq-stripe" style="background:linear-gradient(90deg,#fbbf24,#f59e0b)"></span><div class="eq-head"><span class="eq-av" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">SL</span><div><div class="eq-nm">Sofía León</div><div class="eq-rl">Colorista senior</div></div></div><div class="eq-stats"><div class="eq-st"><div class="k">Ocupación</div><div class="v">86%</div></div><div class="eq-st"><div class="k">Ingresos</div><div class="v gr">3.4k €</div></div></div><div class="eq-bars"><span class="b"><i style="height:60%;background:#fbbf24"></i></span><span class="b"><i style="height:75%;background:#fbbf24"></i></span><span class="b"><i style="height:90%;background:#fbbf24"></i></span><span class="b"><i style="height:70%;background:#fbbf24"></i></span><span class="b"><i style="height:86%;background:#fbbf24"></i></span></div></div>
-            <div class="eq-card"><span class="eq-stripe" style="background:linear-gradient(90deg,#818cf8,#6366f1)"></span><div class="eq-head"><span class="eq-av" style="background:linear-gradient(135deg,#818cf8,#6366f1)">CM</span><div><div class="eq-nm">Carla Méndez</div><div class="eq-rl">Estilista</div></div></div><div class="eq-stats"><div class="eq-st"><div class="k">Ocupación</div><div class="v">79%</div></div><div class="eq-st"><div class="k">Ingresos</div><div class="v gr">2.8k €</div></div></div><div class="eq-bars"><span class="b"><i style="height:50%;background:#818cf8"></i></span><span class="b"><i style="height:68%;background:#818cf8"></i></span><span class="b"><i style="height:72%;background:#818cf8"></i></span><span class="b"><i style="height:85%;background:#818cf8"></i></span><span class="b"><i style="height:79%;background:#818cf8"></i></span></div></div>
-            <div class="eq-card"><span class="eq-stripe" style="background:linear-gradient(90deg,#34d399,#10b981)"></span><div class="eq-head"><span class="eq-av" style="background:linear-gradient(135deg,#34d399,#10b981)">DR</span><div><div class="eq-nm">Diego Ramos</div><div class="eq-rl">Barbero</div></div></div><div class="eq-stats"><div class="eq-st"><div class="k">Ocupación</div><div class="v">91%</div></div><div class="eq-st"><div class="k">Ingresos</div><div class="v gr">3.1k €</div></div></div><div class="eq-bars"><span class="b"><i style="height:80%;background:#34d399"></i></span><span class="b"><i style="height:88%;background:#34d399"></i></span><span class="b"><i style="height:76%;background:#34d399"></i></span><span class="b"><i style="height:95%;background:#34d399"></i></span><span class="b"><i style="height:91%;background:#34d399"></i></span></div></div>
-            <div class="eq-card"><span class="eq-stripe" style="background:linear-gradient(90deg,#22d3ee,#0891b2)"></span><div class="eq-head"><span class="eq-av" style="background:linear-gradient(135deg,#22d3ee,#0891b2)">IT</span><div><div class="eq-nm">Inés Torres</div><div class="eq-rl">Recepción</div></div></div><div class="eq-stats"><div class="eq-st"><div class="k">Reservas</div><div class="v">128</div></div><div class="eq-st"><div class="k">Resp. media</div><div class="v gr">40 s</div></div></div><div class="eq-bars"><span class="b"><i style="height:65%;background:#22d3ee"></i></span><span class="b"><i style="height:72%;background:#22d3ee"></i></span><span class="b"><i style="height:84%;background:#22d3ee"></i></span><span class="b"><i style="height:78%;background:#22d3ee"></i></span><span class="b"><i style="height:88%;background:#22d3ee"></i></span></div></div>
-          </div>
-        </div>
-
-        <!-- INFORMES -->
-        <div class="aio-panel" id="p-informes">
-          <div class="inf" style="background:#070a14">
-            <div class="inf-top">
-              <div class="inf-kpi"><div class="k">Ingresos mes</div><div class="v">12.480 €</div><div class="d up">+18% vs mes anterior</div></div>
-              <div class="inf-kpi"><div class="k">Ocupación</div><div class="v">78%</div><div class="d up">+19 pts</div></div>
-              <div class="inf-kpi"><div class="k">No-shows</div><div class="v">1.2%</div><div class="d up">−16,8 pts</div></div>
-              <div class="inf-kpi"><div class="k">Ticket medio</div><div class="v">41 €</div><div class="d up">+9%</div></div>
-            </div>
-            <div class="inf-chart">
-              <div class="ch">Ingresos por semana</div>
-              <div class="inf-cols">
-                <div class="c"><i style="height:48%"></i><small>S1</small></div>
-                <div class="c"><i style="height:62%"></i><small>S2</small></div>
-                <div class="c"><i style="height:55%"></i><small>S3</small></div>
-                <div class="c"><i style="height:78%"></i><small>S4</small></div>
-                <div class="c"><i style="height:70%"></i><small>S5</small></div>
-                <div class="c"><i style="height:92%"></i><small>S6</small></div>
-                <div class="c"><i style="height:85%"></i><small>S7</small></div>
-                <div class="c"><i style="height:100%"></i><small>S8</small></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <h2 class="sec-title" style="font-size:clamp(24px,3.4vw,34px);margin:10px 0 8px">Agenda, IA, clientes, equipo e informes</h2>
+        <p class="sec-sub" style="margin:0 auto 24px">Todo de serie, sin letra pequeña.</p>
+        <a href="especificaciones.html" class="btn btn-ghost btn-lg">Ver especificaciones completas
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+        </a>
       </div>
     </div>
   </section>
@@ -1331,7 +841,7 @@
       <div class="cta-box reveal">
         <div class="in">
           <h2>Velo tú mismo o <span class="display">te lo montamos</span></h2>
-          <p>Echa un vistazo a Mecha con una <strong>demo gratis</strong> de solo vista, o reserva una <strong>llamada</strong> y en menos de un día te lo dejamos montado, con la IA implementada y el acceso completo a todo el software.</p>
+          <p>Mira la <strong>demo gratis</strong>, o reserva una <strong>llamada</strong> y en menos de un día lo tienes montado.</p>
           <div class="cta-actions">
             <a href="demo.html" class="btn btn-primary btn-lg" id="demoCta">Ver demo gratis
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
@@ -1369,7 +879,7 @@
     <div class="sec-head center reveal">
       <span class="eyebrow center">Quién está detrás</span>
       <h2 class="sec-title">Hecho por <span class="display" style="font-style:italic">desarrolladores</span>, para tu salón</h2>
-      <p class="sec-sub">Mecha lo construimos a mano, pensando en salones de verdad. Y seguimos: estamos <strong>totalmente abiertos a cualquier sugerencia</strong>. Somos desarrolladores de software — si echas algo en falta o lo quieres a tu manera, <strong>nos lo dices y lo hacemos</strong>.</p>
+      <p class="sec-sub">Si echas algo en falta o lo quieres a tu manera, <strong>nos lo dices y lo hacemos</strong>.</p>
     </div>
     <div class="makers-grid reveal">
       <div class="maker">
@@ -1405,7 +915,7 @@
         <a class="brand" href="#top" aria-label="Mecha, inicio"><svg class="brand-mark" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg><span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">OS</span></span></a>
         <p>El sistema operativo de tu salón o barbería. Agenda inteligente, asistente de IA y toda la gestión en un solo sitio.</p>
       </div>
-      <div class="foot-col"><h5>Producto</h5><a href="#asistente">Asistente IA</a><a href="#diferenciales">Diferenciales</a><a href="#fichas">Fichas de cliente</a><a href="#plataforma">Plataforma</a></div>
+      <div class="foot-col"><h5>Producto</h5><a href="#asistente">Asistente IA</a><a href="#diferenciales">Agenda</a><a href="#fichas">Fichas de cliente</a><a href="especificaciones.html">Especificaciones</a></div>
       <div class="foot-col"><h5>Integra</h5><a href="#integra">Conectar Booksy</a><a href="#integra">Conectar Fresha</a><a href="#comparativa">Todo lo que suma Mecha</a></div>
       <div class="foot-col"><h5>Empezar</h5><a href="demo.html">Ver demo gratis</a><a href="reservar.html">Reservar una llamada</a><a href="acceso.html">Iniciar sesión</a><a href="privacidad.html">Privacidad y derechos</a></div>
     </div>
@@ -1447,21 +957,14 @@
 <!-- ============ CHAT SEQUENCE ============ -->
 <script>
 window.MECHA_CHAT = [
-  { type:'them', html:'<div class="msg them">Hola, buenas. Quería pedir cita para hacerme unas mechas este sábado por la tarde<div class="mt">23:40</div></div>', gap:900 },
-  { type:'me', html:'<div class="msg me">¡Hola Ana! Encantada de ayudarte. Para mechas con Sofía tengo este sábado a las <b>11:00</b> o a las <b>16:30</b>. ¿Cuál te encaja mejor?<div class="mt">23:40 ✓✓</div></div>', gap:1100 },
+  { type:'them', html:'<div class="msg them">Hola! ¿Tenéis hueco el sábado para mechas?<div class="mt">23:40</div></div>', gap:900 },
+  { type:'me', html:'<div class="msg me">¡Hola Ana! Con Sofía tengo a las <b>11:00</b> o a las <b>16:30</b>. ¿Cuál te va?<div class="mt">23:40 ✓✓</div></div>', gap:1100 },
   { type:'me', html:'<div class="msg card"><div class="slots"><span class="slot">Sáb 11:00</span><span class="slot pick">Sáb 16:30</span></div></div>', gap:1300 },
-  { type:'them', html:'<div class="msg them">La de las 16:30 me viene perfecta<div class="mt">23:41</div></div>', gap:1000 },
-  { type:'me', html:'<div class="msg me">Genial, te la reservo. Sería mechas + tratamiento de hidratación con Sofía, sábado a las 16:30 (unos 110 min)<div class="mt">23:41 ✓✓</div></div>', gap:1200 },
-  { type:'them', html:'<div class="msg them">Una cosa importante: la última vez me quedaron con un tono muy anaranjado y no me gustó. Quiero un rubio más frío<div class="mt">23:42</div></div>', gap:1100 },
-  { type:'me', html:'<div class="msg me">¡Apuntado! Buscamos un rubio frío y evitamos los reflejos anaranjados. Se lo dejo anotado a Sofía para que prepare la mezcla con matiz ceniza. ¿Tienes alguna foto de referencia?<div class="mt">23:42 ✓✓</div></div>', gap:1200 },
-  { type:'them', html:'<div class="msg them">Sí, llevo una foto guardada de referencia<div class="mt">23:43</div></div>', gap:1000 },
-  { type:'me', html:'<div class="msg card"><div class="bk-card-h note">Aviso para Sofía</div><div class="bk-note"><b>Ana</b> quiere un <b>rubio frío</b>, sin reflejos anaranjados (la última vez quedó muy cálido). Trae <b>foto de referencia</b>. Preparar matiz ceniza.</div></div>', gap:1400 },
-  { type:'me', html:'<div class="msg me">Perfecto, Sofía lo tendrá todo preparado. El servicio son <b>93 €</b>. ¿Prefieres dejar la señal ahora o pagar en el salón?<div class="mt">23:43 ✓✓</div></div>', gap:1200 },
-  { type:'me', html:'<div class="msg card"><div class="pay-choice"><span class="pay-btn pick">Pagar señal · 20 €</span><span class="pay-btn">En el salón</span></div></div>', gap:1300 },
-  { type:'them', html:'<div class="msg them">Dejo la señal ahora mismo<div class="mt">23:44</div></div>', gap:1000 },
-  { type:'me', html:'<div class="msg card"><div class="bk-card-h pay">Depósito · Stripe</div><div class="stripe-link"><span class="sb">S</span><div><div class="sl-t">Pagar señal de 20 €</div><div class="sl-u">pay.stripe.com/mecha/ana</div></div></div></div>', gap:1500 },
-  { type:'me', html:'<div class="msg card"><div class="bk-card-h ok">Cita confirmada</div><div class="bk-row"><span class="k">Servicio</span><span class="v">Mechas + tratamiento</span></div><div class="bk-row"><span class="k">Cuándo</span><span class="v">Sáb 16:30 · Sofía</span></div><div class="bk-row"><span class="k">Nota</span><span class="v">Rubio frío · sin naranja</span></div><div class="bk-row"><span class="k">Señal</span><span class="v" style="color:#7ff0c0">20 € pagada ✓</span></div></div>', gap:1100 },
-  { type:'me', html:'<div class="msg me">¡Listo, Ana! Te he reservado el sábado a las 16:30 con Sofía y le he pasado tus indicaciones. Te enviaré un recordatorio el día antes. ¡Nos vemos!<div class="mt">23:44 ✓✓</div></div>', gap:800 }
+  { type:'them', html:'<div class="msg them">La de las 16:30<div class="mt">23:41</div></div>', gap:1000 },
+  { type:'me', html:'<div class="msg me">Reservada. Para confirmarla, ¿dejas una señal de <b>20 €</b>?<div class="mt">23:41 ✓✓</div></div>', gap:1100 },
+  { type:'me', html:'<div class="msg card"><div class="bk-card-h pay">Señal · Stripe</div><div class="stripe-link"><span class="sb">S</span><div><div class="sl-t">Pagar señal de 20 €</div><div class="sl-u">pay.stripe.com/mecha/ana</div></div></div></div>', gap:1500 },
+  { type:'me', html:'<div class="msg card"><div class="bk-card-h ok">Cita confirmada</div><div class="bk-row"><span class="k">Servicio</span><span class="v">Mechas</span></div><div class="bk-row"><span class="k">Cuándo</span><span class="v">Sáb 16:30 · Sofía</span></div><div class="bk-row"><span class="k">Señal</span><span class="v" style="color:#7ff0c0">20 € pagada ✓</span></div></div>', gap:1200 },
+  { type:'me', html:'<div class="msg me">¡Lista, Ana! Te mando un recordatorio el viernes. ¡Hasta el sábado!<div class="mt">23:42 ✓✓</div></div>', gap:800 }
 ];
 </script>
 <script src="assets/mecha.js"></script>
@@ -1483,6 +986,29 @@ window.MECHA_CHAT = [
       out=$('acctOut'), staff=$('acctStaff'), demoItem=$('acctDemo');
   if(!acct) return;
 
+  // Vuelta de un SSO (Google): el proveedor aterriza en la Site URL (esta
+  // landing) con el access_token en el hash, NO en acceso.html. Sin esto el
+  // usuario se queda en la landing "sin sesion" y tiene que volver a pulsar
+  // "Iniciar sesion" -el fallo gordo-. Detectamos el callback y, en cuanto hay
+  // sesion, lo llevamos a su destino: intencion de demo -> demo.html; en otro
+  // caso -> acceso.html (que enruta por plan: software / chooser / completar).
+  var DEMO_INTENT='mecha_intent_demo';
+  if(location.hash.indexOf('access_token')>=0){
+    var ssoDone=false;
+    var afterSSO=function(){
+      if(ssoDone) return; ssoDone=true;
+      var toDemo=false;
+      try{ toDemo=sessionStorage.getItem(DEMO_INTENT)==='1'; }catch(e){}
+      try{ sessionStorage.removeItem(DEMO_INTENT); }catch(e){}
+      location.replace(toDemo ? 'demo.html' : 'acceso.html');
+    };
+    api.getSession().then(function(s){ if(s) afterSSO(); });
+    if(api.onAuth){ api.onAuth(function(evt){ if(evt==='SIGNED_IN') afterSSO(); }); }
+  } else {
+    // Sin callback: la intencion de demo caduca para no secuestrar navegaciones.
+    try{ sessionStorage.removeItem(DEMO_INTENT); }catch(e){}
+  }
+
   function openMenu(){ acct.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
   function closeMenu(){ acct.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
   btn.addEventListener('click',function(e){ e.stopPropagation(); acct.classList.contains('open')?closeMenu():openMenu(); });
@@ -1496,7 +1022,15 @@ window.MECHA_CHAT = [
     else { location.reload(); }
   });
 
+  // El menu hamburguesa (mecha.js) pinta siempre "Iniciar sesion": con sesion
+  // activa hay que ocultarlo tambien ahi, no solo en el nav de escritorio.
+  function syncMobileMenu(hasSession){
+    var mmLogin=document.querySelector('.mobile-menu-cta .login');
+    if(mmLogin) mmLogin.style.display=hasSession?'none':'';
+  }
+
   function render(session){
+    syncMobileMenu(!!(session&&session.user));
     if(!session||!session.user){
       acct.classList.remove('on');
       if(login) login.style.display='';

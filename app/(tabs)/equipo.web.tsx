@@ -255,7 +255,7 @@ export default function EquipoWeb() {
           <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: TOKENS.textSec }}>Cargando...</p>
         </div>
       </div>
-      <div style={{ flex: 1, padding: 24, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, alignContent: 'start' }}>
+      <div style={{ flex: 1, padding: isMobile ? 16 : 24, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)'), gap: 16, alignContent: 'start' }}>
         {[1,2,3].map((i) => (
           <div key={i} style={{ background: TOKENS.bgCard, borderRadius: 16, height: 200, opacity: 0.4, animation: 'pulse 1.5s ease infinite', animationDelay: `${i * 0.1}s` }} />
         ))}
@@ -392,7 +392,7 @@ export default function EquipoWeb() {
                     background: TOKENS.bgCard,
                     border: `1px solid ${isSel ? `${p.color}66` : TOKENS.border}`,
                     borderRadius: 16,
-                    padding: '18px 18px 10px 18px',
+                    padding: isMobile ? '14px 14px 8px 14px' : '18px 18px 10px 18px',
                     animationDelay: `${idx * 0.1}s`,
                     transition: 'transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s ease, border-color 0.2s ease',
                     cursor: 'pointer',
@@ -404,18 +404,19 @@ export default function EquipoWeb() {
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: p.color }} />
                   <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: 999, background: `radial-gradient(circle, ${p.color}22, transparent 70%)` }} />
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14, position: 'relative' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 14, marginBottom: isMobile ? 12 : 14, position: 'relative' }}>
                     <div
                       style={{
-                        width: 52,
-                        height: 52,
+                        width: isMobile ? 44 : 52,
+                        height: isMobile ? 44 : 52,
                         borderRadius: 999,
                         background: `linear-gradient(135deg, ${p.color}, ${p.color}aa)`,
                         display: 'grid',
                         placeItems: 'center',
                         color: '#fff',
                         fontWeight: 700,
-                        fontSize: 16,
+                        fontSize: isMobile ? 14 : 16,
+                        flexShrink: 0,
                         boxShadow: `0 4px 12px ${p.color}55, 0 0 0 1px rgba(255,255,255,0.06)`,
                       }}
                     >
@@ -670,15 +671,28 @@ export default function EquipoWeb() {
               </div>
             </Section>
 
-            {/* Horario base */}
+            {/* Horario base — en movil lista vertical por dia (cabe sin scroll
+                horizontal); en escritorio rejilla de 7 columnas. */}
             <Section title="Horario base">
-              <div style={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch', paddingBottom: 6 }}>
-                <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 14, display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, minWidth: isMobile ? 520 : 'auto' }}>
+              <div style={{ width: '100%', paddingBottom: 6 }}>
+                <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: isMobile ? 6 : 14, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(7,1fr)', gap: isMobile ? 2 : 4 }}>
                   {DIAS_SEMANA.map((dia, i) => {
                     const dbDia = i === 6 ? 0 : i + 1;
                     const dayH = horarios.filter((x) => x.dia_semana === dbDia).sort((a, b) => (a.turno ?? 1) - (b.turno ?? 1));
                     const hasH = dayH.length > 0;
                     const isEditing = editDia === dbDia;
+                    const horasTxt = hasH ? dayH.map((h) => `${fmtHora(h.hora_inicio)}-${fmtHora(h.hora_fin)}`).join(' · ') : 'Cerrado';
+                    if (isMobile) {
+                      // Fila: nombre del dia a la izquierda, horas a la derecha.
+                      return (
+                        <div key={i}
+                          onClick={() => openEditDia(dbDia)}
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 11px', borderRadius: 8, background: isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.08)' : 'rgba(148,163,184,0.05)', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
+                          <span style={{ fontSize: 12.5, fontWeight: 700, color: isEditing ? TOKENS.text : hasH ? TOKENS.primaryHi : TOKENS.textTer }}>{DIAS_SEMANA_FULL[dbDia]}</span>
+                          <span style={{ fontSize: 12, color: hasH ? TOKENS.textSec : TOKENS.textTer, textAlign: 'right' }}>{horasTxt}</span>
+                        </div>
+                      );
+                    }
                     return (
                       <div key={i}
                         onClick={() => openEditDia(dbDia)}
