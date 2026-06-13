@@ -559,18 +559,29 @@
         </div>
         <div class="diff-vis">
           <span class="vis-glow" style="background:rgba(245,158,11,.3)"></span>
-          <div class="gap-prof">Carla · Estilista Senior — 09:00 a 11:00</div>
-          <div class="gap-track">
-            <div class="gap-lane">
-              <div class="gap-seg seg-active" style="left:0;width:34%"><span class="who">María — Color</span><span class="when">09:00–09:40</span></div>
-              <div class="gap-seg seg-rest" style="left:35%;width:28%"><span class="who">Reposo tinte</span><span class="when">25 min libres</span></div>
-              <div class="gap-seg seg-active" style="left:64%;width:36%"><span class="who">María — Lavado</span><span class="when">10:05–10:40</span></div>
+          <div class="am">
+            <div class="am-head"><span class="am-dot"></span>Carla · Estilista — jueves</div>
+            <div class="am-col">
+              <div class="am-appt active">
+                <div class="am-t">09:00 – 09:40</div>
+                <div class="am-n">María L.</div>
+                <div class="am-s">Color</div>
+              </div>
+              <div class="am-appt rest">
+                <div class="am-t">09:40 – 10:05 · reposo del tinte</div>
+                <div class="am-fit">
+                  <span class="am-fit-plus">+</span>
+                  <div><div class="am-fit-n">Laura P. — Corte express</div><div class="am-fit-s">encaja en el hueco libre</div></div>
+                </div>
+              </div>
+              <div class="am-appt active">
+                <div class="am-t">10:05 – 10:40</div>
+                <div class="am-n">María L.</div>
+                <div class="am-s">Lavado y peinado</div>
+              </div>
             </div>
-            <div class="gap-lane" style="margin-bottom:0">
-              <div class="gap-seg seg-new" style="left:35%;width:28%"><span class="who">+ Laura — Corte</span><span class="when">en el hueco</span></div>
-            </div>
+            <div class="am-cap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></svg><b>+1 servicio</b>&nbsp;en la misma franja, sin alargar tu jornada.</div>
           </div>
-          <div class="gap-cap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></svg><b>+1 servicio</b>&nbsp;en la misma franja, sin alargar tu jornada.</div>
         </div>
       </div>
 
@@ -597,65 +608,6 @@
               <div class="cav"><span class="av" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">SL</span><span><span class="cn">Sofía León</span><br /><span class="cr">Colorista</span></span></div>
               <div class="cav"><span class="av" style="background:linear-gradient(135deg,#818cf8,#6366f1)">CM</span><span><span class="cn">Carla M.</span><br /><span class="cr">Estilista</span></span></div>
               <div class="cav"><span class="av" style="background:linear-gradient(135deg,#34d399,#10b981)">DR</span><span><span class="cn">Diego R.</span><br /><span class="cr">Peinado</span></span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ============ AUTOMATIZA (we do more) ============ -->
-  <section class="auto" id="automatiza">
-    <div class="wrap">
-      <div class="sec-head center reveal">
-        <span class="eyebrow center">Mucho más que una agenda</span>
-        <h2 class="sec-title">De la reserva al cliente que vuelve</h2>
-      </div>
-
-      <div class="flow reveal">
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span><h5>1 · Reserva</h5><p>WhatsApp, web o QR.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span><h5>2 · Señal</h5><p>Bloquea el hueco.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></span><h5>3 · Servicio</h5><p>Agenda y cobro.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span><h5>4 · Vuelve</h5><p>La IA le recuerda volver.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ ORGANIZADOR IA — agenda self-organizing + mini chat ============ -->
-  <section class="diff" id="organizador">
-    <div class="wrap">
-      <div class="sec-head center reveal">
-        <span class="eyebrow center">Organizador con IA</span>
-        <h2 class="sec-title">Tu agenda se ordena <span class="display" style="font-style:italic">sola</span></h2>
-      </div>
-
-      <div class="diff-row reveal">
-        <div class="diff-txt">
-          <span class="diff-tag" style="background:var(--accent-soft);color:var(--accent-hi)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg>Reorganiza con un botón</span>
-          <h3>Pulsa "Organizar mi día" y la IA cuadra tu agenda</h3>
-          <ul class="diff-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Te propone <strong>un día más compacto</strong>, con menos huecos.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Ves qué se mueve</strong> antes de aceptar.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Nada cambia <strong>sin tu confirmación</strong>.</span></li>
-          </ul>
-        </div>
-        <div class="diff-vis">
-          <span class="vis-glow" style="background:rgba(244,80,30,.3)"></span>
-          <div class="org-organize">
-            <div class="org-day-head">
-              <div><div class="org-day-t">Martes 9 jun</div><div class="org-day-s">8 citas - 2 huecos sueltos</div></div>
-              <button class="org-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg>Organizar mi día</button>
-            </div>
-            <div class="org-prop">
-              <div class="org-prop-h"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg></span>Propuesta de la IA</div>
-              <div class="org-move"><span class="ot">Adelantar corte de Marco</span><span class="oa">12:30 a 11:45</span></div>
-              <div class="org-move"><span class="ot">Encajar tinte de Lucía en el hueco de reposo</span><span class="oa good">+1 cita</span></div>
-              <div class="org-move"><span class="ot">Juntar las dos citas de la tarde</span><span class="oa">-35 min muertos</span></div>
-              <div class="org-prop-foot">
-                <span class="org-gain"><b>+1 cita</b> - 35 min menos de huecos</span>
-                <span class="org-apply">Aplicar</span>
-              </div>
             </div>
           </div>
         </div>
@@ -763,57 +715,98 @@
     </div>
   </section>
 
+  <!-- ============ AUTOMATIZA (we do more) ============ -->
+  <section class="auto" id="automatiza">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Mucho más que una agenda</span>
+        <h2 class="sec-title">De la reserva al cliente que vuelve</h2>
+      </div>
+
+      <div class="flow reveal">
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span><h5>1 · Reserva</h5><p>WhatsApp, web o QR.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span><h5>2 · Señal</h5><p>Bloquea el hueco.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></span><h5>3 · Servicio</h5><p>Agenda y cobro.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span><h5>4 · Vuelve</h5><p>La IA le recuerda volver.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ORGANIZADOR IA — agenda self-organizing + mini chat ============ -->
+  <section class="diff" id="organizador">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Organizador con IA</span>
+        <h2 class="sec-title">Tu agenda se ordena <span class="display" style="font-style:italic">sola</span></h2>
+      </div>
+
+      <div class="diff-row reveal">
+        <div class="diff-txt">
+          <span class="diff-tag" style="background:var(--accent-soft);color:var(--accent-hi)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg>Reorganiza con un botón</span>
+          <h3>Pulsa "Organizar mi día" y la IA cuadra tu agenda</h3>
+          <ul class="diff-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Te propone <strong>un día más compacto</strong>, con menos huecos.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Ves qué se mueve</strong> antes de aceptar.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Nada cambia <strong>sin tu confirmación</strong>.</span></li>
+          </ul>
+        </div>
+        <div class="diff-vis">
+          <span class="vis-glow" style="background:rgba(244,80,30,.3)"></span>
+          <div class="org-organize">
+            <div class="org-day-head">
+              <div><div class="org-day-t">Martes 9 jun</div><div class="org-day-s">8 citas - 2 huecos sueltos</div></div>
+              <button class="org-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg>Organizar mi día</button>
+            </div>
+            <div class="org-prop">
+              <div class="org-prop-h"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg></span>Propuesta de la IA</div>
+              <div class="org-move"><span class="ot">Adelantar corte de Marco</span><span class="oa">12:30 a 11:45</span></div>
+              <div class="org-move"><span class="ot">Encajar tinte de Lucía en el hueco de reposo</span><span class="oa good">+1 cita</span></div>
+              <div class="org-move"><span class="ot">Juntar las dos citas de la tarde</span><span class="oa">-35 min muertos</span></div>
+              <div class="org-prop-foot">
+                <span class="org-gain"><b>+1 cita</b> - 35 min menos de huecos</span>
+                <span class="org-apply">Aplicar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- ============ COMPARISON — thorough ============ -->
   <section class="compare" id="comparativa">
     <div class="wrap">
       <div class="sec-head center reveal">
         <span class="eyebrow center">No competimos con ellos · los sumamos</span>
-        <h2 class="sec-title">Lo que Mecha hace y <span class="display" style="font-style:italic">ellos no</span></h2>
+        <h2 class="sec-title">Lo que te da Mecha y <span class="display" style="font-style:italic">Booksy o Fresha no</span></h2>
+        <p class="sec-sub">Conecta el que ya usas y súmale lo que de verdad mueve la caja.</p>
       </div>
 
-      <div class="ctable reveal">
-        <div class="crow head">
-          <div class="ccell feat"></div>
-          <div class="ccell col-us"><span class="chead us">Mecha</span></div>
-          <div class="ccell"><span class="chead">Booksy</span></div>
-          <div class="ccell"><span class="chead">Fresha</span></div>
+      <div class="vs-grid reveal">
+        <div class="vs-card">
+          <span class="vs-tag">Solo Mecha</span>
+          <h4>Tiempos muertos productivos</h4>
+          <p>Atiendes a otro cliente <b>mientras un tinte reposa</b>.</p>
+          <span class="vs-them">En Booksy y Fresha ese hueco se queda <b>vacío</b>.</span>
         </div>
-
-        <div class="crow">
-          <div class="ccell feat">Tiempos muertos productivos<small>Otra cita durante el reposo</small></div>
-          <div class="ccell col-us"><span class="us-badge">Único</span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
+        <div class="vs-card">
+          <span class="vs-tag">Solo Mecha</span>
+          <h4>La IA reserva y cobra la señal</h4>
+          <p>Atiende por <b>WhatsApp 24/7</b>, propone hueco y cobra la señal sola.</p>
+          <span class="vs-them">Ellos no tienen <b>IA conversacional</b> propia.</span>
         </div>
-        <div class="crow">
-          <div class="ccell feat">IA que reserva por WhatsApp 24/7</div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
+        <div class="vs-card">
+          <span class="vs-tag">Solo Mecha</span>
+          <h4>Servicios encadenados</h4>
+          <p>Color, corte y peinado <b>entre varios profesionales</b> en una cita.</p>
+          <span class="vs-them">En ellos es <b>manual o no existe</b>.</span>
         </div>
-        <div class="crow">
-          <div class="ccell feat">Señal anti no-show pedida por la IA</div>
-          <div class="ccell col-us"><span class="us-badge">Único</span></div>
-          <div class="ccell"><span class="ck-part">Solo señal</span></div>
-          <div class="ccell"><span class="ck-part">Solo señal</span></div>
-        </div>
-        <div class="crow">
-          <div class="ccell feat">Servicios encadenados multi-profesional</div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-          <div class="ccell"><span class="ck-part">Parcial</span></div>
-        </div>
-        <div class="crow">
-          <div class="ccell feat">Tus clientes son tuyos<small>No es un marketplace que los comparte</small></div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-          <div class="ccell"><span class="ck-part">Limitado</span></div>
-        </div>
-        <div class="crow">
-          <div class="ccell feat">Conecta tu Booksy / Fresha</div>
-          <div class="ccell col-us"><span class="ck-yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
-          <div class="ccell"><span class="ck-no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span></div>
+        <div class="vs-card">
+          <span class="vs-tag neutral">Tu negocio</span>
+          <h4>Tus clientes son tuyos</h4>
+          <p>No es un marketplace que los comparte. Y <b>conectas tu Booksy o Fresha</b> sin perder nada.</p>
+          <span class="vs-them">Migras <b>a tu ritmo</b>, o no migras.</span>
         </div>
       </div>
 
@@ -825,10 +818,10 @@
   <section class="section" id="especificaciones" style="padding:26px 0 70px">
     <div class="wrap" style="text-align:center">
       <div class="reveal" style="max-width:680px;margin:0 auto;padding:40px 28px;border:1px solid var(--border-hi);border-radius:22px;background:linear-gradient(180deg,var(--card-hi),var(--card))">
-        <span class="eyebrow center">Todo lo que incluye</span>
-        <h2 class="sec-title" style="font-size:clamp(24px,3.4vw,34px);margin:10px 0 8px">Agenda, IA, clientes, equipo e informes</h2>
-        <p class="sec-sub" style="margin:0 auto 24px">Todo de serie, sin letra pequeña.</p>
-        <a href="especificaciones.html" class="btn btn-ghost btn-lg">Ver especificaciones completas
+        <span class="eyebrow center">Todo lo que incluye, al detalle</span>
+        <h2 class="sec-title" style="font-size:clamp(23px,3.4vw,33px);margin:10px 0 10px">¿Quieres ver <span class="display" style="font-style:italic">todo</span> lo que hace Mecha?</h2>
+        <p class="sec-sub" style="margin:0 auto 24px">Cada función explicada, una por una: qué hace y para qué te sirve. Gratis y sin registro.</p>
+        <a href="especificaciones.html" class="btn btn-primary btn-lg">Ver todas las especificaciones
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
         </a>
       </div>
