@@ -83,18 +83,26 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
 - Software: `/app` (login por `/acceso.html`) · Portal demo: `/app/r/demo`
 - La demo es interactiva y comparte datos: si alguien los ensucia, re-sembrar el tenant demo.
 
-## Estado y pendientes (12 jun 2026 — detalle en MEGA_INFORME_MECHA.md y su adendo)
+## Estado y pendientes (13 jun 2026 — detalle en MEGA_INFORME_MECHA.md y su adendo, §ADENDO G)
 
 - Hecho y verificado: portal+QR, reseñas, lista de espera (v1), bloqueo clientes, etiquetas,
   consentimientos, fidelización v1, demo compartida estable, móvil de landing y software,
   endurecimiento de seguridad (exec_sql fuera, addons cerrados, anti-abuso, bucket privado).
+- Hecho 13 jun (commit `4f3b97b`, preview de Vercel verde — falta merge a `master` para producción):
+  landing recortada/premium + `especificaciones.html` aparte; **login SSO de Google arreglado**
+  (la landing maneja el callback que aterriza en la Site URL); inputs del software ya no se salen
+  del marco (`box-sizing:border-box` global); equipo/informes sin scroll horizontal en móvil;
+  botón "Volver a la web" en Ajustes móvil; tab bar móvil afinada.
+- Pagos (Alexandro, en `master`): modelo de datos de señal (tabla `pagos`) + RPC
+  `requerir_senal_cita` ya aplicados. Falta la pasarela (Checkout+webhook) y la UI del pago.
 - **Pendientes prioritarios:**
   1. Manual (Carlos): rotar credenciales Google de `Documentacion/n8n/`; activar
      "Leaked password protection" en Supabase Auth (dashboard).
   2. RPCs A1–A6 (base agentes IA: identificar cliente por teléfono, cancelar/modificar cita,
      canal+autoría IA, credencial de servicio, webhook saliente) — §7 del informe.
   3. Cancelar/modificar cita desde el portal (criterio de lanzamiento del dossier).
-  4. Stripe: señal anti no-show (P1) y cobro por QR en el local (P2) — §8 del informe. Alexandro.
+  4. Stripe: señal anti no-show (P1, backend ya empezado por Alexandro — falta pasarela+UI)
+     y cobro por QR en el local (P2) — §8 del informe.
   5. Matching automático de lista de espera + avisos (motor de mensajería = Alexandro).
   6. Caja fiscal M-CJ (doc modular 5): NO improvisar, requiere fiscalista.
 - **No hacer aún** (disciplina del dossier): inventario, app nativa del cliente final,
