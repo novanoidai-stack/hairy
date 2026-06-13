@@ -137,12 +137,16 @@ interface FieldRowProps {
 
 export function FieldRow({ label, hint, htmlFor, children, full, disabled, action }: FieldRowProps) {
   const { isMobile } = useResponsive();
+  // Apilado en movil o cuando full: el control ocupa todo el ancho de la fila y
+  // se le deja crecer (flex 1 1 100%) con minWidth/maxWidth 0/100% para que no
+  // se salga del marco. En escritorio el control va por contenido (0 1 auto).
+  const stacked = full || isMobile;
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: (full || isMobile) ? '1fr' : '220px 1fr',
+      gridTemplateColumns: stacked ? '1fr' : '220px 1fr',
       alignItems: 'flex-start',
-      gap: (full || isMobile) ? 8 : 24,
+      gap: stacked ? 8 : 24,
       padding: '14px 0',
       borderTop: `1px solid ${T.border}`,
       opacity: disabled ? 0.55 : 1,
@@ -153,9 +157,9 @@ export function FieldRow({ label, hint, htmlFor, children, full, disabled, actio
         }}>{label}</label>
         {hint && <div style={{ fontSize: 11, color: T.textTer, lineHeight: 1.5 }}>{hint}</div>}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const, justifyContent: 'flex-start' }}>
-        <div style={{ flex: '0 1 auto', minWidth: 0 }}>{children}</div>
-        {action && <div style={{ marginLeft: 'auto' }}>{action}</div>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const, justifyContent: 'flex-start', minWidth: 0 }}>
+        <div style={{ flex: stacked ? '1 1 100%' : '0 1 auto', minWidth: 0, maxWidth: '100%' }}>{children}</div>
+        {action && <div style={{ marginLeft: stacked ? 0 : 'auto' }}>{action}</div>}
       </div>
     </div>
   );

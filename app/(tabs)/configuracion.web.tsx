@@ -814,6 +814,23 @@ export default function ConfiguracionWeb() {
               <SettingsIcon name="chevR" size={10} color={T.primaryHi} />
             </span>
           </button>
+
+          {/* Volver a la web publica (salir del software sin cerrar sesion).
+              Solo en movil: en escritorio esta accion vive en el Sidebar. */}
+          {isMobile && (
+            <button
+              onClick={() => { try { (window.top || window).location.href = '/'; } catch (e) { window.location.href = '/'; } }}
+              style={{
+                marginTop: 10, padding: '12px 14px', borderRadius: 12, width: '100%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                background: T.bgCard, border: `1px solid ${T.border}`, color: T.textSecondary,
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              <SettingsIcon name="chevron-back" size={14} color={T.textSecondary} />
+              Volver a la web
+            </button>
+          )}
         </nav>
 
         {/* Content */}

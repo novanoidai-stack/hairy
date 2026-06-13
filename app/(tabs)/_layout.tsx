@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme';
@@ -27,22 +27,37 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
     );
   }
 
+  // Icono de pestana: activo relleno, inactivo outline (mas limpio y "de app"
+  // que rellenar siempre). Tamano fijo y contenido para no verse tosco en movil.
+  const tabIcon = (name: string) =>
+    ({ color, focused }: { color: string; focused: boolean }) => (
+      <Ionicons name={(focused ? name : `${name}-outline`) as any} size={23} color={color} />
+    );
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: c.tabBar, borderTopColor: c.tabBarBorder, height: 60, paddingBottom: 8 },
+        tabBarStyle: {
+          backgroundColor: c.tabBar,
+          borderTopColor: c.tabBarBorder,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          height: 58,
+          paddingTop: 7,
+          paddingBottom: 9,
+        },
         tabBarActiveTintColor: '#f4501e',
         tabBarInactiveTintColor: c.textTertiary,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
+        tabBarLabelStyle: { fontSize: 10.5, fontWeight: '600', letterSpacing: 0.1, marginTop: 1 },
+        tabBarItemStyle: { paddingTop: 1 },
         contentStyle: { backgroundColor: '#f6f1ea' },
       } as any}
     >
-      <Tabs.Screen name="index" options={{ title: 'Agenda', tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} /> }} />
-      <Tabs.Screen name="clientes" options={{ title: 'Clientes', tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} /> }} />
-      <Tabs.Screen name="equipo" options={{ title: 'Equipo', tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} /> }} />
-      <Tabs.Screen name="informes" options={{ title: 'Informes', tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart" size={size} color={color} /> }} />
-      <Tabs.Screen name="configuracion" options={{ title: 'Ajustes', tabBarIcon: ({ color, size }) => <Ionicons name="settings" size={size} color={color} /> }} />
+      <Tabs.Screen name="index" options={{ title: 'Agenda', tabBarIcon: tabIcon('calendar') }} />
+      <Tabs.Screen name="clientes" options={{ title: 'Clientes', tabBarIcon: tabIcon('people') }} />
+      <Tabs.Screen name="equipo" options={{ title: 'Equipo', tabBarIcon: tabIcon('person') }} />
+      <Tabs.Screen name="informes" options={{ title: 'Informes', tabBarIcon: tabIcon('bar-chart') }} />
+      <Tabs.Screen name="configuracion" options={{ title: 'Ajustes', tabBarIcon: tabIcon('settings') }} />
       <Tabs.Screen name="lista-espera" options={{ href: null }} />
     </Tabs>
   );

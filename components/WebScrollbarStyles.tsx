@@ -24,6 +24,10 @@ export function WebScrollbarStyles() {
 
     const style = document.createElement('style');
     style.textContent = `
+      /* Reset border-box: los inputs/divs crudos de las pantallas .web.tsx
+         (SettingsAtoms, equipo, etc.) usaban content-box, asi un input con
+         width:100% + padding se salia del marco en movil. */
+      *, *::before, *::after { box-sizing: border-box; }
       html, body, #__next, #root, * {
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         -webkit-font-smoothing: antialiased;
