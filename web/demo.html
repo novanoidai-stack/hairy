@@ -14,11 +14,12 @@
 <link rel="stylesheet" href="assets/mecha-sections.css" />
 <style>
   html,body{height:100dvh;margin:0;padding:0;width:100%;position:fixed;inset:0;overflow:hidden}
-  body{display:flex;flex-direction:column}
+  html{overflow-x:hidden}
+  body{display:flex;flex-direction:column;overflow-x:hidden;max-width:100vw}
 
   /* ---------- DEMO BAR ---------- */
   .dm-bar{position:relative;z-index:5;display:flex;align-items:center;gap:12px;padding:10px clamp(14px,3vw,28px);
-    border-bottom:1px solid var(--border);background:rgba(11,16,32,.88);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);flex-shrink:0;flex-wrap:wrap}
+    border-bottom:1px solid var(--border);background:rgba(11,16,32,.92);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);flex-shrink:0}
   .dm-bar .brand{display:flex;align-items:center;gap:9px}
   .dm-bar .brand svg{width:28px;height:28px}
   .dm-bar .brand .nm{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.04em}
@@ -26,41 +27,37 @@
     color:var(--accent-hi);background:var(--accent-soft);border:1px solid var(--accent-soft);padding:5px 11px;border-radius:999px}
   .dm-pill .d{width:6px;height:6px;border-radius:50%;background:var(--accent-hi);box-shadow:0 0 10px var(--accent-glow)}
   .dm-visits{display:inline-flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;font-weight:600;color:var(--text-sec);
-    padding:6px 13px;border:1px solid var(--border-hi);border-radius:10px;background:var(--card);white-space:nowrap}
+    padding:6px 13px;border:1px solid var(--border-hi);border-radius:10px;background:var(--card);white-space:nowrap;flex-shrink:1;min-width:0;overflow:hidden}
   .dm-visits svg{width:15px;height:15px;color:var(--accent-hi);flex-shrink:0}
   .dm-visits.low{color:#ffb07a;border-color:rgba(244,80,30,.4)}
   .dm-visits.low svg{color:#ffb07a}
   .dm-bar-cta{display:flex;align-items:center;gap:10px;flex-shrink:0}
   .dm-bar .btn{padding:9px 16px;font-size:13.5px;white-space:nowrap}
   .dm-bar .cta-short{display:none}
-  .dm-bar .cta-icon{display:none}
   .ver-back{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--text-sec);
     padding:6px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.03);transition:all .2s;flex-shrink:0}
   .ver-back:hover{color:var(--text);border-color:var(--border-hi);background:rgba(255,255,255,.07)}
-  .ver-back svg{width:15px;height:15px}
+  .ver-back svg{width:15px;height:15px;flex-shrink:0}
   .dm-share{flex-shrink:0}
   @media(max-width:720px){
-    .dm-bar{gap:8px;padding:8px 10px;flex-wrap:nowrap}
+    .dm-bar{gap:6px;padding:7px 8px}
     .dm-bar .brand{display:none}
     .dm-pill{display:none}
-    .ver-back{padding:5px 8px;font-size:0;gap:0;min-width:32px;justify-content:center}
-    .ver-back svg{width:16px;height:16px}
+    .ver-back{padding:6px;font-size:0;gap:0;border-radius:8px;border-color:transparent;background:none}
+    .ver-back:hover{background:rgba(255,255,255,.06)}
     .ver-back span{display:none}
-    .dm-visits{font-size:11px;padding:5px 8px;gap:5px;margin-left:0}
-    .dm-share{font-size:0!important;padding:6px 8px!important;min-width:32px;justify-content:center}
+    .dm-visits{font-size:11.5px;padding:5px 9px;gap:5px;margin-left:0;border-radius:8px}
+    .dm-share{font-size:0!important;padding:6px!important;border-radius:8px!important;min-width:auto}
     .dm-share .lbl{display:none!important}
     .dm-share svg{margin:0!important}
-    .dm-bar .btn{padding:7px 10px;font-size:11.5px}
+    .dm-bar .btn{padding:7px 12px;font-size:12px;border-radius:9px}
     .dm-bar .cta-long{display:none}
     .dm-bar .cta-short{display:inline}
     .dm-bar-cta{margin-left:auto}
   }
-  @media(max-width:400px){
-    .dm-visits span{display:none}
-    .dm-visits{padding:5px 7px;gap:0}
-    .dm-bar .cta-short{display:none}
-    .dm-bar .cta-icon{display:inline}
-    .dm-bar .btn{padding:7px 9px;font-size:11px}
+  @media(max-width:374px){
+    .dm-visits{padding:5px 6px;gap:4px}
+    .dm-bar .btn{padding:6px 10px;font-size:11.5px}
   }
 
   /* ---------- STAGE / REAL APP ---------- */
@@ -645,7 +642,7 @@
     <span class="lbl">Compartir demo</span>
   </button>
   <div class="dm-bar-cta">
-    <a class="btn btn-primary" href="reservar.html"><span class="cta-long">Quiero el acceso completo</span><span class="cta-short">Acceso</span><span class="cta-icon">🔓</span>
+    <a class="btn btn-primary" href="reservar.html"><span class="cta-long">Quiero el acceso completo</span><span class="cta-short">Solicitar acceso</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
     </a>
   </div>
@@ -863,7 +860,13 @@
   function setVisits(remaining){
     if(remaining===null||typeof remaining==='undefined'){ visitsText.textContent='Demo activa'; return; }
     var n=remaining;
-    visitsText.textContent = n===1 ? 'Te queda 1 visita' : ('Te quedan '+n+' visitas');
+    // Texto corto en móvil para que no corte la barra
+    var isMob = window.innerWidth <= 720;
+    if(isMob){
+      visitsText.textContent = n + ' visita' + (n===1?'':'s');
+    } else {
+      visitsText.textContent = n===1 ? 'Te queda 1 visita' : ('Te quedan '+n+' visitas');
+    }
     if(n<=1) visitsEl.classList.add('low');
   }
 
