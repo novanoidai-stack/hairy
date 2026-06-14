@@ -1,7 +1,7 @@
 # CLAUDE.md — Contexto del proyecto Mecha (repo "Hairy")
 
 > Claude Code lee este archivo automáticamente al arrancar en este repo.
-> **Fuente de verdad del estado del producto: `MEGA_INFORME_MECHA.md`** (raíz).
+> **Fuente de verdad del estado del producto: `informes/MEGA_INFORME_MECHA.md`** (carpeta informes).
 > Los specs del socio (Jose) están en `Documentacion/` (NO versionada: contiene secretos).
 
 ## Qué es esto
@@ -83,7 +83,7 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
 - Software: `/app` (login por `/acceso.html`) · Portal demo: `/app/r/demo`
 - La demo es interactiva y comparte datos: si alguien los ensucia, re-sembrar el tenant demo.
 
-## Estado y pendientes (14 jun 2026 — detalle en MEGA_INFORME_MECHA.md y sus adendos)
+## Estado y pendientes (14 jun 2026 — detalle en informes/MEGA_INFORME_MECHA.md y sus adendos)
 
 - Hecho y verificado: portal+QR, reseñas, lista de espera (v1), bloqueo clientes, etiquetas,
   consentimientos, fidelización v1, demo compartida estable, móvil de landing y software,
