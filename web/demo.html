@@ -594,37 +594,60 @@
       <div class="share-bonus-card">
         <div class="share-bonus-badge">🎁 REGALO DE RECOMENDACIÓN</div>
         <h4>Consigue un 30% de descuento vitalicio</h4>
-        <p>Invita a <b>3 salones interesados</b> a probar Mecha. Te daremos un <b>30% de descuento vitalicio</b> en tu suscripción en cuanto se creen una cuenta gratis. ¡Y tus recomendados se llevarán un <b>15% de descuento</b> por venir de tu parte! (pueden subir al 30% si a su vez recomiendan a 3 más).</p>
+        <p>Introduce tu correo para generar tu <b>enlace único de referido</b>. En cuanto <b>3 amigos</b> se registren para probar Mecha usando tu enlace, te aplicaremos un <b>30% de descuento vitalicio</b> a ti y un <b>15% de descuento</b> a ellos de forma automática.</p>
         
         <form class="share-rec-form" id="recForm" onsubmit="event.preventDefault(); submitRecommendation();">
-          <h5>Solicitar mis descuentos de recomendación</h5>
+          <h5>Generar mi enlace de referidos y solicitar descuentos</h5>
           <div class="share-rec-msg" id="recMsg"></div>
           <div class="share-rec-grid">
             <div class="share-rec-field share-rec-full">
-              <label for="recReferente">Tu correo electrónico *</label>
-              <input type="email" id="recReferente" required placeholder="tuemail@salondebelleza.com" />
+              <label for="recReferente">Tu correo electrónico (Obligatorio) *</label>
+              <input type="email" id="recReferente" required placeholder="tuemail@salondebelleza.com" oninput="updatePersonalizedLink()" />
+            </div>
+            <div class="share-rec-field share-rec-full" style="margin-top:4px;">
+              <span style="font-size:11px;color:var(--text-ter);display:block;margin-bottom:4px;">PRE-REGISTRO MANUAL (OPCIONAL):</span>
             </div>
             <div class="share-rec-field">
-              <label for="recAmigo1">Correo de tu recomendado 1 *</label>
-              <input type="email" id="recAmigo1" required placeholder="amigo1@salondebelleza.com" />
+              <label for="recAmigo1">Correo de tu amigo 1 (Opcional)</label>
+              <input type="email" id="recAmigo1" placeholder="amigo1@salondebelleza.com" />
             </div>
             <div class="share-rec-field">
-              <label for="recAmigo2">Correo de tu recomendado 2 *</label>
-              <input type="email" id="recAmigo2" required placeholder="amigo2@salondebelleza.com" />
+              <label for="recAmigo2">Correo de tu amigo 2 (Opcional)</label>
+              <input type="email" id="recAmigo2" placeholder="amigo2@salondebelleza.com" />
             </div>
-            <div class="share-rec-field">
-              <label for="recAmigo3">Correo de tu recomendado 3 *</label>
-              <input type="email" id="recAmigo3" required placeholder="amigo3@salondebelleza.com" />
+            <div class="share-rec-field share-rec-full">
+              <label for="recAmigo3">Correo de tu amigo 3 (Opcional)</label>
+              <input type="email" id="recAmigo3" placeholder="amigo3@salondebelleza.com" />
+            </div>
+          </div>
+          <div class="share-rec-field share-rec-full" id="personalizedLinkSection" style="margin-bottom:12px;display:none;">
+            <label>Tu enlace de referido personalizado:</label>
+            <div class="share-link-row" style="margin-top:4px;">
+              <div class="share-input-wrapper">
+                <input type="text" id="personalizedLinkInput" readonly value="" onclick="this.select()" />
+              </div>
+              <button class="btn btn-primary" id="personalizedLinkCopy" type="button" onclick="copyPersonalizedLink()">Copiar referido</button>
             </div>
           </div>
           <label class="share-rec-check">
             <input type="checkbox" id="recCheck" required />
-            <span>Ya les he enviado el enlace y tienen interés en probar la demo</span>
+            <span>Tengo intención de compartir mi enlace con salones interesados</span>
           </label>
           <button class="btn btn-primary btn-block btn-lg" type="submit" id="recSubmitBtn" style="font-weight:700;">
-            Solicitar 30% referente y 15% recomendados
+            Generar enlace y registrar descuento
           </button>
         </form>
+
+        <div id="referralTrackerSection" style="display:none; margin-top:20px; padding:15px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
+          <h5 style="margin:0 0 10px 0; color:#fff; display:flex; align-items:center; gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff7a2e" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Tus recomendaciones registradas:
+          </h5>
+          <div id="referralTrackerStats" style="font-size:13px; color:var(--text-sec); margin-bottom:12px; font-weight:600;"></div>
+          <div id="referralTrackerList" style="display:flex; flex-direction:column; gap:8px; max-height:160px; overflow-y:auto; padding-right:4px;">
+            <!-- Filas de referidos aquí -->
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -696,9 +719,27 @@
     if(n<=1) visitsEl.classList.add('low');
   }
 
-  /* ---------- enlace compartible (solo equipo/staff) ---------- */
+  /* ---------- enlace compartible y recomendación ---------- */
   function shareLink(){ return location.origin + location.pathname + '?share=1'; }
-  function revealShare(){ if(shareBtn) shareBtn.style.display='inline-flex'; }
+  
+  function revealShare(profile, isStaff){
+    if(!shareBtn) return;
+    shareBtn.style.display='inline-flex';
+    var lbl = shareBtn.querySelector('.lbl');
+    if (!lbl) return;
+    
+    if (isStaff) {
+      lbl.textContent = 'Compartir demo';
+      shareBtn.title = 'Copia el enlace y pásaselo a quien quieras: verá esta demo (con el tutorial) sin tener que registrarse.';
+    } else if (profile) {
+      lbl.textContent = '🎁 Recomendar Mecha';
+      shareBtn.title = 'Recomienda Mecha a otros salones y gana un 30% de descuento vitalicio.';
+    } else {
+      lbl.textContent = '🎁 Recomendar Mecha';
+      shareBtn.title = 'Genera tu enlace de referidos y gana un 30% de descuento vitalicio.';
+    }
+  }
+
   var shareModalOverlay = $('#shareModalOverlay');
   var shareModalClose = $('#shareModalClose');
   var shareModalInput = $('#shareModalInput');
@@ -709,6 +750,14 @@
       var url=shareLink();
       if(shareModalInput) shareModalInput.value=url;
       if(shareModalOverlay) shareModalOverlay.classList.add('show');
+      
+      // Consultar y cargar datos en tiempo real al abrir el modal
+      Promise.all([
+        api.isStaff ? api.isStaff() : Promise.resolve(false),
+        api.getProfile ? api.getProfile() : Promise.resolve(null)
+      ]).then(function(chk){
+        initReferralModalState(chk[1], chk[0]);
+      });
     });
   }
   if(shareModalClose){
@@ -757,6 +806,173 @@
     });
   }
 
+  /* ---------- capturar referido por parámetro de url ---------- */
+  try {
+    var urlParams = new URLSearchParams(location.search);
+    var refParam = urlParams.get('ref');
+    if (refParam) {
+      refParam = refParam.trim();
+      var decodedEmail = '';
+      var isEmail = false;
+      try {
+        decodedEmail = atob(refParam).trim().toLowerCase();
+        if (decodedEmail.indexOf('@') > 0 && decodedEmail.indexOf('.') > 0) {
+          isEmail = true;
+        }
+      } catch (e) {
+        // No era base64 válido o no contenía un email
+      }
+
+      if (isEmail) {
+        localStorage.setItem('mecha_ref_email', decodedEmail);
+        localStorage.removeItem('mecha_ref_code');
+      } else {
+        localStorage.setItem('mecha_ref_code', refParam.toLowerCase());
+        localStorage.removeItem('mecha_ref_email');
+      }
+    }
+  } catch (e) {
+    console.error('Error decodificando parámetro de referido:', e);
+  }
+
+  /* ---------- lógica para generar y copiar enlace de referido personalizado ---------- */
+  window.updatePersonalizedLink = function() {
+    var email = $('#recReferente').value.trim();
+    var linkSec = $('#personalizedLinkSection');
+    var linkInp = $('#personalizedLinkInput');
+    
+    if (email && email.indexOf('@') > 0 && email.indexOf('.') > 0) {
+      try {
+        var base64Email = btoa(email.toLowerCase());
+        var refUrl = location.origin + location.pathname + '?ref=' + base64Email;
+        linkInp.value = refUrl;
+        linkSec.style.display = 'block';
+      } catch (e) {
+        linkSec.style.display = 'none';
+      }
+    } else {
+      linkSec.style.display = 'none';
+    }
+  };
+
+  window.copyPersonalizedLink = function() {
+    var linkInp = $('#personalizedLinkInput');
+    var btn = $('#personalizedLinkCopy');
+    if (!linkInp || !linkInp.value) return;
+
+    function ok() {
+      var orig = btn.textContent;
+      btn.textContent = '¡Copiado!';
+      btn.style.background = '#2ecc71';
+      setTimeout(function() {
+        btn.textContent = orig;
+        btn.style.background = '';
+      }, 1500);
+    }
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(linkInp.value).then(ok, function() {
+        linkInp.select();
+        document.execCommand('copy');
+        ok();
+      });
+    } else {
+      linkInp.select();
+      document.execCommand('copy');
+      ok();
+    }
+  };
+
+  /* ---------- inicializar modal de referidos y tracker de progreso ---------- */
+  window.initReferralModalState = function(profile, staff) {
+    var recEmailInput = $('#recReferente');
+    var trackerSec = $('#referralTrackerSection');
+    var trackerStats = $('#referralTrackerStats');
+    var trackerList = $('#referralTrackerList');
+    var linkSec = $('#personalizedLinkSection');
+    var linkInp = $('#personalizedLinkInput');
+    
+    if (profile) {
+      // Prefillar email y desactivar
+      if (recEmailInput) {
+        recEmailInput.value = profile.email;
+        recEmailInput.disabled = true;
+        recEmailInput.style.background = 'rgba(255,255,255,0.05)';
+        recEmailInput.style.cursor = 'not-allowed';
+      }
+      
+      // Generar y mostrar el link amigable o base64
+      var refCode = profile.codigo_referido || '';
+      var refUrl = '';
+      if (refCode) {
+        refUrl = location.origin + location.pathname + '?ref=' + refCode;
+      } else {
+        var base64Email = btoa(profile.email.toLowerCase());
+        refUrl = location.origin + location.pathname + '?ref=' + base64Email;
+      }
+      if (linkInp) linkInp.value = refUrl;
+      if (linkSec) linkSec.style.display = 'block';
+      
+      // Cargar lista de referidos reales desde la base de datos (RPC seguro)
+      if (trackerSec && trackerStats && trackerList) {
+        api.client.rpc('get_my_referrals').then(function(res) {
+          if (res.error) {
+            console.error('Error al cargar progreso de referidos:', res.error);
+            return;
+          }
+          
+          var list = res.data || [];
+          trackerSec.style.display = 'block';
+          
+          // Calcular cuántos recomendados ya están pagando un plan en la base de datos (no free/trial/none)
+          var calificados = list.filter(function(r) {
+            return r.plan_type !== 'trial' && r.plan_type !== 'free' && r.plan_type !== 'none';
+          }).length;
+          
+          var descAplicado = profile.descuento_referido_aplicado === true;
+          
+          var statsHtml = '';
+          if (descAplicado) {
+            statsHtml = '<span style="color:#2ecc71;">✓ Descuento del 30% vitalicio activado</span>';
+          } else {
+            var faltantes = Math.max(0, 3 - list.length);
+            if (list.length >= 3) {
+              statsHtml = '<span style="color:#2ecc71;">✓ ' + list.length + ' recomendados registrados. Descuento listo para validación.</span>';
+            } else {
+              statsHtml = '<span>' + list.length + ' de 3 amigos registrados (faltan ' + faltantes + ' para tu descuento)</span>';
+            }
+          }
+          trackerStats.innerHTML = statsHtml;
+          
+          if (list.length === 0) {
+            trackerList.innerHTML = '<div style="color:var(--text-ter); font-style:italic; font-size:12px; text-align:center; padding:10px 0;">Aún no se ha registrado nadie con tu enlace. ¡Comparte tu link de arriba!</div>';
+          } else {
+            trackerList.innerHTML = list.map(function(r) {
+              var dateStr = new Date(r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+              var planStr = (r.plan_type === 'trial' || r.plan_type === 'none') ? 'Demo activa' : (r.plan_type === 'free' ? 'Plan Gratis' : 'Plan Activo');
+              var planColor = (r.plan_type === 'trial' || r.plan_type === 'none') ? '#ff9f43' : (r.plan_type === 'free' ? 'var(--text-sec)' : '#2ecc71');
+              return '<div style="display:flex; align-items:center; justify-content:space-between; font-size:12px; padding:6px 8px; background:rgba(255,255,255,0.01); border-radius:6px; border:1px solid rgba(255,255,255,0.03);">' +
+                '<div style="flex:1; font-weight:500; color:#fff;">' + r.business_name + '</div>' +
+                '<div style="color:var(--text-ter); font-size:11px; margin-right:12px;">' + dateStr + '</div>' +
+                '<div style="font-weight:600; color:' + planColor + ';">' + planStr + '</div>' +
+              '</div>';
+            }).join('');
+          }
+        });
+      }
+    } else {
+      // Usuario no registrado/anónimo
+      if (recEmailInput) {
+        recEmailInput.value = '';
+        recEmailInput.disabled = false;
+        recEmailInput.style.background = '';
+        recEmailInput.style.cursor = '';
+      }
+      if (linkSec) linkSec.style.display = 'none';
+      if (trackerSec) trackerSec.style.display = 'none';
+    }
+  };
+
   /* ---------- enviar recomendación y registrar referidos ---------- */
   window.submitRecommendation = function() {
     var referente = $('#recReferente').value.trim();
@@ -767,50 +983,78 @@
     var msgEl = $('#recMsg');
     var btn = $('#recSubmitBtn');
 
-    if (!referente || !amigo1 || !amigo2 || !amigo3) {
+    if (!referente) {
       msgEl.className = 'share-rec-msg error';
-      msgEl.textContent = 'Por favor, rellena todos los campos de correo electrónico.';
+      msgEl.textContent = 'Por favor, introduce tu correo electrónico para generar tu enlace.';
       msgEl.style.display = 'block';
       return;
     }
     if (!check) {
       msgEl.className = 'share-rec-msg error';
-      msgEl.textContent = 'Debes confirmar que les has compartido el enlace.';
+      msgEl.textContent = 'Debes confirmar que deseas compartir el enlace.';
       msgEl.style.display = 'block';
       return;
     }
 
     btn.disabled = true;
     var btnText = btn.textContent;
-    btn.textContent = 'Enviando solicitud...';
+    btn.textContent = 'Registrando solicitud...';
     msgEl.style.display = 'none';
 
-    api.client.from('recomendaciones').insert([{
-      referente_email: referente.toLowerCase(),
-      recomendado_email_1: amigo1.toLowerCase(),
-      recomendado_email_2: amigo2.toLowerCase(),
-      recomendado_email_3: amigo3.toLowerCase(),
-      estado: 'pendiente'
-    }]).then(function(res) {
-      btn.disabled = false;
-      btn.textContent = btnText;
-      if (res.error) {
+    // Anti-duplicados: Comprobar si ya existe una recomendación pendiente para este correo
+    api.client.from('recomendaciones')
+      .select('id')
+      .eq('referente_email', referente.toLowerCase().trim())
+      .eq('estado', 'pendiente')
+      .maybeSingle()
+      .then(function(checkRes) {
+        var queryPromise;
+        if (checkRes && checkRes.data && checkRes.data.id) {
+          // Ya existe, la actualizamos para añadir o refrescar contactos manuales
+          queryPromise = api.client.from('recomendaciones')
+            .update({
+              recomendado_email_1: amigo1 ? amigo1.toLowerCase().trim() : 'atribucion_automatica',
+              recomendado_email_2: amigo2 ? amigo2.toLowerCase().trim() : 'atribucion_automatica',
+              recomendado_email_3: amigo3 ? amigo3.toLowerCase().trim() : 'atribucion_automatica'
+            })
+            .eq('id', checkRes.data.id);
+        } else {
+          // No existe, creamos una nueva fila
+          queryPromise = api.client.from('recomendaciones').insert([{
+            referente_email: referente.toLowerCase().trim(),
+            recomendado_email_1: amigo1 ? amigo1.toLowerCase().trim() : 'atribucion_automatica',
+            recomendado_email_2: amigo2 ? amigo2.toLowerCase().trim() : 'atribucion_automatica',
+            recomendado_email_3: amigo3 ? amigo3.toLowerCase().trim() : 'atribucion_automatica',
+            estado: 'pendiente'
+          }]);
+        }
+
+        queryPromise.then(function(res) {
+          btn.disabled = false;
+          btn.textContent = btnText;
+          if (res.error) {
+            msgEl.className = 'share-rec-msg error';
+            msgEl.textContent = 'Error al guardar recomendación: ' + (res.error.message || 'Inténtalo de nuevo.');
+            msgEl.style.display = 'block';
+          } else {
+            msgEl.className = 'share-rec-msg success';
+            msgEl.textContent = '¡Enlace registrado con éxito! Comparte tu enlace de referido personalizado de arriba. En cuanto 3 amigos se registren en Mecha, validaremos tu 30% y su 15% de descuento en el panel.';
+            msgEl.style.display = 'block';
+            
+            // Limpiar campos de amigos, pero mantener referente y link
+            $('#recAmigo1').value = '';
+            $('#recAmigo2').value = '';
+            $('#recAmigo3').value = '';
+            $('#recCheck').checked = false;
+          }
+        });
+      }).catch(function(err) {
+        btn.disabled = false;
+        btn.textContent = btnText;
         msgEl.className = 'share-rec-msg error';
-        msgEl.textContent = 'Error al enviar: ' + (res.error.message || 'Inténtalo de nuevo.');
+        msgEl.textContent = 'Error de conexión: ' + (err.message || 'Inténtalo de nuevo.');
         msgEl.style.display = 'block';
-      } else {
-        msgEl.className = 'share-rec-msg success';
-        msgEl.textContent = '¡Recomendación registrada! Avisa a tus amigos para que se creen su cuenta gratis en Mecha. Una vez creadas, el staff aplicará los descuentos.';
-        msgEl.style.display = 'block';
-        $('#recForm').reset();
-      }
-    }).catch(function(err) {
-      btn.disabled = false;
-      btn.textContent = btnText;
-      msgEl.className = 'share-rec-msg error';
-      msgEl.textContent = 'Error de conexión: ' + (err.message || 'Inténtalo de nuevo.');
-      msgEl.style.display = 'block';
-    });
+      });
   };
 
   /* ---------- carga del software real e interactivo ---------- */
@@ -859,10 +1103,26 @@
     // Una visita por sesion de navegador: si ya entraste, no descuentes otra.
     var saved=null;
     try{ saved=JSON.parse(sessionStorage.getItem(VISIT_FLAG)||'null'); }catch(e){}
-    if(saved&&saved.allowed){ enterDemo(saved.remaining); return; }
+    if(saved&&saved.allowed){ 
+      enterDemo(saved.remaining); 
+      // Comprobar sesión en segundo plano para personalizar referidos
+      api.getSession().then(function(s){
+        if (s) {
+          Promise.all([
+            api.isStaff?api.isStaff():Promise.resolve(false),
+            api.getProfile?api.getProfile():Promise.resolve(null)
+          ]).then(function(chk){
+            revealShare(chk[1], chk[0]);
+          });
+        } else {
+          revealShare(null, false);
+        }
+      });
+      return; 
+    }
 
     api.getSession().then(function(s){
-      if(!s){ showGate(); return; }
+      if(!s){ showGate(); revealShare(null, false); return; }
       // Antes de la demo exigimos perfil completo (negocio + telefono + codigo
       // postal). El equipo Mecha (staff) queda exento. Si falta algo, mandamos a
       // completar datos y se vuelve solo a la demo (acceso.html?next=demo).
@@ -871,7 +1131,7 @@
         api.getProfile?api.getProfile():Promise.resolve(null)
       ]).then(function(chk){
         var staff=chk[0]===true, profile=chk[1];
-        if(staff) revealShare();
+        revealShare(profile, staff);
         // Datos completos obligatorios para CUALQUIER cuenta antes de la demo
         // (negocio + telefono + codigo postal), equipo incluido.
         if(api.profileComplete && !api.profileComplete(profile)){
