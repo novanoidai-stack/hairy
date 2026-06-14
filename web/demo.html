@@ -212,6 +212,162 @@
     .dm-tour p{font-size:12.5px;line-height:1.5;min-height:auto;margin-bottom:8px}
     .dm-dots{margin:8px 0 10px}
   }
+
+  /* ---------- SHARE MODAL (Drive-like) ---------- */
+  .share-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 6, 12, 0.85);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .share-modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .share-modal {
+    background: linear-gradient(180deg, #101626 0%, #0a0d18 100%);
+    border: 1px solid rgba(244, 80, 30, 0.28);
+    border-radius: 20px;
+    width: min(520px, calc(100% - 32px));
+    box-shadow: 0 32px 80px -20px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    padding: 28px;
+    transform: translateY(16px) scale(0.97);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .share-modal-overlay.show .share-modal {
+    transform: none;
+  }
+  .share-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .share-modal-header h3 {
+    font-family: var(--display);
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin: 0;
+  }
+  .share-modal-close {
+    background: none;
+    border: none;
+    color: var(--text-ter);
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+  }
+  .share-modal-close:hover {
+    color: #fff;
+  }
+  .share-desc {
+    font-size: 14px;
+    color: var(--text-sec);
+    line-height: 1.55;
+    margin-bottom: 24px;
+  }
+  .share-link-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .share-input-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .share-link-ic {
+    position: absolute;
+    left: 14px;
+    color: var(--text-ter);
+    pointer-events: none;
+  }
+  .share-input-wrapper input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px 12px 38px;
+    font-size: 13.5px;
+    color: #fff !important;
+    font-family: var(--mono);
+    text-overflow: ellipsis;
+    transition: all 0.2s;
+  }
+  .share-input-wrapper input:focus {
+    outline: none;
+    border-color: rgba(244, 80, 30, 0.6);
+    background: rgba(244, 80, 30, 0.02);
+    box-shadow: 0 0 0 3px rgba(244, 80, 30, 0.15);
+  }
+  .share-modal .btn {
+    border-radius: 12px;
+    padding: 0 20px;
+    font-size: 13.5px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .share-bonus-card {
+    background: linear-gradient(135deg, rgba(244, 80, 30, 0.08) 0%, rgba(255, 122, 46, 0.03) 100%);
+    border: 1px dashed rgba(244, 80, 30, 0.35);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+  }
+  .share-bonus-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--accent-hi);
+    background: rgba(244, 80, 30, 0.14);
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .share-bonus-card h4 {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin: 0 0 6px 0;
+  }
+  .share-bonus-card p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.76);
+    line-height: 1.5;
+    margin: 0;
+    min-height: auto;
+  }
+  @media(max-width: 580px) {
+    .share-link-row {
+      flex-direction: column;
+    }
+    .share-modal {
+      padding: 22px;
+    }
+    .share-modal .btn {
+      width: 100%;
+      height: 44px;
+      justify-content: center;
+    }
+  }
 </style>
 </head>
 <body data-theme="dark">
@@ -289,6 +445,33 @@
   </div>
 </main>
 
+<!-- ============ SHARE MODAL (Drive-like) ============ -->
+<div class="share-modal-overlay" id="shareModalOverlay">
+  <div class="share-modal">
+    <div class="share-modal-header">
+      <h3>Compartir demostración interactiva</h3>
+      <button class="share-modal-close" id="shareModalClose" type="button" aria-label="Cerrar modal">&times;</button>
+    </div>
+    <div class="share-modal-body">
+      <p class="share-desc">Copia el enlace de abajo y compártelo. Quien lo abra entrará directamente a la demo desde cero con el tour guiado activo, sin necesidad de registrarse.</p>
+      
+      <div class="share-link-row">
+        <div class="share-input-wrapper">
+          <svg class="share-link-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+          <input type="text" id="shareModalInput" readonly value="Cargando enlace..." onclick="this.select()" />
+        </div>
+        <button class="btn btn-primary" id="shareModalCopy" type="button">Copiar enlace</button>
+      </div>
+
+      <div class="share-bonus-card">
+        <div class="share-bonus-badge">🎁 REGALO DE RECOMENDACIÓN</div>
+        <h4>Consigue un 30% de descuento vitalicio</h4>
+        <p>Si compartes esta demo con <b>5 personas</b> que tengan interés en digitalizar su salón (y se registran o reservan una demo), te aplicamos un <b>30% de descuento</b> en tu suscripción de Mecha. ¡Así de fácil!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ============ ACCESS / INTRO GATE ============ -->
 <div class="dm-gate hide" id="gate">
   <div class="dm-card">
@@ -358,18 +541,61 @@
   /* ---------- enlace compartible (solo equipo/staff) ---------- */
   function shareLink(){ return location.origin + location.pathname + '?share=1'; }
   function revealShare(){ if(shareBtn) shareBtn.style.display='inline-flex'; }
+  var shareModalOverlay = $('#shareModalOverlay');
+  var shareModalClose = $('#shareModalClose');
+  var shareModalInput = $('#shareModalInput');
+  var shareModalCopy = $('#shareModalCopy');
+
   if(shareBtn){
     shareBtn.addEventListener('click', function(){
-      var url=shareLink(), lbl=shareBtn.querySelector('.lbl');
-      function ok(){ if(lbl){ var t=lbl.getAttribute('data-base')||lbl.textContent; lbl.setAttribute('data-base',t); lbl.textContent='Copiado · pasalo'; setTimeout(function(){ lbl.textContent=t; },1800); } }
+      var url=shareLink();
+      if(shareModalInput) shareModalInput.value=url;
+      if(shareModalOverlay) shareModalOverlay.classList.add('show');
+    });
+  }
+  if(shareModalClose){
+    shareModalClose.addEventListener('click', function(){
+      if(shareModalOverlay) shareModalOverlay.classList.remove('show');
+    });
+  }
+  if(shareModalOverlay){
+    shareModalOverlay.addEventListener('click', function(e){
+      if(e.target===shareModalOverlay){
+        shareModalOverlay.classList.remove('show');
+      }
+    });
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && shareModalOverlay && shareModalOverlay.classList.contains('show')){
+      shareModalOverlay.classList.remove('show');
+    }
+  });
+  if(shareModalCopy){
+    shareModalCopy.addEventListener('click', function(){
+      var url=shareLink();
+      function ok(){
+        var orig=shareModalCopy.textContent;
+        shareModalCopy.textContent='¡Enlace copiado!';
+        shareModalCopy.style.background='#ff7a2e';
+        setTimeout(function(){
+          shareModalCopy.textContent=orig;
+          shareModalCopy.style.background='';
+        },1800);
+      }
       function fallback(){
         try{
-          var ta=document.createElement('textarea'); ta.value=url; ta.style.position='fixed'; ta.style.opacity='0';
-          document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok();
+          if(shareModalInput){
+            shareModalInput.select();
+            document.execCommand('copy');
+          }
+          ok();
         }catch(e){ window.prompt('Copia el enlace de la demo:', url); }
       }
-      if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(ok,fallback); }
-      else { fallback(); }
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(ok,fallback);
+      } else {
+        fallback();
+      }
     });
   }
 

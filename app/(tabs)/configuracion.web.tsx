@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, type ReactNode } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile, canAccessConfig } from '@/lib/auth';
 import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
@@ -817,7 +817,7 @@ export default function ConfiguracionWeb() {
 
           {/* Volver a la web publica (salir del software sin cerrar sesion).
               Solo en movil: en escritorio esta accion vive en el Sidebar. */}
-          {isMobile && (
+          {isMobile && !IS_DEMO_MODE && (
             <button
               onClick={() => { try { (window.top || window).location.href = '/'; } catch (e) { window.location.href = '/'; } }}
               style={{
