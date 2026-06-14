@@ -378,6 +378,47 @@
     Promise.resolve(api && api.isStaff ? api.isStaff() : false).then(function (staff) {
       Promise.resolve(api && api.getProfile ? api.getProfile() : null).then(function (profile) {
         var incomplete = !!(api && api.profileComplete && !api.profileComplete(profile));
+
+        // --- ATRIBUCIÓN AUTOMÁTICA DE REFERIDOS ---
+        try {
+          var refEmail = localStorage.getItem('mecha_ref_email');
+          var refCode = localStorage.getItem('mecha_ref_code');
+          if ((refEmail || refCode) && profile && !profile.referido_por) {
+            var refQuery = api.client.from('profiles').select('id');
+            if (refEmail) {
+              refQuery = refQuery.eq('email', refEmail.toLowerCase().trim());
+            } else {
+              refQuery = refQuery.eq('codigo_referido', refCode.toLowerCase().trim());
+            }
+            refQuery.maybeSingle().then(function(resRef) {
+              if (resRef && resRef.data && resRef.data.id) {
+                var refUuid = resRef.data.id;
+                if (refUuid !== profile.id) {
+                  api.client.from('profiles').update({ 
+                    referido_por: refUuid, 
+                    referido_en: new Date().toISOString() 
+                  }).eq('id', profile.id).then(function() {
+                    localStorage.removeItem('mecha_ref_email');
+                    localStorage.removeItem('mecha_ref_code');
+                  });
+                }
+              } else if (refEmail) {
+                // El referente aún no existe en el sistema.
+                // Guardamos el email del referente en el JSONB metrics para auto-curación retroactiva.
+                var currentMetrics = profile.metrics || {};
+                currentMetrics.referido_por_email = refEmail.toLowerCase().trim();
+                api.client.from('profiles').update({
+                  metrics: currentMetrics,
+                  referido_en: new Date().toISOString()
+                }).eq('id', profile.id).then(function() {
+                  localStorage.removeItem('mecha_ref_email');
+                  localStorage.removeItem('mecha_ref_code');
+                });
+              }
+            });
+          }
+        } catch(e) { console.error('Error al asociar referido:', e); }
+
         // Antes de la DEMO o del SOFTWARE pedimos datos a CUALQUIER cuenta
         // (negocio + telefono + codigo postal), incluido el equipo.
         if (wantsDemo()) {

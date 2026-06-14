@@ -306,6 +306,15 @@
     <div class="ad-count" id="countRec"></div>
     <div class="ad-msg" id="recMsg" style="margin-bottom:14px"></div>
     <div class="ad-list" id="listRec"><div class="ad-loading">Cargando recomendaciones...</div></div>
+
+    <div style="margin-top:40px; border-top:1px solid rgba(255,255,255,0.08); padding-top:24px;">
+      <h3 style="margin:0 0 6px 0; color:#fff; font-size:18px; display:flex; align-items:center; gap:8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff7a2e" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Referidos Directos en el Sistema (Consolidado de Profiles)
+      </h3>
+      <p style="font-size:12.5px; color:var(--text-sec); margin-bottom:16px; line-height:1.5;">Listado en tiempo real de todos los usuarios registrados en Mecha que han recomendado a otros, obtenido cruzando las relaciones de la tabla <code>profiles</code>. Permite validar descuentos a salones que compartieron su link directamente.</p>
+      <div class="ad-list" id="listAutoReferidos"><div class="ad-loading">Cargando referidos directos...</div></div>
+    </div>
   </div>
 </div>
 
@@ -749,19 +758,162 @@
 
   function loadRecomendaciones() {
     var listEl = $('listRec');
+    var listAutoEl = $('listAutoReferidos');
+    
     listEl.innerHTML = '<div class="ad-loading">Cargando recomendaciones...</div>';
+    if (listAutoEl) listAutoEl.innerHTML = '<div class="ad-loading">Cargando referidos directos...</div>';
+    
     clearMsg($('recMsg'));
-    api.client.from('recomendaciones').select('*').order('created_at', { ascending: false })
-      .then(function (res) {
-        if (res.error) {
-          listEl.innerHTML = '';
-          msg($('recMsg'), 'err', 'No se pudieron cargar las recomendaciones: ' + (res.error.message || ''));
-          return;
-        }
-        recomendaciones = res.data || [];
-        recomendacionesLoaded = true;
-        renderRecomendaciones();
+    
+    // Cargar recomendaciones y perfiles en paralelo para ambas vistas
+    Promise.all([
+      api.client.from('recomendaciones').select('*').order('created_at', { ascending: false }),
+      api.client.from('profiles').select('id, email, business_name, plan_type, referido_por, descuento_referido_aplicado, created_at')
+    ]).then(function (results) {
+      var resRec = results[0];
+      var resProf = results[1];
+      
+      if (resRec.error) {
+        listEl.innerHTML = '';
+        msg($('recMsg'), 'err', 'No se pudieron cargar las recomendaciones: ' + resRec.error.message);
+        return;
+      }
+      
+      recomendaciones = resRec.data || [];
+      recomendacionesLoaded = true;
+      renderRecomendaciones();
+      
+      if (!resProf.error) {
+        renderAutoReferidosList(resProf.data || []);
+      } else {
+        if (listAutoEl) listAutoEl.innerHTML = '<div class="ad-empty">Error al cargar referidos directos: ' + resProf.error.message + '</div>';
+      }
+    }).catch(function(err) {
+      listEl.innerHTML = '';
+      msg($('recMsg'), 'err', 'Error de conexión: ' + err.message);
+    });
+  }
+
+  function renderAutoReferidosList(profiles) {
+    var listEl = $('listAutoReferidos');
+    if (!listEl) return;
+    
+    // 1. Filtrar perfiles que fueron referidos por alguien
+    var invitados = profiles.filter(function(p) { return !!p.referido_por; });
+    
+    // 2. Agrupar invitados por el UUID del referente
+    var agrupado = {};
+    invitados.forEach(function(inv) {
+      var refId = inv.referido_por;
+      if (!agrupado[refId]) {
+        agrupado[refId] = [];
+      }
+      agrupado[refId].push(inv);
+    });
+    
+    // 3. Crear lista de objetos de referentes
+    var referentesList = [];
+    Object.keys(agrupado).forEach(function(refId) {
+      var referenteProfile = profiles.filter(function(p) { return p.id === refId; })[0];
+      if (referenteProfile) {
+        var invitadosDeEste = agrupado[refId];
+        referentesList.push({
+          profile: referenteProfile,
+          invitados: invitadosDeEste
+        });
+      }
+    });
+    
+    if (referentesList.length === 0) {
+      listEl.innerHTML = '<div class="ad-empty" style="text-align:center; padding:20px; color:var(--text-ter);">No hay referidos automáticos registrados en el sistema actualmente.</div>';
+      return;
+    }
+    
+    // Renderizar
+    var html = referentesList.map(function(ref) {
+      var p = ref.profile;
+      var invs = ref.invitados;
+      
+      var totalInvs = invs.length;
+      var activos = invs.filter(function(x) { 
+        return x.plan_type !== 'trial' && x.plan_type !== 'free' && x.plan_type !== 'none'; 
+      }).length;
+      
+      var isVerificado = p.descuento_referido_aplicado === true;
+      var estadoPillColor = isVerificado ? '#2ecc71' : '#f39c12';
+      var estadoPillText = isVerificado ? 'Descuento Aplicado' : 'Pendiente';
+      var estadoPill = '<span class="plan" style="text-transform:uppercase;font-size:10px;font-weight:800;letter-spacing:0.06em;padding:3px 8px;border-radius:4px;margin-right:8px;background:' + estadoPillColor + ';color:#fff;">' + estadoPillText + '</span>';
+        
+      var applyBtnHtml = isVerificado 
+        ? '<span style="color:#2ecc71; font-weight:700; display:inline-flex; align-items:center; gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="16" height="16" style="margin-right:2px"><path d="M20 6 9 17l-5-5" /></svg>Descuento Activo</span>'
+        : '<button class="btn-apply-auto" data-refid="' + esc(p.id) + '" style="background:#f4501e; border:none; padding:8px 16px; border-radius:8px; color:#fff; cursor:pointer; font-weight:700; transition: background .15s ease;">Aplicar 30% Descuento</button>';
+        
+      var gridHtml = invs.map(function(inv) {
+        var planColor = (inv.plan_type === 'trial' || inv.plan_type === 'none') ? '#ff9f43' : (inv.plan_type === 'free' ? 'var(--text-ter)' : '#2ecc71');
+        var planText = (inv.plan_type === 'trial' || inv.plan_type === 'none') ? 'Trial' : (inv.plan_type === 'free' ? 'Free' : 'Premium / Activo');
+        
+        return '<div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.03);">' +
+          '<div style="font-weight:600; color:#fff; font-size:13px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">' + esc(inv.business_name || 'Salón sin nombre') + '</div>' +
+          '<div style="color:var(--text-ter); font-size:11px; margin-top:2px;">' + esc(inv.email) + '</div>' +
+          '<div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px;">' +
+            '<span style="color:var(--text-ter);">' + fmtDate(inv.created_at) + '</span>' +
+            '<span style="font-weight:700; color:' + planColor + ';">' + planText + '</span>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      
+      return '<div class="card-row" style="border: 1px solid rgba(255,255,255,0.05); padding:18px; border-radius:12px; background:rgba(255,255,255,0.005); margin-bottom:14px;">' +
+        '<div class="r-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">' +
+          '<div>' +
+            estadoPill +
+            '<strong style="color:#fff; font-size:15px;">' + esc(p.business_name || 'Salón del Referente') + '</strong>' +
+            '<span style="color:var(--text-ter); font-size:12px; margin-left:8px;">(' + esc(p.email) + ')</span>' +
+          '</div>' +
+          '<span style="font-size:12px; color:var(--text-ter);">Registrado: ' + fmtDate(p.created_at) + '</span>' +
+        '</div>' +
+        '<div style="margin:10px 0; font-size:13px; color:var(--text-sec); font-weight:600;">' +
+          'Invitados registrados: ' + totalInvs + ' (' + activos + ' con suscripción activa)' +
+        '</div>' +
+        '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px; margin-bottom:14px;">' + gridHtml + '</div>' +
+        '<div style="display:flex; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.04); padding-top:12px; align-items:center;">' +
+          applyBtnHtml +
+        '</div>' +
+      '</div>';
+    }).join('');
+    
+    listEl.innerHTML = html;
+    
+    // Agregar event listener para aplicar descuento de referidos automáticos
+    listEl.querySelectorAll('.btn-apply-auto').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var refId = btn.getAttribute('data-refid');
+        var ref = referentesList.filter(function(x) { return x.profile.id === refId; })[0];
+        if (!ref) return;
+        
+        if (!window.confirm('¿Deseas aplicar el descuento del 30% a ' + ref.profile.email + ' y el 15% a sus recomendados directamente en sus perfiles?\n\nEsto marcará descuento_referido_aplicado = true en sus cuentas.')) return;
+        
+        btn.disabled = true;
+        btn.textContent = 'Aplicando...';
+        
+        // Obtener emails de todos los involucrados (referente + recomendados)
+        var emails = [ref.profile.email];
+        ref.invitados.forEach(function(inv) { emails.push(inv.email); });
+        
+        api.client.from('profiles')
+          .update({ descuento_referido_aplicado: true })
+          .in('email', emails)
+          .then(function(resUpdate) {
+            if (resUpdate.error) {
+              btn.disabled = false;
+              btn.textContent = 'Aplicar 30% Descuento';
+              msg($('recMsg'), 'err', 'Error al aplicar descuentos: ' + resUpdate.error.message);
+            } else {
+              msg($('recMsg'), 'ok', '✓ Descuento aplicado con éxito a ' + emails.length + ' perfiles.');
+              loadRecomendaciones();
+            }
+          });
       });
+    });
   }
 
   function renderRecomendacionesStats() {
@@ -845,52 +997,107 @@
         btn.disabled = true;
         var prevText = btn.textContent;
         btn.textContent = 'Comprobando...';
+        clearMsg($('recMsg'));
 
-        // Comprobación de existencia de cuentas cruzando con la base de datos de profiles
-        var checkLocal = accounts.length > 0;
-        var promise = checkLocal 
-          ? Promise.resolve(accounts)
-          : api.client.from('profiles').select('email');
+        // Obtener lista completa de profiles para contrastar atribuciones automáticas y manuales
+        api.client.from('profiles').select('id, email, referido_por')
+          .then(function(resProfiles) {
+            btn.disabled = false;
+            btn.textContent = prevText;
 
-        promise.then(function(res) {
-          btn.disabled = false;
-          btn.textContent = prevText;
-          
-          var profilesList = checkLocal ? res : (res.data || []);
-          
-          function existsInList(email) {
-            var e = email.toLowerCase().trim();
-            return profilesList.some(function (p) {
-              return p.email && p.email.toLowerCase().trim() === e;
-            });
-          }
+            if (resProfiles.error) {
+              msg($('recMsg'), 'err', 'No se pudieron validar las cuentas: ' + resProfiles.error.message);
+              return;
+            }
 
-          var refOk = existsInList(r.referente_email);
-          var am1Ok = existsInList(r.recomendado_email_1);
-          var am2Ok = existsInList(r.recomendado_email_2);
-          var am3Ok = existsInList(r.recomendado_email_3);
+            var profilesList = resProfiles.data || [];
 
-          var creadas = (refOk ? 1 : 0) + (am1Ok ? 1 : 0) + (am2Ok ? 1 : 0) + (am3Ok ? 1 : 0);
-          var resEl = $('check-res-' + r.id);
-          resEl.style.display = 'block';
-          
-          var html = '<div style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);margin-bottom:8px;">';
-          html += '<strong>Resultado de validación de cuentas (' + creadas + '/4 creadas):</strong><br/>';
-          html += '<ul style="margin:6px 0 0 0;padding-left:20px;line-height:1.4;">';
-          html += '<li style="color:' + (refOk ? '#2ecc71' : '#e74c3c') + '">Referente (' + r.referente_email + '): ' + (refOk ? '✓ Cuenta Creada' : '✗ Sin registrar') + '</li>';
-          html += '<li style="color:' + (am1Ok ? '#2ecc71' : '#e74c3c') + '">Recomendado 1 (' + r.recomendado_email_1 + '): ' + (am1Ok ? '✓ Cuenta Creada' : '✗ Sin registrar') + '</li>';
-          html += '<li style="color:' + (am2Ok ? '#2ecc71' : '#e74c3c') + '">Recomendado 2 (' + r.recomendado_email_2 + '): ' + (am2Ok ? '✓ Cuenta Creada' : '✗ Sin registrar') + '</li>';
-          html += '<li style="color:' + (am3Ok ? '#2ecc71' : '#e74c3c') + '">Recomendado 3 (' + r.recomendado_email_3 + '): ' + (am3Ok ? '✓ Cuenta Creada' : '✗ Sin registrar') + '</li>';
-          html += '</ul>';
-          
-          if (creadas === 4) {
-            html += '<p style="color:#2ecc71;font-weight:700;margin:8px 0 0 0;">✓ ¡Todas las cuentas están registradas! Los descuentos del 30% y 15% son aplicables.</p>';
-          } else {
-            html += '<p style="color:#f39c12;font-weight:600;margin:8px 0 0 0;">⚠ Faltan cuentas por registrarse. Se pueden aplicar los descuentos igualmente si el staff lo aprueba.</p>';
-          }
-          html += '</div>';
-          resEl.innerHTML = html;
-        });
+            // 1. Validar si existe el referente
+            var referenteProfile = profilesList.filter(function(p) {
+              return p.email && p.email.toLowerCase().trim() === r.referente_email.toLowerCase().trim();
+            })[0];
+
+            var refOk = !!referenteProfile;
+            var refUuid = referenteProfile ? referenteProfile.id : null;
+
+            // 2. Validar recomendados manuales (del formulario opcional)
+            function checkManualOk(email) {
+              if (!email || email === 'atribucion_automatica') return false;
+              return profilesList.some(function(p) {
+                return p.email && p.email.toLowerCase().trim() === email.toLowerCase().trim();
+              });
+            }
+
+            var am1Ok = checkManualOk(r.recomendado_email_1);
+            var am2Ok = checkManualOk(r.recomendado_email_2);
+            var am3Ok = checkManualOk(r.recomendado_email_3);
+
+            var manualesActivos = [
+              { email: r.recomendado_email_1, ok: am1Ok },
+              { email: r.recomendado_email_2, ok: am2Ok },
+              { email: r.recomendado_email_3, ok: am3Ok }
+            ].filter(function(x) { return x.email && x.email !== 'atribucion_automatica'; });
+
+            // 3. Validar recomendados automáticos (personas que se registraron con su URL de referido)
+            var recomendadosAuto = [];
+            if (refUuid) {
+              recomendadosAuto = profilesList.filter(function(p) {
+                return p.referido_por === refUuid;
+              });
+            }
+
+            // 4. Consolidar recomendados únicos creados (manuales + automáticos)
+            var todosEmailsUnicos = {};
+            manualesActivos.forEach(function(x) { if (x.ok) todosEmailsUnicos[x.email.toLowerCase().trim()] = true; });
+            recomendadosAuto.forEach(function(p) { if (p.email) todosEmailsUnicos[p.email.toLowerCase().trim()] = true; });
+            
+            var totalCreadasUnicas = Object.keys(todosEmailsUnicos).length;
+
+            // Renderizar informe interactivo en la tarjeta
+            var resEl = $('check-res-' + r.id);
+            resEl.style.display = 'block';
+
+            var html = '<div style="padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(244,80,30,0.25);margin-bottom:8px;line-height:1.5;">';
+            html += '<strong style="color:#fff;">🔍 Informe de Validación de Cuentas:</strong><br/>';
+            html += '<span style="color:' + (refOk ? '#2ecc71' : '#e74c3c') + '">● Referente (' + r.referente_email + '): ' + (refOk ? '✓ Cuenta Registrada' : '✗ Sin registrar en el sistema') + '</span><br/>';
+            
+            if (manualesActivos.length > 0) {
+              html += '<div style="margin-top:6px;font-weight:600;color:#fff;">Pre-registros manuales del formulario:</div>';
+              html += '<ul style="margin:2px 0 6px 0;padding-left:18px;">';
+              manualesActivos.forEach(function(x) {
+                html += '<li style="color:' + (x.ok ? '#2ecc71' : '#ffb07a') + '">' + x.email + ': ' + (x.ok ? '✓ Cuenta Creada' : '✗ Aún no registrada') + '</li>';
+              });
+              html += '</ul>';
+            }
+
+            html += '<div style="margin-top:6px;font-weight:600;color:#fff;">Atribuciones automáticas por enlace de referidos:</div>';
+            if (recomendadosAuto.length > 0) {
+              html += '<ul style="margin:2px 0 6px 0;padding-left:18px;color:#2ecc71;">';
+              recomendadosAuto.forEach(function(p) {
+                html += '<li>✓ ' + p.email + ' (Se registró usando el link del referente)</li>';
+              });
+              html += '</ul>';
+            } else {
+              html += '<div style="color:var(--text-ter);font-style:italic;margin-left:6px;font-size:12px;">Ningún usuario se ha registrado usando este enlace de referido aún.</div>';
+            }
+
+            html += '<div style="margin-top:10px;border-top:1px dashed rgba(255,255,255,0.06);padding-top:8px;">';
+            html += '<strong>Recomendados totales verificados: <span style="font-size:14px;color:' + (totalCreadasUnicas >= 3 ? '#2ecc71' : '#f39c12') + '">' + totalCreadasUnicas + ' / 3 necesarios</span></strong>';
+            
+            if (refOk && totalCreadasUnicas >= 3) {
+              html += '<p style="color:#2ecc71;font-weight:700;margin:6px 0 0 0;">✓ ¡Se cumple el objetivo! El referente y los recomendados pueden recibir el descuento del 30% y 15%.</p>';
+            } else {
+              var faltan = Math.max(0, 3 - totalCreadasUnicas);
+              html += '<p style="color:#f39c12;font-weight:600;margin:6px 0 0 0;">⚠ Se necesitan al menos 3 recomendados registrados. Faltan ' + faltan + ' registro(s) para la bonificación automática.</p>';
+            }
+            html += '</div></div>';
+            
+            resEl.innerHTML = html;
+          }).catch(function(err) {
+            btn.disabled = false;
+            btn.textContent = prevText;
+            msg($('recMsg'), 'err', 'Error de conexión al comprobar cuentas: ' + err.message);
+          });
       });
     });
 
