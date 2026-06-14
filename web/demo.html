@@ -705,93 +705,63 @@
       </div>
 
       <div class="share-bonus-card">
-        <div class="share-bonus-badge">🎁 PROGRAMA DE REFERIDOS</div>
+        <div class="share-bonus-badge">🎁 RED DE REFERIDOS · ÁRBOL</div>
 
         <div class="share-steps">
           <div class="share-step">
             <span class="share-step-num">1</span>
-            <div class="share-step-title">Comparte tu link</div>
-            <div class="share-step-desc">Genera tu enlace único</div>
+            <div class="share-step-title">Comparte tu enlace</div>
+            <div class="share-step-desc">Tu enlace único de salón</div>
           </div>
           <div class="share-step">
             <span class="share-step-num">2</span>
-            <div class="share-step-title">3 amigos prueban</div>
-            <div class="share-step-desc">Se registran con tu enlace</div>
+            <div class="share-step-title">Entran contigo</div>
+            <div class="share-step-desc">Otros salones se dan de alta</div>
           </div>
           <div class="share-step">
             <span class="share-step-num">3</span>
-            <div class="share-step-title">Descuentos activos</div>
-            <div class="share-step-desc">Tú −30% vitalicio · Ellos −15%</div>
+            <div class="share-step-title">Ganáis los dos</div>
+            <div class="share-step-desc">Tú por tu red · ellos al entrar</div>
           </div>
         </div>
-        
-        <form class="share-rec-form" id="recForm" onsubmit="event.preventDefault(); submitRecommendation();">
-          <div class="share-rec-msg" id="recMsg"></div>
-          <div class="share-rec-grid">
-            <div class="share-rec-field share-rec-full">
-              <label for="recReferente">Tu correo electrónico *</label>
-              <input type="email" id="recReferente" required placeholder="tuemail@salon.com" oninput="updatePersonalizedLink()" />
-            </div>
-          </div>
-          
-          <div id="personalizedLinkSection" class="share-rec-field share-rec-full" style="margin-top:12px; margin-bottom:12px; display:none;">
-            <label>Tu enlace de referido personalizado:</label>
+
+        <p style="font-size:12px;color:var(--text-sec);line-height:1.5;margin:10px 0 0;min-height:auto">
+          Ganas descuento por cada salón que activa su plan contigo <b>y también por los que ellos traen</b> (hasta 3 niveles, máximo −40%). Quien entra con tu enlace empieza con un −15% de bienvenida.
+        </p>
+
+        <!-- Estado CON sesión: tu enlace + tu árbol -->
+        <div id="refLoggedIn" style="display:none;">
+          <div class="share-rec-field share-rec-full" style="margin-top:14px;">
+            <label>Tu enlace de referido</label>
             <div class="share-link-row" style="margin-top:4px;">
               <div class="share-input-wrapper">
-                <input type="text" id="personalizedLinkInput" readonly value="" onclick="this.select()" />
+                <input type="text" id="refLinkInput" readonly value="" onclick="this.select()" />
               </div>
-              <button class="btn btn-primary" id="personalizedLinkCopy" type="button" onclick="copyPersonalizedLink()">Copiar referido</button>
+              <button class="btn btn-primary" id="refLinkCopy" type="button">Copiar</button>
             </div>
           </div>
 
-          <!-- Botón/link para abrir pre-registro manual opcional si el usuario quiere -->
-          <div id="toggleManualPreRegContainer" style="display:none; margin:14px 0 6px 0;">
-            <a href="javascript:void(0)" id="toggleManualPreReg" style="font-size:12.5px; color:#ff7a2e; text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-              <span>Pre-registrar correos de amigos manualmente (Opcional)</span>
-            </a>
-          </div>
-
-          <!-- Campos opcionales de pre-registro manual de amigos -->
-          <div id="manualPreRegSection" style="margin-top:12px; border-top:1px dashed rgba(255,255,255,0.06); padding-top:12px;">
-            <div class="share-rec-grid">
-              <div class="share-rec-field">
-                <label for="recAmigo1">Amigo 1 (opcional)</label>
-                <input type="email" id="recAmigo1" placeholder="amigo1@salon.com" />
-              </div>
-              <div class="share-rec-field">
-                <label for="recAmigo2">Amigo 2 (opcional)</label>
-                <input type="email" id="recAmigo2" placeholder="amigo2@salon.com" />
-              </div>
-              <div class="share-rec-field share-rec-full">
-                <label for="recAmigo3">Amigo 3 (opcional)</label>
-                <input type="email" id="recAmigo3" placeholder="amigo3@salon.com" />
-              </div>
+          <div id="referralTrackerSection" style="margin-top:16px; padding:15px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
+            <h5 style="margin:0 0 10px 0; color:#fff; display:flex; align-items:center; gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff7a2e" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Tu red
+            </h5>
+            <div id="referralTrackerStats" style="font-size:13px; color:var(--text-sec); margin-bottom:12px; font-weight:600;"></div>
+            <div id="referralTrackerList" style="display:flex; flex-direction:column; gap:8px; max-height:170px; overflow-y:auto; padding-right:4px;">
+              <!-- Filas del árbol aquí -->
             </div>
-            
-            <label class="share-rec-check" style="margin-top:12px;">
-              <input type="checkbox" id="recCheck" required />
-              <span>Confirmo que quiero compartir mi enlace</span>
-            </label>
-            <label class="share-privacy">
-              <input type="checkbox" id="recPrivacy" required />
-              <span>He leído y acepto la <a href="privacidad.html" target="_blank">Política de Privacidad</a> de Mecha en relación al tratamiento de los datos compartidos.</span>
-            </label>
-            <button class="btn btn-primary btn-block btn-lg" type="submit" id="recSubmitBtn" style="font-weight:700; margin-top:8px;">
-              Activar programa de referidos
-            </button>
           </div>
-        </form>
+        </div>
 
-        <div id="referralTrackerSection" style="display:none; margin-top:20px; padding:15px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
-          <h5 style="margin:0 0 10px 0; color:#fff; display:flex; align-items:center; gap:8px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff7a2e" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Progreso de referidos
-          </h5>
-          <div id="referralTrackerStats" style="font-size:13px; color:var(--text-sec); margin-bottom:12px; font-weight:600;"></div>
-          <div id="referralTrackerList" style="display:flex; flex-direction:column; gap:8px; max-height:160px; overflow-y:auto; padding-right:4px;">
-            <!-- Filas de referidos aquí -->
-          </div>
+        <!-- Estado anónimo: crear cuenta para obtener enlace -->
+        <div id="refAnon" style="display:none; margin-top:14px;">
+          <a class="btn btn-primary btn-block btn-lg" href="acceso.html?next=demo#signup" style="font-weight:700;">
+            Crear cuenta gratis y obtener mi enlace
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+          </a>
+          <p style="font-size:11px;color:var(--text-ter);text-align:center;margin:10px 0 0;line-height:1.45;">
+            Tu enlace se genera solo al crear tu cuenta. Sin tarjeta.
+          </p>
         </div>
       </div>
     </div>
@@ -884,10 +854,10 @@
       shareBtn.title = 'Copia el enlace y pásaselo a quien quieras: verá esta demo (con el tutorial) sin tener que registrarse.';
     } else if (profile) {
       lbl.textContent = '🎁 Recomendar Mecha';
-      shareBtn.title = 'Recomienda Mecha a otros salones y gana un 30% de descuento vitalicio.';
+      shareBtn.title = 'Comparte tu enlace y gana descuento por cada salon de tu red, y por los que ellos traen (hasta -40%).';
     } else {
       lbl.textContent = '🎁 Recomendar Mecha';
-      shareBtn.title = 'Genera tu enlace de referidos y gana un 30% de descuento vitalicio.';
+      shareBtn.title = 'Crea tu cuenta y consigue tu enlace de referido: ganas descuento por toda tu red.';
     }
   }
 
@@ -957,306 +927,102 @@
     });
   }
 
-  /* ---------- capturar referido por parámetro de url ---------- */
+  /* ---------- capturar el codigo de referido de la url (?ref=CODIGO) ---------- */
+  // Codigo OPACO (no se filtra ningun email en la url). Lo guardamos y, al crear
+  // cuenta o iniciar sesion, acceso.html lo canjea via el RPC seguro claim_referral.
   try {
-    var urlParams = new URLSearchParams(location.search);
-    var refParam = urlParams.get('ref');
+    var refParam = new URLSearchParams(location.search).get('ref');
     if (refParam) {
-      refParam = refParam.trim();
-      var decodedEmail = '';
-      var isEmail = false;
-      try {
-        decodedEmail = atob(refParam).trim().toLowerCase();
-        if (decodedEmail.indexOf('@') > 0 && decodedEmail.indexOf('.') > 0) {
-          isEmail = true;
-        }
-      } catch (e) {
-        // No era base64 válido o no contenía un email
-      }
-
-      if (isEmail) {
-        localStorage.setItem('mecha_ref_email', decodedEmail);
-        localStorage.removeItem('mecha_ref_code');
-      } else {
-        localStorage.setItem('mecha_ref_code', refParam.toLowerCase());
+      var refCode = refParam.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (refCode) {
+        localStorage.setItem('mecha_ref_code', refCode);
         localStorage.removeItem('mecha_ref_email');
       }
     }
   } catch (e) {
-    console.error('Error decodificando parámetro de referido:', e);
+    console.error('Error leyendo el codigo de referido:', e);
   }
 
-  /* ---------- lógica para generar y copiar enlace de referido personalizado ---------- */
-  window.updatePersonalizedLink = function() {
-    var email = $('#recReferente').value.trim();
-    var linkSec = $('#personalizedLinkSection');
-    var linkInp = $('#personalizedLinkInput');
-    
-    if (email && email.indexOf('@') > 0 && email.indexOf('.') > 0) {
-      try {
-        var base64Email = btoa(email.toLowerCase());
-        var refUrl = location.origin + location.pathname + '?ref=' + base64Email;
-        linkInp.value = refUrl;
-        linkSec.style.display = 'block';
-      } catch (e) {
-        linkSec.style.display = 'none';
-      }
-    } else {
-      linkSec.style.display = 'none';
-    }
-  };
+  /* ---------- enlace de referido propio (codigo opaco) ---------- */
+  function refLinkFor(code){ return location.origin + location.pathname + '?ref=' + code; }
 
-  window.copyPersonalizedLink = function() {
-    var linkInp = $('#personalizedLinkInput');
-    var btn = $('#personalizedLinkCopy');
-    if (!linkInp || !linkInp.value) return;
+  var refLinkCopyBtn = $('#refLinkCopy');
+  if (refLinkCopyBtn) {
+    refLinkCopyBtn.addEventListener('click', function () {
+      var inp = $('#refLinkInput');
+      if (!inp || !inp.value) return;
+      function ok(){ var o = refLinkCopyBtn.textContent; refLinkCopyBtn.textContent = '¡Copiado!'; refLinkCopyBtn.style.background = '#2ecc71'; setTimeout(function(){ refLinkCopyBtn.textContent = o; refLinkCopyBtn.style.background = ''; }, 1500); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(inp.value).then(ok, function(){ inp.select(); document.execCommand('copy'); ok(); });
+      } else { inp.select(); document.execCommand('copy'); ok(); }
+    });
+  }
 
-    function ok() {
-      var orig = btn.textContent;
-      btn.textContent = '¡Copiado!';
-      btn.style.background = '#2ecc71';
-      setTimeout(function() {
-        btn.textContent = orig;
-        btn.style.background = '';
-      }, 1500);
-    }
-    
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(linkInp.value).then(ok, function() {
-        linkInp.select();
-        document.execCommand('copy');
-        ok();
-      });
-    } else {
-      linkInp.select();
-      document.execCommand('copy');
-      ok();
-    }
-  };
-
-  /* ---------- inicializar modal de referidos y tracker de progreso ---------- */
-  var toggleManualBound = false;
+  /* ---------- inicializa el modal segun haya sesion (arbol real) o no ---------- */
+  // profile: fila propia de profiles (con codigo_referido) o null si anonimo.
   window.initReferralModalState = function(profile, staff) {
-    var recEmailInput = $('#recReferente');
-    var trackerSec = $('#referralTrackerSection');
+    var loggedIn = $('#refLoggedIn');
+    var anon = $('#refAnon');
     var trackerStats = $('#referralTrackerStats');
     var trackerList = $('#referralTrackerList');
-    var linkSec = $('#personalizedLinkSection');
-    var linkInp = $('#personalizedLinkInput');
-    var toggleContainer = $('#toggleManualPreRegContainer');
-    var manualSection = $('#manualPreRegSection');
-    var toggleLink = $('#toggleManualPreReg');
-    
-    if (profile) {
-      // Prefillar email y desactivar
-      if (recEmailInput) {
-        recEmailInput.value = profile.email;
-        recEmailInput.disabled = true;
-        recEmailInput.style.background = 'rgba(255,255,255,0.05)';
-        recEmailInput.style.cursor = 'not-allowed';
-      }
-      
-      // Mostrar el botón toggle y ocultar la sección manual por defecto
-      if (toggleContainer) toggleContainer.style.display = 'block';
-      if (manualSection) manualSection.style.display = 'none';
-      
-      // Adjuntar el listener una sola vez
-      if (toggleLink && !toggleManualBound) {
-        toggleManualBound = true;
-        toggleLink.addEventListener('click', function(e) {
-          e.preventDefault();
-          if (manualSection.style.display === 'none') {
-            manualSection.style.display = 'block';
-            toggleLink.querySelector('span').textContent = 'Ocultar pre-registro manual';
-            toggleLink.querySelector('svg').innerHTML = '<path d="M18 12H6"/>'; // Signo menos
-          } else {
-            manualSection.style.display = 'none';
-            toggleLink.querySelector('span').textContent = 'Pre-registrar correos de amigos manualmente (Opcional)';
-            toggleLink.querySelector('svg').innerHTML = '<path d="M12 5v14M5 12h14"/>'; // Signo más
-          }
-        });
-      }
-      
-      // Generar y mostrar el link amigable o base64
-      var refCode = profile.codigo_referido || '';
-      var refUrl = '';
-      if (refCode) {
-        refUrl = location.origin + location.pathname + '?ref=' + refCode;
+
+    // Anonimo o perfil sin codigo: invitamos a crear cuenta para tener enlace.
+    if (!profile || !profile.codigo_referido) {
+      if (loggedIn) loggedIn.style.display = 'none';
+      if (anon) anon.style.display = 'block';
+      return;
+    }
+
+    // Con sesion: enlace propio + arbol real.
+    if (anon) anon.style.display = 'none';
+    if (loggedIn) loggedIn.style.display = 'block';
+
+    var linkInp = $('#refLinkInput');
+    if (linkInp) linkInp.value = refLinkFor(profile.codigo_referido);
+
+    // Resumen agregado (descuento ganado, tamano de la red, cuantos pagan).
+    api.client.rpc('get_my_referral_stats').then(function(res) {
+      if (!trackerStats) return;
+      var s = (res && res.data) || {};
+      var pct = Number(s.descuento_pct != null ? s.descuento_pct : (profile.descuento_pct || 0));
+      var total = Number(s.total || 0);
+      var pagando = Number(s.pagando || 0);
+      var aplicado = s.descuento_aplicado === true;
+      var html;
+      if (pct > 0) {
+        html = '<span style="color:#2ecc71;">Llevas −' + pct + '% de descuento' + (aplicado ? ' (activo en tu plan)' : ' acumulado') + '</span>';
       } else {
-        var base64Email = btoa(profile.email.toLowerCase());
-        refUrl = location.origin + location.pathname + '?ref=' + base64Email;
+        html = '<span>Aún no has acumulado descuento. Comparte tu enlace de arriba.</span>';
       }
-      if (linkInp) linkInp.value = refUrl;
-      if (linkSec) linkSec.style.display = 'block';
-      
-      // Cargar lista de referidos reales desde la base de datos (RPC seguro)
-      if (trackerSec && trackerStats && trackerList) {
-        api.client.rpc('get_my_referrals').then(function(res) {
-          if (res.error) {
-            console.error('Error al cargar progreso de referidos:', res.error);
-            return;
-          }
-          
-          var list = res.data || [];
-          trackerSec.style.display = 'block';
-          
-          // Calcular cuántos recomendados ya están pagando un plan en la base de datos (no free/trial/none)
-          var calificados = list.filter(function(r) {
-            return r.plan_type !== 'trial' && r.plan_type !== 'free' && r.plan_type !== 'none';
-          }).length;
-          
-          var descAplicado = profile.descuento_referido_aplicado === true;
-          
-          var statsHtml = '';
-          if (descAplicado) {
-            statsHtml = '<span style="color:#2ecc71;">✓ Descuento del 30% vitalicio activado</span>';
-          } else {
-            var faltantes = Math.max(0, 3 - list.length);
-            if (list.length >= 3) {
-              statsHtml = '<span style="color:#2ecc71;">✓ ' + list.length + ' recomendados registrados. Descuento listo para validación.</span>';
-            } else {
-              statsHtml = '<span>' + list.length + ' de 3 amigos registrados (faltan ' + faltantes + ' para tu descuento)</span>';
-            }
-          }
-          trackerStats.innerHTML = statsHtml;
-          
-          if (list.length === 0) {
-            trackerList.innerHTML = '<div style="color:var(--text-ter); font-style:italic; font-size:12px; text-align:center; padding:10px 0;">Aún no se ha registrado nadie con tu enlace. ¡Comparte tu link de arriba!</div>';
-          } else {
-            trackerList.innerHTML = list.map(function(r) {
-              var dateStr = new Date(r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-              var planStr = (r.plan_type === 'trial' || r.plan_type === 'none') ? 'Demo activa' : (r.plan_type === 'free' ? 'Plan Gratis' : 'Plan Activo');
-              var planColor = (r.plan_type === 'trial' || r.plan_type === 'none') ? '#ff9f43' : (r.plan_type === 'free' ? 'var(--text-sec)' : '#2ecc71');
-              return '<div style="display:flex; align-items:center; justify-content:space-between; font-size:12px; padding:6px 8px; background:rgba(255,255,255,0.01); border-radius:6px; border:1px solid rgba(255,255,255,0.03);">' +
-                '<div style="flex:1; font-weight:500; color:#fff;">' + r.business_name + '</div>' +
-                '<div style="color:var(--text-ter); font-size:11px; margin-right:12px;">' + dateStr + '</div>' +
-                '<div style="font-weight:600; color:' + planColor + ';">' + planStr + '</div>' +
-              '</div>';
-            }).join('');
-          }
-        });
-      }
-    } else {
-      // Usuario no registrado/anónimo
-      if (recEmailInput) {
-        recEmailInput.value = '';
-        recEmailInput.disabled = false;
-        recEmailInput.style.background = '';
-        recEmailInput.style.cursor = '';
-      }
-      if (linkSec) linkSec.style.display = 'none';
-      if (trackerSec) trackerSec.style.display = 'none';
-      if (toggleContainer) toggleContainer.style.display = 'none';
-      if (manualSection) manualSection.style.display = 'block';
-    }
-  };
+      html += '<div style="font-weight:500;color:var(--text-ter);font-size:11.5px;margin-top:4px;">' + total + ' en tu red · ' + pagando + ' con plan activo</div>';
+      trackerStats.innerHTML = html;
+    });
 
-  /* ---------- enviar recomendación y registrar referidos ---------- */
-  window.submitRecommendation = function() {
-    var referente = $('#recReferente').value.trim();
-    var amigo1 = $('#recAmigo1').value.trim();
-    var amigo2 = $('#recAmigo2').value.trim();
-    var amigo3 = $('#recAmigo3').value.trim();
-    var check = $('#recCheck').checked;
-    var privacy = $('#recPrivacy') ? $('#recPrivacy').checked : true;
-    var msgEl = $('#recMsg');
-    var btn = $('#recSubmitBtn');
-
-    if (!referente) {
-      msgEl.className = 'share-rec-msg error';
-      msgEl.textContent = 'Por favor, introduce tu correo electrónico para generar tu enlace.';
-      msgEl.style.display = 'block';
-      return;
-    }
-    
-    var amigosRaw = [amigo1, amigo2, amigo3];
-    var amigos = amigosRaw.filter(function(a) { return a !== ''; });
-    if (amigos.indexOf(referente) !== -1) {
-      msgEl.className = 'share-rec-msg error';
-      msgEl.textContent = 'No puedes pre-registrarte a ti mismo como amigo.';
-      msgEl.style.display = 'block';
-      return;
-    }
-    var uniqueAmigos = amigos.filter(function(item, pos) { return amigos.indexOf(item) === pos; });
-    if (amigos.length !== uniqueAmigos.length) {
-      msgEl.className = 'share-rec-msg error';
-      msgEl.textContent = 'Has introducido correos de amigos repetidos.';
-      msgEl.style.display = 'block';
-      return;
-    }
-
-    if (!check) {
-      msgEl.className = 'share-rec-msg error';
-      msgEl.textContent = 'Debes confirmar que deseas compartir el enlace.';
-      msgEl.style.display = 'block';
-      return;
-    }
-    if (!privacy) {
-      msgEl.className = 'share-rec-msg error';
-      msgEl.textContent = 'Debes aceptar la Política de Privacidad para continuar.';
-      msgEl.style.display = 'block';
-      return;
-    }
-
-    btn.disabled = true;
-    var btnText = btn.textContent;
-    btn.textContent = 'Registrando solicitud...';
-    msgEl.style.display = 'none';
-
-    // Anti-duplicados: Comprobar si ya existe una recomendación pendiente para este correo
-    api.client.from('recomendaciones')
-      .select('id')
-      .eq('referente_email', referente.toLowerCase().trim())
-      .eq('estado', 'pendiente')
-      .maybeSingle()
-      .then(function(checkRes) {
-        var queryPromise;
-        if (checkRes && checkRes.data && checkRes.data.id) {
-          // Ya existe, la actualizamos para añadir o refrescar contactos manuales
-          queryPromise = api.client.from('recomendaciones')
-            .update({
-              recomendado_email_1: amigo1 ? amigo1.toLowerCase().trim() : 'atribucion_automatica',
-              recomendado_email_2: amigo2 ? amigo2.toLowerCase().trim() : 'atribucion_automatica',
-              recomendado_email_3: amigo3 ? amigo3.toLowerCase().trim() : 'atribucion_automatica'
-            })
-            .eq('id', checkRes.data.id);
-        } else {
-          // No existe, creamos una nueva fila
-          queryPromise = api.client.from('recomendaciones').insert([{
-            referente_email: referente.toLowerCase().trim(),
-            recomendado_email_1: amigo1 ? amigo1.toLowerCase().trim() : 'atribucion_automatica',
-            recomendado_email_2: amigo2 ? amigo2.toLowerCase().trim() : 'atribucion_automatica',
-            recomendado_email_3: amigo3 ? amigo3.toLowerCase().trim() : 'atribucion_automatica',
-            estado: 'pendiente'
-          }]);
+    // Arbol (hasta 3 niveles), datos minimos: sin emails de terceros.
+    if (trackerList) {
+      api.client.rpc('get_my_referrals').then(function(res) {
+        if (res.error) { console.error('Error al cargar la red de referidos:', res.error); return; }
+        var list = res.data || [];
+        if (list.length === 0) {
+          trackerList.innerHTML = '<div style="color:var(--text-ter); font-style:italic; font-size:12px; text-align:center; padding:10px 0;">Aún no ha entrado nadie con tu enlace. ¡Compártelo arriba!</div>';
+          return;
         }
-
-        queryPromise.then(function(res) {
-          btn.disabled = false;
-          btn.textContent = btnText;
-          if (res.error) {
-            msgEl.className = 'share-rec-msg error';
-            msgEl.textContent = 'Error al guardar recomendación: ' + (res.error.message || 'Inténtalo de nuevo.');
-            msgEl.style.display = 'block';
-          } else {
-            msgEl.className = 'share-rec-msg success';
-            msgEl.textContent = '¡Enlace registrado con éxito! Comparte tu enlace de referido personalizado de arriba. En cuanto 3 amigos se registren en Mecha, validaremos tu 30% y su 15% de descuento en el panel.';
-            msgEl.style.display = 'block';
-            
-            // Limpiar campos de amigos, pero mantener referente y link
-            $('#recAmigo1').value = '';
-            $('#recAmigo2').value = '';
-            $('#recAmigo3').value = '';
-            $('#recCheck').checked = false;
-          }
-        });
-      }).catch(function(err) {
-        btn.disabled = false;
-        btn.textContent = btnText;
-        msgEl.className = 'share-rec-msg error';
-        msgEl.textContent = 'Error de conexión: ' + (err.message || 'Inténtalo de nuevo.');
-        msgEl.style.display = 'block';
+        trackerList.innerHTML = list.map(function(r) {
+          var dateStr = new Date(r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+          var nivelLbl = r.nivel === 1 ? 'Directo' : ('Nivel ' + r.nivel);
+          var paga = r.paga === true;
+          var planStr = paga ? 'Plan activo' : 'Demo / gratis';
+          var planColor = paga ? '#2ecc71' : 'var(--text-sec)';
+          return '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; padding:7px 9px; background:rgba(255,255,255,0.01); border-radius:7px; border:1px solid rgba(255,255,255,0.04);">' +
+            '<div style="min-width:0; flex:1;">' +
+              '<div style="font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + r.nombre_negocio + '</div>' +
+              '<div style="color:var(--text-ter); font-size:10.5px;">' + nivelLbl + ' · ' + dateStr + '</div>' +
+            '</div>' +
+            '<div style="font-weight:600; color:' + planColor + '; flex-shrink:0;">' + planStr + '</div>' +
+          '</div>';
+        }).join('');
       });
+    }
   };
 
   /* ---------- carga del software real e interactivo ---------- */
@@ -1412,11 +1178,11 @@
      t:'Fichas de cliente',
      d:'Una ficha real a pantalla completa: formula de color, alergias, fotos de cada corte, historial y preferencias. Todo a un toque, sin papeles.'},
     {ic:'ia', route:'/(tabs)', action:'cerrar', guidePos:'bc',
-     t:'La IA trabaja por ti',
-     d:'Atiende por WhatsApp, reserva y cobra el deposito; y con "Organizar mi dia" recoloca tus citas para no dejar huecos sueltos.'},
+     t:'Tu recepcion con IA',
+     d:'Al activar tu cuenta conectamos la IA: atiende por WhatsApp y por telefono, responde y reserva citas sola, 24/7. Aqui la ves como sera; se enchufa al darte de alta.'},
     {ic:'fich', route:'/(tabs)/equipo', action:'cerrar', guidePos:'bc',
-     t:'Fichajes legales',
-     d:'Tu equipo ficha entrada y salida con un clic. Integrado con Elevascore, 100% legal en Espana, informes listos para descargar.'},
+     t:'Tu equipo y su rentabilidad',
+     d:'Roles, turnos y comisiones por profesional, con metricas de quien rinde mas. Todo el equipo organizado desde una sola pantalla.'},
     {ic:'rep', route:'/(tabs)/informes', action:'informes-export', guidePos:'bl',
      t:'Informes claros · PDF y CSV',
      d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Y lo mejor: te lo descargas TODO en PDF (con tu marca) o en CSV con un clic, mira el boton arriba a la derecha.'}

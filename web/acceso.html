@@ -385,42 +385,21 @@
         }
 
         // --- ATRIBUCIÓN AUTOMÁTICA DE REFERIDOS ---
+        // Todo pasa por el RPC seguro `claim_referral`: valida el código en el
+        // servidor (anti-autoreferencia, anti-ciclo) y engancha `referido_por`
+        // una sola vez. Cubre alta por email y SSO de Google. No tocamos
+        // profiles directamente (el guard del servidor lo bloquea a propósito).
         try {
-          var refEmail = localStorage.getItem('mecha_ref_email');
           var refCode = localStorage.getItem('mecha_ref_code');
-          if ((refEmail || refCode) && profile && !profile.referido_por) {
-            var refQuery = api.client.from('profiles').select('id');
-            if (refEmail) {
-              refQuery = refQuery.eq('email', refEmail.toLowerCase().trim());
-            } else {
-              refQuery = refQuery.eq('codigo_referido', refCode.toLowerCase().trim());
-            }
-            refQuery.maybeSingle().then(function(resRef) {
-              if (resRef && resRef.data && resRef.data.id) {
-                var refUuid = resRef.data.id;
-                if (refUuid !== profile.id) {
-                  api.client.from('profiles').update({ 
-                    referido_por: refUuid, 
-                    referido_en: new Date().toISOString() 
-                  }).eq('id', profile.id).then(function() {
-                    localStorage.removeItem('mecha_ref_email');
-                    localStorage.removeItem('mecha_ref_code');
-                  });
-                }
-              } else if (refEmail) {
-                // El referente aún no existe en el sistema.
-                // Guardamos el email del referente en el JSONB metrics para auto-curación retroactiva.
-                var currentMetrics = profile.metrics || {};
-                currentMetrics.referido_por_email = refEmail.toLowerCase().trim();
-                api.client.from('profiles').update({
-                  metrics: currentMetrics,
-                  referido_en: new Date().toISOString()
-                }).eq('id', profile.id).then(function() {
-                  localStorage.removeItem('mecha_ref_email');
-                  localStorage.removeItem('mecha_ref_code');
-                });
+          if (refCode && profile && !profile.referido_por) {
+            api.client.rpc('claim_referral', { p_code: refCode }).then(function (resRef) {
+              var data = resRef && resRef.data;
+              // ok o ya referido / inválido: en cualquier caso dejamos de reintentar.
+              if (data && (data.ok || data.reason === 'already_referred' || data.reason === 'invalid_code')) {
+                localStorage.removeItem('mecha_ref_code');
+                localStorage.removeItem('mecha_ref_email');
               }
-            });
+            }).catch(function () {});
           }
         } catch(e) { console.error('Error al asociar referido:', e); }
 
