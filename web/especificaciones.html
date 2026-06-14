@@ -13,6 +13,57 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="assets/mecha.css" />
 <link rel="stylesheet" href="assets/mecha-sections.css" />
+<style>
+  /* ---------- Especificaciones: bloques + acordeon por funcion ---------- */
+  .spec-intro{padding-top:140px}
+  .spec-hint{display:inline-flex;align-items:center;gap:9px;margin:6px auto 0;font-size:13px;color:var(--text-ter);
+    border:1px solid var(--border);background:rgba(255,255,255,.02);padding:8px 15px;border-radius:999px}
+  .spec-hint svg{width:15px;height:15px;color:var(--accent-hi)}
+
+  .spec-legend{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin:26px 0 50px;font-size:12.5px;color:var(--text-sec)}
+  .spec-legend .lg{display:inline-flex;align-items:center;gap:9px}
+  .spec-tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap;line-height:1.4}
+  .spec-tag.ok{color:var(--success-hi);background:rgba(16,185,129,.13);border:1px solid rgba(16,185,129,.30)}
+  .spec-tag.soon{color:var(--accent-hi);background:var(--accent-soft);border:1px solid rgba(244,80,30,.32)}
+
+  .spec-blocks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+  .spec-block{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.028),transparent 60%);
+    border:1px solid var(--border);border-radius:var(--r-lg);padding:24px 22px;overflow:hidden}
+  .spec-block.span2{grid-column:1 / -1}
+  .spec-block.soon{background:linear-gradient(180deg,rgba(244,80,30,.07),transparent 60%);border-color:rgba(244,80,30,.22)}
+  .spec-block-h{display:flex;align-items:center;gap:13px;margin-bottom:5px}
+  .spec-block-ic{width:44px;height:44px;border-radius:13px;flex-shrink:0;display:grid;place-items:center;
+    background:var(--accent-soft);color:var(--accent-hi);border:1px solid rgba(244,80,30,.22)}
+  .spec-block-ic svg{width:21px;height:21px}
+  .spec-block-h h3{font-size:19px;font-weight:800;letter-spacing:-.025em;line-height:1.1}
+  .spec-block-h .spec-tag{margin-left:auto;align-self:flex-start}
+  .spec-block-sub{font-size:13px;color:var(--text-sec);line-height:1.55;margin-bottom:12px}
+
+  .spec-acc{display:flex;flex-direction:column}
+  .spec-item{border-top:1px solid var(--border)}
+  .spec-item summary{list-style:none;display:flex;align-items:center;gap:12px;padding:13px 2px;cursor:pointer;
+    font-size:14.5px;font-weight:600;color:var(--text);transition:color .2s ease}
+  .spec-item summary::-webkit-details-marker{display:none}
+  .spec-item summary:hover{color:var(--accent-hi)}
+  .spec-item summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:7px}
+  .spec-item .si-tx{flex:1;min-width:0}
+  .spec-item .si-soon{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--accent-hi);background:var(--accent-soft);border:1px solid rgba(244,80,30,.30);padding:2px 7px;border-radius:999px;flex-shrink:0}
+  .spec-item .si-chev{width:18px;height:18px;color:var(--text-ter);flex-shrink:0;transition:transform .3s var(--ease),color .2s ease}
+  .spec-item[open] summary{color:var(--text)}
+  .spec-item[open] .si-chev{transform:rotate(90deg);color:var(--accent-hi)}
+  .spec-item .si-body{padding:2px 26px 16px 2px;font-size:13px;color:var(--text-sec);line-height:1.65;animation:specReveal .3s var(--ease)}
+  .spec-item .si-body b{color:var(--text);font-weight:600}
+  @keyframes specReveal{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.spec-item .si-body{animation:none}.spec-item .si-chev{transition:none}}
+
+  @media(max-width:860px){
+    .spec-blocks{grid-template-columns:1fr;gap:16px}
+    .spec-intro{padding-top:120px}
+    .spec-block{padding:20px 16px}
+    .spec-block-h h3{font-size:18px}
+  }
+</style>
 </head>
 <body data-theme="dark">
 
@@ -46,6 +97,10 @@
       <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><use href="#mecha-mark" /></svg>
       <span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">OS</span></span>
     </a>
+    <div class="nav-links">
+      <a href="#especificaciones">Disponible hoy</a>
+      <a href="#en-camino">En camino</a>
+    </div>
     <div class="nav-cta">
       <a href="index.html" class="login">Volver a la web</a>
       <a href="demo.html" class="btn btn-primary">Ver demo gratis</a>
@@ -64,126 +119,238 @@
         <p class="sec-sub">Esto es Mecha al detalle, bloque a bloque.</p>
       </div>
 
-      <div class="specs-grid">
-        <div class="spec-card reveal">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" /></svg></span>
-            <h4>Agenda inteligente</h4>
+      <div style="text-align:center;margin-bottom:6px">
+        <span class="spec-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>Pulsa cada función para ver qué hace y para qué sirve</span>
+      </div>
+      <div class="spec-legend">
+        <span class="lg"><span class="spec-tag ok">Disponible</span> funciona hoy en el software</span>
+        <span class="lg"><span class="spec-tag soon">En camino</span> se activa y se configura contigo al darte de alta</span>
+      </div>
+
+      <div class="spec-blocks">
+
+        <!-- AGENDA -->
+        <div class="spec-block span2 reveal">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span>
+            <h3>Agenda inteligente</h3>
+            <span class="spec-tag ok">Disponible</span>
           </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Vista de día y semana con rejilla de slots de 15 minutos</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Tiempos muertos productivos: otra cita durante el reposo</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Servicios encadenados entre varios profesionales</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Fases de servicio (activa, reposo, transición) diferenciadas</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Arrastrar y soltar con validación de solapamientos</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Bloqueos, descansos y excepciones de horario</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Línea de hora actual y estados de cita en vivo</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>"Organizar mi día": la IA compacta la jornada</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Lista de espera que rellena los huecos libres</span></li>
-          </ul>
+          <p class="spec-block-sub">El corazón de Mecha: una agenda pensada para un salón con varios profesionales y servicios de varias fases a la vez.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Vista de día y semana</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cada profesional es una columna y cada cita un bloque de color, sobre una rejilla dividida en <b>slots configurables</b> (15 min por defecto). <b>Para qué sirve:</b> ver de un vistazo cómo va la jornada de todo el equipo y colocar las citas con precisión.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Tiempos muertos productivos (reposo)</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cuando un servicio entra en reposo (un tinte procesando, una decoloración) el profesional queda libre: Mecha marca ese hueco y te deja <b>encajar ahí a otra clienta</b>. <b>Para qué sirve:</b> facturar más sin alargar el día — el dato que diferencia a Mecha de una agenda normal.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Fases de la cita: activo → reposo → segundo activo</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cada cita puede tener tres tramos: trabajo, espera y trabajo posterior (lavado, peinado), diferenciados visualmente. <b>Para qué sirve:</b> que la espera de un color no bloquee la silla ni descuadre las horas.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Servicios encadenados entre profesionales</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Una misma visita puede pasar por varias manos (color con una, corte con otro) enlazadas en un grupo. <b>Para qué sirve:</b> coordinar servicios largos entre el equipo sin solapamientos.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Arrastrar y soltar con validación</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Mueves una cita con el ratón y Mecha valida que su fase activa no choque con otra. <b>Para qué sirve:</b> reorganizar la agenda en segundos sin crear conflictos.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Estados de cita en vivo</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Pendiente, confirmada, en curso, completada, cancelada o no presentada: cada estado tiene su color y cuenta distinto en los informes. <b>Para qué sirve:</b> saber al momento qué pasa con cada clienta.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Crear cita desde un hueco</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Pulsas un hueco libre y se abre la ventana con la hora y el profesional ya puestos; eliges cliente y servicio. Arriba ves siempre <b>«Ahora»</b> y la <b>«Hora de la cita»</b>. <b>Para qué sirve:</b> reservar sin equivocarte de hora.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Editar la cita al completo + historial</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Desde el detalle cambias servicio, cliente, profesional, fecha/hora, complementos, notas y fórmula, y queda un <b>historial de cambios</b>. <b>Para qué sirve:</b> que nada se pierda y se sepa quién cambió qué.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Avisos: citas sin confirmar y cumpleaños</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Reúne las citas de las próximas 48 h sin confirmar y los cumpleaños de la semana; pulsas uno y la agenda salta a ese día. <b>Para qué sirve:</b> que no se escape ningún recordatorio.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Buscador y filtros</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Busca por cliente, teléfono, servicio o profesional y filtra la agenda por servicio o estado. <b>Para qué sirve:</b> encontrar una cita al instante en un día lleno.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Bloqueos, descansos y cierre del salón</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Marca vacaciones, formaciones o reuniones, y si cierras un día cancela en bloque las citas confirmadas. <b>Para qué sirve:</b> que la agenda refleje siempre la realidad del salón.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Retrasos y reorganización</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cuando una clienta llega tarde, Mecha lo avisa y ofrece mover, acortar o derivar a otro profesional. <b>Para qué sirve:</b> recuperar la jornada sin descuadrar al resto.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Lista de espera</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Clientas apuntadas para cubrir huecos; cuando se libera un espacio, lo tienes a mano para rellenarlo. <b>Para qué sirve:</b> no dejar sillas vacías.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Modo pantalla completa</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Oculta el panel lateral para centrarte solo en la rejilla del día. <b>Para qué sirve:</b> trabajar la agenda con el máximo de espacio.</div></details>
+          </div>
         </div>
 
-        <div class="spec-card reveal d1">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
-            <h4>Asistente de IA</h4>
+        <!-- CLIENTES -->
+        <div class="spec-block reveal">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            <h3>Clientes y fichas</h3>
+            <span class="spec-tag ok">Disponible</span>
           </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Reserva conversacional por WhatsApp, 24 horas</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Atención por voz: contesta llamadas como una persona</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Cobra la señal por Stripe al confirmar la cita</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Recordatorios y confirmaciones automáticas</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Reubica el hueco cuando alguien cancela</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Predicción del riesgo de no-show por cita</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Avisos de retención para quien deja de venir</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Asistente dentro de la agenda, en lenguaje natural</span></li>
-          </ul>
+          <p class="spec-block-sub">La memoria del salón: quién es cada clienta y qué le gusta, sin papeles.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Ficha completa con historial</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Contacto, visitas, total gastado, ticket medio, profesional habitual y todas sus citas. <b>Para qué sirve:</b> tratar a cada clienta como si la conocieras de siempre.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Memoria de color (fichas técnicas)</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Producto, tono/mezcla, tiempo de aplicación y resultado guardados por servicio. <b>Para qué sirve:</b> repetir el color exacto la próxima vez sin probar a ojo.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Fotos de antes y después</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Adjunta fotos por servicio (en almacenamiento privado) y ábrelas a pantalla completa. <b>Para qué sirve:</b> enseñar trabajos y comparar la evolución.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Alergias y alertas</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Las alergias y avisos importantes saltan en rojo antes de empezar. <b>Para qué sirve:</b> evitar reacciones y sustos.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Segmentación automática</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Mecha etiqueta solo a clientas VIP, habituales, nuevas, inactivas o en riesgo de abandono. <b>Para qué sirve:</b> saber a quién cuidar y a quién recuperar.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Etiquetas manuales</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Añade tus propias etiquetas a una clienta. <b>Para qué sirve:</b> organizar tu cartera como tú quieras.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Bloquear clientas conflictivas</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Impide que una clienta reserve online, con motivo. <b>Para qué sirve:</b> protegerte de no-shows repetidos.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Buscador y filtros</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Busca por nombre, teléfono o email y filtra por segmento. <b>Para qué sirve:</b> llegar a cualquier ficha en segundos.</div></details>
+          </div>
         </div>
 
-        <div class="spec-card reveal d2">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span>
-            <h4>Clientes y fichas</h4>
+        <!-- EQUIPO -->
+        <div class="spec-block reveal d1">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <h3>Equipo</h3>
+            <span class="spec-tag ok">Disponible</span>
           </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Ficha con historial completo de cada cliente</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Memoria de color: fórmulas, tiempos y notas</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Fotos de antes y después por servicio</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Alergias y alertas visibles antes de empezar</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Cumpleaños con avisos automáticos</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Segmentación: fieles, en riesgo y nuevos</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Profesional habitual y ticket medio por cliente</span></li>
-          </ul>
+          <p class="spec-block-sub">Tu plantilla, sus horarios y lo que genera cada profesional.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Alta y datos del profesional</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Nombre, contacto, color en la agenda y % de comisión por persona. <b>Para qué sirve:</b> tener el equipo configurado y reconocible en la agenda.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Horario base por profesional</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Define la jornada de cada día de la semana. <b>Para qué sirve:</b> que la agenda y la reserva online respeten quién trabaja y cuándo.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Métricas del mes por persona</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Citas, ingresos, ticket medio, comisiones devengadas, ocupación y clientes únicos. <b>Para qué sirve:</b> ver el rendimiento real de cada profesional.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Bloqueos y ausencias</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Vacaciones, formación o citas médicas por tipo. <b>Para qué sirve:</b> que nadie reserve cuando un profesional no está.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Servicios, duraciones y precios por miembro</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cada profesional puede tener sus propios servicios, con su duración y su precio. <b>Para qué sirve:</b> reflejar que no todos hacen lo mismo ni tardan igual.</div></details>
+          </div>
         </div>
 
-        <div class="spec-card reveal">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
-            <h4>Equipo y fichajes</h4>
+        <!-- SERVICIOS -->
+        <div class="spec-block reveal d2">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></span>
+            <h3>Servicios y catálogo</h3>
+            <span class="spec-tag ok">Disponible</span>
           </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Fichaje legal de entrada y salida (Elevascore)</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Informe horario en PDF, listo para inspección</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Horarios, turnos y ausencias por profesional</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Especialidades y servicios por miembro</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Comisiones calculadas solas a fin de mes</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Ocupación e ingresos por persona</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Roles y permisos por puesto</span></li>
-          </ul>
+          <p class="spec-block-sub">Qué ofreces, cuánto dura y cuánto cuesta — para que las citas se calculen solas.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Catálogo con tres duraciones</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cada servicio con su precio y sus tres tiempos: activo, reposo y segundo activo. <b>Para qué sirve:</b> que al elegir un servicio la cita ya sepa cuánto ocupa y cobra.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Complementos (add-ons)</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Extras opcionales que suman tiempo y precio a una cita. <b>Para qué sirve:</b> vender más sin descuadrar la agenda.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Variantes y categorías</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Agrupa servicios y crea variantes con precios por categoría. <b>Para qué sirve:</b> ordenar un catálogo grande sin liarte.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Precios y duraciones por profesional</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Ajusta el precio o la duración de un servicio para un profesional concreto. <b>Para qué sirve:</b> reflejar a la experta que tarda menos o cobra más.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Servicios combinables</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Define qué servicios se pueden encadenar en una misma visita. <b>Para qué sirve:</b> montar packs y servicios largos bien calculados.</div></details>
+          </div>
         </div>
 
-        <div class="spec-card reveal d1">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg></span>
-            <h4>Caja, informes e inventario</h4>
+        <!-- INFORMES -->
+        <div class="spec-block reveal">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+            <h3>Informes y analítica</h3>
+            <span class="spec-tag ok">Disponible</span>
           </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Ingresos por día, semana y mes</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Ocupación, ticket medio y tasa de no-show</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Ranking de servicios y de profesionales</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Comparativa con periodos anteriores</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Cobro en efectivo, tarjeta o bizum</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Control de stock de color y producto</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Consumo de producto vinculado a cada servicio</span></li>
-          </ul>
+          <p class="spec-block-sub">Los números del salón, actualizados solos. Descargables en PDF y CSV.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Evolución del periodo</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Ingresos y citas día a día en el rango elegido. <b>Para qué sirve:</b> ver tendencias de un vistazo.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Distribución de citas</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Reparto por profesional, franja horaria y día de la semana. <b>Para qué sirve:</b> detectar tus horas punta y valle.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Tasa de no-shows</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cuántas clientas no aparecen, por profesional y por servicio. <b>Para qué sirve:</b> atacar el problema donde de verdad está.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Tiempo medio de espera</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Minutos muertos entre citas por profesional. <b>Para qué sirve:</b> apretar la agenda sin agobiar.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Reposo aprovechado</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cuánto del tiempo de reposo se reutiliza para otras clientas (global y por persona). <b>Para qué sirve:</b> medir el dinero que recuperas con los tiempos muertos.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Ingresos por profesional, servicio y cliente</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">De dónde viene la facturación, desglosada. <b>Para qué sirve:</b> saber qué y quién te da de comer.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Servicios más solicitados y combinaciones</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Ranking de servicios y combos frecuentes. <b>Para qué sirve:</b> diseñar tu oferta y tus packs con datos.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Retención de clientes</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Quién vuelve y quién se enfría. <b>Para qué sirve:</b> actuar antes de perder a una clienta.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Comisiones por profesional</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cálculo del periodo con el % aplicado a cada uno. <b>Para qué sirve:</b> liquidar sin hojas de cálculo.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Exportar en PDF y CSV</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Te descargas el informe completo en PDF (con tu marca) o en CSV con un clic. <b>Para qué sirve:</b> mandárselo a tu gestoría o guardarlo.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Acceso por rol</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Los informes solo los ve quien tiene permiso (Dirección/Propietario). <b>Para qué sirve:</b> mantener las cifras privadas.</div></details>
+          </div>
         </div>
 
-        <div class="spec-card reveal d2">
-          <div class="spec-card-h">
-            <span class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></svg></span>
-            <h4>Integraciones y plataforma</h4>
+        <!-- RESERVA ONLINE -->
+        <div class="spec-block reveal d1">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+            <h3>Reserva online y reseñas</h3>
+            <span class="spec-tag ok">Disponible</span>
           </div>
-          <ul class="spec-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Reserva omnicanal: WhatsApp, web, QR e Instagram</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Conecta tu Booksy o Fresha, sin perder nada</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Pagos y señales con Stripe</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Sincronización con Google Calendar</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Multi-sede con visión unificada para cadenas</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Disponible en web, iOS y Android</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Tus datos son tuyos: cifrados y con copia de seguridad</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Soporte en español: te lo montamos todo</span></li>
-          </ul>
+          <p class="spec-block-sub">Tu página pública para reservar 24/7, sin comisión por reserva.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Portal de reserva propio</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Una página con tu enlace donde las clientas reservan solas a cualquier hora. <b>Para qué sirve:</b> llenar agenda sin estar al teléfono.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">QR para el local</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">El mismo portal en un QR para el escaparate o el espejo. <b>Para qué sirve:</b> captar reservas dentro del propio salón.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Anti-abuso en servidor</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Límites por teléfono, IP y negocio para frenar reservas basura. <b>Para qué sirve:</b> que el portal no se te ensucie.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Confirmación configurable</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Las reservas entran como pendientes o confirmadas según tu regla, con caducidad si no se confirman a tiempo. <b>Para qué sirve:</b> controlar qué ocupa hueco de verdad.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Reseñas de clientes</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Una página (o su QR) para que dejen su valoración tras la visita. <b>Para qué sirve:</b> reputación real, recogida de clientas de verdad.</div></details>
+          </div>
         </div>
+
+        <!-- CONFIGURACION -->
+        <div class="spec-block span2 reveal">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span>
+            <h3>Configuración del salón</h3>
+            <span class="spec-tag ok">Disponible</span>
+          </div>
+          <p class="spec-block-sub">Mecha se adapta a cómo trabaja tu salón, no al revés.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Datos e identidad del negocio</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Nombre, dirección, contacto, moneda, zona horaria, logo y color de marca. <b>Para qué sirve:</b> que recordatorios, informes y portal lleven tu cara.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Horario del salón</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Horario semanal con plantillas y «copiar a toda la semana». <b>Para qué sirve:</b> montar la apertura en un minuto.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Reglas de la agenda</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Intervalo de slots, vista por defecto, inicio de semana y qué horas se muestran. <b>Para qué sirve:</b> que la agenda se vea exactamente como tú la quieres.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Antelación y solapamiento</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Antelación mínima y máxima para reservar, reservas el mismo día sí/no y si se permite solapar citas. <b>Para qué sirve:</b> poner tus normas de reserva.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">No-show y retrasos</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cuándo se marca un no-show, cuánta gracia das a un retraso y si se muestra contador. <b>Para qué sirve:</b> que la agenda reaccione sola ante imprevistos.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Tiempos muertos y reposo</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Margen de seguridad, alerta de demasiados reposos a la vez y sugerir aprovechar el reposo. <b>Para qué sirve:</b> exprimir los tiempos muertos con cabeza.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Comisiones y bonus</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">% base y por profesional, base de cálculo, incluir extras/propinas, periodo de liquidación y bonus por objetivos o servicios estrella. <b>Para qué sirve:</b> automatizar la parte variable de las nóminas.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Plantillas</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Alergias frecuentes, fórmulas guardadas y plantillas de notas. <b>Para qué sirve:</b> no escribir lo mismo una y otra vez.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Accesos y roles</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Invita cuentas con rol Recepción, Dirección o Propietario, cada una con lo que puede ver. <b>Para qué sirve:</b> dar acceso al equipo sin ceder el control.</div></details>
+          </div>
+        </div>
+
+        <!-- PLATAFORMA -->
+        <div class="spec-block reveal">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            <h3>Plataforma y datos</h3>
+            <span class="spec-tag ok">Disponible</span>
+          </div>
+          <p class="spec-block-sub">Sólida por debajo para que tú no tengas que pensar en ello.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Web, iOS y Android</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Mecha funciona en el navegador y como app; hoy lo más completo es la web. <b>Para qué sirve:</b> trabajar desde el mostrador, el móvil o casa.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Tus datos, aislados</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cada salón ve solo lo suyo, separado por reglas de seguridad a nivel de base de datos. <b>Para qué sirve:</b> que tu información sea solo tuya.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Cifrado y copia de seguridad</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Datos cifrados y respaldados. <b>Para qué sirve:</b> dormir tranquilo aunque se rompa un ordenador.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Soporte en español</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Te lo montamos todo y respondemos en tu idioma. <b>Para qué sirve:</b> no pelearte solo con la herramienta.</div></details>
+          </div>
+        </div>
+
       </div>
 
       <p class="specs-foot reveal">¿Echas algo en falta? <a href="reservar.html">Cuéntanoslo en una llamada</a> y te decimos si ya está o cuándo llega.</p>
     </div>
   </section>
 
-  <!-- ============ TODO LO DEMAS ============ -->
-  <section class="auto" id="mas" style="padding-top:0">
+  <!-- ============ EN CAMINO ============ -->
+  <section class="specs" id="en-camino" style="padding-top:0">
     <div class="wrap">
       <div class="sec-head center reveal">
-        <span class="eyebrow center">Y además</span>
-        <h2 class="sec-title">El ciclo completo de tu salón</h2>
+        <span class="eyebrow center">En camino</span>
+        <h2 class="sec-title">Lo que se activa <span class="display" style="font-style:italic">contigo</span></h2>
+        <p class="sec-sub">Mecha se construye alrededor de la IA y los cobros. Esto va incluido, pero se conecta y se configura durante el alta — todavía no es de un clic.</p>
       </div>
-      <div class="auto-grid">
-        <div class="auto-card reveal"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span><h4>Ficha de cliente con memoria</h4><p>Historial, fórmulas de color, notas y fotos. Cada profesional sabe qué pidió el cliente la última vez.</p></div>
-        <div class="auto-card reveal d1"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /></svg></span><h4>Equipo y comisiones</h4><p>Horarios, especialidades por profesional y comisiones calculadas solas a fin de mes.</p></div>
-        <div class="auto-card reveal d2"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span><h4>Multi-sede</h4><p>Varias sedes con visión unificada de agenda, equipo e ingresos. Pensado para cadenas.</p></div>
-        <div class="auto-card reveal"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg></span><h4>Lista de espera inteligente</h4><p>Cuando se libera un hueco, Mecha avisa al siguiente cliente en espera y lo rellena solo.</p></div>
-        <div class="auto-card reveal d1"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg></span><h4>Productos e inventario</h4><p>Controla el stock de color y producto y vincúlalo al consumo de cada servicio.</p></div>
-        <div class="auto-card reveal d2"><span class="ac-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg></span><h4>Reserva omnicanal</h4><p>WhatsApp, web propia, QR en el local e Instagram — todas las reservas en una sola agenda.</p></div>
+
+      <div class="spec-blocks">
+
+        <!-- IA -->
+        <div class="spec-block soon reveal">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+            <h3>Asistente de IA</h3>
+            <span class="spec-tag soon">En camino</span>
+          </div>
+          <p class="spec-block-sub">La IA atiende, reserva y ordena por ti. Se monta con tu número y tus servicios al darte de alta.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Reserva por WhatsApp 24 h</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Atiende dudas y reserva citas por WhatsApp a cualquier hora. <b>Para qué sirve:</b> captar reservas incluso con el salón cerrado.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Atención por voz</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Contesta las llamadas como una persona y agenda la cita. <b>Para qué sirve:</b> no perder al cliente que prefiere llamar.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">«Organizar mi día»</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">La IA recoloca tus citas para no dejar huecos sueltos. <b>Para qué sirve:</b> jornadas más compactas y rentables.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Predicción de no-show y retención</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Estima el riesgo de cada cita y avisa de clientas que se enfrían. <b>Para qué sirve:</b> actuar antes de perder dinero.</div></details>
+          </div>
+        </div>
+
+        <!-- COBROS / MENSAJERIA -->
+        <div class="spec-block soon reveal d1">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+            <h3>Cobros y mensajería</h3>
+            <span class="spec-tag soon">En camino</span>
+          </div>
+          <p class="spec-block-sub">Asegurar las citas y avisar sin levantar el teléfono. La base de pagos ya está en marcha.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Recordatorios y confirmaciones automáticas</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Mensajes antes de la cita y confirmación por el canal de la clienta. <b>Para qué sirve:</b> bajar los no-shows sin perseguir a nadie.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Señal anti no-show (Stripe)</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cobro de una señal al reservar y reglas de cancelación. <b>Para qué sirve:</b> que reservar tenga compromiso. <b>Estado:</b> modelo de datos ya aplicado; falta la pasarela y la pantalla de pago.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Cobro por QR en el local</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cobrar el servicio mostrando un QR. <b>Para qué sirve:</b> cerrar el ticket sin un TPV aparte.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Caja y arqueo fiscal</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Cierre de caja con requisitos fiscales. <b>Para qué sirve:</b> cuadrar el dinero del día cumpliendo la normativa.</div></details>
+          </div>
+        </div>
+
+        <!-- OPERACIONES FUTURAS -->
+        <div class="spec-block soon span2 reveal">
+          <div class="spec-block-h">
+            <span class="spec-block-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>
+            <h3>Operativa e integraciones</h3>
+            <span class="spec-tag soon">En camino</span>
+          </div>
+          <p class="spec-block-sub">Piezas que ampliarán Mecha conforme crezcas. Las priorizamos con los salones que las piden.</p>
+          <div class="spec-acc">
+            <details class="spec-item"><summary><span class="si-tx">Fichaje horario del equipo</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Fichaje de entrada y salida con informe descargable. <b>Para qué sirve:</b> cumplir el registro de jornada sin un sistema aparte.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Inventario de producto</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Stock de color y producto vinculado al consumo de cada servicio. <b>Para qué sirve:</b> saber qué reponer y cuánto te cuesta cada servicio.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Sincronización con Google Calendar</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Vuelca tus citas a tu calendario de Google. <b>Para qué sirve:</b> tenerlo todo en un mismo sitio.</div></details>
+            <details class="spec-item"><summary><span class="si-tx">Multi-sede para cadenas</span><span class="si-soon">En camino</span><svg class="si-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></summary><div class="si-body">Varias sedes con visión unificada de agenda, equipo e ingresos. <b>Para qué sirve:</b> gestionar más de un local sin duplicar trabajo.</div></details>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>

@@ -83,16 +83,18 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
 - Software: `/app` (login por `/acceso.html`) · Portal demo: `/app/r/demo`
 - La demo es interactiva y comparte datos: si alguien los ensucia, re-sembrar el tenant demo.
 
-## Estado y pendientes (13 jun 2026 — detalle en MEGA_INFORME_MECHA.md y su adendo, §ADENDO G)
+## Estado y pendientes (14 jun 2026 — detalle en MEGA_INFORME_MECHA.md y sus adendos)
 
 - Hecho y verificado: portal+QR, reseñas, lista de espera (v1), bloqueo clientes, etiquetas,
   consentimientos, fidelización v1, demo compartida estable, móvil de landing y software,
   endurecimiento de seguridad (exec_sql fuera, addons cerrados, anti-abuso, bucket privado).
-- Hecho 13 jun (commit `4f3b97b`, preview de Vercel verde — falta merge a `master` para producción):
-  landing recortada/premium + `especificaciones.html` aparte; **login SSO de Google arreglado**
-  (la landing maneja el callback que aterriza en la Site URL); inputs del software ya no se salen
-  del marco (`box-sizing:border-box` global); equipo/informes sin scroll horizontal en móvil;
-  botón "Volver a la web" en Ajustes móvil; tab bar móvil afinada.
+- Hecho 13-14 jun (rama `feat/portal-reserva-online` lista para mergear a `master` para producción):
+  landing recortada/premium + `especificaciones.html` aparte con acordeón interactivo y detalles;
+  **login SSO de Google arreglado** (la landing maneja el callback que aterriza en la Site URL);
+  inputs del software ya no se salen del marco (`box-sizing:border-box` global); equipo/informes sin
+  scroll horizontal en móvil; botón "Volver a la web" en Ajustes móvil; tab bar móvil afinada;
+  **rediseño total de la navegación móvil** (panel lateral deslizante sin overflow); cita sintética
+  para el tour de la demo (para evitar campos vacíos); y ficha/cierres sticky en móvil.
 - Pagos (Alexandro, en `master`): modelo de datos de señal (tabla `pagos`) + RPC
   `requerir_senal_cita` ya aplicados. Falta la pasarela (Checkout+webhook) y la UI del pago.
 - **Pendientes prioritarios:**

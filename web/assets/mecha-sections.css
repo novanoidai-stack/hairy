@@ -700,6 +700,13 @@ body.no-glow .bg::before,body.no-glow .vis-glow,body.no-glow .integ-box::before{
     pointer-events: none !important;
   }
 
+  /* El glow del telefono (.phone-glow, inset:-40px sobre un movil de 344px) se
+     salia ~31px del viewport y generaba scroll horizontal en toda la landing
+     (ademas descolocaba el panel lateral del menu, que es position:fixed).
+     overflow-x:clip recorta solo el sangrado horizontal sin crear contenedor de
+     scroll, asi que no afecta al nav sticky ni a las animaciones de reveal. */
+  .demo { overflow-x: clip; }
+
   /* Hero Mockup Calendar: single-column layout fit */
   .app {
     grid-template-columns: 1fr !important;

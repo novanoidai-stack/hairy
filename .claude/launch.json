@@ -2,6 +2,13 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "mecha-vercel",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve-web.mjs"],
+      "port": 8080,
+      "autoPort": true
+    },
+    {
       "name": "mecha-web",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8910", "--directory", "web"],
