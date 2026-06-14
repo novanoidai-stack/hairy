@@ -1033,6 +1033,23 @@
       msgEl.style.display = 'block';
       return;
     }
+    
+    var amigosRaw = [amigo1, amigo2, amigo3];
+    var amigos = amigosRaw.filter(function(a) { return a !== ''; });
+    if (amigos.indexOf(referente) !== -1) {
+      msgEl.className = 'share-rec-msg error';
+      msgEl.textContent = 'No puedes pre-registrarte a ti mismo como amigo.';
+      msgEl.style.display = 'block';
+      return;
+    }
+    var uniqueAmigos = amigos.filter(function(item, pos) { return amigos.indexOf(item) === pos; });
+    if (amigos.length !== uniqueAmigos.length) {
+      msgEl.className = 'share-rec-msg error';
+      msgEl.textContent = 'Has introducido correos de amigos repetidos.';
+      msgEl.style.display = 'block';
+      return;
+    }
+
     if (!check) {
       msgEl.className = 'share-rec-msg error';
       msgEl.textContent = 'Debes confirmar que deseas compartir el enlace.';

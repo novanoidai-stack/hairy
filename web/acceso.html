@@ -379,6 +379,11 @@
       Promise.resolve(api && api.getProfile ? api.getProfile() : null).then(function (profile) {
         var incomplete = !!(api && api.profileComplete && !api.profileComplete(profile));
 
+        // El staff nunca tiene perfil "incompleto" porque no tiene un salón asociado.
+        if (staff) {
+          incomplete = false;
+        }
+
         // --- ATRIBUCIÓN AUTOMÁTICA DE REFERIDOS ---
         try {
           var refEmail = localStorage.getItem('mecha_ref_email');
