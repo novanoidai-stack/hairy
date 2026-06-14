@@ -372,3 +372,28 @@ Tanda nacida de feedback directo del socio ("menos texto, más visual, que el pr
 
 ### Estado de Pagos (área Alexandro) — actualizado
 La Fase P1 (§8) ya no está a 0%: Alexandro tiene en `master` el **modelo de datos de señal** (tabla `pagos` agnóstica de pasarela, RLS multi-tenant — commit `e70a12b`) y la **RPC `requerir_senal_cita`** que calcula y crea la señal pendiente del encadenado (commit `fd3a494`). Falta la pasarela en sí (Checkout/redirect + webhook `checkout.session.completed`) y la UI del paso de pago en el portal (Carlos). La caja fiscal M-CJ (P3) sigue intacta y requiere fiscalista.
+
+---
+
+## ADENDO — Sesión de arreglos del 14 de junio (tarde) · Nav móvil, especificaciones y bug de demo ✅
+
+Se ha ejecutado la tanda final de arreglos sobre la landing, las especificaciones y la demo. Estado:
+
+### A. Rediseño total del menú de navegación móvil de la landing — ARREGLADO ✅
+- Se eliminó el overlay a pantalla completa por un panel lateral deslizante premium que sale desde la derecha (`web/assets/mecha.js`, `web/assets/mecha.css`).
+- La hamburguesa se transforma en "X" (cierre), y el panel cierra también por scrim (tocando fuera), tocando cualquier enlace, o con la tecla Esc.
+- Enlaces de navegación estructurados en lista con chevron y entrada elegante, pie con login y llamada a la acción (demo/registro).
+- **Corrección de overflow preexistente**: Se detectó que la visualización del teléfono (`.phone-glow` en `web/assets/mecha-sections.css`) causaba un desborde lateral de 31px en dispositivos móviles, lo que descolocaba los elementos fixed. Se aplicó `overflow-x: clip` en `.demo` para cortar el desborde a 375px y asegurar 0px de overflow total en la landing.
+
+### B. Página de especificaciones completas — ARREGLADO ✅
+- Reescrita `web/especificaciones.html` para incorporar un sistema de acordeones (`<details>`) donde cada una de las 73 especificaciones detalla "Qué hace" y "Para qué sirve" al pulsar.
+- Se estructuraron todas las características reales del software organizadas por bloques (agenda, clientes, equipo, informes, configuración de slots, cancelaciones, no-shows, reposo, comisiones, plantillas, etc.).
+- Siguiendo la regla "sin claims falsos" del `CLAUDE.md`, las funcionalidades sin soporte de código actual (fichajes, control de inventario) o en desarrollo (IA avanzada, mensajería automática y señales de reserva) se movieron de forma transparente a una sección especial de "En camino · se activa al darte de alta" con su respectiva etiqueta distintiva.
+
+### C. Corrección de bugs en la demo interactiva — ARREGLADO ✅
+- **Cita del tour vacía**: Se modificó `components/agenda/AgendaCalendar.web.tsx` para que, en caso de que el tenant demo no cuente con una cita que posea reposo + fórmula (p. ej. lunes a primera hora con la base limpia), la app sintetice dinámicamente en memoria una cita de ejemplo (activa 40' -> reposo 35' -> activa 20') y le inyecte una fórmula técnica de color ("Mechas completas" para Ana Ruiz, coloración Wella Koleston). Esto garantiza que el tour nunca muestre campos vacíos en el paso de explicación.
+- **Ficha de cliente sobredimensionada**: Se corrigió el trigger de la demo en `app/(tabs)/clientes.web.tsx` para que en móviles no fuerce la anchura expandida de escritorio, permitiendo que la ficha del cliente entre encajada en su layout mobile nativo con scroll vertical fluido.
+- **Cierres inaccesibles por scroll**: Al hacer scroll automático del tour móvil hacia la fórmula/secuencia de la cita o datos de la ficha, los botones de cierre quedaban fuera de pantalla. Se convirtieron en cabeceras pegajosas (`position: sticky; top: 0; z-index: 50`) tanto para la cabecera de detalle de cita, la nueva cita y el botón "Volver al listado" en la ficha del cliente, quedando siempre accesibles en el viewport móvil de 375px.
+
+Verificado todo con typecheck limpio (`npx tsc --noEmit`) y build web exitoso (`npm run build:web`). Pruebas mediante DOM query en el iframe (`/demo.html?share=1`) confirman 0px de desborde y persistencia de todos los elementos interactivos a 375px.
+

@@ -372,11 +372,14 @@ export default function ClientesWeb() {
     const onDemo = (e: Event) => {
       const action = (e as CustomEvent).detail?.action;
       if (action === 'ficha') {
-        // En el tour abrimos la ficha a pantalla completa para que luzca.
+        // En el tour abrimos la ficha del primer cliente. El modo "expandido"
+        // (ancho completo, estilo escritorio) agranda de mas en movil: alli la
+        // ficha ya ocupa toda la pantalla, asi que solo lo activamos en escritorio.
+        const wide = typeof window !== 'undefined' && window.innerWidth >= 768;
         if (clientes.length > 0) {
           setSelected(clientes[0].id);
           setActiveTab('resumen');
-          setPanelExpanded(true);
+          setPanelExpanded(wide);
         } else {
           // Aun no hay datos: lo resolvemos cuando lleguen.
           demoFichaPending.current = true;
@@ -394,9 +397,10 @@ export default function ClientesWeb() {
   useEffect(() => {
     if (demoFichaPending.current && clientes.length > 0) {
       demoFichaPending.current = false;
+      const wide = typeof window !== 'undefined' && window.innerWidth >= 768;
       setSelected(clientes[0].id);
       setActiveTab('resumen');
-      setPanelExpanded(true);
+      setPanelExpanded(wide);
     }
   }, [clientes]);
 
@@ -586,8 +590,9 @@ export default function ClientesWeb() {
         {c && (
           <div key={c.id} className="m-slide-right" style={{ borderLeft: isMobile ? 'none' : `1px solid ${TOKENS.border}`, padding: panelExpanded ? '24px 0' : (isMobile ? '12px 0' : 24), overflowY: 'auto', background: 'linear-gradient(180deg, rgba(244,80,30,0.04), transparent 30%)', minWidth: 0 }}>
           <div style={{ maxWidth: panelExpanded ? 1400 : 'none', margin: panelExpanded ? '0 auto' : 0, padding: panelExpanded ? '0 32px' : (isMobile ? '0 16px' : 0) }}>
-            {/* Toggle expand / Back button */}
-            <div style={{ display: 'flex', justifyContent: isMobile ? 'space-between' : 'flex-end', alignItems: 'center', marginBottom: 12 }}>
+            {/* Toggle expand / Back button. En movil la barra queda fija (sticky)
+                para que "Volver al listado" siga a mano aunque se baje por la ficha. */}
+            <div style={{ display: 'flex', justifyContent: isMobile ? 'space-between' : 'flex-end', alignItems: 'center', marginBottom: 12, position: isMobile ? 'sticky' : undefined, top: 0, zIndex: 5, background: isMobile ? TOKENS.bg : undefined, paddingTop: isMobile ? 8 : 0, paddingBottom: isMobile ? 8 : 0 }}>
               {isMobile && (
                 <button
                   onClick={() => { setSelected(null); setPanelExpanded(false); }}

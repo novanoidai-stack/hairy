@@ -166,9 +166,16 @@ export default function AgendaCalendar() {
   // Demo guiada: enfoque tipo spotlight sobre una zona (p.ej. el panel de avisos).
   const [demoFocus, setDemoFocus] = useState<string | null>(null);
   const notifPanelRef = useRef<HTMLElement | null>(null);
-  // Citas frescas accesibles desde el listener de demo (que se registra una vez).
+  // Citas (y catalogos) frescos accesibles desde el listener de demo (que se
+  // registra una vez, asi que capturaria estado obsoleto sin estas refs).
   const citasRef = useRef<Cita[]>([]);
   citasRef.current = citas;
+  const clientesRef = useRef<any[]>([]);
+  clientesRef.current = clientes;
+  const serviciosRef = useRef<any[]>([]);
+  serviciosRef.current = servicios;
+  const profesionalesRef = useRef<Profesional[]>([]);
+  profesionalesRef.current = profesionales;
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   const [citaAddonsMap, setCitaAddonsMap] = useState<Record<string, any[]>>({});
   const [citasVencidas, setCitasVencidas] = useState<Cita[]>([]);
@@ -239,6 +246,50 @@ export default function AgendaCalendar() {
   // antes de abrir lo nuevo para que los paneles no se amontonen.
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // El tour explica una cita bloque a bloque (estado, secuencia activa->reposo->
+    // activa, formula). Si el tenant demo no tiene una cita con esa estructura, los
+    // pasos salian VACIOS. Sintetizamos una cita de ejemplo completa (no se guarda)
+    // usando un cliente/servicio/profesional reales de la demo, para que el detalle
+    // SIEMPRE tenga reposo y formula que ensenar.
+    const buildDemoCita = (): any => {
+      const pool = citasRef.current || [];
+      const profs = profesionalesRef.current || [];
+      const clts = clientesRef.current || [];
+      const srvs = serviciosRef.current || [];
+      const prof = profs.find((p: any) => p.activo !== false) || profs[0];
+      const cliente = clts[0];
+      const srv = srvs.find((s: any) => (s.duracion_espera_min || 0) > 0) || srvs[0];
+      // Sin catalogos cargados no podemos sintetizar: usamos una cita real cualquiera.
+      if (!prof || !cliente || !srv) {
+        return pool.find((c: any) => c.estado === CITA_STATUS.CONFIRMADA) || pool[0] || null;
+      }
+      const inicio = new Date(); inicio.setHours(11, 0, 0, 0);
+      const finActiva = new Date(inicio.getTime() + 40 * 60000); // tinte aplicado
+      const finEspera = new Date(finActiva.getTime() + 35 * 60000); // reposo (procesa)
+      const fin = new Date(finEspera.getTime() + 20 * 60000); // lavado + peinado
+      return {
+        id: 'demo-ejemplo-cita',
+        inicio: inicio.toISOString(),
+        fin_activa: finActiva.toISOString(),
+        fin_espera: finEspera.toISOString(),
+        fin: fin.toISOString(),
+        estado: CITA_STATUS.CONFIRMADA,
+        profesional_id: prof.id,
+        servicio_id: srv.id,
+        cliente_id: cliente.id,
+        confirmada_cliente: true,
+        confirmada_at: new Date().toISOString(),
+        notas: '',
+        formula_producto: 'Wella Koleston Perfect 7/0',
+        formula_tono: 'Rubio medio + oxidante 9% (30 vol)',
+        formula_tiempo_min: 35,
+        formula_resultado: 'Cobertura completa de canas, tono uniforme',
+        formula_notas: 'Cuero cabelludo sensible: vigilar el tiempo de exposicion',
+        oculta_en_calendario: false,
+        grupo_id: null,
+        orden_en_grupo: null,
+      };
+    };
     const onDemo = (e: Event) => {
       const action = (e as CustomEvent).detail?.action;
       // 'nueva-cita' abre el modal; las sub-acciones del recorrido guiado
@@ -255,10 +306,14 @@ export default function AgendaCalendar() {
         if (action === 'cita-detalle') {
           const pool = citasRef.current || [];
           const conReposo = (c: any) => c.fin_activa && c.fin_espera && new Date(c.fin_espera).getTime() > new Date(c.fin_activa).getTime();
-          const pick = pool.find((c: any) => c.formula_producto || c.formula_tono)
+          const conFormula = (c: any) => c.formula_producto || c.formula_tono || c.formula_resultado;
+          // Lo ideal para el tour: una cita real con reposo Y formula (cuenta toda
+          // la historia). Si no la hay, sintetizamos una de ejemplo para que estado,
+          // secuencia y formula nunca queden vacios.
+          const pick = pool.find((c: any) => conReposo(c) && conFormula(c))
             || pool.find(conReposo)
-            || pool.find((c: any) => c.estado === CITA_STATUS.CONFIRMADA)
-            || pool[0];
+            || pool.find(conFormula)
+            || buildDemoCita();
           if (pick) { setSelectedCitaEdit(pick); setShowEditCita(true); }
         }
       } else if (action === 'nueva-cita' || (typeof action === 'string' && action.indexOf('cita-') === 0)) {
@@ -2941,9 +2996,9 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
         boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)',
         animation: isMobileOrTablet ? 'slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' : 'scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, position: isMobileOrTablet ? 'sticky' : undefined, top: isMobileOrTablet ? -2 : undefined, zIndex: 4, background: TOKENS.bgPanel, paddingBottom: isMobileOrTablet ? 12 : 0, marginTop: isMobileOrTablet ? -2 : 0 }}>
           <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: TOKENS.text }}>Nueva cita</h3>
-          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18, transition: 'all 0.2s ease', transform: 'scale(1) rotate(0deg)' }} onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.border; e.currentTarget.style.color = TOKENS.text; e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.color = TOKENS.textSec; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}>
+          <button onClick={onClose} aria-label="Cerrar" style={{ width: isMobileOrTablet ? 38 : 32, height: isMobileOrTablet ? 38 : 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18, transition: 'all 0.2s ease', transform: 'scale(1) rotate(0deg)', flexShrink: 0 }} onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.border; e.currentTarget.style.color = TOKENS.text; e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.color = TOKENS.textSec; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}>
             ✕
           </button>
         </div>
@@ -4318,16 +4373,21 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
       >
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 60, minWidth: 0 }}>
 
-        {/* Header */}
+        {/* Header. En movil queda fijo (sticky) para que el boton de cerrar
+            siga a la vista aunque el tour baje hasta la secuencia o la formula. */}
         <div
           style={{
             marginTop: 3,
-            padding: '28px 32px 24px',
+            padding: isMobileOrTablet ? '18px 18px 16px' : '28px 32px 24px',
             borderBottom: `1px solid ${TOKENS.border}`,
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
             gap: 16,
+            position: isMobileOrTablet ? 'sticky' : 'relative',
+            top: 0,
+            zIndex: 4,
+            background: TOKENS.bgPanel,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0, flex: 1 }}>

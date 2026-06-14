@@ -287,72 +287,110 @@
     });
   }
 
-  /* ---------- MOBILE MENU ---------- */
+  /* ---------- MOBILE MENU (panel lateral deslizante) ----------
+     Rediseno: en lugar del overlay full-screen con links centrados, un drawer
+     que entra desde la derecha. La barra de nav se queda arriba (con su marca) y
+     el boton hamburguesa se transforma en X = el cierre. Cierra tambien por
+     scrim, por seleccionar un enlace o con Escape. El pie (login + demo) conserva
+     las clases .mobile-menu-cta .login para que syncMobileMenu (index.html) siga
+     ocultando "Iniciar sesion" cuando hay sesion. */
   function mobileMenu() {
     var navIn = $('.nav-in');
     if (!navIn) return;
 
     var toggle = document.createElement('button');
     toggle.className = 'nav-toggle';
-    toggle.setAttribute('aria-label', 'Menú');
+    toggle.type = 'button';
+    toggle.setAttribute('aria-label', 'Abrir menú');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', 'mnavPanel');
     toggle.innerHTML = '<span></span>';
     navIn.appendChild(toggle);
 
-    var overlay = document.createElement('div');
-    overlay.className = 'mobile-menu-overlay';
+    var scrim = document.createElement('div');
+    scrim.className = 'mnav-scrim';
 
-    var linksContainer = document.createElement('div');
-    linksContainer.className = 'mobile-menu-links';
+    var panel = document.createElement('aside');
+    panel.className = 'mnav-panel';
+    panel.id = 'mnavPanel';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-label', 'Menú de navegación');
+    panel.setAttribute('aria-hidden', 'true');
 
-    var links = $$('.nav-links a');
-    if (links.length) {
-      links.forEach(function (l) {
-        var a = document.createElement('a');
-        a.href = l.getAttribute('href');
-        a.textContent = l.textContent;
-        linksContainer.appendChild(a);
-      });
-    }
+    // Enlaces: clonamos los del nav de escritorio. Si la pagina no tiene
+    // .nav-links (p.ej. especificaciones.html), al menos ofrecemos "Inicio".
+    var srcLinks = $$('.nav-links a').map(function (l) {
+      return { href: l.getAttribute('href'), text: (l.textContent || '').trim() };
+    });
+    if (!srcLinks.length) srcLinks = [{ href: 'index.html', text: 'Inicio' }];
 
-    var ctaContainer = document.createElement('div');
-    ctaContainer.className = 'mobile-menu-cta';
+    var linksWrap = document.createElement('nav');
+    linksWrap.className = 'mnav-links';
+    linksWrap.setAttribute('aria-label', 'Secciones');
+    var eyebrow = document.createElement('span');
+    eyebrow.className = 'mnav-eyebrow';
+    eyebrow.textContent = 'Navegación';
+    linksWrap.appendChild(eyebrow);
+    srcLinks.forEach(function (l) {
+      var a = document.createElement('a');
+      a.href = l.href;
+      a.innerHTML = '<span>' + l.text + '</span>' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+      linksWrap.appendChild(a);
+    });
+    panel.appendChild(linksWrap);
+
+    // Pie: respeta el CTA de cada pagina (login/"Volver a la web" + demo).
+    var navCta = $('.nav-cta');
+    var srcLogin = navCta ? navCta.querySelector('a.login') : null;
+    var srcDemo = navCta ? navCta.querySelector('a.btn') : null;
+
+    var foot = document.createElement('div');
+    foot.className = 'mnav-foot mobile-menu-cta';
 
     var loginLink = document.createElement('a');
-    loginLink.href = 'acceso.html';
     loginLink.className = 'login';
-    loginLink.textContent = 'Iniciar sesión';
-    loginLink.style.fontSize = '16px';
-    loginLink.style.color = 'var(--text-sec)';
-    loginLink.style.padding = '8px 12px';
+    loginLink.href = srcLogin ? srcLogin.getAttribute('href') : 'acceso.html';
+    loginLink.textContent = (srcLogin && srcLogin.textContent.trim()) || 'Iniciar sesión';
 
     var demoLink = document.createElement('a');
-    demoLink.href = 'demo.html';
     demoLink.className = 'btn btn-primary btn-lg btn-block';
-    demoLink.textContent = 'Ver demo gratis';
+    demoLink.href = srcDemo ? srcDemo.getAttribute('href') : 'demo.html';
+    demoLink.textContent = (srcDemo && srcDemo.textContent.trim()) || 'Ver demo gratis';
 
-    ctaContainer.appendChild(loginLink);
-    ctaContainer.appendChild(demoLink);
+    foot.appendChild(loginLink);
+    foot.appendChild(demoLink);
+    panel.appendChild(foot);
 
-    overlay.appendChild(linksContainer);
-    overlay.appendChild(ctaContainer);
-    body.appendChild(overlay);
+    body.appendChild(scrim);
+    body.appendChild(panel);
 
-    toggle.addEventListener('click', function (e) {
-      e.stopPropagation();
-      body.classList.toggle('nav-menu-open');
-    });
+    var lastFocus = null;
+    function isOpen() { return body.classList.contains('nav-menu-open'); }
+    function open() {
+      lastFocus = document.activeElement;
+      body.classList.add('nav-menu-open');
+      toggle.setAttribute('aria-expanded', 'true');
+      toggle.setAttribute('aria-label', 'Cerrar menú');
+      panel.setAttribute('aria-hidden', 'false');
+      var first = panel.querySelector('a');
+      if (first) setTimeout(function () { try { first.focus(); } catch (e) {} }, 80);
+    }
+    function shut() {
+      body.classList.remove('nav-menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Abrir menú');
+      panel.setAttribute('aria-hidden', 'true');
+      if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} }
+    }
 
-    overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) {
-        body.classList.remove('nav-menu-open');
-      }
-    });
-
-    $$('a', overlay).forEach(function (a) {
-      a.addEventListener('click', function () {
-        body.classList.remove('nav-menu-open');
-      });
-    });
+    toggle.addEventListener('click', function (e) { e.stopPropagation(); isOpen() ? shut() : open(); });
+    scrim.addEventListener('click', shut);
+    $$('a', panel).forEach(function (a) { a.addEventListener('click', shut); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen()) shut(); });
+    // Si se ensancha a escritorio con el menu abierto, cerrarlo para no dejarlo colgado.
+    window.addEventListener('resize', function () { if (isOpen() && window.innerWidth > 900) shut(); });
   }
 
   /* ---------- INIT ---------- */
