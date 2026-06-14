@@ -375,11 +375,11 @@
 
   /* --- Transición Premium del Tour --- */
   .dm-tour-body {
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .dm-tour-body.dm-step-changing {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
 
   /* --- Barra de carga superior --- */
@@ -604,23 +604,9 @@
               <label for="recReferente">Tu correo electrónico (Obligatorio) *</label>
               <input type="email" id="recReferente" required placeholder="tuemail@salondebelleza.com" oninput="updatePersonalizedLink()" />
             </div>
-            <div class="share-rec-field share-rec-full" style="margin-top:4px;">
-              <span style="font-size:11px;color:var(--text-ter);display:block;margin-bottom:4px;">PRE-REGISTRO MANUAL (OPCIONAL):</span>
-            </div>
-            <div class="share-rec-field">
-              <label for="recAmigo1">Correo de tu amigo 1 (Opcional)</label>
-              <input type="email" id="recAmigo1" placeholder="amigo1@salondebelleza.com" />
-            </div>
-            <div class="share-rec-field">
-              <label for="recAmigo2">Correo de tu amigo 2 (Opcional)</label>
-              <input type="email" id="recAmigo2" placeholder="amigo2@salondebelleza.com" />
-            </div>
-            <div class="share-rec-field share-rec-full">
-              <label for="recAmigo3">Correo de tu amigo 3 (Opcional)</label>
-              <input type="email" id="recAmigo3" placeholder="amigo3@salondebelleza.com" />
-            </div>
           </div>
-          <div class="share-rec-field share-rec-full" id="personalizedLinkSection" style="margin-bottom:12px;display:none;">
+          
+          <div id="personalizedLinkSection" class="share-rec-field share-rec-full" style="margin-top:12px; margin-bottom:12px; display:none;">
             <label>Tu enlace de referido personalizado:</label>
             <div class="share-link-row" style="margin-top:4px;">
               <div class="share-input-wrapper">
@@ -629,13 +615,44 @@
               <button class="btn btn-primary" id="personalizedLinkCopy" type="button" onclick="copyPersonalizedLink()">Copiar referido</button>
             </div>
           </div>
-          <label class="share-rec-check">
-            <input type="checkbox" id="recCheck" required />
-            <span>Tengo intención de compartir mi enlace con salones interesados</span>
-          </label>
-          <button class="btn btn-primary btn-block btn-lg" type="submit" id="recSubmitBtn" style="font-weight:700;">
-            Generar enlace y registrar descuento
-          </button>
+
+          <!-- Botón/link para abrir pre-registro manual opcional si el usuario quiere -->
+          <div id="toggleManualPreRegContainer" style="display:none; margin:14px 0 6px 0;">
+            <a href="javascript:void(0)" id="toggleManualPreReg" style="font-size:12.5px; color:#ff7a2e; text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              <span>Pre-registrar correos de amigos manualmente (Opcional)</span>
+            </a>
+          </div>
+
+          <!-- Campos opcionales de pre-registro manual de amigos -->
+          <div id="manualPreRegSection" style="margin-top:12px; border-top:1px dashed rgba(255,255,255,0.06); padding-top:12px;">
+            <div class="share-rec-field share-rec-full" style="margin-bottom:8px;">
+              <span style="font-size:11px;color:var(--text-ter);display:block;font-weight:700;">PRE-REGISTRO MANUAL (OPCIONAL):</span>
+              <span style="font-size:11.5px;color:var(--text-sec);display:block;margin-top:2px;">Si quieres, introduce sus correos para dejar constancia en el panel administrativo.</span>
+            </div>
+            <div class="share-rec-grid">
+              <div class="share-rec-field">
+                <label for="recAmigo1">Correo de tu amigo 1 (Opcional)</label>
+                <input type="email" id="recAmigo1" placeholder="amigo1@salondebelleza.com" />
+              </div>
+              <div class="share-rec-field">
+                <label for="recAmigo2">Correo de tu amigo 2 (Opcional)</label>
+                <input type="email" id="recAmigo2" placeholder="amigo2@salondebelleza.com" />
+              </div>
+              <div class="share-rec-field share-rec-full">
+                <label for="recAmigo3">Correo de tu amigo 3 (Opcional)</label>
+                <input type="email" id="recAmigo3" placeholder="amigo3@salondebelleza.com" />
+              </div>
+            </div>
+            
+            <label class="share-rec-check" style="margin-top:12px;">
+              <input type="checkbox" id="recCheck" required />
+              <span>Tengo intención de compartir mi enlace con salones interesados</span>
+            </label>
+            <button class="btn btn-primary btn-block btn-lg" type="submit" id="recSubmitBtn" style="font-weight:700; margin-top:8px;">
+              Registrar descuento y pre-registros
+            </button>
+          </div>
         </form>
 
         <div id="referralTrackerSection" style="display:none; margin-top:20px; padding:15px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
@@ -884,6 +901,7 @@
   };
 
   /* ---------- inicializar modal de referidos y tracker de progreso ---------- */
+  var toggleManualBound = false;
   window.initReferralModalState = function(profile, staff) {
     var recEmailInput = $('#recReferente');
     var trackerSec = $('#referralTrackerSection');
@@ -891,6 +909,9 @@
     var trackerList = $('#referralTrackerList');
     var linkSec = $('#personalizedLinkSection');
     var linkInp = $('#personalizedLinkInput');
+    var toggleContainer = $('#toggleManualPreRegContainer');
+    var manualSection = $('#manualPreRegSection');
+    var toggleLink = $('#toggleManualPreReg');
     
     if (profile) {
       // Prefillar email y desactivar
@@ -899,6 +920,27 @@
         recEmailInput.disabled = true;
         recEmailInput.style.background = 'rgba(255,255,255,0.05)';
         recEmailInput.style.cursor = 'not-allowed';
+      }
+      
+      // Mostrar el botón toggle y ocultar la sección manual por defecto
+      if (toggleContainer) toggleContainer.style.display = 'block';
+      if (manualSection) manualSection.style.display = 'none';
+      
+      // Adjuntar el listener una sola vez
+      if (toggleLink && !toggleManualBound) {
+        toggleManualBound = true;
+        toggleLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (manualSection.style.display === 'none') {
+            manualSection.style.display = 'block';
+            toggleLink.querySelector('span').textContent = 'Ocultar pre-registro manual';
+            toggleLink.querySelector('svg').innerHTML = '<path d="M18 12H6"/>'; // Signo menos
+          } else {
+            manualSection.style.display = 'none';
+            toggleLink.querySelector('span').textContent = 'Pre-registrar correos de amigos manualmente (Opcional)';
+            toggleLink.querySelector('svg').innerHTML = '<path d="M12 5v14M5 12h14"/>'; // Signo más
+          }
+        });
       }
       
       // Generar y mostrar el link amigable o base64
@@ -970,6 +1012,8 @@
       }
       if (linkSec) linkSec.style.display = 'none';
       if (trackerSec) trackerSec.style.display = 'none';
+      if (toggleContainer) toggleContainer.style.display = 'none';
+      if (manualSection) manualSection.style.display = 'block';
     }
   };
 
@@ -1280,7 +1324,7 @@
       tourBody.classList.add('dm-step-changing');
     }
 
-    // Esperar 150ms a que termine el fade-out
+    // Esperar 200ms a que termine el fade-out
     setTimeout(function() {
       tourStep.textContent='Paso '+(ti+1)+' de '+STEPS.length;
       tourIc.innerHTML=ICONS[s.ic];
@@ -1297,8 +1341,9 @@
       setPointer();
       navFrame(s.route);
 
-      // Fade-in: removemos la clase
+      // Fade-in: forzar reflow y remover la clase para desencadenar la animación de entrada
       if (tourBody) {
+        void tourBody.offsetWidth; // Forzar reflow
         tourBody.classList.remove('dm-step-changing');
       }
 
@@ -1323,7 +1368,7 @@
           }, 150);
         }
       }, 340);
-    }, 150);
+    }, 200);
   }
   function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; lastAction=null; renderStep(); tour.classList.add('show'); }
   function closeTour(){ tour.classList.remove('show','minimized'); if(tourToggle) tourToggle.textContent='Minimizar'; setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); lastAction='cerrar'; }
