@@ -397,3 +397,60 @@ Se ha ejecutado la tanda final de arreglos sobre la landing, las especificacione
 
 Verificado todo con typecheck limpio (`npx tsc --noEmit`) y build web exitoso (`npm run build:web`). Pruebas mediante DOM query en el iframe (`/demo.html?share=1`) confirman 0px de desborde y persistencia de todos los elementos interactivos a 375px.
 
+---
+
+## ADENDO — Sesión del 15 de junio · Red de referidos multinivel + situación actual vs objetivo
+
+Tanda centrada en (1) auditar y reconstruir el sistema de referidos antes de pasarle el enlace a Jose, (2) cerrar fallos de la demo en móvil y de coherencia del tour, y (3) dejar por escrito en el informe maestro la **distancia entre dónde estamos y el producto que queremos** (la parte de escalabilidad / self-service que condiciona todo lo demás).
+
+### A. Sistema de referidos — estaba ROTO y se ha reconstruido seguro y multinivel ✅
+
+**Hallazgo (auditoría directa de la BD de producción `vtrggiogjrhqtwbhbgia`):** el "programa de referidos" que se veía en la demo era **una fachada que daba error**. Nada de su backend existía:
+
+| El frontend (`web/demo.html`) usaba | Estado real en prod (15 jun) |
+|---|---|
+| Tabla `recomendaciones` | ❌ No existía (`to_regclass` = null) |
+| RPC `get_my_referrals()` | ❌ No existía |
+| `profiles.referido_por` / `codigo_referido` / `descuento_referido_aplicado` | ❌ No existían (profiles tenía 15 columnas, ninguna de referido) |
+| Planes `trial`/`none`/`plan_type` que filtraba el tracker | ❌ Los planes reales son `free` y `full` |
+
+La migración `migrations/referidos-y-recomendaciones.sql` **nunca se aplicó** y, además, era **insegura y rota**: creaba `recomendaciones` con políticas `USING(true)` de SELECT y UPDATE para `public` (fuga de TODOS los emails vía anon key + escritura libre — prohibido por `CLAUDE.md §4`), y referenciaba columnas inexistentes (`business_name`, `plan_type`, `metrics`) y una función `is_admin()` que no existe. Si Jose hubiese pulsado "Activar programa de referidos", le habría saltado un error. Bonus: `getProfile()` (`web/assets/auth.js`) seleccionaba `codigo_referido`/`descuento_referido_aplicado` inexistentes → el SELECT fallaba y **devolvía `null` para todos** (bug latente que afectaba al gate de la demo).
+
+**Reconstrucción (aplicada a prod, `migrations/referidos-arbol-multinivel.sql`):** árbol genealógico **multinivel real**, contra el schema real, seguro:
+- **Modelo de datos:** `profiles.codigo_referido` (código opaco único, 7 chars, alfabeto sin caracteres ambiguos), `referido_por` (uuid → padre, forma el árbol), `referido_en`, `descuento_pct` (descuento elegible que calcula el motor) y `descuento_referido_aplicado` (lo activa el equipo/Alexandro en facturación). Backfill: los 11 perfiles existentes ya tienen código único.
+- **Recompensa multinivel y decreciente, atada a quien PAGA (plan `full`), no a registros gratis** (evita el farming de altas): Nivel 1 (directo) +10 puntos, Nivel 2 +4, Nivel 3 +2, nivel 4+ 0. Bono de bienvenida +15 a quien entra con un código. **Tope global por salón: −40%** (protege el margen: un descuento compuesto sin tope arruina la unit-economics, justo lo que advierte `INFORME_VIABILIDAD_IA_SELFSERVICE.md §3`).
+- **Seguridad:** sin tabla de emails pública; el árbol se sirve por RPCs `security definer` con datos mínimos (sin emails de terceros); las columnas sensibles las **congela un trigger** salvo en contexto interno; atribución vía RPC `claim_referral` con anti-autoreferencia y anti-ciclo; helpers internos revocados a `anon`/`authenticated`; advisors de seguridad pasados (las 4 RPCs cerradas a `anon`). El motor **no mueve dinero**: solo calcula elegibilidad; la aplicación real del descuento en Stripe sigue siendo el gate de Alexandro.
+- **Verificado en vivo:** prueba transaccional con ROLLBACK sobre prod — cadena A←B←C con C pagando da A=4%, B=25% (10 directo + 15 bienvenida), C=15%, exactamente lo diseñado.
+- **Frontend reescrito (`web/demo.html`):** fuera el formulario que insertaba en `recomendaciones` y el **email en base64 dentro de la URL** (PII). Ahora: enlace con **código opaco** (`?ref=CODIGO`), dos estados (con sesión → tu enlace + tu árbol con niveles y descuento ganado; anónimo → CTA "crear cuenta para obtener tu enlace"). Atribución vía `claim_referral` en `acceso.html` (cubre alta por email y SSO de Google). Verificado en preview: el modal abre sin errores, genera `?ref=ABC2345` y alterna ambos estados.
+
+**Pendiente (follow-up, NO bloquea a Jose):** el panel de **staff** de referidos en `web/admin.html` sigue apuntando al modelo viejo (`recomendaciones`, "30%/15%"). Hay que reescribirlo al árbol nuevo (listar perfiles con `descuento_pct > 0` y togglear `staff_set_referral_applied`). Es interno; no rompe el resto del admin.
+
+### B. Demo en móvil y coherencia del tour ✅
+- **Paso de "Avisos" (tapado por ruido en móvil):** el panel de notificaciones era un dropdown de 320px anclado a la campana; en 375px **se salía de pantalla** y quedaba como una cajita flotante sobre la cabecera. Ahora en móvil es una **hoja superior a todo el ancho** bajo la cabecera (`components/agenda/AgendaCalendar.web.tsx`). Verificado en vivo: `top=58, ancho=351` en viewport 375, **sin desbordes** (antes se cortaba). El spotlight lo recorta limpio y no choca con la tarjeta del tour (que va abajo).
+- **Claims falsos del tour (regla "sin claims falsos"):** dos pasos afirmaban en presente funciones que NO existen aún y que `especificaciones.html` ya había movido a "En camino": "Integrado con **Elevascore**, 100% legal" (fichajes) y "la IA… **cobra el depósito**". Reescritos: el de IA como capacidad que **se conecta al activar la cuenta** (honesto), y el de fichajes sustituido por **equipo/comisiones**, que SÍ es real y vive en esa misma pantalla.
+
+### C. SITUACIÓN ACTUAL vs OBJETIVO — el verdadero techo es la escalabilidad
+
+> Esta sección responde a la pregunta estratégica de fondo: hoy podemos vender Mecha, pero **no podemos escalarlo sin trabajo manual por cada cliente**. El detalle técnico de viabilidad está en `informes/INFORME_VIABILIDAD_IA_SELFSERVICE.md`; aquí queda la foto actual-vs-objetivo y por qué importa.
+
+**Dónde estamos (modelo actual — "alta-touch"):**
+- El software (agenda, clientes, informes, portal de reserva) ya es **autoservicio**: un salón podría usarlo solo.
+- Pero la **capa de IA** (voz por teléfono + WhatsApp) es **artesanal**: comprar el número (+34) en la consola de Twilio/Telnyx, configurar WhatsApp en Meta Developers, y clonar/ajustar workflows de n8n — todo **a mano, por cliente**, por Carlos/Alexandro.
+- Consecuencia: **no podemos** (a) subir la app a la App Store/Play como producto de compra directa, ni (b) poner un botón de pago en la web que dé acceso instantáneo a TODO, porque tras el pago aún hay tareas manuales de aprovisionamiento. Cada cliente nuevo es horas de trabajo nuestro.
+
+**Dónde queremos estar (objetivo — "zero-touch / self-service"):**
+- El cliente paga la suscripción en la web (Stripe) y **el backend auto-aprovisiona** lo que se pueda y **guía al usuario** para conectar lo que la ley no permite automatizar:
+  - **Agente de voz (Retell):** 100% vía API — `POST /create-agent` con los datos que el salón ya rellenó. ✅ viable.
+  - **Número +34:** límite regulatorio de la CNMC (titular real verificado). Solución self-service: el salón sube CIF/DNI en Ajustes → backend lo manda a **Twilio Hosted Regulatory Bundles** → webhook de aprobación (24-72h) → compra automática del número. 
+  - **WhatsApp:** **Embedded Signup** de Meta (el patrón de Shopify/Booksy): el salón verifica su número en un popup de Meta y nos llega el WABA ID por webhook; el resto lo automatiza el backend.
+  - **n8n:** **un único workflow maestro multi-tenant** (no uno por cliente): n8n pregunta a nuestra BD "¿de qué negocio es este número receptor y qué parámetros tiene?" y actúa en caliente. Cero workflows nuevos por alta.
+- **App Store sin comisión del 30%:** publicar la app como herramienta de gestión "lectora" (sin compras dentro); el alta, la tarjeta (Stripe) y la configuración de IA viven **solo en el panel web**. Nos libra del 30% de Apple y simplifica la aprobación.
+- **Blindaje financiero (innegociable):** tarjeta válida ANTES de activar la IA; planes con **bolsa de minutos** (no IA ilimitada); límites anti-DoS por origen. La IA de voz tiene coste variable real (~0,53-0,85 $/llamada de 5 min): sin estos topes, un abuso nos arruina.
+
+**Por qué importa (el cambio de naturaleza del negocio):**
+Hoy, escalar = más horas nuestras por cada cliente (no escala). Con el modelo self-service, escalar = **mantenimiento y monitorización** de una plataforma que se auto-configura. Pasamos de "montar cada salón a mano" a "vigilar que todo funcione y dar soporte". Eso es lo que convierte a Mecha de un servicio a un **producto SaaS de verdad**, multiplica el valor del software y es la condición para subirlo a las tiendas y cobrar en la web. **Es el siguiente gran objetivo de producto**, ya en investigación por Alexandro (automatización del aprovisionamiento). Roadmap técnico por fases en `INFORME_VIABILIDAD_IA_SELFSERVICE.md §5`.
+
+**Decisiones para Jose (añadidas):**
+7. **Modelo de referido:** ¿validamos el árbol multinivel con tope −40% y recompensa por 3 niveles (10/4/2 + 15 bienvenida)? Afecta a margen y, si los descuentos se acumulan mucho, conviene cerrarlo con pricing definido (decisión §11.2 sigue abierta).
+8. **Prioridad self-service:** ¿cuándo arrancamos el aprovisionamiento zero-touch (Stripe webhook → plan, Twilio Bundles, Meta Embedded Signup)? Es lo que desbloquea App Store y cobro en web.
+

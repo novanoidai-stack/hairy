@@ -636,8 +636,14 @@ export default function AgendaCalendar() {
             {showNotif && (
               <>
                 {/* Backdrop para cerrar al hacer clic fuera */}
-                <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 90 }} />
-                <div ref={(el) => { notifPanelRef.current = el; }} style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 320, maxHeight: 420, overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(0,0,0,0.45)', zIndex: 100, padding: 12 }}>
+                <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: isMobile ? 'rgba(8,6,4,0.35)' : 'transparent' }} />
+                {/* En movil el dropdown de 320px anclado a la campana se salia de
+                    pantalla (375px) y quedaba como una cajita flotante ilegible.
+                    Aqui pasa a ser una hoja superior a todo el ancho, debajo de la
+                    cabecera, que el spotlight de la demo recorta limpio. */}
+                <div ref={(el) => { notifPanelRef.current = el; }} style={isMobile
+                  ? { position: 'fixed', top: 58, left: 12, right: 12, maxHeight: '52vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}`, borderRadius: 16, boxShadow: '0 24px 60px rgba(0,0,0,0.55)', zIndex: 100, padding: 14 }
+                  : { position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 320, maxHeight: 420, overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(0,0,0,0.45)', zIndex: 100, padding: 12 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span>Avisos</span>
                     {totalAvisos > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: sinConfirmar48h > 0 ? '#ef4444' : '#fb923c', background: sinConfirmar48h > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(251,146,60,0.14)', borderRadius: 999, padding: '2px 8px' }}>{totalAvisos}</span>}
