@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { getUserProfile, can, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
+import { IS_DEMO_MODE } from '@/lib/supabase';
 
 const tokens = DESIGN_TOKENS;
 
@@ -225,14 +226,16 @@ export function Sidebar() {
         )}
 
         {/* Volver al sitio web (salir del software sin cerrar sesion) */}
-        <TouchableOpacity
-          style={[s.navItem, collapsed && s.navItemCollapsed, exitHovered && s.navItemHovered]}
-          onPress={exitToWeb}
-          {...{ onMouseEnter: () => setExitHovered(true), onMouseLeave: () => setExitHovered(false), ...webTitle('Volver al sitio web') } as any}
-        >
-          <Ionicons name="arrow-back-outline" size={collapsed ? 20 : 18} color={tokens.textSecondary} />
-          {!collapsed && <TText style={s.navLabel}>Volver al sitio web</TText>}
-        </TouchableOpacity>
+        {!IS_DEMO_MODE && (
+          <TouchableOpacity
+            style={[s.navItem, collapsed && s.navItemCollapsed, exitHovered && s.navItemHovered]}
+            onPress={exitToWeb}
+            {...{ onMouseEnter: () => setExitHovered(true), onMouseLeave: () => setExitHovered(false), ...webTitle('Volver al sitio web') } as any}
+          >
+            <Ionicons name="arrow-back-outline" size={collapsed ? 20 : 18} color={tokens.textSecondary} />
+            {!collapsed && <TText style={s.navLabel}>Volver al sitio web</TText>}
+          </TouchableOpacity>
+        )}
 
         {/* Account card */}
         <Animated.View style={{ transform: [{ scale: accountScaleAnim }] }}>

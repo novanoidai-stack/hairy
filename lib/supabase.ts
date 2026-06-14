@@ -31,6 +31,17 @@ function detectDemoMode(): boolean {
   let embedded = false;
   try { embedded = window.top !== window.self; } catch { embedded = true; }
   if (!embedded) return false;
+
+  // 1. Verificación por origen común (leer URL de la ventana superior)
+  try {
+    if (window.top && window.top.location.href.includes('demo.html')) {
+      return true;
+    }
+  } catch (e) {
+    // Si da error de CORS es que está embebido en otro origen; hacemos fallback a los parámetros
+  }
+
+  // 2. Fallbacks clásicos (parámetros y session storage)
   const hasParam = /[?&]demo=1(?:&|$)/.test(window.location.search);
   let flagged = false;
   try {
