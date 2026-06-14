@@ -4313,6 +4313,9 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
   const dSrvRef = useRef<HTMLElement | null>(null);
   const dEstRef = useRef<HTMLElement | null>(null);
   const dSeqRef = useRef<HTMLElement | null>(null);
+  const dSeqActRef = useRef<HTMLDivElement | null>(null);
+  const dSeqRepRef = useRef<HTMLDivElement | null>(null);
+  const dSeqAct2Ref = useRef<HTMLDivElement | null>(null);
   const dFormRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -4328,13 +4331,48 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
   }, []);
   useEffect(() => {
     if (!demoZone) return;
-    const m: Record<string, { current: HTMLElement | null }> = { cliente: dCliRef, servicio: dSrvRef, estado: dEstRef, secuencia: dSeqRef, formula: dFormRef };
+    const m: Record<string, { current: HTMLElement | null }> = {
+      cliente: dCliRef,
+      servicio: dSrvRef,
+      estado: dEstRef,
+      secuencia: dSeqRef,
+      'secuencia-activo': dSeqActRef,
+      'secuencia-reposo': dSeqRepRef,
+      'secuencia-activo2': dSeqAct2Ref,
+      formula: dFormRef
+    };
     const el = m[demoZone]?.current;
     if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [demoZone]);
-  const demoRefMap: Record<string, { current: HTMLElement | null }> = { cliente: dCliRef, servicio: dSrvRef, estado: dEstRef, secuencia: dSeqRef, formula: dFormRef };
+  const demoRefMap: Record<string, { current: HTMLElement | null }> = {
+    cliente: dCliRef,
+    servicio: dSrvRef,
+    estado: dEstRef,
+    secuencia: dSeqRef,
+    'secuencia-activo': dSeqActRef,
+    'secuencia-reposo': dSeqRepRef,
+    'secuencia-activo2': dSeqAct2Ref,
+    formula: dFormRef
+  };
   const demoActiveRef = (demoZone && demoRefMap[demoZone]) || dSeqRef;
-  const demoLabel = demoZone === 'cliente' ? 'Cliente' : demoZone === 'servicio' ? 'Servicio' : demoZone === 'estado' ? 'Estado de la cita' : demoZone === 'secuencia' ? 'Secuencia · tiempos muertos' : demoZone === 'formula' ? 'Formula guardada' : '';
+  const demoLabel =
+    demoZone === 'cliente'
+      ? 'Cliente'
+      : demoZone === 'servicio'
+      ? 'Servicio'
+      : demoZone === 'estado'
+      ? 'Estado de la cita'
+      : demoZone === 'secuencia'
+      ? 'Secuencia · tiempos muertos'
+      : demoZone === 'secuencia-activo'
+      ? '1 · Tiempo activo (aplicación)'
+      : demoZone === 'secuencia-reposo'
+      ? '2 · Tiempo de reposo (hueco libre)'
+      : demoZone === 'secuencia-activo2'
+      ? '3 · Segundo tiempo activo (acabado)'
+      : demoZone === 'formula'
+      ? 'Fórmula guardada'
+      : '';
 
   const isMobileOrTablet = isMobile || isTablet;
 
@@ -5140,47 +5178,51 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
 
               <SequenceBar activo={activo} espera={espera} activo2={activo2} primary={TOKENS.primary} warning="#f59e0b" />
 
-              <div style={{ height: 12 }} />
-
-              <TimeSlider
-                label="1 · Tiempo activo"
-                hint="Aplicación del servicio"
-                value={activo}
-                setValue={setActivo}
-                min={5}
-                max={240}
-                step={5}
-                color={TOKENS.primary}
-                chips={[15, 30, 45, 60, 90, 120]}
-              />
-
-              <div style={{ height: 12 }} />
-
-              <TimeSlider
-                label="2 · Tiempo de reposo"
-                hint="Tiempo de reposo (ej. tinte procesando). Pon 0 si no hay."
-                value={espera}
-                setValue={setEspera}
-                min={0}
-                max={120}
-                step={5}
-                color="#f59e0b"
-                chips={[0, 15, 30, 45, 60]}
-              />
+              <div ref={dSeqActRef}>
+                <TimeSlider
+                  label="1 · Tiempo activo"
+                  hint="Aplicación del servicio"
+                  value={activo}
+                  setValue={setActivo}
+                  min={5}
+                  max={240}
+                  step={5}
+                  color={TOKENS.primary}
+                  chips={[15, 30, 45, 60, 90, 120]}
+                />
+              </div>
 
               <div style={{ height: 12 }} />
 
-              <TimeSlider
-                label="3 · Segundo tiempo activo"
-                hint="Trabajo posterior al reposo (lavado, peinado…). 0 si no aplica."
-                value={activo2}
-                setValue={setActivo2}
-                min={0}
-                max={120}
-                step={5}
-                color={TOKENS.primary}
-                chips={[0, 15, 30, 45, 60]}
-              />
+              <div ref={dSeqRepRef}>
+                <TimeSlider
+                  label="2 · Tiempo de reposo"
+                  hint="Tiempo de reposo (ej. tinte procesando). Pon 0 si no hay."
+                  value={espera}
+                  setValue={setEspera}
+                  min={0}
+                  max={120}
+                  step={5}
+                  color="#f59e0b"
+                  chips={[0, 15, 30, 45, 60]}
+                />
+              </div>
+
+              <div style={{ height: 12 }} />
+
+              <div ref={dSeqAct2Ref}>
+                <TimeSlider
+                  label="3 · Segundo tiempo activo"
+                  hint="Trabajo posterior al reposo (lavado, peinado…). 0 si no aplica."
+                  value={activo2}
+                  setValue={setActivo2}
+                  min={0}
+                  max={120}
+                  step={5}
+                  color={TOKENS.primary}
+                  chips={[0, 15, 30, 45, 60]}
+                />
+              </div>
             </div>
 
             {/* Fórmula de color / química */}
