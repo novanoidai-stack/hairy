@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert, Platform, TextInput,
+  StyleSheet, ActivityIndicator, Alert, Platform, TextInput, KeyboardAvoidingView
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -332,8 +332,8 @@ export default function NuevaCitaScreen() {
   }
 
   const inner = (
-    <View style={[s.container, { backgroundColor: c.bg, paddingBottom: insets.bottom + spacing.lg }]}>
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.container, { backgroundColor: c.bg, paddingBottom: insets.bottom }]}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
 
         {/* ── Profesional ── */}
         <Section title="Profesional" required>
@@ -613,7 +613,7 @@ export default function NuevaCitaScreen() {
             : <TText style={s.btnGuardarText}>Crear cita</TText>}
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 
   if (Platform.OS === 'web') {

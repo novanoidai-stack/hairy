@@ -175,7 +175,9 @@ export default function AgendaCalendar() {
     selectedDate={selectedDate}
     setSelectedDate={setSelectedDate}
     currentDate={currentDate}
-    citasHoy={citasHoy}
+    setCurrentDate={setCurrentDate}
+    citas={citas}
+    citasHoy={filteredCitas} // Use filteredCitas to match desktop behavior if needed
     citasConfirmadas={citasConfirmadas}
     ingresosMes={ingresosMes}
     router={router}
@@ -320,6 +322,8 @@ function AgendaMobile({
   selectedDate,
   setSelectedDate,
   currentDate,
+  setCurrentDate,
+  citas,
   citasHoy,
   citasConfirmadas,
   ingresosMes,
@@ -328,124 +332,85 @@ function AgendaMobile({
   profesionales,
   c,
 }: any) {
+  const [showMonthCal, setShowMonthCal] = useState(false);
   const weekStart = addDays(new Date(selectedDate), -new Date(selectedDate).getDay() + 1);
   const weekDays = Array.from({ length: 7 }, (_: any, i: number) => addDays(weekStart, i));
 
+  const citasByDate = citas.reduce(
+    (acc: Record<string, number>, c: Cita) => {
+      const d = c.inicio.split('T')[0];
+      acc[d] = (acc[d] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
   return (
-    <ScrollView style={[s.root, { backgroundColor: tokens.bg }]} showsVerticalScrollIndicator={false}>
-      <View style={[s.mobileContainer, { paddingTop: insets.top + tokens.spacing.lg }]}>
-        {/* Header */}
-        <View style={s.mobileHeader}>
+    <View style={[s.root, { backgroundColor: tokens.bg }]}>
+      {/* Header Compacto Fijo */}
+      <View style={[s.mobileHeaderCompact, { paddingTop: insets.top + tokens.spacing.sm }]}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View>
-            <Text style={s.mobileHeaderDay}>
-              {format(new Date(selectedDate), 'EEEE', { locale: es }).toUpperCase()}
-            </Text>
-            <Text style={s.mobileHeaderDate}>
-              {format(new Date(selectedDate), 'd MMMM', { locale: es })}
+            <TouchableOpacity onPress={() => setShowMonthCal(!showMonthCal)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={s.mobileHeaderDateCompact}>
+                {format(new Date(selectedDate), "EEEE, d 'de' MMMM", { locale: es })}
+              </Text>
+              <Ionicons name={showMonthCal ? "chevron-up" : "chevron-down"} size={16} color={tokens.textSecondary} />
+            </TouchableOpacity>
+            <Text style={s.mobileHeaderSubCompact}>
+              {citasHoy.length} citas · €{ingresosMes} est.
             </Text>
           </View>
-          <View style={s.mobileAvatar}>
-            <Text style={s.mobileAvatarText}>RM</Text>
+          <View style={[s.mobileAvatar, { width: 32, height: 32 }]}>
+            <Text style={[s.mobileAvatarText, { fontSize: tokens.fontSize.xs }]}>RM</Text>
           </View>
         </View>
 
-        {/* 2-column stats */}
-        <View style={{ flexDirection: 'row', gap: tokens.spacing.md, marginBottom: tokens.spacing.lg }}>
-          <View style={[s.mobileStatCard, { backgroundColor: tokens.bgCard }]}>
-            <Text style={s.mobileStatLabel}>HOY</Text>
-            <Text style={s.mobileStatValue}>{citasHoy.length}</Text>
-            <Text style={s.mobileStatSub}>citas</Text>
+        {/* Toggleable Mini Calendar */}
+        {showMonthCal && (
+          <View style={{ marginTop: tokens.spacing.md }}>
+            <DesktopMiniCalendar
+              currentDate={currentDate}
+              selectedDate={selectedDate}
+              onSelectDate={(d: string) => { setSelectedDate(d); setShowMonthCal(false); }}
+              onPrevMonth={() => setCurrentDate(subMonths(currentDate, 1))}
+              onNextMonth={() => setCurrentDate(addMonths(currentDate, 1))}
+              citasByDate={citasByDate}
+            />
           </View>
-          <View style={[s.mobileStatCard, { backgroundColor: `${tokens.success}22`, borderColor: `${tokens.success}33`, borderWidth: 1 }]}>
-            <Text style={[s.mobileStatLabel, { color: tokens.success }]}>INGRESOS</Text>
-            <Text style={[s.mobileStatValue, { color: tokens.success }]}>{ingresosMes}€</Text>
-          </View>
-        </View>
+        )}
 
-        {/* Mini week calendar */}
-        <View style={{ marginBottom: tokens.spacing.lg }}>
-          <View style={{ flexDirection: 'row', gap: tokens.spacing.sm }}>
+        {/* Mini week calendar (only if month cal is hidden) */}
+        {!showMonthCal && (
+          <View style={{ flexDirection: 'row', gap: tokens.spacing.xs, marginTop: tokens.spacing.md }}>
             {weekDays.map((day, i) => {
               const dateStr = format(day, 'yyyy-MM-dd');
               const isSelected = dateStr === selectedDate;
-              const dayNum = format(day, 'd');
-              const dayName = format(day, 'E', { locale: es });
-
               return (
                 <TouchableOpacity
                   key={dateStr}
-                  style={[
-                    s.weekDay,
-                    isSelected && s.weekDaySelected,
-                  ]}
+                  style={[s.weekDayCompact, isSelected && s.weekDaySelected]}
                   onPress={() => setSelectedDate(dateStr)}
                 >
-                  <Text style={[s.weekDayName, { color: isSelected ? '#fff' : c.text }]}>
-                    {dayName}
+                  <Text style={[s.weekDayNameCompact, { color: isSelected ? '#fff' : tokens.textSecondary }]}>
+                    {format(day, 'E', { locale: es })[0]}
                   </Text>
-                  <Text style={[s.weekDayNum, { color: isSelected ? '#fff' : c.text }]}>
-                    {dayNum}
+                  <Text style={[s.weekDayNumCompact, { color: isSelected ? '#fff' : tokens.text }]}>
+                    {format(day, 'd')}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-        </View>
-
-        {/* Citas list */}
-        {citasHoy.length === 0 ? (
-          <View style={s.emptyState}>
-            <Ionicons name="calendar-outline" size={48} color={tokens.textTertiary} />
-            <Text style={[s.emptyStateTitle, { color: c.text }]}>Sin citas</Text>
-            <Text style={[s.emptyStateSubtitle, { color: c.textSecondary }]}>No hay citas programadas para este día</Text>
-          </View>
-        ) : (
-          <View style={{ gap: tokens.spacing.md, paddingBottom: tokens.spacing.xxl * 2 }}>
-            {citasHoy.map((cita: Cita) => (
-              <TouchableOpacity
-                key={cita.id}
-                style={[s.mobileCitaCard, { borderLeftColor: cita.profesionales?.color ?? tokens.border }]}
-                onPress={() => router.push({ pathname: '/screens/agenda-detalle', params: { citaId: cita.id } })}
-              >
-                <View style={{ gap: tokens.spacing.xs, flex: 1 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.sm }}>
-                    <Text style={[s.mobileCitaHora, { color: c.text }]}>
-                      {format(parseISO(cita.inicio), 'HH:mm')}
-                    </Text>
-                    <Text style={{ fontSize: tokens.fontSize.xs, color: c.textTertiary }}>
-                      {Math.round((new Date(cita.fin).getTime() - new Date(cita.inicio).getTime()) / 60000)} min
-                    </Text>
-                  </View>
-                  <Text style={s.mobileCitaCliente}>
-                    {cita.clientes?.nombre ?? 'Sin cliente'}
-                  </Text>
-                  <Text style={s.mobileCitaServicio}>
-                    {cita.servicios?.nombre ?? 'Servicio'}
-                  </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.xs }}>
-                    <View
-                      style={{
-                        width: 5,
-                        height: 5,
-                        borderRadius: 999,
-                        backgroundColor: cita.profesionales?.color ?? tokens.border,
-                      }}
-                    />
-                    <Text style={{ fontSize: tokens.fontSize.xs, color: tokens.textTertiary }}>
-                      {cita.profesionales?.nombre?.split(' ')[0]}
-                    </Text>
-                  </View>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={s.mobileCitaPrecio}>
-                    €{cita.servicios?.precio ?? 0}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
         )}
       </View>
+
+      {/* Timeline Scrollable */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: tokens.spacing.md, paddingBottom: tokens.spacing.xxl * 2 }} showsVerticalScrollIndicator={false}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+          <DayTimeline citas={citasHoy} profesionales={profesionales} />
+        </ScrollView>
+      </ScrollView>
 
       {/* FAB */}
       <TouchableOpacity
@@ -459,7 +424,7 @@ function AgendaMobile({
       >
         <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -794,6 +759,29 @@ const s = StyleSheet.create({
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: tokens.spacing.xxl, gap: tokens.spacing.lg },
   emptyStateTitle: { fontSize: tokens.fontSize.lg, fontWeight: '700', color: tokens.text },
   emptyStateSubtitle: { fontSize: tokens.fontSize.sm, color: tokens.textSecondary, textAlign: 'center' },
+
+  // Mobile New Styles
+  mobileHeaderCompact: {
+    paddingHorizontal: tokens.spacing.lg,
+    paddingBottom: tokens.spacing.md,
+    backgroundColor: tokens.bg,
+    borderBottomWidth: 1,
+    borderBottomColor: tokens.border,
+    zIndex: 10,
+  },
+  mobileHeaderDateCompact: { fontSize: tokens.fontSize.lg, fontWeight: '700', color: tokens.text, textTransform: 'capitalize' },
+  mobileHeaderSubCompact: { fontSize: tokens.fontSize.sm, color: tokens.textSecondary, marginTop: 2 },
+  weekDayCompact: {
+    flex: 1,
+    paddingVertical: tokens.spacing.sm,
+    borderRadius: tokens.radius.md,
+    backgroundColor: tokens.bgCard,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: tokens.border,
+  },
+  weekDayNameCompact: { fontSize: tokens.fontSize.xs, fontWeight: '600' },
+  weekDayNumCompact: { fontSize: tokens.fontSize.md, fontWeight: '700', marginTop: 2 },
 
   fab: {
     position: 'absolute',

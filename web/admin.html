@@ -222,6 +222,7 @@
   <div class="ad-tabs">
     <button class="ad-tab active" id="tabSol" data-view="solicitudes">Solicitudes<span class="badge" id="badgeSol">0</span></button>
     <button class="ad-tab" id="tabCue" data-view="cuentas">Cuentas<span class="badge" id="badgeCue">0</span></button>
+    <button class="ad-tab" id="tabRec" data-view="recomendaciones">Recomendaciones<span class="badge" id="badgeRec">0</span></button>
   </div>
 
   <!-- VISTA: SOLICITUDES -->
@@ -280,6 +281,31 @@
     <div class="ad-count" id="countCue"></div>
     <div class="ad-msg" id="cueMsg" style="margin-bottom:14px"></div>
     <div class="ad-list" id="listCue"><div class="ad-loading">Cargando cuentas...</div></div>
+  </div>
+
+  <!-- VISTA: RECOMENDACIONES -->
+  <div id="view-recomendaciones" style="display:none">
+    <div class="ad-stats" id="statsRec"></div>
+
+    <div class="ad-tools">
+      <div class="ad-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+        <input type="search" id="qRec" placeholder="Buscar por email de referente o recomendados" />
+      </div>
+      <select class="ad-sel" id="fEstadoRec">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="verificado">Verificado</option>
+      </select>
+      <button class="ad-refresh" id="refreshRecBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+        Actualizar
+      </button>
+    </div>
+
+    <div class="ad-count" id="countRec"></div>
+    <div class="ad-msg" id="recMsg" style="margin-bottom:14px"></div>
+    <div class="ad-list" id="listRec"><div class="ad-loading">Cargando recomendaciones...</div></div>
   </div>
 </div>
 
@@ -717,17 +743,238 @@
   var rbc = $('refreshCueBtn');
   if (rbc) rbc.addEventListener('click', loadCuentas);
 
+  // ---------- RECOMENDACIONES ----------
+  var recomendaciones = [];
+  var recomendacionesLoaded = false;
+
+  function loadRecomendaciones() {
+    var listEl = $('listRec');
+    listEl.innerHTML = '<div class="ad-loading">Cargando recomendaciones...</div>';
+    clearMsg($('recMsg'));
+    api.client.from('recomendaciones').select('*').order('created_at', { ascending: false })
+      .then(function (res) {
+        if (res.error) {
+          listEl.innerHTML = '';
+          msg($('recMsg'), 'err', 'No se pudieron cargar las recomendaciones: ' + (res.error.message || ''));
+          return;
+        }
+        recomendaciones = res.data || [];
+        recomendacionesLoaded = true;
+        renderRecomendaciones();
+      });
+  }
+
+  function renderRecomendacionesStats() {
+    var total = recomendaciones.length;
+    var pendientes = recomendaciones.filter(function (r) { return r.estado === 'pendiente'; }).length;
+    var verificados = recomendaciones.filter(function (r) { return r.estado === 'verificado'; }).length;
+    
+    var stats = [
+      { n: total, l: 'Total' },
+      { n: pendientes, l: 'Pendientes' },
+      { n: verificados, l: 'Verificados' }
+    ];
+    $('statsRec').innerHTML = stats.map(function (s) {
+      return '<div class="ad-stat"><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>';
+    }).join('');
+    var br = $('badgeRec'); if (br) br.textContent = total;
+  }
+
+  function recomendacionesFiltered() {
+    var q = ($('qRec').value || '').trim().toLowerCase();
+    var estado = $('fEstadoRec').value;
+    return recomendaciones.filter(function (r) {
+      if (estado && r.estado !== estado) return false;
+      if (q) {
+        var hay = [r.referente_email, r.recomendado_email_1, r.recomendado_email_2, r.recomendado_email_3].join(' ').toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function recomendacionRowHtml(r) {
+    var estadoClass = r.estado === 'verificado' ? 'full' : 'free';
+    var grid = '';
+    grid += cell('Referente (30%)', r.referente_email, 'mail');
+    grid += cell('Recomendado 1 (15%)', r.recomendado_email_1, 'mail');
+    grid += cell('Recomendado 2 (15%)', r.recomendado_email_2, 'mail');
+    grid += cell('Recomendado 3 (15%)', r.recomendado_email_3, 'mail');
+
+    var checkBtn = '<button class="btn-check" data-id="' + esc(r.id) + '" style="margin-right:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);padding:6px 12px;border-radius:8px;color:#fff;cursor:pointer;font-weight:600;">Comprobar cuentas</button>';
+    var applyBtn = r.estado === 'verificado'
+      ? '<span class="granted-pill" style="display:inline-flex;align-items:center;gap:6px;color:#2ecc71;font-weight:700;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="16" height="16" style="margin-right:2px"><path d="M20 6 9 17l-5-5" /></svg>Descuentos aplicados</span>'
+      : '<button class="btn-apply" data-id="' + esc(r.id) + '" style="background:#f4501e;border:none;padding:6px 12px;border-radius:8px;color:#fff;cursor:pointer;font-weight:700;">Aplicar descuentos (30% + 15%)</button>';
+
+    var resultDiv = '<div class="rec-check-result" id="check-res-' + esc(r.id) + '" style="margin-top:10px;font-size:12.5px;color:var(--text-sec);display:none;"></div>';
+
+    return '<div class="card-row" data-rid="' + esc(r.id) + '" style="border: 1px solid rgba(244,80,30,0.15);padding:18px;border-radius:12px;background:rgba(255,255,255,0.01);margin-bottom:14px;">' +
+      '<div class="r-head" style="display:flex;justify-content:space-between;margin-bottom:12px;">' +
+        '<div class="r-id">' +
+          '<span class="plan ' + estadoClass + '" style="text-transform:uppercase;font-size:10px;font-weight:800;letter-spacing:0.06em;padding:3px 8px;border-radius:4px;margin-right:8px;">' + esc(r.estado) + '</span>' +
+          '<span class="r-name" style="font-weight:700;color:#fff;">Solicitud de referidos</span>' +
+        '</div>' +
+        '<span class="r-when" style="font-size:12px;color:var(--text-ter);">' + fmtDate(r.created_at) + '</span>' +
+      '</div>' +
+      '<div class="r-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:12px;margin-bottom:12px;">' + grid + '</div>' +
+      resultDiv +
+      '<div class="r-foot" style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.04);padding-top:12px;display:flex;align-items:center;">' +
+        checkBtn + applyBtn +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderRecomendaciones() {
+    renderRecomendacionesStats();
+    var data = recomendacionesFiltered();
+    var listEl = $('listRec');
+    $('countRec').textContent = data.length + ' de ' + recomendaciones.length + ' recomendaciones';
+    if (!data.length) {
+      listEl.innerHTML = '<div class="ad-empty">No hay recomendaciones que coincidan con el filtro.</div>';
+      return;
+    }
+    listEl.innerHTML = data.map(recomendacionRowHtml).join('');
+
+    // Event listener para comprobar cuentas
+    listEl.querySelectorAll('.btn-check').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-id');
+        var r = recomendaciones.filter(function (x) { return x.id === id; })[0];
+        if (!r) return;
+
+        btn.disabled = true;
+        var prevText = btn.textContent;
+        btn.textContent = 'Comprobando...';
+
+        // Comprobación de existencia de cuentas cruzando con la base de datos de profiles
+        var checkLocal = accounts.length > 0;
+        var promise = checkLocal 
+          ? Promise.resolve(accounts)
+          : api.client.from('profiles').select('email');
+
+        promise.then(function(res) {
+          btn.disabled = false;
+          btn.textContent = prevText;
+          
+          var profilesList = checkLocal ? res : (res.data || []);
+          
+          function existsInList(email) {
+            var e = email.toLowerCase().trim();
+            return profilesList.some(function (p) {
+              return p.email && p.email.toLowerCase().trim() === e;
+            });
+          }
+
+          var refOk = existsInList(r.referente_email);
+          var am1Ok = existsInList(r.recomendado_email_1);
+          var am2Ok = existsInList(r.recomendado_email_2);
+          var am3Ok = existsInList(r.recomendado_email_3);
+
+          var creadas = (refOk ? 1 : 0) + (am1Ok ? 1 : 0) + (am2Ok ? 1 : 0) + (am3Ok ? 1 : 0);
+          var resEl = $('check-res-' + r.id);
+          resEl.style.display = 'block';
+          
+          var html = '<div style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);margin-bottom:8px;">';
+          html += '<strong>Resultado de validación de cuentas (' + creadas + '/4 creadas):</strong><br/>';
+          html += '<ul style="margin:6px 0 0 0;padding-left:20px;line-height:1.4;">';
+          html += '<li style="color:' + (refOk ? '#2ecc71' : '#e74c3c') + '">Referente (' + r.referente_email + '): ' + (refOk ? '✓ Cuenta Creada' : '✗ Sin registrar') + '</li>';
+          html += '<li style="color:' + (am1Ok ? '#2ecc71' : '#e74c3c') + '">Recomendado 1 (' + r.recomendado_email_1 + '): ' + (am1Ok ? '✓ Cuenta Creada' : '✗ Sin registrar') + '</li>';
+          html += '<li style="color:' + (am2Ok ? '#2ecc71' : '#e74c3c') + '">Recomendado 2 (' + r.recomendado_email_2 + '): ' + (am2Ok ? '✓ Cuenta Creada' : '✗ Sin registrar') + '</li>';
+          html += '<li style="color:' + (am3Ok ? '#2ecc71' : '#e74c3c') + '">Recomendado 3 (' + r.recomendado_email_3 + '): ' + (am3Ok ? '✓ Cuenta Creada' : '✗ Sin registrar') + '</li>';
+          html += '</ul>';
+          
+          if (creadas === 4) {
+            html += '<p style="color:#2ecc71;font-weight:700;margin:8px 0 0 0;">✓ ¡Todas las cuentas están registradas! Los descuentos del 30% y 15% son aplicables.</p>';
+          } else {
+            html += '<p style="color:#f39c12;font-weight:600;margin:8px 0 0 0;">⚠ Faltan cuentas por registrarse. Se pueden aplicar los descuentos igualmente si el staff lo aprueba.</p>';
+          }
+          html += '</div>';
+          resEl.innerHTML = html;
+        });
+      });
+    });
+
+    // Event listener para aplicar descuentos
+    listEl.querySelectorAll('.btn-apply').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-id');
+        var r = recomendaciones.filter(function (x) { return x.id === id; })[0];
+        if (!r) return;
+
+        if (!window.confirm('¿Deseas validar esta recomendación y aplicar un 30% de descuento al referente y 15% a sus recomendados en el sistema?\n\nEsto marcará la solicitud como verificada.')) return;
+
+        btn.disabled = true;
+        var prevText = btn.textContent;
+        btn.textContent = 'Aplicando...';
+        clearMsg($('recMsg'));
+
+        // 1. Actualizar el estado en public.recomendaciones a 'verificado'
+        api.client.from('recomendaciones')
+          .update({ estado: 'verificado' })
+          .eq('id', id)
+          .then(function (res1) {
+            if (res1.error) {
+              btn.disabled = false;
+              btn.textContent = prevText;
+              msg($('recMsg'), 'err', 'Error al actualizar estado de la recomendación: ' + (res1.error.message || ''));
+              return;
+            }
+
+            // 2. Aplicar descuento en profiles para los emails involucrados.
+            var emails = [r.referente_email, r.recomendado_email_1, r.recomendado_email_2, r.recomendado_email_3];
+            
+            api.client.from('profiles')
+              .update({ descuento_referido_aplicado: true })
+              .in('email', emails)
+              .then(function (res2) {
+                btn.disabled = false;
+                btn.textContent = prevText;
+                
+                if (res2.error) {
+                  msg($('recMsg'), 'err', 'Estado actualizado a Verificado, pero no se pudo marcar descuento_referido_aplicado en los perfiles: ' + res2.error.message);
+                } else {
+                  msg($('recMsg'), 'ok', '✓ ¡Recomendación verificada con éxito! Se aplicó el descuento del 30% (referente) y 15% (recomendados) en sus perfiles.');
+                }
+                
+                // Recargar para refrescar la vista
+                loadRecomendaciones();
+              });
+          });
+      });
+    });
+  }
+
+  ['qRec', 'fEstadoRec'].forEach(function (id) {
+    var el = $(id);
+    if (el) el.addEventListener('input', renderRecomendaciones);
+    if (el) el.addEventListener('change', renderRecomendaciones);
+  });
+  var rbr = $('refreshRecBtn');
+  if (rbr) rbr.addEventListener('click', loadRecomendaciones);
+
   // ---------- TABS ----------
   function switchView(view) {
     var sol = view === 'solicitudes';
+    var cue = view === 'cuentas';
+    var rec = view === 'recomendaciones';
+
     $('tabSol').classList.toggle('active', sol);
-    $('tabCue').classList.toggle('active', !sol);
+    $('tabCue').classList.toggle('active', cue);
+    $('tabRec').classList.toggle('active', rec);
+
     $('view-solicitudes').style.display = sol ? 'block' : 'none';
-    $('view-cuentas').style.display = sol ? 'none' : 'block';
-    if (!sol && !cuentasLoaded) loadCuentas();
+    $('view-cuentas').style.display = cue ? 'block' : 'none';
+    $('view-recomendaciones').style.display = rec ? 'block' : 'none';
+
+    if (cue && !cuentasLoaded) loadCuentas();
+    if (rec) {
+      if (!cuentasLoaded) loadCuentas();
+      loadRecomendaciones();
+    }
   }
   var ts = $('tabSol'); if (ts) ts.addEventListener('click', function () { switchView('solicitudes'); });
   var tc = $('tabCue'); if (tc) tc.addEventListener('click', function () { switchView('cuentas'); });
+  var tr = $('tabRec'); if (tr) tr.addEventListener('click', function () { switchView('recomendaciones'); });
 })();
 </script>
 
