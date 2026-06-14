@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
 <title>Mecha — Demo real e interactiva</title>
 <meta name="description" content="Entra a una demo real e interactiva de Mecha. Es tu cuenta gratis: crea y mueve citas, explora las fichas de cliente, el asistente de IA y los informes con datos de verdad." />
 <meta name="robots" content="noindex, follow" />
@@ -13,8 +13,8 @@
 <link rel="stylesheet" href="assets/mecha.css" />
 <link rel="stylesheet" href="assets/mecha-sections.css" />
 <style>
-  html,body{height:100%}
-  body{display:flex;flex-direction:column;overflow:hidden}
+  html,body{height:100dvh;margin:0;padding:0;width:100%;position:fixed;inset:0;overflow:hidden}
+  body{display:flex;flex-direction:column}
 
   /* ---------- DEMO BAR ---------- */
   .dm-bar{position:relative;z-index:5;display:flex;align-items:center;gap:16px;padding:11px clamp(14px,3vw,28px);
@@ -203,14 +203,18 @@
     }
   }
   @media(max-width:480px){
-    .dm-tour{padding:16px 16px 12px;bottom:8px;left:8px;right:8px}
+    .dm-tour{padding:10px 12px;bottom:8px;left:8px;right:8px}
     .dm-tour.minimized {
       bottom: 68px !important;
-      padding: 8px 12px !important;
+      padding: 6px 10px !important;
     }
-    .dm-tour h4{font-size:17px;margin-bottom:5px}
-    .dm-tour p{font-size:12.5px;line-height:1.5;min-height:auto;margin-bottom:8px}
-    .dm-dots{margin:8px 0 10px}
+    .dm-tour-top{margin-bottom:6px}
+    .dm-tour h4{font-size:15px;margin-bottom:3px}
+    .dm-tour h4 .ic{width:24px;height:24px}
+    .dm-tour h4 .ic svg{width:14px;height:14px}
+    .dm-tour p{font-size:12px;line-height:1.4;min-height:auto;margin-bottom:6px}
+    .dm-dots{margin:6px 0 8px}
+    .dm-tour-acts .btn, .dm-tour-acts .ghost{padding:8px 10px;font-size:12px;height:auto;border-radius:8px}
   }
 
   /* ---------- SHARE MODAL (Drive-like) ---------- */
@@ -368,6 +372,129 @@
       justify-content: center;
     }
   }
+
+  /* --- Transición Premium del Tour --- */
+  .dm-tour-body {
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .dm-tour-body.dm-step-changing {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  /* --- Barra de carga superior --- */
+  .tour-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, #f4501e, #ff7a2e);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.15s ease, width 0.35s cubic-bezier(0.1, 0.8, 0.2, 1);
+    box-shadow: 0 1px 8px rgba(244, 80, 30, 0.5);
+  }
+  .tour-loader.active {
+    opacity: 1;
+  }
+
+  /* --- Formulario de Recomendaciones --- */
+  .share-modal {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .share-rec-form {
+    margin-top: 16px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    padding-top: 14px;
+    text-align: left;
+  }
+  .share-rec-form h5 {
+    font-family: var(--display);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .share-rec-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  @media(min-width: 480px) {
+    .share-rec-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .share-rec-full {
+      grid-column: span 2;
+    }
+  }
+  .share-rec-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .share-rec-field label {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-ter);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .share-rec-field input {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 11px;
+    font-size: 12.5px;
+    color: #fff;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .share-rec-field input:focus {
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .share-rec-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-sec);
+    margin-bottom: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .share-rec-check input {
+    width: 13px;
+    height: 13px;
+    accent-color: #f4501e;
+    cursor: pointer;
+  }
+  .share-rec-msg {
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: none;
+  }
+  .share-rec-msg.success {
+    display: block;
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    color: #2ecc71;
+  }
+  .share-rec-msg.error {
+    display: block;
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+  }
 </style>
 </head>
 <body data-theme="dark">
@@ -392,6 +519,7 @@
 
 <!-- ============ DEMO BAR ============ -->
 <header class="dm-bar">
+  <div id="tourLoader" class="tour-loader"></div>
   <a class="ver-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg><span>Volver</span></a>
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha</span></div>
   <span class="dm-pill"><span class="d"></span>Vista previa · interactiva</span>
@@ -466,7 +594,37 @@
       <div class="share-bonus-card">
         <div class="share-bonus-badge">🎁 REGALO DE RECOMENDACIÓN</div>
         <h4>Consigue un 30% de descuento vitalicio</h4>
-        <p>Si compartes esta demo con <b>5 personas</b> que tengan interés en digitalizar su salón (y se registran o reservan una demo), te aplicamos un <b>30% de descuento</b> en tu suscripción de Mecha. ¡Así de fácil!</p>
+        <p>Invita a <b>3 salones interesados</b> a probar Mecha. Te daremos un <b>30% de descuento vitalicio</b> en tu suscripción en cuanto se creen una cuenta gratis. ¡Y tus recomendados se llevarán un <b>15% de descuento</b> por venir de tu parte! (pueden subir al 30% si a su vez recomiendan a 3 más).</p>
+        
+        <form class="share-rec-form" id="recForm" onsubmit="event.preventDefault(); submitRecommendation();">
+          <h5>Solicitar mis descuentos de recomendación</h5>
+          <div class="share-rec-msg" id="recMsg"></div>
+          <div class="share-rec-grid">
+            <div class="share-rec-field share-rec-full">
+              <label for="recReferente">Tu correo electrónico *</label>
+              <input type="email" id="recReferente" required placeholder="tuemail@salondebelleza.com" />
+            </div>
+            <div class="share-rec-field">
+              <label for="recAmigo1">Correo de tu recomendado 1 *</label>
+              <input type="email" id="recAmigo1" required placeholder="amigo1@salondebelleza.com" />
+            </div>
+            <div class="share-rec-field">
+              <label for="recAmigo2">Correo de tu recomendado 2 *</label>
+              <input type="email" id="recAmigo2" required placeholder="amigo2@salondebelleza.com" />
+            </div>
+            <div class="share-rec-field">
+              <label for="recAmigo3">Correo de tu recomendado 3 *</label>
+              <input type="email" id="recAmigo3" required placeholder="amigo3@salondebelleza.com" />
+            </div>
+          </div>
+          <label class="share-rec-check">
+            <input type="checkbox" id="recCheck" required />
+            <span>Ya les he enviado el enlace y tienen interés en probar la demo</span>
+          </label>
+          <button class="btn btn-primary btn-block btn-lg" type="submit" id="recSubmitBtn" style="font-weight:700;">
+            Solicitar 30% referente y 15% recomendados
+          </button>
+        </form>
       </div>
     </div>
   </div>
@@ -598,6 +756,62 @@
       }
     });
   }
+
+  /* ---------- enviar recomendación y registrar referidos ---------- */
+  window.submitRecommendation = function() {
+    var referente = $('#recReferente').value.trim();
+    var amigo1 = $('#recAmigo1').value.trim();
+    var amigo2 = $('#recAmigo2').value.trim();
+    var amigo3 = $('#recAmigo3').value.trim();
+    var check = $('#recCheck').checked;
+    var msgEl = $('#recMsg');
+    var btn = $('#recSubmitBtn');
+
+    if (!referente || !amigo1 || !amigo2 || !amigo3) {
+      msgEl.className = 'share-rec-msg error';
+      msgEl.textContent = 'Por favor, rellena todos los campos de correo electrónico.';
+      msgEl.style.display = 'block';
+      return;
+    }
+    if (!check) {
+      msgEl.className = 'share-rec-msg error';
+      msgEl.textContent = 'Debes confirmar que les has compartido el enlace.';
+      msgEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    var btnText = btn.textContent;
+    btn.textContent = 'Enviando solicitud...';
+    msgEl.style.display = 'none';
+
+    api.client.from('recomendaciones').insert([{
+      referente_email: referente.toLowerCase(),
+      recomendado_email_1: amigo1.toLowerCase(),
+      recomendado_email_2: amigo2.toLowerCase(),
+      recomendado_email_3: amigo3.toLowerCase(),
+      estado: 'pendiente'
+    }]).then(function(res) {
+      btn.disabled = false;
+      btn.textContent = btnText;
+      if (res.error) {
+        msgEl.className = 'share-rec-msg error';
+        msgEl.textContent = 'Error al enviar: ' + (res.error.message || 'Inténtalo de nuevo.');
+        msgEl.style.display = 'block';
+      } else {
+        msgEl.className = 'share-rec-msg success';
+        msgEl.textContent = '¡Recomendación registrada! Avisa a tus amigos para que se creen su cuenta gratis en Mecha. Una vez creadas, el staff aplicará los descuentos.';
+        msgEl.style.display = 'block';
+        $('#recForm').reset();
+      }
+    }).catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = btnText;
+      msgEl.className = 'share-rec-msg error';
+      msgEl.textContent = 'Error de conexión: ' + (err.message || 'Inténtalo de nuevo.');
+      msgEl.style.display = 'block';
+    });
+  };
 
   /* ---------- carga del software real e interactivo ---------- */
   function mountApp(){
@@ -786,34 +1000,70 @@
   // Recuerda el ultimo panel abierto para no reabrir/reiniciar la misma ventana
   // entre pasos consecutivos (p. ej. el recorrido por la ventana de nueva cita).
   var lastAction=null;
+  var loader = $('#tourLoader');
+  var tourBody = $('#tourBody');
+
   function renderStep(){
     var s=STEPS[ti];
-    tourStep.textContent='Paso '+(ti+1)+' de '+STEPS.length;
-    tourIc.innerHTML=ICONS[s.ic];
-    tourTitle.textContent=s.t;
-    tourText.textContent=s.d;
-    Array.prototype.forEach.call(tourDots.children,function(d,i){ d.classList.toggle('on', i===ti); });
-    tourPrev.disabled = ti===0;
-    tourNext.textContent = ti===STEPS.length-1 ? 'Entendido' : 'Siguiente';
 
-    // Coloca la guia en la esquina del paso para no tapar lo que senala.
-    tour.classList.remove('pos-bl','pos-br','pos-tl','pos-tr');
-    if(s.guidePos && s.guidePos!=='bc') tour.classList.add('pos-'+s.guidePos);
+    // 1. Iniciar barra de carga premium
+    if (loader) {
+      loader.classList.add('active');
+      loader.style.width = '0%';
+      // Forzar reflow para reiniciar la animación
+      loader.offsetWidth;
+      loader.style.width = '85%';
+    }
 
-    setPointer();
-    navFrame(s.route);
-    var act=s.action||'cerrar';
-    if(stepTimer) clearTimeout(stepTimer);
-    stepTimer=setTimeout(function(){
-      // El modal de nueva cita ('nueva-cita' + 'cita-*') es el mismo panel: NO lo
-      // cerramos entre esos pasos (perderia la seleccion); solo mandamos 'cerrar'
-      // al cambiar de grupo de panel. Siempre mandamos la accion concreta para que
-      // la app mueva el foco/seleccion del paso actual.
-      var g=groupOf(act), lg=(lastAction==null)?null:groupOf(lastAction);
-      if(lg!==null && g!==lg){ demoAction('cerrar'); }
-      if(act!=='cerrar') demoAction(act);
-      lastAction=act;
-    }, 340);
+    // 2. Transición del cartel de información (fade-out)
+    if (tourBody) {
+      tourBody.classList.add('dm-step-changing');
+    }
+
+    // Esperar 150ms a que termine el fade-out
+    setTimeout(function() {
+      tourStep.textContent='Paso '+(ti+1)+' de '+STEPS.length;
+      tourIc.innerHTML=ICONS[s.ic];
+      tourTitle.textContent=s.t;
+      tourText.textContent=s.d;
+      Array.prototype.forEach.call(tourDots.children,function(d,i){ d.classList.toggle('on', i===ti); });
+      tourPrev.disabled = ti===0;
+      tourNext.textContent = ti===STEPS.length-1 ? 'Entendido' : 'Siguiente';
+
+      // Coloca la guia en la esquina del paso para no tapar lo que senala.
+      tour.classList.remove('pos-bl','pos-br','pos-tl','pos-tr');
+      if(s.guidePos && s.guidePos!=='bc') tour.classList.add('pos-'+s.guidePos);
+
+      setPointer();
+      navFrame(s.route);
+
+      // Fade-in: removemos la clase
+      if (tourBody) {
+        tourBody.classList.remove('dm-step-changing');
+      }
+
+      var act=s.action||'cerrar';
+      if(stepTimer) clearTimeout(stepTimer);
+      stepTimer=setTimeout(function(){
+        // El modal de nueva cita ('nueva-cita' + 'cita-*') es el mismo panel: NO lo
+        // cerramos entre esos pasos (perderia la seleccion); solo mandamos 'cerrar'
+        // al cambiar de grupo de panel. Siempre mandamos la accion concreta para que
+        // la app mueva el foco/seleccion del paso actual.
+        var g=groupOf(act), lg=(lastAction==null)?null:groupOf(lastAction);
+        if(lg!==null && g!==lg){ demoAction('cerrar'); }
+        if(act!=='cerrar') demoAction(act);
+        lastAction=act;
+
+        // Completar la carga de la barra
+        if (loader) {
+          loader.style.width = '100%';
+          setTimeout(function() {
+            loader.classList.remove('active');
+            setTimeout(function() { loader.style.width = '0%'; }, 200);
+          }, 150);
+        }
+      }, 340);
+    }, 150);
   }
   function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; lastAction=null; renderStep(); tour.classList.add('show'); }
   function closeTour(){ tour.classList.remove('show','minimized'); if(tourToggle) tourToggle.textContent='Minimizar'; setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); lastAction='cerrar'; }
