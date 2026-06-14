@@ -1194,8 +1194,8 @@
         var staff=chk[0]===true, profile=chk[1];
         revealShare(profile, staff);
         // Datos completos obligatorios para CUALQUIER cuenta antes de la demo
-        // (negocio + telefono + codigo postal), equipo incluido.
-        if(api.profileComplete && !api.profileComplete(profile)){
+        // (negocio + telefono + codigo postal), excepto para el equipo (staff).
+        if(!staff && api.profileComplete && !api.profileComplete(profile)){
           location.href='acceso.html?next=demo';
           return;
         }
