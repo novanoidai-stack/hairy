@@ -214,7 +214,7 @@
       if (!uid) return null;
       var res = await client
         .from('profiles')
-        .select('id, plan, negocio_id, nombre, nombre_negocio, phone, codigo_postal')
+        .select('id, plan, negocio_id, nombre, nombre_negocio, phone, codigo_postal, email, codigo_referido, descuento_referido_aplicado')
         .eq('id', uid)
         .maybeSingle();
       if (res.error) return null;
