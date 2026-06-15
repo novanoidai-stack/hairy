@@ -63,6 +63,8 @@ const ICON_MAP: Record<string, string> = {
   refresh: 'refresh-outline',
   star: 'star-outline',
   image: 'image-outline',
+  gift: 'gift-outline',
+  users: 'people-outline',
 };
 
 export function SettingsIcon({ name, size = 16, color }: { name: string; size?: number; color?: string }) {

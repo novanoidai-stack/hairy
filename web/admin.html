@@ -294,6 +294,8 @@
       lo gestiona el equipo de pagos.
     </p>
 
+    <div id="fraudRef" style="margin:-2px 0 16px;"></div>
+
     <div class="ad-tools">
       <div class="ad-search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
@@ -767,10 +769,34 @@
     return '-' + (n % 1 === 0 ? n.toFixed(0) : n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')) + '%';
   }
 
+  // Panel anti-fraude: racimos de cuentas que comparten origen (IP/dispositivo).
+  function loadFraudSignals() {
+    var box = $('fraudRef');
+    if (!box) return;
+    api.client.rpc('staff_signup_clusters').then(function (res) {
+      if (res.error || !res.data || !res.data.length) { box.innerHTML = ''; return; }
+      var items = res.data.map(function (r) {
+        var tipo = r.tipo === 'ip' ? 'misma IP' : 'mismo dispositivo';
+        return '<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-top:1px solid rgba(255,255,255,0.06);">' +
+          '<span style="color:#e0b341;font-weight:800;flex-shrink:0;">' + r.cuentas + '</span>' +
+          '<span style="font-size:12px;color:var(--text-sec);line-height:1.4;">cuentas con <strong style="color:#fff;">' + tipo + '</strong>: ' + esc(r.negocios) + '</span>' +
+        '</div>';
+      }).join('');
+      box.innerHTML =
+        '<div style="border:1px solid rgba(224,179,65,0.35);background:rgba(224,179,65,0.06);border-radius:12px;padding:13px 15px;">' +
+          '<div style="display:flex;align-items:center;gap:8px;font-weight:700;color:#e0b341;font-size:13px;margin-bottom:2px;">' +
+            '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+            'Posible multicuenta · revisa antes de aplicar descuentos' +
+          '</div>' + items +
+        '</div>';
+    }).catch(function () { box.innerHTML = ''; });
+  }
+
   function loadReferidos() {
     var listEl = $('listRef');
     listEl.innerHTML = '<div class="ad-loading">Cargando referidos...</div>';
     clearMsg($('refMsg'));
+    loadFraudSignals();
     // RLS is_staff() deja al equipo leer todos los profiles. Medimos el tamano de
     // cada red en cliente recorriendo el arbol por referido_por.
     api.client.from('profiles')

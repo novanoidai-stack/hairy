@@ -403,6 +403,21 @@
           }
         } catch(e) { console.error('Error al asociar referido:', e); }
 
+        // --- SEÑAL DE ORIGEN DEL ALTA (anti-multicuenta) ---
+        // Registra (una sola vez, en el servidor) la IP/dispositivo desde el que
+        // se crea la cuenta. Sirve para detectar racimos de cuentas creadas desde
+        // el mismo sitio para farmear el descuento de referidos.
+        try {
+          var fp = '';
+          try {
+            var raw = [navigator.userAgent, (screen.width + 'x' + screen.height), screen.colorDepth,
+                       new Date().getTimezoneOffset(), navigator.language, navigator.hardwareConcurrency || ''].join('|');
+            var h = 0; for (var i = 0; i < raw.length; i++) { h = (h * 31 + raw.charCodeAt(i)) | 0; }
+            fp = 'fp_' + (h >>> 0).toString(36);
+          } catch (e) {}
+          api.client.rpc('record_signup_signal', { p_fingerprint: fp || null }).catch(function () {});
+        } catch (e) {}
+
         // Antes de la DEMO o del SOFTWARE pedimos datos a CUALQUIER cuenta
         // (negocio + telefono + codigo postal), incluido el equipo.
         if (wantsDemo()) {
