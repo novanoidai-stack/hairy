@@ -223,6 +223,25 @@
     <button class="ad-tab active" id="tabSol" data-view="solicitudes">Solicitudes<span class="badge" id="badgeSol">0</span></button>
     <button class="ad-tab" id="tabCue" data-view="cuentas">Cuentas<span class="badge" id="badgeCue">0</span></button>
     <button class="ad-tab" id="tabRef" data-view="referidos">Referidos<span class="badge" id="badgeRef">0</span></button>
+    <button class="ad-tab" id="tabRes" data-view="resenas">Reseñas Mecha<span class="badge" id="badgeRes">0</span></button>
+  </div>
+
+  <!-- VISTA: RESEÑAS MECHA -->
+  <div id="view-resenas" style="display:none">
+    <div class="ad-stats" id="statsRes"></div>
+    <div class="ad-tools">
+      <div class="ad-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+        <input type="search" id="qRes" placeholder="Buscar en comentario o autor..." />
+      </div>
+      <button class="ad-refresh" id="refreshResBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
+        Actualizar
+      </button>
+    </div>
+    <div class="ad-count" id="countRes">Cargando...</div>
+    <div class="ad-list" id="listRes"></div>
+    <div class="ad-msg" id="resMsg" style="margin-top:16px"></div>
   </div>
 
   <!-- VISTA: SOLICITUDES -->
@@ -318,7 +337,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script src="assets/auth.js"></script>
 <script>
 (function () {
@@ -459,11 +478,11 @@
   }
 
   function cell(k, v, isLink) {
-    if (!v) return '<div class="r-cell"><div class="k">' + k + '</div><div class="v empty">—</div></div>';
+    if (!v) return '<div class="r-cell"><div class="k">' + esc(k) + '</div><div class="v empty">—</div></div>';
     var val = isLink === 'mail' ? '<a href="mailto:' + esc(v) + '">' + esc(v) + '</a>'
       : isLink === 'tel' ? '<a href="tel:' + esc(v) + '">' + esc(v) + '</a>'
       : esc(v);
-    return '<div class="r-cell"><div class="k">' + k + '</div><div class="v">' + val + '</div></div>';
+    return '<div class="r-cell"><div class="k">' + esc(k) + '</div><div class="v">' + val + '</div></div>';
   }
 
   function rowHtml(r) {
@@ -972,26 +991,126 @@
   var rbr = $('refreshRefBtn');
   if (rbr) rbr.addEventListener('click', loadReferidos);
 
+  // ---------- RESEÑAS MECHA ----------
+  var resenas = [];
+  var resenasLoaded = false;
+
+  function loadResenas() {
+    $('listRes').innerHTML = '<div class="ad-empty">Cargando reseñas de Mecha...</div>';
+    $('countRes').textContent = 'Cargando...';
+    
+    // Obtenemos aquellas que tengan valoración hacia el sistema
+    api.client.from('resenas')
+      .select('id, negocio_id, mecha_puntuacion, mecha_comentario, autor_nombre, created_at, negocio_portal(nombre)')
+      .not('mecha_puntuacion', 'is', null)
+      .order('created_at', { ascending: false })
+      .then(function (res) {
+        if (res.error) {
+          $('listRes').innerHTML = '';
+          msg($('resMsg'), 'err', 'No se pudieron cargar las reseñas: ' + (res.error.message || ''));
+          return;
+        }
+        resenas = res.data || [];
+        resenasLoaded = true;
+        renderResenas();
+      });
+  }
+
+  function renderResenasStats() {
+    var total = resenas.length;
+    var sum = 0;
+    var max5 = 0;
+    resenas.forEach(function(r) { 
+      sum += r.mecha_puntuacion; 
+      if (r.mecha_puntuacion === 5) max5++;
+    });
+    var avg = total > 0 ? (sum / total).toFixed(1) : '0';
+
+    var stats = [
+      { n: avg, l: 'Nota Media' },
+      { n: total, l: 'Total Reseñas' },
+      { n: max5, l: 'Excelentes (5★)' }
+    ];
+    $('statsRes').innerHTML = stats.map(function (s) {
+      return '<div class="ad-stat"><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>';
+    }).join('');
+    var br = $('badgeRes'); if (br) br.textContent = total;
+  }
+
+  function resenasFiltered() {
+    var q = ($('qRes').value || '').trim().toLowerCase();
+    return resenas.filter(function (r) {
+      if (q) {
+        var hay = [r.mecha_comentario, r.autor_nombre, r.negocio_portal?.nombre].join(' ').toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function resenaRowHtml(r) {
+    var salon = r.negocio_portal ? r.negocio_portal.nombre : 'Salón';
+    var stars = '';
+    for(var i=1; i<=5; i++) {
+      stars += i <= r.mecha_puntuacion ? '★' : '☆';
+    }
+    
+    var grid = '';
+    grid += cell('Salón', salon);
+    grid += cell('Autor', r.autor_nombre || 'Anónimo');
+    grid += cell('Valoración', '<span style="color:#f59e0b;font-size:16px">' + stars + '</span>');
+    grid += cell('Comentario', r.mecha_comentario || '<em>Sin comentario</em>');
+
+    return '<div class="card-row">' +
+      '<div class="r-head">' +
+        '<div class="r-id"><span class="r-name">Reseña sobre Mecha</span></div>' +
+        '<span class="r-when">' + fmtDate(r.created_at) + '</span>' +
+      '</div>' +
+      '<div class="r-grid">' + grid + '</div>' +
+    '</div>';
+  }
+
+  function renderResenas() {
+    renderResenasStats();
+    var data = resenasFiltered();
+    var listEl = $('listRes');
+    $('countRes').textContent = data.length + ' reseñas en total';
+    if (!data.length) {
+      listEl.innerHTML = '<div class="ad-empty">No hay reseñas de Mecha que coincidan.</div>';
+      return;
+    }
+    listEl.innerHTML = data.map(resenaRowHtml).join('');
+  }
+
+  var qr = $('qRes'); if (qr) qr.addEventListener('input', renderResenas);
+  var rbr2 = $('refreshResBtn'); if (rbr2) rbr2.addEventListener('click', loadResenas);
+
+
   // ---------- TABS ----------
   function switchView(view) {
     var sol = view === 'solicitudes';
     var cue = view === 'cuentas';
     var ref = view === 'referidos';
+    var res = view === 'resenas';
 
     $('tabSol').classList.toggle('active', sol);
     $('tabCue').classList.toggle('active', cue);
     $('tabRef').classList.toggle('active', ref);
+    $('tabRes').classList.toggle('active', res);
 
     $('view-solicitudes').style.display = sol ? 'block' : 'none';
     $('view-cuentas').style.display = cue ? 'block' : 'none';
     $('view-referidos').style.display = ref ? 'block' : 'none';
+    $('view-resenas').style.display = res ? 'block' : 'none';
 
     if (cue && !cuentasLoaded) loadCuentas();
-    if (ref) loadReferidos();
+    if (ref && !referidosLoaded) loadReferidos();
+    if (res && !resenasLoaded) loadResenas();
   }
   var ts = $('tabSol'); if (ts) ts.addEventListener('click', function () { switchView('solicitudes'); });
   var tc = $('tabCue'); if (tc) tc.addEventListener('click', function () { switchView('cuentas'); });
   var tr = $('tabRef'); if (tr) tr.addEventListener('click', function () { switchView('referidos'); });
+  var tres = $('tabRes'); if (tres) tres.addEventListener('click', function () { switchView('resenas'); });
 })();
 </script>
 

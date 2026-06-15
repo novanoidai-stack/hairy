@@ -11,7 +11,7 @@ const T = {
   star: '#f59e0b', success: '#0f9d6b', successSoft: 'rgba(15,157,107,0.12)', danger: '#e23b34',
 };
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
-const SERIF = '"Instrument Serif", Georgia, serif';
+const SERIF = '"Inter", system-ui, sans-serif';
 
 const ANIM = `
   @keyframes rsUp { from { opacity:0; transform: translateY(14px) } to { opacity:1; transform: translateY(0) } }
@@ -63,6 +63,11 @@ export default function ResenaWeb() {
   const [puntuacion, setPuntuacion] = useState(0);
   const [hover, setHover] = useState(0);
   const [comentario, setComentario] = useState('');
+  
+  const [mechaPuntuacion, setMechaPuntuacion] = useState(0);
+  const [mechaHover, setMechaHover] = useState(0);
+  const [mechaComentario, setMechaComentario] = useState('');
+
   const [nombre, setNombre] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -80,19 +85,28 @@ export default function ResenaWeb() {
 
   const enviar = useCallback(async () => {
     setError('');
-    if (puntuacion < 1) { setError('Elige una puntuacion.'); return; }
+    if (puntuacion < 1) { setError('Elige una puntuación para el salón.'); return; }
+    if (mechaPuntuacion < 1) { setError('Por favor, valora también el sistema de reservas.'); return; }
     setEnviando(true);
     try {
-      await crearResenaPublica({ slug, puntuacion, comentario: comentario.trim() || undefined, autorNombre: nombre.trim() || undefined });
+      await crearResenaPublica({ 
+        slug, 
+        puntuacion, 
+        comentario: comentario.trim() || undefined, 
+        autorNombre: nombre.trim() || undefined,
+        mechaPuntuacion: mechaPuntuacion || undefined,
+        mechaComentario: mechaComentario.trim() || undefined,
+      });
       setEnviado(true);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'No se pudo enviar la valoracion.');
+      setError(e instanceof Error ? e.message : 'No se pudo enviar la valoración.');
     } finally {
       setEnviando(false);
     }
-  }, [slug, puntuacion, comentario, nombre]);
+  }, [slug, puntuacion, comentario, nombre, mechaPuntuacion, mechaComentario]);
 
   const shown = hover || puntuacion;
+  const mechaShown = mechaHover || mechaPuntuacion;
   const inputBase: React.CSSProperties = {
     width: '100%', padding: '12px 13px', borderRadius: 12, border: `1.5px solid ${T.border}`,
     fontSize: 14.5, color: T.text, background: T.card, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
@@ -102,7 +116,7 @@ export default function ResenaWeb() {
     <div style={{ minHeight: '100vh', background: T.bg, padding: '0 16px 48px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
       <div aria-hidden style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 520, height: 320, background: 'radial-gradient(closest-side, rgba(244,80,30,0.10), transparent)', pointerEvents: 'none' }} />
-      <div style={{ maxWidth: 540, margin: '0 auto', position: 'relative' }}>
+      <div style={{ maxWidth: 800, margin: '0 auto', position: 'relative' }}>
         <header style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '24px 4px 18px' }}>
           <span className="rs-flame"><MechaMark size={36} /></span>
           <div style={{ fontFamily: SERIF, fontSize: 25, color: T.text, letterSpacing: -0.2, lineHeight: 1.05 }}>
@@ -143,7 +157,7 @@ export default function ResenaWeb() {
                 </div>
               )}
 
-              <div style={{ fontFamily: SERIF, fontSize: 26, color: T.text, marginBottom: 16, lineHeight: 1.08 }}>¿Qué tal tu experiencia?</div>
+              <div style={{ fontFamily: SERIF, fontSize: 26, color: T.text, marginBottom: 16, lineHeight: 1.08 }}>Tu experiencia en el salón</div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                 <div style={{ display: 'flex', gap: 4 }} onMouseLeave={() => setHover(0)}>
@@ -158,9 +172,32 @@ export default function ResenaWeb() {
                 )}
               </div>
 
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Comentario (opcional)</label>
-              <textarea className="rs-field" value={comentario} onChange={e => setComentario(e.target.value)} placeholder="¿Qué te ha gustado? ¿Qué mejorarías?" rows={3}
-                style={{ ...inputBase, resize: 'vertical', marginBottom: 14 }} />
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Comentario para el salón (opcional)</label>
+              <textarea className="rs-field" value={comentario} onChange={e => setComentario(e.target.value)} placeholder="¿Qué te ha gustado del servicio?" rows={3}
+                style={{ ...inputBase, resize: 'vertical', marginBottom: 24 }} />
+
+              <div style={{ height: 1, background: T.border, margin: '0 -24px 24px' }} />
+
+              <div style={{ fontFamily: SERIF, fontSize: 22, color: T.text, marginBottom: 16, lineHeight: 1.08 }}>¿Qué te ha parecido el sistema de reservas?</div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                <div style={{ display: 'flex', gap: 4 }} onMouseLeave={() => setMechaHover(0)}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button key={'m'+n} className="rs-star" onMouseEnter={() => setMechaHover(n)} onClick={() => setMechaPuntuacion(n)} aria-label={`${n} estrellas Mecha`}>
+                      <Star filled={n <= mechaShown} size={40} />
+                    </button>
+                  ))}
+                </div>
+                {mechaShown > 0 && (
+                  <span key={'m'+mechaShown} style={{ fontSize: 14, fontWeight: 700, color: T.primaryHi, animation: 'rsPop 0.2s ease both' }}>{ETIQUETAS[mechaShown]}</span>
+                )}
+              </div>
+
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Comentario sobre el sistema (opcional)</label>
+              <textarea className="rs-field" value={mechaComentario} onChange={e => setMechaComentario(e.target.value)} placeholder="¿Te ha sido fácil reservar?" rows={2}
+                style={{ ...inputBase, resize: 'vertical', marginBottom: 24 }} />
+
+              <div style={{ height: 1, background: T.border, margin: '0 -24px 24px' }} />
 
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Tu nombre (opcional)</label>
               <input className="rs-field" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Cómo quieres aparecer" style={inputBase} />

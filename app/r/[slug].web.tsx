@@ -30,7 +30,7 @@ const T = {
   star: '#f59e0b',
 };
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
-const SERIF = '"Instrument Serif", Georgia, serif';
+const SERIF = '"Inter", system-ui, sans-serif';
 
 const ANIM = `
   @keyframes rpFade { from { opacity: 0 } to { opacity: 1 } }
@@ -153,6 +153,7 @@ export default function PortalReservaWeb() {
 
   const [info, setInfo] = useState<PortalInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [splash, setSplash] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [resenas, setResenas] = useState<ResenaResumen | null>(null);
 
@@ -195,6 +196,11 @@ export default function PortalReservaWeb() {
     })();
     return () => { cancel = true; };
   }, [slug]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSplash(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Dias con disponibilidad (de un viaje) + auto-seleccion del primero ------
   useEffect(() => {
@@ -300,6 +306,24 @@ export default function PortalReservaWeb() {
   }
 
   // Render -----------------------------------------------------------------
+  if (splash) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: T.bg, padding: 24, fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <style dangerouslySetInnerHTML={{ __html: ANIM }} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'rsPop 0.6s cubic-bezier(0.16,1,0.3,1) both' }}>
+          <span className="rp-flame" style={{ marginBottom: 16 }}><MechaMark size={72} /></span>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Potenciado por</div>
+          <div style={{ fontFamily: SERIF, fontSize: 32, fontWeight: 800, color: T.text, lineHeight: 1 }}>Mecha</div>
+          {info?.negocio?.nombre && (
+            <div style={{ marginTop: 24, fontSize: 15, color: T.textSec, animation: 'rpFade 0.6s ease 0.4s both' }}>
+              Conectando con <span style={{ fontWeight: 600, color: T.text }}>{info.negocio.nombre}</span>...
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (loading) return <Shell><LoadingState /></Shell>;
 
   if (notFound || !info) {
@@ -500,7 +524,7 @@ export default function PortalReservaWeb() {
                 <button
                   className="rp-cta rp-bar"
                   onClick={() => setStep('datos')}
-                  style={{ pointerEvents: 'auto', width: '100%', maxWidth: 568, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 18px', borderRadius: 16, border: 'none', background: FIRE, color: '#fff', boxShadow: '0 14px 36px rgba(192,38,10,0.34)' }}
+                  style={{ pointerEvents: 'auto', width: '100%', maxWidth: 768, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 18px', borderRadius: 16, border: 'none', background: FIRE, color: '#fff', boxShadow: '0 14px 36px rgba(192,38,10,0.34)' }}
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.2 }}>
                     <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.9 }}>{fmtFechaLarga(new Date(slotSel.slot))}</span>
@@ -619,7 +643,7 @@ function Shell({ children, negocio, resenas }: { children: React.ReactNode; nego
     <div style={{ minHeight: '100vh', background: T.bg, padding: '0 16px 48px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
       {/* Resplandor calido de fondo */}
       <div aria-hidden style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 520, height: 320, background: 'radial-gradient(closest-side, rgba(244,80,30,0.10), transparent)', pointerEvents: 'none' }} />
-      <div style={{ maxWidth: 600, margin: '0 auto', position: 'relative' }}>
+      <div style={{ maxWidth: 800, margin: '0 auto', position: 'relative' }}>
         <header style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '24px 4px 18px' }}>
           <span className="rp-flame" style={{ display: 'inline-flex' }}><MechaMark size={36} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>

@@ -1201,7 +1201,7 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
   const [formRol, setFormRol] = useState('recepcion');
   const [creando, setCreando] = useState(false);
   const [formError, setFormError] = useState('');
-  const [creada, setCreada] = useState<{ email: string; password: string } | null>(null);
+  const [creada, setCreada] = useState<{ email: string; invited?: boolean } | null>(null);
 
   const isOwner = currentRole === 'owner';
 
@@ -1256,7 +1256,7 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
       setFormError(ACCESO_ALTA_ERROR[code] ?? 'No se pudo crear el acceso.');
       return;
     }
-    setCreada({ email: data.email, password: data.password });
+    setCreada({ email: data.email, invited: !!data.invited });
     setFormEmail(''); setFormNombre(''); setFormRol('recepcion');
     load();
   }
@@ -1276,7 +1276,7 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
           </div>
           {creada && (
             <div style={{ padding: 10, background: 'rgba(15,157,107,0.10)', border: '1px solid rgba(15,157,107,0.30)', borderRadius: 10, fontSize: 12, color: T.text }}>
-              Cuenta creada para <b>{creada.email}</b>. Contrasena temporal: <code style={{ background: T.bgCardHi, padding: '2px 6px', borderRadius: 6, fontWeight: 700 }}>{creada.password}</code>. Comunicasela; al entrar podra cambiarla.
+              Se ha enviado una invitación por correo a <b>{creada.email}</b>. Para activar la cuenta y acceder, el empleado deberá establecer su contraseña desde el enlace recibido.
             </div>
           )}
         </div>

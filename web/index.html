@@ -828,6 +828,20 @@
     </div>
   </section>
 
+  <!-- ============ RESEÑAS MECHA ============ -->
+  <section class="section" id="resenas" style="padding:40px 0 60px">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Casos de éxito y Reseñas Reales</span>
+        <h2 class="sec-title">Lo que opinan de <span class="display" style="font-style:italic">Mecha</span></h2>
+        <div id="mechaStatsBox" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;min-height:30px">
+          <div style="font-size:14px;color:var(--text-ter)">Cargando valoraciones...</div>
+        </div>
+      </div>
+      <div class="makers-grid reveal" id="mechaReviewsGrid" style="margin-top:24px"></div>
+    </div>
+  </section>
+
   <!-- ============ FINAL CTA ============ -->
   <section class="cta" id="cta">
     <div class="wrap">
@@ -967,7 +981,7 @@ window.MECHA_CHAT = [
 </template>
 
 <!-- ============ SESION / CHIP DE CUENTA ============ -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script src="assets/auth.js"></script>
 <script>
 (function(){
@@ -1059,6 +1073,65 @@ window.MECHA_CHAT = [
   api.getSession().then(render);
   // Reaccionar a login/logout en otra pestana de la misma sesion.
   if(api.onAuth){ api.onAuth(function(_evt,session){ render(session); }); }
+
+  // ---------- Cargar reseñas de Mecha ----------
+  function loadMechaReviews() {
+    if(!api.client) return;
+    api.client.rpc('obtener_estadisticas_mecha').then(function(res) {
+      if (res.error || !res.data) {
+        var sb = $('mechaStatsBox'); if(sb) sb.style.display = 'none';
+        return;
+      }
+      var stats = res.data;
+      if (stats.total === 0) {
+        var sb = $('mechaStatsBox'); if(sb) sb.style.display = 'none';
+        var rg = $('mechaReviewsGrid'); if(rg) rg.style.display = 'none';
+        return;
+      }
+
+      var stars = '';
+      var mediaRounded = Math.round(stats.media);
+      for(var i=1; i<=5; i++) {
+        stars += i <= mediaRounded 
+          ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+          : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+      }
+
+      var box = $('mechaStatsBox');
+      if (box) {
+        box.innerHTML = '<div style="display:flex;align-items:center;gap:6px">' + stars + '</div>' +
+                        '<div style="font-size:16px;font-weight:700;color:var(--text)">' + stats.media + '</div>' +
+                        '<div style="font-size:13.5px;color:var(--text-ter)">basado en ' + stats.total + ' valoraciones</div>';
+      }
+
+      var grid = $('mechaReviewsGrid');
+      if (grid && stats.ultimas && stats.ultimas.length > 0) {
+        grid.innerHTML = stats.ultimas.slice(0, 3).map(function(r) {
+          var rStars = '';
+          for(var i=1; i<=5; i++) {
+             rStars += i <= r.mecha_puntuacion 
+               ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+               : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+          }
+          var autor = r.autor_nombre || 'Cliente anónimo';
+          var f = new Date(r.created_at).toLocaleDateString('es-ES', {month:'short', year:'numeric'});
+          
+          return '<div class="maker" style="padding:24px">' +
+            '<div style="display:flex;gap:3px;margin-bottom:12px">' + rStars + '</div>' +
+            '<p style="font-size:14.5px;color:var(--text);margin-bottom:18px;font-style:italic">"' + r.mecha_comentario + '"</p>' +
+            '<div style="display:flex;align-items:center;gap:10px">' +
+              '<div style="width:36px;height:36px;border-radius:50%;background:var(--border-hi);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--text)">' + autor.charAt(0).toUpperCase() + '</div>' +
+              '<div><div style="font-size:13.5px;font-weight:600;color:var(--text)">' + autor + '</div><div style="font-size:12px;color:var(--text-ter)">' + f + '</div></div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      } else if (grid) {
+        grid.style.display = 'none';
+      }
+    });
+  }
+  loadMechaReviews();
+
 })();
 </script>
 

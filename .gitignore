@@ -15,3 +15,8 @@ Documentacion/
 
 expo-env.d.ts
 # @end expo-cli
+
+# Scripts de seed con credenciales sensibles. NUNCA versionar.
+seed-data.mjs
+scripts/seed-data.ts
+scripts/insert-data.sql

@@ -8,18 +8,33 @@
 // Respuestas: 200 { ok:true, user_id } | 4xx { error: codigo }
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+const ALLOWED_ORIGINS = [
+  'https://hairy-two.vercel.app',
+  'https://www.novanoidai.com',
+  'http://localhost:8080',
+  'http://localhost:3000',
+  'http://localhost:19006',
+];
 
-function json(body: unknown, status = 200) {
+function corsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  };
+}
+
+function json(body: unknown, status = 200, req?: Request) {
+  const headers = req ? corsHeaders(req) : { 'Access-Control-Allow-Origin': ALLOWED_ORIGINS[0], 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Vary': 'Origin' };
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors, 'Content-Type': 'application/json' },
+    headers: { ...headers, 'Content-Type': 'application/json' },
   });
 }
+
 
 // Todas las cuentas gratis comparten el MISMO negocio_id: la demo real.
 // Asi cada visitante entra con su propia cuenta (medimos conversion) pero ve
@@ -32,14 +47,14 @@ const DEMO_NEGOCIO_ID = 'demo_salon_001';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
-  if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
+  if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405, req);
 
   let payload: Record<string, string> = {};
   try {
     payload = await req.json();
   } catch (_e) {
-    return json({ error: 'bad_json' }, 400);
+    return json({ error: 'bad_json' }, 400, req);
   }
 
   const email = (payload.email || '').trim().toLowerCase();
@@ -48,9 +63,9 @@ Deno.serve(async (req: Request) => {
   const salon = (payload.salon || '').trim();
   const telefono = (payload.telefono || '').trim();
 
-  if (!email || !EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400);
-  if (!password || password.length < 8) return json({ error: 'weak_password' }, 400);
-  if (!nombre || !salon) return json({ error: 'missing_fields' }, 400);
+  if (!email || !EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400, req);
+  if (!password || password.length < 8) return json({ error: 'weak_password' }, 400, req);
+  if (!nombre || !salon) return json({ error: 'missing_fields' }, 400, req);
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
   const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -69,13 +84,13 @@ Deno.serve(async (req: Request) => {
   if (cErr) {
     const m = (cErr.message || '').toLowerCase();
     if (m.includes('already') || m.includes('registered') || m.includes('exists')) {
-      return json({ error: 'email_exists' }, 409);
+      return json({ error: 'email_exists' }, 409, req);
     }
-    return json({ error: 'create_failed', detail: cErr.message }, 400);
+    return json({ error: 'create_failed', detail: cErr.message }, 400, req);
   }
 
   const user = created.user;
-  if (!user) return json({ error: 'create_failed' }, 500);
+  if (!user) return json({ error: 'create_failed' }, 500, req);
 
   // 2) Perfil owner / plan free (service_role salta RLS). Best-effort.
   const negocioId = DEMO_NEGOCIO_ID;
@@ -102,5 +117,5 @@ Deno.serve(async (req: Request) => {
   });
   if (sErr) console.error('solicitud insert failed:', sErr.message);
 
-  return json({ ok: true, user_id: user.id, negocio_id: negocioId });
+  return json({ ok: true, user_id: user.id, negocio_id: negocioId }, 200, req);
 });

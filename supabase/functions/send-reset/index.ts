@@ -27,16 +27,31 @@
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+const ALLOWED_ORIGINS = [
+  'https://hairy-two.vercel.app',
+  'https://www.novanoidai.com',
+  'http://localhost:8080',
+  'http://localhost:8081',
+  'http://localhost:3000',
+  'http://localhost:19006',
+];
 
-function json(body: unknown, status = 200) {
+function corsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  };
+}
+
+function json(body: unknown, status = 200, req?: Request) {
+  const headers = req ? corsHeaders(req) : { 'Access-Control-Allow-Origin': ALLOWED_ORIGINS[0], 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Vary': 'Origin' };
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors, 'Content-Type': 'application/json' },
+    headers: { ...headers, 'Content-Type': 'application/json' },
   });
 }
 
@@ -45,11 +60,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Origenes desde los que aceptamos el redirectTo del cliente. Evita open-redirect:
 // si el valor no casa, se usa el de produccion. Anade aqui el dominio propio
 // cuando se compre (debe estar tambien en las Redirect URLs de Supabase).
-const ALLOWED_ORIGINS = [
-  'https://hairy-two.vercel.app',
-  'http://localhost:8081',
-  'http://localhost:3000',
-];
+// ALLOWED_ORIGINS is already declared above for CORS and redirect validation.
 const DEFAULT_REDIRECT = 'https://hairy-two.vercel.app/restablecer.html';
 
 // Plantilla del correo: dark navy + gradiente calido de Mecha. Layout en tablas
@@ -107,18 +118,18 @@ function resetEmailHtml(actionLink: string): string {
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
-  if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
+  if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405, req);
 
   let payload: { email?: string; redirectTo?: string } = {};
   try {
     payload = await req.json();
   } catch (_e) {
-    return json({ error: 'bad_json' }, 400);
+    return json({ error: 'bad_json' }, 400, req);
   }
 
   const email = (payload.email || '').trim().toLowerCase();
-  if (!email || !EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400);
+  if (!email || !EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400, req);
 
   // redirectTo validado contra allowlist (anti open-redirect).
   let redirectTo = DEFAULT_REDIRECT;
@@ -147,7 +158,7 @@ Deno.serve(async (req: Request) => {
 
   const actionLink = data?.properties?.action_link;
   if (error || !actionLink) {
-    return json({ exists: false, sent: false });
+    return json({ exists: false, sent: false }, 200, req);
   }
 
   // 2) Enviar el correo branded via Resend.
@@ -155,7 +166,7 @@ Deno.serve(async (req: Request) => {
   if (!resendKey) {
     // El usuario existe pero aun no hay credenciales de Resend: el cliente puede
     // hacer fallback al correo nativo de Supabase para no dejar al user sin email.
-    return json({ exists: true, sent: false, error: 'resend_not_configured' });
+    return json({ exists: true, sent: false, error: 'resend_not_configured' }, 200, req);
   }
   const from = Deno.env.get('RESEND_FROM') || 'Mecha <onboarding@resend.dev>';
 
@@ -176,8 +187,8 @@ Deno.serve(async (req: Request) => {
   if (!resp.ok) {
     const detail = await resp.text().catch(() => '');
     console.error('resend_error', resp.status, detail);
-    return json({ exists: true, sent: false, error: 'send_failed' }, 502);
+    return json({ exists: true, sent: false, error: 'send_failed' }, 502, req);
   }
 
-  return json({ exists: true, sent: true });
+  return json({ exists: true, sent: true }, 200, req);
 });

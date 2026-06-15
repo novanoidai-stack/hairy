@@ -42,13 +42,13 @@ drop policy if exists "Recepcion gestiona pagos" on public.pagos;
 create policy "Recepcion gestiona pagos" on public.pagos
   for all to authenticated
   using (negocio_id = public.my_negocio_id_text() and public.my_app_role() in ('owner','admin','recepcion'))
-  with check (negocio_id = public.my_negocio_id_text());
+  with check (negocio_id = public.my_negocio_id_text() and public.my_app_role() in ('owner','admin','recepcion'));
 
 -- Calcula el importe de la senal (en centimos) de un servicio segun su config
 -- de prepago. Devuelve 0 si el servicio no requiere prepago.
 create or replace function public.importe_senal_servicio(p_servicio_id uuid)
 returns integer
-language sql stable
+language sql stable security definer set search_path = public
 as $function$
   select case
     when s.prepago_requerido is not true then 0
@@ -61,6 +61,9 @@ as $function$
   from public.servicios s
   where s.id = p_servicio_id;
 $function$;
+
+revoke all on function public.importe_senal_servicio(uuid) from public, anon;
+grant execute on function public.importe_senal_servicio(uuid) to authenticated;
 
 -- Requiere la senal de una reserva: calcula el total (sumando los servicios del
 -- encadenado si la cita pertenece a un grupo) y crea/actualiza un pago pendiente

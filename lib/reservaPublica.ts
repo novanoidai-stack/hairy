@@ -160,6 +160,8 @@ export async function crearResenaPublica(args: {
   autorNombre?: string;
   profesionalId?: string | null;
   servicioId?: string | null;
+  mechaPuntuacion?: number | null;
+  mechaComentario?: string | null;
 }): Promise<{ resena_id: string; ok: boolean }> {
   const { data, error } = await supabase.rpc('crear_resena_publica', {
     p_slug: args.slug,
@@ -168,6 +170,8 @@ export async function crearResenaPublica(args: {
     p_autor_nombre: args.autorNombre ?? null,
     p_profesional_id: args.profesionalId ?? null,
     p_servicio_id: args.servicioId ?? null,
+    p_mecha_puntuacion: args.mechaPuntuacion ?? null,
+    p_mecha_comentario: args.mechaComentario ?? null,
   });
   if (error) throw error;
   return data as { resena_id: string; ok: boolean };

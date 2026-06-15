@@ -24,11 +24,22 @@
     return (base || 'salon') + '_' + rnd;
   }
 
-  // Inserta una solicitud (lead). Devuelve { error }.
+  // Inserta una solicitud (lead) via RPC para seguridad y rate limiting. Devuelve { error }.
   async function insertSolicitud(payload) {
     try {
-      var row = Object.assign({ estado: 'nueva' }, payload);
-      var res = await client.from('solicitudes').insert(row);
+      var res = await client.rpc('crear_solicitud_publica', {
+        p_tipo: payload.tipo,
+        p_nombre: payload.nombre,
+        p_salon: payload.salon,
+        p_email: payload.email,
+        p_telefono: payload.telefono,
+        p_num_profesionales: payload.num_profesionales ? String(payload.num_profesionales) : null,
+        p_herramienta_actual: payload.herramienta_actual,
+        p_nota: payload.nota,
+        p_fecha_preferida: payload.fecha_preferida,
+        p_hora_preferida: payload.hora_preferida,
+        p_meta: payload.meta || {}
+      });
       return { error: res.error || null };
     } catch (e) {
       return { error: e };

@@ -823,7 +823,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script src="assets/auth.js"></script>
 <script>
 (function(){
@@ -842,6 +842,8 @@
   var gate=$('#gate'), end=$('#end'), frame=$('#appFrame'), localnote=$('#localnote');
   var visitsEl=$('#visits'), visitsText=$('#visitsText');
   var tour=$('#tour'), shareBtn=$('#shareBtn'), restartBtn=$('#tourRestart');
+
+  function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
   function showGate(){ gate.classList.remove('hide'); }
   function hideGate(){ gate.classList.add('hide'); }
@@ -1044,7 +1046,7 @@
           return '<div style="display:flex; align-items:center; gap:10px; font-size:12px; padding:8px 11px; background:rgba(255,255,255,0.015); border-radius:9px; border:1px solid rgba(255,255,255,0.05);">' +
             '<span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:' + dotColor + ';box-shadow:0 0 0 3px ' + dotRing + ';"></span>' +
             '<div style="min-width:0; flex:1;">' +
-              '<div style="font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + r.nombre_negocio + '</div>' +
+              '<div style="font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escHtml(r.nombre_negocio) + '</div>' +
               '<div style="color:var(--text-ter); font-size:10.5px;">' + nivelLbl + ' · ' + dateStr + '</div>' +
             '</div>' +
             '<div style="font-weight:600; color:' + planColor + '; flex-shrink:0;">' + planStr + '</div>' +

@@ -391,12 +391,13 @@
   </section>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script src="assets/auth.js"></script>
 <script>
 (function(){
   var $=function(s,c){return (c||document).querySelector(s);};
   var $$=function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s));};
+  function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
   var DOW=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   var DOWS=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
@@ -605,7 +606,7 @@
       }).catch(function(){});
     }catch(e){}
     $('#doneWhen').textContent=fmtLong(state.day)+' · '+state.slot+'h';
-    $('#doneNote').innerHTML='Gracias, <b style="color:var(--text)">'+name+'</b>. Te hemos enviado a tu email la invitación con el <b style="color:var(--text)">enlace de Google Meet</b> y un recordatorio. La llamada es <b style="color:var(--text)">gratis y breve</b>.';
+    $('#doneNote').innerHTML='Gracias, <b style="color:var(--text)">'+escHtml(name)+'</b>. Te hemos enviado a tu email la invitación con el <b style="color:var(--text)">enlace de Google Meet</b> y un recordatorio. La llamada es <b style="color:var(--text)">gratis y breve</b>.';
     gotoStep(3);
   });
 
