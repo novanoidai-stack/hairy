@@ -346,9 +346,13 @@ export default function PortalReservaWeb() {
             {info.servicios.length === 0 && <Empty titulo="Sin servicios" texto="Este salon aun no tiene servicios para reservar online." />}
             {info.servicios.map((sv, i) => (
               <button key={sv.id} className="rp-opt" onClick={() => elegirServicio(sv)} style={{ ...optStyle, animationDelay: `${i * 0.05}s` }}>
-                <span style={{ display: 'inline-flex', width: 42, height: 42, borderRadius: 12, background: T.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon name="scissors" size={19} color={T.primary} />
-                </span>
+                {sv.foto_url ? (
+                  <img src={sv.foto_url} alt="" style={{ width: 54, height: 54, borderRadius: 12, objectFit: 'cover', flexShrink: 0, background: T.cardHi }} />
+                ) : (
+                  <span style={{ display: 'inline-flex', width: 42, height: 42, borderRadius: 12, background: T.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="scissors" size={19} color={T.primary} />
+                  </span>
+                )}
                 <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                   <span style={{ display: 'block', fontSize: 15.5, fontWeight: 700, color: T.text }}>{sv.nombre}</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12.5, color: T.textTer, marginTop: 2 }}>

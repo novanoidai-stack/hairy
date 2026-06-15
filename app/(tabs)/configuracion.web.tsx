@@ -34,6 +34,7 @@ interface Servicio {
   prepago_cantidad_fija?: number | null;
   cancelacion_horas?: number | null;
   categoria_minima?: string | null;
+  foto_url?: string | null;
 }
 
 interface Override {
@@ -496,6 +497,7 @@ export default function ConfiguracionWeb() {
         prepago_cantidad_fija: service.prepago_cantidad_fija ?? null,
         cancelacion_horas: service.cancelacion_horas ?? null,
         categoria_minima: service.categoria_minima ?? null,
+        foto_url: service.foto_url ?? null,
       };
       if (service.id) {
         const { error } = await supabase.from('servicios').update(payload).eq('id', service.id);
@@ -2820,6 +2822,9 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
   const [prepagoCantidad, setPrepagoCantidad] = useState<string>(service.prepago_cantidad_fija != null ? String(service.prepago_cantidad_fija) : '');
   const [cancelacionHoras, setCancelacionHoras] = useState<string>(service.cancelacion_horas != null ? String(service.cancelacion_horas) : '');
   const [categoriaMinima, setCategoriaMinima] = useState(service.categoria_minima ?? '');
+  const [fotoUrl, setFotoUrl] = useState<string | null>(service.foto_url ?? null);
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const [fotoErr, setFotoErr] = useState('');
 
   // Add-ons state
   const [addons, setAddons] = useState<any[]>([]);
@@ -2924,6 +2929,30 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
 
   const [guardando, setGuardando] = useState(false);
 
+  // Sube la foto del servicio al bucket publico servicio-fotos y guarda su URL.
+  // Bucket publico (catalogo visible en el portal anonimo): se guarda la URL directa.
+  const subirFoto = async (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file || !negocioId) return;
+    if (!file.type.startsWith('image/')) { setFotoErr('Selecciona una imagen.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setFotoErr('Maximo 5 MB.'); return; }
+    setSubiendoFoto(true); setFotoErr('');
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      const c: any = (globalThis as any).crypto;
+      const rand = c && typeof c.randomUUID === 'function' ? c.randomUUID() : `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      const path = `${negocioId}/${rand}.${ext}`;
+      const up = await supabase.storage.from('servicio-fotos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false });
+      if (up.error) { setFotoErr('No se pudo subir la foto.'); return; }
+      const { data } = supabase.storage.from('servicio-fotos').getPublicUrl(path);
+      setFotoUrl(data.publicUrl);
+    } catch {
+      setFotoErr('No se pudo subir la foto.');
+    } finally {
+      setSubiendoFoto(false);
+    }
+  };
+
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 8,
     background: '#ffffff', border: `1px solid ${T.border}`,
@@ -2956,6 +2985,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
         prepago_cantidad_fija: prepagoCantidad.trim() ? parseFloat(prepagoCantidad) : null,
         cancelacion_horas: cancelacionHoras.trim() ? parseInt(cancelacionHoras) : null,
         categoria_minima: categoriaMinima || null,
+        foto_url: fotoUrl,
       });
     }
     setGuardando(false);
@@ -3031,6 +3061,26 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
             <div style={{ display: 'grid', gap: 14, maxWidth: 480, paddingBottom: 4 }}>
               <FormField label="Nombre del servicio">
                 <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Corte + Barba" style={inputStyle} />
+              </FormField>
+              <FormField label="Foto del servicio (opcional)">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 62, height: 62, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: T.bgCard, border: `1px solid ${T.border}`, display: 'grid', placeItems: 'center' }}>
+                    {fotoUrl
+                      ? <img src={fotoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <span style={{ fontSize: 10, color: T.textTertiary }}>Sin foto</span>}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 8, background: 'rgba(244,80,30,0.14)', border: '1px solid rgba(244,80,30,0.4)', color: T.primaryHi, fontSize: 11, fontWeight: 600, cursor: subiendoFoto ? 'default' : 'pointer' }}>
+                      {subiendoFoto ? 'Subiendo...' : fotoUrl ? 'Cambiar foto' : 'Subir foto'}
+                      <input type="file" accept="image/*" disabled={subiendoFoto} onChange={e => subirFoto(e.target.files)} style={{ display: 'none' }} />
+                    </label>
+                    {fotoUrl && !subiendoFoto && (
+                      <button onClick={() => setFotoUrl(null)} style={{ background: 'none', border: 'none', color: T.danger, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0, textAlign: 'left' }}>Quitar</button>
+                    )}
+                  </div>
+                </div>
+                <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 6 }}>Aparece junto al servicio en el portal de reserva (catalogo). JPG o PNG, max 5 MB.</div>
+                {fotoErr && <div style={{ fontSize: 10, color: T.danger, marginTop: 4 }}>{fotoErr}</div>}
               </FormField>
               <FormField label="Categoria">
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -3335,6 +3385,21 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                     </FormField>
                   </div>
                 )}
+
+                {/* Cobro despues del servicio: gated (lo construye Alexandro segun
+                    informes/ARQUITECTURA_PAGOS_MECHA.md). Aqui solo el stub visual. */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, opacity: 0.6 }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: T.text }}>Cobro despues del servicio</span>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: T.warning, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)', padding: '1px 7px', borderRadius: 999, textTransform: 'uppercase', letterSpacing: 0.4 }}>Proximamente</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: T.textTertiary }}>Enlace o QR para que el cliente pague al terminar, ligado a su cita</div>
+                  </div>
+                  <div style={{ width: 40, height: 22, borderRadius: 11, background: 'rgba(148,163,184,0.2)', position: 'relative', flexShrink: 0 }}>
+                    <div style={{ width: 16, height: 16, borderRadius: 8, background: 'rgba(255,255,255,0.5)', position: 'absolute', top: 3, left: 3 }} />
+                  </div>
+                </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <FormField label="Cancelacion minima (horas)">

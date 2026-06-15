@@ -12,6 +12,7 @@ export interface PortalServicio {
   duracion: number; // minutos totales (activa + espera + extra)
   categoria: string | null;
   prepago: boolean;
+  foto_url: string | null;
 }
 
 export interface PortalProfesional {
