@@ -1004,7 +1004,7 @@
     var linkInp = $('#refLinkInput');
     if (linkInp) linkInp.value = refLinkFor(profile.codigo_referido);
 
-    // Resumen agregado (descuento ganado, tamano de la red, cuantos pagan).
+    // Resumen agregado: el % de AHORRO grande y en verde (que se note el dinero).
     api.client.rpc('get_my_referral_stats').then(function(res) {
       if (!trackerStats) return;
       var s = (res && res.data) || {};
@@ -1012,14 +1012,15 @@
       var total = Number(s.total || 0);
       var pagando = Number(s.pagando || 0);
       var aplicado = s.descuento_aplicado === true;
-      var html;
-      if (pct > 0) {
-        html = '<span style="color:#2ecc71;">Llevas −' + pct + '% de descuento' + (aplicado ? ' (activo en tu plan)' : ' acumulado') + '</span>';
-      } else {
-        html = '<span>Aún no has acumulado descuento. Comparte tu enlace de arriba.</span>';
-      }
-      html += '<div style="font-weight:500;color:var(--text-ter);font-size:11.5px;margin-top:4px;">' + total + ' en tu red · ' + pagando + ' con plan activo</div>';
-      trackerStats.innerHTML = html;
+      var hasPct = pct > 0;
+      var big = hasPct ? '#2ecc71' : 'var(--text-ter)';
+      var sub = hasPct ? (aplicado ? 'activo en tu plan' : 'acumulado en tu plan') : 'cuando entren contigo';
+      trackerStats.innerHTML =
+        '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:5px;">' +
+          '<span style="font-family:var(--display);font-size:36px;font-weight:800;line-height:.95;color:' + big + ';' + (hasPct ? 'text-shadow:0 0 24px rgba(46,204,113,.35);' : '') + '">−' + pct + '%</span>' +
+          '<span style="font-size:12px;color:var(--text-sec);font-weight:600;line-height:1.25;">de descuento<br>' + sub + '</span>' +
+        '</div>' +
+        '<div style="font-weight:500;color:var(--text-ter);font-size:11.5px;">' + total + ' salones en tu red · <span style="color:#2ecc71;font-weight:700;">' + pagando + ' con plan activo</span></div>';
     });
 
     // Arbol (hasta 3 niveles), datos minimos: sin emails de terceros.
@@ -1345,7 +1346,12 @@
   // Reiniciar tutorial: vuelve al paso 1 aunque se hubiera saltado o minimizado.
   function restartTour(){
     if(stepTimer) clearTimeout(stepTimer);
-    tourStarted=false; ti=0; lastAction=null;
+    // Vuelve al paso 1 dejando el software en su estado inicial: cierra el panel
+    // que abriera un paso anterior y reposiciona la pantalla. Antes solo se
+    // reiniciaba el TEXTO y la ventana del ultimo paso se quedaba abierta (desync).
+    demoAction('cerrar');
+    lastRoute=null; lastAction='cerrar';
+    tourStarted=false; ti=0;
     if(tour) tour.classList.remove('minimized');
     if(tourToggle) tourToggle.textContent='Minimizar';
     startTour();
