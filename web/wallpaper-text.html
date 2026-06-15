@@ -14,74 +14,99 @@
       overflow: hidden;
       background: #000;
       cursor: default;
-      font-family: 'Space Grotesk', sans-serif;
     }
-    canvas {
-      display: block;
+
+    .scene {
+      position: relative;
       width: 100vw; height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+
+    .ambient {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse 50% 55% at 50% 45%, rgba(224,52,14,.05) 0%, transparent 70%);
+    }
+
+    #embers {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ---- Logo (same as wallpaper 1) ---- */
+    .mark-wrap {
+      position: relative;
+      width: 220px; height: 220px;
+      z-index: 2;
+      /* Push logo up to make room for MECHA text below */
+      margin-bottom: 80px;
+    }
+    .mark-glow {
+      position: absolute;
+      inset: -40%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,122,46,.10) 0%, rgba(224,52,14,.04) 40%, transparent 65%);
+      animation: pulse 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: .5; transform: scale(1); }
+      50%      { opacity: .85; transform: scale(1.08); }
+    }
+    .mark-wrap svg {
+      width: 100%; height: 100%;
+      filter: drop-shadow(0 0 20px rgba(255,122,46,.35))
+             drop-shadow(0 0 40px rgba(224,52,14,.12));
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-7px); }
     }
   </style>
 </head>
 <body>
 
-<canvas id="cvs"></canvas>
+<div class="scene">
+  <div class="ambient"></div>
+  <canvas id="embers"></canvas>
+
+  <div class="mark-wrap">
+    <div class="mark-glow"></div>
+    <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#e0340e" />
+          <stop offset=".5" stop-color="#ff7a2e" />
+          <stop offset="1" stop-color="#ffcf4a" />
+        </linearGradient>
+      </defs>
+      <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+      <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+    </svg>
+  </div>
+</div>
 
 <script>
-// ============================================================
-//  MECHA Text Fire Wallpaper
-//  Particles follow the shape of "MECHA" text
-// ============================================================
-const cvs = document.getElementById('cvs');
+const cvs = document.getElementById('embers');
 const ctx = cvs.getContext('2d');
-let W, H, DPR;
+let W, H;
 
-// ---- Resize ----
 function resize() {
-  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth;
   H = window.innerHeight;
-  cvs.width  = W * DPR;
-  cvs.height = H * DPR;
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  sampleTextPoints(); // re-sample on resize
+  cvs.width  = W * dpr;
+  cvs.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
-// ---- Sample text pixel positions ----
-let textPoints = [];
-
-function sampleTextPoints() {
-  // Offscreen canvas to render text
-  const off = document.createElement('canvas');
-  const oc  = off.getContext('2d');
-  off.width  = W;
-  off.height = H;
-
-  // Render "MECHA" centered
-  const fontSize = Math.min(W * 0.18, H * 0.35, 260);
-  oc.font = `700 ${fontSize}px 'Space Grotesk', sans-serif`;
-  oc.textAlign = 'center';
-  oc.textBaseline = 'middle';
-  oc.fillStyle = '#fff';
-  oc.fillText('MECHA', W / 2, H / 2);
-
-  // Read pixels and sample points
-  const imageData = oc.getImageData(0, 0, W, H);
-  const data = imageData.data;
-  textPoints = [];
-
-  // Sample every Nth pixel for performance
-  const step = Math.max(3, Math.floor(fontSize / 40));
-  for (let y = 0; y < H; y += step) {
-    for (let x = 0; x < W; x += step) {
-      const idx = (y * W + x) * 4;
-      if (data[idx + 3] > 128) { // alpha > 50%
-        textPoints.push({ x, y });
-      }
-    }
-  }
-}
-
-// ---- Color palette ----
+// ---- Color palette (same as wallpaper 1) ----
 const COLORS = [
   { r:255, g:207, b:74  },
   { r:255, g:152, b:46  },
@@ -89,90 +114,64 @@ const COLORS = [
   { r:224, g:52,  b:14  },
   { r:255, g:90,  b:30  },
   { r:200, g:40,  b:10  },
-  { r:255, g:180, b:60  },
 ];
 
-// ---- Text-bound fire particle ----
-class TextEmber {
-  constructor() {
-    this.reset();
-  }
+// =============================================================
+//  PART 1: Ambient fire embers (identical to wallpaper 1)
+// =============================================================
+const MAX_AMBIENT = 90;
+const ambientParticles = [];
+
+class Ember {
+  constructor() { this.reset(); }
 
   reset() {
-    if (textPoints.length === 0) return;
-    // Pick a random point on the text
-    const pt = textPoints[Math.floor(Math.random() * textPoints.length)];
-    this.homeX = pt.x;
-    this.homeY = pt.y;
-
-    // Start at or near home
-    this.x = this.homeX + (Math.random() - 0.5) * 6;
-    this.y = this.homeY + (Math.random() - 0.5) * 6;
-
-    // Upward drift (fire rises)
-    this.vy = -(0.15 + Math.random() * 0.6);
-    this.vx = (Math.random() - 0.5) * 0.3;
-
-    // Life
-    this.maxLife = 100 + Math.random() * 200;
-    this.life = this.maxLife;
-
-    // Size
-    this.baseSize = 1.2 + Math.random() * 2.2;
-
-    // Flicker
-    this.flickerSpeed = 0.04 + Math.random() * 0.1;
+    const centerBias = Math.random() < 0.4;
+    this.x = centerBias ? W * 0.3 + Math.random() * W * 0.4 : Math.random() * W;
+    this.y = H + 10 + Math.random() * 40;
+    this.vy = -(0.3 + Math.random() * 1.2);
+    this.vx = (Math.random() - 0.5) * 0.4;
+    this.swayAmp   = 0.3 + Math.random() * 1.2;
+    this.swayFreq  = 0.008 + Math.random() * 0.015;
+    this.swayPhase = Math.random() * Math.PI * 2;
+    this.baseSize  = 1 + Math.random() * 2.5;
+    this.size      = this.baseSize;
+    this.maxLife   = 200 + Math.random() * 350;
+    this.life      = this.maxLife;
+    this.flickerSpeed = 0.05 + Math.random() * 0.12;
     this.flickerPhase = Math.random() * Math.PI * 2;
-
-    // Sway
-    this.swayAmp  = 0.4 + Math.random() * 1.0;
-    this.swayFreq = 0.01 + Math.random() * 0.02;
-
-    // Color
     const c = COLORS[Math.floor(Math.random() * COLORS.length)];
     this.r = c.r; this.g = c.g; this.b = c.b;
-
-    // Glow
-    this.glowBase = 5 + Math.random() * 8;
-
+    this.glowBase = 6 + Math.random() * 10;
+    this.windDrift = (Math.random() - 0.5) * 0.003;
     this.t = 0;
   }
 
   update() {
     this.t++;
     this.life--;
-
-    // Rise
     this.y += this.vy;
-    this.x += this.vx + Math.sin(this.t * this.swayFreq) * this.swayAmp * 0.3;
-
-    // Fade
-    const ratio = this.life / this.maxLife;
-
-    // Flicker
+    this.vy -= 0.001;
+    this.vx += this.windDrift;
+    this.x += this.vx + Math.sin(this.t * this.swayFreq + this.swayPhase) * this.swayAmp;
     const flicker = Math.sin(this.t * this.flickerSpeed + this.flickerPhase);
-    this.size = this.baseSize * (0.5 + 0.5 * (flicker * 0.5 + 0.5)) * (0.3 + 0.7 * ratio);
-
-    this.alpha = ratio < 0.15
-      ? ratio / 0.15
-      : ratio > 0.8
-        ? (1 - ratio) / 0.2
-        : 1;
-    this.alpha *= (0.65 + 0.35 * (flicker * 0.5 + 0.5));
-
-    return this.life > 0;
+    this.size = this.baseSize * (0.6 + 0.4 * (flicker * 0.5 + 0.5));
+    const lifeRatio = this.life / this.maxLife;
+    this.alpha = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.85 ? (1 - lifeRatio) / 0.15 : 1;
+    this.alpha *= (0.7 + 0.3 * (flicker * 0.5 + 0.5));
+    this.size *= (0.4 + 0.6 * lifeRatio);
+    return this.life > 0 && this.y > -20 && this.x > -40 && this.x < W + 40;
   }
 
   draw() {
     if (this.alpha < 0.02) return;
     const a = Math.min(this.alpha, 1);
-    const s = Math.max(this.size, 0.2);
-
+    const s = Math.max(this.size, 0.3);
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     ctx.shadowBlur = this.glowBase * a;
-    ctx.shadowColor = `rgba(${this.r},${this.g},${this.b},${a * 0.5})`;
-    ctx.fillStyle = `rgba(${this.r},${this.g},${this.b},${a * 0.85})`;
+    ctx.shadowColor = `rgba(${this.r},${this.g},${this.b},${a * 0.6})`;
+    ctx.fillStyle = `rgba(${this.r},${this.g},${this.b},${a * 0.9})`;
     ctx.beginPath();
     ctx.arc(this.x, this.y, s, 0, Math.PI * 2);
     ctx.fill();
@@ -180,110 +179,174 @@ class TextEmber {
   }
 }
 
-// ---- Free-floating ambient embers (background) ----
-class AmbientEmber {
-  constructor() {
-    this.reset(true);
+// =============================================================
+//  PART 2: Text fire particles — embers that spawn on "MECHA"
+// =============================================================
+let textPoints = [];
+
+function sampleText() {
+  const off = document.createElement('canvas');
+  const oc  = off.getContext('2d');
+  off.width = W; off.height = H;
+
+  // Position text below center (where the logo is above)
+  const fontSize = Math.min(W * 0.14, 200);
+  const textY = H / 2 + 140;
+
+  oc.font = `700 ${fontSize}px 'Space Grotesk', sans-serif`;
+  oc.textAlign = 'center';
+  oc.textBaseline = 'middle';
+  oc.fillStyle = '#fff';
+  oc.fillText('MECHA', W / 2, textY);
+
+  const img = oc.getImageData(0, 0, W, H);
+  const d = img.data;
+  textPoints = [];
+
+  // Dense sampling — step of 2px for thick coverage
+  for (let y = 0; y < H; y += 2) {
+    for (let x = 0; x < W; x += 2) {
+      const i = (y * W + x) * 4;
+      if (d[i + 3] > 100) {
+        textPoints.push({ x, y });
+      }
+    }
   }
+}
+
+const MAX_TEXT = 1200;
+const textParticles = [];
+
+class TextFire {
+  constructor() { this.reset(true); }
 
   reset(initial) {
-    this.x = Math.random() * W;
-    this.y = initial ? Math.random() * H : H + 10 + Math.random() * 30;
-    this.vy = -(0.2 + Math.random() * 0.8);
-    this.vx = (Math.random() - 0.5) * 0.3;
-    this.swayAmp = 0.3 + Math.random() * 0.8;
-    this.swayFreq = 0.006 + Math.random() * 0.012;
-    this.baseSize = 0.8 + Math.random() * 1.5;
-    this.maxLife = 250 + Math.random() * 300;
+    if (textPoints.length === 0) return;
+    const pt = textPoints[Math.floor(Math.random() * textPoints.length)];
+    this.homeX = pt.x;
+    this.homeY = pt.y;
+
+    // Start right at the text position with tiny jitter
+    this.x = this.homeX + (Math.random() - 0.5) * 3;
+    this.y = this.homeY + (Math.random() - 0.5) * 3;
+
+    // Slow upward rise (fire coming off text)
+    this.vy = -(0.1 + Math.random() * 0.5);
+    this.vx = (Math.random() - 0.5) * 0.15;
+
+    // Life — short lives so they stay close to text shape
+    this.maxLife = 60 + Math.random() * 120;
     this.life = initial ? Math.random() * this.maxLife : this.maxLife;
-    this.flickerSpeed = 0.04 + Math.random() * 0.08;
+
+    // Size — same range as ambient embers
+    this.baseSize = 1.2 + Math.random() * 2.2;
+
+    // Flicker (same as wallpaper 1 embers)
+    this.flickerSpeed = 0.05 + Math.random() * 0.12;
     this.flickerPhase = Math.random() * Math.PI * 2;
+
+    // Sway
+    this.swayAmp  = 0.2 + Math.random() * 0.6;
+    this.swayFreq = 0.01 + Math.random() * 0.02;
+
+    // Color
     const c = COLORS[Math.floor(Math.random() * COLORS.length)];
     this.r = c.r; this.g = c.g; this.b = c.b;
-    this.glowBase = 4 + Math.random() * 6;
+
+    // Glow
+    this.glowBase = 6 + Math.random() * 10;
+
     this.t = 0;
   }
 
   update() {
     this.t++;
     this.life--;
+
     this.y += this.vy;
-    this.x += this.vx + Math.sin(this.t * this.swayFreq) * this.swayAmp * 0.2;
-    const ratio = this.life / this.maxLife;
+    this.vy -= 0.002; // accelerate upward slightly
+    this.x += this.vx + Math.sin(this.t * this.swayFreq) * this.swayAmp * 0.3;
+
+    const lifeRatio = this.life / this.maxLife;
     const flicker = Math.sin(this.t * this.flickerSpeed + this.flickerPhase);
-    this.size = this.baseSize * (0.5 + 0.5 * (flicker * 0.5 + 0.5)) * (0.3 + 0.7 * ratio);
-    this.alpha = ratio < 0.15 ? ratio / 0.15 : ratio > 0.85 ? (1 - ratio) / 0.15 : 0.7;
-    this.alpha *= (0.6 + 0.4 * (flicker * 0.5 + 0.5));
-    return this.life > 0 && this.y > -20;
+
+    this.size = this.baseSize * (0.6 + 0.4 * (flicker * 0.5 + 0.5)) * (0.3 + 0.7 * lifeRatio);
+
+    // Opacity: full near text, fading as it drifts away
+    this.alpha = lifeRatio < 0.1
+      ? lifeRatio / 0.1
+      : lifeRatio > 0.7
+        ? 1
+        : 0.4 + 0.6 * lifeRatio;
+
+    this.alpha *= (0.7 + 0.3 * (flicker * 0.5 + 0.5));
+
+    return this.life > 0;
   }
 
   draw() {
     if (this.alpha < 0.02) return;
     const a = Math.min(this.alpha, 1);
+    const s = Math.max(this.size, 0.3);
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     ctx.shadowBlur = this.glowBase * a;
-    ctx.shadowColor = `rgba(${this.r},${this.g},${this.b},${a * 0.4})`;
-    ctx.fillStyle = `rgba(${this.r},${this.g},${this.b},${a * 0.7})`;
+    ctx.shadowColor = `rgba(${this.r},${this.g},${this.b},${a * 0.6})`;
+    ctx.fillStyle = `rgba(${this.r},${this.g},${this.b},${a * 0.9})`;
     ctx.beginPath();
-    ctx.arc(this.x, this.y, Math.max(this.size, 0.2), 0, Math.PI * 2);
+    ctx.arc(this.x, this.y, s, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
 }
 
-// ---- Init ----
-const TEXT_COUNT    = 350;  // embers forming "MECHA"
-const AMBIENT_COUNT = 50;   // background floating embers
-
-const textEmbers    = [];
-const ambientEmbers = [];
-
-window.addEventListener('resize', resize);
+// =============================================================
+//  Init
+// =============================================================
+window.addEventListener('resize', () => { resize(); sampleText(); });
 resize();
 
-// Wait a tick for font to load then re-sample
+// Wait for font then init
 setTimeout(() => {
-  sampleTextPoints();
-  // Init text embers
-  for (let i = 0; i < TEXT_COUNT; i++) {
-    const e = new TextEmber();
-    e.life = Math.random() * e.maxLife; // stagger
-    e.y = e.homeY + (e.life / e.maxLife - 1) * 30; // scatter vertically
-    textEmbers.push(e);
-  }
-  // Init ambient
-  for (let i = 0; i < AMBIENT_COUNT; i++) {
-    ambientEmbers.push(new AmbientEmber());
-  }
-}, 200);
+  sampleText();
 
-// ---- Draw loop ----
+  // Ambient embers (same as wallpaper 1)
+  for (let i = 0; i < MAX_AMBIENT; i++) {
+    const e = new Ember();
+    e.y = Math.random() * H;
+    e.life = Math.random() * e.maxLife;
+    ambientParticles.push(e);
+  }
+
+  // Text fire particles
+  for (let i = 0; i < MAX_TEXT; i++) {
+    textParticles.push(new TextFire());
+  }
+}, 250);
+
+// =============================================================
+//  Render loop
+// =============================================================
 function animate() {
   ctx.clearRect(0, 0, W, H);
 
-  // Draw subtle ambient glow at center
-  ctx.save();
-  ctx.globalCompositeOperation = 'screen';
-  const g = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.min(W,H) * 0.4);
-  g.addColorStop(0, 'rgba(224,52,14,.025)');
-  g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
-  ctx.restore();
-
-  // Text embers
-  for (let i = 0; i < textEmbers.length; i++) {
-    const e = textEmbers[i];
-    if (!e.update()) e.reset();
-    e.draw();
+  // Maintain ambient count
+  while (ambientParticles.length < MAX_AMBIENT) {
+    ambientParticles.push(new Ember());
   }
 
   // Ambient embers
-  for (let i = 0; i < ambientEmbers.length; i++) {
-    const e = ambientEmbers[i];
-    if (!e.update()) e.reset(false);
-    e.draw();
+  for (let i = ambientParticles.length - 1; i >= 0; i--) {
+    const p = ambientParticles[i];
+    if (!p.update()) p.reset();
+    p.draw();
+  }
+
+  // Text fire
+  for (let i = 0; i < textParticles.length; i++) {
+    const p = textParticles[i];
+    if (!p.update()) p.reset(false);
+    p.draw();
   }
 
   requestAnimationFrame(animate);
