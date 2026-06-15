@@ -1001,7 +1001,7 @@
     
     // Obtenemos aquellas que tengan valoración hacia el sistema
     api.client.from('resenas')
-      .select('id, negocio_id, mecha_puntuacion, mecha_comentario, autor_nombre, created_at, negocio_portal(nombre)')
+      .select('id, negocio_id, mecha_puntuacion, mecha_comentario, autor_nombre, created_at, negocio_portal(nombre_publico)')
       .not('mecha_puntuacion', 'is', null)
       .order('created_at', { ascending: false })
       .then(function (res) {
@@ -1041,7 +1041,7 @@
     var q = ($('qRes').value || '').trim().toLowerCase();
     return resenas.filter(function (r) {
       if (q) {
-        var hay = [r.mecha_comentario, r.autor_nombre, r.negocio_portal?.nombre].join(' ').toLowerCase();
+        var hay = [r.mecha_comentario, r.autor_nombre, r.negocio_portal?.nombre_publico].join(' ').toLowerCase();
         if (hay.indexOf(q) === -1) return false;
       }
       return true;
@@ -1049,7 +1049,7 @@
   }
 
   function resenaRowHtml(r) {
-    var salon = r.negocio_portal ? r.negocio_portal.nombre : 'Salón';
+    var salon = r.negocio_portal ? r.negocio_portal.nombre_publico : 'Salón';
     var stars = '';
     for(var i=1; i<=5; i++) {
       stars += i <= r.mecha_puntuacion ? '★' : '☆';
