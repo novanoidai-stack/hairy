@@ -372,18 +372,22 @@
     position: relative;
   }
   .share-bonus-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-family: var(--mono);
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.08em;
     color: var(--accent-hi);
     background: rgba(244, 80, 30, 0.14);
-    padding: 4px 8px;
-    border-radius: 6px;
+    padding: 5px 9px;
+    border-radius: 7px;
     margin-bottom: 12px;
     text-transform: uppercase;
   }
+  .share-bonus-badge svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .share-bonus-badge.neutral { color: var(--text-sec); background: rgba(255, 255, 255, 0.06); }
   .share-bonus-card h4 {
     font-family: var(--display);
     font-size: 16px;
@@ -709,7 +713,7 @@
       <button class="share-modal-close" id="shareModalClose" type="button" aria-label="Cerrar modal">&times;</button>
     </div>
     <div class="share-modal-body">
-      <div class="share-bonus-badge" style="background:rgba(255,255,255,.06);color:var(--text-sec);">🔗 Comparte la demo · cualquiera</div>
+      <div class="share-bonus-badge neutral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>Comparte la demo · cualquiera</div>
       <p class="share-desc" style="margin-top:8px;">Pásale este enlace a quien quieras: verá la demo guiada por dentro <b>sin registrarse y sin ninguna cuenta iniciada</b>.</p>
 
       <div class="share-link-row">
@@ -721,7 +725,7 @@
       </div>
 
       <div class="share-bonus-card">
-        <div class="share-bonus-badge">🎁 RED DE REFERIDOS · ÁRBOL</div>
+        <div class="share-bonus-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><line x1="8.1" y1="10.9" x2="15.9" y2="6.1" /><line x1="8.1" y1="13.1" x2="15.9" y2="17.9" /></svg>RED DE REFERIDOS · ÁRBOL</div>
 
         <div class="share-steps">
           <div class="share-step">
@@ -869,10 +873,10 @@
       lbl.textContent = 'Compartir demo';
       shareBtn.title = 'Copia el enlace y pásaselo a quien quieras: verá esta demo (con el tutorial) sin tener que registrarse.';
     } else if (profile) {
-      lbl.textContent = '🎁 Recomendar Mecha';
+      lbl.textContent = 'Recomendar Mecha';
       shareBtn.title = 'Comparte tu enlace y gana descuento por cada salon de tu red, y por los que ellos traen (hasta -40%).';
     } else {
-      lbl.textContent = '🎁 Recomendar Mecha';
+      lbl.textContent = 'Recomendar Mecha';
       shareBtn.title = 'Crea tu cuenta y consigue tu enlace de referido: ganas descuento por toda tu red.';
     }
   }
@@ -1033,7 +1037,11 @@
           var paga = r.paga === true;
           var planStr = paga ? 'Plan activo' : 'Demo / gratis';
           var planColor = paga ? '#2ecc71' : 'var(--text-sec)';
-          return '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; padding:7px 9px; background:rgba(255,255,255,0.01); border-radius:7px; border:1px solid rgba(255,255,255,0.04);">' +
+          // Punto de color por nivel: look de arbol genealogico (1 mas vivo -> 3 mas suave).
+          var dotColor = r.nivel === 1 ? '#ff7a2e' : (r.nivel === 2 ? '#ffb07a' : '#ffd9a8');
+          var dotRing = r.nivel === 1 ? 'rgba(255,122,46,0.18)' : 'rgba(255,176,122,0.12)';
+          return '<div style="display:flex; align-items:center; gap:10px; font-size:12px; padding:8px 11px; background:rgba(255,255,255,0.015); border-radius:9px; border:1px solid rgba(255,255,255,0.05);">' +
+            '<span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:' + dotColor + ';box-shadow:0 0 0 3px ' + dotRing + ';"></span>' +
             '<div style="min-width:0; flex:1;">' +
               '<div style="font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + r.nombre_negocio + '</div>' +
               '<div style="color:var(--text-ter); font-size:10.5px;">' + nivelLbl + ' · ' + dateStr + '</div>' +
