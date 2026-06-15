@@ -1,5 +1,16 @@
 # 🔥 MEGA INFORME MECHA — La foto real, sin maquillaje
 
+> ## ⚠️ ANTES DE CADA SESIÓN: `git pull`
+> Este repo se toca desde **varios ordenadores** (Carlos, Alexandro) y **producción
+> despliega desde `master`**. Antes de empezar a trabajar o de tocar nada, **siempre**:
+> ```bash
+> git pull origin master
+> ```
+> Y al terminar una tanda, `git push origin master`. Así nadie pisa el trabajo de otro
+> ni despliega sobre una base desactualizada. (Si hay cambios sin commitear, `git stash`
+> antes del pull.) Lo mismo aplica a la BD: el **historial remoto de Supabase manda**;
+> no asumir que una migración del repo está aplicada sin comprobarlo.
+
 > **Fecha:** 10 de junio de 2026
 > **Autores:** Carlos + Claude
 > **Sustituye a:** `INFORME_MAESTRO_MECHA.md` (8 jun) — quedó obsoleto en 48 horas: 9 de sus 14 tareas "pendientes" ya están hechas (§2).
@@ -453,4 +464,32 @@ Hoy, escalar = más horas nuestras por cada cliente (no escala). Con el modelo s
 **Decisiones para Jose (añadidas):**
 7. **Modelo de referido:** ¿validamos el árbol multinivel con tope −40% y recompensa por 3 niveles (10/4/2 + 15 bienvenida)? Afecta a margen y, si los descuentos se acumulan mucho, conviene cerrarlo con pricing definido (decisión §11.2 sigue abierta).
 8. **Prioridad self-service:** ¿cuándo arrancamos el aprovisionamiento zero-touch (Stripe webhook → plan, Twilio Bundles, Meta Embedded Signup)? Es lo que desbloquea App Store y cobro en web.
+
+---
+
+## ADENDO — Sesión del 15 de junio (tarde) · Referidos en el software, cuenta editable y anti-fraude
+
+Tanda de cierre del bloque de referidos, llevándolo del modal de la demo al **software real** y blindándolo. Todo aplicado en prod, desplegado y verificado en vivo (DOM sobre el iframe del software, método del Anexo A).
+
+### A. UX del modal de compartir (demo)
+- **Ahorro destacado:** el descuento se muestra **grande y en verde** (`−X%`, 36px con glow) + "X con plan activo" en verde. Antes el número del ahorro pasaba desapercibido.
+- **Reiniciar tutorial:** ahora cierra el panel que abriera un paso anterior y reposiciona el software al paso 1 (antes solo reiniciaba el texto y la ventana del paso previo se quedaba abierta).
+- **Botones** "Compartir demo" y "Quiero acceso completo" más llamativos (glow/latido, respeta `prefers-reduced-motion`); badges sin emoji (icono SVG, regla "sin emojis en UI").
+
+### B. El cliente YA ve su descuento dentro del software ✅ (gap cerrado)
+- Nueva pestaña **Ajustes → Cuenta → "Invita y gana"** (`app/(tabs)/configuracion.web.tsx`, `TabReferidos`): su código, su enlace (`/demo.html?share=1&ref=CODE`), el **descuento en verde** y el **árbol por niveles** (puntos de color por profundidad). Reusa los RPCs `get_my_referral_stats` / `get_my_referrals`. Verificado renderizando en el software real.
+
+### C. Cuenta editable — un solo sistema, no dos ✅
+- `TabCuenta` deja **editar nombre/apellidos/teléfono** (update del perfil propio, RLS "users can update own profile") y **cambiar la contraseña** (Supabase Auth `updateUser`). En la **demo compartida los campos van deshabilitados** (no se toca la cuenta `demo.publico`). Verificado: 5 inputs deshabilitados + aviso en demo.
+- **Decisión de arquitectura (respondida):** es **una sola base de datos**; la misma fila `profiles` vale para software y web. Editar en cualquiera de los dos se refleja en todo — no hay dos editores que sincronizar. El sitio canónico de edición es el software; la landing se queda con alta + restablecer contraseña.
+- De paso se retiró un **claim falso** de la pantalla de cuenta ("Plan Studio-Pro / Activo / al corriente de pago", inventado) → sección honesta "Plan y plazas".
+
+### D. Anti-fraude de multicuentas ✅ (`migrations/antifraude-signup-signals.sql`)
+- Se registra **server-side y una sola vez** la IP/UA/huella de dispositivo del alta (`record_signup_signal`, llamado en `acceso.html` tras autenticar; cubre email y SSO). Las columnas `signup_ip/ua/fingerprint` las **congela el guard** para que el cliente no las falsee.
+- Panel nuevo en `web/admin.html` que lista **racimos de cuentas con el mismo origen** (`staff_signup_clusters`, solo staff) para revisar antes de aplicar descuentos.
+- **Blindaje de fondo (recordatorio):** la recompensa solo cuenta a referidos que **PAGAN** (plan `full`), no a registros gratis → farmear cuentas gratis da 0€; y el descuento lo **aplica un humano** (staff) tras revisar. Anti-autoref + anti-ciclo + tope −40% siguen vigentes.
+- Advisors revisados: las RPCs cerradas a `anon`; el lint `0029` (security-definer ejecutable por *authenticated*) es **esperado** (son RPCs pensadas para el usuario logueado, con guard interno `auth.uid()`/`is_staff()`).
+
+### Estado del sistema de referidos (completo)
+Backend del árbol (multinivel, seguro) + atribución por código + vista del cliente en el software + panel de staff (aplicar descuento) + anti-fraude. **Pendiente de producto, no de código:** cerrar el **pricing** (decisión §11.2) antes de activar descuentos reales en facturación (eso lo aplica Alexandro en Stripe; el motor solo calcula elegibilidad).
 
