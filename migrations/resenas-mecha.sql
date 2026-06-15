@@ -2,6 +2,22 @@
 alter table public.resenas add column if not exists mecha_puntuacion smallint;
 alter table public.resenas add column if not exists mecha_comentario text;
 
+-- Asegurar relación con negocio_portal si no existe
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.table_constraints 
+    where constraint_name = 'fk_resenas_negocio_portal' 
+      and table_name = 'resenas'
+  ) then
+    alter table public.resenas 
+      add constraint fk_resenas_negocio_portal 
+      foreign key (negocio_id) references public.negocio_portal(negocio_id) 
+      on delete cascade;
+  end if;
+end;
+$$;
+
 -- Actualizar la función para guardar también los datos de Mecha
 create or replace function public.crear_resena_publica(
   p_slug          text,

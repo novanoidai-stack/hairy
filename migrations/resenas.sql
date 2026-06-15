@@ -8,7 +8,7 @@
 
 create table if not exists public.resenas (
   id             uuid primary key default gen_random_uuid(),
-  negocio_id     text not null,
+  negocio_id     text not null references public.negocio_portal(negocio_id) on delete cascade,
   cliente_id     uuid references public.clientes(id) on delete set null,
   cita_id        uuid references public.citas(id) on delete set null,
   profesional_id uuid references public.profesionales(id) on delete set null,

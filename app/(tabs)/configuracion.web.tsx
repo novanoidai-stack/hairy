@@ -5,6 +5,9 @@ import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import { useRouter } from 'expo-router';
+import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 import {
   Section, FieldRow, FieldStack, Toggle, NumberInput, STextInput, SSelect,
   Segmented, TimeInput, Badge, SoonBadge, SoonBanner, StatBox,
@@ -157,6 +160,7 @@ const TABS: TabDef[] = [
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion', soon: true },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion', soon: true },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
+  { id: 'resenas',        label: 'Reseñas recibidas', icon: 'star',   section: 'Comunicacion' },
   { id: 'referidos',      label: 'Invita y gana',  icon: 'gift',      section: 'Cuenta' },
   { id: 'accesos',        label: 'Accesos y roles', icon: 'shield',   section: 'Cuenta' },
   { id: 'cuenta',         label: 'Cuenta',         icon: 'lock',      section: 'Cuenta' },
@@ -879,6 +883,7 @@ export default function ConfiguracionWeb() {
             {tab === 'notificaciones' && <TabNotificaciones />}
             {tab === 'politicas' && <TabPoliticas />}
             {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
+            {tab === 'resenas' && <TabResenas />}
             {tab === 'referidos' && <TabReferidos />}
             {tab === 'accesos' && <TabAccesos negocioId={negocioId} currentUserId={userId} currentRole={account?.role ?? ''} />}
             {tab === 'cuenta' && <TabCuenta account={account} userId={userId} profCount={profesionales.length} />}
@@ -1988,15 +1993,15 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : '1fr 1fr 1fr auto', gap: 8, padding: '10px 16px', background: T.bg, borderBottom: `1px solid ${T.border}` }}>
                         <div>
                           <div style={{ fontSize: 10, color: T.textTertiary, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>ACTIVA</div>
-                          <NumberInput value={effActiva} onChange={v => onSaveDurProf(s.id!, profId, 'duracion_activa_min', typeof v === 'number' ? v : parseInt(String(v), 10))} unit="min" step={5} />
+                          <NumberInput value={effActiva} onChange={v => onSaveDurProf(s.id!, profId, 'duracion_activa_min', typeof v === 'number' ? v : parseInt(String(v), 10))} unit="min" step={1} />
                         </div>
                         <div>
                           <div style={{ fontSize: 10, color: T.textTertiary, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>ESPERA</div>
-                          <NumberInput value={effEspera} onChange={v => onSaveDurProf(s.id!, profId, 'duracion_espera_min', typeof v === 'number' ? v : parseInt(String(v), 10))} unit="min" step={5} />
+                          <NumberInput value={effEspera} onChange={v => onSaveDurProf(s.id!, profId, 'duracion_espera_min', typeof v === 'number' ? v : parseInt(String(v), 10))} unit="min" step={1} />
                         </div>
                         <div>
                           <div style={{ fontSize: 10, color: T.textTertiary, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>EXTRA</div>
-                          <NumberInput value={effExtra} onChange={v => onSaveDurProf(s.id!, profId, 'duracion_activa_extra_min', typeof v === 'number' ? v : parseInt(String(v), 10))} unit="min" step={5} />
+                          <NumberInput value={effExtra} onChange={v => onSaveDurProf(s.id!, profId, 'duracion_activa_extra_min', typeof v === 'number' ? v : parseInt(String(v), 10))} unit="min" step={1} />
                         </div>
                         <div style={{ alignSelf: 'flex-end' }}>
                           {dp && <IconBtn icon="x" size={28} tone="danger" onClick={() => onResetDurProf(s.id!, profId)} title="Restablecer" />}
@@ -2573,6 +2578,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
   defaultDireccion?: string;
   defaultTelefono?: string;
 }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activo, setActivo] = useState(true);
@@ -2740,6 +2746,11 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
                     </div>
                   </div>
                 )}
+                <div style={{ marginTop: 12, borderTop: `1px solid ${T.border}`, paddingTop: 12 }}>
+                  <Btn variant="ghost" size="sm" onClick={() => router.push('/(tabs)/resenas' as any)}>
+                    Ver todas las reseñas recibidas →
+                  </Btn>
+                </div>
               </>
             ) : (
               <span style={{ fontSize: 12, color: T.textTertiary }}>Guarda el enlace de reserva para activar tambien el de valoracion.</span>
@@ -2785,6 +2796,145 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         <Btn variant="primary" onClick={guardar} disabled={saving}>{saving ? 'Guardando...' : 'Guardar portal'}</Btn>
         {msg && <span style={{ fontSize: 13, color: msg.ok ? T.success : T.danger }}>{msg.text}</span>}
       </div>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// TabResenas: Gestión de opiniones del salón
+// ---------------------------------------------------------------------------
+function TabResenas() {
+  const [loading, setLoading] = useState(true);
+  const [resenas, setResenas] = useState<any[]>([]);
+
+  const cargar = useCallback(async () => {
+    setLoading(true);
+    const profile = await getUserProfile();
+    const nId = profile?.negocio_id;
+    if (!nId) {
+      setLoading(false);
+      return;
+    }
+
+    const { data } = await supabase
+      .from('resenas')
+      .select('id, puntuacion, comentario, autor_nombre, created_at, visible, fuente')
+      .eq('negocio_id', nId)
+      .order('created_at', { ascending: false });
+
+    if (data) setResenas(data);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  const toggleVisibility = async (id: string, current: boolean) => {
+    const next = !current;
+    setResenas(prev => prev.map(r => r.id === id ? { ...r, visible: next } : r));
+    await supabase.from('resenas').update({ visible: next }).eq('id', id);
+  };
+
+  const deleteResena = async (id: string) => {
+    if (!confirm('¿Seguro que quieres eliminar esta reseña? No se puede deshacer.')) return;
+    setResenas(prev => prev.filter(r => r.id !== id));
+    await supabase.from('resenas').delete().eq('id', id);
+  };
+
+  const media = useMemo(() => {
+    if (resenas.length === 0) return 0;
+    const sum = resenas.reduce((acc, r) => acc + r.puntuacion, 0);
+    return Math.round((sum / resenas.length) * 10) / 10;
+  }, [resenas]);
+
+  const renderStars = (val: number) => {
+    return (
+      <span style={{ display: 'inline-flex', gap: 2 }}>
+        {[1, 2, 3, 4, 5].map(n => (
+          <SettingsIcon key={n} name="star" size={15} color={n <= Math.round(val) ? '#f59e0b' : 'rgba(40,30,24,0.12)'} />
+        ))}
+      </span>
+    );
+  };
+
+  if (loading) return <div style={{ color: T.textSecondary, padding: 20 }}>Cargando reseñas...</div>;
+
+  return (
+    <>
+      <Section
+        title="Resumen de valoraciones"
+        desc="Estadísticas de opinión sobre tu salón recopiladas desde el portal público."
+        action={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: T.bg, padding: '10px 16px', borderRadius: 12, border: `1px solid ${T.border}` }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Media</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: T.text, marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                {media || '-'} {renderStars(media)}
+              </div>
+            </div>
+            <div style={{ width: 1, height: 28, background: T.border }} />
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Total</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginTop: 2 }}>
+                {resenas.length}
+              </div>
+            </div>
+          </div>
+        }
+      >
+        {resenas.length === 0 ? (
+          <div style={{ padding: '32px 16px', textAlign: 'center', color: T.textTertiary }}>
+            Aún no has recibido valoraciones de clientes en tu portal de reservas.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16, marginTop: 12 }}>
+            {resenas.map(r => (
+              <div key={r.id} style={{
+                background: T.bgCard,
+                border: `1px solid ${T.border}`,
+                borderRadius: 12,
+                padding: 16,
+                display: 'flex',
+                flexDirection: 'column',
+                opacity: r.visible ? 1 : 0.6,
+                transition: 'opacity 0.2s ease',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text }}>{r.autor_nombre || 'Anónimo'}</div>
+                    <div style={{ fontSize: 11, color: T.textTertiary, marginTop: 1 }}>
+                      {new Date(r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <button
+                      onClick={() => toggleVisibility(r.id, r.visible)}
+                      title={r.visible ? "Ocultar de la web" : "Mostrar en la web"}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: r.visible ? T.primary : T.textTertiary, padding: 4, borderRadius: 6, display: 'flex' }}
+                    >
+                      <SettingsIcon name={r.visible ? 'eye' : 'eyeOff'} size={15} color="currentColor" />
+                    </button>
+                    <button
+                      onClick={() => deleteResena(r.id)}
+                      title="Eliminar reseña"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.danger, padding: 4, borderRadius: 6, display: 'flex' }}
+                    >
+                      <SettingsIcon name="trash" size={15} color="currentColor" />
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 10 }}>{renderStars(r.puntuacion)}</div>
+
+                <div style={{ fontSize: 13, color: T.textSecondary, lineHeight: 1.45, flex: 1, fontStyle: r.comentario ? 'normal' : 'italic' }}>
+                  {r.comentario ? `"${r.comentario}"` : 'Sin comentario adicional.'}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
     </>
   );
 }

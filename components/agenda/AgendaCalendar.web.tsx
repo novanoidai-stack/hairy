@@ -5192,7 +5192,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                   setValue={setActivo}
                   min={5}
                   max={240}
-                  step={5}
+                  step={1}
                   color={TOKENS.primary}
                   chips={[15, 30, 45, 60, 90, 120]}
                 />
@@ -5208,7 +5208,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                   setValue={setEspera}
                   min={0}
                   max={120}
-                  step={5}
+                  step={1}
                   color="#f59e0b"
                   chips={[0, 15, 30, 45, 60]}
                 />
@@ -5224,7 +5224,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                   setValue={setActivo2}
                   min={0}
                   max={120}
-                  step={5}
+                  step={1}
                   color={TOKENS.primary}
                   chips={[0, 15, 30, 45, 60]}
                 />
@@ -5650,7 +5650,9 @@ function TimeSlider({ label, hint, value, setValue, min, max, step, color, chips
     if (!trackRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const newVal = Math.round(ratio * (max - min) + min);
+    const stepVal = step || 1;
+    const rawVal = ratio * (max - min) + min;
+    const newVal = Math.round((rawVal - min) / stepVal) * stepVal + min;
     setValue(Math.max(min, Math.min(max, newVal)));
   };
 

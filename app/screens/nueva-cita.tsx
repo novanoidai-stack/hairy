@@ -406,14 +406,14 @@ export default function NuevaCitaScreen() {
               <TText style={[s.horaSep, { color: c.textTertiary }]}>:</TText>
 
               {/* Minutos */}
-              <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(0, -5)}>
+              <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(0, -1)}>
                 <Ionicons name="remove" size={18} color={c.text} />
               </TouchableOpacity>
               <View style={[s.horaNum, { backgroundColor: '#f4501e22', borderColor: '#f4501e33' }]}>
                 <TText style={s.horaNumText}>{String(inicio.getMinutes()).padStart(2, '0')}</TText>
                 <TText style={s.horaNumLabel}>min</TText>
               </View>
-              <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(0, 5)}>
+              <TouchableOpacity style={[s.horaBtn, { backgroundColor: isDark ? '#334155' : c.bgTertiary }]} onPress={() => cambiarHora(0, 1)}>
                 <Ionicons name="add" size={18} color={c.text} />
               </TouchableOpacity>
             </View>
@@ -424,23 +424,23 @@ export default function NuevaCitaScreen() {
                 <DuracionRow
                   label="Tiempo activo"
                   value={duracionActiva}
-                  onMinus={() => setDuracionActivaCustom(Math.max(5, duracionActiva - 5))}
-                  onPlus={() => setDuracionActivaCustom(duracionActiva + 5)}
+                  onMinus={() => setDuracionActivaCustom(Math.max(1, duracionActiva - 1))}
+                  onPlus={() => setDuracionActivaCustom(duracionActiva + 1)}
                   c={c} isDark={isDark}
                 />
                 <DuracionRow
                   label="Tiempo de reposo"
                   value={duracionEspera}
-                  onMinus={() => setDuracionEsperaCustom(Math.max(0, duracionEspera - 5))}
-                  onPlus={() => setDuracionEsperaCustom(duracionEspera + 5)}
+                  onMinus={() => setDuracionEsperaCustom(Math.max(0, duracionEspera - 1))}
+                  onPlus={() => setDuracionEsperaCustom(duracionEspera + 1)}
                   c={c} isDark={isDark}
                 />
                 {duracionEspera > 0 && (
                   <DuracionRow
                     label="Tiempo activo extra"
                     value={duracionActivaExtra}
-                    onMinus={() => setDuracionActivaExtraCustom(Math.max(0, duracionActivaExtra - 5))}
-                    onPlus={() => setDuracionActivaExtraCustom(duracionActivaExtra + 5)}
+                    onMinus={() => setDuracionActivaExtraCustom(Math.max(0, duracionActivaExtra - 1))}
+                    onPlus={() => setDuracionActivaExtraCustom(duracionActivaExtra + 1)}
                     c={c} isDark={isDark}
                   />
                 )}

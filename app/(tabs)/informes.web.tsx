@@ -201,6 +201,7 @@ const KPI_INFO: Record<string, string> = {
   'Reposo aprovechado': 'Porcentaje del tiempo de reposo (p. ej. mientras actua un tinte) que se reutiliza para atender a otro cliente. Mide la eficiencia de la agenda.',
   'Clientes activos': 'Clientes distintos con al menos una cita en el periodo. Es tu base de clientes viva, no el historico total acumulado.',
   'Retencion (frec. media)': 'Dias de media entre visitas de un mismo cliente en el periodo. Cuanto mas baja la cifra, antes vuelven: indica fidelidad.',
+  'Valoración media': 'La valoración media de 1 a 5 estrellas dejada por tus clientes en el portal de valoración durante el periodo seleccionado.',
 };
 
 // Explicaciones de cada seccion de informe (clave = id de seccion).
@@ -338,6 +339,7 @@ export default function InformesScreen() {
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [resenas, setResenas] = useState<{ puntuacion: number }[]>([]);
 
   // UI
   const [comisionPct, setComisionPct] = useState<number>(30);
@@ -357,7 +359,7 @@ export default function InformesScreen() {
 
     const { desde, hasta } = getRango(periodo);
 
-    const [citaRes, profRes, srvRes, cltRes] = await Promise.all([
+    const [citaRes, profRes, srvRes, cltRes, resRes] = await Promise.all([
       supabase
         .from('citas')
         .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id')
@@ -367,12 +369,19 @@ export default function InformesScreen() {
       supabase.from('profesionales').select('id, nombre, color, activo, categoria').eq('negocio_id', nId),
       supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min').eq('negocio_id', nId),
       supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', nId),
+      supabase
+        .from('resenas')
+        .select('puntuacion')
+        .eq('negocio_id', nId)
+        .gte('created_at', desde.toISOString())
+        .lte('created_at', hasta.toISOString()),
     ]);
 
     setCitas(citaRes.data ?? []);
     setProfesionales(profRes.data ?? []);
     setServicios(srvRes.data ?? []);
     setClientes(cltRes.data ?? []);
+    setResenas(resRes.data ?? []);
     setLoading(false);
   }
 
@@ -405,6 +414,12 @@ export default function InformesScreen() {
   }, [activas, srvMap]);
 
   const tasaNoShow = totalCitas > 0 ? (noShows.length / totalCitas) * 100 : 0;
+
+  const ratingMedia = useMemo(() => {
+    if (resenas.length === 0) return 0;
+    const sum = resenas.reduce((acc, r) => acc + r.puntuacion, 0);
+    return Math.round((sum / resenas.length) * 10) / 10;
+  }, [resenas]);
 
   // -- 9.1: Ocupacion por profesional / franja / dia --
   // Porcentajes relativos al total de citas (no horas disponibles)
@@ -1146,6 +1161,7 @@ export default function InformesScreen() {
                 { label: 'Reposo aprovechado', value: fmtPct(reposoData.pctGlobal), icon: 'zap', color: TOKENS.violet, bg: TOKENS.violetSoft },
                 { label: 'Clientes activos', value: retencionData.clientesActivos, icon: 'users', color: TOKENS.primary, bg: TOKENS.primarySoft },
                 { label: 'Retencion (frec. media)', value: `${Math.round(retencionData.avgFreq)} dias`, icon: 'heart', color: TOKENS.rose, bg: TOKENS.roseSoft },
+                { label: 'Valoración media', value: resenas.length > 0 ? `${ratingMedia} ★ (${resenas.length})` : 'Sin valorar', icon: 'star', color: TOKENS.amber, bg: TOKENS.amberSoft },
               ].map((kpi, i) => (
                 <div key={kpi.label} className="kpi-card" style={{
                   padding: isMobile ? '12px 12px' : '16px 18px', borderRadius: 14, background: TOKENS.bgCard,

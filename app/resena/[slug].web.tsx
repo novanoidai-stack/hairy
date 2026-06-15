@@ -98,8 +98,8 @@ export default function ResenaWeb() {
         mechaComentario: mechaComentario.trim() || undefined,
       });
       setEnviado(true);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'No se pudo enviar la valoración.');
+    } catch (e: any) {
+      setError(e?.message || 'No se pudo enviar la valoración.');
     } finally {
       setEnviando(false);
     }

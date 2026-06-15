@@ -1235,11 +1235,9 @@
 
   STEPS.forEach(function(_,i){ var d=document.createElement('span'); if(i===0)d.className='on'; tourDots.appendChild(d); });
 
-  // Lleva el iframe del software a la pagina que describe el paso actual.
-  // Mismo origen: usamos postMessage y la app hace router.push(route) sin recargar.
   var lastRoute=null;
   function navFrame(route){
-    if(maqueta||!route||route===lastRoute) return;
+    if(maqueta||!route) return;
     lastRoute=route;
     try{
       if(frame.contentWindow){

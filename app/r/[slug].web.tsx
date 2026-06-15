@@ -40,6 +40,17 @@ const ANIM = `
   @keyframes rpRing { 0% { transform: scale(0.6); opacity: 0.55 } 100% { transform: scale(1.9); opacity: 0 } }
   @keyframes rpShimmer { 0% { background-position: -360px 0 } 100% { background-position: 360px 0 } }
   @keyframes rpBarUp { from { transform: translateY(120%) } to { transform: translateY(0) } }
+  @keyframes floatBlob1 {
+    0%, 100% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.08); }
+    66% { transform: translate(-20px, 20px) scale(0.95); }
+  }
+  @keyframes floatBlob2 {
+    0%, 100% { transform: translate(0px, 0px) scale(1); }
+    50% { transform: translate(-40px, 40px) scale(1.1); }
+  }
+  .float-blob1 { animation: floatBlob1 18s ease-in-out infinite alternate; filter: blur(70px); opacity: 0.45; }
+  .float-blob2 { animation: floatBlob2 24s ease-in-out infinite alternate; filter: blur(80px); opacity: 0.35; }
   .rp-step { animation: rpUp 0.45s cubic-bezier(0.16,1,0.3,1) both }
   .rp-stagger > * { animation: rpUp 0.5s cubic-bezier(0.16,1,0.3,1) both }
   .rp-flame { animation: rpFlicker 3.4s ease-in-out infinite; transform-origin: 50% 80% }
@@ -61,7 +72,7 @@ const ANIM = `
   .rp-skel { background: linear-gradient(90deg, rgba(40,30,24,0.05) 25%, rgba(40,30,24,0.10) 37%, rgba(40,30,24,0.05) 63%); background-size: 720px 100%; animation: rpShimmer 1.4s linear infinite; border-radius: 10px }
   .rp-field:focus { border-color: ${T.primary} !important; box-shadow: 0 0 0 3px ${T.primarySoft} }
   @media (prefers-reduced-motion: reduce) {
-    .rp-step, .rp-stagger > *, .rp-flame, .rp-bar, .rp-skel { animation: none !important }
+    .rp-step, .rp-stagger > *, .rp-flame, .rp-bar, .rp-skel, .float-blob1, .float-blob2 { animation: none !important }
     .rp-opt, .rp-slot, .rp-day, .rp-cta { transition: none !important }
   }
 `;
@@ -345,13 +356,44 @@ export default function PortalReservaWeb() {
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
 
       {step !== 'confirmado' && (
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: T.text }}>{STEPS[stepIndex]?.label}</span>
-            <span style={{ fontSize: 11.5, color: T.textTer }}>Paso {stepIndex + 1} de {STEPS.length}</span>
+        <div style={{ marginBottom: 28, position: 'relative' }}>
+          {/* Stepper horizontal */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', padding: '0 8px', marginBottom: 14 }}>
+            {/* Línea de fondo */}
+            <div style={{ position: 'absolute', left: 20, right: 20, top: '50%', transform: 'translateY(-50%)', height: 4, background: 'rgba(40,30,24,0.06)', borderRadius: 999, zIndex: 0 }} />
+            {/* Línea de progreso rellenada */}
+            <div style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', height: 4, width: `${(stepIndex / (STEPS.length - 1)) * 100}%`, background: FIRE, borderRadius: 999, transition: 'width 0.4s ease', zIndex: 0 }} />
+            
+            {STEPS.map((s, idx) => {
+              const isActive = idx === stepIndex;
+              const isCompleted = idx < stepIndex;
+              return (
+                <div key={s.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, position: 'relative' }}>
+                  <div style={{
+                     width: isActive ? 38 : 30,
+                     height: isActive ? 38 : 30,
+                     borderRadius: '50%',
+                     background: isActive ? FIRE : (isCompleted ? FIRE : T.card),
+                     border: `2px solid ${isActive ? 'transparent' : (isCompleted ? 'transparent' : T.border)}`,
+                     display: 'flex',
+                     alignItems: 'center',
+                     justifyContent: 'center',
+                     fontSize: isActive ? 15 : 13,
+                     fontWeight: 800,
+                     color: (isActive || isCompleted) ? '#fff' : T.textTer,
+                     boxShadow: isActive ? '0 6px 16px rgba(244,80,30,0.35)' : 'none',
+                     transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
+                  }}>
+                    {isCompleted ? '✓' : idx + 1}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div style={{ height: 5, borderRadius: 999, background: 'rgba(40,30,24,0.08)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${Math.max(progreso * 100, 6)}%`, background: FIRE, borderRadius: 999, transition: 'width 0.5s cubic-bezier(0.16,1,0.3,1)' }} />
+          {/* Nombre del paso activo en grande */}
+          <div style={{ textAlign: 'center', marginTop: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '1.5px' }}>Paso {stepIndex + 1} de {STEPS.length}</span>
+            <h2 style={{ margin: '4px 0 0 0', fontSize: 22, fontWeight: 800, color: T.text, letterSpacing: -0.2 }}>{STEPS[stepIndex]?.label}</h2>
           </div>
         </div>
       )}
@@ -371,10 +413,10 @@ export default function PortalReservaWeb() {
             {info.servicios.map((sv, i) => (
               <button key={sv.id} className="rp-opt" onClick={() => elegirServicio(sv)} style={{ ...optStyle, animationDelay: `${i * 0.05}s` }}>
                 {sv.foto_url ? (
-                  <img src={sv.foto_url} alt="" style={{ width: 54, height: 54, borderRadius: 12, objectFit: 'cover', flexShrink: 0, background: T.cardHi }} />
+                  <img src={sv.foto_url} alt="" style={{ width: 80, height: 80, borderRadius: 14, objectFit: 'cover', flexShrink: 0, background: T.cardHi }} />
                 ) : (
-                  <span style={{ display: 'inline-flex', width: 42, height: 42, borderRadius: 12, background: T.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon name="scissors" size={19} color={T.primary} />
+                  <span style={{ display: 'inline-flex', width: 80, height: 80, borderRadius: 14, background: T.primarySoft, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name="scissors" size={26} color={T.primary} />
                   </span>
                 )}
                 <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
@@ -640,18 +682,21 @@ const primaryBtn: React.CSSProperties = {
 
 function Shell({ children, negocio, resenas }: { children: React.ReactNode; negocio?: PortalInfo['negocio']; resenas?: ResenaResumen | null }) {
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, padding: '0 16px 48px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
-      {/* Resplandor calido de fondo */}
-      <div aria-hidden style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 520, height: 320, background: 'radial-gradient(closest-side, rgba(244,80,30,0.10), transparent)', pointerEvents: 'none' }} />
-      <div style={{ maxWidth: 800, margin: '0 auto', position: 'relative' }}>
-        <header style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '24px 4px 18px' }}>
-          <span className="rp-flame" style={{ display: 'inline-flex' }}><MechaMark size={36} /></span>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #fff5f0 0%, #fdf0e8 50%, #f5ebff 100%)', padding: '0 16px 48px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
+      {/* Blobs pasteles decorativos flotantes */}
+      <div className="float-blob1" aria-hidden style={{ position: 'absolute', top: '8%', left: '8%', width: 320, height: 320, borderRadius: '50%', background: '#ffdcd0', pointerEvents: 'none', zIndex: 0 }} />
+      <div className="float-blob2" aria-hidden style={{ position: 'absolute', bottom: '12%', right: '8%', width: 380, height: 380, borderRadius: '50%', background: '#eadeff', pointerEvents: 'none', zIndex: 0 }} />
+      {/* Resplandor calido de fondo original */}
+      <div aria-hidden style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 520, height: 320, background: 'radial-gradient(closest-side, rgba(244,80,30,0.12), transparent)', pointerEvents: 'none', zIndex: 0 }} />
+      
+      <div style={{ maxWidth: 800, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '28px 4px 20px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: SERIF, fontSize: 25, color: T.text, letterSpacing: -0.2, lineHeight: 1.05 }}>
+            <div style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 800, color: T.text, letterSpacing: -0.2, lineHeight: 1.05 }}>
               {negocio?.nombre || 'Reserva tu cita'}
             </div>
             {(negocio?.direccion || (resenas && resenas.total > 0)) && (
-              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginTop: 5 }}>
                 {resenas && resenas.total > 0 && (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                     <span style={{ display: 'inline-flex', color: T.star }} dangerouslySetInnerHTML={{ __html: '<svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' }} />
@@ -667,8 +712,14 @@ function Shell({ children, negocio, resenas }: { children: React.ReactNode; nego
               </div>
             )}
           </div>
+          {/* Logo y nombre de Mecha en la esquina */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(10px)', border: '1px solid rgba(244, 80, 30, 0.16)', padding: '6px 12px', borderRadius: 999, flexShrink: 0, boxShadow: '0 4px 12px rgba(40,30,24,0.03)' }}>
+            <span className="rp-flame" style={{ display: 'inline-flex' }}><MechaMark size={14} /></span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.8px' }}>mecha</span>
+          </div>
         </header>
-        <main style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 22, padding: 22, boxShadow: '0 16px 50px rgba(40,30,24,0.08)' }}>
+        {/* Panel principal con acabado Glassmorphism */}
+        <main style={{ background: 'rgba(255, 253, 251, 0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(244, 80, 30, 0.08)', borderRadius: 22, padding: 22, boxShadow: '0 24px 60px rgba(40,30,24,0.06)' }}>
           {children}
         </main>
         <div style={{ textAlign: 'center', fontSize: 11.5, color: T.textTer, marginTop: 16 }}>
