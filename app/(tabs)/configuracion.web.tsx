@@ -156,6 +156,7 @@ const TABS: TabDef[] = [
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion', soon: true },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion', soon: true },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
+  { id: 'referidos',      label: 'Invita y gana',  icon: 'gift',      section: 'Cuenta' },
   { id: 'accesos',        label: 'Accesos y roles', icon: 'shield',   section: 'Cuenta' },
   { id: 'cuenta',         label: 'Cuenta',         icon: 'lock',      section: 'Cuenta' },
   { id: 'soporte',        label: 'Soporte',        icon: 'mail',      section: 'Cuenta' },
@@ -876,8 +877,9 @@ export default function ConfiguracionWeb() {
             {tab === 'notificaciones' && <TabNotificaciones />}
             {tab === 'politicas' && <TabPoliticas />}
             {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
+            {tab === 'referidos' && <TabReferidos />}
             {tab === 'accesos' && <TabAccesos negocioId={negocioId} currentUserId={userId} currentRole={account?.role ?? ''} />}
-            {tab === 'cuenta' && <TabCuenta account={account} profCount={profesionales.length} />}
+            {tab === 'cuenta' && <TabCuenta account={account} userId={userId} profCount={profesionales.length} />}
             {tab === 'soporte' && <TabSoporte account={account} />}
           </div>
         </div>
@@ -1058,6 +1060,101 @@ function ReadValue({ children, mono, width }: { children: ReactNode; mono?: bool
 }
 
 // ===========================================================================
+// Tab: Invita y gana — red de referidos del cliente (codigo, enlace, arbol)
+// ===========================================================================
+
+interface ReferralRow { nivel: number; nombre_negocio: string; created_at: string; plan: string; paga: boolean }
+
+function TabReferidos() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<any>(null);
+  const [tree, setTree] = useState<ReferralRow[]>([]);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      const [s, t] = await Promise.all([
+        supabase.rpc('get_my_referral_stats'),
+        supabase.rpc('get_my_referrals'),
+      ]);
+      if (cancel) return;
+      setStats(s.data || null);
+      setTree(Array.isArray(t.data) ? (t.data as ReferralRow[]) : []);
+      setLoading(false);
+    })();
+    return () => { cancel = true; };
+  }, []);
+
+  const codigo: string = stats?.codigo || '';
+  const pct = Number(stats?.descuento_pct || 0);
+  const aplicado = stats?.descuento_aplicado === true;
+  const total = Number(stats?.total || 0);
+  const pagando = Number(stats?.pagando || 0);
+  const link = codigo && typeof window !== 'undefined'
+    ? `${window.location.origin}/demo.html?share=1&ref=${codigo}`
+    : '';
+
+  const copy = (text: string) => {
+    if (!text) return;
+    try { navigator.clipboard?.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* sin clipboard */ }
+  };
+
+  return (
+    <>
+      <Section
+        title="Invita y gana"
+        desc="Comparte tu enlace con otros salones. Ganas descuento en tu plan por cada uno que entra contigo y activa su suscripcion, y tambien por los que ellos traigan (hasta 3 niveles, maximo 40%)."
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+          <StatBox label="Tu descuento" value={`-${pct}%`} sub={pct > 0 ? (aplicado ? 'activo en tu plan' : 'acumulado en tu plan') : 'aun sin descuento'} accent={pct > 0 ? T.success : undefined} />
+          <StatBox label="Salones en tu red" value={String(total)} sub={total === 1 ? '1 invitado' : `${total} invitados`} />
+          <StatBox label="Con plan activo" value={String(pagando)} sub="los que ya pagan" accent={pagando > 0 ? T.success : undefined} />
+        </div>
+        <FieldRow label="Tu enlace de referido" hint="Quien entra con el ve la demo y, al crear su cuenta, queda enganchado a la tuya.">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <ReadValue mono width={360}>{link || (loading ? 'Cargando...' : '--')}</ReadValue>
+            <IconBtn icon={copied ? 'check' : 'copy'} tone={copied ? 'primary' : 'neutral'} onClick={() => copy(link)} title="Copiar enlace" />
+            {copied && <span style={{ fontSize: 11, fontWeight: 600, color: T.primaryHi }}>Copiado</span>}
+          </div>
+        </FieldRow>
+        <FieldRow label="Tu codigo" hint="El identificador unico de tu enlace de referido.">
+          <ReadValue mono>{codigo || (loading ? '...' : '--')}</ReadValue>
+        </FieldRow>
+      </Section>
+
+      <Section title="Tu red" desc="Los salones que han entrado con tu enlace, por niveles. El descuento se activa cuando empiezan a pagar su plan.">
+        {loading ? (
+          <div style={{ fontSize: 13, color: T.textTertiary, padding: '8px 0' }}>Cargando tu red...</div>
+        ) : tree.length === 0 ? (
+          <div style={{ fontSize: 13, color: T.textTertiary, padding: '8px 0' }}>
+            Aun no ha entrado nadie con tu enlace. Comparte el enlace de arriba para empezar a ganar descuento.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {tree.map((r, i) => {
+              // Degradado de profundidad legible sobre el fondo crema del software.
+              const dot = r.nivel === 1 ? '#f4501e' : (r.nivel === 2 ? '#f0853f' : '#d99a3f');
+              const ring = r.nivel === 1 ? 'rgba(244,80,30,0.16)' : 'rgba(240,133,63,0.14)';
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 12px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: 999, background: dot, flexShrink: 0, boxShadow: `0 0 0 3px ${ring}` }} />
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 600, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.nombre_negocio}</div>
+                    <div style={{ fontSize: 11.5, color: T.textTertiary }}>{r.nivel === 1 ? 'Directo' : `Nivel ${r.nivel}`} · {new Date(r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}</div>
+                  </div>
+                  <Badge tone={r.paga ? 'success' : 'neutral'}>{r.paga ? 'Plan activo' : 'Demo / gratis'}</Badge>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Section>
+    </>
+  );
+}
+
+// ===========================================================================
 // Tab: Cuenta — informacion real de la cuenta + plan
 // ===========================================================================
 
@@ -1225,15 +1322,60 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
   );
 }
 
-function TabCuenta({ account, profCount }: { account: AccountInfo | null; profCount: number }) {
-  const [copied, setCopied] = useState(false);
+function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null; userId: string; profCount: number }) {
   const a = account;
-  const nombreCompleto = a ? (`${a.nombre} ${a.apellido}`.trim() || '--') : '--';
+  const demo = IS_DEMO_MODE;
   const roleLabel = a?.role ? (ROLE_LABEL[a.role] ?? a.role) : '--';
   const memberSince = a?.creadoEn
     ? new Date(a.creadoEn).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
     : '--';
   const plazasLibres = Math.max(0, 10 - profCount);
+
+  // Edicion del perfil propio (RLS "users can update own profile").
+  const [nombre, setNombre] = useState(a?.nombre || '');
+  const [apellido, setApellido] = useState(a?.apellido || '');
+  const [telefono, setTelefono] = useState(a?.telefono || '');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savedProfile, setSavedProfile] = useState(false);
+  const [profileErr, setProfileErr] = useState('');
+
+  // Cambio de contraseña (Supabase Auth, sesion vigente).
+  const [pass1, setPass1] = useState('');
+  const [pass2, setPass2] = useState('');
+  const [savingPass, setSavingPass] = useState(false);
+  const [passMsg, setPassMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setNombre(a?.nombre || ''); setApellido(a?.apellido || ''); setTelefono(a?.telefono || '');
+  }, [a?.nombre, a?.apellido, a?.telefono]);
+
+  const dirty = nombre !== (a?.nombre || '') || apellido !== (a?.apellido || '') || telefono !== (a?.telefono || '');
+
+  const saveProfile = async () => {
+    if (!userId || demo) return;
+    setSavingProfile(true); setProfileErr(''); setSavedProfile(false);
+    const { error } = await supabase.from('profiles')
+      .update({ nombre: nombre.trim(), apellido: apellido.trim(), phone: telefono.trim() })
+      .eq('id', userId);
+    setSavingProfile(false);
+    if (error) { setProfileErr('No se pudo guardar. Intentalo de nuevo.'); return; }
+    setSavedProfile(true); setTimeout(() => setSavedProfile(false), 2200);
+  };
+
+  const changePassword = async () => {
+    if (demo) return;
+    setPassMsg(null);
+    if (pass1.length < 8) { setPassMsg({ ok: false, text: 'La contraseña necesita al menos 8 caracteres.' }); return; }
+    if (pass1 !== pass2) { setPassMsg({ ok: false, text: 'Las dos contraseñas no coinciden.' }); return; }
+    setSavingPass(true);
+    const { error } = await supabase.auth.updateUser({ password: pass1 });
+    setSavingPass(false);
+    if (error) { setPassMsg({ ok: false, text: 'No se pudo cambiar. Cierra sesion, vuelve a entrar e intentalo de nuevo.' }); return; }
+    setPass1(''); setPass2('');
+    setPassMsg({ ok: true, text: 'Contraseña actualizada correctamente.' });
+  };
 
   const copyId = () => {
     if (!a?.negocioId) return;
@@ -1246,11 +1388,32 @@ function TabCuenta({ account, profCount }: { account: AccountInfo | null; profCo
 
   return (
     <>
-      <Section title="Tu cuenta" desc="Datos de la cuenta con la que has iniciado sesion. Para cambiar el email de acceso o la contraseña, escribe al equipo de soporte.">
+      <Section title="Tus datos" desc="Tu nombre y telefono. Se guardan en tu cuenta y se reflejan en todo el sistema: el mismo dato vale para el software y para la web.">
+        {demo && (
+          <div style={{ fontSize: 12.5, color: T.textTertiary, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 9, padding: '9px 12px', marginBottom: 4 }}>
+            Estas en la demo compartida: aqui los datos no se pueden editar.
+          </div>
+        )}
         <FieldRow label="Nombre" hint="Como apareces en el equipo y en el historial de citas.">
-          <ReadValue>{nombreCompleto}</ReadValue>
+          <STextInput value={nombre} onChange={setNombre} width={260} disabled={demo} placeholder="Tu nombre" />
         </FieldRow>
-        <FieldRow label="Email de acceso" hint="Tu identificador para iniciar sesion. No se puede cambiar desde aqui.">
+        <FieldRow label="Apellidos" hint="Opcional.">
+          <STextInput value={apellido} onChange={setApellido} width={260} disabled={demo} placeholder="Tus apellidos" />
+        </FieldRow>
+        <FieldRow label="Telefono" hint="Para avisos y contacto.">
+          <STextInput value={telefono} onChange={setTelefono} width={220} disabled={demo} leadingIcon="phone" type="tel" placeholder="600 000 000" />
+        </FieldRow>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+          {profileErr ? <span style={{ fontSize: 12, color: T.danger, fontWeight: 600 }}>{profileErr}</span> : null}
+          {savedProfile ? <span style={{ fontSize: 12, color: T.success, fontWeight: 600 }}>Guardado</span> : null}
+          <Btn variant="primary" size="sm" icon="check" onClick={saveProfile} disabled={demo || !dirty || savingProfile}>
+            {savingProfile ? 'Guardando...' : 'Guardar cambios'}
+          </Btn>
+        </div>
+      </Section>
+
+      <Section title="Acceso y seguridad" desc="Tu email de acceso y tu contraseña.">
+        <FieldRow label="Email de acceso" hint="Tu identificador para iniciar sesion. Por seguridad, para cambiarlo escribe a soporte.">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <ReadValue mono>{a?.email || '--'}</ReadValue>
             <Badge tone="success">Verificado</Badge>
@@ -1259,12 +1422,24 @@ function TabCuenta({ account, profCount }: { account: AccountInfo | null; profCo
         <FieldRow label="Rol" hint="Define que puedes ver y editar dentro de Mecha.">
           <Badge tone="primary">{roleLabel}</Badge>
         </FieldRow>
+        <FieldRow label="Nueva contraseña" hint="Minimo 8 caracteres.">
+          <STextInput value={pass1} onChange={setPass1} width={220} disabled={demo} type="password" leadingIcon="lock" placeholder="Nueva contraseña" />
+        </FieldRow>
+        <FieldRow label="Repite la contraseña" hint="Para confirmar que no hay erratas.">
+          <STextInput value={pass2} onChange={setPass2} width={220} disabled={demo} type="password" leadingIcon="lock" placeholder="Repite la contraseña" />
+        </FieldRow>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+          {passMsg ? <span style={{ fontSize: 12, color: passMsg.ok ? T.success : T.danger, fontWeight: 600 }}>{passMsg.text}</span> : null}
+          <Btn variant="primary" size="sm" icon="lock" onClick={changePassword} disabled={demo || savingPass || !pass1 || !pass2}>
+            {savingPass ? 'Guardando...' : 'Cambiar contraseña'}
+          </Btn>
+        </div>
         <FieldRow label="Miembro desde" hint="Fecha en la que se creo esta cuenta.">
           <ReadValue>{memberSince}</ReadValue>
         </FieldRow>
       </Section>
 
-      <Section title="Negocio" desc="El salon al que pertenece esta cuenta. Comparte el identificador con soporte para localizar tu cuenta mas rapido.">
+      <Section title="Negocio" desc="El salon al que pertenece esta cuenta. El nombre del salon se edita en General.">
         <FieldRow label="Nombre del salon" hint="Se edita desde General > Datos del negocio.">
           <ReadValue>{a?.nombreNegocio || '--'}</ReadValue>
         </FieldRow>
@@ -1277,11 +1452,9 @@ function TabCuenta({ account, profCount }: { account: AccountInfo | null; profCo
         </FieldRow>
       </Section>
 
-      <Section title="Plan y suscripcion" desc="Resumen de tu plan actual. Para ampliar plazas o gestionar la facturacion, contacta con soporte.">
+      <Section title="Plan y plazas" desc="Tu equipo y tus plazas. Para gestionar la facturacion, contacta con soporte.">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-          <StatBox label="Plan actual" value="Studio - Pro" sub="Facturacion mensual" accent={T.primaryHi} />
           <StatBox label="Profesionales activos" value={`${profCount} / 10`} sub={`${plazasLibres} ${plazasLibres === 1 ? 'plaza disponible' : 'plazas disponibles'}`} />
-          <StatBox label="Estado" value="Activo" sub="Al corriente de pago" accent={T.success} />
         </div>
         <div style={{ marginTop: 14, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <Btn
