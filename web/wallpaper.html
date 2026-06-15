@@ -96,14 +96,15 @@
 
 <script>
 // ============================================================
-//  Lightweight fire-ember particle system (capped at ~90 particles)
+//  Ultra-optimized fire-ember system — pre-rendered glow textures
+//  No ctx.shadowBlur, no save/restore per particle → max FPS
 // ============================================================
 const cvs = document.getElementById('embers');
-const ctx = cvs.getContext('2d');
+const ctx = cvs.getContext('2d', { alpha: true });
 let W, H;
 
 function resize() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2); // cap at 2x for performance
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth;
   H = window.innerHeight;
   cvs.width  = W * dpr;
@@ -113,155 +114,130 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// ---- Ember colors palette ----
+// ---- Pre-render glow textures (one per color) ----
 const COLORS = [
-  { r:255, g:207, b:74  },  // gold
-  { r:255, g:152, b:46  },  // orange
-  { r:255, g:122, b:46  },  // deep orange
-  { r:224, g:52,  b:14  },  // red-orange
-  { r:255, g:90,  b:30  },  // bright ember
-  { r:200, g:40,  b:10  },  // dark ember
+  { r:255, g:207, b:74  },
+  { r:255, g:152, b:46  },
+  { r:255, g:122, b:46  },
+  { r:224, g:52,  b:14  },
+  { r:255, g:90,  b:30  },
+  { r:200, g:40,  b:10  },
 ];
 
+const GLOW_SIZE = 64; // texture size in px
+const glowTextures = COLORS.map(c => {
+  const off = document.createElement('canvas');
+  off.width = GLOW_SIZE; off.height = GLOW_SIZE;
+  const oc = off.getContext('2d');
+  const cx = GLOW_SIZE / 2;
+  const g = oc.createRadialGradient(cx, cx, 0, cx, cx, cx);
+  g.addColorStop(0,   `rgba(${c.r},${c.g},${c.b},1)`);
+  g.addColorStop(0.15,`rgba(${c.r},${c.g},${c.b},.7)`);
+  g.addColorStop(0.4, `rgba(${c.r},${c.g},${c.b},.2)`);
+  g.addColorStop(1,   `rgba(${c.r},${c.g},${c.b},0)`);
+  oc.fillStyle = g;
+  oc.fillRect(0, 0, GLOW_SIZE, GLOW_SIZE);
+  return off;
+});
+
 const MAX_PARTICLES = 90;
-const particles = [];
+const particles = new Array(MAX_PARTICLES);
 
-class Ember {
-  constructor() {
-    this.reset();
-  }
+// ---- Flat arrays for particle state (cache-friendly) ----
+function createEmber(scatter) {
+  const centerBias = Math.random() < 0.4;
+  const x = centerBias ? W * 0.3 + Math.random() * W * 0.4 : Math.random() * W;
+  const maxLife = 200 + Math.random() * 350;
+  return {
+    x,
+    y: scatter ? Math.random() * H : H + 10 + Math.random() * 40,
+    vy: -(0.3 + Math.random() * 1.2),
+    vx: (Math.random() - 0.5) * 0.4,
+    swayAmp:   0.3 + Math.random() * 1.2,
+    swayFreq:  0.008 + Math.random() * 0.015,
+    swayPhase: Math.random() * Math.PI * 2,
+    baseSize:  1 + Math.random() * 2.5,
+    maxLife,
+    life: scatter ? Math.random() * maxLife : maxLife,
+    flickerSpeed: 0.05 + Math.random() * 0.12,
+    flickerPhase: Math.random() * Math.PI * 2,
+    colorIdx: Math.floor(Math.random() * COLORS.length),
+    glowBase: 6 + Math.random() * 10,
+    windDrift: (Math.random() - 0.5) * 0.003,
+    t: 0
+  };
+}
 
-  reset() {
-    // Spawn across entire width, biased slightly towards center
-    const centerBias = Math.random() < 0.4;
-    if (centerBias) {
-      this.x = W * 0.3 + Math.random() * W * 0.4;
-    } else {
-      this.x = Math.random() * W;
-    }
-    this.y = H + 10 + Math.random() * 40;
+for (let i = 0; i < MAX_PARTICLES; i++) {
+  particles[i] = createEmber(true);
+}
 
-    // Upward velocity with variation
-    this.vy = -(0.3 + Math.random() * 1.2);
-    this.vx = (Math.random() - 0.5) * 0.4;
+function resetEmber(p) {
+  const centerBias = Math.random() < 0.4;
+  p.x = centerBias ? W * 0.3 + Math.random() * W * 0.4 : Math.random() * W;
+  p.y = H + 10 + Math.random() * 40;
+  p.vy = -(0.3 + Math.random() * 1.2);
+  p.vx = (Math.random() - 0.5) * 0.4;
+  p.swayAmp = 0.3 + Math.random() * 1.2;
+  p.swayFreq = 0.008 + Math.random() * 0.015;
+  p.swayPhase = Math.random() * Math.PI * 2;
+  p.baseSize = 1 + Math.random() * 2.5;
+  p.maxLife = 200 + Math.random() * 350;
+  p.life = p.maxLife;
+  p.flickerSpeed = 0.05 + Math.random() * 0.12;
+  p.flickerPhase = Math.random() * Math.PI * 2;
+  p.colorIdx = Math.floor(Math.random() * COLORS.length);
+  p.glowBase = 6 + Math.random() * 10;
+  p.windDrift = (Math.random() - 0.5) * 0.003;
+  p.t = 0;
+}
 
-    // Sway (sinusoidal drift)
-    this.swayAmp   = 0.3 + Math.random() * 1.2;
-    this.swayFreq  = 0.008 + Math.random() * 0.015;
-    this.swayPhase = Math.random() * Math.PI * 2;
+// ---- Animation loop (no save/restore, no shadowBlur) ----
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'screen';
 
-    // Size
-    this.baseSize = 1 + Math.random() * 2.5;
-    this.size = this.baseSize;
+  for (let i = 0; i < MAX_PARTICLES; i++) {
+    const p = particles[i];
+    p.t++;
+    p.life--;
 
-    // Lifetime
-    this.maxLife = 200 + Math.random() * 350;
-    this.life = this.maxLife;
+    // Physics
+    p.y += p.vy;
+    p.vy -= 0.001;
+    p.vx += p.windDrift;
+    p.x += p.vx + Math.sin(p.t * p.swayFreq + p.swayPhase) * p.swayAmp;
 
     // Flicker
-    this.flickerSpeed = 0.05 + Math.random() * 0.12;
-    this.flickerPhase = Math.random() * Math.PI * 2;
+    const flicker = Math.sin(p.t * p.flickerSpeed + p.flickerPhase);
+    const lifeRatio = p.life / p.maxLife;
 
-    // Color
-    const c = COLORS[Math.floor(Math.random() * COLORS.length)];
-    this.r = c.r; this.g = c.g; this.b = c.b;
+    let alpha = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.85 ? (1 - lifeRatio) / 0.15 : 1;
+    alpha *= (0.7 + 0.3 * (flicker * 0.5 + 0.5));
 
-    // Glow intensity
-    this.glowBase = 6 + Math.random() * 10;
+    const size = p.baseSize * (0.6 + 0.4 * (flicker * 0.5 + 0.5)) * (0.4 + 0.6 * lifeRatio);
 
-    // Drift acceleration (simulates air currents)
-    this.windDrift = (Math.random() - 0.5) * 0.003;
-
-    this.t = 0;
-  }
-
-  update() {
-    this.t++;
-    this.life--;
-
-    // Upward movement with slight acceleration
-    this.y += this.vy;
-    this.vy -= 0.001; // gradually faster upwards
-
-    // Horizontal sway like real embers in rising heat
-    this.vx += this.windDrift;
-    this.x += this.vx + Math.sin(this.t * this.swayFreq + this.swayPhase) * this.swayAmp;
-
-    // Flicker: size oscillation
-    const flicker = Math.sin(this.t * this.flickerSpeed + this.flickerPhase);
-    this.size = this.baseSize * (0.6 + 0.4 * (flicker * 0.5 + 0.5));
-
-    // Fade near end of life
-    const lifeRatio = this.life / this.maxLife;
-    this.alpha = lifeRatio < 0.2
-      ? lifeRatio / 0.2
-      : lifeRatio > 0.85
-        ? (1 - lifeRatio) / 0.15
-        : 1;
-
-    // Flicker in alpha too
-    this.alpha *= (0.7 + 0.3 * (flicker * 0.5 + 0.5));
-
-    // Size shrinks over lifetime
-    this.size *= (0.4 + 0.6 * lifeRatio);
-
-    return this.life > 0 && this.y > -20 && this.x > -40 && this.x < W + 40;
-  }
-
-  draw() {
-    if (this.alpha < 0.02) return;
-
-    const a = Math.min(this.alpha, 1);
-    const s = Math.max(this.size, 0.3);
-
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-
-    // Glow
-    ctx.shadowBlur = this.glowBase * a;
-    ctx.shadowColor = `rgba(${this.r},${this.g},${this.b},${a * 0.6})`;
-
-    // Draw the ember dot
-    ctx.fillStyle = `rgba(${this.r},${this.g},${this.b},${a * 0.9})`;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, s, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-  }
-}
-
-// Pre-populate with staggered particles across screen
-for (let i = 0; i < MAX_PARTICLES; i++) {
-  const e = new Ember();
-  // Scatter initial positions across the screen height
-  e.y = Math.random() * H;
-  e.life = Math.random() * e.maxLife;
-  particles.push(e);
-}
-
-// ---- Animation loop ----
-let frame = 0;
-function animate() {
-  // Clear with very slight trail for subtle motion blur
-  ctx.clearRect(0, 0, W, H);
-
-  frame++;
-
-  // Spawn new embers to maintain count
-  while (particles.length < MAX_PARTICLES) {
-    particles.push(new Ember());
-  }
-
-  // Update & draw
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    if (!p.update()) {
-      p.reset();
+    // Reset if dead
+    if (p.life <= 0 || p.y < -20 || p.x < -40 || p.x > W + 40) {
+      resetEmber(p);
+      continue;
     }
-    p.draw();
+
+    if (alpha < 0.02) continue;
+
+    // Draw using pre-rendered glow texture (FAST — no shadowBlur)
+    const drawSize = size * (p.glowBase * 0.5);
+    ctx.globalAlpha = Math.min(alpha, 1);
+    ctx.drawImage(
+      glowTextures[p.colorIdx],
+      p.x - drawSize * 0.5,
+      p.y - drawSize * 0.5,
+      drawSize,
+      drawSize
+    );
   }
 
+  ctx.globalAlpha = 1;
   requestAnimationFrame(animate);
 }
 
@@ -270,3 +246,4 @@ animate();
 
 </body>
 </html>
+
