@@ -1092,8 +1092,8 @@
     var mej = r.mecha_mejora_comentario ? (r.mecha_mejora_comentario.length > 30 ? r.mecha_mejora_comentario.substring(0,28)+'...' : r.mecha_mejora_comentario) : '<em style="color:var(--text-sec)">-</em>';
     return '<tr>' +
       '<td>' + fmtDate(r.created_at) + '</td>' +
-      '<td style="white-space:normal;max-width:140px"><strong>' + enc(salon) + '</strong></td>' +
-      '<td>' + enc(r.autor_nombre || 'Anónimo') + '</td>' +
+      '<td style="white-space:normal;max-width:140px"><strong>' + esc(salon) + '</strong></td>' +
+      '<td>' + esc(r.autor_nombre || 'Anónimo') + '</td>' +
       '<td>' + rsStarsHtml(r.mecha_puntuacion) + '</td>' +
       '<td>' + rsStarsHtml(r.mecha_facilidad_puntuacion) + '</td>' +
       '<td>' + rsStarsHtml(r.mecha_disponibilidad_puntuacion) + '</td>' +
@@ -1120,7 +1120,7 @@
     listEl.innerHTML = html;
   }
   
-  // AI Logic Simulation
+  // Real AI-like client-side Reviews Synthesizer
   var aiBtn = $('aiBtnResenas');
   if (aiBtn) {
     aiBtn.addEventListener('click', function() {
@@ -1128,19 +1128,124 @@
       $('aiLoadingResenas').style.display = 'block';
       $('aiResultsResenas').style.display = 'none';
       aiBtn.disabled = true;
-      aiBtn.textContent = 'Procesando...';
+      aiBtn.textContent = 'Analizando...';
       
-      // Simulate API call to OpenAI/Gemini
       setTimeout(function() {
+        if (!resenas || resenas.length === 0) {
+          $('aiLoadingResenas').style.display = 'none';
+          $('aiResultsResenas').style.display = 'block';
+          $('aiResultsResenas').innerHTML = '<div style="color:var(--text-sec);font-style:italic">No hay reseñas para analizar en este momento.</div>';
+          aiBtn.disabled = false;
+          aiBtn.textContent = 'Sintetizar con IA';
+          return;
+        }
+
+        var total = resenas.length;
+        var pos = 0, neu = 0, neg = 0;
+        var sumFacilidad = 0, countFacilidad = 0;
+        var sumDispo = 0, countDispo = 0;
+        var sumPagos = 0, countPagos = 0;
+        var highlights = [];
+        var improvements = [];
+
+        resenas.forEach(function(r) {
+          // Sentiment
+          var p = r.mecha_puntuacion;
+          if (p >= 4) pos++;
+          else if (p === 3) neu++;
+          else if (p <= 2) neg++;
+
+          // Granular metrics
+          if (r.mecha_facilidad_puntuacion) { sumFacilidad += r.mecha_facilidad_puntuacion; countFacilidad++; }
+          if (r.mecha_disponibilidad_puntuacion) { sumDispo += r.mecha_disponibilidad_puntuacion; countDispo++; }
+          if (r.mecha_pagos_puntuacion) { sumPagos += r.mecha_pagos_puntuacion; countPagos++; }
+
+          // Comments
+          if (r.mecha_comentario && r.mecha_comentario.trim().length > 0) {
+            highlights.push({ text: r.mecha_comentario.trim(), autor: r.autor_nombre || 'Anónimo' });
+          }
+          if (r.mecha_mejora_comentario && r.mecha_mejora_comentario.trim().length > 0) {
+            improvements.push({ text: r.mecha_mejora_comentario.trim(), autor: r.autor_nombre || 'Anónimo' });
+          }
+        });
+
+        var posPct = Math.round((pos / total) * 100);
+        var negPct = Math.round((neg / total) * 100);
+        var neuPct = 100 - posPct - negPct;
+
+        var avgFacilidad = countFacilidad > 0 ? (sumFacilidad / countFacilidad).toFixed(1) : 'N/A';
+        var avgDispo = countDispo > 0 ? (sumDispo / countDispo).toFixed(1) : 'N/A';
+        var avgPagos = countPagos > 0 ? (sumPagos / countPagos).toFixed(1) : 'N/A';
+
+        // Build HTML
+        var html = '<div class="ai-analysis-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:12px;">';
+        
+        // Col 1: Sentiment & Stats
+        html += '<div>';
+        html += '<div style="margin-bottom:14px"><strong>Sentimiento predominante:</strong> ';
+        if (posPct > 60) {
+          html += '<span style="color:#10b981;font-weight:700">Satisfacción Alta (🔥 ' + posPct + '%)</span>';
+        } else if (negPct > 40) {
+          html += '<span style="color:#ef4444;font-weight:700">Frustración Alta (⚠️ ' + negPct + '%)</span>';
+        } else {
+          html += '<span style="color:#f59e0b;font-weight:700">Neutral / Mixto (⚡ ' + posPct + '% pos, ' + negPct + '% neg)</span>';
+        }
+        html += '</div>';
+
+        html += '<div style="margin-bottom:16px">';
+        html += '  <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-sec);margin-bottom:4px"><span>Facilidad de reserva</span><span>' + avgFacilidad + ' ★</span></div>';
+        html += '  <div style="height:6px;background:rgba(0,0,0,0.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:' + (avgFacilidad !== 'N/A' ? (avgFacilidad*20)+'%' : '0') + ';background:linear-gradient(90deg,#ff7a2e,#ffcf4a)"></div></div>';
+        html += '</div>';
+
+        html += '<div style="margin-bottom:16px">';
+        html += '  <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-sec);margin-bottom:4px"><span>Disponibilidad de agenda</span><span>' + avgDispo + ' ★</span></div>';
+        html += '  <div style="height:6px;background:rgba(0,0,0,0.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:' + (avgDispo !== 'N/A' ? (avgDispo*20)+'%' : '0') + ';background:linear-gradient(90deg,#ff7a2e,#ffcf4a)"></div></div>';
+        html += '</div>';
+
+        html += '<div style="margin-bottom:16px">';
+        html += '  <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-sec);margin-bottom:4px"><span>Pasarela de pagos</span><span>' + avgPagos + ' ★</span></div>';
+        html += '  <div style="height:6px;background:rgba(0,0,0,0.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:' + (avgPagos !== 'N/A' ? (avgPagos*20)+'%' : '0') + ';background:linear-gradient(90deg,#ff7a2e,#ffcf4a)"></div></div>';
+        html += '</div>';
+        html += '</div>';
+
+        // Col 2: Highlights and Improvements
+        html += '<div>';
+        
+        // Puntos fuertes
+        html += '<div style="margin-bottom:14px"><strong>Puntos fuertes destacados:</strong>';
+        if (highlights.length === 0) {
+          html += '<div style="font-size:12.5px;color:var(--text-sec);margin-top:4px;font-style:italic">- Sin comentarios específicos aún.</div>';
+        } else {
+          html += '<ul style="margin:4px 0;padding-left:18px;font-size:12.5px;color:var(--text-sec)">';
+          highlights.slice(0, 3).forEach(function(h) {
+            html += '<li style="margin-bottom:4px">"' + esc(h.text) + '" <span style="font-size:11px;color:var(--text-ter)">(' + esc(h.autor) + ')</span></li>';
+          });
+          html += '</ul>';
+        }
+        html += '</div>';
+
+        // Areas de mejora
+        html += '<div><strong>Áreas de mejora identificadas:</strong>';
+        if (improvements.length === 0) {
+          html += '<div style="font-size:12.5px;color:var(--text-sec);margin-top:4px;font-style:italic">- No se han reportado sugerencias de mejora aún.</div>';
+        } else {
+          html += '<ul style="margin:4px 0;padding-left:18px;font-size:12.5px;color:var(--text-sec)">';
+          improvements.slice(0, 3).forEach(function(imp) {
+            html += '<li style="margin-bottom:4px">"' + esc(imp.text) + '" <span style="font-size:11px;color:var(--text-ter)">(' + esc(imp.autor) + ')</span></li>';
+          });
+          html += '</ul>';
+        }
+        html += '</div>';
+
+        html += '</div>'; // End Col 2
+        html += '</div>'; // End Grid
+
         $('aiLoadingResenas').style.display = 'none';
         $('aiResultsResenas').style.display = 'block';
-        $('aiResultsResenas').innerHTML = 
-          '<strong>Emociones predominantes:</strong> Satisfacción alta (85%), Frustración baja (5%).<br/>' +
-          '<strong>Puntos fuertes:</strong> La mayoría destaca la extremada facilidad para reservar y la disponibilidad del sistema.<br/>' +
-          '<strong>Áreas de oportunidad:</strong> 3 usuarios sugirieron habilitar Bizum en la pasarela de pagos, y 1 mencionó que el contraste del calendario podría mejorar.';
+        $('aiResultsResenas').innerHTML = html;
         aiBtn.disabled = false;
         aiBtn.textContent = 'Actualizar Análisis';
-      }, 2500);
+      }, 1200);
     });
   }
 

@@ -4,28 +4,40 @@ import { MechaMark } from '@/components/ui/MechaMark';
 import { getPortalInfo, getResenasPublicas, crearResenaPublica, type PortalNegocio, type ResenaResumen } from '@/lib/reservaPublica';
 
 const T = {
-  bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
-  border: 'rgba(40,30,24,0.10)', borderHi: 'rgba(40,30,24,0.16)',
-  text: '#1c1814', textSec: '#5c5249', textTer: '#8a7d70',
-  primary: '#f4501e', primaryHi: '#c0260a', primarySoft: 'rgba(244,80,30,0.10)',
-  star: '#f59e0b', success: '#0f9d6b', successSoft: 'rgba(15,157,107,0.12)', danger: '#e23b34',
+  bg: '#080605', // Deep carbon charcoal dark
+  panel: 'rgba(20, 17, 15, 0.75)', // Glassmorphic translucent dark panel
+  card: '#161311', // Dark card
+  cardHi: '#221b18', // Higher contrast dark card
+  border: 'rgba(244, 80, 30, 0.12)', // Subtle orange glowing border
+  borderHi: 'rgba(244, 80, 30, 0.22)', // More glow border
+  text: '#f7f5f3', // Bright white-cream text
+  textSec: '#bfae9e', // Warm sand text
+  textTer: '#877665', // Darker warm sand text
+  primary: '#f4501e', // Fire orange
+  primaryHi: '#ff7a2e', // Flame light orange
+  primarySoft: 'rgba(244, 80, 30, 0.15)', // Orange glow fill
+  star: '#ffb020', // Glowing gold
+  success: '#10b981', // Clean green
+  successSoft: 'rgba(16, 185, 129, 0.15)',
+  danger: '#ef4444',
 };
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
 const SERIF = '"Inter", system-ui, sans-serif';
 
 const ANIM = `
-  @keyframes rsUp { from { opacity:0; transform: translateY(14px) } to { opacity:1; transform: translateY(0) } }
-  @keyframes rsFlicker { 0%,100% { transform: rotate(-1deg) scale(1); opacity: 1 } 45% { transform: rotate(1.5deg) scale(1.05); opacity: 0.92 } 70% { transform: rotate(-0.5deg) scale(0.99) } }
-  @keyframes rsRing { 0% { transform: scale(0.6); opacity: 0.55 } 100% { transform: scale(1.9); opacity: 0 } }
+  @keyframes rsUp { from { opacity:0; transform: translateY(20px); filter: blur(4px); } to { opacity:1; transform: translateY(0); filter: blur(0); } }
+  @keyframes rsFlicker { 0%,100% { transform: rotate(-0.5deg) scale(1); filter: drop-shadow(0 0 10px rgba(244,80,30,0.5)) } 45% { transform: rotate(1deg) scale(1.03); filter: drop-shadow(0 0 15px rgba(244,80,30,0.7)) } 70% { transform: rotate(-0.5deg) scale(0.98); filter: drop-shadow(0 0 8px rgba(244,80,30,0.4)) } }
+  @keyframes rsRing { 0% { transform: scale(0.7); opacity: 0.8 } 100% { transform: scale(2.0); opacity: 0 } }
   @keyframes rsPop { from { opacity:0; transform: scale(0.8) } to { opacity:1; transform: scale(1) } }
-  .rs-step { animation: rsUp 0.45s cubic-bezier(0.16,1,0.3,1) both }
-  .rs-flame { animation: rsFlicker 3.4s ease-in-out infinite; transform-origin: 50% 80%; display: inline-flex }
-  .rs-cta { transition: transform 0.16s ease, filter 0.16s ease; cursor: pointer }
-  .rs-cta:hover { filter: brightness(1.05) }
-  .rs-cta:active { transform: translateY(1px) }
-  .rs-star { transition: transform 0.14s cubic-bezier(0.16,1,0.3,1); cursor: pointer; background: none; border: none; padding: 2px 4px }
-  .rs-star:hover { transform: scale(1.18) }
-  .rs-field:focus { border-color: ${T.primary} !important; box-shadow: 0 0 0 3px ${T.primarySoft} }
+  .rs-step { animation: rsUp 0.6s cubic-bezier(0.16,1,0.3,1) both }
+  .rs-flame { animation: rsFlicker 2.8s ease-in-out infinite; transform-origin: 50% 80%; display: inline-flex }
+  .rs-cta { transition: all 0.2s cubic-bezier(0.16,1,0.3,1); cursor: pointer; border: 1px solid rgba(255,255,255,0.05) }
+  .rs-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(244,80,30,0.4); filter: brightness(1.1) }
+  .rs-cta:active { transform: translateY(0); box-shadow: 0 4px 10px rgba(244,80,30,0.2) }
+  .rs-star { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1); cursor: pointer; background: none; border: none; padding: 2px 6px }
+  .rs-star:hover { transform: scale(1.25) }
+  .rs-field { transition: all 0.2s ease }
+  .rs-field:focus { border-color: ${T.primaryHi} !important; box-shadow: 0 0 0 4px rgba(244,80,30,0.25); background: rgba(20,17,15,0.9) !important }
   @media (prefers-reduced-motion: reduce) {
     .rs-step, .rs-flame { animation: none !important }
     .rs-cta, .rs-star { transition: none !important }
@@ -38,10 +50,10 @@ function Fueguito({ filled, size = 36 }: { filled: boolean; size?: number }) {
   return (
     <span style={{ 
       display: 'inline-flex', 
-      opacity: filled ? 1 : 0.15, 
-      filter: filled ? 'drop-shadow(0 4px 12px rgba(244,80,30,0.3))' : 'grayscale(100%)',
-      transform: filled ? 'scale(1.05)' : 'scale(1)',
-      transition: 'all 0.2s cubic-bezier(0.16,1,0.3,1)'
+      opacity: filled ? 1 : 0.25, 
+      filter: filled ? 'drop-shadow(0 0 12px rgba(244,80,30,0.6)) drop-shadow(0 0 2px #ffcf4a)' : 'grayscale(100%) brightness(0.5)',
+      transform: filled ? 'scale(1.1) translateY(-2px)' : 'scale(1)',
+      transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)'
     }}>
       <MechaMark size={size} />
     </span>
@@ -152,9 +164,11 @@ export default function ResenaWeb() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, padding: '0 16px 48px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: T.bg, padding: '0 16px 48px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', overflowX: 'hidden' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
-      <div aria-hidden style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 520, height: 320, background: 'radial-gradient(closest-side, rgba(244,80,30,0.10), transparent)', pointerEvents: 'none' }} />
+      <div aria-hidden style={{ position: 'absolute', top: -200, left: '25%', width: 600, height: 500, background: 'radial-gradient(closest-side, rgba(244,80,30,0.08), transparent)', pointerEvents: 'none' }} />
+      <div aria-hidden style={{ position: 'absolute', bottom: -200, right: '10%', width: 500, height: 400, background: 'radial-gradient(closest-side, rgba(255,122,46,0.05), transparent)', pointerEvents: 'none' }} />
+      
       <div style={{ maxWidth: 700, margin: '0 auto', position: 'relative' }}>
         <header style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '32px 4px 24px' }}>
           <span className="rs-flame"><MechaMark size={40} /></span>
@@ -163,12 +177,20 @@ export default function ResenaWeb() {
           </div>
         </header>
 
-        <main style={{ background: T.panel, border: `1px solid ${T.borderHi}`, borderRadius: 24, padding: 32, boxShadow: '0 24px 60px rgba(40,30,24,0.06)' }}>
+        <main style={{ 
+          background: T.panel, 
+          border: `1px solid ${T.borderHi}`, 
+          borderRadius: 24, 
+          padding: 32, 
+          boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)'
+        }}>
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '8px 0' }}>
-              <div style={{ height: 18, width: 180, borderRadius: 8, background: 'rgba(40,30,24,0.07)' }} />
-              <div style={{ height: 44, width: 230, borderRadius: 10, background: 'rgba(40,30,24,0.07)' }} />
-              <div style={{ height: 88, borderRadius: 10, background: 'rgba(40,30,24,0.07)' }} />
+              <div style={{ height: 18, width: 180, borderRadius: 8, background: 'rgba(255,255,255,0.07)' }} />
+              <div style={{ height: 44, width: 230, borderRadius: 10, background: 'rgba(255,255,255,0.07)' }} />
+              <div style={{ height: 88, borderRadius: 10, background: 'rgba(255,255,255,0.07)' }} />
             </div>
           ) : notFound ? (
             <div style={{ padding: 32, textAlign: 'center' }}>
@@ -179,7 +201,7 @@ export default function ResenaWeb() {
             <div className="rs-step" style={{ textAlign: 'center', padding: '20px 0 10px' }}>
               <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                 <span style={{ position: 'absolute', width: 84, height: 84, borderRadius: '50%', background: T.primarySoft, animation: 'rsRing 1.8s ease-out infinite' }} />
-                <span style={{ position: 'relative', display: 'inline-flex', width: 84, height: 84, borderRadius: '50%', background: '#fff', border: `1px solid ${T.border}`, alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(192,38,10,0.18)' }}>
+                <span style={{ position: 'relative', display: 'inline-flex', width: 84, height: 84, borderRadius: '50%', background: T.card, border: `1px solid ${T.border}`, alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(192,38,10,0.18)' }}>
                   <span className="rs-flame"><MechaMark size={44} /></span>
                 </span>
               </div>
@@ -216,7 +238,7 @@ export default function ResenaWeb() {
               </div>
 
               {puntuacion > 0 && (
-                <div className="rs-step" style={{ background: 'rgba(40,30,24,0.02)', padding: 16, borderRadius: 16, marginBottom: 24, border: `1px solid ${T.border}` }}>
+                <div className="rs-step" style={{ background: 'rgba(244, 80, 30, 0.03)', padding: 16, borderRadius: 16, marginBottom: 24, border: '1px solid rgba(244, 80, 30, 0.15)' }}>
                   <RatingInput label="Trato de los profesionales" value={salonTrato} onChange={setSalonTrato} size={30} />
                   <RatingInput label="Calidad de los productos" value={salonProductos} onChange={setSalonProductos} size={30} />
                 </div>
@@ -248,7 +270,7 @@ export default function ResenaWeb() {
               </div>
 
               {mechaPuntuacion > 0 && (
-                <div className="rs-step" style={{ background: 'rgba(244,80,30,0.03)', padding: 16, borderRadius: 16, marginBottom: 24, border: `1px solid rgba(244,80,30,0.15)` }}>
+                <div className="rs-step" style={{ background: 'rgba(244, 80, 30, 0.05)', padding: 16, borderRadius: 16, marginBottom: 24, border: '1px solid rgba(244, 80, 30, 0.20)' }}>
                   <RatingInput label="Facilidad de la reserva" value={mechaFacilidad} onChange={setMechaFacilidad} size={30} />
                   <RatingInput label="Disponibilidad que hay siempre" value={mechaDisponibilidad} onChange={setMechaDisponibilidad} size={30} />
                   <RatingInput label="Sistema de pagos" value={mechaPagos} onChange={setMechaPagos} size={30} />

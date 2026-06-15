@@ -1,6 +1,6 @@
 # 🔥 INFORME MAESTRO MECHA — Estado actual y reparto de trabajo
 
-> **Fecha:** 8 de junio de 2026
+> **Fecha:** 8 de junio de 2026 · **Última actualización:** 16 de junio de 2026
 > **Autores:** Carlos + Claude
 > **Propósito:** Foto real y verificada del producto Mecha, corrección del análisis comparativo anterior, y reparto claro de responsabilidades **Carlos (frontend/UX/backend ligero, sin IA)** vs **Alexandro (backend pesado, pagos, IA, integraciones)**.
 > **Método:** Lectura directa del código del repositorio `Hairy/` (no suposiciones). Donde se cita un archivo, la afirmación está verificada en el código a fecha de hoy.
@@ -41,7 +41,7 @@ Mecha **no es un MVP temprano**: es un producto de gestión de salón **maduro y
 | **Equipo y roles** | Sólida (4 roles, capacidades, horarios, turnos, comisiones) | **~75%** |
 | **Informes / analítica** | Real y profunda (no es placeholder) | **~75%** |
 | **Sistema de diseño / marca** | Rebrand a Mecha hecho a nivel de tokens (claro + oscuro) | **~85%** |
-| **Cara al cliente final** (auto-reserva, recordatorios, reseñas) | Casi nada construido | **~10%** ⟵ **agujero nº1** |
+| **Cara al cliente final** (auto-reserva, recordatorios, reseñas) | Portal de reservas ✅, QR ✅, Reseñas ✅. Falta: pagos/señal, recordatorios, fidelización | **~55%** ⟵ *avanzando* |
 | **Pagos** | Cero (hay UI de depósitos, sin motor) | **0%** |
 | **Marketing / fidelización** | Cero (hay UI de notificaciones, sin motor) | **~5%** |
 | **Inventario / retail** | Cero | **0%** |
@@ -183,8 +183,14 @@ Gaps: **deriva de tokens** (los `.web.tsx` redefinen `TOKENS` localmente en cada
 - **Bloqueos recurrentes** (`add-recurring-blocks.sql`), auto-creación de perfil en signup.
 - **El esquema de citas ya prevé el cliente-final y la IA**: `CITA_CANAL` incluye `web`, `whatsapp`, `agente_voz`, `asistente_ia`. → Cuando entre la reserva pública, las citas entran con `canal='web'`; cuando entre la IA, con su canal. **No hay que rediseñar el modelo.**
 
-### 3.8 Cara al cliente final — **~10%** (el agujero)
-Hoy **el cliente del salón no puede reservarse solo**. `web/reservar.html` es una **reserva de llamada comercial con Mecha**, no un portal de reservas para el cliente final. No hay: portal/widget de reserva, recordatorios, reseñas, programa de fidelización, ni reserva desde Google/Instagram. Esta es la diferencia más visible con Booksy/Fresha (cuyo valor central es "el cliente reserva 24/7 él solo").
+### 3.8 Cara al cliente final — **~55%** (en progreso)
+
+> **Actualización 16/jun/2026:** Se han construido los siguientes módulos:
+> - ✅ **Portal de reserva online pública** (C1) — El cliente final ya puede reservarse solo.
+> - ✅ **QR de reserva** (C10) — Enlace directo al portal.
+> - ✅ **Sistema de reseñas** (C3) — Portal público de reseñas con preguntas base + panel de administración con análisis IA.
+>
+> **Pendiente:** pagos/señal/depósito (requiere Alexandro + Stripe), recordatorios automáticos (motor de envío → Alexandro), programa de fidelización, reserva desde Google/Instagram.
 
 ---
 
@@ -217,13 +223,14 @@ El comparativo marca como ausentes cosas **ya construidas**. Tabla de correccion
 Verificado por búsqueda en `app/` + `web/` (0 archivos):
 
 **Cara al cliente / crecimiento**
-- Portal/widget de **reserva online del cliente final** ❌
+- Portal/widget de **reserva online del cliente final** ✅ *Completado 15/jun/2026*
 - **Recordatorios automáticos** (envío email/SMS/WhatsApp) ❌ *(UI de config sí existe — fase 4)*
-- **Reseñas / valoraciones** ❌
+- **Reseñas / valoraciones** ✅ *Completado 15/jun/2026 (portal público + panel admin + análisis IA)*
 - **Fidelización / loyalty / puntos / sellos** ❌
 - **Campañas de marketing** masivas ❌
 - **Reserva con Google / botón Instagram / marketplace** ❌
-- **Código QR** de reserva ❌
+- **Código QR** de reserva ✅ *Completado*
+- **Pagos / señal / depósito en la reserva online** ❌ *(UI maquetada, sin pasarela — requiere Alexandro)*
 
 **Operativa / CRM**
 - **Lista de espera (waitlist)** ❌
@@ -306,14 +313,14 @@ Estas features se construyen **a dos manos**: Carlos hace la interfaz y el almac
 Alineado con las "fases" que el propio código ya nombra (notificaciones = fase 4, reserva online = fase 7).
 
 ### Fase A — "Que el cliente final exista" (máximo impacto competitivo)
-1. **C1 Reserva online pública** ⭐ (el nº1).
-2. **C10 QR** (cuelga de C1, casi gratis).
-3. **C2 Lista de espera**.
+1. ~~**C1 Reserva online pública** ⭐ (el nº1).~~ ✅ **HECHO** *(falta pagos/señal → Alexandro)*
+2. ~~**C10 QR** (cuelga de C1, casi gratis).~~ ✅ **HECHO**
+3. **C2 Lista de espera**. ❌ Pendiente
 
 ### Fase B — "Confianza y producto serio"
-4. **C3 Reseñas** (captura/display).
-5. **C4 Gráficos de tendencia** en informes.
-6. **C5 Bloquear clientes** + **C6 etiquetas manuales** (quick wins de CRM).
+4. ~~**C3 Reseñas** (captura/display).~~ ✅ **HECHO** *(portal público + panel admin + análisis IA)*
+5. **C4 Gráficos de tendencia** en informes. ❌ Pendiente
+6. **C5 Bloquear clientes** + **C6 etiquetas manuales** (quick wins de CRM). ❌ Pendiente
 
 ### Fase C — "Completar operativa"
 7. **C7 Formularios/consentimientos**.
@@ -324,14 +331,14 @@ Alineado con las "fases" que el propio código ya nombra (notificaciones = fase 
 ### Transversal (en paralelo, continuo)
 - **C13 Paridad web↔nativo** y **C14 consolidar tokens** — trabajo de diseño constante guiado por Carlos, página por página.
 
-### Tabla resumen de arranque inmediato
-| Orden | Tarea | Esfuerzo | Bloquea a Alexandro? |
-|---|---|---|---|
-| 1 | C1 Reserva online | L | No |
-| 2 | C10 QR | S | No |
-| 3 | C2 Lista de espera | M | No (aviso auto luego) |
-| 4 | C3 Reseñas | M | No (petición luego) |
-| 5 | C4 Gráficos | S–M | No |
+### Tabla resumen actualizada (16/jun/2026)
+| Orden | Tarea | Esfuerzo | Estado | Bloquea a Alexandro? |
+|---|---|---|---|---|
+| 1 | C1 Reserva online | L | ✅ Hecho (falta señal/pago) | No (señal → sí) |
+| 2 | C10 QR | S | ✅ Hecho | No |
+| 3 | C2 Lista de espera | M | ❌ Pendiente | No (aviso auto luego) |
+| 4 | C3 Reseñas | M | ✅ Hecho | No (petición luego) |
+| 5 | C4 Gráficos | S–M | ❌ Pendiente | No |
 
 ---
 

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mecha — Wallpaper</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000;
+      cursor: default;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw; height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+
+    /* ---- Ambient background glow ---- */
+    .ambient {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse 40% 50% at 50% 52%, rgba(224,52,14,.06) 0%, transparent 70%);
+    }
+
+    /* ---- Logo container ---- */
+    .mark-wrap {
+      position: relative;
+      width: 160px; height: 160px;
+      z-index: 2;
+    }
+
+    /* ---- Pulsing glow behind logo ---- */
+    .mark-glow {
+      position: absolute;
+      inset: -60%; 
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,122,46,.12) 0%, rgba(224,52,14,.06) 40%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: .6; transform: scale(1); }
+      50%      { opacity: 1;  transform: scale(1.12); }
+    }
+
+    /* ---- The SVG logo itself ---- */
+    .mark-wrap svg {
+      width: 100%; height: 100%;
+      filter: drop-shadow(0 0 30px rgba(255,122,46,.35))
+             drop-shadow(0 0 60px rgba(224,52,14,.15));
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-6px); }
+    }
+
+    /* ---- Floating embers (pure CSS) ---- */
+    .embers {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .ember {
+      position: absolute;
+      bottom: -4px;
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: #ff7a2e;
+      opacity: 0;
+      animation: rise linear infinite;
+    }
+
+    .ember:nth-child(1)  { left: 46%; animation-duration: 8s;  animation-delay: 0s;   width:2px; height:2px; }
+    .ember:nth-child(2)  { left: 50%; animation-duration: 10s; animation-delay: 1.5s; }
+    .ember:nth-child(3)  { left: 54%; animation-duration: 9s;  animation-delay: 3s;   width:2px; height:2px; }
+    .ember:nth-child(4)  { left: 48%; animation-duration: 11s; animation-delay: 2s;   background: #ffcf4a; width:2px; height:2px; }
+    .ember:nth-child(5)  { left: 52%; animation-duration: 12s; animation-delay: 4s;   }
+    .ember:nth-child(6)  { left: 47%; animation-duration: 9.5s; animation-delay: 5s;  width:2px; height:2px; background:#e0340e; }
+    .ember:nth-child(7)  { left: 53%; animation-duration: 10.5s; animation-delay: 0.8s; background: #ffcf4a; }
+    .ember:nth-child(8)  { left: 49%; animation-duration: 13s; animation-delay: 3.5s; width:2px; height:2px; }
+    .ember:nth-child(9)  { left: 51%; animation-duration: 8.5s; animation-delay: 6s;  background:#e0340e; width:2px; height:2px; }
+    .ember:nth-child(10) { left: 45%; animation-duration: 11.5s; animation-delay: 1s; }
+    .ember:nth-child(11) { left: 55%; animation-duration: 14s; animation-delay: 2.5s; width:2px; height:2px; background:#ffcf4a; }
+    .ember:nth-child(12) { left: 44%; animation-duration: 9s;  animation-delay: 7s;   width:2px; height:2px; }
+
+    @keyframes rise {
+      0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+      10%  { opacity: .7; }
+      50%  { opacity: .4; transform: translateY(-45vh) translateX(8px) scale(.8); }
+      100% { opacity: 0;  transform: translateY(-95vh) translateX(-6px) scale(.3); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="scene">
+
+  <!-- Ambient background glow -->
+  <div class="ambient"></div>
+
+  <!-- Floating embers -->
+  <div class="embers">
+    <div class="ember"></div><div class="ember"></div><div class="ember"></div>
+    <div class="ember"></div><div class="ember"></div><div class="ember"></div>
+    <div class="ember"></div><div class="ember"></div><div class="ember"></div>
+    <div class="ember"></div><div class="ember"></div><div class="ember"></div>
+  </div>
+
+  <!-- Logo -->
+  <div class="mark-wrap">
+    <div class="mark-glow"></div>
+    <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#e0340e" />
+          <stop offset=".5" stop-color="#ff7a2e" />
+          <stop offset="1" stop-color="#ffcf4a" />
+        </linearGradient>
+      </defs>
+      <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+      <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+    </svg>
+  </div>
+
+</div>
+
+</body>
+</html>
