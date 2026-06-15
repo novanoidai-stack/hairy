@@ -38,7 +38,16 @@
     padding:6px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.03);transition:all .2s;flex-shrink:0}
   .ver-back:hover{color:var(--text);border-color:var(--border-hi);background:rgba(255,255,255,.07)}
   .ver-back svg{width:15px;height:15px;flex-shrink:0}
-  .dm-share{flex-shrink:0}
+  .dm-share{flex-shrink:0;box-shadow:0 0 0 1px rgba(244,80,30,.12),0 6px 18px -8px rgba(244,80,30,.55)}
+  /* Boton reiniciar tutorial */
+  .dm-restart{display:none;align-items:center;gap:7px;flex-shrink:0;padding:8px 12px;border-radius:10px;cursor:pointer;
+    border:1px solid var(--border-hi);background:rgba(255,255,255,.05);color:var(--text-sec);font:inherit;font-size:13px;font-weight:600;transition:all .18s ease;white-space:nowrap}
+  .dm-restart:hover{color:#fff;border-color:var(--accent);background:rgba(244,80,30,.12)}
+  .dm-restart svg{width:15px;height:15px;flex-shrink:0}
+  /* CTA "acceso completo" con latido sutil para que llame la atencion */
+  .dm-bar-cta .btn{box-shadow:0 8px 22px -8px rgba(244,80,30,.6);animation:dmCtaPulse 2.8s ease-in-out infinite}
+  @keyframes dmCtaPulse{0%,100%{box-shadow:0 8px 22px -8px rgba(244,80,30,.55)}50%{box-shadow:0 12px 32px -6px rgba(244,80,30,.95)}}
+  @media(prefers-reduced-motion:reduce){ .dm-bar-cta .btn{animation:none} }
   @media(max-width:720px){
     .dm-bar{gap:6px;padding:7px 8px}
     .dm-bar .brand{display:none}
@@ -50,6 +59,8 @@
     .dm-share{font-size:0!important;padding:6px!important;border-radius:8px!important;min-width:auto}
     .dm-share .lbl{display:none!important}
     .dm-share svg{margin:0!important}
+    .dm-restart{font-size:0!important;padding:6px!important;border-radius:8px!important;gap:0}
+    .dm-restart span{display:none!important}
     .dm-bar .btn{padding:7px 12px;font-size:12px;border-radius:9px}
     .dm-bar .cta-long{display:none}
     .dm-bar .cta-short{display:inline}
@@ -637,7 +648,11 @@
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha</span></div>
   <span class="dm-pill"><span class="d"></span>Vista previa · interactiva</span>
   <span class="dm-visits" id="visits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg><span id="visitsText">Preparando…</span></span>
-  <button class="dm-share" id="shareBtn" type="button" title="Copia el enlace y pasaselo a quien quieras: vera esta demo (con el tutorial) sin tener que registrarse." style="display:none;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,160,90,0.4);background:rgba(244,80,30,0.14);color:#ffd9c2;font:inherit;font-size:13px;font-weight:700;transition:background .18s ease" onmouseenter="this.style.background='rgba(244,80,30,0.22)'" onmouseleave="this.style.background='rgba(244,80,30,0.14)'">
+  <button class="dm-restart" id="tourRestart" type="button" title="Volver a ver el tutorial desde el principio">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+    <span>Reiniciar tutorial</span>
+  </button>
+  <button class="dm-share" id="shareBtn" type="button" title="Copia el enlace y pasaselo a quien quieras: vera esta demo (con el tutorial) sin registrarse." style="display:none;align-items:center;gap:7px;padding:9px 15px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,170,100,0.65);background:rgba(244,80,30,0.22);color:#ffe3d0;font:inherit;font-size:13.5px;font-weight:800;transition:background .18s ease" onmouseenter="this.style.background='rgba(244,80,30,0.32)'" onmouseleave="this.style.background='rgba(244,80,30,0.22)'">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
     <span class="lbl">Compartir demo</span>
   </button>
@@ -690,12 +705,13 @@
 <div class="share-modal-overlay" id="shareModalOverlay">
   <div class="share-modal">
     <div class="share-modal-header">
-      <h3>Compartir demo</h3>
+      <h3>Compartir Mecha</h3>
       <button class="share-modal-close" id="shareModalClose" type="button" aria-label="Cerrar modal">&times;</button>
     </div>
     <div class="share-modal-body">
-      <p class="share-desc">Copia y comparte. Quien abra el enlace verá la demo guiada sin registrarse.</p>
-      
+      <div class="share-bonus-badge" style="background:rgba(255,255,255,.06);color:var(--text-sec);">🔗 Comparte la demo · cualquiera</div>
+      <p class="share-desc" style="margin-top:8px;">Pásale este enlace a quien quieras: verá la demo guiada por dentro <b>sin registrarse y sin ninguna cuenta iniciada</b>.</p>
+
       <div class="share-link-row">
         <div class="share-input-wrapper">
           <svg class="share-link-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
@@ -821,7 +837,7 @@
 
   var gate=$('#gate'), end=$('#end'), frame=$('#appFrame'), localnote=$('#localnote');
   var visitsEl=$('#visits'), visitsText=$('#visitsText');
-  var tour=$('#tour'), shareBtn=$('#shareBtn');
+  var tour=$('#tour'), shareBtn=$('#shareBtn'), restartBtn=$('#tourRestart');
 
   function showGate(){ gate.classList.remove('hide'); }
   function hideGate(){ gate.classList.add('hide'); }
@@ -944,7 +960,11 @@
   }
 
   /* ---------- enlace de referido propio (codigo opaco) ---------- */
-  function refLinkFor(code){ return location.origin + location.pathname + '?ref=' + code; }
+  // El enlace de referido abre la MISMA demo anonima compartida que "Compartir
+  // demo" (?share=1), solo que ademas lleva el codigo (?ref=) para atribuir al
+  // referente cuando el visitante cree su cuenta. Asi NO entra por el camino con
+  // sesion personal (que dejaba una cuenta iniciada al volver a la web).
+  function refLinkFor(code){ return location.origin + location.pathname + '?share=1&ref=' + code; }
 
   var refLinkCopyBtn = $('#refLinkCopy');
   if (refLinkCopyBtn) {
@@ -1048,6 +1068,8 @@
     setVisits(remaining);
     mountApp();
     startTour();
+    // El boton de reiniciar el tutorial solo tiene sentido una vez dentro de la demo.
+    if(restartBtn) restartBtn.style.display='inline-flex';
   }
 
   /* ---------- arranque ---------- */
@@ -1311,6 +1333,16 @@
       tourToggle.textContent = isMin ? 'Leer ▴' : 'Minimizar';
     });
   }
+
+  // Reiniciar tutorial: vuelve al paso 1 aunque se hubiera saltado o minimizado.
+  function restartTour(){
+    if(stepTimer) clearTimeout(stepTimer);
+    tourStarted=false; ti=0; lastAction=null;
+    if(tour) tour.classList.remove('minimized');
+    if(tourToggle) tourToggle.textContent='Minimizar';
+    startTour();
+  }
+  if(restartBtn){ restartBtn.addEventListener('click', restartTour); }
 
   boot();
 })();
