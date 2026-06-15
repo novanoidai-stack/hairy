@@ -24,7 +24,6 @@ const NAV_ITEMS: { label: string; icon: string; activeIcon: string; href: string
   { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver' },
   { label: 'Equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver' },
   { label: 'Informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver' },
-  { label: 'Reseñas', icon: 'star-outline', activeIcon: 'star', href: '/(tabs)/resenas' },
 ];
 
 const HOVER_DURATION = 200;

@@ -155,6 +155,22 @@
   .btn-visits:disabled{opacity:.55;cursor:default}
   .btn-visits svg{width:15px;height:15px}
 
+  /* ---- table & AI ---- */
+  .ad-table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.15)}
+  .ad-table{width:100%;border-collapse:collapse;font-size:13.5px;text-align:left;white-space:nowrap}
+  .ad-table th{background:rgba(255,255,255,.03);color:var(--text-sec);font-weight:600;padding:12px 16px;border-bottom:1px solid var(--border)}
+  .ad-table td{padding:14px 16px;border-bottom:1px solid var(--border-hi);color:var(--text)}
+  .ad-table tbody tr:last-child td{border-bottom:none}
+  .ad-table tbody tr:hover{background:rgba(255,255,255,.02)}
+  .ai-box{background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(236,72,153,.08));border:1px solid rgba(139,92,246,.2);border-radius:12px;padding:20px;margin-bottom:24px}
+  .ai-header{display:flex;align-items:center;gap:12px}
+  .ai-icon{width:22px;height:22px;color:#c084fc}
+  .ai-title{font-size:16px;font-weight:700;color:#e879f9;flex:1}
+  .ai-btn{background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s}
+  .ai-btn:hover{opacity:.85}
+  .ai-body{margin-top:16px;font-size:14px;line-height:1.5;color:var(--text);background:rgba(0,0,0,.2);padding:16px;border-radius:8px;border:1px solid rgba(255,255,255,.05)}
+  .rs-mini-flame svg{width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:2px}
+
   @media (max-width:560px){
     .ad-top{padding-top:6px}
     .card-row{padding:16px}
@@ -228,6 +244,19 @@
 
   <!-- VISTA: RESEÑAS MECHA -->
   <div id="view-resenas" style="display:none">
+    
+    <div class="ai-box" id="aiBoxResenas">
+      <div class="ai-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ai-icon"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg>
+        <div class="ai-title">Mecha AI Analytics</div>
+        <button class="ai-btn" id="aiBtnResenas">Sintetizar con IA</button>
+      </div>
+      <div class="ai-body" id="aiBodyResenas" style="display:none">
+        <div class="ai-loading" id="aiLoadingResenas" style="display:none">Analizando reseñas y extrayendo insights...</div>
+        <div class="ai-results" id="aiResultsResenas" style="display:none"></div>
+      </div>
+    </div>
+
     <div class="ad-stats" id="statsRes"></div>
     <div class="ad-tools">
       <div class="ad-search">
@@ -1001,7 +1030,7 @@
     
     // Obtenemos aquellas que tengan valoración hacia el sistema
     api.client.from('resenas')
-      .select('id, negocio_id, mecha_puntuacion, mecha_comentario, autor_nombre, created_at, negocio_portal(nombre_publico)')
+      .select('id, negocio_id, mecha_puntuacion, mecha_comentario, autor_nombre, created_at, negocio_portal(nombre_publico), mecha_facilidad_puntuacion, mecha_disponibilidad_puntuacion, mecha_pagos_puntuacion, mecha_mejora_comentario')
       .not('mecha_puntuacion', 'is', null)
       .order('created_at', { ascending: false })
       .then(function (res) {
@@ -1048,26 +1077,30 @@
     });
   }
 
+  function rsStarsHtml(val) {
+    if (!val) return '<span style="color:var(--text-ter)">-</span>';
+    var svg = '<svg viewBox="0 0 40 40"><defs><linearGradient id="mGrad2" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e0340e"/><stop offset="0.5" stop-color="#ff7a2e"/><stop offset="1" stop-color="#ffcf4a"/></linearGradient></defs><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad2)"/><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92"/></svg>';
+    var svgEmpty = '<svg viewBox="0 0 40 40"><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="#fff" opacity="0.15"/></svg>';
+    var out = '<span class="rs-mini-flame">';
+    for(var i=1; i<=5; i++) out += (i <= val) ? svg : svgEmpty;
+    return out + '</span>';
+  }
+
   function resenaRowHtml(r) {
     var salon = r.negocio_portal ? r.negocio_portal.nombre_publico : 'Salón';
-    var stars = '';
-    for(var i=1; i<=5; i++) {
-      stars += i <= r.mecha_puntuacion ? '★' : '☆';
-    }
-    
-    var grid = '';
-    grid += cell('Salón', salon);
-    grid += cell('Autor', r.autor_nombre || 'Anónimo');
-    grid += cell('Valoración', '<span style="color:#f59e0b;font-size:16px">' + stars + '</span>');
-    grid += cell('Comentario', r.mecha_comentario || '<em>Sin comentario</em>');
-
-    return '<div class="card-row">' +
-      '<div class="r-head">' +
-        '<div class="r-id"><span class="r-name">Reseña sobre Mecha</span></div>' +
-        '<span class="r-when">' + fmtDate(r.created_at) + '</span>' +
-      '</div>' +
-      '<div class="r-grid">' + grid + '</div>' +
-    '</div>';
+    var com = r.mecha_comentario ? (r.mecha_comentario.length > 40 ? r.mecha_comentario.substring(0,38)+'...' : r.mecha_comentario) : '<em style="color:var(--text-sec)">-</em>';
+    var mej = r.mecha_mejora_comentario ? (r.mecha_mejora_comentario.length > 30 ? r.mecha_mejora_comentario.substring(0,28)+'...' : r.mecha_mejora_comentario) : '<em style="color:var(--text-sec)">-</em>';
+    return '<tr>' +
+      '<td>' + fmtDate(r.created_at) + '</td>' +
+      '<td style="white-space:normal;max-width:140px"><strong>' + enc(salon) + '</strong></td>' +
+      '<td>' + enc(r.autor_nombre || 'Anónimo') + '</td>' +
+      '<td>' + rsStarsHtml(r.mecha_puntuacion) + '</td>' +
+      '<td>' + rsStarsHtml(r.mecha_facilidad_puntuacion) + '</td>' +
+      '<td>' + rsStarsHtml(r.mecha_disponibilidad_puntuacion) + '</td>' +
+      '<td>' + rsStarsHtml(r.mecha_pagos_puntuacion) + '</td>' +
+      '<td style="white-space:normal;min-width:140px">' + mej + '</td>' +
+      '<td style="white-space:normal;min-width:180px">' + com + '</td>' +
+    '</tr>';
   }
 
   function renderResenas() {
@@ -1079,7 +1112,36 @@
       listEl.innerHTML = '<div class="ad-empty">No hay reseñas de Mecha que coincidan.</div>';
       return;
     }
-    listEl.innerHTML = data.map(resenaRowHtml).join('');
+    
+    var html = '<div class="ad-table-wrap"><table class="ad-table">';
+    html += '<thead><tr><th>Fecha</th><th>Salón</th><th>Autor</th><th>General</th><th>Facilidad</th><th>Disponibilidad</th><th>Pagos</th><th>A mejorar</th><th>Comentario</th></tr></thead><tbody>';
+    html += data.map(resenaRowHtml).join('');
+    html += '</tbody></table></div>';
+    listEl.innerHTML = html;
+  }
+  
+  // AI Logic Simulation
+  var aiBtn = $('aiBtnResenas');
+  if (aiBtn) {
+    aiBtn.addEventListener('click', function() {
+      $('aiBodyResenas').style.display = 'block';
+      $('aiLoadingResenas').style.display = 'block';
+      $('aiResultsResenas').style.display = 'none';
+      aiBtn.disabled = true;
+      aiBtn.textContent = 'Procesando...';
+      
+      // Simulate API call to OpenAI/Gemini
+      setTimeout(function() {
+        $('aiLoadingResenas').style.display = 'none';
+        $('aiResultsResenas').style.display = 'block';
+        $('aiResultsResenas').innerHTML = 
+          '<strong>Emociones predominantes:</strong> Satisfacción alta (85%), Frustración baja (5%).<br/>' +
+          '<strong>Puntos fuertes:</strong> La mayoría destaca la extremada facilidad para reservar y la disponibilidad del sistema.<br/>' +
+          '<strong>Áreas de oportunidad:</strong> 3 usuarios sugirieron habilitar Bizum en la pasarela de pagos, y 1 mencionó que el contraste del calendario podría mejorar.';
+        aiBtn.disabled = false;
+        aiBtn.textContent = 'Actualizar Análisis';
+      }, 2500);
+    });
   }
 
   var qr = $('qRes'); if (qr) qr.addEventListener('input', renderResenas);

@@ -20,7 +20,6 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
             <Tabs.Screen name="clientes" />
             <Tabs.Screen name="equipo" />
             <Tabs.Screen name="informes" />
-            <Tabs.Screen name="resenas" />
             <Tabs.Screen name="configuracion" />
           </Tabs>
         </View>
@@ -58,7 +57,6 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       <Tabs.Screen name="clientes" options={{ title: 'Clientes', tabBarIcon: tabIcon('people') }} />
       <Tabs.Screen name="equipo" options={{ title: 'Equipo', tabBarIcon: tabIcon('person') }} />
       <Tabs.Screen name="informes" options={{ title: 'Informes', tabBarIcon: tabIcon('bar-chart') }} />
-      <Tabs.Screen name="resenas" options={{ title: 'Reseñas', tabBarIcon: tabIcon('star') }} />
       <Tabs.Screen name="configuracion" options={{ title: 'Ajustes', tabBarIcon: tabIcon('settings') }} />
       <Tabs.Screen name="lista-espera" options={{ href: null }} />
     </Tabs>

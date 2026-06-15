@@ -162,6 +162,12 @@ export async function crearResenaPublica(args: {
   servicioId?: string | null;
   mechaPuntuacion?: number | null;
   mechaComentario?: string | null;
+  salonTrato?: number | null;
+  salonProductos?: number | null;
+  mechaFacilidad?: number | null;
+  mechaDisponibilidad?: number | null;
+  mechaPagos?: number | null;
+  mechaMejora?: string | null;
 }): Promise<{ resena_id: string; ok: boolean }> {
   try {
     const { data, error } = await supabase.rpc('crear_resena_publica', {
@@ -173,6 +179,12 @@ export async function crearResenaPublica(args: {
       p_servicio_id: args.servicioId ?? null,
       p_mecha_puntuacion: args.mechaPuntuacion ?? null,
       p_mecha_comentario: args.mechaComentario ?? null,
+      p_salon_trato_puntuacion: args.salonTrato ?? null,
+      p_salon_productos_puntuacion: args.salonProductos ?? null,
+      p_mecha_facilidad_puntuacion: args.mechaFacilidad ?? null,
+      p_mecha_disponibilidad_puntuacion: args.mechaDisponibilidad ?? null,
+      p_mecha_pagos_puntuacion: args.mechaPagos ?? null,
+      p_mecha_mejora_comentario: args.mechaMejora ?? null,
     });
     if (error) throw error;
     return data as { resena_id: string; ok: boolean };
