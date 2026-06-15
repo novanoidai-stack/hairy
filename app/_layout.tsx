@@ -18,7 +18,7 @@ import './globals.css';
 // Load Google Fonts for web + inject default text color
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
   const link = document.createElement('link');
-  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&display=swap';
+  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap';
   link.rel = 'stylesheet';
   document.head.appendChild(link);
 

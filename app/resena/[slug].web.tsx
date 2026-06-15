@@ -5,25 +5,40 @@ import { getPortalInfo, getResenasPublicas, crearResenaPublica, type PortalNegoc
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
-  border: 'rgba(40,30,24,0.10)', text: '#1c1814', textSec: '#5c5249', textTer: '#8a7d70',
+  border: 'rgba(40,30,24,0.10)', borderHi: 'rgba(40,30,24,0.16)',
+  text: '#1c1814', textSec: '#5c5249', textTer: '#8a7d70',
   primary: '#f4501e', primaryHi: '#c0260a', primarySoft: 'rgba(244,80,30,0.10)',
   star: '#f59e0b', success: '#0f9d6b', successSoft: 'rgba(15,157,107,0.12)', danger: '#e23b34',
 };
+const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
+const SERIF = '"Instrument Serif", Georgia, serif';
 
 const ANIM = `
-  @keyframes rsUp { from { opacity:0; transform: translateY(12px) } to { opacity:1; transform: translateY(0) } }
-  .rs-step { animation: rsUp 0.4s cubic-bezier(0.16,1,0.3,1) both }
-  .rs-btn { transition: all 0.15s ease; cursor: pointer }
-  .rs-btn:hover { filter: brightness(1.05) }
-  .rs-star { transition: transform 0.12s ease; cursor: pointer; background: none; border: none; padding: 2px }
-  .rs-star:hover { transform: scale(1.15) }
+  @keyframes rsUp { from { opacity:0; transform: translateY(14px) } to { opacity:1; transform: translateY(0) } }
+  @keyframes rsFlicker { 0%,100% { transform: rotate(-1deg) scale(1); opacity: 1 } 45% { transform: rotate(1.5deg) scale(1.05); opacity: 0.92 } 70% { transform: rotate(-0.5deg) scale(0.99) } }
+  @keyframes rsRing { 0% { transform: scale(0.6); opacity: 0.55 } 100% { transform: scale(1.9); opacity: 0 } }
+  @keyframes rsPop { from { opacity:0; transform: scale(0.8) } to { opacity:1; transform: scale(1) } }
+  .rs-step { animation: rsUp 0.45s cubic-bezier(0.16,1,0.3,1) both }
+  .rs-flame { animation: rsFlicker 3.4s ease-in-out infinite; transform-origin: 50% 80%; display: inline-flex }
+  .rs-cta { transition: transform 0.16s ease, filter 0.16s ease; cursor: pointer }
+  .rs-cta:hover { filter: brightness(1.05) }
+  .rs-cta:active { transform: translateY(1px) }
+  .rs-star { transition: transform 0.14s cubic-bezier(0.16,1,0.3,1); cursor: pointer; background: none; border: none; padding: 3px }
+  .rs-star:hover { transform: scale(1.18) }
+  .rs-field:focus { border-color: ${T.primary} !important; box-shadow: 0 0 0 3px ${T.primarySoft} }
+  @media (prefers-reduced-motion: reduce) {
+    .rs-step, .rs-flame { animation: none !important }
+    .rs-cta, .rs-star { transition: none !important }
+  }
 `;
 
-function Star({ filled, size = 34 }: { filled: boolean; size?: number }) {
+const ETIQUETAS = ['', 'Lo siento', 'Mejorable', 'Bien', 'Muy bien', '¡Excelente!'];
+
+function Star({ filled, size = 36 }: { filled: boolean; size?: number }) {
   return (
-    <span style={{ display: 'inline-flex', color: filled ? T.star : 'rgba(40,30,24,0.18)' }}
+    <span style={{ display: 'inline-flex', color: filled ? T.star : 'rgba(40,30,24,0.16)' }}
       dangerouslySetInnerHTML={{
-        __html: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+        __html: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${filled ? T.star : 'none'}" stroke="${filled ? T.star : 'rgba(40,30,24,0.16)'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
       }} />
   );
 }
@@ -78,66 +93,82 @@ export default function ResenaWeb() {
   }, [slug, puntuacion, comentario, nombre]);
 
   const shown = hover || puntuacion;
+  const inputBase: React.CSSProperties = {
+    width: '100%', padding: '12px 13px', borderRadius: 12, border: `1.5px solid ${T.border}`,
+    fontSize: 14.5, color: T.text, background: T.card, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
+  };
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, padding: '0 16px 48px', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: T.bg, padding: '0 16px 48px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
-      <div style={{ maxWidth: 540, margin: '0 auto' }}>
-        <header style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '22px 4px 18px' }}>
-          <MechaMark size={34} />
-          <div style={{ fontSize: 18, fontWeight: 800, color: T.text, letterSpacing: -0.3 }}>
+      <div aria-hidden style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 520, height: 320, background: 'radial-gradient(closest-side, rgba(244,80,30,0.10), transparent)', pointerEvents: 'none' }} />
+      <div style={{ maxWidth: 540, margin: '0 auto', position: 'relative' }}>
+        <header style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '24px 4px 18px' }}>
+          <span className="rs-flame"><MechaMark size={36} /></span>
+          <div style={{ fontFamily: SERIF, fontSize: 25, color: T.text, letterSpacing: -0.2, lineHeight: 1.05 }}>
             {negocio?.nombre || 'Tu opinión'}
           </div>
         </header>
 
-        <main style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 18, padding: 24, boxShadow: '0 10px 40px rgba(40,30,24,0.06)' }}>
+        <main style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 22, padding: 24, boxShadow: '0 16px 50px rgba(40,30,24,0.08)' }}>
           {loading ? (
-            <div style={{ padding: 40, textAlign: 'center', color: T.textTer }}>Cargando…</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '8px 0' }}>
+              <div style={{ height: 18, width: 180, borderRadius: 8, background: 'rgba(40,30,24,0.07)' }} />
+              <div style={{ height: 44, width: 230, borderRadius: 10, background: 'rgba(40,30,24,0.07)' }} />
+              <div style={{ height: 88, borderRadius: 10, background: 'rgba(40,30,24,0.07)' }} />
+            </div>
           ) : notFound ? (
             <div style={{ padding: 32, textAlign: 'center' }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 6 }}>No disponible</div>
               <div style={{ fontSize: 14, color: T.textSec }}>Este salon no tiene activadas las valoraciones.</div>
             </div>
           ) : enviado ? (
-            <div className="rs-step" style={{ textAlign: 'center', padding: '12px 0' }}>
-              <div style={{ display: 'inline-flex', width: 60, height: 60, borderRadius: '50%', background: T.successSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                <span style={{ display: 'inline-flex', color: T.success }} dangerouslySetInnerHTML={{ __html: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' }} />
+            <div className="rs-step" style={{ textAlign: 'center', padding: '14px 0 6px' }}>
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <span style={{ position: 'absolute', width: 74, height: 74, borderRadius: '50%', background: T.primarySoft, animation: 'rsRing 1.8s ease-out infinite' }} />
+                <span style={{ position: 'relative', display: 'inline-flex', width: 74, height: 74, borderRadius: '50%', background: '#fff', border: `1px solid ${T.border}`, alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(192,38,10,0.18)' }}>
+                  <span className="rs-flame"><MechaMark size={38} /></span>
+                </span>
               </div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: T.text, marginBottom: 6 }}>¡Gracias por tu opinión!</div>
-              <div style={{ fontSize: 14, color: T.textSec }}>Nos ayuda muchísimo a mejorar.</div>
+              <div style={{ fontFamily: SERIF, fontSize: 30, color: T.text, marginBottom: 6, lineHeight: 1.05 }}>¡Gracias por tu opinión!</div>
+              <div style={{ fontSize: 14.5, color: T.textSec }}>Nos ayuda muchísimo a mejorar.</div>
             </div>
           ) : (
             <div className="rs-step">
               {resumen && resumen.total > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18, paddingBottom: 16, borderBottom: `1px solid ${T.border}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 20, paddingBottom: 18, borderBottom: `1px solid ${T.border}` }}>
                   <StarsRow value={resumen.media} size={16} />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{resumen.media}</span>
+                  <span style={{ fontSize: 14.5, fontWeight: 800, color: T.text }}>{resumen.media}</span>
                   <span style={{ fontSize: 13, color: T.textTer }}>· {resumen.total} {resumen.total === 1 ? 'valoración' : 'valoraciones'}</span>
                 </div>
               )}
 
-              <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginBottom: 14 }}>¿Qué tal tu experiencia?</div>
+              <div style={{ fontFamily: SERIF, fontSize: 26, color: T.text, marginBottom: 16, lineHeight: 1.08 }}>¿Qué tal tu experiencia?</div>
 
-              <div style={{ display: 'flex', gap: 4, marginBottom: 18 }} onMouseLeave={() => setHover(0)}>
-                {[1, 2, 3, 4, 5].map(n => (
-                  <button key={n} className="rs-star" onMouseEnter={() => setHover(n)} onClick={() => setPuntuacion(n)} aria-label={`${n} estrellas`}>
-                    <Star filled={n <= shown} size={38} />
-                  </button>
-                ))}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                <div style={{ display: 'flex', gap: 4 }} onMouseLeave={() => setHover(0)}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button key={n} className="rs-star" onMouseEnter={() => setHover(n)} onClick={() => setPuntuacion(n)} aria-label={`${n} estrellas`}>
+                      <Star filled={n <= shown} size={40} />
+                    </button>
+                  ))}
+                </div>
+                {shown > 0 && (
+                  <span key={shown} style={{ fontSize: 14, fontWeight: 700, color: T.primaryHi, animation: 'rsPop 0.2s ease both' }}>{ETIQUETAS[shown]}</span>
+                )}
               </div>
 
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 5 }}>Comentario (opcional)</label>
-              <textarea value={comentario} onChange={e => setComentario(e.target.value)} placeholder="¿Qué te ha gustado? ¿Qué mejorarías?" rows={3}
-                style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: `1.5px solid ${T.border}`, fontSize: 14, color: T.text, background: T.card, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', resize: 'vertical', marginBottom: 12 }} />
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Comentario (opcional)</label>
+              <textarea className="rs-field" value={comentario} onChange={e => setComentario(e.target.value)} placeholder="¿Qué te ha gustado? ¿Qué mejorarías?" rows={3}
+                style={{ ...inputBase, resize: 'vertical', marginBottom: 14 }} />
 
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 5 }}>Tu nombre (opcional)</label>
-              <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Cómo quieres aparecer"
-                style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: `1.5px solid ${T.border}`, fontSize: 14, color: T.text, background: T.card, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Tu nombre (opcional)</label>
+              <input className="rs-field" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Cómo quieres aparecer" style={inputBase} />
 
               {error && <div style={{ marginTop: 12, fontSize: 13, color: T.danger }}>{error}</div>}
 
-              <button className="rs-btn" onClick={enviar} disabled={enviando}
-                style={{ width: '100%', marginTop: 18, padding: '14px', borderRadius: 12, border: 'none', background: T.primary, color: '#fff', fontSize: 15, fontWeight: 700, opacity: enviando ? 0.6 : 1 }}>
+              <button className="rs-cta" onClick={enviar} disabled={enviando}
+                style={{ width: '100%', marginTop: 20, padding: '15px', borderRadius: 14, border: 'none', background: FIRE, color: '#fff', fontSize: 15.5, fontWeight: 800, boxShadow: '0 12px 30px rgba(192,38,10,0.28)', opacity: enviando ? 0.65 : 1 }}>
                 {enviando ? 'Enviando…' : 'Enviar valoración'}
               </button>
             </div>

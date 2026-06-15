@@ -88,6 +88,25 @@ export async function getDisponibilidad(
   return (data as SlotDisponible[] | null) ?? [];
 }
 
+// Dias (YYYY-MM-DD, zona del salon) con AL MENOS un hueco reservable en el horizonte.
+// De un solo viaje: el portal auto-selecciona el primer dia disponible y atenua el resto.
+export async function getDiasDisponibles(
+  slug: string,
+  servicioId: string,
+  profesionalId?: string | null,
+  dias = 21,
+): Promise<string[]> {
+  const { data, error } = await supabase.rpc('portal_dias_disponibles', {
+    p_slug: slug,
+    p_servicio_id: servicioId,
+    p_profesional_id: profesionalId ?? null,
+    p_dias: dias,
+  });
+  if (error) throw error;
+  // El RPC devuelve filas { dia: 'YYYY-MM-DD' }.
+  return ((data as { dia: string }[] | null) ?? []).map(r => r.dia);
+}
+
 // Crea la cita (canal='web'). El servidor revalida disponibilidad y antelacion.
 export async function crearCitaPublica(args: CrearCitaArgs): Promise<CrearCitaResult> {
   const { data, error } = await supabase.rpc('crear_cita_publica', {
