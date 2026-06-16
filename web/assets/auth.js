@@ -210,9 +210,17 @@
 
   async function isStaff() {
     try {
+      // Primero intentar is_team_member (versión nueva con emails hardcoded)
       var res = await client.rpc('is_team_member');
-      return res.data === true;
-    } catch (e) { return false; }
+      if (res.data === true) return true;
+    } catch (e) {
+      // Si is_team_member no existe, fallback a is_staff (versión antigua que usa tabla staff)
+      try {
+        var res2 = await client.rpc('is_staff');
+        return res2.data === true;
+      } catch (e2) { return false; }
+    }
+    return false;
   }
 
   // Lee el perfil de la cuenta autenticada (su propia fila en profiles).

@@ -86,8 +86,8 @@
   .auth-msg.show{display:block}
   .auth-msg.err{color:#ff8a6b}
   .auth-msg.ok{color:var(--accent-hi)}
-  .pane{display:none}.pane.on{display:block;animation:fadeUp .35s var(--ease)}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .pane{display:none}.pane.on{display:block;animation:fadeUp .5s cubic-bezier(.16,1,.3,1)}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
   /* Listado de opciones (chooser staff / pantalla free) */
   .choice-list{display:flex;flex-direction:column;gap:12px;margin-top:8px}
   .choice{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:15px;border-radius:14px;border:1px solid var(--border-hi);background:var(--card);transition:border-color .2s,background .2s,transform .15s}
@@ -108,18 +108,23 @@
   .choice.primary .choice-arr{color:rgba(255,255,255,.85)}
   @media (max-width:860px){
     .auth{grid-template-columns:1fr}
-  /* ---- loading screen ---- */
-  .load-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 0;text-align:center}
-  .load-logo{width:64px;height:64px;color:var(--accent-hi);margin-bottom:20px;animation:loadPulse 1.6s ease-in-out infinite}
-  .load-h{font-size:21px;font-weight:700;letter-spacing:-.02em;margin:0 0 6px;color:var(--text)}
-  .load-p{font-size:13.5px;color:var(--text-sec);margin-bottom:24px}
-  .load-progress-bg{width:100%;max-width:260px;height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;position:relative}
-  .load-progress-bar{height:100%;width:0%;background:var(--grad);border-radius:2px;transition:width .22s cubic-bezier(.16,1,.3,1)}
-  
-  @keyframes loadPulse {
-    0%, 100% { transform: scale(1); opacity: .9; filter: drop-shadow(0 0 4px rgba(244,80,30,0.15)); }
-    50% { transform: scale(1.06); opacity: 1; filter: drop-shadow(0 0 16px rgba(244,80,30,0.55)); }
   }
+
+  /* ---- Loading screen mejorado ---- */
+  .load-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;padding:48px 20px;text-align:center;position:relative}
+  .load-logo{width:72px;height:72px;color:var(--accent-hi);margin-bottom:28px;animation:loadPulse 1.8s ease-in-out infinite}
+  .load-h{font-size:24px;font-weight:700;letter-spacing:-.02em;margin:0 0 10px;color:var(--text)}
+  .load-p{font-size:15px;color:var(--text-sec);margin-bottom:32px;line-height:1.5}
+  .load-progress-bg{width:100%;max-width:280px;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;position:relative;box-shadow:0 0 0 1px rgba(255,255,255,.06)}
+  .load-progress-bar{height:100%;width:0%;background:var(--grad);border-radius:3px;transition:width .3s cubic-bezier(.16,1,.3,1);box-shadow:0 0 20px rgba(244,80,30,0.4)}
+
+  @keyframes loadPulse {
+    0%, 100% { transform: scale(1); opacity: .9; filter: drop-shadow(0 0 8px rgba(244,80,30,0.25)); }
+    50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 24px rgba(244,80,30,0.6)); }
+  }
+
+  /* Fondo sutil para la pantalla de carga */
+  #paneLoading{background:radial-gradient(ellipse at center,rgba(244,80,30,.06),transparent 70%)}
 </style>
 </head>
 <body data-theme="dark">
@@ -387,12 +392,15 @@
     if (statusEl && statusText) statusEl.textContent = statusText;
     setProgress(0);
     if (loadTimer) clearInterval(loadTimer);
-    
+
     var start = Date.now();
-    var duration = 800; // Llegará a 85% en 800ms
+    var duration = 1200; // Llegará a 85% en 1.2s (más suave)
     loadTimer = setInterval(function () {
       var elapsed = Date.now() - start;
-      var pct = Math.min(85, Math.round((elapsed / duration) * 85));
+      // Easing cúbico para más suavidad
+      var progress = Math.min(1, elapsed / duration);
+      var eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      var pct = Math.min(85, Math.round(eased * 85));
       setProgress(pct);
       if (pct >= 85) clearInterval(loadTimer);
     }, 16);
@@ -403,7 +411,7 @@
     setProgress(100);
     setTimeout(function () {
       if (callback) callback();
-    }, 250); // Esperar 250ms al 100% de progreso
+    }, 400); // Esperar 400ms al 100% de progreso (más tiempo para ver el completado)
   }
 
   // Muestra una "pantalla" de la tarjeta. Las post-login (chooser/free/complete)
@@ -489,13 +497,17 @@
     });
   }
 
-  // Mostrar carga inmediata al volver de Google (Supabase tarda en procesar el hash)
-  if (window.location.hash.indexOf('access_token=') !== -1 || window.location.search.indexOf('code=') !== -1) {
-    startLoading('Autenticando...');
-  }
-
   // Guarda contra aperturas dobles (sesion previa + evento SIGNED_IN del SSO).
   var routed = false;
+
+  // Mostrar carga inmediata al volver de Google (Supabase tarda en procesar el hash)
+  var isSSOCallback = window.location.hash.indexOf('access_token=') !== -1 || window.location.search.indexOf('code=') !== -1;
+  if (isSSOCallback) {
+    startLoading('Autenticando...');
+    // Resetear routed para el callback de Google (permite re-login tras logout sin recargar)
+    routed = false;
+  }
+
   function go() { if (routed) return; routed = true; routeAfterAuth(); }
 
   // Reaccion al volver del SSO (Google): el hash trae la sesion y dispara SIGNED_IN.
@@ -504,8 +516,15 @@
   }
 
   // Si ya hay sesion activa, enruta segun el tipo de cuenta.
+  // Resetear routed para permitir el routing al volver a la pagina con sesion activa,
+  // pero solo si no es un callback de SSO (el SSO usa el evento SIGNED_IN).
   if (api && api.getSession) {
-    api.getSession().then(function (s) { if (s) go(); });
+    api.getSession().then(function (s) {
+      if (s && !isSSOCallback) {
+        routed = false;
+        go();
+      }
+    });
   }
 
   // ---- Pantallas post-login (chooser / free / complete) ----
