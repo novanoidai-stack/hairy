@@ -27,6 +27,7 @@ export interface PortalNegocio {
   logo_url: string | null;
   direccion: string | null;
   telefono: string | null;
+  web: string | null;
   idioma: string;
   mostrar_precios: 'catalogo' | 'tras_seleccion' | 'nunca';
   color_acento: string;
@@ -138,10 +139,12 @@ export interface ResenaItem {
   comentario: string | null;
   autor: string | null;
   fecha: string;
+  verificada?: boolean; // true si la resena esta atada a una cita real (visita verificada)
 }
 export interface ResenaResumen {
   media: number;
   total: number;
+  verificadas?: number; // cuantas de las visibles provienen de una visita verificada
   ultimas: ResenaItem[];
 }
 

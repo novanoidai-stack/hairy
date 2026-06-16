@@ -240,6 +240,7 @@
     <button class="ad-tab" id="tabCue" data-view="cuentas">Cuentas<span class="badge" id="badgeCue">0</span></button>
     <button class="ad-tab" id="tabRef" data-view="referidos">Referidos<span class="badge" id="badgeRef">0</span></button>
     <button class="ad-tab" id="tabRes" data-view="resenas">Reseñas Mecha<span class="badge" id="badgeRes">0</span></button>
+    <button class="ad-tab" id="tabStf" data-view="staff">Staff / Equipo<span class="badge" id="badgeStf">0</span></button>
   </div>
 
   <!-- VISTA: RESEÑAS MECHA -->
@@ -363,6 +364,38 @@
     <div class="ad-count" id="countRef"></div>
     <div class="ad-msg" id="refMsg" style="margin-bottom:14px"></div>
     <div class="ad-list" id="listRef"><div class="ad-loading">Cargando referidos...</div></div>
+  </div>
+
+  <!-- VISTA: GESTIÓN DE STAFF -->
+  <div id="view-staff" style="display:none">
+    <div class="ad-stats" id="statsStf">
+      <div class="ad-stat" style="max-width:200px"><div class="n" id="statStfCount">0</div><div class="l">Miembros del staff</div></div>
+    </div>
+
+    <p style="font-size:12.5px; color:var(--text-sec); margin:-2px 0 16px; line-height:1.5; max-width:760px;">
+      Gestión de miembros del equipo con acceso completo al software y al panel de administración. 
+      Al añadir un correo aquí, el usuario tendrá acceso a todo el CRM, métricas, y al panel admin de Mecha.
+    </p>
+
+    <!-- Formulario para añadir miembro de staff -->
+    <div class="card-row" style="padding:18px; margin-bottom:20px; background:var(--card); border:1px solid var(--border); border-radius:12px;">
+      <h3 style="font-size:14.5px; font-weight:700; margin:0 0 14px; color:var(--text)">Añadir miembro al staff</h3>
+      <form id="addStaffForm" onsubmit="return false;" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
+        <div style="flex:1; min-width:200px;">
+          <label style="display:block; font-size:11.5px; font-weight:600; color:var(--text-sec); margin-bottom:5px;">Nombre</label>
+          <input type="text" id="addStfNombre" placeholder="Ej. Alexandru" style="width:100%; font-family:inherit; font-size:13.5px; color:var(--text); background:var(--card-hi); border:1px solid var(--border-hi); border-radius:8px; padding:8px 12px; box-sizing:border-box;" required />
+        </div>
+        <div style="flex:1.5; min-width:250px;">
+          <label style="display:block; font-size:11.5px; font-weight:600; color:var(--text-sec); margin-bottom:5px;">Correo electrónico</label>
+          <input type="email" id="addStfEmail" placeholder="correo@ejemplo.com" style="width:100%; font-family:inherit; font-size:13.5px; color:var(--text); background:var(--card-hi); border:1px solid var(--border-hi); border-radius:8px; padding:8px 12px; box-sizing:border-box;" required />
+        </div>
+        <button type="submit" class="btn btn-primary" id="addStfBtn" style="height:38px; padding:0 20px; font-size:13.5px; font-weight:600; border:none; border-radius:8px; cursor:pointer; background:var(--accent); color:#fff; transition:opacity .15s;">Añadir miembro</button>
+      </form>
+    </div>
+
+    <div class="ad-count" id="countStf">Cargando miembros del staff...</div>
+    <div class="ad-msg" id="stfMsg" style="margin-bottom:14px"></div>
+    <div class="ad-list" id="listStf"></div>
   </div>
 </div>
 
@@ -1253,31 +1286,144 @@
   var rbr2 = $('refreshResBtn'); if (rbr2) rbr2.addEventListener('click', loadResenas);
 
 
+  // ---------- GESTIÓN DE STAFF ----------
+  var staffList = [];
+  var staffLoaded = false;
+
+  function loadStaff() {
+    var listEl = $('listStf');
+    listEl.innerHTML = '<div class="ad-loading">Cargando miembros de staff...</div>';
+    clearMsg($('stfMsg'));
+    api.client.from('staff').select('*').order('created_at', { ascending: true })
+      .then(function (res) {
+        if (res.error) {
+          listEl.innerHTML = '';
+          msg($('stfMsg'), 'err', 'No se pudo cargar el staff: ' + (res.error.message || ''));
+          return;
+        }
+        staffList = res.data || [];
+        staffLoaded = true;
+        
+        var badge = $('badgeStf'); if (badge) badge.textContent = staffList.length;
+        var statCount = $('statStfCount'); if (statCount) statCount.textContent = staffList.length;
+
+        renderStaff();
+      });
+  }
+
+  function renderStaff() {
+    var listEl = $('listStf');
+    $('countStf').textContent = staffList.length + (staffList.length === 1 ? ' miembro' : ' miembros') + ' registrados';
+    if (!staffList.length) {
+      listEl.innerHTML = '<div class="ad-empty">No hay miembros de staff registrados.</div>';
+      return;
+    }
+
+    listEl.innerHTML = staffList.map(function (s) {
+      var grid = '';
+      grid += cell('Email', s.email, 'mail');
+      grid += cell('Nombre', s.nombre || 'Sin nombre');
+      grid += cell('Fecha alta', fmtDate(s.created_at));
+
+      var isMe = false;
+      var curEmail = $('meEmail')?.textContent || '';
+      if (curEmail && String(curEmail).toLowerCase() === String(s.email).toLowerCase()) isMe = true;
+      if (String(s.email).toLowerCase() === 'carlitosocanamartinez@gmail.com') isMe = true;
+
+      var deleteBtn = isMe 
+        ? '<span class="granted-pill" style="color:var(--text-ter)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Administrador principal</span>'
+        : '<button class="btn-visits" data-delete-email="' + esc(s.email) + '" style="border-color:rgba(239,68,68,0.25);color:#ef4444;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>Eliminar staff</button>';
+
+      return '<div class="card-row">' +
+        '<div class="r-head">' +
+          '<div class="r-id">' +
+            '<span class="plan staff">Staff</span>' +
+            '<span class="r-name">' + (esc(s.nombre) || 'Sin nombre') + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="r-grid">' + grid + '</div>' +
+        '<div class="r-foot">' + deleteBtn + '</div>' +
+      '</div>';
+    }).join('');
+
+    listEl.querySelectorAll('[data-delete-email]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var email = btn.getAttribute('data-delete-email');
+        if (!window.confirm('Eliminar a "' + email + '" del staff?\n\nPerderá acceso al panel de administración y a todo el software si su plan es gratuito.')) return;
+        btn.disabled = true;
+        btn.textContent = 'Eliminando...';
+        api.client.from('staff').delete().eq('email', email).then(function (res) {
+          if (res.error) {
+            btn.disabled = false;
+            btn.textContent = 'Eliminar staff';
+            msg($('stfMsg'), 'err', 'No se pudo eliminar: ' + (res.error.message || ''));
+            return;
+          }
+          msg($('stfMsg'), 'ok', 'Miembro del staff eliminado con éxito.');
+          loadStaff();
+        });
+      });
+    });
+  }
+
+  var addStaffForm = $('addStaffForm');
+  if (addStaffForm) {
+    addStaffForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var nombre = $('addStfNombre').value.trim();
+      var email = $('addStfEmail').value.trim().toLowerCase();
+      if (!nombre || !email) return;
+
+      var btn = $('addStfBtn');
+      btn.disabled = true;
+      btn.textContent = 'Añadiendo...';
+      clearMsg($('stfMsg'));
+
+      api.client.from('staff').insert([{ email: email, nombre: nombre }]).then(function (res) {
+        btn.disabled = false;
+        btn.textContent = 'Añadir miembro';
+        if (res.error) {
+          msg($('stfMsg'), 'err', 'No se pudo añadir al staff: ' + (res.error.message || ''));
+          return;
+        }
+        msg($('stfMsg'), 'ok', 'Miembro añadido con éxito.');
+        $('addStfNombre').value = '';
+        $('addStfEmail').value = '';
+        loadStaff();
+      });
+    });
+  }
+
   // ---------- TABS ----------
   function switchView(view) {
     var sol = view === 'solicitudes';
     var cue = view === 'cuentas';
     var ref = view === 'referidos';
     var res = view === 'resenas';
+    var stf = view === 'staff';
 
     $('tabSol').classList.toggle('active', sol);
     $('tabCue').classList.toggle('active', cue);
     $('tabRef').classList.toggle('active', ref);
     $('tabRes').classList.toggle('active', res);
+    $('tabStf').classList.toggle('active', stf);
 
     $('view-solicitudes').style.display = sol ? 'block' : 'none';
     $('view-cuentas').style.display = cue ? 'block' : 'none';
     $('view-referidos').style.display = ref ? 'block' : 'none';
     $('view-resenas').style.display = res ? 'block' : 'none';
+    $('view-staff').style.display = stf ? 'block' : 'none';
 
     if (cue && !cuentasLoaded) loadCuentas();
     if (ref && !referidosLoaded) loadReferidos();
     if (res && !resenasLoaded) loadResenas();
+    if (stf && !staffLoaded) loadStaff();
   }
   var ts = $('tabSol'); if (ts) ts.addEventListener('click', function () { switchView('solicitudes'); });
   var tc = $('tabCue'); if (tc) tc.addEventListener('click', function () { switchView('cuentas'); });
   var tr = $('tabRef'); if (tr) tr.addEventListener('click', function () { switchView('referidos'); });
   var tres = $('tabRes'); if (tres) tres.addEventListener('click', function () { switchView('resenas'); });
+  var tstf = $('tabStf'); if (tstf) tstf.addEventListener('click', function () { switchView('staff'); });
 })();
 </script>
 

@@ -192,41 +192,44 @@ function resetEmber(p) {
   p.t = 0;
 }
 
-// ---- Animation loop (no save/restore, no shadowBlur) ----
-function animate() {
-  ctx.clearRect(0, 0, W, H);
-  ctx.globalCompositeOperation = 'screen';
+// ---- Animation loop — physics locked to 60fps, render at monitor rate ----
+const STEP = 1000 / 60; // 16.67ms per physics tick
+let lastTime = 0;
+let accumulator = 0;
 
+function physicsTick() {
   for (let i = 0; i < MAX_PARTICLES; i++) {
     const p = particles[i];
     p.t++;
     p.life--;
 
-    // Physics
     p.y += p.vy;
     p.vy -= 0.001;
     p.vx += p.windDrift;
     p.x += p.vx + Math.sin(p.t * p.swayFreq + p.swayPhase) * p.swayAmp;
 
-    // Flicker
-    const flicker = Math.sin(p.t * p.flickerSpeed + p.flickerPhase);
+    if (p.life <= 0 || p.y < -20 || p.x < -40 || p.x > W + 40) {
+      resetEmber(p);
+    }
+  }
+}
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'screen';
+
+  for (let i = 0; i < MAX_PARTICLES; i++) {
+    const p = particles[i];
     const lifeRatio = p.life / p.maxLife;
+    const flicker = Math.sin(p.t * p.flickerSpeed + p.flickerPhase);
 
     let alpha = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.85 ? (1 - lifeRatio) / 0.15 : 1;
     alpha *= (0.7 + 0.3 * (flicker * 0.5 + 0.5));
-
-    const size = p.baseSize * (0.6 + 0.4 * (flicker * 0.5 + 0.5)) * (0.4 + 0.6 * lifeRatio);
-
-    // Reset if dead
-    if (p.life <= 0 || p.y < -20 || p.x < -40 || p.x > W + 40) {
-      resetEmber(p);
-      continue;
-    }
-
     if (alpha < 0.02) continue;
 
-    // Draw using pre-rendered glow texture (FAST — no shadowBlur)
+    const size = p.baseSize * (0.6 + 0.4 * (flicker * 0.5 + 0.5)) * (0.4 + 0.6 * lifeRatio);
     const drawSize = size * (p.glowBase * 0.5);
+
     ctx.globalAlpha = Math.min(alpha, 1);
     ctx.drawImage(
       glowTextures[p.colorIdx],
@@ -238,10 +241,25 @@ function animate() {
   }
 
   ctx.globalAlpha = 1;
+}
+
+function animate(now) {
+  if (!lastTime) lastTime = now;
+  const dt = now - lastTime;
+  lastTime = now;
+
+  // Accumulate time, run physics at fixed 60fps steps
+  accumulator += Math.min(dt, 100); // cap to avoid spiral of death
+  while (accumulator >= STEP) {
+    physicsTick();
+    accumulator -= STEP;
+  }
+
+  render();
   requestAnimationFrame(animate);
 }
 
-animate();
+requestAnimationFrame(animate);
 </script>
 
 </body>

@@ -2587,6 +2587,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
   const [nombre, setNombre] = useState('');
   const [direccion, setDireccion] = useState('');
   const [telefono, setTelefono] = useState('');
+  const [web, setWeb] = useState('');
   const [idioma, setIdioma] = useState('es');
   const [mostrarPrecios, setMostrarPrecios] = useState('catalogo');
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -2605,6 +2606,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         setNombre(data.nombre_publico || defaultNombre || '');
         setDireccion(data.direccion || defaultDireccion || '');
         setTelefono(data.telefono || defaultTelefono || '');
+        setWeb(data.web || '');
         setIdioma(data.idioma || 'es');
         setMostrarPrecios(data.mostrar_precios || 'catalogo');
       } else {
@@ -2673,6 +2675,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
       nombre_publico: nombre.trim() || null,
       direccion: direccion.trim() || null,
       telefono: telefono.trim() || null,
+      web: web.trim() || null,
       idioma,
       portal_activo: activo,
       mostrar_precios: mostrarPrecios,
@@ -2691,7 +2694,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     setSlug(s);
     setSavedSlug(s);
     setMsg({ ok: true, text: 'Portal guardado correctamente.' });
-  }, [negocioId, slug, nombre, direccion, telefono, idioma, activo, mostrarPrecios]);
+  }, [negocioId, slug, nombre, direccion, telefono, web, idioma, activo, mostrarPrecios]);
 
   if (loading) {
     return <div style={{ padding: 40, textAlign: 'center', color: T.textTertiary }}>Cargando portal...</div>;
@@ -2776,6 +2779,9 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         </FieldRow>
         <FieldRow label="Telefono" hint="Telefono de contacto para las clientes. Opcional.">
           <STextInput value={telefono} onChange={setTelefono} placeholder="600 000 000" width={200} />
+        </FieldRow>
+        <FieldRow label="Sitio web" hint="Tu web o redes. Se muestra en el portal para que las clientes te encuentren. Opcional.">
+          <STextInput value={web} onChange={setWeb} placeholder="https://tusalon.com" width={360} />
         </FieldRow>
       </Section>
 
