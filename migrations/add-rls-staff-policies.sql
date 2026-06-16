@@ -40,7 +40,8 @@ begin
           'carlitosocanamartinez@gmail.com',
           'carlitoscanamartimez@gmail.com',
           'carletes2007cc@gmail.com',
-          'alexandruiscru07@gmail.com'
+          'alexandruiscru07@gmail.com',
+          'alexandru.iscru07@gmail.com'
         )
       )
   ) into v_exists;
@@ -60,21 +61,21 @@ create policy negocio_portal_staff_select on public.negocio_portal
   for select to authenticated
   using (public.is_staff());
 
--- 3) Políticas para la tabla staff (permitir al propio staff gestionar el equipo)
+-- 3) Políticas para la tabla staff (permitir al equipo gestionar el staff para evitar recursión y problemas de primer registro)
 drop policy if exists "Staff can select all staff" on public.staff;
 create policy "Staff can select all staff" on public.staff
   for select to authenticated
-  using (public.is_staff());
+  using (public.is_team_member());
 
 drop policy if exists "Staff can insert staff" on public.staff;
 create policy "Staff can insert staff" on public.staff
   for insert to authenticated
-  with check (public.is_staff());
+  with check (public.is_team_member());
 
 drop policy if exists "Staff can delete staff" on public.staff;
 create policy "Staff can delete staff" on public.staff
   for delete to authenticated
-  using (public.is_staff());
+  using (public.is_team_member());
 
 -- 4) Funciones RPC seguras para gestionar miembros de staff sin RLS
 create or replace function public.staff_add_member(
@@ -89,7 +90,7 @@ as $$
 declare
   new_row public.staff;
 begin
-  if not is_staff() then
+  if not is_team_member() then
     raise exception 'not_authorized';
   end if;
 
@@ -115,7 +116,7 @@ security definer
 set search_path to 'public'
 as $$
 begin
-  if not is_staff() then
+  if not is_team_member() then
     raise exception 'not_authorized';
   end if;
 
