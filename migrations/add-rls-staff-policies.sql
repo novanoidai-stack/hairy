@@ -1,5 +1,52 @@
--- Migración: políticas RLS para Staff de Mecha
--- Proyecto Supabase Mecha: vtrggiogjrhqtwbhbgia
+-- Redefinir funciones de chequeo a plpgsql para evitar inlining y recursión en RLS
+CREATE OR REPLACE FUNCTION public.is_staff()
+ RETURNS boolean
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $$
+declare
+  v_exists boolean;
+begin
+  select exists (
+    select 1 from public.staff s
+    where lower(s.email) = lower(auth.jwt() ->> 'email')
+  ) into v_exists;
+  return v_exists;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_team_member()
+ RETURNS boolean
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $$
+declare
+  v_exists boolean;
+begin
+  select exists (
+    select 1 from public.profiles 
+    where id = auth.uid() 
+      and (
+        role = 'admin' 
+        or email ilike '%@novanoidai.com'
+        or exists (
+          select 1 from public.staff s
+          where lower(s.email) = lower(profiles.email)
+        )
+        or lower(email) in (
+          'novanoidai@gmail.com',
+          'carlitosocanamartinez@gmail.com',
+          'carlitoscanamartimez@gmail.com',
+          'carletes2007cc@gmail.com',
+          'alexandruiscru07@gmail.com'
+        )
+      )
+  ) into v_exists;
+  return v_exists;
+end;
+$$;
 
 -- 1) Políticas para la tabla resenas
 drop policy if exists resenas_staff_select on public.resenas;
