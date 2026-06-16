@@ -489,6 +489,11 @@
     });
   }
 
+  // Mostrar carga inmediata al volver de Google (Supabase tarda en procesar el hash)
+  if (window.location.hash.indexOf('access_token=') !== -1 || window.location.search.indexOf('code=') !== -1) {
+    startLoading('Autenticando...');
+  }
+
   // Guarda contra aperturas dobles (sesion previa + evento SIGNED_IN del SSO).
   var routed = false;
   function go() { if (routed) return; routed = true; routeAfterAuth(); }

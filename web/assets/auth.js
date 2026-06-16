@@ -210,7 +210,7 @@
 
   async function isStaff() {
     try {
-      var res = await client.rpc('is_staff');
+      var res = await client.rpc('is_team_member');
       return res.data === true;
     } catch (e) { return false; }
   }
