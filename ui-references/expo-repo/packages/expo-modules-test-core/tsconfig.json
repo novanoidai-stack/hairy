@@ -1,0 +1,13 @@
+{
+  "extends": "expo-module-scripts/tsconfig.base",
+  "compilerOptions": {
+    "moduleResolution": "node16",
+    "strict": true,
+    "rootDir": "./src",
+    "outDir": "./build",
+    "types": ["node"],
+    "module": "node16",
+    "verbatimModuleSyntax": false
+  },
+  "include": ["./src"]
+}

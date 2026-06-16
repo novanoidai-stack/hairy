@@ -8,7 +8,7 @@ Repositorios de componentes UI premium, sistemas de diseño y arquitecturas de i
 |-------------|-------------|---------------|
 | **shadcn-ui** | Componentes React copiables | Radix + Tailwind, accesibilidad |
 | **chakra-ui** | Sistema de diseño modular | Temas, composición, accesibilidad |
-| **mui** | Material UI para React | Componentes enterprise, Documentación extensa |
+| **mui** | Material UI para React | Componentes enterprise, docs extensas |
 | **nextui** | Biblioteca React moderna | Apariencia premium, animaciones suaves |
 | **mantine** | Biblioteca de componentes React | Hooks, formularios, tablas |
 | **daisyui** | Componentes para Tailwind | Clases de utilidad, themes |
@@ -22,6 +22,15 @@ Repositorios de componentes UI premium, sistemas de diseño y arquitecturas de i
 | **carbon-design** | IBM | Design system completo, accesibilidad |
 | **polaris** | Shopify | E-commerce, patrones de compra |
 | **evergreen** | Segment | Tipografía, layouts, colores |
+| **tremor** | Tremor Labs | Dashboards, charts, componentes de datos |
+
+## 📱 Mobile & React Native
+
+| Repositorio | Descripción | Especialidad |
+|-------------|-------------|---------------|
+| **rn-reanimated** | Software Mansion | Animaciones avanzadas para React Native |
+| **rn-placeholder** | Placeholder patterns | Skeletons, loading states |
+| **expo-repo** | Expo | Código fuente de Expo, patrones oficiales |
 
 ## 📚 Cómo usar estos recursos
 

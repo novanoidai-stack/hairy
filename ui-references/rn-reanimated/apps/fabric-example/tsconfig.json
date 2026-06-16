@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../common-app/src/*"]
+    }
+  },
+  "include": ["."],
+  "exclude": ["android", "ios", ".bundle", "vendor", "assets"]
+}

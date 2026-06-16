@@ -1,0 +1,5 @@
+node_modules/**/*
+example/placeholder/**
+example/node_modules
+website/node_modules
+**/.cache
