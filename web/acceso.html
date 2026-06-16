@@ -108,7 +108,17 @@
   .choice.primary .choice-arr{color:rgba(255,255,255,.85)}
   @media (max-width:860px){
     .auth{grid-template-columns:1fr}
-    .auth-aside{display:none}
+  /* ---- loading screen ---- */
+  .load-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 0;text-align:center}
+  .load-logo{width:64px;height:64px;color:var(--accent-hi);margin-bottom:20px;animation:loadPulse 1.6s ease-in-out infinite}
+  .load-h{font-size:21px;font-weight:700;letter-spacing:-.02em;margin:0 0 6px;color:var(--text)}
+  .load-p{font-size:13.5px;color:var(--text-sec);margin-bottom:24px}
+  .load-progress-bg{width:100%;max-width:260px;height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;position:relative}
+  .load-progress-bar{height:100%;width:0%;background:var(--grad);border-radius:2px;transition:width .22s cubic-bezier(.16,1,.3,1)}
+  
+  @keyframes loadPulse {
+    0%, 100% { transform: scale(1); opacity: .9; filter: drop-shadow(0 0 4px rgba(244,80,30,0.15)); }
+    50% { transform: scale(1.06); opacity: 1; filter: drop-shadow(0 0 16px rgba(244,80,30,0.55)); }
   }
 </style>
 </head>
@@ -287,6 +297,18 @@
           <div class="auth-msg" id="cpMsg"></div>
         </form>
       </div>
+
+      <!-- LOADING (pantalla de carga de transición) -->
+      <div class="pane" id="paneLoading">
+        <div class="load-wrap">
+          <svg class="load-logo" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg>
+          <h2 class="load-h">Preparando tu salón</h2>
+          <p class="load-p" id="loadStatus">Verificando accesos...</p>
+          <div class="load-progress-bg">
+            <div class="load-progress-bar" id="loadBar"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -350,12 +372,46 @@
 
   var seg = document.querySelector('.seg');
 
+  var loadTimer = null;
+  var currentProgress = 0;
+
+  function setProgress(pct) {
+    currentProgress = pct;
+    var bar = document.getElementById('loadBar');
+    if (bar) bar.style.width = pct + '%';
+  }
+
+  function startLoading(statusText) {
+    showStage('paneLoading');
+    var statusEl = document.getElementById('loadStatus');
+    if (statusEl && statusText) statusEl.textContent = statusText;
+    setProgress(0);
+    if (loadTimer) clearInterval(loadTimer);
+    
+    var start = Date.now();
+    var duration = 800; // Llegará a 85% en 800ms
+    loadTimer = setInterval(function () {
+      var elapsed = Date.now() - start;
+      var pct = Math.min(85, Math.round((elapsed / duration) * 85));
+      setProgress(pct);
+      if (pct >= 85) clearInterval(loadTimer);
+    }, 16);
+  }
+
+  function endLoading(callback) {
+    if (loadTimer) clearInterval(loadTimer);
+    setProgress(100);
+    setTimeout(function () {
+      if (callback) callback();
+    }, 250); // Esperar 250ms al 100% de progreso
+  }
+
   // Muestra una "pantalla" de la tarjeta. Las post-login (chooser/free/complete)
   // ocultan el selector iniciar sesion / crear cuenta.
   function showStage(id) {
-    var postLogin = id === 'paneChooser' || id === 'paneFree' || id === 'paneComplete';
+    var postLogin = id === 'paneChooser' || id === 'paneFree' || id === 'paneComplete' || id === 'paneLoading';
     if (seg) seg.style.display = postLogin ? 'none' : 'flex';
-    ['paneLogin', 'paneSignup', 'paneChooser', 'paneFree', 'paneComplete'].forEach(function (p) {
+    ['paneLogin', 'paneSignup', 'paneChooser', 'paneFree', 'paneComplete', 'paneLoading'].forEach(function (p) {
       var el = document.getElementById(p);
       if (el) el.classList.toggle('on', p === id);
     });
@@ -375,8 +431,14 @@
   // Despues de autenticar: demo -> demo; equipo -> elige; perfil incompleto -> completar;
   // free -> pantalla limitada; full -> software.
   function routeAfterAuth() {
+    startLoading('Conectando con Mecha...');
     Promise.resolve(api && api.isStaff ? api.isStaff() : false).then(function (staff) {
+      setProgress(50);
+      var statusEl = document.getElementById('loadStatus');
+      if (statusEl) statusEl.textContent = 'Verificando salón...';
       Promise.resolve(api && api.getProfile ? api.getProfile() : null).then(function (profile) {
+        setProgress(75);
+        if (statusEl) statusEl.textContent = 'Preparando entorno...';
         var incomplete = !!(api && api.profileComplete && !api.profileComplete(profile));
 
         // El staff nunca tiene perfil "incompleto" porque no tiene un salón asociado.
@@ -385,16 +447,11 @@
         }
 
         // --- ATRIBUCIÓN AUTOMÁTICA DE REFERIDOS ---
-        // Todo pasa por el RPC seguro `claim_referral`: valida el código en el
-        // servidor (anti-autoreferencia, anti-ciclo) y engancha `referido_por`
-        // una sola vez. Cubre alta por email y SSO de Google. No tocamos
-        // profiles directamente (el guard del servidor lo bloquea a propósito).
         try {
           var refCode = localStorage.getItem('mecha_ref_code');
           if (refCode && profile && !profile.referido_por) {
             api.client.rpc('claim_referral', { p_code: refCode }).then(function (resRef) {
               var data = resRef && resRef.data;
-              // ok o ya referido / inválido: en cualquier caso dejamos de reintentar.
               if (data && (data.ok || data.reason === 'already_referred' || data.reason === 'invalid_code')) {
                 localStorage.removeItem('mecha_ref_code');
                 localStorage.removeItem('mecha_ref_email');
@@ -404,9 +461,6 @@
         } catch(e) { console.error('Error al asociar referido:', e); }
 
         // --- SEÑAL DE ORIGEN DEL ALTA (anti-multicuenta) ---
-        // Registra (una sola vez, en el servidor) la IP/dispositivo desde el que
-        // se crea la cuenta. Sirve para detectar racimos de cuentas creadas desde
-        // el mismo sitio para farmear el descuento de referidos.
         try {
           var fp = '';
           try {
@@ -418,17 +472,19 @@
           api.client.rpc('record_signup_signal', { p_fingerprint: fp || null }).catch(function () {});
         } catch (e) {}
 
-        // Antes de la DEMO o del SOFTWARE pedimos datos a CUALQUIER cuenta
-        // (negocio + telefono + codigo postal), incluido el equipo.
-        if (wantsDemo()) {
+        endLoading(function () {
+          // Antes de la DEMO o del SOFTWARE pedimos datos a CUALQUIER cuenta
+          // (negocio + telefono + codigo postal), incluido el equipo.
+          if (wantsDemo()) {
+            if (incomplete) { prefillComplete(profile); showStage('paneComplete'); return; }
+            gotoDemo();
+            return;
+          }
+          // El equipo Mecha elige destino (el panel admin no necesita datos de salon).
+          if (staff) { showStage('paneChooser'); return; }
           if (incomplete) { prefillComplete(profile); showStage('paneComplete'); return; }
-          gotoDemo();
-          return;
-        }
-        // El equipo Mecha elige destino (el panel admin no necesita datos de salon).
-        if (staff) { showStage('paneChooser'); return; }
-        if (incomplete) { prefillComplete(profile); showStage('paneComplete'); return; }
-        routeByPlan(profile);
+          routeByPlan(profile);
+        });
       });
     });
   }
