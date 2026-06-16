@@ -1352,7 +1352,7 @@
         if (!window.confirm('Eliminar a "' + email + '" del staff?\n\nPerderá acceso al panel de administración y a todo el software si su plan es gratuito.')) return;
         btn.disabled = true;
         btn.textContent = 'Eliminando...';
-        api.client.from('staff').delete().eq('email', email).then(function (res) {
+        api.client.rpc('staff_remove_member', { member_email: email }).then(function (res) {
           if (res.error) {
             btn.disabled = false;
             btn.textContent = 'Eliminar staff';
@@ -1379,7 +1379,7 @@
       btn.textContent = 'Añadiendo...';
       clearMsg($('stfMsg'));
 
-      api.client.from('staff').insert([{ email: email, nombre: nombre }]).then(function (res) {
+      api.client.rpc('staff_add_member', { member_email: email, member_name: nombre }).then(function (res) {
         btn.disabled = false;
         btn.textContent = 'Añadir miembro';
         if (res.error) {

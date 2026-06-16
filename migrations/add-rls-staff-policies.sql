@@ -76,3 +76,57 @@ create policy "Staff can delete staff" on public.staff
   for delete to authenticated
   using (public.is_staff());
 
+-- 4) Funciones RPC seguras para gestionar miembros de staff sin RLS
+create or replace function public.staff_add_member(
+  member_email text,
+  member_name text
+)
+returns public.staff
+language plpgsql
+security definer
+set search_path to 'public'
+as $$
+declare
+  new_row public.staff;
+begin
+  if not is_staff() then
+    raise exception 'not_authorized';
+  end if;
+
+  insert into public.staff (email, nombre)
+  values (lower(trim(member_email)), trim(member_name))
+  on conflict (email) do update
+     set nombre = excluded.nombre
+  returning * into new_row;
+
+  return new_row;
+end;
+$$;
+
+revoke all on function public.staff_add_member(text, text) from public, anon;
+grant execute on function public.staff_add_member(text, text) to authenticated;
+
+create or replace function public.staff_remove_member(
+  member_email text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path to 'public'
+as $$
+begin
+  if not is_staff() then
+    raise exception 'not_authorized';
+  end if;
+
+  delete from public.staff
+   where lower(email) = lower(trim(member_email));
+
+  return true;
+end;
+$$;
+
+revoke all on function public.staff_remove_member(text) from public, anon;
+grant execute on function public.staff_remove_member(text) to authenticated;
+
+
