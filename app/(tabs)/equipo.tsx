@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { mensajeDeError } from '@/lib/errores';
 import { useTheme } from '@/lib/theme';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { supabase } from '@/lib/supabase';
@@ -105,7 +106,7 @@ export default function EquipoScreen() {
     });
     setGuardandoProf(false);
     if (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert('Error', mensajeDeError(error));
       return;
     }
     setModalProfVisible(false);
@@ -155,7 +156,7 @@ export default function EquipoScreen() {
       motivo: motivoBloqueo.trim() || null,
     });
     setGuardandoBloqueo(false);
-    if (error) { Alert.alert('Error', error.message); return; }
+    if (error) { Alert.alert('Error', mensajeDeError(error)); return; }
     setModalBloqueVisible(false);
     setTipoBloqueo('vacaciones');
     setMotivoBloqueo('');

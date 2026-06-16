@@ -4,6 +4,7 @@ import { getUserProfile, can } from '@/lib/auth';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { mensajeDeError } from '@/lib/errores';
 
 // ---------------------------------------------------------------------------
 // Tokens (consistentes con el resto de .web.tsx)
@@ -314,7 +315,7 @@ function AddModal({ negocioId, servicios, profesionales, onClose, onSaved }: {
       estado: 'esperando',
     });
     setSaving(false);
-    if (error) { setErr('No se pudo guardar: ' + error.message); return; }
+    if (error) { setErr(mensajeDeError(error, 'No se pudo guardar en la lista de espera.')); return; }
     onSaved();
   };
 

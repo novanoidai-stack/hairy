@@ -6,6 +6,7 @@ import {
 import { signIn } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { MechaMark } from '@/components/ui/MechaMark';
+import { mensajeDeError } from '@/lib/errores';
 
 // Tipografia del wordmark: Bricolage en web (igual que la landing), peso fuerte en nativo.
 const WORDMARK_FONT = Platform.select({
@@ -29,7 +30,7 @@ export default function LoginScreen() {
     setLoading(true);
     setError('');
     const { error } = await signIn(email, password);
-    if (error) setError(error.message);
+    if (error) setError(mensajeDeError(error));
     setLoading(false);
   }
 
@@ -56,7 +57,7 @@ export default function LoginScreen() {
         },
       },
     });
-    if (error) { setError(error.message); setLoading(false); return; }
+    if (error) { setError(mensajeDeError(error)); setLoading(false); return; }
     if (data.user) {
       // Completa los campos que el trigger no conoce (best-effort: si el alta
       // requiere confirmar el email aun no hay sesion y RLS lo impedira).

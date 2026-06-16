@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { mensajeDeError } from '@/lib/errores';
 import { useTheme, spacing } from '@/lib/theme';
 import { DESIGN_TOKENS, STATUS_META } from '@/lib/designTokens';
 import { supabase } from '@/lib/supabase';
@@ -318,7 +319,7 @@ export default function ClientesScreen() {
       email: nuevoEmail.trim() || null,
     });
     setGuardando(false);
-    if (error) { Alert.alert('Error', error.message); return; }
+    if (error) { Alert.alert('Error', mensajeDeError(error)); return; }
     setModalCrear(false);
     setNuevoNombre('');
     setNuevoTelefono('');
@@ -351,7 +352,7 @@ export default function ClientesScreen() {
       sensibilidades_cuero: editSensibilidades.trim() || null,
     }).eq('id', clienteActivo.id);
     setGuardando(false);
-    if (error) { Alert.alert('Error', error.message); return; }
+    if (error) { Alert.alert('Error', mensajeDeError(error)); return; }
     setEditando(false);
     cargar();
     setClienteActivo({
@@ -375,7 +376,7 @@ export default function ClientesScreen() {
       contenido: nuevaNota.trim(),
     });
     setGuardando(false);
-    if (error) { Alert.alert('Error', error.message); return; }
+    if (error) { Alert.alert('Error', mensajeDeError(error)); return; }
     setNuevaNota('');
     abrirDetalle(clienteActivo);
   }

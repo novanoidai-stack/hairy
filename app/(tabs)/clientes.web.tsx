@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import { mensajeDeError } from '@/lib/errores';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -947,7 +948,7 @@ function NotasClienteSection({ cliente, plantillas = [], onUpdated, bare = false
     const payload = { notas: trimmed || null };
     const { error } = await supabase.from('clientes').update(payload).eq('id', cliente.id);
     setSaving(false);
-    if (error) { setError(error.message); return; }
+    if (error) { setError(mensajeDeError(error)); return; }
     onUpdated({ id: cliente.id, ...payload });
   }
   function save() { void persist(notas); }
@@ -1058,7 +1059,7 @@ function NotasTab({ cliente, onUpdated, catalogoAlergias = [], onSaveToCatalog }
     const payload = { alergias: trimmed || null };
     const { error } = await supabase.from('clientes').update(payload).eq('id', cliente.id);
     setSaving(false);
-    if (error) { setError(error.message); return; }
+    if (error) { setError(mensajeDeError(error)); return; }
     onUpdated({ id: cliente.id, ...payload });
   }
 
@@ -1554,7 +1555,7 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
       ({ error: err } = await supabase.from('fichas_tecnicas_color').insert(row));
     }
     setLoading(false);
-    if (err) { setError(err.message); return; }
+    if (err) { setError(mensajeDeError(err)); return; }
     await onSaved();
   }
 
@@ -1564,7 +1565,7 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
     setError('');
     const { error: err } = await supabase.from('fichas_tecnicas_color').delete().eq('id', ficha.id);
     setLoading(false);
-    if (err) { setError(err.message); return; }
+    if (err) { setError(mensajeDeError(err)); return; }
     await onSaved();
   }
 
@@ -2147,7 +2148,7 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
       }
       onSaved();
     } catch (err: any) {
-      setError(err?.message || 'Error al guardar');
+      setError(mensajeDeError(err, 'No se pudo guardar la clienta.'));
     }
     setLoading(false);
   };
@@ -2159,7 +2160,7 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
     const { error } = await supabase.from('clientes').delete().eq('id', cliente.id);
     setLoading(false);
     if (error) {
-      setError(`No se puede eliminar: ${error.message}. Probablemente tiene citas asociadas.`);
+      setError(mensajeDeError(error, 'No se puede eliminar la clienta. Probablemente tiene citas asociadas.'));
       setShowConfirmDelete(false);
       return;
     }

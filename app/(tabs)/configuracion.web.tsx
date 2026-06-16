@@ -13,6 +13,7 @@ import {
   Segmented, TimeInput, Badge, SoonBadge, SoonBanner, StatBox,
   Btn, IconBtn, ScopeChip, SettingsIcon,
 } from '@/components/ui/SettingsAtoms';
+import { mensajeDeError } from '@/lib/errores';
 
 const T = DESIGN_TOKENS;
 
@@ -468,7 +469,7 @@ export default function ConfiguracionWeb() {
       setSavedDiasHorario({ ...diasHorario });
       setSavedComisionesProf({ ...comisionesProf });
     } catch (e: any) {
-      alert('Error al guardar: ' + e.message);
+      alert(mensajeDeError(e, 'No se pudo guardar.'));
     }
     setSaving(false);
   }, [negocioId, dirty, config, savedConfig, diasHorario, savedDiasHorario, comisionesProf, savedComisionesProf]);
@@ -515,7 +516,7 @@ export default function ConfiguracionWeb() {
       setServicios(data ?? []);
       setEdit(null);
     } catch (error) {
-      alert('Error al guardar: ' + (error instanceof Error ? error.message : 'Intenta de nuevo'));
+      alert(mensajeDeError(error, 'No se pudo guardar el servicio.'));
     }
   };
 
@@ -540,7 +541,7 @@ export default function ConfiguracionWeb() {
         setServicios(prev => prev.map(s => s.id === id ? { ...s, activo: false } : s));
         setEdit(null);
       } catch (e: any) {
-        alert('Error desactivando servicio: ' + e.message);
+        alert(mensajeDeError(e, 'No se pudo desactivar el servicio.'));
       }
       return;
     }
@@ -552,7 +553,7 @@ export default function ConfiguracionWeb() {
       setServicios(prev => prev.filter(s => s.id !== id));
       setEdit(null);
     } catch (e: any) {
-      alert('Error eliminando servicio: ' + e.message);
+      alert(mensajeDeError(e, 'No se pudo eliminar el servicio.'));
     }
   };
 
@@ -578,7 +579,7 @@ export default function ConfiguracionWeb() {
         const { data } = await supabase.from('servicios').select('*').eq('negocio_id', negocioId).order('categoria');
         if (data) setServicios(data);
       } else {
-        alert('Error al guardar: ' + e.message);
+        alert(mensajeDeError(e, 'No se pudo guardar.'));
       }
     }
   };
@@ -590,7 +591,7 @@ export default function ConfiguracionWeb() {
       await supabase.from('servicios').update({ activo: nuevoActivo }).eq('id', s.id);
       setServicios(prev => prev.map(x => x.id === s.id ? { ...x, activo: nuevoActivo } : x));
     } catch (e: any) {
-      alert('Error: ' + e.message);
+      alert(mensajeDeError(e));
     }
   };
 
@@ -605,7 +606,7 @@ export default function ConfiguracionWeb() {
       setAllOverrides(prev => prev.filter(o => !(o.professional_id === profId && o.service_id === serviceId)));
       setEdit(null);
     } catch (e: any) {
-      alert('Error al restablecer: ' + e.message);
+      alert(mensajeDeError(e, 'No se pudo restablecer.'));
     }
   };
 
@@ -644,7 +645,7 @@ export default function ConfiguracionWeb() {
         setDuracionesProf(data ?? []);
       }
     } catch (e: any) {
-      alert('Error al guardar duracion: ' + e.message);
+      alert(mensajeDeError(e, 'No se pudo guardar la duracion.'));
     }
   };
 
@@ -668,7 +669,7 @@ export default function ConfiguracionWeb() {
         }
       }
     } catch (e: any) {
-      alert('Error al restablecer: ' + e.message);
+      alert(mensajeDeError(e, 'No se pudo restablecer.'));
     }
   };
 
@@ -2687,7 +2688,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
       if (code === '23505' || /duplicate|unique/i.test(error.message)) {
         setMsg({ ok: false, text: 'Ese enlace ya lo usa otro salon. Elige otro distinto.' });
       } else {
-        setMsg({ ok: false, text: 'No se pudo guardar: ' + error.message });
+        setMsg({ ok: false, text: mensajeDeError(error, 'No se pudo guardar el portal.') });
       }
       return;
     }

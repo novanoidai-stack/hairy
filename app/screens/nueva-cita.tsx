@@ -12,6 +12,7 @@ import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { validarHorarioLaboral } from '@/lib/horarios';
 import { getUserProfile } from '@/lib/auth';
+import { mensajeDeError } from '@/lib/errores';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { TText, TTextInput } from '@/components/ui/TText';
 import { syncAlergiasACliente } from '@/lib/syncAlergias';
@@ -319,11 +320,11 @@ export default function NuevaCitaScreen() {
       }
 
       setGuardando(false);
-      if (error) { setErrMsg(error.message); return; }
+      if (error) { setErrMsg(mensajeDeError(error, 'No se pudo crear la cita.')); return; }
       triggerRefresh();
       router.back();
     } catch (e: any) {
-      bloquear(e?.message ?? 'Error inesperado');
+      bloquear(mensajeDeError(e, 'No se pudo crear la cita.'));
     }
   }
 

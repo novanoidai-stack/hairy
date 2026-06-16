@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { getUserProfile, can } from '@/lib/auth';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import { mensajeDeError } from '@/lib/errores';
 
 
 // Iconos SVG simples
@@ -987,7 +988,7 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
       onCreated();
     } catch (error) {
       console.error('Error creando profesional:', error);
-      alert('Error al crear el profesional');
+      alert(mensajeDeError(error, 'No se pudo crear el profesional.'));
     }
     setLoading(false);
   };

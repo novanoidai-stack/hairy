@@ -9,6 +9,7 @@ import { useCalendarRefresh } from '@/lib/calendarContext';
 import { syncAlergiasACliente } from '@/lib/syncAlergias';
 import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import { mensajeDeError } from '@/lib/errores';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -2906,7 +2907,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
 
       setGuardando(false);
       if (error) {
-        setErrMsg(error.message);
+        setErrMsg(mensajeDeError(error, 'No se pudo crear la cita.'));
         if (grupoId) {
           await supabase.from('citas').delete().eq('grupo_id', grupoId);
         }
@@ -2928,7 +2929,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
       triggerRefresh();
       onSaved?.(citasInsertadas?.[0] ?? null) ?? onClose();
     } catch (e: any) {
-      setErrMsg(e?.message ?? 'Error inesperado');
+      setErrMsg(mensajeDeError(e, 'No se pudo crear la cita.'));
       setGuardando(false);
     }
   };
@@ -2955,7 +2956,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
         setShowCreateCliente(false);
       }
     } catch (e: any) {
-      alert('Error al crear cliente: ' + (e?.message ?? 'desconocido'));
+      alert(mensajeDeError(e, 'No se pudo crear la clienta.'));
     } finally {
       setCreandoCliente(false);
     }
@@ -3884,7 +3885,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
       })
       .eq('id', cita.id);
     setTogglingConfirma(false);
-    if (e) { setErrMsg('No se pudo cambiar la confirmacion: ' + e.message); return; }
+    if (e) { setErrMsg(mensajeDeError(e, 'No se pudo cambiar la confirmacion.')); return; }
     setConfirmadaCliente(next);
     triggerRefresh();
   }
@@ -4119,6 +4120,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
       onSaved?.(updatedFields) ?? onClose();
     } catch (err) {
       console.error('Error al guardar:', err);
+      alert(mensajeDeError(err, 'No se pudo guardar la cita.'));
     } finally {
       setGuardando(false);
     }
@@ -4144,6 +4146,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
       onSaved?.() ?? onClose();
     } catch (err) {
       console.error('Error al cancelar:', err);
+      alert(mensajeDeError(err, 'No se pudo cancelar la cita.'));
     } finally {
       setGuardando(false);
       setShowCancelModal(false);
