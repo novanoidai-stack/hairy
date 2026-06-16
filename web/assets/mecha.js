@@ -344,7 +344,7 @@
     // Pie: respeta el CTA de cada pagina (login/"Volver a la web" + demo).
     var navCta = $('.nav-cta');
     var srcLogin = navCta ? navCta.querySelector('a.login') : null;
-    var srcDemo = navCta ? navCta.querySelector('a.btn') : null;
+    var srcDemo = navCta ? (navCta.querySelector('#navDemo') || navCta.querySelector('a.btn')) : null;
 
     var foot = document.createElement('div');
     foot.className = 'mnav-foot mobile-menu-cta';
@@ -354,12 +354,25 @@
     loginLink.href = srcLogin ? srcLogin.getAttribute('href') : 'acceso.html';
     loginLink.textContent = (srcLogin && srcLogin.textContent.trim()) || 'Iniciar sesión';
 
+    // Boton "Entrar al software": oculto por defecto; index.html lo muestra
+    // (.mobile-menu-enter) cuando la cuenta tiene acceso (plan != free).
+    var enterLink = document.createElement('a');
+    enterLink.className = 'btn btn-primary btn-lg btn-block mobile-menu-enter';
+    enterLink.href = '#';
+    enterLink.textContent = 'Entrar al software';
+    enterLink.style.display = 'none';
+    enterLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (window.MechaAPI && window.MechaAPI.goToApp) window.MechaAPI.goToApp();
+    });
+
     var demoLink = document.createElement('a');
     demoLink.className = 'btn btn-primary btn-lg btn-block';
     demoLink.href = srcDemo ? srcDemo.getAttribute('href') : 'demo.html';
     demoLink.textContent = (srcDemo && srcDemo.textContent.trim()) || 'Ver demo gratis';
 
     foot.appendChild(loginLink);
+    foot.appendChild(enterLink);
     foot.appendChild(demoLink);
     panel.appendChild(foot);
 

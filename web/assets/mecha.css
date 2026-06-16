@@ -39,15 +39,17 @@ input,select,textarea{font-family:inherit}
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--bg)}
 .bg::before{content:"";position:absolute;inset:0;
   background:
-    radial-gradient(60% 50% at 50% -8%, rgba(244,80,30,.28), transparent 70%),
-    radial-gradient(40% 40% at 85% 8%, rgba(255,176,60,.12), transparent 70%),
-    radial-gradient(45% 45% at 10% 18%, rgba(255,157,46,.16), transparent 70%);}
+    radial-gradient(70% 55% at 50% -10%, rgba(244,80,30,.26), transparent 72%),
+    radial-gradient(48% 45% at 86% 6%, rgba(255,190,120,.16), transparent 72%),
+    radial-gradient(52% 50% at 8% 16%, rgba(255,170,90,.16), transparent 72%),
+    radial-gradient(60% 55% at 50% 108%, rgba(255,150,110,.12), transparent 70%);}
+/* Topos (puntitos) en tono calido pastel de Mecha — sustituyen al antiguo
+   fondo cuadriculado de lineas frias. Se difuminan hacia abajo con la mascara. */
 .bg-grid{position:absolute;inset:0;
-  background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);
-  background-size:58px 58px;
-  -webkit-mask-image:radial-gradient(ellipse 90% 65% at 50% 0%,#000,transparent 78%);
-  mask-image:radial-gradient(ellipse 90% 65% at 50% 0%,#000,transparent 78%)}
+  background-image:radial-gradient(rgba(255,180,130,.075) 1.5px, transparent 1.7px);
+  background-size:30px 30px;background-position:0 0;
+  -webkit-mask-image:radial-gradient(ellipse 95% 70% at 50% 0%,#000,transparent 80%);
+  mask-image:radial-gradient(ellipse 95% 70% at 50% 0%,#000,transparent 80%)}
 .orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;mix-blend-mode:screen;
   animation:drift 26s var(--ease) infinite alternate}
 .orb.o1{width:520px;height:520px;top:-120px;left:8%;
@@ -167,8 +169,19 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
 .hero-micro{font-size:13.5px;color:var(--text-ter);display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
 .hero-micro span{display:inline-flex;align-items:center;gap:6px}
 .hero-micro svg{width:15px;height:15px;color:var(--success-hi)}
+/* Valoraciones arriba: pill con fueguitos + media + verificacion (junto al hero) */
+.hero-rating{display:inline-flex;align-items:center;gap:10px;margin:0 auto 22px;padding:8px 8px 8px 14px;
+  border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--border-hi);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:border-color .2s,transform .2s}
+.hero-rating:hover{border-color:var(--accent);transform:translateY(-1px)}
+.hero-rating .hr-flames{display:inline-flex;gap:1px}
+.hero-rating .hr-score{font-weight:800;font-size:15px;color:var(--text)}
+.hero-rating .hr-count{font-size:13px;color:var(--text-sec)}
+.hero-rating .hr-verif{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--success-hi);
+  background:rgba(16,185,129,.14);padding:5px 10px;border-radius:999px}
+.hero-rating .hr-verif svg{width:13px;height:13px}
 
-.hero-mock-wrap{position:relative;z-index:1;margin-top:62px;perspective:2400px}
+.hero-mock-wrap{position:relative;z-index:1;margin-top:clamp(66px,11vh,130px);perspective:2400px}
 .hero-mock{max-width:1020px;margin:0 auto;border-radius:18px;overflow:hidden;border:1px solid var(--border-hi);
   box-shadow:var(--shadow-card);transform:rotateX(7deg) scale(.98);transform-origin:center top}
 .hero-mock::before{content:"";position:absolute;inset:0;border-radius:18px;z-index:2;pointer-events:none;

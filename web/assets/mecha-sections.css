@@ -237,6 +237,9 @@
 .chain-part .pn{font-size:12.5px;font-weight:600;color:var(--text)}
 .chain-part .pd{font-size:10.5px;color:var(--text-ter);margin-top:3px}
 .chain-avatars{display:flex;gap:10px}
+.chain-sum{display:flex;align-items:center;justify-content:center;gap:7px;font-size:11.5px;color:var(--text-sec);border-top:1px solid var(--border);padding-top:11px}
+.chain-sum svg{width:14px;height:14px;flex-shrink:0}
+.chain-sum b{color:var(--text)}
 .cav{display:flex;align-items:center;gap:9px;background:var(--bg-2);border:1px solid var(--border);padding:9px 12px;border-radius:10px;font-size:11.5px;flex:1}
 .cav .av{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
 .cav .cn{font-weight:600}.cav .cr{font-size:9.5px;color:var(--text-ter)}
@@ -354,6 +357,7 @@
 .met-card .val .u{font-size:.5em;font-weight:600;margin-left:2px;opacity:.8}
 .met-card .lbl{font-size:13.5px;color:var(--text-sec);margin-top:9px;font-weight:500}
 .met-card .note{font-size:11.5px;color:var(--text-ter);margin-top:8px}
+.met-card .mc-spark{display:block;width:100%;height:26px;margin-top:14px;opacity:.9}
 .tone-success .mc-ic{background:rgba(16,185,129,.15);color:var(--success-hi)}.tone-success .val{color:var(--success-hi)}.tone-success .mc-trend{background:rgba(16,185,129,.15);color:var(--success-hi)}
 .tone-accent .mc-ic{background:var(--accent-soft);color:var(--accent-hi)}.tone-accent .val{color:var(--accent-hi)}.tone-accent .mc-trend{background:var(--accent-soft);color:var(--accent-hi)}
 .tone-cyan .mc-ic{background:rgba(255,176,60,.15);color:var(--cyan)}.tone-cyan .val{color:var(--cyan)}.tone-cyan .mc-trend{background:rgba(255,176,60,.15);color:var(--cyan)}

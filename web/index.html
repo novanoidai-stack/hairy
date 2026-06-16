@@ -320,6 +320,9 @@
     </div>
     <div class="nav-cta">
       <a href="acceso.html" class="login" id="navLogin">Iniciar sesión</a>
+      <a href="#" class="btn btn-primary" id="navEnterApp" style="display:none">Entrar al software
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+      </a>
       <a href="demo.html" class="btn btn-primary" id="navDemo">Ver demo gratis</a>
       <div class="acct" id="acct">
         <button class="acct-btn" id="acctBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Tu cuenta">
@@ -356,8 +359,9 @@
         </a>
         <a href="reservar.html" class="btn btn-ghost btn-lg">Reservar una llamada</a>
       </div>
+      <a href="#resenas" id="heroRating" class="hero-rating reveal d3" style="display:none" aria-label="Valoraciones de Mecha"></a>
       <div class="hero-micro reveal d4">
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Demo gratis al instante</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Sin comisiones: todo es para ti</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Te lo montamos todo</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Conecta tu Booksy o Fresha</span>
       </div>
@@ -504,9 +508,9 @@
   <section class="metrics" id="impacto">
     <div class="wrap">
       <div class="sec-head center reveal">
-        <span class="eyebrow center">El impacto estimado</span>
-        <h2 class="sec-title">Lo que cambia en tu salón <span class="display" style="font-style:italic">desde las primeras semanas</span></h2>
-        <p class="sec-sub">Estimaciones de salones típicos, no una garantía — en la demo las ajustamos a tu salón.</p>
+        <span class="eyebrow center">Tus informes, en vivo</span>
+        <h2 class="sec-title">Los datos de tu salón, <span class="display" style="font-style:italic">a la vista y creciendo</span></h2>
+        <p class="sec-sub">Así se ven tus informes en Mecha, y suben semana a semana. Cifras ilustrativas de un salón típico — en la demo las ajustamos a los tuyos.</p>
       </div>
 
       <div class="met-grid">
@@ -515,24 +519,28 @@
           <div class="val" data-count="93" data-suffix="%">0<span class="u">%</span></div>
           <div class="lbl">menos no-shows</div>
           <div class="note">Recordatorio + señal por Stripe vía IA.</div>
+          <svg class="mc-spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,6 20,9 40,13 60,17 80,22 100,26" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="met-card tone-accent reveal d1">
           <div class="mc-top"><span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" /><circle cx="12" cy="12" r="4" /></svg></span><span class="mc-trend">+32%</span></div>
           <div class="val" data-count="32" data-suffix="%">0<span class="u">%</span></div>
           <div class="lbl">más ocupación</div>
           <div class="note">Aprovechando tiempos muertos y huecos liberados.</div>
+          <svg class="mc-spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,26 20,21 40,18 60,12 80,8 100,4" fill="none" stroke="#ff8a3d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="met-card tone-cyan reveal d2">
           <div class="mc-top"><span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></span><span class="mc-trend">+6h</span></div>
           <div class="val" data-count="6" data-prefix="+" data-suffix="h">0<span class="u">h</span></div>
           <div class="lbl">ahorradas a la semana</div>
           <div class="note">Reservas y recordatorios automáticos, sin teléfono.</div>
+          <svg class="mc-spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,24 20,22 40,16 60,15 80,9 100,5" fill="none" stroke="#ffce4a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="met-card tone-violet reveal d3">
           <div class="mc-top"><span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg></span><span class="mc-trend">+24%</span></div>
           <div class="val" data-count="24" data-suffix="%">0<span class="u">%</span></div>
           <div class="lbl">más ingresos / silla</div>
           <div class="note">Misma jornada, más servicios completados.</div>
+          <svg class="mc-spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,27 20,20 40,19 60,13 80,10 100,3" fill="none" stroke="#ff9d2e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
 
@@ -609,6 +617,7 @@
               <div class="cav"><span class="av" style="background:linear-gradient(135deg,#818cf8,#6366f1)">CM</span><span><span class="cn">Carla M.</span><br /><span class="cr">Estilista</span></span></div>
               <div class="cav"><span class="av" style="background:linear-gradient(135deg,#34d399,#10b981)">DR</span><span><span class="cn">Diego R.</span><br /><span class="cr">Peinado</span></span></div>
             </div>
+            <div class="chain-sum"><svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Una sola cita · 3 profesionales · <b>1 confirmación</b> para el cliente</div>
           </div>
         </div>
       </div>
@@ -720,14 +729,13 @@
     <div class="wrap">
       <div class="sec-head center reveal">
         <span class="eyebrow center">Mucho más que una agenda</span>
-        <h2 class="sec-title">De la reserva al cliente que vuelve</h2>
+        <h2 class="sec-title">De la reserva al cobro, <span class="display" style="font-style:italic">sin fricción</span></h2>
       </div>
 
       <div class="flow reveal">
         <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span><h5>1 · Reserva</h5><p>WhatsApp, web o QR.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span><h5>2 · Señal</h5><p>Bloquea el hueco.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></span><h5>3 · Servicio</h5><p>Agenda y cobro.</p></div>
-        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span><h5>4 · Vuelve</h5><p>La IA le recuerda volver.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span><h5>2 · Señal</h5><p>Bloquea el hueco y evita el no-show.</p></div>
+        <div class="flow-step"><span class="flow-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></span><h5>3 · Servicio</h5><p>Agenda, ficha y cobro, todo en uno.</p></div>
       </div>
     </div>
   </section>
@@ -737,16 +745,16 @@
     <div class="wrap">
       <div class="sec-head center reveal">
         <span class="eyebrow center">Organizador con IA</span>
-        <h2 class="sec-title">Tu agenda se ordena <span class="display" style="font-style:italic">sola</span></h2>
+        <h2 class="sec-title">Un retraso no te <span class="display" style="font-style:italic">arruina el día</span></h2>
       </div>
 
       <div class="diff-row reveal">
         <div class="diff-txt">
-          <span class="diff-tag" style="background:var(--accent-soft);color:var(--accent-hi)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg>Reorganiza con un botón</span>
-          <h3>Pulsa "Organizar mi día" y la IA cuadra tu agenda</h3>
+          <span class="diff-tag" style="background:var(--accent-soft);color:var(--accent-hi)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>Absorbe retrasos</span>
+          <h3>Una cita se alarga y Mecha recoloca el resto</h3>
           <ul class="diff-list">
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Te propone <strong>un día más compacto</strong>, con menos huecos.</span></li>
-            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><strong>Ves qué se mueve</strong> antes de aceptar.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Calcula el <strong>efecto dominó</strong> del retraso en las citas siguientes.</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Lo <strong>absorbe</strong> con avisos y los tiempos muertos, antes de que crezca.</span></li>
             <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Nada cambia <strong>sin tu confirmación</strong>.</span></li>
           </ul>
         </div>
@@ -754,16 +762,16 @@
           <span class="vis-glow" style="background:rgba(244,80,30,.3)"></span>
           <div class="org-organize">
             <div class="org-day-head">
-              <div><div class="org-day-t">Martes 9 jun</div><div class="org-day-s">8 citas - 2 huecos sueltos</div></div>
-              <button class="org-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg>Organizar mi día</button>
+              <div><div class="org-day-t">Martes 9 jun · 12:30</div><div class="org-day-s">María se alarga 15 min — afecta a 3 citas</div></div>
+              <span class="org-btn" style="background:rgba(245,158,11,.16);color:#fbbf24;border-color:rgba(245,158,11,.4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>Retraso · 15 min</span>
             </div>
             <div class="org-prop">
-              <div class="org-prop-h"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg></span>Propuesta de la IA</div>
-              <div class="org-move"><span class="ot">Adelantar corte de Marco</span><span class="oa">12:30 a 11:45</span></div>
-              <div class="org-move"><span class="ot">Encajar tinte de Lucía en el hueco de reposo</span><span class="oa good">+1 cita</span></div>
-              <div class="org-move"><span class="ot">Juntar las dos citas de la tarde</span><span class="oa">-35 min muertos</span></div>
+              <div class="org-prop-h"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /></svg></span>Cómo lo absorbe la IA</div>
+              <div class="org-move"><span class="ot">Avisar a Marco: entra 10 min más tarde</span><span class="oa good">aviso listo</span></div>
+              <div class="org-move"><span class="ot">Aprovechar el reposo del tinte de Lucía</span><span class="oa good">-10 min</span></div>
+              <div class="org-move"><span class="ot">Recuperas el ritmo en la 3ª cita</span><span class="oa good">en hora</span></div>
               <div class="org-prop-foot">
-                <span class="org-gain"><b>+1 cita</b> - 35 min menos de huecos</span>
+                <span class="org-gain"><b>Retraso absorbido</b> · nadie espera de más</span>
                 <span class="org-apply">Aplicar</span>
               </div>
             </div>
@@ -989,7 +997,7 @@ window.MECHA_CHAT = [
   if(!api||!api.getSession) return;
   var $=function(id){return document.getElementById(id);};
   var acct=$('acct'), btn=$('acctBtn'), av=$('acctAv'), eml=$('acctEml'),
-      login=$('navLogin'), demo=$('navDemo'), appLink=$('acctApp'),
+      login=$('navLogin'), demo=$('navDemo'), appLink=$('acctApp'), enter=$('navEnterApp'),
       out=$('acctOut'), staff=$('acctStaff'), demoItem=$('acctDemo');
   if(!acct) return;
 
@@ -1023,6 +1031,7 @@ window.MECHA_CHAT = [
   document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeMenu(); });
 
   appLink.addEventListener('click',function(e){ e.preventDefault(); if(api.goToApp) api.goToApp(); });
+  if(enter) enter.addEventListener('click',function(e){ e.preventDefault(); if(api.goToApp) api.goToApp(); });
   out.addEventListener('click',function(){
     closeMenu();
     if(api.signOut){ api.signOut().then(function(){ location.reload(); }); }
@@ -1035,6 +1044,11 @@ window.MECHA_CHAT = [
     var mmLogin=document.querySelector('.mobile-menu-cta .login');
     if(mmLogin) mmLogin.style.display=hasSession?'none':'';
   }
+  // Boton "Entrar al software" del menu movil: solo si la cuenta tiene acceso.
+  function syncMobileEnter(canApp){
+    var mmEnter=document.querySelector('.mobile-menu-enter');
+    if(mmEnter) mmEnter.style.display=canApp?'':'none';
+  }
 
   function render(session){
     syncMobileMenu(!!(session&&session.user));
@@ -1042,6 +1056,8 @@ window.MECHA_CHAT = [
       acct.classList.remove('on');
       if(login) login.style.display='';
       if(demo) demo.style.display='';
+      if(enter) enter.style.display='none';
+      syncMobileEnter(false);
       return;
     }
     var email=(session.user.email||'').trim();
@@ -1054,6 +1070,7 @@ window.MECHA_CHAT = [
     // cuenta free -aunque sea del equipo- NO ve "Entrar al software", solo la
     // demo. El equipo sigue viendo el enlace al panel (staff) aparte.
     if(appLink) appLink.style.display='none';
+    if(enter) enter.style.display='none';
     if(staff) staff.style.display='none';
     if(demoItem) demoItem.classList.remove('hi');
     Promise.all([
@@ -1065,6 +1082,9 @@ window.MECHA_CHAT = [
       var plan=profile&&profile.plan?String(profile.plan).toLowerCase():'free';
       var canApp=plan!=='free';
       if(appLink) appLink.style.display=canApp?'flex':'none';
+      if(enter) enter.style.display=canApp?'inline-flex':'none';
+      syncMobileEnter(canApp);
+      if(demo&&canApp) demo.style.display='none';
       if(staff) staff.style.display=staffOk?'flex':'none';
       if(demoItem&&!canApp) demoItem.classList.add('hi');
     });
@@ -1074,59 +1094,65 @@ window.MECHA_CHAT = [
   // Reaccionar a login/logout en otra pestana de la misma sesion.
   if(api.onAuth){ api.onAuth(function(_evt,session){ render(session); }); }
 
-  // ---------- Cargar reseñas de Mecha ----------
+  // ---------- Cargar reseñas de Mecha (fueguitos + verificacion humana) ----------
+  // Las "estrellas" son en realidad la mecha/llama de la marca; el badge de
+  // verificacion es honesto: estas opiniones vienen de salones reales con
+  // cuenta activa en Mecha (mecha_puntuacion enviada desde el portal).
+  var FLAME='M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z';
+  function flameSvg(filled,size){
+    return filled
+      ? '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="#f4501e" stroke="#ff8a3d" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+FLAME+'"/></svg>'
+      : '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+FLAME+'"/></svg>';
+  }
+  function flamesRow(score,size){ var s='',r=Math.round(score); for(var i=1;i<=5;i++) s+=flameSvg(i<=r,size); return s; }
+  var VERIF_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 5-3.5 7.5-8.5 9C7.5 19.5 4 17 4 12V6l8-3 8 3v6z"/></svg>';
+
   function loadMechaReviews() {
     if(!api.client) return;
     api.client.rpc('obtener_estadisticas_mecha').then(function(res) {
-      if (res.error || !res.data) {
-        var sb = $('mechaStatsBox'); if(sb) sb.style.display = 'none';
+      var sb=$('mechaStatsBox'), rg=$('mechaReviewsGrid'), hr=$('heroRating');
+      if (res.error || !res.data || res.data.total === 0) {
+        if(sb) sb.style.display='none';
+        if(rg) rg.style.display='none';
+        if(hr) hr.style.display='none';
         return;
       }
       var stats = res.data;
-      if (stats.total === 0) {
-        var sb = $('mechaStatsBox'); if(sb) sb.style.display = 'none';
-        var rg = $('mechaReviewsGrid'); if(rg) rg.style.display = 'none';
-        return;
+
+      // Valoraciones ARRIBA (hero)
+      if (hr) {
+        hr.innerHTML='<span class="hr-flames">'+flamesRow(stats.media,16)+'</span>'+
+          '<span class="hr-score">'+stats.media+'</span>'+
+          '<span class="hr-count">· '+stats.total+(stats.total===1?' salón':' salones')+'</span>'+
+          '<span class="hr-verif">'+VERIF_SVG+'Verificadas</span>';
+        hr.style.display='inline-flex';
       }
 
-      var stars = '';
-      var mediaRounded = Math.round(stats.media);
-      for(var i=1; i<=5; i++) {
-        stars += i <= mediaRounded 
-          ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
-          : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+      // Caja de stats de la seccion
+      if (sb) {
+        sb.innerHTML = '<div style="display:flex;align-items:center;gap:5px">'+flamesRow(stats.media,20)+'</div>'+
+          '<div style="font-size:16px;font-weight:800;color:var(--text)">'+stats.media+'</div>'+
+          '<div style="font-size:13.5px;color:var(--text-ter)">basado en '+stats.total+' valoraciones</div>'+
+          '<div style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--success-hi);background:rgba(16,185,129,.14);padding:5px 11px;border-radius:999px">'+VERIF_SVG+'Personas reales</div>';
       }
 
-      var box = $('mechaStatsBox');
-      if (box) {
-        box.innerHTML = '<div style="display:flex;align-items:center;gap:6px">' + stars + '</div>' +
-                        '<div style="font-size:16px;font-weight:700;color:var(--text)">' + stats.media + '</div>' +
-                        '<div style="font-size:13.5px;color:var(--text-ter)">basado en ' + stats.total + ' valoraciones</div>';
-      }
-
-      var grid = $('mechaReviewsGrid');
-      if (grid && stats.ultimas && stats.ultimas.length > 0) {
-        grid.innerHTML = stats.ultimas.slice(0, 3).map(function(r) {
-          var rStars = '';
-          for(var i=1; i<=5; i++) {
-             rStars += i <= r.mecha_puntuacion 
-               ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
-               : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
-          }
+      // Tarjetas
+      if (rg && stats.ultimas && stats.ultimas.length > 0) {
+        rg.innerHTML = stats.ultimas.slice(0, 3).map(function(r) {
           var autor = r.autor_nombre || 'Cliente anónimo';
           var f = new Date(r.created_at).toLocaleDateString('es-ES', {month:'short', year:'numeric'});
-          
           return '<div class="maker" style="padding:24px">' +
-            '<div style="display:flex;gap:3px;margin-bottom:12px">' + rStars + '</div>' +
-            '<p style="font-size:14.5px;color:var(--text);margin-bottom:18px;font-style:italic">"' + r.mecha_comentario + '"</p>' +
+            '<div style="display:flex;gap:3px;margin-bottom:12px">' + flamesRow(r.mecha_puntuacion,15) + '</div>' +
+            '<p style="font-size:14.5px;color:var(--text);margin-bottom:18px;font-style:italic">"' + (r.mecha_comentario||'') + '"</p>' +
             '<div style="display:flex;align-items:center;gap:10px">' +
               '<div style="width:36px;height:36px;border-radius:50%;background:var(--border-hi);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--text)">' + autor.charAt(0).toUpperCase() + '</div>' +
-              '<div><div style="font-size:13.5px;font-weight:600;color:var(--text)">' + autor + '</div><div style="font-size:12px;color:var(--text-ter)">' + f + '</div></div>' +
+              '<div style="flex:1"><div style="font-size:13.5px;font-weight:600;color:var(--text)">' + autor + '</div><div style="font-size:12px;color:var(--text-ter)">' + f + '</div></div>' +
+              '<span title="Salón real con cuenta en Mecha" style="display:inline-flex;width:16px;height:16px;color:#34d399">' + VERIF_SVG + '</span>' +
             '</div>' +
           '</div>';
         }).join('');
-      } else if (grid) {
-        grid.style.display = 'none';
+      } else if (rg) {
+        rg.style.display = 'none';
       }
     });
   }
