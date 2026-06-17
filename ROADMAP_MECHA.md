@@ -160,10 +160,11 @@ Camino crítico, manual, para 1 salón. **Así onboardearemos a cada cliente nue
    Falta enganchar el aviso de lista de espera (depende del matching, 5.3) y el enlace de señal (con 4.1).
 2. **Agente WhatsApp entrante** [A] 🟢 **HECHO (17 jun)** — workflow `gzD0opJCbet1aVx1` (WhatsApp→LLM gpt-4o
    vía OpenRouter + tools=RPCs + memoria + `conversaciones_ia`). Responde, consulta catálogo y reserva. Probado.
-3. **Señal del cliente por enlace** [A+C] 🟡 — **backend P1 HECHO y validado (17 jun)**: edge functions
-   `crear-checkout-senal` + `stripe-webhook` (Stripe Checkout test, confirma cita al pagar). **Falta**: enviar el
-   enlace por WhatsApp (plantilla `enlace_pago_senal` con botón dinámico) + **página de pago `/app/pago/...`** [C]
-   + badge "señal pagada" en la cita + cron de expiración (libera hueco si no paga en 15 min) [A].
+3. **Señal del cliente por enlace** [A+C] 🟢 **HECHO (17 jun)** — edge functions `crear-checkout-senal` +
+   `stripe-webhook` (validadas); **página de pago `/app/pago/[ref]`** (+ `/app/pago/ok`) que redirige a Stripe;
+   el **motor manda `enlace_pago_senal`** por WhatsApp (botón → `/app/pago/{cita_id}`) a las citas pendientes de
+   señal; y **cron `Mecha — Expirar señales`** (15 min → libera el hueco). Pendiente fino: badge "señal pagada"
+   en la ficha de la cita [C].
 4. **Cancelar/modificar desde el portal** [A+C] 🟢 **HECHO (17 jun)** — RPCs (cancelar/modificar) + **página
    `/app/cita/[id]` "gestiona tu cita"** (ver/cambiar/cancelar, gated por teléfono); probada en navegador.
    Pendiente fino: al reagendar, reenviar confirmación; aviso de cancelación (necesita plantilla Meta nueva).
