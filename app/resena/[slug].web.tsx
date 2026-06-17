@@ -34,20 +34,58 @@ const ANIM = `
 
 const ETIQUETAS = ['', 'Lo siento', 'Mejorable', 'Bien', 'Muy bien', '¡Excelente!'];
 
-function Star({ filled, size = 36 }: { filled: boolean; size?: number }) {
+function FlameIcon({ filled, size = 24, color = '#f4501e' }: { filled: boolean; size?: number; color?: string }) {
+  const path = 'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z';
   return (
-    <span style={{ display: 'inline-flex', color: filled ? T.star : 'rgba(40,30,24,0.16)' }}
-      dangerouslySetInnerHTML={{
-        __html: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${filled ? T.star : 'none'}" stroke="${filled ? T.star : 'rgba(40,30,24,0.16)'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-      }} />
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : 'none'} stroke={filled ? '#ff8a3d' : 'rgba(40,30,24,0.20)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d={path} />
+      </svg>
+    </span>
   );
 }
 
-function StarsRow({ value, size = 16 }: { value: number; size?: number }) {
+function FlamesRow({ value, size = 16, color }: { value: number; size?: number; color?: string }) {
+  const count = Math.round(value);
+  if (count <= 0) return null;
   return (
     <span style={{ display: 'inline-flex', gap: 2 }}>
-      {[1, 2, 3, 4, 5].map(n => <Star key={n} filled={n <= Math.round(value)} size={size} />)}
+      {Array.from({ length: count }).map((_, i) => (
+        <FlameIcon key={i} filled={true} size={size} color={color} />
+      ))}
     </span>
+  );
+}
+
+function RatingSelector({
+  value,
+  onChange,
+  size = 32,
+  color = '#f4501e'
+}: {
+  value: number;
+  onChange: (val: number) => void;
+  size?: number;
+  color?: string;
+}) {
+  const [hover, setHover] = useState(0);
+  const shown = hover || value;
+  return (
+    <div style={{ display: 'flex', gap: 6 }} onMouseLeave={() => setHover(0)}>
+      {[1, 2, 3, 4, 5].map(n => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n)}
+          onMouseEnter={() => setHover(n)}
+          style={{ background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer', transition: 'transform 0.1s ease', display: 'inline-flex' }}
+          className="rs-star"
+          aria-label={`${n} fueguitos`}
+        >
+          <FlameIcon filled={n <= shown} size={size} color={color} />
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -60,9 +98,19 @@ export default function ResenaWeb() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  // Salon states
   const [puntuacion, setPuntuacion] = useState(0);
-  const [hover, setHover] = useState(0);
+  const [salonTrato, setSalonTrato] = useState(0);
+  const [salonProductos, setSalonProductos] = useState(0);
   const [comentario, setComentario] = useState('');
+
+  // Mecha states
+  const [mechaPuntuacion, setMechaPuntuacion] = useState(0);
+  const [mechaFacilidad, setMechaFacilidad] = useState(0);
+  const [mechaDisponibilidad, setMechaDisponibilidad] = useState(0);
+  const [mechaPagos, setMechaPagos] = useState(0);
+  const [mechaMejora, setMechaMejora] = useState('');
+
   const [nombre, setNombre] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -80,19 +128,31 @@ export default function ResenaWeb() {
 
   const enviar = useCallback(async () => {
     setError('');
-    if (puntuacion < 1) { setError('Elige una puntuacion.'); return; }
+    if (puntuacion < 1) { setError('Elige una puntuación para el salón.'); return; }
     setEnviando(true);
     try {
-      await crearResenaPublica({ slug, puntuacion, comentario: comentario.trim() || undefined, autorNombre: nombre.trim() || undefined });
+      await crearResenaPublica({
+        slug,
+        puntuacion,
+        comentario: comentario.trim() || undefined,
+        autorNombre: nombre.trim() || undefined,
+        mechaPuntuacion: mechaPuntuacion > 0 ? mechaPuntuacion : undefined,
+        mechaComentario: undefined,
+        salonTrato: salonTrato > 0 ? salonTrato : undefined,
+        salonProductos: salonProductos > 0 ? salonProductos : undefined,
+        mechaFacilidad: mechaFacilidad > 0 ? mechaFacilidad : undefined,
+        mechaDisponibilidad: mechaDisponibilidad > 0 ? mechaDisponibilidad : undefined,
+        mechaPagos: mechaPagos > 0 ? mechaPagos : undefined,
+        mechaMejora: mechaMejora.trim() || undefined
+      });
       setEnviado(true);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'No se pudo enviar la valoracion.');
+      setError(e instanceof Error ? e.message : 'No se pudo enviar la valoración.');
     } finally {
       setEnviando(false);
     }
-  }, [slug, puntuacion, comentario, nombre]);
+  }, [slug, puntuacion, comentario, nombre, mechaPuntuacion, salonTrato, salonProductos, mechaFacilidad, mechaDisponibilidad, mechaPagos, mechaMejora]);
 
-  const shown = hover || puntuacion;
   const inputBase: React.CSSProperties = {
     width: '100%', padding: '12px 13px', borderRadius: 12, border: `1.5px solid ${T.border}`,
     fontSize: 14.5, color: T.text, background: T.card, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
@@ -131,39 +191,99 @@ export default function ResenaWeb() {
                 </span>
               </div>
               <div style={{ fontFamily: SERIF, fontSize: 30, color: T.text, marginBottom: 6, lineHeight: 1.05 }}>¡Gracias por tu opinión!</div>
-              <div style={{ fontSize: 14.5, color: T.textSec }}>Nos ayuda muchísimo a mejorar.</div>
+              <div style={{ fontSize: 14.5, color: T.textSec }}>Nos ayuda muchísimo a mejorar el servicio.</div>
             </div>
           ) : (
             <div className="rs-step">
               {resumen && resumen.total > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 20, paddingBottom: 18, borderBottom: `1px solid ${T.border}` }}>
-                  <StarsRow value={resumen.media} size={16} />
+                  <FlamesRow value={resumen.media} size={18} />
                   <span style={{ fontSize: 14.5, fontWeight: 800, color: T.text }}>{resumen.media}</span>
                   <span style={{ fontSize: 13, color: T.textTer }}>· {resumen.total} {resumen.total === 1 ? 'valoración' : 'valoraciones'}</span>
                 </div>
               )}
 
-              <div style={{ fontFamily: SERIF, fontSize: 26, color: T.text, marginBottom: 16, lineHeight: 1.08 }}>¿Qué tal tu experiencia?</div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                <div style={{ display: 'flex', gap: 4 }} onMouseLeave={() => setHover(0)}>
-                  {[1, 2, 3, 4, 5].map(n => (
-                    <button key={n} className="rs-star" onMouseEnter={() => setHover(n)} onClick={() => setPuntuacion(n)} aria-label={`${n} estrellas`}>
-                      <Star filled={n <= shown} size={40} />
-                    </button>
-                  ))}
+              {/* SECCIÓN 1: EL SALÓN */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 14, borderBottom: `1px solid ${T.border}`, paddingBottom: 6, fontFamily: SERIF, letterSpacing: -0.2 }}>
+                  1. Tu visita al salón
                 </div>
-                {shown > 0 && (
-                  <span key={shown} style={{ fontSize: 14, fontWeight: 700, color: T.primaryHi, animation: 'rsPop 0.2s ease both' }}>{ETIQUETAS[shown]}</span>
-                )}
+                
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: T.textSec, marginBottom: 8 }}>
+                    Valoración general del salón *
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <RatingSelector value={puntuacion} onChange={setPuntuacion} size={36} />
+                    {puntuacion > 0 && (
+                      <span style={{ fontSize: 14, fontWeight: 700, color: T.primary }}>{ETIQUETAS[puntuacion]}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>
+                      Trato recibido (opcional)
+                    </label>
+                    <RatingSelector value={salonTrato} onChange={setSalonTrato} size={24} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>
+                      Limpieza y productos (opcional)
+                    </label>
+                    <RatingSelector value={salonProductos} onChange={setSalonProductos} size={24} />
+                  </div>
+                </div>
+
+                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Comentario sobre tu visita (opcional)</label>
+                <textarea className="rs-field" value={comentario} onChange={e => setComentario(e.target.value)} placeholder="¿Qué destacarías de tu experiencia en el salón?" rows={3}
+                  style={{ ...inputBase, resize: 'vertical' }} />
               </div>
 
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Comentario (opcional)</label>
-              <textarea className="rs-field" value={comentario} onChange={e => setComentario(e.target.value)} placeholder="¿Qué te ha gustado? ¿Qué mejorarías?" rows={3}
-                style={{ ...inputBase, resize: 'vertical', marginBottom: 14 }} />
+              {/* SECCIÓN 2: EL SISTEMA DE RESERVAS */}
+              <div style={{ background: 'rgba(244,80,30,0.03)', border: `1px solid ${T.border}`, borderRadius: 16, padding: 18, marginBottom: 24 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 14, borderBottom: `1px solid ${T.border}`, paddingBottom: 6, fontFamily: SERIF, letterSpacing: -0.2 }}>
+                  2. Sistema de reservas (Mecha)
+                </div>
 
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Tu nombre (opcional)</label>
-              <input className="rs-field" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Cómo quieres aparecer" style={inputBase} />
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: T.textSec, marginBottom: 8 }}>
+                    ¿Cómo valorarías el proceso de reserva online? (opcional)
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <RatingSelector value={mechaPuntuacion} onChange={setMechaPuntuacion} size={32} color="#f59e0b" />
+                    {mechaPuntuacion > 0 && (
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#d97706' }}>{ETIQUETAS[mechaPuntuacion]}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12.5, color: T.textSec }}>Facilidad para reservar</span>
+                    <RatingSelector value={mechaFacilidad} onChange={setMechaFacilidad} size={20} color="#f59e0b" />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12.5, color: T.textSec }}>Disponibilidad de huecos</span>
+                    <RatingSelector value={mechaDisponibilidad} onChange={setMechaDisponibilidad} size={20} color="#f59e0b" />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12.5, color: T.textSec }}>Rapidez y seguridad de pago</span>
+                    <RatingSelector value={mechaPagos} onChange={setMechaPagos} size={20} color="#f59e0b" />
+                  </div>
+                </div>
+
+                <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>¿Qué mejorarías del sistema de reserva? (opcional)</label>
+                <textarea className="rs-field" value={mechaMejora} onChange={e => setMechaMejora(e.target.value)} placeholder="Sugerencias para hacer el proceso aún más fácil..." rows={2}
+                  style={{ ...inputBase, resize: 'vertical' }} />
+              </div>
+
+              {/* IDENTIFICACIÓN */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Tu nombre (opcional)</label>
+                <input className="rs-field" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Carlos M. (se mostrará públicamente)" style={inputBase} />
+              </div>
 
               {error && <div style={{ marginTop: 12, fontSize: 13, color: T.danger }}>{error}</div>}
 

@@ -2810,6 +2810,29 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
 // ---------------------------------------------------------------------------
 // TabResenas: Gestión de opiniones del salón
 // ---------------------------------------------------------------------------
+function FlameIcon({ filled = true, size = 16, color = '#f4501e' }: { filled?: boolean; size?: number; color?: string }) {
+  const path = 'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z';
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : 'none'} stroke={filled ? '#ff8a3d' : 'rgba(40,30,24,0.18)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d={path} />
+      </svg>
+    </span>
+  );
+}
+
+function FlamesRow({ value, size = 16, color }: { value: number; size?: number; color?: string }) {
+  const count = Math.round(value);
+  if (count <= 0) return null;
+  return (
+    <span style={{ display: 'inline-flex', gap: 2 }}>
+      {Array.from({ length: count }).map((_, i) => (
+        <FlameIcon key={i} filled={true} size={size} color={color} />
+      ))}
+    </span>
+  );
+}
+
 function TabResenas() {
   const [loading, setLoading] = useState(true);
   const [resenas, setResenas] = useState<any[]>([]);
@@ -2825,7 +2848,13 @@ function TabResenas() {
 
     const { data } = await supabase
       .from('resenas')
-      .select('id, puntuacion, comentario, autor_nombre, created_at, visible, fuente')
+      .select(`
+        id, puntuacion, comentario, autor_nombre, created_at, visible, fuente,
+        mecha_puntuacion, mecha_comentario,
+        salon_trato_puntuacion, salon_productos_puntuacion,
+        mecha_facilidad_puntuacion, mecha_disponibilidad_puntuacion,
+        mecha_pagos_puntuacion, mecha_mejora_comentario
+      `)
       .eq('negocio_id', nId)
       .order('created_at', { ascending: false });
 
@@ -2855,16 +2884,6 @@ function TabResenas() {
     return Math.round((sum / resenas.length) * 10) / 10;
   }, [resenas]);
 
-  const renderStars = (val: number) => {
-    return (
-      <span style={{ display: 'inline-flex', gap: 2 }}>
-        {[1, 2, 3, 4, 5].map(n => (
-          <SettingsIcon key={n} name="star" size={15} color={n <= Math.round(val) ? '#f59e0b' : 'rgba(40,30,24,0.12)'} />
-        ))}
-      </span>
-    );
-  };
-
   if (loading) return <div style={{ color: T.textSecondary, padding: 20 }}>Cargando reseñas...</div>;
 
   return (
@@ -2877,7 +2896,7 @@ function TabResenas() {
             <div>
               <div style={{ fontSize: 10, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Media</div>
               <div style={{ fontSize: 20, fontWeight: 800, color: T.text, marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-                {media || '-'} {renderStars(media)}
+                {media || '-'} <FlamesRow value={media} size={16} />
               </div>
             </div>
             <div style={{ width: 1, height: 28, background: T.border }} />
@@ -2895,7 +2914,7 @@ function TabResenas() {
             Aún no has recibido valoraciones de clientes en tu portal de reservas.
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16, marginTop: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 16, marginTop: 12 }}>
             {resenas.map(r => (
               <div key={r.id} style={{
                 background: T.bgCard,
@@ -2932,11 +2951,66 @@ function TabResenas() {
                   </div>
                 </div>
 
-                <div style={{ marginBottom: 10 }}>{renderStars(r.puntuacion)}</div>
+                {/* VALORACIONES DEL SALÓN */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: T.textSecondary }}>Salón:</span>
+                    <FlamesRow value={r.puntuacion} size={14} />
+                  </div>
+                  {r.salon_trato_puntuacion && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(0,0,0,0.02)', padding: '1px 5px', borderRadius: 4, fontSize: 11 }}>
+                      <span style={{ color: T.textTertiary }}>Trato:</span>
+                      <FlamesRow value={r.salon_trato_puntuacion} size={10} />
+                    </div>
+                  )}
+                  {r.salon_productos_puntuacion && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(0,0,0,0.02)', padding: '1px 5px', borderRadius: 4, fontSize: 11 }}>
+                      <span style={{ color: T.textTertiary }}>Limpieza/Prod:</span>
+                      <FlamesRow value={r.salon_productos_puntuacion} size={10} />
+                    </div>
+                  )}
+                </div>
 
-                <div style={{ fontSize: 13, color: T.textSecondary, lineHeight: 1.45, flex: 1, fontStyle: r.comentario ? 'normal' : 'italic' }}>
+                {/* COMENTARIO DEL SALÓN */}
+                <div style={{ fontSize: 13, color: T.textSecondary, lineHeight: 1.45, flex: 1, fontStyle: r.comentario ? 'normal' : 'italic', marginBottom: 10 }}>
                   {r.comentario ? `"${r.comentario}"` : 'Sin comentario adicional.'}
                 </div>
+
+                {/* VALORACIONES DE MECHA */}
+                {r.mecha_puntuacion && (
+                  <div style={{ background: 'rgba(244,80,30,0.02)', border: `1px solid ${T.border}`, borderRadius: 8, padding: 10, marginTop: 4 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#d97706' }}>Reservas:</span>
+                        <FlamesRow value={r.mecha_puntuacion} size={12} color="#f59e0b" />
+                      </div>
+                      {r.mecha_facilidad_puntuacion && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 10 }}>
+                          <span style={{ color: T.textTertiary }}>Fácil:</span>
+                          <FlamesRow value={r.mecha_facilidad_puntuacion} size={8} color="#f59e0b" />
+                        </div>
+                      )}
+                      {r.mecha_disponibilidad_puntuacion && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 10 }}>
+                          <span style={{ color: T.textTertiary }}>Huecos:</span>
+                          <FlamesRow value={r.mecha_disponibilidad_puntuacion} size={8} color="#f59e0b" />
+                        </div>
+                      )}
+                      {r.mecha_pagos_puntuacion && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 10 }}>
+                          <span style={{ color: T.textTertiary }}>Pagos:</span>
+                          <FlamesRow value={r.mecha_pagos_puntuacion} size={8} color="#f59e0b" />
+                        </div>
+                      )}
+                    </div>
+                    {r.mecha_mejora_comentario && (
+                      <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.35, marginTop: 4, background: '#fff', padding: '4px 8px', borderRadius: 4, border: `1px solid ${T.border}` }}>
+                        <strong style={{ fontSize: 10, color: T.textTertiary, display: 'block', marginBottom: 1 }}>Sugerencia:</strong>
+                        "{r.mecha_mejora_comentario}"
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

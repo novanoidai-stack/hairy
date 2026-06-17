@@ -323,7 +323,10 @@
       <a href="#" class="btn btn-primary" id="navEnterApp" style="display:none">Entrar al software
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
       </a>
-      <a href="demo.html" class="btn btn-primary" id="navDemo">Ver demo gratis</a>
+      <div class="btn-badge-wrapper">
+        <span class="btn-badge">1 Mes Gratis</span>
+        <a href="demo.html" class="btn btn-primary" id="navDemo">Ver demo gratis</a>
+      </div>
       <div class="acct" id="acct">
         <button class="acct-btn" id="acctBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Tu cuenta">
           <span class="acct-av" id="acctAv">·</span>
@@ -348,7 +351,7 @@
   <section class="hero" id="hero">
     <div class="wrap hero-in">
       <span class="hero-badge reveal">
-        <span class="tag">Para peluquerías</span>
+        <span class="tag">Para salones</span>
         Hecho a medida, no una app genérica
       </span>
       <h1 class="reveal d1">El teléfono ya no te interrumpe.<br />Tu salón <span class="em">sigue reservando</span>.</h1>
@@ -357,7 +360,7 @@
         <a href="demo.html" class="btn btn-primary btn-lg">Ver demo gratis
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
         </a>
-        <a href="reservar.html" class="btn btn-ghost btn-lg">Reservar una llamada</a>
+        <a href="reservar.html" class="btn btn-ghost btn-lg">Reservar llamada gratis</a>
       </div>
       <a href="#resenas" id="heroRating" class="hero-rating reveal d3" style="display:none" aria-label="Valoraciones de Mecha"></a>
       <div class="hero-micro reveal d4">
@@ -368,7 +371,11 @@
     </div>
 
     <!-- Product mock -->
-    <div class="wrap hero-mock-wrap reveal d2">
+    <div class="mock-header reveal d2" style="text-align:center;margin-top:clamp(40px,7vh,80px);margin-bottom:24px;">
+      <span class="eyebrow center" style="margin-bottom:10px">Mecha OS</span>
+      <h3 style="font-size:clamp(22px,3vw,30px);color:var(--text);font-weight:700;letter-spacing:-.02em;line-height:1.2">Control total de tu agenda, tiempos de reposo y equipo en tiempo real</h3>
+    </div>
+    <div class="wrap hero-mock-wrap reveal d2" style="margin-top:0">
       <span class="mock-floor" aria-hidden="true"></span>
       <div class="hero-mock">
         <div class="app" role="img" aria-label="Captura de la agenda de Mecha con citas, tiempos muertos productivos y la línea de hora actual">
@@ -861,7 +868,7 @@
             <a href="demo.html" class="btn btn-primary btn-lg" id="demoCta">Ver demo gratis
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
             </a>
-            <a href="reservar.html" class="btn btn-ghost btn-lg">Reservar una llamada</a>
+            <a href="reservar.html" class="btn btn-ghost btn-lg">Reservar llamada gratis</a>
           </div>
           <p class="cta-micro">Demo gratis sin compromiso · Llamada en menos de un día · Sin permanencia</p>
         </div>
@@ -932,7 +939,7 @@
       </div>
       <div class="foot-col"><h5>Producto</h5><a href="#asistente">Asistente IA</a><a href="#diferenciales">Agenda</a><a href="#fichas">Fichas de cliente</a><a href="especificaciones.html">Especificaciones</a></div>
       <div class="foot-col"><h5>Integra</h5><a href="#integra">Conectar Booksy</a><a href="#integra">Conectar Fresha</a><a href="#comparativa">Todo lo que suma Mecha</a></div>
-      <div class="foot-col"><h5>Empezar</h5><a href="demo.html">Ver demo gratis</a><a href="reservar.html">Reservar una llamada</a><a href="acceso.html">Iniciar sesión</a><a href="privacidad.html">Privacidad y derechos</a></div>
+      <div class="foot-col"><h5>Empezar</h5><a href="demo.html">Ver demo gratis</a><a href="reservar.html">Reservar llamada (gratis)</a><a href="acceso.html">Iniciar sesión</a><a href="privacidad.html">Privacidad y derechos</a></div>
     </div>
     <div class="foot-bot">
       <span>© 2026 Mecha · Hecho para salones de peluquería.</span>
@@ -944,14 +951,12 @@
       </div>
     </div>
   </div>
-  <!-- Lecho de cenizas/ascuas (fuente de las brasas) -->
-  <div style="position:absolute;bottom:0;left:0;right:0;height:12vh;pointer-events:none;overflow:hidden">
-    <!-- Ascuas brillantes -->
-    <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0%,transparent 8%,rgba(255,122,46,.12) 8%,rgba(224,52,14,.18) 12%,rgba(255,152,46,.15) 16%,transparent 20%),repeating-linear-gradient(90deg,transparent 0%,transparent 15%,rgba(255,180,60,.08) 15%,rgba(255,140,40,.12) 22%,transparent 30%);animation:emberGlow 8s ease-in-out infinite alternate"></div>
-    <!-- Cenizas oscuras -->
-    <div style="position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,rgba(20,8,4,.8) 0%,rgba(40,15,8,.4) 40%,transparent 100%)"></div>
-    <!-- Brillos puntuales -->
-    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 30% 20% at 20% 80%,rgba(255,180,60,.25),transparent 50%),radial-gradient(ellipse 25% 15% at 45% 85%,rgba(255,140,40,.2),transparent 50%),radial-gradient(ellipse 35% 18% at 70% 82%,rgba(255,160,50,.22),transparent 50%),radial-gradient(ellipse 20% 12% at 85% 78%,rgba(224,52,14,.18),transparent 50%)"></div>
+  <!-- Lecho de rocas (fuente de las brasas) -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:120px;pointer-events:none;overflow:hidden">
+    <!-- Brillos puntuales (fondo de luz) -->
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 30% 60% at 20% 100%,rgba(255,180,60,.3),transparent 50%),radial-gradient(ellipse 25% 45% at 45% 100%,rgba(255,140,40,.25),transparent 50%),radial-gradient(ellipse 35% 50% at 70% 100%,rgba(255,160,50,.28),transparent 50%),radial-gradient(ellipse 20% 40% at 85% 100%,rgba(224,52,14,.2),transparent 50%)"></div>
+    <!-- Rocas poligonales calientes -->
+    <canvas id="rocksCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
   </div>
 </footer>
 
@@ -1181,27 +1186,22 @@ window.MECHA_CHAT = [
   const cvs = document.getElementById('embers');
   if (!cvs) return;
   const ctx = cvs.getContext('2d', { alpha: true });
+  
   let W, H;
+  const rocks = [];
+  const sparks = []; // sparks dinámicos
+  const MAX_EMBERS = 120; // Aumentado ligeramente para mayor vistosidad
+  const MAX_SPARKS = 60;
+  const embers = new Array(MAX_EMBERS);
 
-  function resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    cvs.width  = W * dpr;
-    cvs.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
-  // Colores Mecha: del gradiente fuego
+  // Colores Mecha: del gradiente fuego (más vivos)
   const COLORS = [
-    { r:255, g:207, b:74  }, // amarillo oro
+    { r:255, g:218, b:80  }, // amarillo oro brillante
     { r:255, g:152, b:46  }, // naranja claro
-    { r:255, g:122, b:46  }, // naranja Mecha
-    { r:224, g:52,  b:14  }, // rojo profundo
-    { r:255, g:90,  b:30  }, // naranja rojizo
-    { r:200, g:40,  b:10  }, // rojo oscuro
+    { r:255, g:102, b:25  }, // naranja Mecha
+    { r:230, g:40,  b:10  }, // rojo profundo
+    { r:255, g:75,  b:20  }, // naranja rojizo
+    { r:190, g:25,  b:5   }, // rojo oscuro brasa
   ];
 
   // Pre-render glow textures
@@ -1213,98 +1213,214 @@ window.MECHA_CHAT = [
     const cx = GLOW_SIZE / 2;
     const g = oc.createRadialGradient(cx, cx, 0, cx, cx, cx);
     g.addColorStop(0,   `rgba(${c.r},${c.g},${c.b},1)`);
-    g.addColorStop(0.15,`rgba(${c.r},${c.g},${c.b},.7)`);
-    g.addColorStop(0.4, `rgba(${c.r},${c.g},${c.b},.2)`);
+    g.addColorStop(0.18,`rgba(${c.r},${c.g},${c.b},.75)`);
+    g.addColorStop(0.45,`rgba(${c.r},${c.g},${c.b},.25)`);
     g.addColorStop(1,   `rgba(${c.r},${c.g},${c.b},0)`);
     oc.fillStyle = g;
     oc.fillRect(0, 0, GLOW_SIZE, GLOW_SIZE);
     return off;
   });
 
-  const MAX_EMBERS = 90;
-  const MAX_SPARKS = 50;
-  const embers = new Array(MAX_EMBERS);
-  const sparks = []; // sparks dinámicos
+  // Generador de polígono irregular cracelado
+  function generateRockPolygon(centerX, centerY, rx, ry, numPoints) {
+    const points = [];
+    const angleStep = (Math.PI * 2) / numPoints;
+    for (let i = 0; i < numPoints; i++) {
+      const angle = i * angleStep;
+      const radX = rx * (0.75 + Math.random() * 0.4);
+      const radY = ry * (0.65 + Math.random() * 0.4);
+      points.push({
+        x: centerX + Math.cos(angle) * radX,
+        y: centerY + Math.sin(angle) * radY
+      });
+    }
+    return points;
+  }
+
+  function generateRocks(rw, rh) {
+    rocks.length = 0;
+    
+    // Capa de fondo (carbones más pequeños y profundos)
+    const bgCount = 28;
+    const bgSegment = rw / bgCount;
+    for (let i = 0; i < bgCount; i++) {
+      const rx = 16 + Math.random() * 18;
+      const ry = 10 + Math.random() * 12;
+      const cx = i * bgSegment + (Math.random() - 0.5) * bgSegment;
+      const cy = rh - 5 + Math.random() * 12;
+      const heat = 0.2 + Math.random() * 0.4;
+      const phase = Math.random() * Math.PI * 2;
+      const numPoints = 5 + Math.floor(Math.random() * 3);
+      
+      rocks.push({
+        x: cx,
+        y: cy,
+        size: Math.max(rx, ry),
+        heat,
+        phase,
+        layer: 0,
+        points: generateRockPolygon(cx, cy, rx, ry, numPoints)
+      });
+    }
+
+    // Capa del frente (carbones grandes, muy calientes, superpuestos)
+    const fgCount = 20;
+    const fgSegment = rw / fgCount;
+    for (let i = 0; i < fgCount; i++) {
+      const rx = 28 + Math.random() * 26;
+      const ry = 16 + Math.random() * 18;
+      const cx = i * fgSegment + (Math.random() - 0.5) * fgSegment;
+      const cy = rh + Math.random() * 10;
+      const heat = 0.4 + Math.random() * 0.6;
+      const phase = Math.random() * Math.PI * 2;
+      const numPoints = 6 + Math.floor(Math.random() * 3);
+      
+      rocks.push({
+        x: cx,
+        y: cy,
+        size: Math.max(rx, ry),
+        heat,
+        phase,
+        layer: 1,
+        points: generateRockPolygon(cx, cy, rx, ry, numPoints)
+      });
+    }
+
+    rocks.sort((a, b) => a.layer - b.layer);
+  }
+
+  function drawRocks(t) {
+    const rocksCvs = document.getElementById('rocksCanvas');
+    if (!rocksCvs) return;
+    const rCtx = rocksCvs.getContext('2d');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const rw = rocksCvs.width / dpr;
+    const rh = 120;
+    rCtx.clearRect(0, 0, rw, rh);
+    
+    // 1. Capa de magma/fuego líquido de fondo (luz que asoma por las grietas)
+    const magmaGrad = rCtx.createLinearGradient(0, rh - 70, 0, rh);
+    magmaGrad.addColorStop(0, 'transparent');
+    magmaGrad.addColorStop(0.3, 'rgba(190, 30, 5, 0.18)');
+    magmaGrad.addColorStop(0.7, 'rgba(255, 95, 15, 0.45)');
+    magmaGrad.addColorStop(1, 'rgba(255, 185, 30, 0.75)');
+    rCtx.fillStyle = magmaGrad;
+    rCtx.fillRect(0, rh - 85, rw, 85);
+
+    // 2. Dibujar rocas superpuestas
+    rCtx.globalCompositeOperation = 'source-over';
+    
+    for (const r of rocks) {
+      const pulse = Math.sin(t * 0.002 + r.phase) * 0.5 + 0.5; // brillo oscilante lento
+      const currentHeat = r.heat * 0.35 + pulse * 0.65; // valor final de incandescencia
+
+      // Silueta de la roca
+      rCtx.beginPath();
+      rCtx.moveTo(r.points[0].x, r.points[0].y);
+      for (let i = 1; i < r.points.length; i++) {
+        rCtx.lineTo(r.points[i].x, r.points[i].y);
+      }
+      rCtx.closePath();
+
+      // Relleno: carbón oscuro con matices rojizos según el calor
+      const rockR = Math.floor(14 + currentHeat * 24);
+      const rockG = Math.floor(10 + currentHeat * 12);
+      const rockB = Math.floor(10 + currentHeat * 6);
+      rCtx.fillStyle = `rgb(${rockR}, ${rockG}, ${rockB})`;
+      rCtx.fill();
+
+      // Borde incandescente (el fuego que sale de las grietas)
+      rCtx.lineWidth = 1.2 + currentHeat * 1.6;
+      rCtx.strokeStyle = `rgba(255, ${Math.floor(80 + currentHeat * 140)}, ${Math.floor(15 + currentHeat * 60)}, ${0.25 + currentHeat * 0.75})`;
+      rCtx.stroke();
+
+      // Núcleo caliente interno (radial gradient para incandescencia orgánica)
+      if (currentHeat > 0.35) {
+        const radG = rCtx.createRadialGradient(r.x, r.y - r.size*0.1, 0, r.x, r.y - r.size*0.1, r.size * 0.7);
+        radG.addColorStop(0, `rgba(255, 195, 55, ${(currentHeat - 0.35) * 1.35})`);
+        radG.addColorStop(0.35, `rgba(255, 65, 10, ${(currentHeat - 0.35) * 0.85})`);
+        radG.addColorStop(1, 'transparent');
+        rCtx.fillStyle = radG;
+        rCtx.fill();
+      }
+    }
+  }
 
   function createEmber(scatter) {
-    const centerBias = Math.random() < 0.4;
-    const x = centerBias ? W * 0.3 + Math.random() * W * 0.4 : Math.random() * W;
+    // Focos de procedencia correspondientes a las rocas calientes
+    const originXs = [0.15, 0.3, 0.48, 0.65, 0.8, 0.92];
+    const targetOrigin = originXs[Math.floor(Math.random() * originXs.length)];
+    const x = W * targetOrigin + (Math.random() - 0.5) * (W * 0.12);
     const maxLife = 200 + Math.random() * 350;
     return {
       x,
-      y: scatter ? Math.random() * H : H + 10 + Math.random() * 40,
-      vy: -(0.3 + Math.random() * 1.2),
-      vx: (Math.random() - 0.5) * 0.4,
-      swayAmp:   0.3 + Math.random() * 1.2,
-      swayFreq:  0.008 + Math.random() * 0.015,
+      y: scatter ? Math.random() * H : H + 15 + Math.random() * 35,
+      vy: -(0.24 + Math.random() * 0.96), // 20% de reducción de velocidad (inicio original: 0.3 a 1.5)
+      vx: (Math.random() - 0.5) * 0.32,   // 20% de reducción
+      swayAmp: 0.24 + Math.random() * 0.96, // 20% de reducción
+      swayFreq: 0.0064 + Math.random() * 0.012, // 20% de reducción
       swayPhase: Math.random() * Math.PI * 2,
-      baseSize:  1 + Math.random() * 2.5,
+      baseSize: 1.2 + Math.random() * 2.8,
       maxLife,
       life: scatter ? Math.random() * maxLife : maxLife,
       flickerSpeed: 0.05 + Math.random() * 0.12,
       flickerPhase: Math.random() * Math.PI * 2,
       colorIdx: Math.floor(Math.random() * COLORS.length),
-      glowBase: 6 + Math.random() * 10,
+      glowBase: 8 + Math.random() * 12,
       windDrift: (Math.random() - 0.5) * 0.003,
       t: 0,
-      canSpark: true // solo puede dividir una vez
+      canSpark: true
     };
   }
 
-  function createSpark(x, y, parentColor) {
+  function createSpark(x, y) {
     const count = 2 + Math.floor(Math.random() * 3);
     const pattern = Math.random();
-    const weight = Math.random(); // "peso" de la chispa (0-1)
+    const weight = Math.random();
     const newSparks = [];
     for (let i = 0; i < count; i++) {
-      const size = 0.25 + Math.random() * 0.5;
-      // Ángulo base siempre ascendente (-120° a -60°)
+      const size = 0.3 + Math.random() * 0.6;
       const baseAngle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI / 1.5;
-
-      // Velocidad según peso (más lento = más pesado)
-      const speed = (0.5 + weight * 1.5) * (0.8 + Math.random() * 0.8);
+      const speed = (0.4 + weight * 1.2) * (0.8 + Math.random() * 0.8); // 20% de reducción (original: 0.5 + weight * 1.5)
 
       newSparks.push({
         x, y,
-        vx: Math.cos(baseAngle) * speed * 0.5 + (Math.random() - 0.5) * 0.25,
-        vy: Math.sin(baseAngle) * speed - 0.15 - Math.random() * 0.25,
-        maxLife: 50 + Math.random() * 60,
-        life: 50 + Math.random() * 60,
-        baseSize: size * (0.8 + weight * 0.4), // más pesado = más grande
-        colorIdx: 2 + Math.floor(Math.random() * 4),
-        glowBase: 3 + Math.random() * 4,
-        flickerSpeed: 0.12 + Math.random() * 0.2,
+        vx: Math.cos(baseAngle) * speed * 0.5 + (Math.random() - 0.5) * 0.20, // 20% de reducción
+        vy: Math.sin(baseAngle) * speed - 0.12 - Math.random() * 0.20,       // 20% de reducción
+        maxLife: 45 + Math.random() * 55,
+        life: 45 + Math.random() * 55,
+        baseSize: size * (0.8 + weight * 0.4),
+        colorIdx: 1 + Math.floor(Math.random() * 4),
+        glowBase: 4 + Math.random() * 5,
+        flickerSpeed: 0.14 + Math.random() * 0.18,
         flickerPhase: Math.random() * Math.PI * 2,
         t: 0,
         pattern,
-        weight, // influye en gravedad y movimiento
+        weight,
         zigzagPhase: Math.random() * Math.PI * 2,
-        zigzagAmp: (0.2 + Math.random() * 0.6) * (1 - weight * 0.5) // más ligero = más zigzag
+        zigzagAmp: (0.16 + Math.random() * 0.48) * (1 - weight * 0.5) // 20% de reducción
       });
     }
     return newSparks;
   }
 
-  for (let i = 0; i < MAX_EMBERS; i++) {
-    embers[i] = createEmber(true);
-  }
-
   function resetEmber(p) {
-    const centerBias = Math.random() < 0.4;
-    p.x = centerBias ? W * 0.3 + Math.random() * W * 0.4 : Math.random() * W;
-    p.y = H + 10 + Math.random() * 40;
-    p.vy = -(0.3 + Math.random() * 1.2);
-    p.vx = (Math.random() - 0.5) * 0.4;
-    p.swayAmp = 0.3 + Math.random() * 1.2;
-    p.swayFreq = 0.008 + Math.random() * 0.015;
+    const originXs = [0.15, 0.3, 0.48, 0.65, 0.8, 0.92];
+    const targetOrigin = originXs[Math.floor(Math.random() * originXs.length)];
+    p.x = W * targetOrigin + (Math.random() - 0.5) * (W * 0.12);
+    p.y = H + 15 + Math.random() * 35;
+    p.vy = -(0.24 + Math.random() * 0.96);
+    p.vx = (Math.random() - 0.5) * 0.32;
+    p.swayAmp = 0.24 + Math.random() * 0.96;
+    p.swayFreq = 0.0064 + Math.random() * 0.012;
     p.swayPhase = Math.random() * Math.PI * 2;
-    p.baseSize = 1 + Math.random() * 2.5;
+    p.baseSize = 1.2 + Math.random() * 2.8;
     p.maxLife = 200 + Math.random() * 350;
     p.life = p.maxLife;
     p.flickerSpeed = 0.05 + Math.random() * 0.12;
     p.flickerPhase = Math.random() * Math.PI * 2;
     p.colorIdx = Math.floor(Math.random() * COLORS.length);
-    p.glowBase = 6 + Math.random() * 10;
+    p.glowBase = 8 + Math.random() * 12;
     p.windDrift = (Math.random() - 0.5) * 0.003;
     p.t = 0;
     p.canSpark = true;
@@ -1323,66 +1439,54 @@ window.MECHA_CHAT = [
       p.life--;
 
       p.y += p.vy;
-      p.vy -= 0.001;
+      p.vy -= 0.0008; // 20% de reducción en aceleración ascendente (original 0.001)
       p.vx += p.windDrift;
       p.x += p.vx + Math.sin(p.t * p.swayFreq + p.swayPhase) * p.swayAmp;
 
-      // Probabilidad de división reducida (2% para no molestar)
+      // Probabilidad de división de chispas
       if (p.canSpark && sparks.length < MAX_SPARKS) {
         const lifeRatio = p.life / p.maxLife;
         if (lifeRatio > 0.35 && lifeRatio < 0.65 && Math.random() < 0.02) {
           p.canSpark = false;
-          sparks.push(...createSpark(p.x, p.y, p.colorIdx));
+          sparks.push(...createSpark(p.x, p.y));
         }
       }
 
-      if (p.life <= 0 || p.y < -20 || p.x < -40 || p.x > W + 40) {
+      if (p.life <= 0 || p.y < -25 || p.x < -50 || p.x > W + 50) {
         resetEmber(p);
       }
     }
 
-    // Update sparks (patrones variados, siempre ascendentes)
+    // Update sparks
     for (let i = sparks.length - 1; i >= 0; i--) {
       const s = sparks[i];
       s.t++;
       s.life--;
 
-      // Patrón 0-0.17: oscilación suave
       if (s.pattern < 0.17) {
         s.zigzagPhase += 0.12;
         s.x += s.vx + Math.sin(s.zigzagPhase) * s.zigzagAmp * 0.4 * (1 - s.weight * 0.4);
         s.y += s.vy;
-      }
-      // Patrón 0.17-0.33: rayo rápido
-      else if (s.pattern < 0.33) {
-        s.x += s.vx * 1.2;
+      } else if (s.pattern < 0.33) {
+        s.x += s.vx * 1.25;
         s.y += s.vy * 1.1;
-      }
-      // Patrón 0.33-0.5: zigzag marcado
-      else if (s.pattern < 0.5) {
+      } else if (s.pattern < 0.5) {
         s.zigzagPhase += 0.35;
         s.x += s.vx + Math.sin(s.zigzagPhase) * s.zigzagAmp * 0.8;
         s.y += s.vy * 0.9;
-      }
-      // Patrón 0.5-0.67: curva sinuosa
-      else if (s.pattern < 0.67) {
+      } else if (s.pattern < 0.67) {
         s.x += s.vx + Math.sin(s.t * 0.08) * 0.25;
         s.y += s.vy;
-      }
-      // Patrón 0.67-0.83: espiral ascendente
-      else if (s.pattern < 0.83) {
+      } else if (s.pattern < 0.83) {
         s.zigzagPhase += 0.22;
         s.x += s.vx + Math.cos(s.zigzagPhase) * 0.3;
         s.y += s.vy + Math.sin(s.zigzagPhase) * 0.2;
-      }
-      // Patrón 0.83-1: vertical directo
-      else {
+      } else {
         s.x += s.vx * 0.6;
         s.y += s.vy;
       }
 
-      // Gravedad según peso
-      s.vy -= 0.01 * (0.5 + s.weight * 0.5);
+      s.vy -= 0.0096 * (0.5 + s.weight * 0.5); // 20% de reducción en aceleración de gravedad (original 0.012)
 
       if (s.life <= 0 || s.y < -12) {
         sparks.splice(i, 1);
@@ -1394,7 +1498,7 @@ window.MECHA_CHAT = [
     ctx.clearRect(0, 0, W, H);
     ctx.globalCompositeOperation = 'screen';
 
-    // Render embers
+    // Dibujar embers (ascuas flotantes)
     for (let i = 0; i < MAX_EMBERS; i++) {
       const p = embers[i];
       const lifeRatio = p.life / p.maxLife;
@@ -1402,9 +1506,10 @@ window.MECHA_CHAT = [
 
       let alpha = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.85 ? (1 - lifeRatio) / 0.15 : 1;
       alpha *= (0.7 + 0.3 * (flicker * 0.5 + 0.5));
+      alpha *= 0.80; // 20% de reducción de brillo para un aspecto más sutil
       if (alpha < 0.02) continue;
 
-      const size = p.baseSize * (0.6 + 0.4 * (flicker * 0.5 + 0.5)) * (0.4 + 0.6 * lifeRatio);
+      const size = p.baseSize * (0.65 + 0.35 * (flicker * 0.5 + 0.5)) * (0.45 + 0.55 * lifeRatio);
       const drawSize = size * (p.glowBase * 0.5);
 
       ctx.globalAlpha = Math.min(alpha, 1);
@@ -1417,18 +1522,18 @@ window.MECHA_CHAT = [
       );
     }
 
-    // Render sparks (sutil, tonos únicos)
+    // Dibujar chispas rápidas
     for (let i = 0; i < sparks.length; i++) {
       const s = sparks[i];
       const lifeRatio = s.life / s.maxLife;
       const flicker = Math.sin(s.t * s.flickerSpeed + s.flickerPhase);
 
-      // Brillo moderado (menos protagonista)
-      let alpha = lifeRatio * (0.75 + 0.15 * (flicker * 0.5 + 0.5));
-      if (alpha < 0.06) continue;
+      let alpha = lifeRatio * (0.75 + 0.25 * (flicker * 0.5 + 0.5));
+      alpha *= 0.80; // 20% de reducción de brillo
+      if (alpha < 0.05) continue;
 
-      const size = s.baseSize * (0.4 + 0.6 * lifeRatio) * (0.7 + 0.2 * (flicker * 0.5 + 0.5));
-      const drawSize = size * s.glowBase * 0.9; // glow más contenido
+      const size = s.baseSize * (0.4 + 0.6 * lifeRatio) * (0.75 + 0.25 * (flicker * 0.5 + 0.5));
+      const drawSize = size * s.glowBase * 1.0;
 
       ctx.globalAlpha = Math.min(alpha, 1);
       ctx.drawImage(
@@ -1438,10 +1543,11 @@ window.MECHA_CHAT = [
         drawSize,
         drawSize
       );
-      // Núcleo sutil (no siempre)
-      if (alpha > 0.55 && Math.random() < 0.6) {
-        const coreSize = drawSize * 0.35;
-        ctx.globalAlpha = Math.min(alpha * 1.15, 1);
+
+      // Núcleo blanco caliente
+      if (alpha > 0.5 && Math.random() < 0.65) {
+        const coreSize = drawSize * 0.32;
+        ctx.globalAlpha = Math.min(alpha * 1.2, 1);
         ctx.drawImage(
           glowTextures[s.colorIdx],
           s.x - coreSize * 0.5,
@@ -1453,6 +1559,24 @@ window.MECHA_CHAT = [
     }
 
     ctx.globalAlpha = 1;
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    cvs.width  = W * dpr;
+    cvs.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const rocksCvs = document.getElementById('rocksCanvas');
+    if (rocksCvs) {
+      rocksCvs.width = W * dpr;
+      rocksCvs.height = 120 * dpr;
+      const rCtx = rocksCvs.getContext('2d');
+      rCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      generateRocks(W, 120);
+    }
   }
 
   function animate(now) {
@@ -1467,9 +1591,20 @@ window.MECHA_CHAT = [
     }
 
     render();
+    drawRocks(now);
     requestAnimationFrame(animate);
   }
 
+  // Inicializar eventos y redimensionamiento
+  window.addEventListener('resize', resize);
+  resize(); // Establece W, H y genera las rocas y configura los transforms
+
+  // Poblar el sistema de brasas con las dimensiones correctas de W y H
+  for (let i = 0; i < MAX_EMBERS; i++) {
+    embers[i] = createEmber(true);
+  }
+
+  // Arrancar el ciclo de animación
   requestAnimationFrame(animate);
 })();
 </script>

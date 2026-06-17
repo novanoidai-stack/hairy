@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fondos Mecha — Demo Interactiva</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#070a14;color:#f6f8ff;min-height:100vh}
+    .preview-container{position:fixed;inset:0;z-index:0;overflow:hidden}
+    .preview-container .bg{position:absolute;inset:0;z-index:0;pointer-events:none}
+    .preview-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+
+    /* Botones de selección */
+    .controls{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:8px;padding:12px;background:rgba(7,10,20,.9);border:1px solid rgba(148,163,184,.22);border-radius:16px;backdrop-filter:blur(12px);flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 40px)}
+    .btn-opt{padding:10px 16px;border-radius:10px;border:1px solid rgba(148,163,184,.22);background:rgba(255,255,255,.03);color:#9aa6c2;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-opt:hover{color:#f6f8ff;border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.06)}
+    .btn-opt.active{background:linear-gradient(120deg,#ff8a3d,#ff9d2e 55%,#ffce4a);color:#070a14;border-color:transparent}
+
+    /* Logo demo */
+    .logo-demo{width:120px;height:120px;margin-bottom:24px;filter:drop-shadow(0 20px 50px rgba(244,80,30,.5))}
+    .title{font-size:48px;font-weight:800;letter-spacing:-.03em;margin-bottom:16px;background:linear-gradient(120deg,#ff8a3d,#ff9d2e 55%,#ffce4a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    .subtitle{font-size:18px;color:#9aa6c2;margin-bottom:32px}
+    .card{background:rgba(16,23,41,.8);border:1px solid rgba(148,163,184,.12);border-radius:20px;padding:24px;max-width:400px;text-align:center}
+
+    /* Estilos base de los fondos */
+    .orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.4;mix-blend-mode:screen}
+    @keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,30px) scale(1.08)}100%{transform:translate(-30px,20px) scale(.96)}}
+
+    /* Opción 1: Flames Rise */
+    .bg-flames-rise .orb{background:radial-gradient(ellipse at bottom,rgba(255,180,60,.7),transparent 70%);filter:blur(50px);animation:flameRise 8s ease-in-out infinite alternate}
+    .bg-flames-rise .orb.o1{width:300px;height:500px;bottom:-100px;left:10%;animation-delay:0s}
+    .bg-flames-rise .orb.o2{width:280px;height:450px;bottom:-80px;left:30%;animation-delay:-2s;opacity:.7}
+    .bg-flames-rise .orb.o3{width:350px;height:550px;bottom:-120px;left:55%;animation-delay:-4s;opacity:.5}
+    .bg-flames-rise .orb.o4{width:250px;height:400px;bottom:-60px;left:75%;animation-delay:-6s;opacity:.6}
+    @keyframes flameRise{0%{transform:translateY(0) scaleY(1);opacity:.6}50%{transform:translateY(-30px) scaleY(1.1);opacity:.8}100%{transform:translateY(-10px) scaleY(.95);opacity:.5}}
+
+    /* Opción 2: Heat Waves */
+    .bg-heat-waves .orb{display:none}
+    .bg-heat-waves::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent,transparent 80px,rgba(255,150,50,.03) 80px,rgba(255,150,50,.03) 120px),repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(255,180,80,.02) 60px,rgba(255,180,80,.02) 100px);animation:heatShift 24s ease-in-out infinite alternate}
+    @keyframes heatShift{0%{transform:translate(0,0)}100%{transform:translate(-30px,-20px)}}
+
+    /* Opción 3: Pulse Fire */
+    .bg-pulse-fire .orb{width:800px!important;height:800px!important;top:50%!important;left:50%!important;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(244,80,30,.15),rgba(255,150,50,.08),transparent 60%);animation:firePulse 6s ease-in-out infinite}
+    .bg-pulse-fire .orb.o1{opacity:1}
+    .bg-pulse-fire .orb.o2,.bg-pulse-fire .orb.o3{display:none}
+    @keyframes firePulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.85}}
+
+    /* Opción 4: Flicker Glow */
+    .bg-flicker-glow .orb{width:600px!important;height:600px!important;top:30%!important;left:50%!important;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(255,120,30,.2),transparent 70%);animation:fireFlicker 3.5s ease-in-out infinite alternate}
+    .bg-flicker-glow .orb.o1{opacity:1}
+    .bg-flicker-glow .orb.o2,.bg-flicker-glow .orb.o3{display:none}
+    @keyframes fireFlicker{0%{transform:translateX(-50%) scale(1) rotate(-1deg);opacity:.7}30%{transform:translateX(-50%) scale(1.02) rotate(.5deg);opacity:.85}50%{transform:translateX(-50%) scale(.98) rotate(-.5deg);opacity:.65}70%{transform:translateX(-50%) scale(1.01) rotate(1deg);opacity:.8}100%{transform:translateX(-50%) scale(1) rotate(0deg);opacity:.75}}
+
+    /* Opción 5: Sparks Embers — Brasas flameantes */
+    .bg-sparks-embers .orb{display:none}
+    .bg-sparks-embers::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 120%,rgba(255,140,40,.15),transparent 50%),radial-gradient(ellipse at 20% 110%,rgba(255,160,50,.08),transparent 40%),radial-gradient(ellipse at 80% 115%,rgba(255,120,30,.1),transparent 45%);pointer-events:none}
+    .bg-sparks-embers::after{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,140,40,.7) 2px,transparent 2px),radial-gradient(circle,rgba(255,120,30,.6) 2.5px,transparent 2.5px),radial-gradient(circle,rgba(255,180,60,.8) 1.5px,transparent 1.5px),radial-gradient(circle,rgba(255,160,50,.7) 1.8px,transparent 1.8px),radial-gradient(circle,rgba(255,200,80,.9) 1px,transparent 1px),radial-gradient(circle,rgba(255,220,100,.8) 1.2px,transparent 1.2px),radial-gradient(circle,rgba(255,240,180,.7) 0.8px,transparent 0.8px),radial-gradient(ellipse 3px 8px at center,rgba(255,150,40,.5),transparent);background-size:180px 280px,320px 380px,240px 320px,400px 450px,160px 260px,280px 340px,200px 300px,150px 400px;background-position:0 1000px,120px 1080px,240px 1020px,360px 1100px,80px 950px,200px 1050px,320px 980px,150px 1120px;animation:emberFloat 28s linear infinite;opacity:.7}
+    @keyframes emberFloat{0%{background-position:0 1000px,120px 1080px,240px 1020px,360px 1100px,80px 950px,200px 1050px,320px 980px,150px 1120px}100%{background-position:0 -400px,120px -320px,240px -380px,360px -300px,80px -450px,200px -350px,320px -420px,150px -280px}}
+    .ember-spark{position:absolute;width:3px;height:3px;background:radial-gradient(circle,rgba(255,240,200,1),rgba(255,180,60,.8) 30%,transparent 70%);border-radius:50%;filter:blur(0.5px);opacity:0;animation:sparkFlash 8s ease-in-out infinite}
+    .ember-spark:nth-child(1){bottom:10%;left:15%;animation-delay:0s}
+    .ember-spark:nth-child(2){bottom:20%;left:45%;animation-delay:-2.5s}
+    .ember-spark:nth-child(3){bottom:5%;left:75%;animation-delay:-5s}
+    .ember-spark:nth-child(4){bottom:15%;left:85%;animation-delay:-1.5s}
+    .ember-spark:nth-child(5){bottom:25%;left:30%;animation-delay:-3.8s}
+    @keyframes sparkFlash{0%,100%{opacity:0;transform:translateY(0) scale(0.5)}10%{opacity:0;transform:translateY(-5px) scale(0.8)}15%{opacity:1;transform:translateY(-8px) scale(1.2)}25%{opacity:0.8;transform:translateY(-15px) scale(1)}35%{opacity:0;transform:translateY(-25px) scale(0.6)}}
+
+    /* Opción 6: Gradient Flow */
+    .bg-gradient-flow .orb{display:none}
+    .bg-gradient-flow::before{content:"";position:absolute;inset:-50%;background:linear-gradient(135deg,transparent 0%,rgba(224,52,14,.05) 20%,rgba(255,122,46,.08) 40%,rgba(255,207,74,.06) 60%,transparent 80%);animation:gradientFlow 18s ease-in-out infinite alternate}
+    @keyframes gradientFlow{0%{transform:rotate(0deg) scale(1)}100%{transform:rotate(15deg) scale(1.1)}}
+
+    @media (prefers-reduced-motion:reduce){.orb,.bg-heat-waves::after,.bg-gradient-flow::before{animation:none}}
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button class="btn-opt active" onclick="setBg('original')">Original</button>
+    <button class="btn-opt" onclick="setBg('flames-rise')">Llamas ascendentes</button>
+    <button class="btn-opt" onclick="setBg('heat-waves')">Ondas de calor</button>
+    <button class="btn-opt" onclick="setBg('pulse-fire')">Resplandor pulsante</button>
+    <button class="btn-opt" onclick="setBg('flicker-glow')">Llama parpadeante</button>
+    <button class="btn-opt" onclick="setBg('sparks-embers')">Brasas flotantes</button>
+    <button class="btn-opt" onclick="setBg('gradient-flow')">Gradiente fluído</button>
+  </div>
+
+  <div class="preview-container">
+    <div id="bg" class="bg bg-original"></div>
+  </div>
+
+  <div class="preview-content">
+    <svg class="logo-demo" viewBox="0 0 40 40">
+      <defs>
+        <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#e0340e"/>
+          <stop offset="0.5" stop-color="#ff7a2e"/>
+          <stop offset="1" stop-color="#ffcf4a"/>
+        </linearGradient>
+      </defs>
+      <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)"/>
+      <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity="0.92"/>
+    </svg>
+    <h1 class="title">mecha</h1>
+    <p class="subtitle">Software para peluquerías y barberías</p>
+    <div class="card">
+      <p style="color:#9aa6c2;font-size:14px">Selecciona una opción arriba para previsualizar el fondo</p>
+    </div>
+  </div>
+
+  <script>
+    const bg = document.getElementById('bg');
+    const btns = document.querySelectorAll('.btn-opt');
+
+    // Fondo original (de mecha.css)
+    const originalHTML = `
+      <div class="orb o1"></div>
+      <div class="orb o2"></div>
+      <div class="orb o3"></div>
+    `;
+
+    function setBg(type) {
+      // Actualizar botones
+      btns.forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      // Limpiar clases
+      bg.className = 'bg';
+      bg.innerHTML = '';
+
+      if (type === 'original') {
+        bg.className = 'bg bg-original';
+        bg.innerHTML = originalHTML;
+        return;
+      }
+
+      bg.className = `bg bg-${type}`;
+
+      if (type === 'sparks-embers') {
+        // Para brasas, añadir los spark elements
+        bg.innerHTML = '<div class="ember-spark"></div>'.repeat(5);
+      } else {
+        bg.innerHTML = '<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div class="orb o4"></div>';
+      }
+    }
+
+    // Inicializar
+    bg.innerHTML = originalHTML;
+  </script>
+</body>
+</html>
