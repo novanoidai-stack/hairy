@@ -134,7 +134,12 @@ export default function RootLayout() {
     (async () => {
       const [profile, staff] = await Promise.all([getUserProfile(), isStaff()]);
       if (cancel) return;
-      const plan = (profile?.plan || 'free').toLowerCase();
+      // Solo expulsamos a /acceso.html si SABEMOS que la cuenta es free. Si el
+      // perfil no se pudo leer (null por un fallo puntual de red/RLS), NO
+      // expulsamos: evita el bug "te logueas y se te sale afuera" cuando la
+      // lectura del perfil falla un instante (la cuenta sigue teniendo sesion).
+      if (!profile) return;
+      const plan = String(profile.plan || '').toLowerCase();
       if (!staff && plan === 'free') {
         window.location.href = '/acceso.html';
       }
