@@ -1950,11 +1950,12 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
     <>
     <div style={{
       background: TOKENS.bgCard,
-      border: `1px solid ${TOKENS.border}`,
+      border: `1px solid ${TOKENS.borderHi}`,
       borderRadius: 16,
       overflowX: isMobile || isTablet ? 'auto' : 'hidden',
       width: '100%',
       WebkitOverflowScrolling: 'touch',
+      boxShadow: '0 1px 4px rgba(40,30,24,0.06)',
     }}>
       <div style={{
         minWidth: (isMobile || isTablet) && profesionales.length > 1 ? profesionales.length * 160 + 56 : '100%',
@@ -2030,15 +2031,15 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
           );
         })()}
         {HOURS.map((h, idx) => (
-          <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(148,163,184,0.05)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(244,80,30,0.03)' }}>
-            <div style={{ padding: '8px 8px', fontSize: 11, color: TOKENS.textTer, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
+          <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(40,30,24,0.10)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(40,30,24,0.045)' }}>
+            <div style={{ padding: '8px 8px', fontSize: 11.5, fontWeight: 600, color: TOKENS.textSec, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
               {h}:00
             </div>
             {profesionales.map((p: any) => (
               // Cada hora se parte en dos medias horas (:00 y :30). Cada mitad se
               // resalta sola al pasar el raton y muestra su hora exacta, asi el
               // clic crea la cita justo en la media hora elegida.
-              <div key={`${h}-${p.id}`} style={{ borderLeft: `1px solid rgba(148,163,184,0.05)`, display: 'flex', flexDirection: 'column' }}>
+              <div key={`${h}-${p.id}`} style={{ borderLeft: `1px solid rgba(40,30,24,0.07)`, display: 'flex', flexDirection: 'column' }}>
                 {[0, 30].map((minute) => {
                   const horaSlot = `${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
                   return (
@@ -2048,7 +2049,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                       title={`Crear cita a las ${horaSlot}`}
                       style={{
                         flex: 1,
-                        borderTop: minute === 30 ? `1px dashed rgba(148,163,184,0.14)` : 'none',
+                        borderTop: minute === 30 ? `1px dashed rgba(40,30,24,0.08)` : 'none',
                         cursor: onCreateSlot ? 'pointer' : 'default',
                         transition: 'background-color 0.12s ease',
                         display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 7px',
@@ -6196,6 +6197,7 @@ function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clie
 // 8.5: MonthView
 // =============================================
 function MonthView({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, currentMonth, filterServicio, filterEstado, selectedProf, onSelectDay }: any) {
+  const { isMobile } = useResponsive();
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -6231,46 +6233,69 @@ function MonthView({ citas, profesionales, servicios, clientes, servicioMap, cli
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
   while (cells.length % 7) cells.push(null);
 
+  const cellMinH = isMobile ? 54 : 92;
+  const gap = isMobile ? 4 : 6;
+
   return (
     <div>
-      <h2 style={{ margin: '0 0 16px', fontSize: 20, fontWeight: 700, letterSpacing: -0.3, color: TOKENS.text, textTransform: 'capitalize' }}>
+      <h2 style={{ margin: '0 0 16px', fontSize: isMobile ? 18 : 20, fontWeight: 700, letterSpacing: -0.3, color: TOKENS.text, textTransform: 'capitalize' }}>
         {currentMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
       </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
-        {DAY_NAMES.map((d) => (
-          <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: TOKENS.textTer, padding: '8px 0' }}>{d}</div>
-        ))}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap }}>
+        {DAY_NAMES.map((d, idx) => {
+          const weekend = idx >= 5;
+          return (
+            <div key={d} style={{ textAlign: 'center', fontSize: isMobile ? 10 : 11.5, fontWeight: 700, letterSpacing: 0.5, color: weekend ? TOKENS.primaryHi : TOKENS.textSec, padding: '6px 0 8px', borderBottom: `2px solid ${weekend ? 'rgba(244,80,30,0.28)' : TOKENS.borderHi}` }}>{d}</div>
+          );
+        })}
         {cells.map((d, i) => {
-          if (!d) return <div key={i} />;
+          const weekendCol = (i % 7) >= 5;
+          if (!d) return <div key={i} style={{ minHeight: cellMinH, borderRadius: 10, background: 'rgba(148,163,184,0.025)' }} />;
           const dayCitas = citasByDay[d] || [];
           const isToday = isCurrentMonth && d === todayDate.getDate();
           const confirmadas = dayCitas.filter((c: any) => c.estado === 'confirmada').length;
           const completadas = dayCitas.filter((c: any) => c.estado === 'completada').length;
+          const total = dayCitas.length;
           return (
             <div
               key={i}
               onClick={() => onSelectDay(new Date(year, month, d))}
               style={{
-                background: isToday ? 'rgba(244,80,30,0.10)' : TOKENS.bgCard,
+                background: isToday ? 'rgba(244,80,30,0.07)' : (weekendCol ? 'rgba(148,163,184,0.045)' : TOKENS.bgCard),
                 border: `1px solid ${isToday ? TOKENS.primary : TOKENS.border}`,
                 borderRadius: 10,
-                padding: 8,
-                minHeight: 80,
+                padding: isMobile ? 6 : 9,
+                minHeight: cellMinH,
                 cursor: 'pointer',
-                transition: 'all 0.15s',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: isMobile ? 4 : 6,
+                transition: 'border-color 0.15s, transform 0.15s',
+                position: 'relative',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = isToday ? TOKENS.primary : TOKENS.border; }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = isToday ? TOKENS.primary : TOKENS.border; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <span style={{ fontSize: 13, fontWeight: isToday ? 700 : 500, color: isToday ? TOKENS.primaryHi : TOKENS.text }}>{d}</span>
-                {dayCitas.length > 0 && <span style={{ fontSize: 9, fontWeight: 700, color: TOKENS.textTer, background: 'rgba(148,163,184,0.10)', padding: '1px 5px', borderRadius: 4 }}>{dayCitas.length}</span>}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={isToday
+                  ? { fontSize: isMobile ? 12 : 13, fontWeight: 800, color: '#fff', width: isMobile ? 20 : 23, height: isMobile ? 20 : 23, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#ff7a2e,#f4501e)', boxShadow: '0 2px 8px rgba(244,80,30,0.4)' }
+                  : { fontSize: isMobile ? 12.5 : 14, fontWeight: 600, color: weekendCol ? TOKENS.textSec : TOKENS.text }}>{d}</span>
+                {!isMobile && total > 0 && <span style={{ fontSize: 9.5, fontWeight: 800, color: TOKENS.textSec, background: 'rgba(148,163,184,0.14)', padding: '1px 6px', borderRadius: 999 }}>{total}</span>}
               </div>
-              {dayCitas.length > 0 && (
-                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                  {confirmadas > 0 && <span style={{ fontSize: 9, padding: '1px 4px', background: 'rgba(244,80,30,0.12)', color: TOKENS.primaryHi, borderRadius: 3, fontWeight: 600 }}>{confirmadas} conf</span>}
-                  {completadas > 0 && <span style={{ fontSize: 9, padding: '1px 4px', background: 'rgba(34,197,94,0.12)', color: '#22c55e', borderRadius: 3, fontWeight: 600 }}>{completadas} comp</span>}
-                </div>
+              {total > 0 && (
+                isMobile ? (
+                  <div style={{ display: 'flex', gap: 2.5, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {Array.from({ length: Math.min(total, 4) }).map((_, k) => (
+                      <span key={k} style={{ width: 5, height: 5, borderRadius: '50%', background: k < confirmadas ? TOKENS.primary : '#22c55e' }} />
+                    ))}
+                    {total > 4 && <span style={{ fontSize: 8.5, fontWeight: 700, color: TOKENS.textTer }}>+{total - 4}</span>}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {confirmadas > 0 && <span style={{ fontSize: 9.5, padding: '1.5px 6px', background: 'rgba(244,80,30,0.14)', color: TOKENS.primaryHi, borderRadius: 999, fontWeight: 700 }}>{confirmadas} conf</span>}
+                    {completadas > 0 && <span style={{ fontSize: 9.5, padding: '1.5px 6px', background: 'rgba(34,197,94,0.14)', color: '#16a34a', borderRadius: 999, fontWeight: 700 }}>{completadas} comp</span>}
+                  </div>
+                )
               )}
             </div>
           );
