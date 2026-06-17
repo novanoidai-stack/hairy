@@ -14,24 +14,26 @@
 <style>
   body{min-height:100vh}
   .auth{position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
-  .auth-aside{position:relative;overflow:hidden;padding:32px 36px;display:flex;flex-direction:column;justify-content:space-between;
-    background:linear-gradient(160deg,rgba(244,80,30,.16),rgba(255,176,60,.06) 60%,transparent),var(--bg-2);
-    border-right:1px solid var(--border)}
+  .auth-aside{position:relative;overflow:hidden;padding:36px 44px;display:flex;flex-direction:column;justify-content:space-between;
+    /* Sin borde duro: el fondo grisaceo se funde a transparente por la derecha para que las
+       ascuas (canvas a nivel body) continuen bajo la costura e integren ambas mitades. */
+    background:linear-gradient(160deg,rgba(244,80,30,.18),rgba(255,176,60,.07) 55%,transparent),linear-gradient(90deg,var(--bg-2) 0%,var(--bg-2) 58%,transparent 100%)}
   .auth-aside .a-orb{position:absolute;border-radius:50%;filter:blur(70px);mix-blend-mode:screen;pointer-events:none}
   .auth-aside .a-orb.x1{width:360px;height:360px;top:-100px;left:-80px;background:radial-gradient(circle,rgba(244,80,30,.8),transparent 65%);opacity:.5}
   .auth-aside .a-orb.x2{width:300px;height:300px;bottom:-120px;right:-60px;background:radial-gradient(circle,rgba(255,176,60,.5),transparent 65%);opacity:.4}
   .auth-aside .top,.auth-aside .mid,.auth-aside .bot{position:relative;z-index:1}
-  .a-quote{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(22px,2.5vw,32px);line-height:1.25;letter-spacing:-.005em;max-width:460px}
+  .a-quote{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(28px,3.1vw,42px);line-height:1.18;letter-spacing:-.01em;max-width:500px}
   .a-quote .grad-txt{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .a-sub{font-size:14px;color:var(--text-sec);margin-top:10px;max-width:420px;line-height:1.5}
-  
+  .a-sub{font-size:16px;color:var(--text-sec);margin-top:12px;max-width:460px;line-height:1.5}
+
   /* Savings copy styles */
-  .a-savings {display:flex;flex-direction:column;gap:14px;margin-top:20px}
-  .save-item {display:flex;gap:12px;align-items:flex-start}
-  .save-ic {font-size:18px;flex-shrink:0;display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:rgba(244,80,30,0.08);border:1px solid rgba(244,80,30,0.15)}
-  .save-tx {display:flex;flex-direction:column;gap:2px}
-  .save-tx strong {font-size:13.5px;color:var(--text);font-weight:700}
-  .save-tx span {font-size:12px;color:var(--text-sec);line-height:1.4}
+  .a-savings {display:flex;flex-direction:column;gap:16px;margin-top:24px}
+  .save-item {display:flex;gap:14px;align-items:flex-start}
+  .save-ic {flex-shrink:0;display:inline-grid;place-items:center;width:42px;height:42px;border-radius:12px;background:rgba(244,80,30,0.10);border:1px solid rgba(244,80,30,0.18);color:var(--accent-hi)}
+  .save-ic svg{width:21px;height:21px;display:block}
+  .save-tx {display:flex;flex-direction:column;gap:3px}
+  .save-tx strong {font-size:15.5px;color:var(--text);font-weight:700}
+  .save-tx span {font-size:13.5px;color:var(--text-sec);line-height:1.45}
 
   .auth-main{display:flex;align-items:center;justify-content:center;padding:24px 28px}
   .auth-card{width:100%;max-width:404px}
@@ -280,14 +282,31 @@
     background: radial-gradient(circle, rgba(244, 80, 30, 0.05) 0%, transparent 70%);
   }
 
-  .lava-flame-loader {
-    animation: flamePulse 2s infinite ease-in-out;
-    filter: drop-shadow(0 0 16px rgba(244, 80, 30, 0.45));
+  /* Loader "fuego prendiendo": brasas que laten + llamas que danzan organicamente */
+  .ignite-loader { position: relative; display: grid; place-items: center; }
+  .ignite-loader svg { overflow: visible; filter: drop-shadow(0 0 18px rgba(244, 80, 30, 0.45)); }
+  .ig-halo { transform-box: fill-box; transform-origin: center; animation: igHalo 2.4s ease-in-out infinite; }
+  .ig-flame { transform-box: fill-box; transform-origin: bottom center; will-change: transform; }
+  .ig-flame.f1 { animation: igDance 0.95s ease-in-out infinite; }
+  .ig-flame.f2 { animation: igDance 0.7s ease-in-out infinite; animation-delay: -0.2s; }
+  .ig-flame.f3 { animation: igDance 1.35s ease-in-out infinite; animation-delay: -0.5s; opacity: 0.82; }
+  .ig-coals { transform-box: fill-box; transform-origin: center; animation: igCoals 1.8s ease-in-out infinite; }
+  @keyframes igDance {
+    0%, 100% { transform: scaleY(1) scaleX(1) rotate(0deg); }
+    20% { transform: scaleY(1.16) scaleX(0.9) rotate(-2.5deg); }
+    45% { transform: scaleY(0.8) scaleX(1.09) rotate(1.5deg); }
+    70% { transform: scaleY(1.08) scaleX(0.95) rotate(2.5deg); }
   }
-
-  @keyframes flamePulse {
-    0%, 100% { transform: scale(0.96); filter: drop-shadow(0 0 12px rgba(244, 80, 30, 0.45)); }
-    50% { transform: scale(1.04); filter: drop-shadow(0 0 24px rgba(244, 80, 30, 0.7)); }
+  @keyframes igHalo {
+    0%, 100% { opacity: 0.42; transform: scale(0.9); }
+    50% { opacity: 0.85; transform: scale(1.08); }
+  }
+  @keyframes igCoals {
+    0%, 100% { opacity: 0.78; }
+    50% { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ig-halo, .ig-flame, .ig-coals { animation: none !important; }
   }
 
   /* Sparks/Asquas flotantes ascendentes */
@@ -371,28 +390,28 @@
       
       <div class="a-savings">
         <div class="save-item">
-          <span class="save-ic">⏳</span>
+          <span class="save-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg></span>
           <div class="save-tx">
             <strong>Ahorras tiempo real de tu vida</strong>
             <span>La IA atiende WhatsApp, cuadra citas y responde 24/7. Olvídate de contestar mensajes de madrugada o en tus días libres.</span>
           </div>
         </div>
         <div class="save-item">
-          <span class="save-ic">✂️</span>
+          <span class="save-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><line x1="20" y1="4" x2="8.12" y2="15.88" /><line x1="14.47" y1="14.48" x2="20" y2="20" /><line x1="8.12" y1="8.12" x2="12" y2="12" /></svg></span>
           <div class="save-tx">
             <strong>Foco absoluto en tu arte</strong>
             <span>Cero interrupciones. Deja de soltar las tijeras o lavar cabezas a medias para atender llamadas de clientes.</span>
           </div>
         </div>
         <div class="save-item">
-          <span class="save-ic">🛡️</span>
+          <span class="save-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg></span>
           <div class="save-tx">
             <strong>Cero estrés por cancelaciones</strong>
             <span>La señal previa con Bizum/tarjeta blinda tu caja y educa al cliente. Di adiós a los huecos vacíos de última hora.</span>
           </div>
         </div>
         <div class="save-item">
-          <span class="save-ic">🧠</span>
+          <span class="save-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7a2 2 0 0 0 1.4 1.4L21 12l-5.7 1.9a2 2 0 0 0-1.4 1.4L12 21l-1.9-5.7a2 2 0 0 0-1.4-1.4L3 12l5.7-1.9a2 2 0 0 0 1.4-1.4L12 3z" /></svg></span>
           <div class="save-tx">
             <strong>Operativa fluida y sin esfuerzo</strong>
             <span>Organiza reposos de tintes y encadena a tu equipo automáticamente. Tu agenda se optimiza y se limpia sola.</span>
@@ -546,22 +565,39 @@
             <div class="spark s5"></div>
             <div class="spark s6"></div>
           </div>
-          <div class="hypno-loader">
-            <!-- Lava Filling Flame SVG -->
-            <svg class="lava-flame-loader" viewBox="0 0 40 40" width="100" height="100">
+          <div class="hypno-loader ignite-loader" aria-hidden="true">
+            <svg viewBox="0 0 100 116" width="118" height="137">
               <defs>
-                <clipPath id="flameLavaClip">
-                  <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" />
-                </clipPath>
+                <radialGradient id="igEmber" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#ffd24a" />
+                  <stop offset="42%" stop-color="#ff7a2e" />
+                  <stop offset="100%" stop-color="rgba(224,52,14,0)" />
+                </radialGradient>
+                <linearGradient id="igFlame" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0" stop-color="#c0260a" />
+                  <stop offset="0.45" stop-color="#ff5a1e" />
+                  <stop offset="1" stop-color="#ffcf4a" />
+                </linearGradient>
+                <linearGradient id="igCore" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0" stop-color="#ff8a3d" />
+                  <stop offset="1" stop-color="#fff3c4" />
+                </linearGradient>
               </defs>
-              <!-- Background ash flame outline -->
-              <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="rgba(255, 255, 255, 0.08)" stroke="rgba(255, 255, 255, 0.15)" stroke-width="0.7" />
-              <!-- Lava group clipped by flame path -->
-              <g clip-path="url(#flameLavaClip)">
-                <rect id="lavaFillRect" x="0" y="40" width="40" height="40" fill="url(#mGrad)" style="transition: y 0.25s cubic-bezier(0.4, 0, 0.2, 1);" />
+              <!-- halo de calor que late -->
+              <circle class="ig-halo" cx="50" cy="74" r="44" fill="url(#igEmber)" />
+              <!-- llamas que danzan -->
+              <g>
+                <path class="ig-flame f3" d="M50 96 C 33 80 39 58 50 38 C 61 58 67 80 50 96 Z" fill="url(#igFlame)" />
+                <path class="ig-flame f1" d="M50 98 C 39 84 43 64 50 48 C 57 64 61 84 50 98 Z" fill="url(#igFlame)" />
+                <path class="ig-flame f2" d="M50 99 C 43 88 45 74 50 62 C 55 74 57 88 50 99 Z" fill="url(#igCore)" />
               </g>
-              <!-- Inner white flame accent -->
-              <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity="0.9" />
+              <!-- lecho de brasas -->
+              <g class="ig-coals">
+                <ellipse cx="50" cy="100" rx="22" ry="6.5" fill="url(#igEmber)" />
+                <circle cx="41" cy="101" r="4" fill="#ff6619" />
+                <circle cx="52" cy="103" r="5" fill="#ff7a2e" />
+                <circle cx="61" cy="101" r="3.5" fill="#e0340e" />
+              </g>
             </svg>
           </div>
           <h2 class="load-h">Preparando tu salón</h2>
@@ -1068,8 +1104,10 @@
   
   var W, H;
   var sparks = []; // sparks dinámicos
-  var MAX_EMBERS = 120; // 20% de velocidad y brillo reducido
-  var MAX_SPARKS = 60;
+  // En movil las particulas abruman (y cargan la GPU): reducimos densidad bajo 768px.
+  var IS_MOBILE = (window.matchMedia && window.matchMedia('(max-width:767px)').matches) || window.innerWidth < 768;
+  var MAX_EMBERS = IS_MOBILE ? 34 : 120; // 20% de velocidad y brillo reducido
+  var MAX_SPARKS = IS_MOBILE ? 16 : 60;
   var embers = new Array(MAX_EMBERS);
 
   var COLORS = [
