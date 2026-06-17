@@ -233,6 +233,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="assets/mecha.css" />
 <link rel="stylesheet" href="assets/mecha-sections.css" />
+<link rel="stylesheet" href="assets/fuegos-mecha.css" />
 <style>
   /* ---------- ACCOUNT CHIP (sesion activa) ---------- */
   .acct{position:relative;display:none}
@@ -295,12 +296,12 @@
   </button>
 </div>
 
-<!-- ============ BACKGROUND ============ -->
+<!-- ============ BACKGROUND (brasas Canvas) ============ -->
 <div class="bg" aria-hidden="true">
-  <span class="orb o1"></span>
-  <span class="orb o2"></span>
-  <span class="orb o3"></span>
-  <div class="bg-noise"></div>
+  <!-- Glow de brasas en la base -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:35vh;background:linear-gradient(to top,rgba(224,52,14,.15)0%,rgba(255,122,46,.08)25%,rgba(255,180,60,.04)50%,transparent 100%);pointer-events:none"></div>
+  <canvas id="embers" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+  <div class="bg-noise" style="opacity:.025"></div>
 </div>
 
 <!-- ============ NAV ============ -->
@@ -943,6 +944,15 @@
       </div>
     </div>
   </div>
+  <!-- Lecho de cenizas/ascuas (fuente de las brasas) -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:12vh;pointer-events:none;overflow:hidden">
+    <!-- Ascuas brillantes -->
+    <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0%,transparent 8%,rgba(255,122,46,.12) 8%,rgba(224,52,14,.18) 12%,rgba(255,152,46,.15) 16%,transparent 20%),repeating-linear-gradient(90deg,transparent 0%,transparent 15%,rgba(255,180,60,.08) 15%,rgba(255,140,40,.12) 22%,transparent 30%);animation:emberGlow 8s ease-in-out infinite alternate"></div>
+    <!-- Cenizas oscuras -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,rgba(20,8,4,.8) 0%,rgba(40,15,8,.4) 40%,transparent 100%)"></div>
+    <!-- Brillos puntuales -->
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 30% 20% at 20% 80%,rgba(255,180,60,.25),transparent 50%),radial-gradient(ellipse 25% 15% at 45% 85%,rgba(255,140,40,.2),transparent 50%),radial-gradient(ellipse 35% 18% at 70% 82%,rgba(255,160,50,.22),transparent 50%),radial-gradient(ellipse 20% 12% at 85% 78%,rgba(224,52,14,.18),transparent 50%)"></div>
+  </div>
 </footer>
 
 <!-- ============ TWEAKS ============ -->
@@ -1164,5 +1174,305 @@ window.MECHA_CHAT = [
 </script>
 
 <script src="assets/cookies.js"></script>
+
+<!-- ============ BRASAS CANVAS (Sistema de partículas con división) ============ -->
+<script>
+(function(){
+  const cvs = document.getElementById('embers');
+  if (!cvs) return;
+  const ctx = cvs.getContext('2d', { alpha: true });
+  let W, H;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    cvs.width  = W * dpr;
+    cvs.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Colores Mecha: del gradiente fuego
+  const COLORS = [
+    { r:255, g:207, b:74  }, // amarillo oro
+    { r:255, g:152, b:46  }, // naranja claro
+    { r:255, g:122, b:46  }, // naranja Mecha
+    { r:224, g:52,  b:14  }, // rojo profundo
+    { r:255, g:90,  b:30  }, // naranja rojizo
+    { r:200, g:40,  b:10  }, // rojo oscuro
+  ];
+
+  // Pre-render glow textures
+  const GLOW_SIZE = 64;
+  const glowTextures = COLORS.map(c => {
+    const off = document.createElement('canvas');
+    off.width = GLOW_SIZE; off.height = GLOW_SIZE;
+    const oc = off.getContext('2d');
+    const cx = GLOW_SIZE / 2;
+    const g = oc.createRadialGradient(cx, cx, 0, cx, cx, cx);
+    g.addColorStop(0,   `rgba(${c.r},${c.g},${c.b},1)`);
+    g.addColorStop(0.15,`rgba(${c.r},${c.g},${c.b},.7)`);
+    g.addColorStop(0.4, `rgba(${c.r},${c.g},${c.b},.2)`);
+    g.addColorStop(1,   `rgba(${c.r},${c.g},${c.b},0)`);
+    oc.fillStyle = g;
+    oc.fillRect(0, 0, GLOW_SIZE, GLOW_SIZE);
+    return off;
+  });
+
+  const MAX_EMBERS = 90;
+  const MAX_SPARKS = 50;
+  const embers = new Array(MAX_EMBERS);
+  const sparks = []; // sparks dinámicos
+
+  function createEmber(scatter) {
+    const centerBias = Math.random() < 0.4;
+    const x = centerBias ? W * 0.3 + Math.random() * W * 0.4 : Math.random() * W;
+    const maxLife = 200 + Math.random() * 350;
+    return {
+      x,
+      y: scatter ? Math.random() * H : H + 10 + Math.random() * 40,
+      vy: -(0.3 + Math.random() * 1.2),
+      vx: (Math.random() - 0.5) * 0.4,
+      swayAmp:   0.3 + Math.random() * 1.2,
+      swayFreq:  0.008 + Math.random() * 0.015,
+      swayPhase: Math.random() * Math.PI * 2,
+      baseSize:  1 + Math.random() * 2.5,
+      maxLife,
+      life: scatter ? Math.random() * maxLife : maxLife,
+      flickerSpeed: 0.05 + Math.random() * 0.12,
+      flickerPhase: Math.random() * Math.PI * 2,
+      colorIdx: Math.floor(Math.random() * COLORS.length),
+      glowBase: 6 + Math.random() * 10,
+      windDrift: (Math.random() - 0.5) * 0.003,
+      t: 0,
+      canSpark: true // solo puede dividir una vez
+    };
+  }
+
+  function createSpark(x, y, parentColor) {
+    const count = 2 + Math.floor(Math.random() * 3);
+    const pattern = Math.random();
+    const weight = Math.random(); // "peso" de la chispa (0-1)
+    const newSparks = [];
+    for (let i = 0; i < count; i++) {
+      const size = 0.25 + Math.random() * 0.5;
+      // Ángulo base siempre ascendente (-120° a -60°)
+      const baseAngle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI / 1.5;
+
+      // Velocidad según peso (más lento = más pesado)
+      const speed = (0.5 + weight * 1.5) * (0.8 + Math.random() * 0.8);
+
+      newSparks.push({
+        x, y,
+        vx: Math.cos(baseAngle) * speed * 0.5 + (Math.random() - 0.5) * 0.25,
+        vy: Math.sin(baseAngle) * speed - 0.15 - Math.random() * 0.25,
+        maxLife: 50 + Math.random() * 60,
+        life: 50 + Math.random() * 60,
+        baseSize: size * (0.8 + weight * 0.4), // más pesado = más grande
+        colorIdx: 2 + Math.floor(Math.random() * 4),
+        glowBase: 3 + Math.random() * 4,
+        flickerSpeed: 0.12 + Math.random() * 0.2,
+        flickerPhase: Math.random() * Math.PI * 2,
+        t: 0,
+        pattern,
+        weight, // influye en gravedad y movimiento
+        zigzagPhase: Math.random() * Math.PI * 2,
+        zigzagAmp: (0.2 + Math.random() * 0.6) * (1 - weight * 0.5) // más ligero = más zigzag
+      });
+    }
+    return newSparks;
+  }
+
+  for (let i = 0; i < MAX_EMBERS; i++) {
+    embers[i] = createEmber(true);
+  }
+
+  function resetEmber(p) {
+    const centerBias = Math.random() < 0.4;
+    p.x = centerBias ? W * 0.3 + Math.random() * W * 0.4 : Math.random() * W;
+    p.y = H + 10 + Math.random() * 40;
+    p.vy = -(0.3 + Math.random() * 1.2);
+    p.vx = (Math.random() - 0.5) * 0.4;
+    p.swayAmp = 0.3 + Math.random() * 1.2;
+    p.swayFreq = 0.008 + Math.random() * 0.015;
+    p.swayPhase = Math.random() * Math.PI * 2;
+    p.baseSize = 1 + Math.random() * 2.5;
+    p.maxLife = 200 + Math.random() * 350;
+    p.life = p.maxLife;
+    p.flickerSpeed = 0.05 + Math.random() * 0.12;
+    p.flickerPhase = Math.random() * Math.PI * 2;
+    p.colorIdx = Math.floor(Math.random() * COLORS.length);
+    p.glowBase = 6 + Math.random() * 10;
+    p.windDrift = (Math.random() - 0.5) * 0.003;
+    p.t = 0;
+    p.canSpark = true;
+  }
+
+  // Physics a 60fps fijo
+  const STEP = 1000 / 60;
+  let lastTime = 0;
+  let accumulator = 0;
+
+  function physicsTick() {
+    // Update embers
+    for (let i = 0; i < MAX_EMBERS; i++) {
+      const p = embers[i];
+      p.t++;
+      p.life--;
+
+      p.y += p.vy;
+      p.vy -= 0.001;
+      p.vx += p.windDrift;
+      p.x += p.vx + Math.sin(p.t * p.swayFreq + p.swayPhase) * p.swayAmp;
+
+      // Probabilidad de división reducida (2% para no molestar)
+      if (p.canSpark && sparks.length < MAX_SPARKS) {
+        const lifeRatio = p.life / p.maxLife;
+        if (lifeRatio > 0.35 && lifeRatio < 0.65 && Math.random() < 0.02) {
+          p.canSpark = false;
+          sparks.push(...createSpark(p.x, p.y, p.colorIdx));
+        }
+      }
+
+      if (p.life <= 0 || p.y < -20 || p.x < -40 || p.x > W + 40) {
+        resetEmber(p);
+      }
+    }
+
+    // Update sparks (patrones variados, siempre ascendentes)
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      s.t++;
+      s.life--;
+
+      // Patrón 0-0.17: oscilación suave
+      if (s.pattern < 0.17) {
+        s.zigzagPhase += 0.12;
+        s.x += s.vx + Math.sin(s.zigzagPhase) * s.zigzagAmp * 0.4 * (1 - s.weight * 0.4);
+        s.y += s.vy;
+      }
+      // Patrón 0.17-0.33: rayo rápido
+      else if (s.pattern < 0.33) {
+        s.x += s.vx * 1.2;
+        s.y += s.vy * 1.1;
+      }
+      // Patrón 0.33-0.5: zigzag marcado
+      else if (s.pattern < 0.5) {
+        s.zigzagPhase += 0.35;
+        s.x += s.vx + Math.sin(s.zigzagPhase) * s.zigzagAmp * 0.8;
+        s.y += s.vy * 0.9;
+      }
+      // Patrón 0.5-0.67: curva sinuosa
+      else if (s.pattern < 0.67) {
+        s.x += s.vx + Math.sin(s.t * 0.08) * 0.25;
+        s.y += s.vy;
+      }
+      // Patrón 0.67-0.83: espiral ascendente
+      else if (s.pattern < 0.83) {
+        s.zigzagPhase += 0.22;
+        s.x += s.vx + Math.cos(s.zigzagPhase) * 0.3;
+        s.y += s.vy + Math.sin(s.zigzagPhase) * 0.2;
+      }
+      // Patrón 0.83-1: vertical directo
+      else {
+        s.x += s.vx * 0.6;
+        s.y += s.vy;
+      }
+
+      // Gravedad según peso
+      s.vy -= 0.01 * (0.5 + s.weight * 0.5);
+
+      if (s.life <= 0 || s.y < -12) {
+        sparks.splice(i, 1);
+      }
+    }
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'screen';
+
+    // Render embers
+    for (let i = 0; i < MAX_EMBERS; i++) {
+      const p = embers[i];
+      const lifeRatio = p.life / p.maxLife;
+      const flicker = Math.sin(p.t * p.flickerSpeed + p.flickerPhase);
+
+      let alpha = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.85 ? (1 - lifeRatio) / 0.15 : 1;
+      alpha *= (0.7 + 0.3 * (flicker * 0.5 + 0.5));
+      if (alpha < 0.02) continue;
+
+      const size = p.baseSize * (0.6 + 0.4 * (flicker * 0.5 + 0.5)) * (0.4 + 0.6 * lifeRatio);
+      const drawSize = size * (p.glowBase * 0.5);
+
+      ctx.globalAlpha = Math.min(alpha, 1);
+      ctx.drawImage(
+        glowTextures[p.colorIdx],
+        p.x - drawSize * 0.5,
+        p.y - drawSize * 0.5,
+        drawSize,
+        drawSize
+      );
+    }
+
+    // Render sparks (sutil, tonos únicos)
+    for (let i = 0; i < sparks.length; i++) {
+      const s = sparks[i];
+      const lifeRatio = s.life / s.maxLife;
+      const flicker = Math.sin(s.t * s.flickerSpeed + s.flickerPhase);
+
+      // Brillo moderado (menos protagonista)
+      let alpha = lifeRatio * (0.75 + 0.15 * (flicker * 0.5 + 0.5));
+      if (alpha < 0.06) continue;
+
+      const size = s.baseSize * (0.4 + 0.6 * lifeRatio) * (0.7 + 0.2 * (flicker * 0.5 + 0.5));
+      const drawSize = size * s.glowBase * 0.9; // glow más contenido
+
+      ctx.globalAlpha = Math.min(alpha, 1);
+      ctx.drawImage(
+        glowTextures[s.colorIdx],
+        s.x - drawSize * 0.5,
+        s.y - drawSize * 0.5,
+        drawSize,
+        drawSize
+      );
+      // Núcleo sutil (no siempre)
+      if (alpha > 0.55 && Math.random() < 0.6) {
+        const coreSize = drawSize * 0.35;
+        ctx.globalAlpha = Math.min(alpha * 1.15, 1);
+        ctx.drawImage(
+          glowTextures[s.colorIdx],
+          s.x - coreSize * 0.5,
+          s.y - coreSize * 0.5,
+          coreSize,
+          coreSize
+        );
+      }
+    }
+
+    ctx.globalAlpha = 1;
+  }
+
+  function animate(now) {
+    if (!lastTime) lastTime = now;
+    const dt = now - lastTime;
+    lastTime = now;
+
+    accumulator += Math.min(dt, 100);
+    while (accumulator >= STEP) {
+      physicsTick();
+      accumulator -= STEP;
+    }
+
+    render();
+    requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
+})();
+</script>
+
 </body>
 </html>

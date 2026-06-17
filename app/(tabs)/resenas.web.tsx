@@ -114,7 +114,7 @@ export default function ResenasScreen() {
   return (
     <div style={{ minHeight: '100vh', background: TOKENS.bg, padding: '40px 48px', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIMATIONS }} />
-
+      
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
         <header style={{ marginBottom: 32, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
           <div>
@@ -123,7 +123,7 @@ export default function ResenasScreen() {
               Descubre qué piensan tus clientes de su experiencia.
             </p>
           </div>
-
+          
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: TOKENS.bgCard, padding: '16px 24px', borderRadius: 16, border: `1px solid ${TOKENS.border}`, boxShadow: '0 8px 30px rgba(40,30,24,0.04)' }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Puntuación media</div>
@@ -151,7 +151,7 @@ export default function ResenasScreen() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 20 }}>
             {resenas.map((r, i) => (
-              <div key={r.id} className="resena-card" style={{
+              <div key={r.id} className="resena-card" style={{ 
                 animationDelay: `${i * 0.05}s`,
                 background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 20,
                 display: 'flex', flexDirection: 'column',
@@ -169,7 +169,7 @@ export default function ResenasScreen() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <button
+                    <button 
                       onClick={() => toggleVisibility(r.id, r.visible)}
                       title={r.visible ? "Ocultar del portal público" : "Mostrar en el portal público"}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: r.visible ? TOKENS.primary : TOKENS.textTer, padding: 6, borderRadius: 8, display: 'flex' }}
@@ -178,7 +178,7 @@ export default function ResenasScreen() {
                     >
                       <Icon name={r.visible ? 'eye' : 'eyeOff'} size={18} color="currentColor" />
                     </button>
-                    <button
+                    <button 
                       onClick={() => deleteResena(r.id)}
                       title="Eliminar reseña"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: TOKENS.danger, padding: 6, borderRadius: 8, display: 'flex' }}
@@ -189,11 +189,11 @@ export default function ResenasScreen() {
                     </button>
                   </div>
                 </div>
-
+                
                 <div style={{ marginBottom: 12 }}>
                   <StarsRow value={r.puntuacion} size={16} />
                 </div>
-
+                
                 {r.comentario ? (
                   <div style={{ fontSize: 14.5, color: TOKENS.textSec, lineHeight: 1.5, flex: 1 }}>
                     "{r.comentario}"
@@ -203,7 +203,7 @@ export default function ResenasScreen() {
                     Sin comentario adicional.
                   </div>
                 )}
-
+                
                 {!r.visible && (
                   <div style={{ marginTop: 16, fontSize: 12, fontWeight: 600, color: TOKENS.textTer, display: 'flex', alignItems: 'center', gap: 6, background: TOKENS.bgCardHi, padding: '6px 10px', borderRadius: 6, alignSelf: 'flex-start' }}>
                     <Icon name="eyeOff" size={14} color={TOKENS.textTer} /> Oculta al público

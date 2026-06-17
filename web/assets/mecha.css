@@ -34,9 +34,9 @@ input,select,textarea{font-family:inherit}
 }
 
 /* ============================================================
-   PREMIUM BACKGROUND
+   PREMIUM BACKGROUND (brasas Canvas + glow base)
    ============================================================ */
-.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--bg)}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#050408}
 .bg::before{content:"";position:absolute;inset:0;
   background:
     radial-gradient(70% 55% at 50% -10%, rgba(255,200,180,.18), transparent 72%),
@@ -88,6 +88,7 @@ main,nav,footer{position:relative;z-index:1}
 @keyframes wordIn{to{opacity:1;transform:none}}
 @keyframes introGlow{0%{opacity:0}40%{opacity:1}100%{opacity:.7}}
 @keyframes introOut{to{opacity:0;transform:scale(1.04);visibility:hidden}}
+@keyframes emberGlow{0%{opacity:.6}50%{opacity:1}100%{opacity:.7}}
 body.intro-lock{overflow:hidden;height:100vh}
 
 /* ============================================================

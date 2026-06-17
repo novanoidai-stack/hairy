@@ -685,7 +685,7 @@ const s = StyleSheet.create({
   timelineProfName: { fontSize: tokens.fontSize.sm, fontWeight: '700', color: tokens.text },
   timelineProfRole: { fontSize: tokens.fontSize.xs, color: tokens.textTertiary },
   timelineCol: { flex: 1, borderLeftWidth: 3, minWidth: 180 },
-  citaItem: { borderLeftWidth: 3, padding: tokens.spacing.md, borderBottomWidth: 1, borderBottomColor: tokens.borderHi },
+  citaItem: { borderLeftWidth: 3, padding: tokens.spacing.md, borderBottomWidth: 1, borderBottomColor: tokens.borderHiHi },
   citaItemTime: { fontSize: tokens.fontSize.sm, fontWeight: '700', color: tokens.text },
   citaItemCliente: { fontSize: tokens.fontSize.sm, fontWeight: '600', color: tokens.text, marginTop: tokens.spacing.xs },
   citaItemServicio: { fontSize: tokens.fontSize.xs, color: tokens.textSecondary, marginTop: tokens.spacing.xs },

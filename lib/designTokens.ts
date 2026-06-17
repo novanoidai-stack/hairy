@@ -33,6 +33,7 @@ export const DESIGN_TOKENS = {
   // Borders — tinte cálido oscuro para que se vean sobre blanco/crema
   border: 'rgba(40,30,24,0.08)',
   borderHi: 'rgba(40,30,24,0.14)',
+  borderHiHi: 'rgba(40,30,24,0.25)', // más contraste para división clara
 
   // Text — carbón cálido, alto contraste
   text: '#1c1814',
