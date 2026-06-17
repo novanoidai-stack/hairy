@@ -33,7 +33,7 @@ const T = {
   ember: '#f59e0b',
 };
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
-const SERIF = "'Instrument Serif', Georgia, 'Times New Roman', serif";
+const SERIF = "'Inter', system-ui, sans-serif";
 
 const ANIM = `
   @keyframes rpFade { from { opacity: 0 } to { opacity: 1 } }

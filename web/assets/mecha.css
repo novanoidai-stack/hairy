@@ -39,25 +39,20 @@ input,select,textarea{font-family:inherit}
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--bg)}
 .bg::before{content:"";position:absolute;inset:0;
   background:
-    radial-gradient(70% 55% at 50% -10%, rgba(244,80,30,.26), transparent 72%),
-    radial-gradient(48% 45% at 86% 6%, rgba(255,190,120,.16), transparent 72%),
-    radial-gradient(52% 50% at 8% 16%, rgba(255,170,90,.16), transparent 72%),
-    radial-gradient(60% 55% at 50% 108%, rgba(255,150,110,.12), transparent 70%);}
-/* Topos (puntitos) en tono calido pastel de Mecha — sustituyen al antiguo
-   fondo cuadriculado de lineas frias. Se difuminan hacia abajo con la mascara. */
-.bg-grid{position:absolute;inset:0;
-  background-image:radial-gradient(rgba(255,180,130,.075) 1.5px, transparent 1.7px);
-  background-size:30px 30px;background-position:0 0;
-  -webkit-mask-image:radial-gradient(ellipse 95% 70% at 50% 0%,#000,transparent 80%);
-  mask-image:radial-gradient(ellipse 95% 70% at 50% 0%,#000,transparent 80%)}
-.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;mix-blend-mode:screen;
+    radial-gradient(70% 55% at 50% -10%, rgba(255,200,180,.18), transparent 72%),
+    radial-gradient(48% 45% at 86% 6%, rgba(255,210,170,.12), transparent 72%),
+    radial-gradient(52% 50% at 8% 16%, rgba(255,195,150,.12), transparent 72%),
+    radial-gradient(60% 55% at 50% 108%, rgba(255,180,160,.08), transparent 70%);}
+/* Fondo limpio sin puntitos - tonos pastel claritos de Mecha.
+   El gradient de ambient se mantiene pero sin la textura de topos. */
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.4;mix-blend-mode:screen;
   animation:drift 26s var(--ease) infinite alternate}
 .orb.o1{width:520px;height:520px;top:-120px;left:8%;
-  background:radial-gradient(circle,rgba(244,80,30,.85),transparent 65%)}
+  background:radial-gradient(circle,rgba(255,210,190,.65),transparent 65%)}
 .orb.o2{width:440px;height:440px;top:6%;right:-60px;animation-duration:32s;animation-delay:-6s;
-  background:radial-gradient(circle,rgba(255,176,60,.55),transparent 65%)}
-.orb.o3{width:600px;height:600px;top:38%;left:30%;animation-duration:38s;animation-delay:-12s;opacity:.3;
-  background:radial-gradient(circle,rgba(255,157,46,.6),transparent 65%)}
+  background:radial-gradient(circle,rgba(255,195,170,.45),transparent 65%)}
+.orb.o3{width:600px;height:600px;top:38%;left:30%;animation-duration:38s;animation-delay:-12s;opacity:.25;
+  background:radial-gradient(circle,rgba(255,185,165,.5),transparent 65%)}
 @keyframes drift{
   0%{transform:translate(0,0) scale(1)}
   50%{transform:translate(40px,30px) scale(1.08)}
@@ -181,9 +176,13 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
   background:rgba(16,185,129,.14);padding:5px 10px;border-radius:999px}
 .hero-rating .hr-verif svg{width:13px;height:13px}
 
-.hero-mock-wrap{position:relative;z-index:1;margin-top:clamp(66px,11vh,130px);perspective:2400px}
+.hero-mock-wrap{position:relative;z-index:1;margin-top:clamp(66px,11vh,130px);perspective:2400px;
+  /* Ocultar parte superior de la captura */
+  max-height:680px;overflow:hidden;border-radius:18px}
 .hero-mock{max-width:1020px;margin:0 auto;border-radius:18px;overflow:hidden;border:1px solid var(--border-hi);
-  box-shadow:var(--shadow-card);transform:rotateX(7deg) scale(.98);transform-origin:center top}
+  box-shadow:var(--shadow-card);transform:rotateX(7deg) scale(.98) translateY(-60px);transform-origin:center top;
+  /* Ajustar margen negativo para compensar el translateY y centrar visualmente */
+  margin-bottom:-60px}
 .hero-mock::before{content:"";position:absolute;inset:0;border-radius:18px;z-index:2;pointer-events:none;
   background:linear-gradient(160deg,rgba(255,255,255,.06),transparent 30%)}
 .mock-floor{position:absolute;left:50%;bottom:-26px;width:64%;height:120px;transform:translateX(-50%);

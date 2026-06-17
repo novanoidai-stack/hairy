@@ -297,7 +297,6 @@
 
 <!-- ============ BACKGROUND ============ -->
 <div class="bg" aria-hidden="true">
-  <div class="bg-grid"></div>
   <span class="orb o1"></span>
   <span class="orb o2"></span>
   <span class="orb o3"></span>
@@ -1015,7 +1014,9 @@ window.MECHA_CHAT = [
       var toDemo=false;
       try{ toDemo=sessionStorage.getItem(DEMO_INTENT)==='1'; }catch(e){}
       try{ sessionStorage.removeItem(DEMO_INTENT); }catch(e){}
-      location.replace(toDemo ? 'demo.html' : 'acceso.html');
+      // IMPORTANTE: preservar el hash con access_token para que acceso.html pueda procesar la sesion
+      var target=toDemo ? 'demo.html' : 'acceso.html';
+      location.replace(target+location.hash);
     };
     api.getSession().then(function(s){ if(s) afterSSO(); });
     if(api.onAuth){ api.onAuth(function(evt){ if(evt==='SIGNED_IN') afterSSO(); }); }
@@ -1031,7 +1032,8 @@ window.MECHA_CHAT = [
   document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeMenu(); });
 
   appLink.addEventListener('click',function(e){ e.preventDefault(); if(api.goToApp) api.goToApp(); });
-  if(enter) enter.addEventListener('click',function(e){ e.preventDefault(); if(api.goToApp) api.goToApp(); });
+  // El boton independiente de "Entrar al software" ya no se usa.
+  // if(enter) enter.addEventListener('click',function(e){ e.preventDefault(); if(api.goToApp) api.goToApp(); });
   out.addEventListener('click',function(){
     closeMenu();
     if(api.signOut){ api.signOut().then(function(){ location.reload(); }); }
@@ -1066,10 +1068,8 @@ window.MECHA_CHAT = [
     if(login) login.style.display='none';
     if(demo) demo.style.display='none';
     acct.classList.add('on');
-    // El software es solo para cuentas con acceso (plan distinto de free). Una
-    // cuenta free -aunque sea del equipo- NO ve "Entrar al software", solo la
-    // demo. El equipo sigue viendo el enlace al panel (staff) aparte.
-    if(appLink) appLink.style.display='none';
+    // El dropdown del perfil es la UNICA forma de entrar al software.
+    // Nunca mostramos el boton independiente #navEnterApp.
     if(enter) enter.style.display='none';
     if(staff) staff.style.display='none';
     if(demoItem) demoItem.classList.remove('hi');
@@ -1081,8 +1081,10 @@ window.MECHA_CHAT = [
       var profile=res[1];
       var plan=profile&&profile.plan?String(profile.plan).toLowerCase():'free';
       var canApp=plan!=='free';
+      // El dropdown del perfil ya tiene "Entrar al software" - solo lo
+      // mostramos si tiene acceso, pero nunca usamos el boton independiente.
       if(appLink) appLink.style.display=canApp?'flex':'none';
-      if(enter) enter.style.display=canApp?'inline-flex':'none';
+      if(enter) enter.style.display='none'; // Siempre oculto
       syncMobileEnter(canApp);
       if(demo&&canApp) demo.style.display='none';
       if(staff) staff.style.display=staffOk?'flex':'none';
