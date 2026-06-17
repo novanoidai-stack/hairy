@@ -66,9 +66,10 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
   const isWeb = Platform.OS === 'web';
-  // Portal de reserva publica (app/r/[slug]): es anonimo, sin sesion. Queda exento
-  // de los guards de auth (web y nativo) para que el cliente final pueda reservar.
-  const isPublicRoute = ['r', 'resena'].includes(String(segments[0]));
+  // Portal de reserva publica (app/r/[slug]), valoraciones (app/resena/[slug]) y gestion
+  // de cita (app/cita/[id]): son anonimos, sin sesion. Quedan exentos de los guards de auth
+  // (web y nativo) para que el cliente final pueda reservar / gestionar su cita.
+  const isPublicRoute = ['r', 'resena', 'cita'].includes(String(segments[0]));
 
   useEffect(() => {
     if (fontError) {

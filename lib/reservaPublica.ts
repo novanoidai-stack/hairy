@@ -214,3 +214,91 @@ export async function crearResenaPublica(args: {
     throw e;
   }
 }
+
+// --- Gestion de la cita por el cliente (ver / cancelar / modificar) ---
+// Las RPC exigen el par (cita_id + telefono del titular) como prueba de propiedad, asi que
+// funcionan desde el portal anonimo con el cita_id del enlace de confirmacion, sin abrir
+// SELECT a nadie. Alimentan la pagina /app/cita/[id].
+
+export interface CitaPublica {
+  ok: boolean;
+  motivo?: 'portal' | 'no_encontrada';
+  cita_id: string;
+  estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada' | 'no_show';
+  servicio_id: string | null;
+  servicio: string;
+  profesional_id: string | null;
+  profesional: string;
+  inicio: string;
+  fin: string;
+  salon: string;
+  slug: string;
+  cancelable: boolean;
+  cancelacion_horas: number;
+  fuera_de_plazo: boolean;
+}
+
+// Datos de una cita gated por (cita_id + telefono). ok=false si el par no casa.
+export async function getCitaPublica(slug: string, citaId: string, telefono: string): Promise<CitaPublica> {
+  const { data, error } = await supabase.rpc('cita_publica', {
+    p_slug: slug,
+    p_cita_id: citaId,
+    p_telefono: telefono,
+  });
+  if (error) throw error;
+  return data as CitaPublica;
+}
+
+export interface CancelarCitaResult {
+  ok: boolean;
+  cita_id: string;
+  estado: 'cancelada';
+  fuera_de_plazo: boolean; // true si se cancela dentro de la ventana de cancelacion del servicio
+  cancelacion_horas: number;
+}
+
+// Cancela la cita del titular. Lanza si el (cita_id, telefono) no casan o ya paso / no es cancelable.
+export async function cancelarCitaPublica(args: {
+  slug: string;
+  citaId: string;
+  telefono: string;
+  motivo?: string;
+}): Promise<CancelarCitaResult> {
+  const { data, error } = await supabase.rpc('cancelar_cita_publica', {
+    p_slug: args.slug,
+    p_cita_id: args.citaId,
+    p_telefono: args.telefono,
+    p_motivo: args.motivo ?? null,
+    p_canal: 'web',
+  });
+  if (error) throw error;
+  return data as CancelarCitaResult;
+}
+
+export interface ModificarCitaResult {
+  ok: boolean;
+  cita_id: string;
+  inicio: string;
+  fin: string;
+  profesional_id: string;
+}
+
+// Reagenda la cita del titular. El servidor revalida antelacion / horario / solape / bloqueo.
+export async function modificarCitaPublica(args: {
+  slug: string;
+  citaId: string;
+  telefono: string;
+  nuevoInicioISO: string;
+  nuevoProfesionalId?: string | null;
+}): Promise<ModificarCitaResult> {
+  const { data, error } = await supabase.rpc('modificar_cita_publica', {
+    p_slug: args.slug,
+    p_cita_id: args.citaId,
+    p_telefono: args.telefono,
+    p_nuevo_inicio: args.nuevoInicioISO,
+    p_nuevo_profesional_id: args.nuevoProfesionalId ?? null,
+    p_canal: 'web',
+  });
+  if (error) throw error;
+  return data as ModificarCitaResult;
+}
