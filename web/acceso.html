@@ -35,9 +35,10 @@
 
   .auth-main{display:flex;align-items:center;justify-content:center;padding:24px 28px}
   .auth-card{width:100%;max-width:404px}
-  .auth-back{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-sec);margin-bottom:16px}
-  .auth-back:hover{color:var(--text)}
-  .auth-back svg{width:15px;height:15px}
+  .auth-back{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--text-sec);background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:999px;margin-bottom:20px;transition:all 0.2s cubic-bezier(0.16,1,0.3,1)}
+  .auth-back:hover{color:var(--text);background:rgba(255,255,255,0.08);border-color:var(--accent);transform:translateX(-3px);box-shadow:0 4px 15px rgba(244,80,30,0.15)}
+  .auth-back:hover svg{transform:translateX(-2px)}
+  .auth-back svg{width:14px;height:14px;transition:transform 0.2s ease}
   .auth-h{font-size:24px;letter-spacing:-.02em;margin-bottom:4px}
   .auth-p{font-size:13.5px;color:var(--text-sec);margin-bottom:16px}
   .seg{display:flex;gap:4px;padding:3px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:11px;margin-bottom:18px}
@@ -244,7 +245,7 @@
     line-height: 1.45;
   }
 
-  /* ---- Loading screen mejorado (concentric hypno loaders) ---- */
+  /* ---- Loading screen mejorado (Lava Flame Loader) ---- */
   .load-wrap {
     display: flex;
     flex-direction: column;
@@ -265,26 +266,8 @@
   .load-p {
     font-size: 15px;
     color: var(--text-sec);
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     line-height: 1.5;
-  }
-  .load-progress-bg {
-    width: 100%;
-    max-width: 280px;
-    height: 6px;
-    background: rgba(255, 255, 255, .08);
-    border-radius: 3px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, .06);
-  }
-  .load-progress-bar {
-    height: 100%;
-    width: 0%;
-    background: var(--grad);
-    border-radius: 3px;
-    transition: width .3s cubic-bezier(.16,1,.3,1);
-    box-shadow: 0 0 20px rgba(244,80,30,0.4);
   }
 
   .hypno-loader {
@@ -293,97 +276,62 @@
     height: 150px;
     display: grid;
     place-items: center;
-    margin-bottom: 30px;
-  }
-  .loader-gear {
-    position: absolute;
-    width: 140px;
-    height: 140px;
-    opacity: 0.75;
-    animation: gearSpin 12s linear infinite;
-    filter: drop-shadow(0 0 8px rgba(244, 80, 30, 0.4));
-  }
-  .fire-ring {
-    position: absolute;
-    border: 2px solid transparent;
-    border-radius: 50%;
-    mix-blend-mode: screen;
-  }
-  .fire-ring.fr1 {
-    width: 110px;
-    height: 110px;
-    border-top-color: rgba(255, 122, 46, 0.85);
-    border-bottom-color: rgba(220, 38, 38, 0.35);
-    animation: spinClockwise 3s linear infinite;
-  }
-  .fire-ring.fr2 {
-    width: 86px;
-    height: 86px;
-    border-left-color: rgba(255, 207, 74, 0.8);
-    border-right-color: rgba(244, 80, 30, 0.25);
-    animation: spinCounterClockwise 2.2s linear infinite;
-  }
-  .load-logo-inner {
-    width: 46px;
-    height: 46px;
-    z-index: 2;
-    animation: logoPulseGlow 2s infinite ease-in-out;
-    filter: drop-shadow(0 0 14px rgba(244, 80, 30, 0.8));
-  }
-  .ember-particle {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #ffcf4a;
-    box-shadow: 0 0 10px #ff7a2e, 0 0 20px #e0340e;
-    transform-origin: 75px 75px;
-    pointer-events: none;
-  }
-  .ember-particle.ep1 {
-    top: 0;
-    left: 72px;
-    animation: orbitEmber 1.8s infinite linear;
-  }
-  .ember-particle.ep2 {
-    top: 32px;
-    left: 72px;
-    width: 4px;
-    height: 4px;
-    transform-origin: 75px 75px;
-    animation: orbitEmber 2.5s infinite linear reverse;
-    opacity: 0.8;
-  }
-  .ember-particle.ep3 {
-    top: 15px;
-    left: 72px;
-    width: 5px;
-    height: 5px;
-    transform-origin: 75px 75px;
-    animation: orbitEmber 3.2s infinite linear;
-    opacity: 0.9;
-  }
-  @keyframes gearSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  @keyframes orbitEmber {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  @keyframes logoPulseGlow {
-    0%, 100% { transform: scale(0.92); filter: drop-shadow(0 0 12px rgba(244, 80, 30, 0.7)); }
-    50% { transform: scale(1.08); filter: drop-shadow(0 0 22px rgba(244, 80, 30, 1)); }
-  }
-  @keyframes spinClockwise {
-    to { transform: rotate(360deg); }
-  }
-  @keyframes spinCounterClockwise {
-    to { transform: rotate(-360deg); }
+    margin-bottom: 24px;
+    background: radial-gradient(circle, rgba(244, 80, 30, 0.05) 0%, transparent 70%);
   }
 
-  /* Fondo sutil para la pantalla de carga */
-  #paneLoading{background:radial-gradient(ellipse at center,rgba(244,80,30,.06),transparent 70%)}
+  .lava-flame-loader {
+    animation: flamePulse 2s infinite ease-in-out;
+    filter: drop-shadow(0 0 16px rgba(244, 80, 30, 0.45));
+  }
+
+  @keyframes flamePulse {
+    0%, 100% { transform: scale(0.96); filter: drop-shadow(0 0 12px rgba(244, 80, 30, 0.45)); }
+    50% { transform: scale(1.04); filter: drop-shadow(0 0 24px rgba(244, 80, 30, 0.7)); }
+  }
+
+  /* Sparks/Asquas flotantes ascendentes */
+  .lava-sparks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .spark {
+    position: absolute;
+    bottom: -10px;
+    width: 4px;
+    height: 4px;
+    background: #ffcf4a;
+    border-radius: 50%;
+    box-shadow: 0 0 5px #ff7a2e, 0 0 10px #e0340e;
+    opacity: 0;
+    animation: riseAndSway 3.2s infinite ease-in-out;
+  }
+  @keyframes riseAndSway {
+    0% {
+      bottom: -10px;
+      transform: translateX(0) scale(0.6);
+      opacity: 0;
+    }
+    15% { opacity: 1; }
+    80% { opacity: 0.7; }
+    100% {
+      bottom: 110%;
+      transform: translateX(var(--sway-x, 20px)) scale(1.1);
+      opacity: 0;
+    }
+  }
+  .spark.s1 { left: 22%; animation-duration: 2.8s; animation-delay: 0s; --sway-x: 25px; }
+  .spark.s2 { left: 38%; animation-duration: 3.5s; animation-delay: 0.6s; --sway-x: -20px; width: 3px; height: 3px; }
+  .spark.s3 { left: 50%; animation-duration: 2.4s; animation-delay: 1.2s; --sway-x: 18px; }
+  .spark.s4 { left: 62%; animation-duration: 3.1s; animation-delay: 0.3s; --sway-x: -25px; width: 5px; height: 5px; }
+  .spark.s5 { left: 76%; animation-duration: 2.9s; animation-delay: 0.9s; --sway-x: 22px; }
+  .spark.s6 { left: 45%; animation-duration: 3.8s; animation-delay: 1.5s; --sway-x: -15px; width: 3px; height: 3px; }
+
+  #paneLoading {
+    background: radial-gradient(ellipse at center, rgba(244,80,30,.06), transparent 70%);
+  }
 </style>
 </head>
 <body data-theme="dark">
@@ -458,7 +406,7 @@
   <!-- MAIN -->
   <main class="auth-main">
     <div class="auth-card">
-      <a class="auth-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>Volver a la web</a>
+      <a class="auth-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>Atrás</a>
 
       <div class="seg" role="tablist">
         <button id="tabLogin" role="tab">Iniciar sesión</button>
@@ -587,42 +535,37 @@
       </div>
 
       <!-- LOADING (pantalla de carga de transición) -->
-      <div class="pane" id="paneLoading">
+      <div class="pane on" id="paneLoading">
         <div class="load-wrap">
+          <!-- Ascuas flotantes ascendentes -->
+          <div class="lava-sparks">
+            <div class="spark s1"></div>
+            <div class="spark s2"></div>
+            <div class="spark s3"></div>
+            <div class="spark s4"></div>
+            <div class="spark s5"></div>
+            <div class="spark s6"></div>
+          </div>
           <div class="hypno-loader">
-            <!-- Gear SVG (Mecha machine aspect) -->
-            <svg class="loader-gear" viewBox="0 0 100 100">
-              <path d="M50 34c-8.8 0-16 7.2-16 16s7.2 16 16 16 16-7.2 16-16-7.2-16-16-16zm0 28c-6.6 0-12-5.4-12-12s5.4-12 12-12 12 5.4 12 12-5.4 12-12 12z" fill="var(--accent-hi)" opacity="0.35" />
-              <!-- Gear teeth -->
-              <g fill="var(--accent)">
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(0 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(30 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(60 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(90 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(120 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(150 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(180 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(210 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(240 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(270 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(300 50 50)" />
-                <rect x="47" y="12" width="6" height="12" rx="2" transform="rotate(330 50 50)" />
+            <!-- Lava Filling Flame SVG -->
+            <svg class="lava-flame-loader" viewBox="0 0 40 40" width="100" height="100">
+              <defs>
+                <clipPath id="flameLavaClip">
+                  <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" />
+                </clipPath>
+              </defs>
+              <!-- Background ash flame outline -->
+              <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="rgba(255, 255, 255, 0.08)" stroke="rgba(255, 255, 255, 0.15)" stroke-width="0.7" />
+              <!-- Lava group clipped by flame path -->
+              <g clip-path="url(#flameLavaClip)">
+                <rect id="lavaFillRect" x="0" y="40" width="40" height="40" fill="url(#mGrad)" style="transition: y 0.25s cubic-bezier(0.4, 0, 0.2, 1);" />
               </g>
-              <!-- Inner ring -->
-              <circle cx="50" cy="50" r="28" fill="none" stroke="var(--accent-hi)" stroke-width="2" stroke-dasharray="8 6" opacity="0.6" />
+              <!-- Inner white flame accent -->
+              <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity="0.9" />
             </svg>
-            <div class="fire-ring fr1"></div>
-            <div class="fire-ring fr2"></div>
-            <div class="ember-particle ep1"></div>
-            <div class="ember-particle ep2"></div>
-            <div class="ember-particle ep3"></div>
-            <svg class="load-logo-inner" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg>
           </div>
           <h2 class="load-h">Preparando tu salón</h2>
-          <p class="load-p" id="loadStatus">Verificando accesos...</p>
-          <div class="load-progress-bg">
-            <div class="load-progress-bar" id="loadBar"></div>
-          </div>
+          <p class="load-p" id="loadStatus">Verificando sesión...</p>
         </div>
       </div>
     </div>
@@ -663,7 +606,20 @@
   var rem = document.getElementById('rememberMe');
   if (rem) rem.addEventListener('click', function () { rem.classList.toggle('on'); });
 
-  show(location.hash === '#signup' ? 'signup' : 'login');
+  window.MechaInitForms = function () {
+    // Asegura que solo se ve el formulario: oculta el loader inicial y cualquier panel
+    // post-login que pudiera haber quedado activo (el loader arranca con 'on' para evitar
+    // el flash del formulario durante el callback de SSO).
+    if (loadTimer) { clearInterval(loadTimer); loadTimer = null; }
+    ['paneChooser', 'paneFree', 'paneComplete', 'paneLoading'].forEach(function (p) {
+      var el = document.getElementById(p);
+      if (el) el.classList.remove('on');
+    });
+    if (seg) seg.style.display = 'flex';
+    var authContainer = document.querySelector('.auth');
+    if (authContainer) authContainer.classList.remove('logged-in');
+    show(location.hash === '#signup' ? 'signup' : 'login');
+  };
 
   // ---- Cableado Supabase (login / signup) ----
   var val = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
@@ -693,8 +649,11 @@
 
   function setProgress(pct) {
     currentProgress = pct;
-    var bar = document.getElementById('loadBar');
-    if (bar) bar.style.width = pct + '%';
+    var rect = document.getElementById('lavaFillRect');
+    if (rect) {
+      var yVal = 40 - (40 * pct / 100);
+      rect.setAttribute('y', String(yVal));
+    }
   }
 
   function startLoading(statusText) {
@@ -817,8 +776,17 @@
   var isSSOCallback = window.location.hash.indexOf('access_token=') !== -1 || window.location.search.indexOf('code=') !== -1;
   if (isSSOCallback) {
     startLoading('Autenticando...');
-    // Resetear routed para el callback de Google (permite re-login tras logout sin recargar)
     routed = false;
+    // Timeout de seguridad: si no se autentica en 4s, volvemos al formulario.
+    setTimeout(function() {
+      if (!routed) {
+        console.warn('SSO callback timeout. Fallback to login form.');
+        if (window.MechaInitForms) window.MechaInitForms();
+      }
+    }, 4000);
+  } else {
+    // Si no es un callback, mostramos la carga inicial de "verificando sesión..."
+    startLoading('Verificando sesión...');
   }
 
   function go() { if (routed) return; routed = true; routeAfterAuth(); }
@@ -829,15 +797,28 @@
   }
 
   // Si ya hay sesion activa, enruta segun el tipo de cuenta.
-  // Resetear routed para permitir el routing al volver a la pagina con sesion activa,
-  // pero solo si no es un callback de SSO (el SSO usa el evento SIGNED_IN).
   if (api && api.getSession) {
     api.getSession().then(function (s) {
-      if (s && !isSSOCallback) {
-        routed = false;
-        go();
+      if (s) {
+        if (!isSSOCallback) {
+          routed = false;
+          go();
+        }
+      } else {
+        // No hay sesión activa y no estamos esperando callback del SSO
+        if (!isSSOCallback) {
+          setTimeout(function() {
+            if (!routed) {
+              if (window.MechaInitForms) window.MechaInitForms();
+            }
+          }, 100);
+        }
       }
+    }).catch(function() {
+      if (window.MechaInitForms) window.MechaInitForms();
     });
+  } else {
+    if (window.MechaInitForms) window.MechaInitForms();
   }
 
   // ---- Pantallas post-login (chooser / free / complete) ----

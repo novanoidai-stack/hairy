@@ -140,11 +140,11 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
   backdrop-filter:blur(20px) saturate(160%);border-bottom-color:var(--border)}
 .nav-in{display:flex;align-items:center;justify-content:space-between;height:75px}
 .nav-links{display:flex;align-items:center;gap:4px}
-.nav-links a{font-size:15.5px;font-weight:500;color:var(--text-sec);padding:8px 14px;border-radius:999px;
+.nav-links a{font-size:14.2px;font-weight:500;color:var(--text-sec);padding:8px 14px;border-radius:999px;
   transition:color .2s,background .2s}
 .nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
 .nav-cta{display:flex;align-items:center;gap:10px}
-.nav-cta .login{font-size:15.5px;font-weight:500;color:var(--text-sec);padding:8px 12px}
+.nav-cta .login{font-size:14.2px;font-weight:500;color:var(--text-sec);padding:8px 12px}
 .nav-cta .login:hover{color:var(--text)}
 #navDemo{background:var(--grad);animation:pulseGlow 2.5s infinite ease-in-out;box-shadow:0 0 12px rgba(244,80,30,.4);border:1px solid rgba(255,255,255,.15);font-weight:700;transition:transform .2s ease,box-shadow .2s ease}
 #navDemo:hover{box-shadow:0 0 22px rgba(244,80,30,.7);transform:scale(1.03)}

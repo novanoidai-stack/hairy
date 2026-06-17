@@ -7,6 +7,7 @@ import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
+import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA } from '@/lib/constants';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -656,9 +657,9 @@ export default function ClientesWeb() {
                           {c.bloqueado ? 'Desbloquear' : 'Bloquear'}
                         </button>
                       </div>
-                      {/* C6: etiquetas manuales */}
+                      {/* C6: etiquetas manuales (las reservadas de resena se gestionan abajo) */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-                        {(c.etiquetas ?? []).map((et) => (
+                        {(c.etiquetas ?? []).filter((et) => !TAGS_RESENA.includes(et)).map((et) => (
                           <span key={et} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 8px', borderRadius: 999, background: TOKENS.violetSoft, color: TOKENS.violet, fontSize: 11, fontWeight: 600 }}>
                             {et}
                             <button
@@ -690,6 +691,30 @@ export default function ClientesWeb() {
                     <ContactRow icon="mail" label="Email" value={c.email || '—'} accent={c.email ? TOKENS.cyan : undefined} />
                     <ContactRow icon="cake" label="Cumpleaños" value={cumpleStr} accent={cumpleStr !== '—' ? '#fb923c' : undefined} />
                     <ContactRow icon="user" label="Prof. habitual" value={c.profHabitual || '—'} accent={c.profHabitual ? TOKENS.violet : undefined} />
+                  </div>
+                  {/* Seguimiento de resena (flag manual; las resenas del portal son anonimas) */}
+                  <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${TOKENS.border}`, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.4 }}>¿Ha dejado reseña?</span>
+                    {[{ tag: TAG_RESENO_SALON, label: 'Salón' }, { tag: TAG_RESENO_MECHA, label: 'Mecha' }].map(({ tag, label }) => {
+                      const has = (c.etiquetas ?? []).includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          title={has ? `Marcado: ${tag}. Toca para quitar.` : `Marcar ${tag}`}
+                          onClick={async () => {
+                            const next = has
+                              ? (c.etiquetas ?? []).filter((x) => x !== tag)
+                              : Array.from(new Set([...(c.etiquetas ?? []), tag]));
+                            const { error } = await supabase.from('clientes').update({ etiquetas: next }).eq('id', c.id);
+                            if (!error) setClientes((prev) => prev.map((x) => (x.id === c.id ? { ...x, etiquetas: next } : x)));
+                          }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 999, border: `1px solid ${has ? TOKENS.success : TOKENS.borderHi}`, background: has ? TOKENS.successSoft : 'transparent', color: has ? TOKENS.success : TOKENS.textSec, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          {has && <Icon name="check" size={12} color={TOKENS.success} />}
+                          {label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );

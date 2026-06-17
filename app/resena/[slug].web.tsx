@@ -1,17 +1,29 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
 import { getPortalInfo, getResenasPublicas, crearResenaPublica, type PortalNegocio, type ResenaResumen } from '@/lib/reservaPublica';
 
 const T = {
-  bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
-  border: 'rgba(40,30,24,0.10)', borderHi: 'rgba(40,30,24,0.16)',
-  text: '#1c1814', textSec: '#5c5249', textTer: '#8a7d70',
-  primary: '#f4501e', primaryHi: '#c0260a', primarySoft: 'rgba(244,80,30,0.10)',
-  star: '#f59e0b', success: '#0f9d6b', successSoft: 'rgba(15,157,107,0.12)', danger: '#e23b34',
+  bg: '#060202', // Basalt black
+  panel: 'rgba(11, 16, 32, 0.72)', // Glassmorphic very dark gray-blue
+  card: '#101729',
+  cardHi: '#16203a',
+  border: 'rgba(255, 255, 255, 0.08)',
+  borderHi: 'rgba(255, 255, 255, 0.16)',
+  text: '#f6f8ff',
+  textSec: '#9aa6c2',
+  textTer: '#8a9ab8',
+  primary: '#f4501e',
+  primaryHi: '#ff8a3d',
+  primarySoft: 'rgba(244,80,30,0.14)',
+  star: '#f59e0b',
+  success: '#10b981',
+  successSoft: 'rgba(16,185,129,0.14)',
+  danger: '#ef4444',
 };
+
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
-const SERIF = '"Instrument Serif", Georgia, serif';
+const SANS_SERIF = '"Space Grotesk", "Outfit", "Inter", sans-serif';
 
 const ANIM = `
   @keyframes rsUp { from { opacity:0; transform: translateY(14px) } to { opacity:1; transform: translateY(0) } }
@@ -34,24 +46,64 @@ const ANIM = `
 
 const ETIQUETAS = ['', 'Lo siento', 'Mejorable', 'Bien', 'Muy bien', '¡Excelente!'];
 
-function FlameIcon({ filled, size = 24, color = '#f4501e' }: { filled: boolean; size?: number; color?: string }) {
-  const path = 'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z';
+function FlameIcon({ filled, size = 24, isOptional = false }: { filled: boolean; size?: number; isOptional?: boolean }) {
+  const gradientId = isOptional ? "goldGrad" : "fireGrad";
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : 'none'} stroke={filled ? '#ff8a3d' : 'rgba(40,30,24,0.20)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d={path} />
+      <svg width={size} height={size} viewBox="0 0 40 40" style={{ overflow: 'visible' }}>
+        <defs>
+          <linearGradient id="fireGrad" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stopColor="#e0340e" />
+            <stop offset="0.5" stopColor="#ff7a2e" />
+            <stop offset="1" stopColor="#ffcf4a" />
+          </linearGradient>
+          <linearGradient id="goldGrad" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stopColor="#b45309" />
+            <stop offset="0.5" stopColor="#f59e0b" />
+            <stop offset="1" stopColor="#fde047" />
+          </linearGradient>
+        </defs>
+        {filled ? (
+          <>
+            <path
+              d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"
+              fill={`url(#${gradientId})`}
+              stroke={isOptional ? "#f59e0b" : "#ff8a3d"}
+              strokeWidth="0.5"
+            />
+            <path
+              d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z"
+              fill="#fff"
+              opacity={0.9}
+            />
+          </>
+        ) : (
+          <>
+            <path
+              d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"
+              fill="rgba(255,255,255,0.03)"
+              stroke="rgba(255,255,255,0.15)"
+              strokeWidth="2"
+            />
+            <path
+              d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z"
+              fill="rgba(255,255,255,0.05)"
+              stroke="none"
+            />
+          </>
+        )}
       </svg>
     </span>
   );
 }
 
-function FlamesRow({ value, size = 16, color }: { value: number; size?: number; color?: string }) {
+function FlamesRow({ value, size = 16, isOptional = false }: { value: number; size?: number; isOptional?: boolean }) {
   const count = Math.round(value);
   if (count <= 0) return null;
   return (
     <span style={{ display: 'inline-flex', gap: 2 }}>
       {Array.from({ length: count }).map((_, i) => (
-        <FlameIcon key={i} filled={true} size={size} color={color} />
+        <FlameIcon key={i} filled={true} size={size} isOptional={isOptional} />
       ))}
     </span>
   );
@@ -61,12 +113,12 @@ function RatingSelector({
   value,
   onChange,
   size = 32,
-  color = '#f4501e'
+  isOptional = false
 }: {
   value: number;
   onChange: (val: number) => void;
   size?: number;
-  color?: string;
+  isOptional?: boolean;
 }) {
   const [hover, setHover] = useState(0);
   const shown = hover || value;
@@ -82,10 +134,117 @@ function RatingSelector({
           className="rs-star"
           aria-label={`${n} fueguitos`}
         >
-          <FlameIcon filled={n <= shown} size={size} color={color} />
+          <FlameIcon filled={n <= shown} size={size} isOptional={isOptional} />
         </button>
       ))}
     </div>
+  );
+}
+
+export function EmbersCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    const COLORS = [
+      'rgba(255, 218, 80, ',
+      'rgba(255, 152, 46, ',
+      'rgba(255, 102, 25, ',
+      'rgba(230, 40, 10, ',
+      'rgba(255, 75, 20, '
+    ];
+
+    interface Particle {
+      x: number;
+      y: number;
+      size: number;
+      color: string;
+      speedY: number;
+      speedX: number;
+      alpha: number;
+      decay: number;
+      sway: number;
+      swaySpeed: number;
+    }
+
+    const particles: Particle[] = [];
+    const MAX_PARTICLES = 60;
+
+    const createParticle = (init = false): Particle => {
+      const size = Math.random() * 2.5 + 1;
+      return {
+        x: Math.random() * width,
+        y: init ? Math.random() * height : height + 20,
+        size,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        speedY: -(Math.random() * 0.8 + 0.3),
+        speedX: Math.random() * 0.3 - 0.15,
+        alpha: Math.random() * 0.5 + 0.2,
+        decay: Math.random() * 0.0012 + 0.0006,
+        sway: Math.random() * Math.PI * 2,
+        swaySpeed: Math.random() * 0.015 + 0.004
+      };
+    };
+
+    for (let i = 0; i < MAX_PARTICLES; i++) {
+      particles.push(createParticle(true));
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.y += p.speedY;
+        p.x += p.speedX + Math.sin(p.sway) * 0.2;
+        p.sway += p.swaySpeed;
+        p.alpha -= p.decay;
+
+        if (p.alpha <= 0 || p.y < -10 || p.x < -10 || p.x > width + 10) {
+          particles[i] = createParticle(false);
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = p.color + p.alpha + ')';
+          ctx.fill();
+        }
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0
+      }}
+    />
   );
 }
 
@@ -159,23 +318,39 @@ export default function ResenaWeb() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, padding: '0 16px 48px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
+    <div style={{
+      minHeight: '100vh',
+      background: T.bg,
+      backgroundImage: `
+        radial-gradient(80% 60% at 50% -10%, rgba(224,52,14,0.06), transparent 75%),
+        radial-gradient(60% 50% at 85% 5%, rgba(255,130,40,0.12), transparent 70%),
+        radial-gradient(65% 55% at 15% 15%, rgba(255,90,30,0.12), transparent 70%),
+        radial-gradient(75% 60% at 50% 110%, rgba(224,52,14,0.08), transparent 70%)
+      `,
+      padding: '0 16px 48px',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      position: 'relative',
+      overflowY: 'auto'
+    }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
-      <div aria-hidden style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 520, height: 320, background: 'radial-gradient(closest-side, rgba(244,80,30,0.10), transparent)', pointerEvents: 'none' }} />
-      <div style={{ maxWidth: 540, margin: '0 auto', position: 'relative' }}>
-        <header style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '24px 4px 18px' }}>
-          <span className="rs-flame"><MechaMark size={36} /></span>
-          <div style={{ fontFamily: SERIF, fontSize: 25, color: T.text, letterSpacing: -0.2, lineHeight: 1.05 }}>
-            {negocio?.nombre || 'Tu opinión'}
+      <EmbersCanvas />
+      <div style={{ maxWidth: 540, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 4px 14px', borderBottom: `1px solid ${T.border}`, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span className="rs-flame"><MechaMark size={32} /></span>
+            <span style={{ fontSize: 22, fontWeight: 800, color: T.text, letterSpacing: '-0.04em', fontFamily: SANS_SERIF }}>Mecha<span style={{ fontSize: 10, color: T.textTer, marginLeft: 6, border: `1px solid ${T.border}`, padding: '1px 4px', borderRadius: 4 }}>OS</span></span>
           </div>
-        </header>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.textSec, fontFamily: SANS_SERIF }}>
+            Valorar visita
+          </div>
+        </div>
 
-        <main style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 22, padding: 24, boxShadow: '0 16px 50px rgba(40,30,24,0.08)' }}>
+        <main style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 22, padding: 24, boxShadow: '0 16px 50px rgba(0,0,0,0.4)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '8px 0' }}>
-              <div style={{ height: 18, width: 180, borderRadius: 8, background: 'rgba(40,30,24,0.07)' }} />
-              <div style={{ height: 44, width: 230, borderRadius: 10, background: 'rgba(40,30,24,0.07)' }} />
-              <div style={{ height: 88, borderRadius: 10, background: 'rgba(40,30,24,0.07)' }} />
+              <div style={{ height: 18, width: 180, borderRadius: 8, background: 'rgba(255,255,255,0.07)' }} />
+              <div style={{ height: 44, width: 230, borderRadius: 10, background: 'rgba(255,255,255,0.07)' }} />
+              <div style={{ height: 88, borderRadius: 10, background: 'rgba(255,255,255,0.07)' }} />
             </div>
           ) : notFound ? (
             <div style={{ padding: 32, textAlign: 'center' }}>
@@ -186,11 +361,11 @@ export default function ResenaWeb() {
             <div className="rs-step" style={{ textAlign: 'center', padding: '14px 0 6px' }}>
               <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
                 <span style={{ position: 'absolute', width: 74, height: 74, borderRadius: '50%', background: T.primarySoft, animation: 'rsRing 1.8s ease-out infinite' }} />
-                <span style={{ position: 'relative', display: 'inline-flex', width: 74, height: 74, borderRadius: '50%', background: '#fff', border: `1px solid ${T.border}`, alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(192,38,10,0.18)' }}>
+                <span style={{ position: 'relative', display: 'inline-flex', width: 74, height: 74, borderRadius: '50%', background: '#101729', border: `1px solid ${T.border}`, alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(244,80,30,0.25)' }}>
                   <span className="rs-flame"><MechaMark size={38} /></span>
                 </span>
               </div>
-              <div style={{ fontFamily: SERIF, fontSize: 30, color: T.text, marginBottom: 6, lineHeight: 1.05 }}>¡Gracias por tu opinión!</div>
+              <div style={{ fontFamily: SANS_SERIF, fontSize: 30, fontWeight: 800, color: T.text, marginBottom: 6, lineHeight: 1.05 }}>¡Gracias por tu opinión!</div>
               <div style={{ fontSize: 14.5, color: T.textSec }}>Nos ayuda muchísimo a mejorar el servicio.</div>
             </div>
           ) : (
@@ -203,10 +378,18 @@ export default function ResenaWeb() {
                 </div>
               )}
 
+              {/* INFO BOX ANÓNIMO */}
+              <div style={{ background: 'rgba(244,80,30,0.04)', border: `1px solid rgba(244,80,30,0.15)`, borderRadius: 16, padding: 16, marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left' }}>
+                <div style={{ color: T.primary, fontSize: 18, lineHeight: 1 }}>💡</div>
+                <div style={{ fontSize: 13, color: T.textSec, lineHeight: 1.5 }}>
+                  <strong style={{ color: T.text }}>Tus respuestas son 100% anónimas</strong> (el nombre es opcional). Tu feedback es vital: nos da la vida para seguir creciendo, ayuda a mejorar el servicio diario del salón y perfecciona nuestro software de reservas. ¡Gracias por ayudarnos!
+                </div>
+              </div>
+
               {/* SECCIÓN 1: EL SALÓN */}
               <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 14, borderBottom: `1px solid ${T.border}`, paddingBottom: 6, fontFamily: SERIF, letterSpacing: -0.2 }}>
-                  1. Tu visita al salón
+                <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginBottom: 14, borderBottom: `1px solid ${T.border}`, paddingBottom: 6, fontFamily: SANS_SERIF, letterSpacing: -0.2 }}>
+                  1. Tu visita al salón{negocio?.nombre ? `: ${negocio.nombre}` : ''}
                 </div>
                 
                 <div style={{ marginBottom: 16 }}>
@@ -216,7 +399,7 @@ export default function ResenaWeb() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <RatingSelector value={puntuacion} onChange={setPuntuacion} size={36} />
                     {puntuacion > 0 && (
-                      <span style={{ fontSize: 14, fontWeight: 700, color: T.primary }}>{ETIQUETAS[puntuacion]}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: T.primaryHi }}>{ETIQUETAS[puntuacion]}</span>
                     )}
                   </div>
                 </div>
@@ -226,13 +409,13 @@ export default function ResenaWeb() {
                     <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>
                       Trato recibido (opcional)
                     </label>
-                    <RatingSelector value={salonTrato} onChange={setSalonTrato} size={24} />
+                    <RatingSelector value={salonTrato} onChange={setSalonTrato} size={24} isOptional={true} />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>
                       Limpieza y productos (opcional)
                     </label>
-                    <RatingSelector value={salonProductos} onChange={setSalonProductos} size={24} />
+                    <RatingSelector value={salonProductos} onChange={setSalonProductos} size={24} isOptional={true} />
                   </div>
                 </div>
 
@@ -243,7 +426,7 @@ export default function ResenaWeb() {
 
               {/* SECCIÓN 2: EL SISTEMA DE RESERVAS */}
               <div style={{ background: 'rgba(244,80,30,0.03)', border: `1px solid ${T.border}`, borderRadius: 16, padding: 18, marginBottom: 24 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 14, borderBottom: `1px solid ${T.border}`, paddingBottom: 6, fontFamily: SERIF, letterSpacing: -0.2 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 14, borderBottom: `1px solid ${T.border}`, paddingBottom: 6, fontFamily: SANS_SERIF, letterSpacing: -0.2 }}>
                   2. Sistema de reservas (Mecha)
                 </div>
 
@@ -252,7 +435,7 @@ export default function ResenaWeb() {
                     ¿Cómo valorarías el proceso de reserva online? (opcional)
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <RatingSelector value={mechaPuntuacion} onChange={setMechaPuntuacion} size={32} color="#f59e0b" />
+                    <RatingSelector value={mechaPuntuacion} onChange={setMechaPuntuacion} size={32} isOptional={true} />
                     {mechaPuntuacion > 0 && (
                       <span style={{ fontSize: 13, fontWeight: 700, color: '#d97706' }}>{ETIQUETAS[mechaPuntuacion]}</span>
                     )}
@@ -262,15 +445,15 @@ export default function ResenaWeb() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 12.5, color: T.textSec }}>Facilidad para reservar</span>
-                    <RatingSelector value={mechaFacilidad} onChange={setMechaFacilidad} size={20} color="#f59e0b" />
+                    <RatingSelector value={mechaFacilidad} onChange={setMechaFacilidad} size={20} isOptional={true} />
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 12.5, color: T.textSec }}>Disponibilidad de huecos</span>
-                    <RatingSelector value={mechaDisponibilidad} onChange={setMechaDisponibilidad} size={20} color="#f59e0b" />
+                    <RatingSelector value={mechaDisponibilidad} onChange={setMechaDisponibilidad} size={20} isOptional={true} />
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 12.5, color: T.textSec }}>Rapidez y seguridad de pago</span>
-                    <RatingSelector value={mechaPagos} onChange={setMechaPagos} size={20} color="#f59e0b" />
+                    <RatingSelector value={mechaPagos} onChange={setMechaPagos} size={20} isOptional={true} />
                   </div>
                 </div>
 

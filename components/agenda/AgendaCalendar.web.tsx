@@ -20,6 +20,8 @@ import {
   CITA_STATUS,
   LOCALE,
   OCUPACION_MAX_PER_MES,
+  TAG_RESENO_SALON,
+  TAG_RESENO_MECHA,
 } from '@/lib/constants';
 import { isTimeSlotOccupied } from '@/lib/utils/appointment';
 
@@ -212,7 +214,7 @@ export default function AgendaCalendar() {
             .eq('negocio_id', negocioId)
             .eq('oculta_en_calendario', false),
           supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min').eq('negocio_id', negocioId),
-          supabase.from('clientes').select('id, nombre, telefono, alergias, fecha_nacimiento').eq('negocio_id', negocioId),
+          supabase.from('clientes').select('id, nombre, telefono, alergias, fecha_nacimiento, etiquetas').eq('negocio_id', negocioId),
           supabase.from('bloqueos_profesional').select('*').eq('negocio_id', negocioId),
           supabase.from('cita_addons').select('cita_id, service_addons(nombre)'),
         ]);
@@ -3853,6 +3855,24 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
     setTogglingAddon(null);
   };
 
+  // Seguimiento de resena del cliente (marcado manual; las resenas del portal son anonimas).
+  // Se guarda en clientes.etiquetas del cliente de la cita.
+  const [clienteTags, setClienteTags] = useState<string[]>(selectedCliente?.etiquetas ?? []);
+  const [savingResena, setSavingResena] = useState(false);
+  useEffect(() => { setClienteTags(selectedCliente?.etiquetas ?? []); }, [selectedCliente?.id]);
+  const toggleResenaTag = async (tag: string) => {
+    if (!selectedCliente?.id || savingResena) return;
+    setSavingResena(true);
+    // Lectura-modificacion-escritura fresca para no pisar otras etiquetas del cliente.
+    const { data } = await supabase.from('clientes').select('etiquetas').eq('id', selectedCliente.id).single();
+    const current: string[] = data?.etiquetas ?? clienteTags ?? [];
+    const has = current.includes(tag);
+    const next = has ? current.filter((x) => x !== tag) : Array.from(new Set([...current, tag]));
+    await supabase.from('clientes').update({ etiquetas: next }).eq('id', selectedCliente.id);
+    setClienteTags(next);
+    setSavingResena(false);
+  };
+
   const hasFormula = !!(cita.formula_producto || cita.formula_tono || cita.formula_tiempo_min != null || cita.formula_resultado || cita.formula_notas);
   const [showFormula, setShowFormula] = useState(hasFormula);
   const [confirmadaCliente, setConfirmadaCliente] = useState<boolean>(!!cita.confirmada_cliente);
@@ -4841,6 +4861,48 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                 </div>
               </button>
             </div>
+
+            {/* Seguimiento de resena (las resenas del portal son anonimas; marcado manual) */}
+            {selectedCliente?.id && (
+              <div>
+                <Label>¿Ha dejado reseña?</Label>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {[{ tag: TAG_RESENO_SALON, label: 'Salón' }, { tag: TAG_RESENO_MECHA, label: 'Mecha' }].map(({ tag, label }) => {
+                    const has = clienteTags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleResenaTag(tag)}
+                        disabled={savingResena}
+                        style={{
+                          flex: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 8,
+                          padding: '11px 12px',
+                          borderRadius: 12,
+                          background: has ? 'rgba(16,185,129,0.10)' : TOKENS.bgCard,
+                          border: `1.5px solid ${has ? 'rgba(16,185,129,0.45)' : TOKENS.border}`,
+                          color: has ? TOKENS.success : TOKENS.textSec,
+                          cursor: savingResena ? 'wait' : 'pointer',
+                          fontFamily: 'inherit',
+                          fontSize: 13,
+                          fontWeight: 700,
+                          transition: 'border-color 0.15s ease, background 0.15s ease',
+                        }}
+                      >
+                        {has && (
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        )}
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Servicio */}
             <div ref={(el) => { dSrvRef.current = el; }}>

@@ -51,6 +51,13 @@ export const CATEGORIAS_PROFESIONAL = [
 
 export type CategoriaProfesional = typeof CATEGORIAS_PROFESIONAL[number]['value'];
 
+// Etiquetas reservadas para el seguimiento manual de resenas. Las resenas del portal son
+// anonimas, asi que el staff marca a mano si un cliente ha valorado el salon y/o Mecha.
+// Se guardan en clientes.etiquetas pero NO se muestran como etiquetas manuales.
+export const TAG_RESENO_SALON = 'Reseñó salón';
+export const TAG_RESENO_MECHA = 'Reseñó Mecha';
+export const TAGS_RESENA = [TAG_RESENO_SALON, TAG_RESENO_MECHA];
+
 export const LOCALE = 'es-ES';
 
 export const OCUPACION_MAX_PER_MES = 240;
