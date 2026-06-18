@@ -163,7 +163,6 @@ const TABS: TabDef[] = [
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion', soon: true },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion', soon: true },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
-  { id: 'resenas',        label: 'Reseñas recibidas', icon: 'star',   section: 'Comunicacion' },
   { id: 'referidos',      label: 'Invita y gana',  icon: 'gift',      section: 'Cuenta' },
   { id: 'accesos',        label: 'Accesos y roles', icon: 'shield',   section: 'Cuenta' },
   { id: 'cuenta',         label: 'Cuenta',         icon: 'lock',      section: 'Cuenta' },
@@ -901,7 +900,6 @@ export default function ConfiguracionWeb() {
             {tab === 'notificaciones' && <TabNotificaciones />}
             {tab === 'politicas' && <TabPoliticas />}
             {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
-            {tab === 'resenas' && <TabResenas />}
             {tab === 'referidos' && <TabReferidos />}
             {tab === 'accesos' && <TabAccesos negocioId={negocioId} currentUserId={userId} currentRole={account?.role ?? ''} />}
             {tab === 'cuenta' && <TabCuenta account={account} userId={userId} profCount={profesionales.length} />}
@@ -2853,193 +2851,6 @@ function FlamesRow({ value, size = 16, color }: { value: number; size?: number; 
         <FlameIcon key={i} filled={true} size={size} color={color} />
       ))}
     </span>
-  );
-}
-
-function TabResenas() {
-  const [loading, setLoading] = useState(true);
-  const [resenas, setResenas] = useState<any[]>([]);
-
-  const cargar = useCallback(async () => {
-    setLoading(true);
-    const profile = await getUserProfile();
-    const nId = profile?.negocio_id;
-    if (!nId) {
-      setLoading(false);
-      return;
-    }
-
-    const { data } = await supabase
-      .from('resenas')
-      .select(`
-        id, puntuacion, comentario, autor_nombre, created_at, visible, fuente,
-        mecha_puntuacion, mecha_comentario,
-        salon_trato_puntuacion, salon_productos_puntuacion,
-        mecha_facilidad_puntuacion, mecha_disponibilidad_puntuacion,
-        mecha_pagos_puntuacion, mecha_mejora_comentario
-      `)
-      .eq('negocio_id', nId)
-      .order('created_at', { ascending: false });
-
-    if (data) setResenas(data);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    cargar();
-  }, [cargar]);
-
-  const toggleVisibility = async (id: string, current: boolean) => {
-    const next = !current;
-    setResenas(prev => prev.map(r => r.id === id ? { ...r, visible: next } : r));
-    await supabase.from('resenas').update({ visible: next }).eq('id', id);
-  };
-
-  const deleteResena = async (id: string) => {
-    if (!confirm('¿Seguro que quieres eliminar esta reseña? No se puede deshacer.')) return;
-    setResenas(prev => prev.filter(r => r.id !== id));
-    await supabase.from('resenas').delete().eq('id', id);
-  };
-
-  const media = useMemo(() => {
-    if (resenas.length === 0) return 0;
-    const sum = resenas.reduce((acc, r) => acc + r.puntuacion, 0);
-    return Math.round((sum / resenas.length) * 10) / 10;
-  }, [resenas]);
-
-  if (loading) return <div style={{ color: T.textSecondary, padding: 20 }}>Cargando reseñas...</div>;
-
-  return (
-    <>
-      <Section
-        title="Resumen de valoraciones"
-        desc="Estadísticas de opinión sobre tu salón recopiladas desde el portal público."
-        action={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: T.bg, padding: '10px 16px', borderRadius: 12, border: `1px solid ${T.border}` }}>
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Media</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: T.text, marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-                {media || '-'} <FlamesRow value={media} size={16} />
-              </div>
-            </div>
-            <div style={{ width: 1, height: 28, background: T.border }} />
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Total</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginTop: 2 }}>
-                {resenas.length}
-              </div>
-            </div>
-          </div>
-        }
-      >
-        {resenas.length === 0 ? (
-          <div style={{ padding: '32px 16px', textAlign: 'center', color: T.textTertiary }}>
-            Aún no has recibido valoraciones de clientes en tu portal de reservas.
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 16, marginTop: 12 }}>
-            {resenas.map(r => (
-              <div key={r.id} style={{
-                background: T.bgCard,
-                border: `1px solid ${T.border}`,
-                borderRadius: 12,
-                padding: 16,
-                display: 'flex',
-                flexDirection: 'column',
-                opacity: r.visible ? 1 : 0.6,
-                transition: 'opacity 0.2s ease',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                  <div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text }}>{r.autor_nombre || 'Anónimo'}</div>
-                    <div style={{ fontSize: 11, color: T.textTertiary, marginTop: 1 }}>
-                      {new Date(r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <button
-                      onClick={() => toggleVisibility(r.id, r.visible)}
-                      title={r.visible ? "Ocultar de la web" : "Mostrar en la web"}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: r.visible ? T.primary : T.textTertiary, padding: 4, borderRadius: 6, display: 'flex' }}
-                    >
-                      <SettingsIcon name={r.visible ? 'eye' : 'eyeOff'} size={15} color="currentColor" />
-                    </button>
-                    <button
-                      onClick={() => deleteResena(r.id)}
-                      title="Eliminar reseña"
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.danger, padding: 4, borderRadius: 6, display: 'flex' }}
-                    >
-                      <SettingsIcon name="trash" size={15} color="currentColor" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* VALORACIONES DEL SALÓN */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: T.textSecondary }}>Salón:</span>
-                    <FlamesRow value={r.puntuacion} size={14} />
-                  </div>
-                  {r.salon_trato_puntuacion && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(0,0,0,0.02)', padding: '1px 5px', borderRadius: 4, fontSize: 11 }}>
-                      <span style={{ color: T.textTertiary }}>Trato:</span>
-                      <FlamesRow value={r.salon_trato_puntuacion} size={10} />
-                    </div>
-                  )}
-                  {r.salon_productos_puntuacion && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(0,0,0,0.02)', padding: '1px 5px', borderRadius: 4, fontSize: 11 }}>
-                      <span style={{ color: T.textTertiary }}>Limpieza/Prod:</span>
-                      <FlamesRow value={r.salon_productos_puntuacion} size={10} />
-                    </div>
-                  )}
-                </div>
-
-                {/* COMENTARIO DEL SALÓN */}
-                <div style={{ fontSize: 13, color: T.textSecondary, lineHeight: 1.45, flex: 1, fontStyle: r.comentario ? 'normal' : 'italic', marginBottom: 10 }}>
-                  {r.comentario ? `"${r.comentario}"` : 'Sin comentario adicional.'}
-                </div>
-
-                {/* VALORACIONES DE MECHA */}
-                {r.mecha_puntuacion && (
-                  <div style={{ background: 'rgba(244,80,30,0.02)', border: `1px solid ${T.border}`, borderRadius: 8, padding: 10, marginTop: 4 }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#d97706' }}>Reservas:</span>
-                        <FlamesRow value={r.mecha_puntuacion} size={12} color="#f59e0b" />
-                      </div>
-                      {r.mecha_facilidad_puntuacion && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 10 }}>
-                          <span style={{ color: T.textTertiary }}>Fácil:</span>
-                          <FlamesRow value={r.mecha_facilidad_puntuacion} size={8} color="#f59e0b" />
-                        </div>
-                      )}
-                      {r.mecha_disponibilidad_puntuacion && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 10 }}>
-                          <span style={{ color: T.textTertiary }}>Huecos:</span>
-                          <FlamesRow value={r.mecha_disponibilidad_puntuacion} size={8} color="#f59e0b" />
-                        </div>
-                      )}
-                      {r.mecha_pagos_puntuacion && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 10 }}>
-                          <span style={{ color: T.textTertiary }}>Pagos:</span>
-                          <FlamesRow value={r.mecha_pagos_puntuacion} size={8} color="#f59e0b" />
-                        </div>
-                      )}
-                    </div>
-                    {r.mecha_mejora_comentario && (
-                      <div style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.35, marginTop: 4, background: '#fff', padding: '4px 8px', borderRadius: 4, border: `1px solid ${T.border}` }}>
-                        <strong style={{ fontSize: 10, color: T.textTertiary, display: 'block', marginBottom: 1 }}>Sugerencia:</strong>
-                        "{r.mecha_mejora_comentario}"
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </Section>
-    </>
   );
 }
 
