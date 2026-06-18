@@ -423,12 +423,15 @@ export default function NuevaCitaScreen() {
           </View>
           {/* Botón para crear servicio puntual (caso especial) */}
           <TouchableOpacity
-            style={[s.puntualBtn, { backgroundColor: c.surface, borderColor: c.border }]}
+            style={[s.puntualBtn, { backgroundColor: 'rgba(245,158,11,0.10)', borderColor: 'rgba(245,158,11,0.35)', borderWidth: 1.5 }]}
             onPress={() => setModalPuntualVisible(true)}
           >
-            <Ionicons name="flash-outline" size={16} color="#f59e0b" />
-            <TText style={[s.puntualBtnText, { color: c.textSecondary }]}>Crear servicio puntual</TText>
-            <TText style={[s.puntualBtnSub, { color: c.textTertiary }]}>Para casos especiales</TText>
+            <Ionicons name="flash-outline" size={18} color="#f59e0b" />
+            <View style={{ flex: 1 }}>
+              <TText style={[s.puntualBtnText, { color: '#f59e0b' }]}>Crear servicio puntual</TText>
+              <TText style={[s.puntualBtnSub, { color: c.textTertiary }]}>Para casos especiales cuando el jefe no está</TText>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#f59e0b" />
           </TouchableOpacity>
         </Section>
 
@@ -907,9 +910,9 @@ const s = StyleSheet.create({
   closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 
   // Servicio puntual
-  puntualBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, marginTop: spacing.sm },
+  puntualBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, marginTop: spacing.sm },
   puntualBtnText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
-  puntualBtnSub: { fontSize: fontSize.xs, marginLeft: 'auto' },
+  puntualBtnSub: { fontSize: fontSize.xs, marginTop: 1 },
   puntualOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.lg },
   puntualPanel: { width: '100%', maxWidth: 400, borderRadius: radius.lg, borderWidth: 1, overflow: 'hidden' },
   puntualHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, borderBottomWidth: 1 },
