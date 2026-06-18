@@ -196,9 +196,6 @@ export default function AgendaCalendar() {
   const [dropEstadoOpen, setDropEstadoOpen] = useState(false);
   // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral
   const [railCollapsed, setRailCollapsed] = useState(false);
-  // Colapso independiente de secciones del rail (KPIs y mini-calendario)
-  const [kpiCollapsed, setKpiCollapsed] = useState(false);
-  const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
   // Colapso de la barra de filtros (vista/servicio/estado)
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
   // Modal del calendario en movil
@@ -434,8 +431,8 @@ export default function AgendaCalendar() {
 
   const visibleProfs = useMemo(() => profesionales.filter((p) => p.activo), [profesionales]);
 
-  // El rail se colapsa solo si railCollapsed=true o si AMBAS secciones (KPIs y mini-cal) estan colapsadas
-  const isReallyCollapsed = railCollapsed || (kpiCollapsed && miniCalCollapsed) || isMobile || isTablet;
+  // El rail se colapsa solo si railCollapsed=true o si estamos en movil/tablet
+  const isReallyCollapsed = railCollapsed || isMobile || isTablet;
 
   const timelineProfs = useMemo(() => {
     if (selectedProf === 'todos') return visibleProfs;
@@ -720,6 +717,16 @@ export default function AgendaCalendar() {
               </>
             )}
           </div>
+          {!isMobile && !isTablet && (
+            <button
+              onClick={() => setRailCollapsed((v) => !v)}
+              title={railCollapsed ? 'Mostrar panel lateral' : 'Pantalla completa'}
+              style={{ padding: '7px 12px', background: railCollapsed ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${railCollapsed ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, color: railCollapsed ? TOKENS.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33, transition: 'all 0.15s ease' }}
+            >
+              <Icon name={railCollapsed ? 'minimize' : 'maximize'} size={15} color={railCollapsed ? TOKENS.primaryHi : TOKENS.textSec} />
+              {railCollapsed ? 'Mostrar lateral' : 'Pantalla completa'}
+            </button>
+          )}
           <button className="m-btn-secondary" onClick={handleToday} title="Ir a hoy" style={{ padding: isMobile ? 7 : '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33 }}>
             <Icon name="calendar" size={15} color={TOKENS.text} />
             {!isMobile && 'Hoy'}
@@ -1080,125 +1087,103 @@ export default function AgendaCalendar() {
         {/* Left rail */}
         {!isReallyCollapsed && (
         <div style={{ borderRight: `1px solid ${TOKENS.border}`, padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {/* KPIs con toggle independiente */}
+          {/* KPIs con visualización fija */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <span style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>Resumen</span>
-              <button
-                onClick={() => setKpiCollapsed(v => !v)}
-                title={kpiCollapsed ? 'Mostrar estadísticas' : 'Ocultar estadísticas'}
-                style={{ background: 'none', border: 'none', color: TOKENS.textTer, cursor: 'pointer', padding: 4, borderRadius: 6, display: 'grid', placeItems: 'center' }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: kpiCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}>
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
             </div>
-            {!kpiCollapsed && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, animation: 'slideInUp 0.3s ease both' }}>
-                <div style={{ animation: 'slideInUp 0.5s ease 0.1s both' }}>
-                  <StatCard label="HOY" value={totalCitasHoy} sub="citas" tone={TOKENS.primary} />
-                </div>
-                <div style={{ animation: 'slideInUp 0.5s ease 0.2s both' }}>
-                  <StatCard label="CONFIRMADAS" value={confirmadasHoy} sub={`de ${totalCitasHoy} hoy`} tone={TOKENS.success} />
-                </div>
-                <div style={{ animation: 'slideInUp 0.5s ease 0.3s both' }}>
-                  <StatCard label="MES" value={`${totalCitasMes}`} sub={`citas / ${OCUPACION_MAX_PER_MES}`} tone={TOKENS.warning} progress={ocupacionMes / 100} />
-                </div>
-                <div style={{ animation: 'slideInUp 0.5s ease 0.4s both' }}>
-                  <StatCard label="OCUPACIÓN" value={`${ocupacionMes}%`} sub="este mes" tone={TOKENS.violet} progress={ocupacionMes / 100} />
-                </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, animation: 'slideInUp 0.3s ease both' }}>
+              <div style={{ animation: 'slideInUp 0.5s ease 0.1s both' }}>
+                <StatCard label="HOY" value={totalCitasHoy} sub="citas" tone={TOKENS.primary} />
               </div>
-            )}
+              <div style={{ animation: 'slideInUp 0.5s ease 0.2s both' }}>
+                <StatCard label="CONFIRMADAS" value={confirmadasHoy} sub={`de ${totalCitasHoy} hoy`} tone={TOKENS.success} />
+              </div>
+              <div style={{ animation: 'slideInUp 0.5s ease 0.3s both' }}>
+                <StatCard label="MES" value={`${totalCitasMes}`} sub={`citas / ${OCUPACION_MAX_PER_MES}`} tone={TOKENS.warning} progress={ocupacionMes / 100} />
+              </div>
+              <div style={{ animation: 'slideInUp 0.5s ease 0.4s both' }}>
+                <StatCard label="OCUPACIÓN" value={`${ocupacionMes}%`} sub="este mes" tone={TOKENS.violet} progress={ocupacionMes / 100} />
+              </div>
+            </div>
           </div>
 
-          {/* Mini-calendario con toggle independiente */}
+          {/* Mini-calendario con visualización fija */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <span style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>Calendario</span>
-              <button
-                onClick={() => setMiniCalCollapsed(v => !v)}
-                title={miniCalCollapsed ? 'Mostrar calendario' : 'Ocultar calendario'}
-                style={{ background: 'none', border: 'none', color: TOKENS.textTer, cursor: 'pointer', padding: 4, borderRadius: 6, display: 'grid', placeItems: 'center' }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: miniCalCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}>
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
             </div>
-            {!miniCalCollapsed && (
-              <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: 14, animation: 'slideInUp 0.3s ease both' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <button className="m-btn-icon m-btn-icon-rotate-l" onClick={handlePrevMonth} style={{ width: 40, height: 40, borderRadius: 10, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0 }}>
-                <Icon name="chevronLeft" size={18} color={TOKENS.textSec} />
-              </button>
-              <div style={{ fontSize: 13.5, fontWeight: 700, color: TOKENS.text, textTransform: 'capitalize', letterSpacing: -0.2 }}>{monthName}</div>
-              <button className="m-btn-icon m-btn-icon-rotate-r" onClick={handleNextMonth} style={{ width: 40, height: 40, borderRadius: 10, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0 }}>
-                <Icon name="chevronRight" size={18} color={TOKENS.textSec} />
-              </button>
+            <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: 14, animation: 'slideInUp 0.3s ease both' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <button className="m-btn-icon m-btn-icon-rotate-l" onClick={handlePrevMonth} style={{ width: 40, height: 40, borderRadius: 10, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0 }}>
+                  <Icon name="chevronLeft" size={18} color={TOKENS.textSec} />
+                </button>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: TOKENS.text, textTransform: 'capitalize', letterSpacing: -0.2 }}>{monthName}</div>
+                <button className="m-btn-icon m-btn-icon-rotate-r" onClick={handleNextMonth} style={{ width: 40, height: 40, borderRadius: 10, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0 }}>
+                  <Icon name="chevronRight" size={18} color={TOKENS.textSec} />
+                </button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2, marginBottom: 4 }}>
+                {DAY_NAMES.map((d) => (
+                  <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: TOKENS.textTer, letterSpacing: 0.3, padding: '2px 0' }}>
+                    {d.charAt(0)}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2 }}>
+                {cells.map((d, i) => {
+                  if (!d)
+                    return <div key={i} style={{ height: 34 }} />;
+                  const isSel = d === selectedDate && currentMonth.getMonth() === today.getMonth();
+                  const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                  const cnt = counts[d] || 0;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedDate(d)}
+                      style={{
+                        height: 34,
+                        borderRadius: 9,
+                        background: isToday ? 'linear-gradient(180deg,#ff7a2e,#f4501e)' : isSel ? 'rgba(244,80,30,0.14)' : 'transparent',
+                        border: isSel && !isToday ? `1px solid ${TOKENS.primary}` : '1px solid transparent',
+                        color: isToday ? '#fff' : isSel ? TOKENS.primaryHi : TOKENS.textSec,
+                        fontSize: 12.5,
+                        fontWeight: isToday || isSel ? 700 : 500,
+                        cursor: 'pointer',
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: isToday ? `0 4px 12px ${TOKENS.primaryGlow}` : 'none',
+                        transition: 'background 0.15s ease, border-color 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isToday && !isSel) e.currentTarget.style.background = 'rgba(244,80,30,0.08)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isToday && !isSel) e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      <span>{d}</span>
+                      {cnt > 0 && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            bottom: 4,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            height: 3,
+                            width: cnt > 5 ? 14 : cnt > 2 ? 9 : 4,
+                            borderRadius: 999,
+                            background: isToday ? 'rgba(255,255,255,0.85)' : TOKENS.primaryHi,
+                          }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2, marginBottom: 4 }}>
-              {DAY_NAMES.map((d) => (
-                <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: TOKENS.textTer, letterSpacing: 0.3, padding: '2px 0' }}>
-                  {d.charAt(0)}
-                </div>
-              ))}
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2 }}>
-              {cells.map((d, i) => {
-                if (!d)
-                  return <div key={i} style={{ height: 34 }} />;
-                const isSel = d === selectedDate && currentMonth.getMonth() === today.getMonth();
-                const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-                const cnt = counts[d] || 0;
-                return (
-                  <button
-                    key={i}
-                    onClick={() => setSelectedDate(d)}
-                    style={{
-                      height: 34,
-                      borderRadius: 9,
-                      background: isToday ? 'linear-gradient(180deg,#ff7a2e,#f4501e)' : isSel ? 'rgba(244,80,30,0.14)' : 'transparent',
-                      border: isSel && !isToday ? `1px solid ${TOKENS.primary}` : '1px solid transparent',
-                      color: isToday ? '#fff' : isSel ? TOKENS.primaryHi : TOKENS.textSec,
-                      fontSize: 12.5,
-                      fontWeight: isToday || isSel ? 700 : 500,
-                      cursor: 'pointer',
-                      position: 'relative',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: isToday ? `0 4px 12px ${TOKENS.primaryGlow}` : 'none',
-                      transition: 'background 0.15s ease, border-color 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isToday && !isSel) e.currentTarget.style.background = 'rgba(244,80,30,0.08)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isToday && !isSel) e.currentTarget.style.background = 'transparent';
-                    }}
-                  >
-                    <span>{d}</span>
-                    {cnt > 0 && (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          bottom: 4,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          height: 3,
-                          width: cnt > 5 ? 14 : cnt > 2 ? 9 : 4,
-                          borderRadius: 999,
-                          background: isToday ? 'rgba(255,255,255,0.85)' : TOKENS.primaryHi,
-                        }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-            )}
           </div>
 
           <div>
@@ -1270,15 +1255,7 @@ export default function AgendaCalendar() {
                       </svg>
                       {toolbarCollapsed ? 'Filtros' : 'Ocultar'}
                     </button>
-                    {/* Toggle pantalla completa */}
-                    <button
-                      onClick={() => setRailCollapsed((v) => !v)}
-                      title={railCollapsed ? 'Mostrar panel lateral' : 'Pantalla completa'}
-                      style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', background: railCollapsed ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${railCollapsed ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, color: railCollapsed ? TOKENS.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}
-                    >
-                      <Icon name={railCollapsed ? 'minimize' : 'maximize'} size={15} color={railCollapsed ? TOKENS.primaryHi : TOKENS.textSec} />
-                      {railCollapsed ? 'Salir' : 'Pantalla completa'}
-                    </button>
+
                   </div>
                 )}
               </div>

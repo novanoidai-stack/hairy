@@ -117,7 +117,7 @@ function Panel({ children }: { children: React.ReactNode }) {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #fdf6ee 0%, #f7ede1 60%, #f3e7d8 100%)', padding: '0 16px 32px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ height: '100vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'linear-gradient(180deg, #fdf6ee 0%, #f7ede1 60%, #f3e7d8 100%)', padding: '0 16px 32px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
       <div aria-hidden style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 560, height: 340, background: 'radial-gradient(closest-side, rgba(244,80,30,0.14), transparent)', pointerEvents: 'none', zIndex: 0 }} />
       <div className="pg-blob1" aria-hidden style={{ position: 'absolute', top: '8%', left: '6%', width: 280, height: 280, borderRadius: '50%', background: 'rgba(255,196,150,0.5)', pointerEvents: 'none', zIndex: 0 }} />

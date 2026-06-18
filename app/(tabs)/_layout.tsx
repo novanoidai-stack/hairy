@@ -22,6 +22,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
             <Tabs.Screen name="equipo" />
             <Tabs.Screen name="informes" />
             <Tabs.Screen name="configuracion" />
+            <Tabs.Screen name="resenas" />
           </Tabs>
         </View>
       </View>

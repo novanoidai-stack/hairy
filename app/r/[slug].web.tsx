@@ -340,7 +340,43 @@ export default function PortalReservaWeb() {
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: T.bg, padding: 24, fontFamily: 'Inter, system-ui, sans-serif' }}>
         <style dangerouslySetInnerHTML={{ __html: ANIM }} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'rpPop 0.6s cubic-bezier(0.16,1,0.3,1) both' }}>
-          <span className="rp-flame" style={{ marginBottom: 16 }}><MechaMark size={72} /></span>
+          <div style={{ position: 'relative', display: 'grid', placeItems: 'center', marginBottom: 24 }}>
+            <svg
+              viewBox="0 0 80 80"
+              width="80"
+              height="80"
+              style={{ overflow: 'visible' }}
+            >
+              <defs>
+                <linearGradient id="spinnerGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor={T.primary} />
+                  <stop offset="100%" stopColor="rgba(244,80,30,0.15)" />
+                </linearGradient>
+              </defs>
+              <style>{`
+                @keyframes mechaSpinner {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+                @keyframes mechaPulse {
+                  0%, 100% { transform: scale(0.88); opacity: 0.5; }
+                  50% { transform: scale(1.05); opacity: 0.95; }
+                }
+                .mecha-spinner-ring {
+                  transform-box: fill-box;
+                  transform-origin: center;
+                  animation: mechaSpinner 1s linear infinite;
+                }
+                .mecha-spinner-core {
+                  transform-box: fill-box;
+                  transform-origin: center;
+                  animation: mechaPulse 2.2s ease-in-out infinite;
+                }
+              `}</style>
+              <circle className="mecha-spinner-ring" cx="40" cy="40" r="32" stroke="url(#spinnerGrad)" strokeWidth="4" strokeLinecap="round" strokeDasharray="140 60" fill="none" />
+              <circle className="mecha-spinner-core" cx="40" cy="40" r="16" fill={T.primary} style={{ filter: 'drop-shadow(0 0 10px rgba(244,80,30,0.4))' }} />
+            </svg>
+          </div>
           <div style={{ fontSize: 12, fontWeight: 700, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 4 }}>{t('splash_powered')}</div>
           <div style={{ fontFamily: SERIF, fontSize: 40, color: T.text, lineHeight: 1 }}>Mecha</div>
           {info?.negocio?.nombre && (
@@ -727,7 +763,7 @@ function Shell({ children, negocio, resenas, t, loc = 'es-ES' }: {
   const web = negocio?.web?.trim();
   const hasEst = !!(dir || tel || web);
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #fdf6ee 0%, #f7ede1 60%, #f3e7d8 100%)', padding: '0 16px 28px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ height: '100vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'linear-gradient(180deg, #fdf6ee 0%, #f7ede1 60%, #f3e7d8 100%)', padding: '0 16px 28px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
       {/* Identidad Mecha de fondo: glow calido + blobs fuego + marca de agua de la llama */}
       <div aria-hidden style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 560, height: 340, background: 'radial-gradient(closest-side, rgba(244,80,30,0.14), transparent)', pointerEvents: 'none', zIndex: 0 }} />

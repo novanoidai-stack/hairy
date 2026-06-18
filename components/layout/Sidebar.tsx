@@ -22,6 +22,7 @@ const NAV_ITEMS: { label: string; icon: string; activeIcon: string; href: string
   { label: 'Agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
   { label: 'Lista de espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas' },
   { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver' },
+  { label: 'Reseñas', icon: 'star-outline', activeIcon: 'star', href: '/(tabs)/resenas' },
   { label: 'Equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver' },
   { label: 'Informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver' },
 ];
