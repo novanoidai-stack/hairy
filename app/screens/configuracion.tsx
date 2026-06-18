@@ -180,10 +180,10 @@ export default function ConfiguracionScreen() {
           </Card>
         </View>
 
-        {/* ── Servicios ── */}
+        {/* ── Servicios preconfigurados ── */}
         <View style={s.section}>
           <View style={s.sectionHeader}>
-            <TText style={[s.sectionTitle, { color: c.text }]}>Servicios</TText>
+            <TText style={[s.sectionTitle, { color: c.text }]}>Servicios preconfigurados</TText>
             <TouchableOpacity onPress={abrirNuevo}>
               <TText style={[s.sectionAction, { color: tokens.primary }]}>Añadir</TText>
             </TouchableOpacity>
@@ -191,7 +191,7 @@ export default function ConfiguracionScreen() {
 
           {loading ? (
             <Loading />
-          ) : servicios.length === 0 ? (
+          ) : servicios.filter(s => !s.es_puntual).length === 0 ? (
             <Card>
               <TouchableOpacity style={s.emptyAction} onPress={abrirNuevo}>
                 <Ionicons name="add-circle-outline" size={24} color={tokens.primary} />
@@ -200,7 +200,7 @@ export default function ConfiguracionScreen() {
             </Card>
           ) : (
             <View style={{ gap: tokens.spacing.md }}>
-              {servicios.map((sv) => (
+              {servicios.filter(s => !s.es_puntual).map((sv) => (
                 <Card key={sv.id} style={s.servicioCard}>
                   <TouchableOpacity style={s.servicioLeft} onPress={() => abrirEditar(sv)}>
                     <View style={[s.servicioIcon, { backgroundColor: sv.activo ? tokens.successSoft : c.bgTertiary }]}>
@@ -229,6 +229,47 @@ export default function ConfiguracionScreen() {
             </View>
           )}
         </View>
+
+        {/* ── Servicios puntuales ── */}
+        {servicios.some(s => s.es_puntual) && (
+          <View style={s.section}>
+            <View style={s.sectionHeader}>
+              <TText style={[s.sectionTitle, { color: c.text }]}>Servicios puntuales</TText>
+              <TText style={[s.sectionAction, { color: c.textSecondary }]}>Casos especiales</TText>
+            </View>
+            <View style={{ gap: tokens.spacing.sm }}>
+              <TText style={[s.sectionDesc, { color: c.textSecondary }]}>
+                Servicios creados rápidamente desde la creación de citas para situaciones excepcionales.
+              </TText>
+              {servicios.filter(s => s.es_puntual).map((sv) => (
+                <Card key={sv.id} style={s.servicioCard}>
+                  <TouchableOpacity style={s.servicioLeft} onPress={() => abrirEditar(sv)}>
+                    <View style={[s.servicioIcon, { backgroundColor: '#f59e0b22' }]}>
+                      <Ionicons name="flash-outline" size={18} color="#f59e0b" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <TText style={[s.servicioNombre, { color: sv.activo ? c.text : c.textTertiary }]}>{sv.nombre}</TText>
+                      <TText style={[s.servicioInfo, { color: c.textSecondary }]}>
+                        {sv.duracion_activa_min} min · {sv.precio}€
+                      </TText>
+                    </View>
+                  </TouchableOpacity>
+                  <View style={s.servicioActions}>
+                    <Switch
+                      value={sv.activo}
+                      onValueChange={() => toggleActivo(sv)}
+                      trackColor={{ false: c.border, true: tokens.primary }}
+                      thumbColor="#fff"
+                    />
+                    <TouchableOpacity onPress={() => eliminarServicio(sv.id)}>
+                      <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
+                </Card>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* ── Cuenta ── */}
         <View style={s.section}>
@@ -397,6 +438,7 @@ const s = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: tokens.spacing.sm },
   sectionTitle: { fontSize: tokens.fontSize.lg, fontWeight: '700' },
   sectionAction: { fontSize: tokens.fontSize.sm, fontWeight: '600' },
+  sectionDesc: { fontSize: tokens.fontSize.sm, lineHeight: 18, marginBottom: tokens.spacing.sm },
   settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: tokens.spacing.md, paddingHorizontal: tokens.spacing.md, gap: tokens.spacing.md },
   settingLeft: { flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.md, flex: 1 },
   settingIcon: { width: 40, height: 40, borderRadius: tokens.radius.md, alignItems: 'center', justifyContent: 'center' },

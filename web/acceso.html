@@ -17,11 +17,47 @@
   .auth-aside{position:relative;overflow:hidden;padding:36px 44px;display:flex;flex-direction:column;justify-content:space-between;
     /* Sin borde duro: el fondo grisaceo se funde a transparente por la derecha para que las
        ascuas (canvas a nivel body) continuen bajo la costura e integren ambas mitades. */
-    background:linear-gradient(160deg,rgba(244,80,30,.18),rgba(255,176,60,.07) 55%,transparent),linear-gradient(90deg,var(--bg-2) 0%,var(--bg-2) 58%,transparent 100%)}
+    background:linear-gradient(160deg,rgba(244,80,30,.18),rgba(255,176,60,.07) 55%,transparent),linear-gradient(90deg,var(--bg-2) 0%,var(--bg-2) 58%,transparent 100%);
+    /* Fondo rocoso sutil en la base */
+    background-image:
+      linear-gradient(160deg,rgba(244,80,30,.18),rgba(255,176,60,.07) 55%,transparent),
+      linear-gradient(90deg,var(--bg-2) 0%,var(--bg-2) 58%,transparent 100%),
+      url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.08"/></feComponentTransfer></filter></defs><rect width="100" height="100" fill="transparent"/><rect width="100" height="100" filter="url(%23n)" opacity="0.4"/></svg>');}
   .auth-aside .a-orb{position:absolute;border-radius:50%;filter:blur(70px);mix-blend-mode:screen;pointer-events:none}
   .auth-aside .a-orb.x1{width:360px;height:360px;top:-100px;left:-80px;background:radial-gradient(circle,rgba(244,80,30,.8),transparent 65%);opacity:.5}
   .auth-aside .a-orb.x2{width:300px;height:300px;bottom:-120px;right:-60px;background:radial-gradient(circle,rgba(255,176,60,.5),transparent 65%);opacity:.4}
   .auth-aside .top,.auth-aside .mid,.auth-aside .bot{position:relative;z-index:1}
+
+  /* Sección principal con fondo rocoso */
+  .auth-main{
+    display:flex;align-items:center;justify-content:center;padding:24px 28px;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><filter id="n2"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.06"/></feComponentTransfer></filter></defs><rect width="100" height="100" fill="transparent"/><rect width="100" height="100" filter="url(%23n2)" opacity="0.35"/></svg>');
+    background-size: 200px 200px;
+    background-position: center bottom;
+    background-repeat: repeat;
+  }
+  /* Glow de brasas en la base del main */
+  .auth-main::before{
+    content:"";position:absolute;bottom:0;left:0;right:0;height:25vh;
+    background:linear-gradient(to top,rgba(224,52,14,.08)0%,rgba(255,122,46,.04)30%,transparent 70%);
+    pointer-events:none
+  }
+
+  /* Elemento decorativo en la línea divisoria (solo desktop) */
+  @media(min-width: 861px){
+    .auth::after{
+      content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      width:44px;height:44px;border-radius:50%;
+      background:radial-gradient(circle,rgba(244,80,30,.3),transparent 70%);
+      border:2px solid rgba(244,80,30,.2);box-shadow:0 0 20px rgba(244,80,30,.15),inset 0 0 12px rgba(244,80,30,.1);
+      pointer-events:none;z-index:2
+    }
+    .auth::before{
+      content:"";position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);
+      width:1px;background:linear-gradient(to bottom,transparent 0%,rgba(244,80,30,.15) 20%,rgba(244,80,30,.25) 50%,rgba(244,80,30,.15) 80%,transparent 100%);
+      pointer-events:none;z-index:1
+    }
+  }
   .a-quote{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(28px,3.1vw,42px);line-height:1.18;letter-spacing:-.01em;max-width:500px}
   .a-quote .grad-txt{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .a-sub{font-size:16px;color:var(--text-sec);margin-top:12px;max-width:460px;line-height:1.5}
@@ -886,7 +922,16 @@
       api.signIn({ email: email, password: password }).then(function (r) {
         if (r.error) {
           showStage('paneLogin');
-          msg(loginMsg, 'err', 'No pudimos entrar. Revisa tus datos.');
+          // Mensaje más específico según el tipo de error
+          var errorMsg = 'No pudimos entrar. ';
+          if (r.error.message && r.error.message.includes('Invalid login credentials')) {
+            errorMsg = 'Contraseña incorrecta o el correo no existe.';
+          } else if (r.error.message && r.error.message.includes('Email not confirmed')) {
+            errorMsg = 'Confirma tu correo desde el enlace que te enviamos.';
+          } else {
+            errorMsg = 'Correo o contraseña incorrectos.';
+          }
+          msg(loginMsg, 'err', errorMsg);
           loginBtn.disabled = false; loginBtn.textContent = prev;
           return;
         }
@@ -1026,8 +1071,8 @@
   var sparks = []; // sparks dinámicos
   // En movil las particulas abruman (y cargan la GPU): reducimos densidad bajo 768px.
   var IS_MOBILE = (window.matchMedia && window.matchMedia('(max-width:767px)').matches) || window.innerWidth < 768;
-  var MAX_EMBERS = IS_MOBILE ? 34 : 120; // 20% de velocidad y brillo reducido
-  var MAX_SPARKS = IS_MOBILE ? 16 : 60;
+  var MAX_EMBERS = IS_MOBILE ? 50 : 160; // Más elementos para rellenar espacio
+  var MAX_SPARKS = IS_MOBILE ? 24 : 80;
   var embers = new Array(MAX_EMBERS);
 
   var COLORS = [
@@ -1064,19 +1109,19 @@
     return {
       x: x,
       y: scatter ? Math.random() * H : H + 15 + Math.random() * 35,
-      vy: -(0.24 + Math.random() * 0.96), // 20% reducción de velocidad
-      vx: (Math.random() - 0.5) * 0.32,   // 20% reducción
-      swayAmp: 0.24 + Math.random() * 0.96, // 20% reducción
-      swayFreq: 0.0064 + Math.random() * 0.012, // 20% reducción
+      vy: -(0.16 + Math.random() * 0.64), // 50% más lento
+      vx: (Math.random() - 0.5) * 0.20,   // 50% más lento
+      swayAmp: 0.16 + Math.random() * 0.64, // 50% más lento
+      swayFreq: 0.0042 + Math.random() * 0.008, // 50% más lento
       swayPhase: Math.random() * Math.PI * 2,
       baseSize: 1.2 + Math.random() * 2.8,
       maxLife: maxLife,
       life: scatter ? Math.random() * maxLife : maxLife,
-      flickerSpeed: 0.05 + Math.random() * 0.12,
+      flickerSpeed: 0.04 + Math.random() * 0.08,
       flickerPhase: Math.random() * Math.PI * 2,
       colorIdx: Math.floor(Math.random() * COLORS.length),
-      glowBase: 8 + Math.random() * 12,
-      windDrift: (Math.random() - 0.5) * 0.003,
+      glowBase: 6 + Math.random() * 8,
+      windDrift: (Math.random() - 0.5) * 0.002,
       t: 0,
       canSpark: true
     };
@@ -1090,24 +1135,24 @@
     for (var i = 0; i < count; i++) {
       var size = 0.3 + Math.random() * 0.6;
       var baseAngle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI / 1.5;
-      var speed = (0.4 + weight * 1.2) * (0.8 + Math.random() * 0.8); // 20% reducción
+      var speed = (0.3 + weight * 0.8) * (0.6 + Math.random() * 0.6); // 50% más lento
 
       newSparks.push({
         x: x, y: y,
-        vx: Math.cos(baseAngle) * speed * 0.5 + (Math.random() - 0.5) * 0.20, // 20% reducción
-        vy: Math.sin(baseAngle) * speed - 0.12 - Math.random() * 0.20,       // 20% reducción
+        vx: Math.cos(baseAngle) * speed * 0.4 + (Math.random() - 0.5) * 0.14, // 50% más lento
+        vy: Math.sin(baseAngle) * speed - 0.08 - Math.random() * 0.14,       // 50% más lento
         maxLife: 45 + Math.random() * 55,
         life: 45 + Math.random() * 55,
         baseSize: size * (0.8 + weight * 0.4),
         colorIdx: 1 + Math.floor(Math.random() * 4),
-        glowBase: 4 + Math.random() * 5,
-        flickerSpeed: 0.14 + Math.random() * 0.18,
+        glowBase: 3 + Math.random() * 4,
+        flickerSpeed: 0.10 + Math.random() * 0.14,
         flickerPhase: Math.random() * Math.PI * 2,
         t: 0,
         pattern: pattern,
         weight: weight,
         zigzagPhase: Math.random() * Math.PI * 2,
-        zigzagAmp: (0.16 + Math.random() * 0.48) * (1 - weight * 0.5) // 20% reducción
+        zigzagAmp: (0.12 + Math.random() * 0.36) * (1 - weight * 0.5) // 50% más lento
       });
     }
     return newSparks;
@@ -1118,19 +1163,19 @@
     var targetOrigin = originXs[Math.floor(Math.random() * originXs.length)];
     p.x = W * targetOrigin + (Math.random() - 0.5) * (W * 0.12);
     p.y = H + 15 + Math.random() * 35;
-    p.vy = -(0.24 + Math.random() * 0.96);
-    p.vx = (Math.random() - 0.5) * 0.32;
-    p.swayAmp = 0.24 + Math.random() * 0.96;
-    p.swayFreq = 0.0064 + Math.random() * 0.012;
+    p.vy = -(0.16 + Math.random() * 0.64); // 50% más lento
+    p.vx = (Math.random() - 0.5) * 0.20;   // 50% más lento
+    p.swayAmp = 0.16 + Math.random() * 0.64; // 50% más lento
+    p.swayFreq = 0.0042 + Math.random() * 0.008; // 50% más lento
     p.swayPhase = Math.random() * Math.PI * 2;
     p.baseSize = 1.2 + Math.random() * 2.8;
     p.maxLife = 200 + Math.random() * 350;
     p.life = p.maxLife;
-    p.flickerSpeed = 0.05 + Math.random() * 0.12;
+    p.flickerSpeed = 0.04 + Math.random() * 0.08;
     p.flickerPhase = Math.random() * Math.PI * 2;
     p.colorIdx = Math.floor(Math.random() * COLORS.length);
-    p.glowBase = 8 + Math.random() * 12;
-    p.windDrift = (Math.random() - 0.5) * 0.003;
+    p.glowBase = 6 + Math.random() * 8;
+    p.windDrift = (Math.random() - 0.5) * 0.002;
     p.t = 0;
     p.canSpark = true;
   }
@@ -1146,7 +1191,7 @@
       p.life--;
 
       p.y += p.vy;
-      p.vy -= 0.0008; // 20% reducción
+      p.vy -= 0.0005; // 50% más lento
       p.vx += p.windDrift;
       p.x += p.vx + Math.sin(p.t * p.swayFreq + p.swayPhase) * p.swayAmp;
 
@@ -1191,7 +1236,7 @@
         s.y += s.vy;
       }
 
-      s.vy -= 0.0096 * (0.5 + s.weight * 0.5); // 20% reducción
+      s.vy -= 0.0060 * (0.5 + s.weight * 0.5); // 50% más lento
 
       if (s.life <= 0 || s.y < -12) {
         sparks.splice(i, 1);
@@ -1211,7 +1256,7 @@
 
       var alpha = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.85 ? (1 - lifeRatio) / 0.15 : 1;
       alpha *= (0.7 + 0.3 * (flicker * 0.5 + 0.5));
-      alpha *= 0.80; // 20% de reducción de brillo
+      alpha *= 0.55; // 45% de reducción de brillo (más sutil)
       if (alpha < 0.02) continue;
 
       var size = p.baseSize * (0.65 + 0.35 * (flicker * 0.5 + 0.5)) * (0.45 + 0.55 * lifeRatio);
@@ -1233,7 +1278,7 @@
       var flicker = Math.sin(s.t * s.flickerSpeed + s.flickerPhase);
 
       var alpha = lifeRatio * (0.75 + 0.25 * (flicker * 0.5 + 0.5));
-      alpha *= 0.80; // 20% de reducción de brillo
+      alpha *= 0.55; // 45% de reducción de brillo (más sutil)
       if (alpha < 0.05) continue;
 
       var size = s.baseSize * (0.4 + 0.6 * lifeRatio) * (0.75 + 0.25 * (flicker * 0.5 + 0.5));

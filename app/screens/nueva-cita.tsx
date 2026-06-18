@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert, Platform, TextInput, KeyboardAvoidingView
+  StyleSheet, ActivityIndicator, Alert, Platform, TextInput, KeyboardAvoidingView, Modal
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -59,6 +59,13 @@ export default function NuevaCitaScreen() {
 
   // RN-AG-070/071: citas del dia del profesional para detectar reposos aprovechables
   const [citasDia, setCitasDia] = useState<any[]>([]);
+
+  // Servicio puntual (modal rápido)
+  const [modalPuntualVisible, setModalPuntualVisible] = useState(false);
+  const [puntualNombre, setPuntualNombre] = useState('');
+  const [puntualPrecio, setPuntualPrecio] = useState('');
+  const [puntualDuracion, setPuntualDuracion] = useState('30');
+  const [guardandoPuntual, setGuardandoPuntual] = useState(false);
 
   useEffect(() => {
     async function cargar() {
@@ -328,6 +335,45 @@ export default function NuevaCitaScreen() {
     }
   }
 
+  async function crearServicioPuntual() {
+    if (!puntualNombre.trim()) { Alert.alert('Falta el nombre', 'Escribe un nombre para el servicio puntual.'); return; }
+    const precioNum = parseFloat(puntualPrecio) || 0;
+    const duracionNum = parseInt(puntualDuracion) || 30;
+    if (precioNum <= 0) { Alert.alert('Precio inválido', 'El precio debe ser mayor que 0.'); return; }
+    setGuardandoPuntual(true);
+    try {
+      const { data, error } = await supabase
+        .from('servicios')
+        .insert({
+          negocio_id: negocioId,
+          nombre: puntualNombre.trim(),
+          precio: precioNum,
+          duracion_activa_min: duracionNum,
+          duracion_espera_min: 0,
+          duracion_activa_extra_min: 0,
+          min_antelacion_min: 0,
+          activo: true,
+          es_puntual: true,
+        })
+        .select('id')
+        .single();
+      if (error) { Alert.alert('Error', 'No se pudo crear el servicio puntual.'); setGuardandoPuntual(false); return; }
+      // Añadir a la lista local y seleccionarlo
+      const nuevoServicio = { id: data.id, nombre: puntualNombre.trim(), precio: precioNum, duracion_activa_min: duracionNum, duracion_espera_min: 0, duracion_activa_extra_min: 0, activo: true, es_puntual: true };
+      setServicios(prev => [...prev, nuevoServicio]);
+      setServicioSeleccionado(data.id);
+      // Cerrar modal y limpiar
+      setModalPuntualVisible(false);
+      setPuntualNombre('');
+      setPuntualPrecio('');
+      setPuntualDuracion('30');
+    } catch (e) {
+      Alert.alert('Error', 'No se pudo crear el servicio puntual.');
+    } finally {
+      setGuardandoPuntual(false);
+    }
+  }
+
   if (loading) {
     return <View style={[s.center, { backgroundColor: c.bg }]}><ActivityIndicator color="#f4501e" /></View>;
   }
@@ -375,6 +421,15 @@ export default function NuevaCitaScreen() {
               );
             })}
           </View>
+          {/* Botón para crear servicio puntual (caso especial) */}
+          <TouchableOpacity
+            style={[s.puntualBtn, { backgroundColor: c.surface, borderColor: c.border }]}
+            onPress={() => setModalPuntualVisible(true)}
+          >
+            <Ionicons name="flash-outline" size={16} color="#f59e0b" />
+            <TText style={[s.puntualBtnText, { color: c.textSecondary }]}>Crear servicio puntual</TText>
+            <TText style={[s.puntualBtnSub, { color: c.textTertiary }]}>Para casos especiales</TText>
+          </TouchableOpacity>
         </Section>
 
         {/* ── Hora de inicio ── */}
@@ -614,6 +669,81 @@ export default function NuevaCitaScreen() {
             : <TText style={s.btnGuardarText}>Crear cita</TText>}
         </TouchableOpacity>
       </View>
+
+      {/* Modal para crear servicio puntual */}
+      <Modal visible={modalPuntualVisible} transparent animationType="fade" onRequestClose={() => setModalPuntualVisible(false)}>
+        <View style={s.puntualOverlay}>
+          <View style={[s.puntualPanel, { backgroundColor: c.bg, borderColor: c.border }]}>
+            <View style={[s.puntualHeader, { borderBottomColor: c.border }]}>
+              <TText style={[s.puntualTitle, { color: c.text }]}>Servicio puntual</TText>
+              <TouchableOpacity onPress={() => setModalPuntualVisible(false)} style={s.closeBtn}>
+                <Ionicons name="close" size={20} color={c.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={s.puntualContent} keyboardShouldPersistTaps="handled">
+              <View style={{ gap: spacing.sm }}>
+                <View>
+                  <TText style={[s.puntualLabel, { color: c.textSecondary }]}>Nombre del servicio *</TText>
+                  <TTextInput
+                    style={[s.puntualInput, { color: c.text, borderColor: c.border, backgroundColor: c.surface }]}
+                    value={puntualNombre}
+                    onChangeText={setPuntualNombre}
+                    placeholder="Ej: Cejas rápida"
+                    placeholderTextColor={c.textTertiary}
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                  <View style={{ flex: 1 }}>
+                    <TText style={[s.puntualLabel, { color: c.textSecondary }]}>Precio (€) *</TText>
+                    <TTextInput
+                      style={[s.puntualInput, { color: c.text, borderColor: c.border, backgroundColor: c.surface }]}
+                      value={puntualPrecio}
+                      onChangeText={setPuntualPrecio}
+                      keyboardType="decimal-pad"
+                      placeholder="15"
+                      placeholderTextColor={c.textTertiary}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <TText style={[s.puntualLabel, { color: c.textSecondary }]}>Duración (min) *</TText>
+                    <TTextInput
+                      style={[s.puntualInput, { color: c.text, borderColor: c.border, backgroundColor: c.surface }]}
+                      value={puntualDuracion}
+                      onChangeText={setPuntualDuracion}
+                      keyboardType="number-pad"
+                      placeholder="30"
+                      placeholderTextColor={c.textTertiary}
+                    />
+                  </View>
+                </View>
+                <View style={[s.puntualInfo, { backgroundColor: 'rgba(245,158,11,0.10)', borderColor: 'rgba(245,158,11,0.35)' }]}>
+                  <Ionicons name="information-circle-outline" size={14} color="#f59e0b" />
+                  <TText style={{ color: '#f59e0b', fontSize: fontSize.xs, flex: 1 }}>
+                    Servicio rápido para casos especiales. Se guardará en tu catálogo como "servicio puntual".
+                  </TText>
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
+                <TouchableOpacity
+                  style={[s.puntualBtnCancel, { backgroundColor: c.bgTertiary, borderColor: c.border }]}
+                  onPress={() => setModalPuntualVisible(false)}
+                >
+                  <TText style={[s.puntualBtnCancelText, { color: c.text }]}>Cancelar</TText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.puntualBtnSave, { backgroundColor: '#f4501e' }]}
+                  onPress={crearServicioPuntual}
+                  disabled={guardandoPuntual}
+                >
+                  {guardandoPuntual
+                    ? <ActivityIndicator color="#fff" size="small" />
+                    : <TText style={s.puntualBtnSaveText}>Crear y seleccionar</TText>}
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 
@@ -775,4 +905,21 @@ const s = StyleSheet.create({
   panelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, borderBottomWidth: 1 },
   panelTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
   closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+
+  // Servicio puntual
+  puntualBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, marginTop: spacing.sm },
+  puntualBtnText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
+  puntualBtnSub: { fontSize: fontSize.xs, marginLeft: 'auto' },
+  puntualOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.lg },
+  puntualPanel: { width: '100%', maxWidth: 400, borderRadius: radius.lg, borderWidth: 1, overflow: 'hidden' },
+  puntualHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.md, borderBottomWidth: 1 },
+  puntualTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
+  puntualContent: { padding: spacing.lg, gap: spacing.md },
+  puntualLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, marginBottom: 4 },
+  puntualInput: { borderWidth: 1, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 10, fontSize: fontSize.base },
+  puntualInfo: { flexDirection: 'row', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, alignItems: 'flex-start' },
+  puntualBtnCancel: { flex: 1, paddingVertical: 12, borderRadius: radius.md, borderWidth: 1, alignItems: 'center' },
+  puntualBtnCancelText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
+  puntualBtnSave: { flex: 1, paddingVertical: 12, borderRadius: radius.md, alignItems: 'center' },
+  puntualBtnSaveText: { color: '#fff', fontSize: fontSize.sm, fontWeight: fontWeight.bold },
 });
