@@ -9,6 +9,7 @@ import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA } from '@/lib/constants';
 import { PageLoader } from '@/components/ui/DesignComponents';
+import * as XLSX from 'xlsx';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -36,6 +37,7 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
     maximize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
     minimize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
     download: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+    upload: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
   };
   return <div style={{ display: 'inline-flex', color }} dangerouslySetInnerHTML={{ __html: icons[name] || '' }} />;
 };
@@ -241,6 +243,7 @@ export default function ClientesWeb() {
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
   const [showClienteModal, setShowClienteModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [negocioId, setNegocioId] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('resumen');
@@ -448,6 +451,13 @@ export default function ClientesWeb() {
           <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: TOKENS.textSec }}>{clientes.length} clientes activos</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
+          <button
+            onClick={() => setShowImportModal(true)}
+            style={{ padding: '9px 14px', background: '#ffffff', color: TOKENS.text, border: `1px solid ${TOKENS.border}`, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s ease' }}
+          >
+            <Icon name="upload" size={16} color={TOKENS.text} />
+            Importar Excel
+          </button>
           <button
             className="m-btn-primary"
             onClick={() => { setEditingCliente(null); setShowClienteModal(true); }}
@@ -853,6 +863,14 @@ export default function ClientesWeb() {
           </div>
         )}
       </div>
+
+      {showImportModal && (
+        <ImportModal
+          negocioId={negocioId}
+          onClose={() => setShowImportModal(false)}
+          onSaved={async () => { setShowImportModal(false); await cargar(); triggerRefresh(); }}
+        />
+      )}
 
       {showClienteModal && (
         <ClienteModal
@@ -2105,6 +2123,403 @@ function DetailStat({ label, value, tone, dot }: { label: string; value: string;
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 5 }}>
         {dot && <span style={{ width: 8, height: 8, borderRadius: 4, background: dot, flexShrink: 0 }} />}
         <span style={{ fontSize: 15, fontWeight: 700, color: tone || TOKENS.text }}>{value}</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Modal: Importar base de datos
+function ImportModal({ negocioId, onClose, onSaved }: {
+  negocioId: string;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [dragActive, setDragActive] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [preview, setPreview] = useState<any[]>([]);
+  const [error, setError] = useState('');
+
+  const handleDrag = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleChange = (e: any) => {
+    e.preventDefault();
+    if (e.target.files && e.target.files[0]) {
+      processFile(e.target.files[0]);
+    }
+  };
+
+  const processFile = (selectedFile: File) => {
+    const validExtensions = ['.xlsx', '.xls', '.csv'];
+    const fileExtension = selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase();
+    
+    if (!validExtensions.includes(fileExtension)) {
+      setError('Formato no válido. Sube un archivo Excel (.xlsx, .xls) o CSV (.csv).');
+      setFile(null);
+      setPreview([]);
+      return;
+    }
+
+    setFile(selectedFile);
+    setError('');
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        
+        // Obtener filas de forma matricial
+        const rawData: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        
+        if (rawData.length === 0) {
+          setError('El archivo está vacío.');
+          return;
+        }
+
+        // Buscar fila de cabeceras
+        let headerRowIdx = 0;
+        let foundHeader = false;
+        
+        for (let i = 0; i < Math.min(rawData.length, 15); i++) {
+          const row = rawData[i];
+          if (!row) continue;
+          
+          const isHeader = row.some(cell => {
+            if (typeof cell !== 'string') return false;
+            const normCell = cell.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return normCell.includes('nombre') || normCell.includes('apellido') || normCell === 'name' || normCell.includes('telefono') || normCell.includes('email') || normCell.includes('correo') || normCell.includes('reservas') || normCell.includes('visitas');
+          });
+          
+          if (isHeader) {
+            headerRowIdx = i;
+            foundHeader = true;
+            break;
+          }
+        }
+
+        const headers = foundHeader ? rawData[headerRowIdx] : rawData[0];
+        const dataStartIdx = foundHeader ? headerRowIdx + 1 : 0;
+        
+        // Encontrar índices de columnas
+        let nombreIdx = -1;
+        let telefonoIdx = -1;
+        let emailIdx = -1;
+        let notasIdx = -1;
+        let alergiasIdx = -1;
+        let gruposIdx = -1;
+        let fechaNacimientoIdx = -1;
+        
+        headers.forEach((header, idx) => {
+          if (!header) return;
+          const normHeader = String(header).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          
+          if (normHeader.includes('nombre') || normHeader.includes('cliente') || normHeader === 'name' || normHeader.includes('completo')) {
+            if (nombreIdx === -1) nombreIdx = idx;
+          } else if (normHeader.includes('telefono') || normHeader.includes('movil') || normHeader === 'tel' || normHeader.includes('phone') || normHeader.includes('contacto')) {
+            if (telefonoIdx === -1) telefonoIdx = idx;
+          } else if (normHeader.includes('email') || normHeader.includes('correo') || normHeader === 'mail') {
+            if (emailIdx === -1) emailIdx = idx;
+          } else if (normHeader.includes('nota') || normHeader.includes('comentario') || normHeader.includes('observaci') || normHeader.includes('descrip')) {
+            if (notasIdx === -1) notasIdx = idx;
+          } else if (normHeader.includes('alergia') || normHeader.includes('sensibil')) {
+            if (alergiasIdx === -1) alergiasIdx = idx;
+          } else if (normHeader.includes('grupo') || normHeader.includes('etiqueta') || normHeader.includes('tag')) {
+            if (gruposIdx === -1) gruposIdx = idx;
+          } else if (normHeader.includes('nacimiento') || normHeader.includes('cumple') || normHeader.includes('fecha')) {
+            if (fechaNacimientoIdx === -1) fechaNacimientoIdx = idx;
+          }
+        });
+
+        if (nombreIdx === -1) {
+          nombreIdx = headers.findIndex(h => h && String(h).trim() !== '');
+          if (nombreIdx === -1) nombreIdx = 0;
+        }
+
+        const clients: any[] = [];
+        for (let i = dataStartIdx; i < rawData.length; i++) {
+          const row = rawData[i];
+          if (!row || row.length === 0) continue;
+          
+          const nombre = row[nombreIdx] ? String(row[nombreIdx]).trim() : '';
+          if (!nombre || nombre === '' || nombre.toLowerCase().includes('total') || nombre.toLowerCase().includes('periodo')) {
+            continue;
+          }
+          
+          const telefono = telefonoIdx !== -1 && row[telefonoIdx] ? String(row[telefonoIdx]).trim() : null;
+          const email = emailIdx !== -1 && row[emailIdx] ? String(row[emailIdx]).trim() : null;
+          let notasVal = notasIdx !== -1 && row[notasIdx] ? String(row[notasIdx]).trim() : null;
+          const alergias = alergiasIdx !== -1 && row[alergiasIdx] ? String(row[alergiasIdx]).trim() : null;
+          
+          let fechaNacimientoVal = null;
+          const extraInfo: string[] = [];
+
+          if (fechaNacimientoIdx !== -1 && row[fechaNacimientoIdx]) {
+            const rawBday = row[fechaNacimientoIdx];
+            let parsedDate = new Date(rawBday);
+            if (typeof rawBday === 'number') {
+              parsedDate = new Date((rawBday - 25569) * 86400 * 1000);
+            }
+            if (!isNaN(parsedDate.getTime())) {
+              fechaNacimientoVal = parsedDate.toISOString().split('T')[0];
+            } else {
+              extraInfo.push(`- Fecha de nacimiento (sin parsear): ${rawBday}`);
+            }
+          }
+          
+          const gruposRaw = gruposIdx !== -1 && row[gruposIdx] ? String(row[gruposIdx]).trim() : '';
+          const etiquetas = gruposRaw ? gruposRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+          // Enriquecer notas con columnas adicionales no mapeadas
+          headers.forEach((hdr, hIdx) => {
+            if (hIdx === nombreIdx || hIdx === telefonoIdx || hIdx === emailIdx || hIdx === notasIdx || hIdx === alergiasIdx || hIdx === gruposIdx || hIdx === fechaNacimientoIdx) {
+              return;
+            }
+            if (row[hIdx] !== undefined && String(row[hIdx]).trim() !== '') {
+              extraInfo.push(`- ${hdr}: ${row[hIdx]}`);
+            }
+          });
+          
+          if (extraInfo.length > 0) {
+            const extraStr = `Datos importados de la fila:\n` + extraInfo.join('\n');
+            notasVal = notasVal ? `${notasVal}\n\n${extraStr}` : extraStr;
+          }
+
+          clients.push({
+            nombre,
+            telefono,
+            email,
+            notas: notasVal,
+            alergias,
+            etiquetas,
+            fecha_nacimiento: fechaNacimientoVal
+          });
+        }
+
+        if (clients.length === 0) {
+          setError('No se encontraron clientes importables válidos.');
+          return;
+        }
+
+        setPreview(clients);
+      } catch (err: any) {
+        setError(`Error al interpretar el Excel: ${err.message}`);
+      }
+    };
+    reader.readAsArrayBuffer(selectedFile);
+  };
+
+  const handleImport = async () => {
+    if (preview.length === 0 || !negocioId) return;
+    setLoading(true);
+    setProgress({ current: 0, total: preview.length });
+    
+    let exitos = 0;
+    const batchSize = 50;
+    
+    try {
+      for (let i = 0; i < preview.length; i += batchSize) {
+        const batch = preview.slice(i, i + batchSize).map(c => ({
+          ...c,
+          negocio_id: negocioId
+        }));
+        
+        const { error: insError } = await supabase.from('clientes').insert(batch);
+        
+        if (insError) {
+          for (const client of batch) {
+            const { error: singleError } = await supabase.from('clientes').insert(client);
+            if (!singleError) exitos++;
+          }
+        } else {
+          exitos += batch.length;
+        }
+        
+        setProgress({ current: Math.min(i + batchSize, preview.length), total: preview.length });
+      }
+      
+      onSaved();
+    } catch (err: any) {
+      setError(`Error al guardar en base de datos: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(28,24,20,0.45)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 16 }} className="ca-modal-overlay">
+      <div style={{ background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 16, width: '100%', maxWidth: 640, boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }} className="ca-modal">
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px', borderBottom: `1px solid ${TOKENS.border}` }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: TOKENS.text }}>Importar base de datos</h3>
+            <p style={{ margin: 0, marginTop: 2, fontSize: 12, color: TOKENS.textSec }}>Sube tu archivo de Booksy, Excel o CSV para añadir múltiples clientes</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }} disabled={loading}>
+            <Icon name="x" size={16} color={TOKENS.textSec} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: 24, overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {error && (
+            <div style={{ background: TOKENS.dangerSoft, border: `1px solid rgba(226,59,52,0.2)`, borderRadius: 10, padding: '12px 16px', color: TOKENS.danger, fontSize: 13, display: 'flex', gap: 8, alignItems: 'center' }}>
+              <Icon name="alert" size={16} color={TOKENS.danger} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {!file ? (
+            <div
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
+              style={{
+                border: `2px dashed ${dragActive ? TOKENS.primary : TOKENS.borderHi}`,
+                background: dragActive ? TOKENS.primarySoft : 'rgba(40,30,24,0.02)',
+                borderRadius: 12,
+                padding: '40px 20px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 12,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              onClick={() => document.getElementById('excel-file-input')?.click()}
+            >
+              <input
+                id="excel-file-input"
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                style={{ display: 'none' }}
+                onChange={handleChange}
+              />
+              <div style={{ background: TOKENS.primarySoft, borderRadius: '50%', padding: 12, display: 'inline-flex', color: TOKENS.primary }}>
+                <Icon name="download" size={24} color={TOKENS.primary} />
+              </div>
+              <div>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: TOKENS.text }}>Arrastra tu archivo aquí</p>
+                <p style={{ margin: 0, marginTop: 4, fontSize: 12, color: TOKENS.textSec }}>o haz clic para buscar en tu ordenador</p>
+              </div>
+              <p style={{ margin: 0, fontSize: 11, color: TOKENS.textTer }}>Formatos admitidos: Excel (.xlsx, .xls) o CSV (.csv)</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* File Info */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(40,30,24,0.03)', border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '12px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Icon name="check" size={18} color={TOKENS.success} />
+                  <div>
+                    <p style={{ margin: 0, fontWeight: 600, fontSize: 13, color: TOKENS.text }}>{file.name}</p>
+                    <p style={{ margin: 0, marginTop: 2, fontSize: 11, color: TOKENS.textTer }}>{(file.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                </div>
+                {!loading && (
+                  <button onClick={() => { setFile(null); setPreview([]); setError(''); }} style={{ background: 'transparent', border: 'none', color: TOKENS.danger, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    Cambiar
+                  </button>
+                )}
+              </div>
+
+              {/* Preview */}
+              {preview.length > 0 && (
+                <div>
+                  <h4 style={{ margin: 0, fontSize: 13, fontWeight: 600, color: TOKENS.text, marginBottom: 8 }}>Previsualización de la importación ({preview.length} clientes detectados)</h4>
+                  <div style={{ border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: 'hidden', background: TOKENS.bgCard }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ background: 'rgba(40,30,24,0.03)', borderBottom: `1px solid ${TOKENS.border}` }}>
+                          <th style={{ padding: '8px 12px', fontWeight: 600, color: TOKENS.textSec }}>Nombre</th>
+                          <th style={{ padding: '8px 12px', fontWeight: 600, color: TOKENS.textSec }}>Teléfono</th>
+                          <th style={{ padding: '8px 12px', fontWeight: 600, color: TOKENS.textSec }}>Email</th>
+                          <th style={{ padding: '8px 12px', fontWeight: 600, color: TOKENS.textSec }}>Etiquetas</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {preview.slice(0, 5).map((p, idx) => (
+                          <tr key={idx} style={{ borderBottom: idx < 4 ? `1px solid ${TOKENS.border}` : 'none' }}>
+                            <td style={{ padding: '8px 12px', color: TOKENS.text }}>{p.nombre}</td>
+                            <td style={{ padding: '8px 12px', color: TOKENS.textSec }}>{p.telefono || '—'}</td>
+                            <td style={{ padding: '8px 12px', color: TOKENS.textSec }}>{p.email || '—'}</td>
+                            <td style={{ padding: '8px 12px' }}>
+                              <div style={{ display: 'flex', gap: 4 }}>
+                                {p.etiquetas.slice(0, 2).map((t: string, tIdx: number) => (
+                                  <span key={tIdx} style={{ fontSize: 9, background: TOKENS.primarySoft, color: TOKENS.primary, padding: '2px 6px', borderRadius: 4 }}>{t}</span>
+                                ))}
+                                {p.etiquetas.length > 2 && <span style={{ fontSize: 9, color: TOKENS.textTer }}>+{p.etiquetas.length - 2}</span>}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {preview.length > 5 && (
+                      <div style={{ padding: '8px 12px', background: 'rgba(40,30,24,0.01)', borderTop: `1px solid ${TOKENS.border}`, textAlign: 'center', fontSize: 11, color: TOKENS.textTer }}>
+                        Y {preview.length - 5} clientes más...
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {loading && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TOKENS.textSec }}>
+                <span>Importando clientes...</span>
+                <span>{progress.current} de {progress.total} ({Math.round((progress.current / progress.total) * 100)}%)</span>
+              </div>
+              <div style={{ width: '100%', height: 6, background: 'rgba(40,30,24,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ width: `${(progress.current / progress.total) * 100}%`, height: '100%', background: `linear-gradient(90deg,#ff7a2e,#f4501e)`, transition: 'width 0.1s ease' }} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '16px 24px', borderTop: `1px solid ${TOKENS.border}`, background: 'rgba(40,30,24,0.01)' }}>
+          <button
+            onClick={onClose}
+            style={{ padding: '8px 16px', background: '#fff', border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.textSec, cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+            disabled={loading}
+          >
+            Cancelar
+          </button>
+          {file && preview.length > 0 && (
+            <button
+              onClick={handleImport}
+              style={{ padding: '8px 16px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 4px 12px ${TOKENS.primaryGlow}` }}
+              disabled={loading}
+            >
+              {loading ? 'Importando...' : `Importar ${preview.length} clientes`}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
