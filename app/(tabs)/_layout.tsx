@@ -16,6 +16,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
         <View style={{ flex: 1 }}>
           <Tabs screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } as any, unmountOnBlur: false, contentStyle: { backgroundColor: '#f6f1ea' } } as any}>
             <Tabs.Screen name="index" />
+            <Tabs.Screen name="caja" />
             <Tabs.Screen name="lista-espera" />
             <Tabs.Screen name="clientes" />
             <Tabs.Screen name="equipo" />
@@ -54,6 +55,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       } as any}
     >
       <Tabs.Screen name="index" options={{ title: 'Agenda', tabBarIcon: tabIcon('calendar') }} />
+      <Tabs.Screen name="caja" options={{ title: 'Caja', tabBarIcon: tabIcon('wallet') }} />
       <Tabs.Screen name="clientes" options={{ title: 'Clientes', tabBarIcon: tabIcon('people') }} />
       <Tabs.Screen name="equipo" options={{ title: 'Equipo', tabBarIcon: tabIcon('person') }} />
       <Tabs.Screen name="informes" options={{ title: 'Informes', tabBarIcon: tabIcon('bar-chart') }} />
