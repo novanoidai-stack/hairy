@@ -167,7 +167,8 @@ Camino crítico, manual, para 1 salón. **Así onboardearemos a cada cliente nue
    en la ficha de la cita [C].
 4. **Cancelar/modificar desde el portal** [A+C] 🟢 **HECHO (17 jun)** — RPCs (cancelar/modificar) + **página
    `/app/cita/[id]` "gestiona tu cita"** (ver/cambiar/cancelar, gated por teléfono); probada en navegador.
-   Pendiente fino: al reagendar, reenviar confirmación; aviso de cancelación (necesita plantilla Meta nueva).
+   🟢 Al reagendar **reenvía la confirmación** con la nueva fecha y reprograma el recordatorio (17 jun).
+   Pendiente fino: aviso de cancelación (necesita plantilla Meta nueva).
 5. **Operacionalizar el agente de voz Retell** para ese salón [A] 🔴 — base hecha; **falta número Zadarma +
    alta del agente Retell apuntando al workflow de funciones** (depende de ti) + prompt del salón + llamada de prueba.
 → Resultado: un salón con agenda + reservas + recordatorios + señal + agentes, **montado a mano por nosotros**.
