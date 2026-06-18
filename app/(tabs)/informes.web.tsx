@@ -213,7 +213,7 @@ const SECTION_INFO: Record<string, string> = {
   ingresos: 'Facturacion del periodo desglosada por dia, profesional y servicio. Solo cuenta citas completadas. Es la base para ver la tendencia de ventas.',
   servicios: 'Ranking de servicios por numero de veces realizados e ingresos que generan en el periodo. Te dice que vende mas y que conviene priorizar.',
   retencion: 'Fidelidad de clientes: nuevos frente a recurrentes y cada cuanto vuelven, medido sobre el periodo elegido. Ayuda a planificar campanas de recuperacion.',
-  comisiones: 'Comisiones estimadas por profesional segun los servicios completados y su porcentaje configurado, sobre los ingresos del periodo. Util para las nominas.',
+  comisiones: 'Comisiones estimadas por profesional segun los servicios completados y su porcentaje configurado. Se calculan sobre la base SIN IVA (el IVA es de Hacienda, no del salon). Util para las nominas.',
 };
 
 // ---------------------------------------------------------------------------
@@ -640,16 +640,21 @@ export default function InformesScreen() {
   // -- 9.8: Comisiones --
   const comisionesData = useMemo(() => {
     const porProf: { profId: string; nombre: string; color: string; ingresos: number; comision: number; citas: number }[] = [];
+    // El IVA es de Hacienda, no del salon: la comision se calcula sobre la BASE SIN IVA.
+    // Los precios de catalogo incluyen IVA (21% general de servicios), asi que se descuenta
+    // antes de aplicar el porcentaje de comision.
+    const IVA_PCT = 21;
 
     profsActivos.forEach(p => {
       const profCitas = activas.filter(c => c.profesional_id === p.id);
       const ingresos = profCitas.reduce((s, c) => s + (srvMap.get(c.servicio_id ?? '')?.precio || 0), 0);
+      const baseSinIva = ingresos / (1 + IVA_PCT / 100);
       porProf.push({
         profId: p.id,
         nombre: p.nombre,
         color: p.color,
         ingresos,
-        comision: Math.round(ingresos * comisionPct / 100),
+        comision: Math.round(baseSinIva * comisionPct / 100),
         citas: profCitas.length,
       });
     });
