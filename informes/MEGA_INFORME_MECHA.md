@@ -242,6 +242,17 @@ El modelo de datos ya soporta todo esto (estados `esperando/avisado/resuelta/can
 
 Lo que pediste: pagar desde la web y desde el local con QR, sincronizado. Propuesta concreta para discutir:
 
+> **Actualización 18/jun/2026 — POS / Caja:** Jose pidió un **POS** (el profesional cobra desde
+> el software, como el modo gestor de novanoidai). Su duda —"¿no doble-contaremos citas y dinero
+> entre el POS y los informes?"— está respondida en detalle en
+> **`ARQUITECTURA_POS_Y_ESTADISTICAS_MECHA.md`**. Resumen: hoy los "ingresos" son **estimación**
+> (precio de catálogo × citas completadas, `informes.web.tsx:646`), **no caja real**; el POS y
+> las citas son **dos capas distintas** (demanda vs dinero) que se **enlazan** por `cita_id`, con
+> el dinero saliendo de **un solo libro de cobros** y la señal **descontada** (no sumada).
+> Recomendación: opción de **capas enlazadas** con interruptor "estimado vs cobrado" por negocio
+> (no doble-cuenta por construcción). Fases POS-0/POS-1 (caja operativa **no fiscal**) son de
+> Carlos; el cobro electrónico y la facturación fiscal (VeriFactu = P3) son de Alexandro/fiscalista.
+
 ### Fase P1 — Señal anti no-show (2 semanas de Alexandro, desbloquea la promesa de la landing)
 - Stripe Checkout (no Elements: menos PCI, más rápido): `crear_cita_publica` con `deposito_requerido` → edge function crea sesión de Checkout → redirect → **webhook `checkout.session.completed`** marca `deposito_pagado=true` y `estado='confirmada'`. El campo y los estados **ya existen** en la tabla `citas`.
 - Si no paga en 15 min, la cita `pendiente` expira y libera el hueco (cron de Supabase).
@@ -492,4 +503,42 @@ Tanda de cierre del bloque de referidos, llevándolo del modal de la demo al **s
 
 ### Estado del sistema de referidos (completo)
 Backend del árbol (multinivel, seguro) + atribución por código + vista del cliente en el software + panel de staff (aplicar descuento) + anti-fraude. **Pendiente de producto, no de código:** cerrar el **pricing** (decisión §11.2) antes de activar descuentos reales en facturación (eso lo aplica Alexandro en Stripe; el motor solo calcula elegibilidad).
+
+---
+
+## ADENDO — Sesión del 18 de junio · POS / Caja: diseño y coherencia con los informes
+
+Jose pidió incorporar un **POS** a Mecha (cobro desde el software, referencia: el modo gestor de
+novanoidai `web_vercel/web`) y planteó la duda de fondo: **¿doble-contaremos citas y dinero** si
+las estadísticas salen hoy de las citas y además metemos un POS que cobra?
+
+**Trabajo de esta sesión (solo diseño + documentación, sin código de POS todavía):**
+
+- **Informe nuevo dedicado:** `informes/ARQUITECTURA_POS_Y_ESTADISTICAS_MECHA.md`. Contiene el
+  análisis completo, el precedente de novanoidai, el modelo de datos propuesto y el plan por fases.
+- **Hallazgo que reencuadra la pregunta:** los "ingresos" actuales de Mecha **no son caja real**,
+  son **facturación estimada** (precio de catálogo × citas completadas — `informes.web.tsx:646`,
+  tooltip en `:213`). El campo `citas.precio_cobrado` existe en BD pero los informes **no lo usan**.
+- **Precedente verificado (novanoidai, en producción):** `transacciones_pos` (cobro individual,
+  con `cita_id`, método, idempotencia) + `caja_registros` con columna `origen` (trigger consolida
+  el POS) + citas usadas **solo como estimación**. Su código evita el doble conteo de forma
+  explícita (`caja/page.tsx:394-395`: la agregación POS "NO se suma a registros").
+- **Resolución propuesta (recomendada):** **dos capas que se enlazan** — `citas` = verdad
+  operativa (ocupación, no-shows, canal, retención); **cobros/caja** = verdad financiera
+  (facturación real, método, propinas, arqueo). Se enlazan por `cita_id`; la señal online
+  (`pagos`) se **descuenta**, no se suma; **interruptor por negocio** decide si "ingresos" = real
+  (POS) o estimado (citas). **No doble-cuenta por construcción**, y el hueco "previsto vs cobrado"
+  pasa a ser un KPI de control valioso.
+- **Disciplina fiscal (reafirmada):** caja **operativa** (método, propina, descuento, arqueo, IVA
+  estimado) se puede hacer ya; **facturación fiscal** (VeriFactu, numeración correlativa = P3)
+  **requiere fiscalista** y no se improvisa. Hasta P3, nunca decir "factura/ticket fiscal":
+  decimos "recibo/comprobante de cobro".
+- **Reparto:** la **caja operativa** (POS-0 botón "Cobrar" + método como etiqueta; POS-1 arqueo +
+  informes con interruptor estimado/real) es **íntegramente de Carlos** (no mueve dinero
+  electrónico). El **cobro electrónico** (online/QR/Stripe Terminal) y la **fiscalidad** son de
+  **Alexandro/fiscalista**.
+
+**Estado:** **diseñado, pendiente de decisión de Jose** (ver §11 del informe nuevo: confirmar la
+opción (c), arrancar por POS-0/POS-1, nomenclatura no-fiscal, cuándo entra el fiscalista, producto
+sí/no en el POS, y reetiquetar ya "ingresos" → "ingresos estimados"). No bloquea a Alexandro.
 
