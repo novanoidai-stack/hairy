@@ -5,6 +5,7 @@ import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { PageLoader } from '@/components/ui/DesignComponents';
 
 const TOKENS = {
   bg: '#f6f1ea',
@@ -264,12 +265,7 @@ export default function ResenasScreen() {
   const PAD = isMobile ? '24px 16px' : '40px 48px';
 
   if (loading) {
-    return (
-      <div style={{ padding: 40, fontFamily: 'Inter, system-ui, sans-serif', color: TOKENS.text }}>
-        <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Reseñas</div>
-        <div style={{ color: TOKENS.textSec }}>Cargando valoraciones...</div>
-      </div>
-    );
+    return <PageLoader message="Cargando valoraciones..." />;
   }
 
   return (

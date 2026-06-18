@@ -321,3 +321,85 @@ const s = StyleSheet.create({
     marginTop: tokens.spacing.xs,
   },
 });
+
+// ── Loader web (fuego prendiendo - estilo Mecha)
+// Solo usar en archivos .web.tsx
+export function PageLoader({ message = 'Cargando...' }: { message?: string }) {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh',
+      background: tokens.bg,
+      color: tokens.text,
+      fontFamily: 'Inter, sans-serif',
+    }}>
+      <div style={{ position: 'relative', display: 'grid', placeItems: 'center', marginBottom: 24 }}>
+        <svg
+          viewBox="0 0 100 116"
+          width="100"
+          height="116"
+          style={{ overflow: 'visible', filter: 'drop-shadow(0 0 18px rgba(244,80,30,0.45))' }}
+        >
+          <defs>
+            <radialGradient id="igEmber" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#ffd24a" />
+              <stop offset="42%" stopColor="#ff7a2e" />
+              <stop offset="100%" stopColor="rgba(224,52,14,0)" />
+            </radialGradient>
+            <linearGradient id="igFlame" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stopColor="#c0260a" />
+              <stop offset="0.45" stopColor="#ff5a1e" />
+              <stop offset="1" stopColor="#ffcf4a" />
+            </linearGradient>
+            <linearGradient id="igCore" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stopColor="#ff8a3d" />
+              <stop offset="1" stopColor="#fff3c4" />
+            </linearGradient>
+          </defs>
+          <style>{`
+            @keyframes igDance {
+              0%, 100% { transform: scaleY(1) scaleX(1) rotate(0deg); }
+              20% { transform: scaleY(1.16) scaleX(0.9) rotate(-2.5deg); }
+              45% { transform: scaleY(0.8) scaleX(1.09) rotate(1.5deg); }
+              70% { transform: scaleY(1.08) scaleX(0.95) rotate(2.5deg); }
+            }
+            @keyframes igHalo {
+              0%, 100% { opacity: 0.42; transform: scale(0.9); }
+              50% { opacity: 0.85; transform: scale(1.08); }
+            }
+            @keyframes igCoals {
+              0%, 100% { opacity: 0.78; }
+              50% { opacity: 1; }
+            }
+            .ig-halo { transform-box: fill-box; transform-origin: center; animation: igHalo 2.4s ease-in-out infinite; }
+            .ig-flame { transform-box: fill-box; transform-origin: bottom center; will-change: transform; }
+            .ig-flame.f1 { animation: igDance 0.95s ease-in-out infinite; }
+            .ig-flame.f2 { animation: igDance 0.7s ease-in-out infinite; animation-delay: -0.2s; }
+            .ig-flame.f3 { animation: igDance 1.35s ease-in-out infinite; animation-delay: -0.5s; opacity: 0.82; }
+            .ig-coals { transform-box: fill-box; transform-origin: center; animation: igCoals 1.8s ease-in-out infinite; }
+          `}</style>
+          <circle className="ig-halo" cx="50" cy="74" r="44" fill="url(#igEmber)" />
+          <g>
+            <path className="ig-flame f3" d="M50 96 C 33 80 39 58 50 38 C 61 58 67 80 50 96 Z" fill="url(#igFlame)" />
+            <path className="ig-flame f1" d="M50 98 C 39 84 43 64 50 48 C 57 64 61 84 50 98 Z" fill="url(#igFlame)" />
+            <path className="ig-flame f2" d="M50 99 C 43 88 45 74 50 62 C 55 74 57 88 50 99 Z" fill="url(#igCore)" />
+          </g>
+          <g className="ig-coals">
+            <ellipse cx="50" cy="100" rx="22" ry="6.5" fill="url(#igEmber)" />
+            <circle cx="41" cy="101" r="4" fill="#ff6619" />
+            <circle cx="52" cy="103" r="5" fill="#ff7a2e" />
+            <circle cx="61" cy="101" r="3.5" fill="#e0340e" />
+          </g>
+        </svg>
+      </div>
+      {message && (
+        <p style={{ margin: 0, fontSize: 14, color: tokens.textSecondary, textAlign: 'center' }}>
+          {message}
+        </p>
+      )}
+    </div>
+  );
+}

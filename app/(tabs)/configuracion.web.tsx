@@ -8,6 +8,7 @@ import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useRouter } from 'expo-router';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { PageLoader } from '@/components/ui/DesignComponents';
 import {
   Section, FieldRow, FieldStack, Toggle, NumberInput, STextInput, SSelect,
   Segmented, TimeInput, Badge, SoonBadge, SoonBanner, StatBox,
@@ -681,11 +682,7 @@ export default function ConfiguracionWeb() {
   const profSelData = profesionales.find(p => p.id === profId) ?? null;
 
   // ─── Render ────────────────────────────────────────────────────────────
-  if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: T.bg, color: T.text, fontFamily: 'Inter, sans-serif' }}>
-      Cargando...
-    </div>
-  );
+  if (loading) return <PageLoader message="Cargando configuración..." />;
 
   if (accessDenied) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: T.bg, color: T.textSecondary, flexDirection: 'column', gap: 8, fontFamily: 'Inter, sans-serif' }}>

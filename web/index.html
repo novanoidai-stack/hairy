@@ -1211,13 +1211,15 @@ window.MECHA_CHAT = [
   const cvs = document.getElementById('embers');
   if (!cvs) return;
   const ctx = cvs.getContext('2d', { alpha: true });
-  
+
   let W, H;
   const rocks = [];
   const sparks = []; // sparks dinámicos
-  const MAX_EMBERS = 120; // Aumentado ligeramente para mayor vistosidad
-  const MAX_SPARKS = 60;
-  const embers = new Array(MAX_EMBERS);
+  // En movil las particulas abruman (y cargan la GPU): reducimos densidad bajo 768px.
+  var IS_MOBILE = (window.matchMedia && window.matchMedia('(max-width:767px)').matches) || window.innerWidth < 768;
+  var MAX_EMBERS = IS_MOBILE ? 34 : 120; // throttle en movil
+  var MAX_SPARKS = IS_MOBILE ? 16 : 60;
+  var embers = new Array(MAX_EMBERS);
 
   // Colores Mecha: del gradiente fuego (más vivos)
   const COLORS = [

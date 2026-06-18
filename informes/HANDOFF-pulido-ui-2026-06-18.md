@@ -1,6 +1,7 @@
 # Handoff — Pulido UI (landing/login/agenda/recuperación) · 18 jun 2026
 
-> Sesión previa: Carlos + Claude (Opus 4.8). Rama `master` (producción, despliega en
+> **Última actualización:** 18 jun 2026 23:30 — **TANDAS B-F COMPLETADAS ✅**
+> Sesión: Carlos + Claude (Opus 4.8). Rama `master` (producción, despliega en
 > Vercel al hacer push). Este doc lista lo PENDIENTE; al final, el prompt para continuar.
 
 ## Cómo ejecutar/probar
@@ -26,7 +27,41 @@ npx tsc --noEmit             # typecheck (ignorar errores de supabase/functions:
 
 ---
 
-## PENDIENTES
+## COMPLETADAS ESTA SESIÓN (18 jun, tarde)
+
+### B) Agenda (colapsar rail + mini-cal) — HECHA ✅
+- `AgendaCalendar.web.tsx`: estados independientes para KPIs (`kpiCollapsed`), mini-calendario (`miniCalCollapsed`) y barra de herramientas (`toolbarCollapsed`)
+- Acceso móvil al mini-calendario: modal con date-picker nativo
+- **Commit pendiente** (cambios en staging)
+
+### C9) Animaciones de carga — HECHA ✅
+- `components/ui/DesignComponents.tsx`: componente `PageLoader` con animación "fuego prendiendo"
+- Aplicado en `resenas.web.tsx`, `clientes.web.tsx`, `configuracion.web.tsx`
+- **Commit pendiente**
+
+### C10) Auditoría móvil — HECHA ✅
+- Revisión de `useResponsive` en configuracion.web.tsx, equipo.web.tsx, informes.web.tsx
+- Conclusión: adaptación móvil ya adecuada en estas pantallas
+- **Sin cambios needed**
+
+### D) Partículas/ascuas throttle móvil — HECHA ✅
+- `web/index.html`: `MAX_EMBERS` 120→34, `MAX_SPARKS` 60→16 en móvil (`IS_MOBILE` via `matchMedia('(max-width:767px)')`)
+- `app/resena/[slug].web.tsx`: `EmbersCanvas` `MAX_PARTICLES` 60→20 en móvil
+- **Commit pendiente**
+
+### E) Tour demo positioning móvil — HECHA ✅
+- `web/demo.html`: `bottom:68px` en móvil en vez de `6px` (sentarse encima del tab bar de 68px)
+- Aplicado en media queries `max-width:720px` y `max-width:480px`
+- **Commit pendiente**
+
+### F) Recuperación de contraseña — HECHA ✅
+- `web/restablecer.html`: rediseño con glow sutil, animación de carga, placeholders mejorados
+- `supabase/functions/send-reset/index.ts`: email con logo SVG fuego, gradiente mejorado, diseño más compacto
+- **Commit pendiente (dos archivos)**
+
+---
+
+## PENDIENTES (para próximas sesiones)
 
 ### A) Landing / navegación móvil — HECHA ✅ (commit `39db3a7c`, 18 jun)
 > Las 6 subtareas A1–A6 están completas y verificadas en navegador. Se conserva el detalle abajo por si hay que retomar matices.

@@ -8,6 +8,7 @@ import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA } from '@/lib/constants';
+import { PageLoader } from '@/components/ui/DesignComponents';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -427,7 +428,7 @@ export default function ClientesWeb() {
     return list;
   }, [clientes, searchText, activeTagFilter]);
 
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: TOKENS.bg, color: TOKENS.text }}>Cargando...</div>;
+  if (loading) return <PageLoader message="Cargando clientes..." />;
 
   const tagCounts: Record<string, number> = {
     Todos: clientes.length,

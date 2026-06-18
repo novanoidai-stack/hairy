@@ -182,7 +182,9 @@ export function EmbersCanvas() {
     }
 
     const particles: Particle[] = [];
-    const MAX_PARTICLES = 60;
+    // Throttle en movil: reducir particulas para mejor rendimiento
+    const IS_MOBILE = (window.matchMedia && window.matchMedia('(max-width:767px)').matches) || window.innerWidth < 768;
+    const MAX_PARTICLES = IS_MOBILE ? 20 : 60;
 
     const createParticle = (init = false): Particle => {
       const size = Math.random() * 2.5 + 1;

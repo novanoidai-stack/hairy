@@ -63,7 +63,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // ALLOWED_ORIGINS is already declared above for CORS and redirect validation.
 const DEFAULT_REDIRECT = 'https://hairy-two.vercel.app/restablecer.html';
 
-// Plantilla del correo: dark navy + gradiente calido de Mecha. Layout en tablas
+// Plantilla del correo: dark navy + gradiente fuego de Mecha. Layout en tablas
 // e inline-styles por compatibilidad con clientes de correo.
 function resetEmailHtml(actionLink: string): string {
   const safeLink = actionLink.replace(/"/g, '&quot;');
@@ -81,32 +81,45 @@ function resetEmailHtml(actionLink: string): string {
   <tr>
     <td align="center">
       <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:480px;max-width:100%;">
+        <!-- Logo con gradiente fuego -->
         <tr>
-          <td style="padding:0 4px 18px;">
+          <td style="padding:0 4px 18px;text-align:center;">
+            <svg width="32" height="32" viewBox="0 0 40 40" style="display:block;margin:0 auto 12px;">
+              <defs>
+                <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0" stop-color="#e0340e" />
+                  <stop offset=".5" stop-color="#ff7a2e" />
+                  <stop offset="1" stop-color="#ffcf4a" />
+                </linearGradient>
+              </defs>
+              <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+              <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+            </svg>
             <span style="font-family:'Bricolage Grotesque',Arial,sans-serif;font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f6f8ff;">Mecha</span>
-            <span style="font-family:Arial,sans-serif;font-size:12px;color:#5e6a86;padding-left:8px;">Software para peluquerias</span>
+            <span style="font-family:Arial,sans-serif;font-size:12px;color:#5e6a86;padding-left:6px;">Software para peluquerias</span>
           </td>
         </tr>
+        <!-- Tarjeta principal -->
         <tr>
-          <td style="background:#101729;border:1px solid rgba(148,163,184,.16);border-radius:18px;padding:34px 30px;">
-            <div style="height:4px;width:54px;border-radius:4px;background:#ff8a3d;background-image:linear-gradient(120deg,#ff8a3d,#ff9d2e 55%,#ffce4a);margin-bottom:22px;"></div>
-            <h1 style="margin:0 0 12px;font-family:'Bricolage Grotesque',Arial,sans-serif;font-size:24px;line-height:1.2;letter-spacing:-.02em;color:#f6f8ff;">Restablece tu contrasena</h1>
-            <p style="margin:0 0 22px;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#9aa6c2;">Hemos recibido una solicitud para restablecer la contrasena de tu cuenta de Mecha. Pulsa el boton para crear una nueva. El enlace caduca en 1 hora.</p>
+          <td style="background:#0f172a;border:1px solid rgba(148,163,184,.14);border-radius:16px;padding:32px 28px;box-shadow:0 24px 64px -20px rgba(244,80,30,.12);">
+            <h1 style="margin:0 0 10px;font-family:'Bricolage Grotesque',Arial,sans-serif;font-size:23px;line-height:1.25;letter-spacing:-.02em;color:#f6f8ff;">Restablece tu contrasena</h1>
+            <p style="margin:0 0 24px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#9aa6c2;">Hemos recibido una solicitud para restablecer la contrasena de tu cuenta de Mecha. Pulsa el boton para crear una nueva. El enlace caduca en 1 hora.</p>
             <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
               <tr>
-                <td align="center" bgcolor="#f4501e" style="border-radius:12px;background:#f4501e;background-image:linear-gradient(120deg,#ff8a3d,#ff9d2e 55%,#ffce4a);">
-                  <a href="${safeLink}" style="display:inline-block;padding:14px 26px;font-family:'Bricolage Grotesque',Arial,sans-serif;font-size:15px;font-weight:700;color:#160a02;text-decoration:none;border-radius:12px;">Crear nueva contrasena</a>
+                <td align="center" style="border-radius:11px;background:#f4501e;background-image:linear-gradient(135deg,#f4501e 0%,#ff7a2e 50%,#ffb347 100%);box-shadow:0 8px 24px -8px rgba(244,80,30,.5);">
+                  <a href="${safeLink}" style="display:inline-block;padding:13px 28px;font-family:'Bricolage Grotesque',Arial,sans-serif;font-size:15px;font-weight:700;color:#160a02;text-decoration:none;border-radius:11px;">Crear nueva contrasena</a>
                 </td>
               </tr>
             </table>
-            <p style="margin:0 0 8px;font-family:Arial,sans-serif;font-size:12.5px;line-height:1.5;color:#5e6a86;">Si el boton no funciona, copia y pega este enlace en tu navegador:</p>
-            <p style="margin:0 0 22px;font-family:Arial,sans-serif;font-size:12.5px;line-height:1.5;word-break:break-all;"><a href="${safeLink}" style="color:#ff8a3d;text-decoration:underline;">${safeLink}</a></p>
-            <p style="margin:0;font-family:Arial,sans-serif;font-size:12.5px;line-height:1.5;color:#5e6a86;">Si no fuiste tu, ignora este correo: tu contrasena no cambiara.</p>
+            <p style="margin:0 0 6px;font-family:Arial,sans-serif;font-size:12px;line-height:1.5;color:#5e6a86;">Si el boton no funciona, copia y pega este enlace en tu navegador:</p>
+            <p style="margin:0 0 20px;font-family:Arial,sans-serif;font-size:12px;line-height:1.5;word-break:break-all;"><a href="${safeLink}" style="color:#ff7a2e;text-decoration:underline;">${safeLink}</a></p>
+            <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;line-height:1.5;color:#5e6a86;">Si no fuiste tu, ignora este correo: tu contrasena no cambiara.</p>
           </td>
         </tr>
+        <!-- Footer -->
         <tr>
-          <td style="padding:18px 6px 0;font-family:Arial,sans-serif;font-size:11.5px;line-height:1.5;color:#5e6a86;">
-            Mecha &middot; Gestion inteligente para tu salon. Este correo se envio porque alguien solicito restablecer la contrasena de esta direccion.
+          <td style="padding:16px 6px 0;font-family:Arial,sans-serif;font-size:11px;line-height:1.5;color:#475569;text-align:center;">
+            Mecha &middot; Gestion inteligente para tu salon
           </td>
         </tr>
       </table>
