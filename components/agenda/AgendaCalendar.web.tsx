@@ -5622,6 +5622,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
             flexWrap: 'wrap',
           }}
         >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           {cita.estado === CITA_STATUS.CONFIRMADA && (
             <button
               className="m-btn-danger"
@@ -5662,6 +5663,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
               )}
             </div>
           )}
+          </div>
           {errMsg ? <div style={{ fontSize: 11, color: TOKENS.danger, padding: '6px 10px', background: `${TOKENS.danger}15`, borderRadius: 6, border: `1px solid ${TOKENS.danger}44` }}>{errMsg}</div> : null}
           <div style={{ display: 'flex', gap: 8 }}>
             <button
