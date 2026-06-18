@@ -168,6 +168,27 @@ function computeAlerts(cl: Cliente): Alert[] {
       border: 'rgba(239,68,68,0.35)',
       icon: 'alert',
     });
+  } else {
+    alerts.push({
+      type: 'no-allergy',
+      message: 'Sin alergias registradas.',
+      color: TOKENS.success,
+      bg: TOKENS.successSoft,
+      border: 'rgba(15,157,107,0.16)',
+      icon: 'check',
+    });
+  }
+
+  // Falta de teléfono
+  if (!cl.telefono || cl.telefono.trim().length === 0) {
+    alerts.push({
+      type: 'no-phone',
+      message: 'Este cliente no tiene configurado número de teléfono en su ficha.',
+      color: TOKENS.warning,
+      bg: TOKENS.warningSoft,
+      border: 'rgba(224,138,0,0.25)',
+      icon: 'alert',
+    });
   }
 
   // Inactividad (amarillo)
@@ -444,20 +465,74 @@ export default function ClientesWeb() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .import-info-trigger:hover .import-info-tooltip {
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+      `}} />
       {/* Topbar */}
       <div className="m-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? '12px 16px' : '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
         <div>
           <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4 }}>Clientes</h1>
           <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: TOKENS.textSec }}>{clientes.length} clientes activos</p>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button
-            onClick={() => setShowImportModal(true)}
-            style={{ padding: '9px 14px', background: '#ffffff', color: TOKENS.text, border: `1px solid ${TOKENS.border}`, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s ease' }}
-          >
-            <Icon name="upload" size={16} color={TOKENS.text} />
-            Importar Excel
-          </button>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <button
+              onClick={() => setShowImportModal(true)}
+              style={{ padding: '9px 14px', background: '#ffffff', color: TOKENS.text, border: `1px solid ${TOKENS.border}`, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s ease' }}
+            >
+              <Icon name="upload" size={16} color={TOKENS.text} />
+              Importar Excel
+            </button>
+            <div 
+              className="import-info-trigger"
+              style={{
+                marginLeft: 8,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 22,
+                height: 22,
+                borderRadius: '50%',
+                background: 'rgba(28,24,20,0.06)',
+                color: TOKENS.textSec,
+                fontSize: 12,
+                fontWeight: 'bold',
+                position: 'relative'
+              }}
+              title="¿Tienes una base de datos y quieres meterla en Mecha? Hazlo desde aquí."
+            >
+              i
+              <div 
+                className="import-info-tooltip"
+                style={{
+                  position: 'absolute',
+                  top: '125%',
+                  right: 0,
+                  width: 260,
+                  background: '#1e293b',
+                  color: '#f8fafc',
+                  padding: '12px 14px',
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 'normal',
+                  lineHeight: '1.4',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                  pointerEvents: 'none',
+                  opacity: 0,
+                  visibility: 'hidden',
+                  transition: 'opacity 0.15s ease, visibility 0.15s ease',
+                  zIndex: 999
+                }}
+              >
+                <div style={{ fontWeight: 700, marginBottom: 4, color: '#ff7a2e' }}>¿Tienes una base de datos?</div>
+                Puedes subir tu archivo de Booksy u otros sistemas de gestión desde aquí. Aceptamos múltiples formatos como Excel (.xlsx, .xls) y archivos .csv.
+              </div>
+            </div>
+          </div>
           <button
             className="m-btn-primary"
             onClick={() => { setEditingCliente(null); setShowClienteModal(true); }}
@@ -555,13 +630,31 @@ export default function ClientesWeb() {
                         {!isMobile && cl.actividad === 'Inactiva' && <Pill color={TOKENS.textTer}>Inactiva</Pill>}
                         {!isMobile && cl.actividad === 'Riesgo abandono' && <Pill color={TOKENS.warning}>Riesgo</Pill>}
                         {!isMobile && cl.riesgo === 'Alto riesgo' && <Pill color={TOKENS.danger}>No-show</Pill>}
+                        {/* Alergias Pill */}
                         {(() => {
                           const alergiasTexto = (cl.alergias ?? '').trim();
-                          if (!alergiasTexto) return null;
-                          return (
-                            <span title={`Alergias: ${alergiasTexto}`} style={{ display: 'inline-block', width: 6, height: 6, borderRadius: 999, background: TOKENS.danger, opacity: 0.7, flexShrink: 0 }} />
-                          );
+                          if (alergiasTexto.length > 0) {
+                            return (
+                              <Pill color={TOKENS.danger} style={{ background: TOKENS.dangerSoft, borderColor: 'rgba(226,59,52,0.2)' }} title={`Alergias: ${alergiasTexto}`}>
+                                ⚠️ Alergias
+                              </Pill>
+                            );
+                          } else {
+                            return (
+                              <Pill color="#64748b" style={{ background: 'rgba(148,163,184,0.06)', borderColor: 'rgba(148,163,184,0.12)' }}>
+                                Sin alergias
+                              </Pill>
+                            );
+                          }
                         })()}
+
+                        {/* Teléfono Pill */}
+                        {!cl.telefono && (
+                          <Pill color={TOKENS.warning} style={{ background: TOKENS.warningSoft, borderColor: 'rgba(224,138,0,0.2)' }}>
+                            📞 Sin tlf
+                          </Pill>
+                        )}
+
                         {(() => {
                           // Cumpleanos proximo (proximos 7 dias): mismo criterio que la ficha y los avisos
                           if (!cl.fecha_nacimiento) return null;
@@ -2879,10 +2972,10 @@ function Avatar({ name, size = 38 }: any) {
   );
 }
 
-function Pill({ children, color = TOKENS.primary }: any) {
+function Pill({ children, color = TOKENS.primary, style = {} }: any) {
   const bg = `${color}22`;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 999, background: bg, color, fontSize: 11, fontWeight: 600, letterSpacing: 0.2, border: `1px solid ${color}33` }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 999, background: bg, color, fontSize: 11, fontWeight: 600, letterSpacing: 0.2, border: `1px solid ${color}33`, ...style }}>
       {children}
     </span>
   );
