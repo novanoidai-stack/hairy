@@ -6,30 +6,29 @@ import {
   getPortalInfo, getDisponibilidad, getDiasDisponibles, crearCitaPublica, fechaISOaClave, getResenasPublicas,
   type PortalInfo, type PortalServicio, type SlotDisponible, type CrearCitaResult, type ResenaResumen,
 } from '@/lib/reservaPublica';
+import { EmbersCanvas } from '../resena/[slug].web';
 
 // ---------------------------------------------------------------------------
-// Tokens — marca Mecha (crema calido + fuego). El gradiente FIRE es el del
+// Tokens — marca Mecha (Basalto oscuro). El gradiente FIRE es el del
 // simbolo de la llama (#mecha-mark): se usa en CTAs, progreso y exito.
-// IMPORTANTE: en SVG inline usar siempre hex EXPLICITO en fill/stroke (nunca
-// currentColor): el _layout inyecta `* { color: #1c1814 }` y pisaria el color.
 // ---------------------------------------------------------------------------
 const T = {
-  bg: '#f7f0e8',
-  panel: '#fffdfb',
-  card: '#ffffff',
-  cardHi: '#fbf5ef',
-  border: 'rgba(40,30,24,0.10)',
-  borderHi: 'rgba(40,30,24,0.16)',
-  text: '#241a14',
-  textSec: '#5c5249',
-  textTer: '#8a7d70',
+  bg: '#060202', // Basalt black
+  panel: 'rgba(11, 16, 32, 0.72)', // Glassmorphic very dark gray-blue
+  card: '#101729',
+  cardHi: '#16203a',
+  border: 'rgba(255, 255, 255, 0.08)',
+  borderHi: 'rgba(255, 255, 255, 0.16)',
+  text: '#f6f8ff',
+  textSec: '#9aa6c2',
+  textTer: '#8a9ab8',
   primary: '#f4501e',
-  primaryHi: '#c0260a',
-  primarySoft: 'rgba(244,80,30,0.10)',
-  success: '#0f9d6b',
-  successSoft: 'rgba(15,157,107,0.12)',
-  danger: '#e23b34',
-  dangerSoft: 'rgba(226,59,52,0.12)',
+  primaryHi: '#ff8a3d',
+  primarySoft: 'rgba(244,80,30,0.14)',
+  success: '#10b981',
+  successSoft: 'rgba(16,185,129,0.14)',
+  danger: '#ef4444',
+  dangerSoft: 'rgba(239,68,68,0.14)',
   ember: '#f59e0b',
 };
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
@@ -44,15 +43,11 @@ const ANIM = `
   @keyframes rpShimmer { 0% { background-position: -360px 0 } 100% { background-position: 360px 0 } }
   @keyframes rpBarUp { from { transform: translateY(120%) } to { transform: translateY(0) } }
   @keyframes rpEmber { 0% { transform: translateY(0) scale(1); opacity: 0 } 12% { opacity: 0.7 } 100% { transform: translateY(-120px) scale(0.4); opacity: 0 } }
-  @keyframes floatBlob1 { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(26px,-38px) scale(1.08) } }
-  @keyframes floatBlob2 { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(-30px,30px) scale(1.1) } }
-  .float-blob1 { animation: floatBlob1 20s ease-in-out infinite alternate; filter: blur(64px) }
-  .float-blob2 { animation: floatBlob2 26s ease-in-out infinite alternate; filter: blur(72px) }
   .rp-step { animation: rpUp 0.45s cubic-bezier(0.16,1,0.3,1) both }
   .rp-stagger > * { animation: rpUp 0.5s cubic-bezier(0.16,1,0.3,1) both }
   .rp-flame { animation: rpFlicker 3.4s ease-in-out infinite; transform-origin: 50% 80% }
   .rp-opt { transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease; cursor: pointer }
-  .rp-opt:hover { border-color: ${T.primary} !important; background: ${T.cardHi} !important; transform: translateY(-2px); box-shadow: 0 10px 26px rgba(192,38,10,0.10) }
+  .rp-opt:hover { border-color: ${T.primary} !important; background: ${T.cardHi} !important; transform: translateY(-2px); box-shadow: 0 10px 26px rgba(244,80,30,0.15) }
   .rp-slot { transition: transform 0.13s ease, border-color 0.13s ease, background 0.13s ease; cursor: pointer }
   .rp-slot:hover { border-color: ${T.primary} !important; background: ${T.primarySoft} !important; transform: translateY(-1px) }
   .rp-slot.rp-on, .rp-slot.rp-on:hover { background: ${T.primary} !important; border-color: ${T.primary} !important; color: #fff !important; transform: none }
@@ -66,13 +61,14 @@ const ANIM = `
   .rp-link:hover { color: ${T.primaryHi} !important }
   .rp-bar { animation: rpBarUp 0.4s cubic-bezier(0.16,1,0.3,1) both }
   .rp-rail::-webkit-scrollbar { height: 0 }
-  .rp-skel { background: linear-gradient(90deg, rgba(40,30,24,0.05) 25%, rgba(40,30,24,0.10) 37%, rgba(40,30,24,0.05) 63%); background-size: 720px 100%; animation: rpShimmer 1.4s linear infinite; border-radius: 10px }
+  .rp-skel { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 37%, rgba(255,255,255,0.04) 63%); background-size: 720px 100%; animation: rpShimmer 1.4s linear infinite; border-radius: 10px }
+  .rp-field { color: #f6f8ff !important; background-color: #101729 !important; }
   .rp-field:focus { border-color: ${T.primary} !important; box-shadow: 0 0 0 3px ${T.primarySoft} }
   .rp-check { transition: background 0.15s ease, border-color 0.15s ease }
   .rp-photo { transition: transform 0.3s cubic-bezier(0.16,1,0.3,1) }
   .rp-opt:hover .rp-photo { transform: scale(1.04) }
   @media (prefers-reduced-motion: reduce) {
-    .rp-step, .rp-stagger > *, .rp-flame, .rp-bar, .rp-skel, .float-blob1, .float-blob2 { animation: none !important }
+    .rp-step, .rp-stagger > *, .rp-flame, .rp-bar, .rp-skel { animation: none !important }
     .rp-opt, .rp-slot, .rp-day, .rp-cta, .rp-photo { transition: none !important }
   }
 `;
@@ -704,7 +700,7 @@ export default function PortalReservaWeb() {
         <div className="rp-step" style={{ textAlign: 'center', padding: '6px 0 2px' }}>
           <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
             <span style={{ position: 'absolute', width: 78, height: 78, borderRadius: '50%', background: T.primarySoft, animation: 'rpRing 1.8s ease-out infinite' }} />
-            <span style={{ position: 'relative', display: 'inline-flex', width: 78, height: 78, borderRadius: '50%', background: '#fff', border: `1px solid ${T.border}`, alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(192,38,10,0.18)' }}>
+            <span style={{ position: 'relative', display: 'inline-flex', width: 78, height: 78, borderRadius: '50%', background: T.card, border: `1px solid ${T.border}`, alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(244,80,30,0.25)' }}>
               <span className="rp-flame"><MechaMark size={40} /></span>
             </span>
           </div>
@@ -755,6 +751,7 @@ const primaryBtn: React.CSSProperties = {
   background: FIRE, color: '#fff', fontSize: 15.5, fontWeight: 800, boxShadow: '0 12px 30px rgba(192,38,10,0.28)',
 };
 
+
 function Shell({ children, negocio, resenas, t, loc = 'es-ES' }: {
   children: React.ReactNode; negocio?: PortalInfo['negocio']; resenas?: ResenaResumen | null; t: TFn; loc?: string;
 }) {
@@ -763,19 +760,27 @@ function Shell({ children, negocio, resenas, t, loc = 'es-ES' }: {
   const web = negocio?.web?.trim();
   const hasEst = !!(dir || tel || web);
   return (
-    <div style={{ height: '100vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'linear-gradient(180deg, #fdf6ee 0%, #f7ede1 60%, #f3e7d8 100%)', padding: '0 16px 28px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative' }}>
+    <div style={{
+      minHeight: '100vh',
+      background: T.bg,
+      backgroundImage: `
+        radial-gradient(80% 60% at 50% -10%, rgba(224,52,14,0.06), transparent 75%),
+        radial-gradient(60% 50% at 85% 5%, rgba(255,130,40,0.12), transparent 70%),
+        radial-gradient(65% 55% at 15% 15%, rgba(255,90,30,0.12), transparent 70%),
+        radial-gradient(75% 60% at 50% 110%, rgba(224,52,14,0.08), transparent 70%)
+      `,
+      padding: '0 16px 48px',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      position: 'relative',
+      overflowY: 'auto'
+    }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
-      {/* Identidad Mecha de fondo: glow calido + blobs fuego + marca de agua de la llama */}
-      <div aria-hidden style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 560, height: 340, background: 'radial-gradient(closest-side, rgba(244,80,30,0.14), transparent)', pointerEvents: 'none', zIndex: 0 }} />
-      <div className="float-blob1" aria-hidden style={{ position: 'absolute', top: '6%', left: '6%', width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,196,150,0.5)', pointerEvents: 'none', zIndex: 0 }} />
-      <div className="float-blob2" aria-hidden style={{ position: 'absolute', bottom: '8%', right: '4%', width: 340, height: 340, borderRadius: '50%', background: 'rgba(255,222,170,0.45)', pointerEvents: 'none', zIndex: 0 }} />
-      <div aria-hidden style={{ position: 'absolute', bottom: -70, right: -50, opacity: 0.05, pointerEvents: 'none', zIndex: 0 }}><MechaMark size={360} /></div>
-
+      <EmbersCanvas />
       <div style={{ maxWidth: 600, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Cabecera: el nombre del salon es el protagonista */}
         <header style={{ padding: '26px 4px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(10px)', border: '1px solid rgba(244,80,30,0.16)', padding: '5px 11px', borderRadius: 999, boxShadow: '0 4px 12px rgba(40,30,24,0.04)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(10px)', border: `1px solid ${T.border}`, padding: '5px 11px', borderRadius: 999, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
               <span className="rp-flame" style={{ display: 'inline-flex' }}><MechaMark size={13} /></span>
               <span style={{ fontSize: 10.5, fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.8px' }}>mecha</span>
             </div>
@@ -807,7 +812,7 @@ function Shell({ children, negocio, resenas, t, loc = 'es-ES' }: {
         </header>
 
         {/* Panel principal */}
-        <main style={{ background: 'rgba(255,253,251,0.86)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(244,80,30,0.10)', borderRadius: 22, padding: 20, boxShadow: '0 24px 60px rgba(40,30,24,0.07)' }}>
+        <main style={{ background: T.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: `1px solid ${T.border}`, borderRadius: 22, padding: 20, boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
           {children}
         </main>
 
@@ -816,19 +821,19 @@ function Shell({ children, negocio, resenas, t, loc = 'es-ES' }: {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
             {dir && (
               <a className="rp-cta" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dir)}`} target="_blank" rel="noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
                 <Icon name="mapPin" size={14} color={T.primary} /> {t('como_llegar')}
               </a>
             )}
             {tel && (
               <a className="rp-cta" href={`tel:${tel}`}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
                 <Icon name="phone" size={14} color={T.primary} /> {t('llamar')}
               </a>
             )}
             {web && (
               <a className="rp-cta" href={normalizeUrl(web)} target="_blank" rel="noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
                 <Icon name="globe" size={14} color={T.primary} /> {hostOf(web)}
               </a>
             )}

@@ -71,7 +71,7 @@ export function DemoSpotlight({
           height,
           borderRadius: radius,
           boxShadow:
-            '0 0 0 9999px rgba(8,6,4,0.62), 0 0 0 2px rgba(244,80,30,0.95), 0 0 34px 6px rgba(244,80,30,0.42)',
+            '0 0 0 9999px rgba(4,3,2,0.85), 0 0 0 2px rgba(244,80,30,0.95), 0 0 34px 6px rgba(244,80,30,0.42)',
           transition: 'top 0.4s cubic-bezier(0.34,1.56,0.64,1), left 0.4s cubic-bezier(0.34,1.56,0.64,1), width 0.4s ease, height 0.4s ease',
         }}
       />

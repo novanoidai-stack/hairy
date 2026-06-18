@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
 import { getPortalInfo, getResenasPublicas, crearResenaPublica, type PortalNegocio, type ResenaResumen } from '@/lib/reservaPublica';
+import { PageLoader } from '@/components/ui/DesignComponents';
 
 const T = {
   bg: '#060202', // Basalt black
@@ -37,6 +38,7 @@ const ANIM = `
   .rs-cta:active { transform: translateY(1px) }
   .rs-star { transition: transform 0.14s cubic-bezier(0.16,1,0.3,1); cursor: pointer; background: none; border: none; padding: 3px }
   .rs-star:hover { transform: scale(1.18) }
+  .rs-field { color: #f6f8ff !important; background-color: #101729 !important; }
   .rs-field:focus { border-color: ${T.primary} !important; box-shadow: 0 0 0 3px ${T.primarySoft} }
   @media (prefers-reduced-motion: reduce) {
     .rs-step, .rs-flame { animation: none !important }
@@ -47,7 +49,7 @@ const ANIM = `
 const ETIQUETAS = ['', 'Lo siento', 'Mejorable', 'Bien', 'Muy bien', '¡Excelente!'];
 
 function FlameIcon({ filled, size = 24, isOptional = false }: { filled: boolean; size?: number; isOptional?: boolean }) {
-  const gradientId = isOptional ? "goldGrad" : "fireGrad";
+  const gradientId = isOptional ? "blueGrad" : "fireGrad";
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
       <svg width={size} height={size} viewBox="0 0 40 40" style={{ overflow: 'visible' }}>
@@ -57,10 +59,10 @@ function FlameIcon({ filled, size = 24, isOptional = false }: { filled: boolean;
             <stop offset="0.5" stopColor="#ff7a2e" />
             <stop offset="1" stopColor="#ffcf4a" />
           </linearGradient>
-          <linearGradient id="goldGrad" x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0" stopColor="#b45309" />
-            <stop offset="0.5" stopColor="#f59e0b" />
-            <stop offset="1" stopColor="#fde047" />
+          <linearGradient id="blueGrad" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stopColor="#0284c7" />
+            <stop offset="0.5" stopColor="#38bdf8" />
+            <stop offset="1" stopColor="#7dd3fc" />
           </linearGradient>
         </defs>
         {filled ? (
@@ -68,7 +70,7 @@ function FlameIcon({ filled, size = 24, isOptional = false }: { filled: boolean;
             <path
               d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"
               fill={`url(#${gradientId})`}
-              stroke={isOptional ? "#f59e0b" : "#ff8a3d"}
+              stroke={isOptional ? "#38bdf8" : "#ff8a3d"}
               strokeWidth="0.5"
             />
             <path
@@ -319,6 +321,10 @@ export default function ResenaWeb() {
     fontSize: 14.5, color: T.text, background: T.card, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
   };
 
+  if (loading) {
+    return <PageLoader message="Cargando portal de valoración..." />;
+  }
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -337,24 +343,25 @@ export default function ResenaWeb() {
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
       <EmbersCanvas />
       <div style={{ maxWidth: 540, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 4px 14px', borderBottom: `1px solid ${T.border}`, marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="rs-flame"><MechaMark size={32} /></span>
-            <span style={{ fontSize: 22, fontWeight: 800, color: T.text, letterSpacing: '-0.04em', fontFamily: SANS_SERIF }}>Mecha<span style={{ fontSize: 10, color: T.textTer, marginLeft: 6, border: `1px solid ${T.border}`, padding: '1px 4px', borderRadius: 4 }}>OS</span></span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '24px 4px 14px', borderBottom: `1px solid ${T.border}`, marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, padding: '4px 8px', borderRadius: 8 }}>
+              <span className="rs-flame" style={{ display: 'inline-flex' }}><MechaMark size={14} /></span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.8px' }}>mecha</span>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.textSec, fontFamily: SANS_SERIF }}>
+              Valorar visita
+            </div>
           </div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: T.textSec, fontFamily: SANS_SERIF }}>
-            Valorar visita
-          </div>
+          {negocio?.nombre && (
+            <h1 style={{ margin: '8px 0 0', fontFamily: SANS_SERIF, fontSize: 'clamp(28px, 6vw, 36px)', fontWeight: 800, color: T.text, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+              {negocio.nombre}
+            </h1>
+          )}
         </div>
 
         <main style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 22, padding: 24, boxShadow: '0 16px 50px rgba(0,0,0,0.4)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
-          {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '8px 0' }}>
-              <div style={{ height: 18, width: 180, borderRadius: 8, background: 'rgba(255,255,255,0.07)' }} />
-              <div style={{ height: 44, width: 230, borderRadius: 10, background: 'rgba(255,255,255,0.07)' }} />
-              <div style={{ height: 88, borderRadius: 10, background: 'rgba(255,255,255,0.07)' }} />
-            </div>
-          ) : notFound ? (
+          {notFound ? (
             <div style={{ padding: 32, textAlign: 'center' }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 6 }}>No disponible</div>
               <div style={{ fontSize: 14, color: T.textSec }}>Este salon no tiene activadas las valoraciones.</div>
@@ -368,7 +375,40 @@ export default function ResenaWeb() {
                 </span>
               </div>
               <div style={{ fontFamily: SANS_SERIF, fontSize: 30, fontWeight: 800, color: T.text, marginBottom: 6, lineHeight: 1.05 }}>¡Gracias por tu opinión!</div>
-              <div style={{ fontSize: 14.5, color: T.textSec }}>Nos ayuda muchísimo a mejorar el servicio.</div>
+              <div style={{ fontSize: 14.5, color: T.textSec, marginBottom: 24 }}>Nos ayuda muchísimo a mejorar el servicio.</div>
+
+              {/* Botón Google Maps */}
+              <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 20, marginTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                <p style={{ fontSize: 13.5, color: T.textSec, margin: 0, maxWidth: 360, lineHeight: 1.5 }}>
+                  ¿Te gustaría seguir ayudándonos? También puedes dejar una reseña en Google Maps para que más personas nos conozcan:
+                </p>
+                <a className="rs-cta"
+                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((negocio?.nombre || '') + ' ' + (negocio?.direccion || ''))}`}
+                   target="_blank"
+                   rel="noreferrer"
+                   style={{
+                     display: 'inline-flex',
+                     alignItems: 'center',
+                     justifyContent: 'center',
+                     gap: 8,
+                     padding: '12px 20px',
+                     borderRadius: 12,
+                     background: 'rgba(255,255,255,0.06)',
+                     border: `1.5px solid ${T.border}`,
+                     color: T.text,
+                     fontSize: 14,
+                     fontWeight: 700,
+                     textDecoration: 'none',
+                     boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                   }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.primary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ overflow: 'visible' }}>
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  Dejar reseña en Google Maps
+                </a>
+              </div>
             </div>
           ) : (
             <div className="rs-step">
@@ -380,94 +420,178 @@ export default function ResenaWeb() {
                 </div>
               )}
 
-              {/* INFO BOX ANÓNIMO */}
-              <div style={{ background: 'rgba(244,80,30,0.04)', border: `1px solid rgba(244,80,30,0.15)`, borderRadius: 16, padding: 16, marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left' }}>
-                <div style={{ color: T.primary, fontSize: 18, lineHeight: 1 }}>💡</div>
-                <div style={{ fontSize: 13, color: T.textSec, lineHeight: 1.5 }}>
-                  <strong style={{ color: T.text }}>Tus respuestas son 100% anónimas</strong> (el nombre es opcional). Tu feedback es vital: nos da la vida para seguir creciendo, ayuda a mejorar el servicio diario del salón y perfecciona nuestro software de reservas. ¡Gracias por ayudarnos!
-                </div>
+              {/* INFO BOX ANÓNIMO MÍNIMO */}
+              <div style={{ textAlign: 'center', marginBottom: 24, padding: '4px 0' }}>
+                <span style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #ff7a2e 0%, #ffcf4a 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  letterSpacing: '0.02em',
+                  fontFamily: SANS_SERIF
+                }}>
+                  🔒 Valoración 100% anónima · Tu feedback nos ayuda a mejorar
+                </span>
               </div>
 
-              {/* SECCIÓN 1: EL SALÓN */}
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginBottom: 14, borderBottom: `1px solid ${T.border}`, paddingBottom: 6, fontFamily: SANS_SERIF, letterSpacing: -0.2 }}>
-                  1. Tu visita al salón{negocio?.nombre ? `: ${negocio.nombre}` : ''}
+              {/* BLOQUE 1: OBLIGATORIO PARA CONTINUAR */}
+              <div style={{
+                border: `1.5px solid ${T.primary}`,
+                background: 'rgba(244, 80, 30, 0.05)',
+                borderRadius: 16,
+                padding: '20px 20px 24px',
+                marginBottom: 26,
+                position: 'relative',
+                boxShadow: '0 4px 20px rgba(244,80,30,0.06)'
+              }}>
+                {/* Badge */}
+                <div style={{
+                  position: 'absolute',
+                  top: -12,
+                  right: 16,
+                  background: T.primary,
+                  color: '#fff',
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  padding: '3px 10px',
+                  borderRadius: 20,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.6px',
+                  boxShadow: '0 4px 10px rgba(244,80,30,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ overflow: 'visible' }}>
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  </svg>
+                  Obligatorio
+                </div>
+
+                <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 12, fontFamily: SANS_SERIF, letterSpacing: -0.2 }}>
+                  1. Valoración general del salón
                 </div>
                 
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: T.textSec, marginBottom: 8 }}>
-                    Valoración general del salón *
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, color: T.textSec, marginBottom: 8 }}>
+                    ¿Cómo calificarías tu experiencia general en {negocio?.nombre || 'el salón'}? *
                   </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                     <RatingSelector value={puntuacion} onChange={setPuntuacion} size={36} />
                     {puntuacion > 0 && (
                       <span style={{ fontSize: 14, fontWeight: 700, color: T.primaryHi }}>{ETIQUETAS[puntuacion]}</span>
                     )}
                   </div>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>
-                      Trato recibido (opcional)
-                    </label>
-                    <RatingSelector value={salonTrato} onChange={setSalonTrato} size={24} isOptional={true} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>
-                      Limpieza y productos (opcional)
-                    </label>
-                    <RatingSelector value={salonProductos} onChange={setSalonProductos} size={24} isOptional={true} />
-                  </div>
-                </div>
-
-                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Comentario sobre tu visita (opcional)</label>
-                <textarea className="rs-field" value={comentario} onChange={e => setComentario(e.target.value)} placeholder="¿Qué destacarías de tu experiencia en el salón?" rows={3}
-                  style={{ ...inputBase, resize: 'vertical' }} />
               </div>
 
-              {/* SECCIÓN 2: EL SISTEMA DE RESERVAS */}
-              <div style={{ background: 'rgba(244,80,30,0.03)', border: `1px solid ${T.border}`, borderRadius: 16, padding: 18, marginBottom: 24 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 14, borderBottom: `1px solid ${T.border}`, paddingBottom: 6, fontFamily: SANS_SERIF, letterSpacing: -0.2 }}>
-                  2. Sistema de reservas (Mecha)
+              {/* BLOQUE 2: OPCIONAL / VOLUNTARIO */}
+              <div style={{
+                border: `1.5px dashed rgba(255, 255, 255, 0.14)`,
+                background: 'rgba(255, 255, 255, 0.02)',
+                borderRadius: 16,
+                padding: 20,
+                marginBottom: 24,
+                position: 'relative'
+              }}>
+                {/* Badge */}
+                <div style={{
+                  position: 'absolute',
+                  top: -12,
+                  right: 16,
+                  background: 'rgba(56, 189, 248, 0.12)',
+                  border: `1px solid rgba(56, 189, 248, 0.35)`,
+                  color: '#38bdf8',
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  padding: '3px 10px',
+                  borderRadius: 20,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ overflow: 'visible' }}>
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4M12 8h.01" />
+                  </svg>
+                  Opcional / Voluntario
                 </div>
 
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: T.textSec, marginBottom: 8 }}>
-                    ¿Cómo valorarías el proceso de reserva online? (opcional)
-                  </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <RatingSelector value={mechaPuntuacion} onChange={setMechaPuntuacion} size={32} isOptional={true} />
-                    {mechaPuntuacion > 0 && (
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#d97706' }}>{ETIQUETAS[mechaPuntuacion]}</span>
-                    )}
-                  </div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: T.textTer, marginBottom: 18, fontFamily: SANS_SERIF, letterSpacing: -0.2 }}>
+                  2. Detalles adicionales (Si quieres ayudarnos más)
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12.5, color: T.textSec }}>Facilidad para reservar</span>
-                    <RatingSelector value={mechaFacilidad} onChange={setMechaFacilidad} size={20} isOptional={true} />
+                {/* Detalles de la visita */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 10, fontFamily: SANS_SERIF }}>
+                    Sobre el servicio recibido:
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12.5, color: T.textSec }}>Disponibilidad de huecos</span>
-                    <RatingSelector value={mechaDisponibilidad} onChange={setMechaDisponibilidad} size={20} isOptional={true} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 14 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, color: T.textTer, marginBottom: 6 }}>
+                        Trato recibido
+                      </label>
+                      <RatingSelector value={salonTrato} onChange={setSalonTrato} size={22} isOptional={true} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, color: T.textTer, marginBottom: 6 }}>
+                        Limpieza y productos
+                      </label>
+                      <RatingSelector value={salonProductos} onChange={setSalonProductos} size={22} isOptional={true} />
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12.5, color: T.textSec }}>Rapidez y seguridad de pago</span>
-                    <RatingSelector value={mechaPagos} onChange={setMechaPagos} size={20} isOptional={true} />
-                  </div>
+
+                  <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>¿Quieres dejar un comentario?</label>
+                  <textarea className="rs-field" value={comentario} onChange={e => setComentario(e.target.value)} placeholder="¿Qué destacarías de tu experiencia en el salón?" rows={3}
+                    style={{ ...inputBase, resize: 'vertical' }} />
                 </div>
 
-                <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>¿Qué mejorarías del sistema de reserva? (opcional)</label>
-                <textarea className="rs-field" value={mechaMejora} onChange={e => setMechaMejora(e.target.value)} placeholder="Sugerencias para hacer el proceso aún más fácil..." rows={2}
-                  style={{ ...inputBase, resize: 'vertical' }} />
-              </div>
+                {/* Sistema de reservas */}
+                <div style={{ borderTop: `1px solid rgba(255,255,255,0.06)`, paddingTop: 16, marginTop: 16, marginBottom: 20 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 10, fontFamily: SANS_SERIF }}>
+                    Sobre el proceso de reserva online (Mecha):
+                  </div>
+                  
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>
+                      ¿Cómo valorarías el proceso de reserva online?
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <RatingSelector value={mechaPuntuacion} onChange={setMechaPuntuacion} size={26} isOptional={true} />
+                      {mechaPuntuacion > 0 && (
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#38bdf8' }}>{ETIQUETAS[mechaPuntuacion]}</span>
+                      )}
+                    </div>
+                  </div>
 
-              {/* IDENTIFICACIÓN */}
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>Tu nombre (opcional)</label>
-                <input className="rs-field" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Carlos M. (se mostrará públicamente)" style={inputBase} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14, background: 'rgba(255,255,255,0.015)', padding: '10px 14px', borderRadius: 10, border: `1px solid ${T.border}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 12, color: T.textTer }}>Facilidad para reservar</span>
+                      <RatingSelector value={mechaFacilidad} onChange={setMechaFacilidad} size={18} isOptional={true} />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 12, color: T.textTer }}>Disponibilidad de huecos</span>
+                      <RatingSelector value={mechaDisponibilidad} onChange={setMechaDisponibilidad} size={18} isOptional={true} />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 12, color: T.textTer }}>Rapidez y seguridad de pago</span>
+                      <RatingSelector value={mechaPagos} onChange={setMechaPagos} size={18} isOptional={true} />
+                    </div>
+                  </div>
+
+                  <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>¿Qué mejorarías del sistema de reserva?</label>
+                  <textarea className="rs-field" value={mechaMejora} onChange={e => setMechaMejora(e.target.value)} placeholder="Sugerencias para hacer el proceso aún más fácil..." rows={2}
+                    style={{ ...inputBase, resize: 'vertical' }} />
+                </div>
+
+                {/* Identificación */}
+                <div style={{ borderTop: `1px solid rgba(255,255,255,0.06)`, paddingTop: 16, marginTop: 16 }}>
+                  <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>Tu nombre (opcional)</label>
+                  <input className="rs-field" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Carlos M. (se mostrará públicamente)" style={inputBase} />
+                </div>
               </div>
 
               {error && <div style={{ marginTop: 12, fontSize: 13, color: T.danger }}>{error}</div>}

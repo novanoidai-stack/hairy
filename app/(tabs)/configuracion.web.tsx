@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback, type ReactNode } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef, type ReactNode } from 'react';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile, canAccessConfig } from '@/lib/auth';
 import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
@@ -15,6 +15,7 @@ import {
   Btn, IconBtn, ScopeChip, SettingsIcon,
 } from '@/components/ui/SettingsAtoms';
 import { mensajeDeError } from '@/lib/errores';
+import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 
 const T = DESIGN_TOKENS;
 
@@ -229,6 +230,25 @@ const SOPORTE_TEL = '+34690792975';
 export default function ConfiguracionWeb() {
   const { isMobile, isTablet } = useResponsive();
   const [tab, setTab] = useState<string | null>(null);
+
+  const [demoActionName, setDemoActionName] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onDemo = (e: Event) => {
+      const action = (e as CustomEvent).detail?.action;
+      if (action && action.startsWith('config-')) {
+        const targetTab = action.replace('config-', '');
+        setTab(targetTab);
+        setDemoActionName(action);
+      } else if (action === 'cerrar') {
+        setDemoActionName(null);
+      }
+    };
+    window.addEventListener('mecha-demo', onDemo);
+    return () => window.removeEventListener('mecha-demo', onDemo);
+  }, []);
 
   useEffect(() => {
     if (!isMobile && tab === null) {
@@ -839,7 +859,7 @@ export default function ConfiguracionWeb() {
         </nav>
 
         {/* Content */}
-        <div key={tab || 'none'} style={{ display: (isMobile && tab === null) ? 'none' : 'block', overflowY: 'auto', padding: isMobile ? '16px 16px 60px' : '24px 28px 60px' }}>
+        <div ref={contentRef} key={tab || 'none'} style={{ display: (isMobile && tab === null) ? 'none' : 'block', overflowY: 'auto', padding: isMobile ? '16px 16px 60px' : '24px 28px 60px' }}>
           <div style={{ maxWidth: 1080, margin: '0 auto' }}>
             {tab === 'general' && (
               <TabGeneral config={config} setC={setC} />
@@ -902,6 +922,14 @@ export default function ConfiguracionWeb() {
           onSaveOverride={handleSaveOverride}
           onResetOverride={handleResetOverride}
           negocioId={negocioId}
+        />
+      )}
+      {demoActionName !== null && (
+        <DemoSpotlight
+          targetRef={contentRef}
+          active={demoActionName !== null}
+          padding={10}
+          radius={16}
         />
       )}
     </div>

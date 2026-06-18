@@ -623,6 +623,62 @@
       flex-shrink: 0;
     }
   }
+
+  /* --- Estilo Premium para los pasos de Configuración --- */
+  .dm-tour.config-step {
+    background: linear-gradient(180deg, rgba(11, 7, 5, 0.97), rgba(5, 3, 2, 0.99)) !important;
+    border: 1.5px solid #ff7a2e !important;
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.95), 0 0 32px rgba(244, 80, 30, 0.25) !important;
+    border-radius: 20px !important;
+    padding: 24px 24px 19px !important;
+  }
+  .dm-tour.config-step h4 {
+    font-size: 22px !important;
+    background: linear-gradient(135deg, #ff7a2e 0%, #ffcf4a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800 !important;
+  }
+  .dm-tour.config-step p {
+    font-size: 14.5px !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    line-height: 1.65 !important;
+  }
+  .dm-tour.config-step .dm-tour-step {
+    color: #ff7a2e !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.12em !important;
+  }
+  .dm-tour.config-step .dm-dots {
+    display: none !important;
+  }
+  .dm-tour.config-step .dm-tour-acts .btn {
+    border-radius: 12px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 8px 24px rgba(244, 80, 30, 0.35) !important;
+  }
+  .dm-tour.config-step .dm-tour-acts .ghost {
+    border-radius: 12px !important;
+    color: rgba(255,255,255,0.7) !important;
+  }
+  .dm-tour.config-step .dm-tour-acts .ghost:hover {
+    color: #fff !important;
+  }
+  @media(max-width:720px){
+    .dm-tour.config-step {
+      padding: 12px 16px 12px !important;
+      bottom: 68px !important;
+      border-radius: 16px !important;
+    }
+    .dm-tour.config-step h4 {
+      font-size: 16px !important;
+    }
+    .dm-tour.config-step p {
+      font-size: 12.5px !important;
+      line-height: 1.5 !important;
+    }
+  }
 </style>
 </head>
 <body data-theme="dark">
@@ -1218,7 +1274,25 @@
      d:'Roles, turnos y comisiones por profesional, con metricas de quien rinde mas. Todo el equipo organizado desde una sola pantalla.'},
     {ic:'rep', route:'/(tabs)/informes', action:'informes-export', guidePos:'bl',
      t:'Informes claros · PDF y CSV',
-     d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Y lo mejor: te lo descargas TODO en PDF (con tu marca) o en CSV con un clic, mira el boton arriba a la derecha.'}
+     d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Y lo mejor: te lo descargas TODO en PDF (con tu marca) o en CSV con un clic, mira el boton arriba a la derecha.'},
+    {ic:'org', route:'/(tabs)/configuracion', action:'config-general', guidePos:'br', isConfig:true,
+     t:'Configuración general',
+     d:'Personaliza la identidad de tu salón de forma sencilla: desde el nombre comercial, moneda y huso horario hasta los colores de tu marca y la vista por defecto de la agenda.'},
+    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-horarios', guidePos:'br', isConfig:true,
+     t:'Horarios y descansos',
+     d:'Configura tus horarios de apertura y jornadas laborales. Añade bloques de pausa (comidas, descansos) para que el sistema organice la agenda sin solapamientos accidentales.'},
+    {ic:'nueva', route:'/(tabs)/configuracion', action:'config-servicios', guidePos:'br', isConfig:true,
+     t:'Servicios y tarifas',
+     d:'Crea tu catálogo indicando precios y duraciones por profesional. Permite definir tiempos de reposo en tratamientos complejos para liberar tu agenda mientras actúan los productos.'},
+    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-agenda', guidePos:'br', isConfig:true,
+     t:'Lógica y políticas',
+     d:'Controla las reglas de reserva online: antelación mínima para reservar, políticas de cancelación, tiempos de cortesía por retraso y la activación de prepagos para evitar ausencias.'},
+    {ic:'rep', route:'/(tabs)/configuracion', action:'config-comisiones', guidePos:'br', isConfig:true,
+     t:'Comisiones y objetivos',
+     d:'Define esquemas de comisiones fijas o porcentuales por servicios y venta de productos. Motiva a tu equipo asignando objetivos y calcula la rentabilidad real de cada profesional.'},
+    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-plantillas', guidePos:'br', isConfig:true,
+     t:'Fórmulas y plantillas',
+     d:'Predefine plantillas de notas e historiales clínicos de color (tinte, decoloración). Facilita al equipo guardar la fórmula exacta en la ficha del cliente en pocos segundos.'}
   ];
   // El modal de nueva cita es el mismo panel para 'nueva-cita' y las sub-acciones
   // 'cita-*': no se cierra entre esos pasos, solo cambia el foco.
@@ -1291,6 +1365,8 @@
       tourIc.innerHTML=ICONS[s.ic];
       tourTitle.textContent=s.t;
       tourText.textContent=s.d;
+      var isConfigStep = !!s.isConfig;
+      tour.classList.toggle('config-step', isConfigStep);
       Array.prototype.forEach.call(tourDots.children,function(d,i){ d.classList.toggle('on', i===ti); });
       tourPrev.disabled = ti===0;
       tourNext.textContent = ti===STEPS.length-1 ? 'Entendido' : 'Siguiente';

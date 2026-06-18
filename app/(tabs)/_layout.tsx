@@ -58,6 +58,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       <Tabs.Screen name="index" options={{ title: 'Agenda', tabBarIcon: tabIcon('calendar') }} />
       <Tabs.Screen name="caja" options={{ title: 'Caja', tabBarIcon: tabIcon('wallet') }} />
       <Tabs.Screen name="clientes" options={{ title: 'Clientes', tabBarIcon: tabIcon('people') }} />
+      <Tabs.Screen name="resenas" options={{ title: 'Reseñas', tabBarIcon: tabIcon('star') }} />
       <Tabs.Screen name="equipo" options={{ title: 'Equipo', tabBarIcon: tabIcon('person') }} />
       <Tabs.Screen name="informes" options={{ title: 'Informes', tabBarIcon: tabIcon('bar-chart') }} />
       <Tabs.Screen name="configuracion" options={{ title: 'Ajustes', tabBarIcon: tabIcon('settings') }} />
