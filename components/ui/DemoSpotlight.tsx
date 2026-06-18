@@ -31,10 +31,8 @@ export function DemoSpotlight({
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (!active) {
-      setRect(null);
-      return;
-    }
+    if (!active) return;
+    
     let raf = 0;
     const measure = () => {
       const el = targetRef.current;
@@ -51,7 +49,7 @@ export function DemoSpotlight({
     return () => cancelAnimationFrame(raf);
   }, [active, targetRef]);
 
-  if (!active || !rect) return null;
+  if (!rect) return null;
 
   const top = rect.top - padding;
   const left = rect.left - padding;
@@ -72,7 +70,8 @@ export function DemoSpotlight({
           borderRadius: radius,
           boxShadow:
             '0 0 0 9999px rgba(4,3,2,0.85), 0 0 0 2px rgba(244,80,30,0.95), 0 0 34px 6px rgba(244,80,30,0.42)',
-          transition: 'top 0.4s cubic-bezier(0.34,1.56,0.64,1), left 0.4s cubic-bezier(0.34,1.56,0.64,1), width 0.4s ease, height 0.4s ease',
+          transition: 'top 0.4s cubic-bezier(0.34,1.56,0.64,1), left 0.4s cubic-bezier(0.34,1.56,0.64,1), width 0.4s ease, height 0.4s ease, opacity 0.3s ease',
+          opacity: active ? 1 : 0,
         }}
       />
       {label ? (
@@ -92,7 +91,8 @@ export function DemoSpotlight({
             borderRadius: 8,
             border: '1px solid rgba(244,80,30,0.5)',
             boxShadow: '0 8px 20px -6px rgba(0,0,0,0.6)',
-            transition: 'top 0.4s ease, left 0.4s ease',
+            transition: 'top 0.4s ease, left 0.4s ease, opacity 0.3s ease',
+            opacity: active ? 1 : 0,
           }}
         >
           {label}

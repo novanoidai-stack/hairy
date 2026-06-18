@@ -859,8 +859,8 @@ export default function ConfiguracionWeb() {
         </nav>
 
         {/* Content */}
-        <div ref={contentRef} key={tab || 'none'} style={{ display: (isMobile && tab === null) ? 'none' : 'block', overflowY: 'auto', padding: isMobile ? '16px 16px 60px' : '24px 28px 60px' }}>
-          <div style={{ maxWidth: 1080, margin: '0 auto' }}>
+        <div key={tab || 'none'} style={{ display: (isMobile && tab === null) ? 'none' : 'block', overflowY: 'auto', padding: isMobile ? '16px 16px 60px' : '24px 28px 60px' }}>
+          <div ref={contentRef} style={{ maxWidth: 1080, margin: '0 auto' }}>
             {tab === 'general' && (
               <TabGeneral config={config} setC={setC} />
             )}
@@ -924,14 +924,12 @@ export default function ConfiguracionWeb() {
           negocioId={negocioId}
         />
       )}
-      {demoActionName !== null && (
-        <DemoSpotlight
-          targetRef={contentRef}
-          active={demoActionName !== null}
-          padding={10}
-          radius={16}
-        />
-      )}
+      <DemoSpotlight
+        targetRef={contentRef}
+        active={demoActionName !== null}
+        padding={10}
+        radius={16}
+      />
     </div>
   );
 }

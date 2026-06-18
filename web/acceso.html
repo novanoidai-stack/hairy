@@ -247,7 +247,7 @@
     line-height: 1.45;
   }
 
-  /* ---- Loading screen mejorado (Lava Flame Loader) ---- */
+  /* ---- Loading screen mejorado (PageLoader) ---- */
   .load-wrap {
     display: flex;
     flex-direction: column;
@@ -272,81 +272,32 @@
     line-height: 1.5;
   }
 
-  .hypno-loader {
+  .mecha-loader-container {
     position: relative;
-    width: 150px;
-    height: 150px;
     display: grid;
     place-items: center;
     margin-bottom: 24px;
-    background: radial-gradient(circle, rgba(244, 80, 30, 0.05) 0%, transparent 70%);
   }
 
-  /* Loader "fuego prendiendo": brasas que laten + llamas que danzan organicamente */
-  .ignite-loader { position: relative; display: grid; place-items: center; }
-  .ignite-loader svg { overflow: visible; filter: drop-shadow(0 0 18px rgba(244, 80, 30, 0.45)); }
-  .ig-halo { transform-box: fill-box; transform-origin: center; animation: igHalo 2.4s ease-in-out infinite; }
-  .ig-flame { transform-box: fill-box; transform-origin: bottom center; will-change: transform; }
-  .ig-flame.f1 { animation: igDance 0.95s ease-in-out infinite; }
-  .ig-flame.f2 { animation: igDance 0.7s ease-in-out infinite; animation-delay: -0.2s; }
-  .ig-flame.f3 { animation: igDance 1.35s ease-in-out infinite; animation-delay: -0.5s; opacity: 0.82; }
-  .ig-coals { transform-box: fill-box; transform-origin: center; animation: igCoals 1.8s ease-in-out infinite; }
-  @keyframes igDance {
-    0%, 100% { transform: scaleY(1) scaleX(1) rotate(0deg); }
-    20% { transform: scaleY(1.16) scaleX(0.9) rotate(-2.5deg); }
-    45% { transform: scaleY(0.8) scaleX(1.09) rotate(1.5deg); }
-    70% { transform: scaleY(1.08) scaleX(0.95) rotate(2.5deg); }
+  @keyframes mechaSpinner {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
-  @keyframes igHalo {
-    0%, 100% { opacity: 0.42; transform: scale(0.9); }
-    50% { opacity: 0.85; transform: scale(1.08); }
+  @keyframes mechaPulse {
+    0%, 100% { transform: scale(0.88); opacity: 0.5; }
+    50% { transform: scale(1.05); opacity: 0.95; }
   }
-  @keyframes igCoals {
-    0%, 100% { opacity: 0.78; }
-    50% { opacity: 1; }
+  .mecha-spinner-ring {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: mechaSpinner 1s linear infinite;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .ig-halo, .ig-flame, .ig-coals { animation: none !important; }
+  .mecha-spinner-core {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: mechaPulse 2.2s ease-in-out infinite;
   }
 
-  /* Sparks/Asquas flotantes ascendentes */
-  .lava-sparks {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-  }
-  .spark {
-    position: absolute;
-    bottom: -10px;
-    width: 4px;
-    height: 4px;
-    background: #ffcf4a;
-    border-radius: 50%;
-    box-shadow: 0 0 5px #ff7a2e, 0 0 10px #e0340e;
-    opacity: 0;
-    animation: riseAndSway 3.2s infinite ease-in-out;
-  }
-  @keyframes riseAndSway {
-    0% {
-      bottom: -10px;
-      transform: translateX(0) scale(0.6);
-      opacity: 0;
-    }
-    15% { opacity: 1; }
-    80% { opacity: 0.7; }
-    100% {
-      bottom: 110%;
-      transform: translateX(var(--sway-x, 20px)) scale(1.1);
-      opacity: 0;
-    }
-  }
-  .spark.s1 { left: 22%; animation-duration: 2.8s; animation-delay: 0s; --sway-x: 25px; }
-  .spark.s2 { left: 38%; animation-duration: 3.5s; animation-delay: 0.6s; --sway-x: -20px; width: 3px; height: 3px; }
-  .spark.s3 { left: 50%; animation-duration: 2.4s; animation-delay: 1.2s; --sway-x: 18px; }
-  .spark.s4 { left: 62%; animation-duration: 3.1s; animation-delay: 0.3s; --sway-x: -25px; width: 5px; height: 5px; }
-  .spark.s5 { left: 76%; animation-duration: 2.9s; animation-delay: 0.9s; --sway-x: 22px; }
-  .spark.s6 { left: 45%; animation-duration: 3.8s; animation-delay: 1.5s; --sway-x: -15px; width: 3px; height: 3px; }
 
   #paneLoading {
     background: radial-gradient(ellipse at center, rgba(244,80,30,.06), transparent 70%);
@@ -556,52 +507,21 @@
       <!-- LOADING (pantalla de carga de transición) -->
       <div class="pane on" id="paneLoading">
         <div class="load-wrap">
-          <!-- Ascuas flotantes ascendentes -->
-          <div class="lava-sparks">
-            <div class="spark s1"></div>
-            <div class="spark s2"></div>
-            <div class="spark s3"></div>
-            <div class="spark s4"></div>
-            <div class="spark s5"></div>
-            <div class="spark s6"></div>
-          </div>
-          <div class="hypno-loader ignite-loader" aria-hidden="true">
-            <svg viewBox="0 0 100 116" width="118" height="137">
+          <div class="mecha-loader-container" aria-hidden="true">
+            <svg viewBox="0 0 80 80" width="80" height="80" style="overflow: visible;">
               <defs>
-                <radialGradient id="igEmber" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stop-color="#ffd24a" />
-                  <stop offset="42%" stop-color="#ff7a2e" />
-                  <stop offset="100%" stop-color="rgba(224,52,14,0)" />
-                </radialGradient>
-                <linearGradient id="igFlame" x1="0" y1="1" x2="0" y2="0">
-                  <stop offset="0" stop-color="#c0260a" />
-                  <stop offset="0.45" stop-color="#ff5a1e" />
-                  <stop offset="1" stop-color="#ffcf4a" />
-                </linearGradient>
-                <linearGradient id="igCore" x1="0" y1="1" x2="0" y2="0">
-                  <stop offset="0" stop-color="#ff8a3d" />
-                  <stop offset="1" stop-color="#fff3c4" />
+                <linearGradient id="spinnerGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#f4501e" />
+                  <stop offset="100%" stop-color="rgba(244,80,30,0.15)" />
                 </linearGradient>
               </defs>
-              <!-- halo de calor que late -->
-              <circle class="ig-halo" cx="50" cy="74" r="44" fill="url(#igEmber)" />
-              <!-- llamas que danzan -->
-              <g>
-                <path class="ig-flame f3" d="M50 96 C 33 80 39 58 50 38 C 61 58 67 80 50 96 Z" fill="url(#igFlame)" />
-                <path class="ig-flame f1" d="M50 98 C 39 84 43 64 50 48 C 57 64 61 84 50 98 Z" fill="url(#igFlame)" />
-                <path class="ig-flame f2" d="M50 99 C 43 88 45 74 50 62 C 55 74 57 88 50 99 Z" fill="url(#igCore)" />
-              </g>
-              <!-- lecho de brasas -->
-              <g class="ig-coals">
-                <ellipse cx="50" cy="100" rx="22" ry="6.5" fill="url(#igEmber)" />
-                <circle cx="41" cy="101" r="4" fill="#ff6619" />
-                <circle cx="52" cy="103" r="5" fill="#ff7a2e" />
-                <circle cx="61" cy="101" r="3.5" fill="#e0340e" />
-              </g>
+              <!-- Anillo exterior -->
+              <circle class="mecha-spinner-ring" cx="40" cy="40" r="32" stroke="url(#spinnerGrad)" stroke-width="4" stroke-linecap="round" stroke-dasharray="140 60" fill="none" />
+              <!-- Núcleo central pulsante -->
+              <circle class="mecha-spinner-core" cx="40" cy="40" r="16" fill="#f4501e" style="filter: drop-shadow(0 0 10px rgba(244,80,30,0.4));" />
             </svg>
           </div>
-          <h2 class="load-h">Preparando tu salón</h2>
-          <p class="load-p" id="loadStatus">Verificando sesión...</p>
+          <h2 class="load-h" id="loadStatus">Iniciando sistema...</h2>
         </div>
       </div>
     </div>

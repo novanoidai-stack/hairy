@@ -625,6 +625,10 @@
   }
 
   /* --- Estilo Premium para los pasos de Configuración --- */
+  @keyframes fadeInGradient {
+    0% { opacity: 0; transform: translateY(-8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
   .dm-tour.config-step {
     background: linear-gradient(180deg, rgba(11, 7, 5, 0.97), rgba(5, 3, 2, 0.99)) !important;
     border: 1.5px solid #ff7a2e !important;
@@ -639,19 +643,20 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     font-weight: 800 !important;
+    animation: fadeInGradient 0.6s ease forwards;
+    margin-bottom: 0 !important;
   }
   .dm-tour.config-step p {
-    font-size: 14.5px !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    line-height: 1.65 !important;
+    display: none !important;
   }
   .dm-tour.config-step .dm-tour-step {
-    color: #ff7a2e !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.12em !important;
+    display: none !important;
   }
   .dm-tour.config-step .dm-dots {
     display: none !important;
+  }
+  .dm-tour.config-step .dm-tour-acts {
+    margin-top: 20px !important;
   }
   .dm-tour.config-step .dm-tour-acts .btn {
     border-radius: 12px !important;
@@ -667,16 +672,15 @@
   }
   @media(max-width:720px){
     .dm-tour.config-step {
-      padding: 12px 16px 12px !important;
+      padding: 18px 20px !important;
       bottom: 68px !important;
       border-radius: 16px !important;
     }
     .dm-tour.config-step h4 {
-      font-size: 16px !important;
+      font-size: 18px !important;
     }
     .dm-tour.config-step p {
-      font-size: 12.5px !important;
-      line-height: 1.5 !important;
+      display: none !important;
     }
   }
 </style>
@@ -1226,7 +1230,7 @@
   // Cada paso lleva el iframe a una pantalla (route) y pide a la app que abra un
   // panel y/o enfoque una zona con spotlight (action). Ya NO usamos flechas: el
   // enfoque lo dibuja la propia app oscureciendo todo menos la zona del paso.
-  var STEPS=[
+  var TUTORIAL_GENERAL=[
     {ic:'agenda', route:'/(tabs)', action:'cerrar', guidePos:'br',
      t:'Tu agenda real',
      d:'Cada columna es un profesional y cada bloque, una cita. Pulsa cualquier hueco y se crea una cita: te lo enseno paso a paso.'},
@@ -1274,7 +1278,10 @@
      d:'Roles, turnos y comisiones por profesional, con metricas de quien rinde mas. Todo el equipo organizado desde una sola pantalla.'},
     {ic:'rep', route:'/(tabs)/informes', action:'informes-export', guidePos:'bl',
      t:'Informes claros · PDF y CSV',
-     d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Y lo mejor: te lo descargas TODO en PDF (con tu marca) o en CSV con un clic, mira el boton arriba a la derecha.'},
+     d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Y lo mejor: te lo descargas TODO en PDF (con tu marca) o en CSV con un clic, mira el boton arriba a la derecha.'}
+  ];
+
+  var TUTORIAL_CONFIG=[
     {ic:'org', route:'/(tabs)/configuracion', action:'config-general', guidePos:'br', isConfig:true,
      t:'Configuración general',
      d:'Personaliza la identidad de tu salón de forma sencilla: desde el nombre comercial, moneda y huso horario hasta los colores de tu marca y la vista por defecto de la agenda.'},
@@ -1294,6 +1301,9 @@
      t:'Fórmulas y plantillas',
      d:'Predefine plantillas de notas e historiales clínicos de color (tinte, decoloración). Facilita al equipo guardar la fórmula exacta en la ficha del cliente en pocos segundos.'}
   ];
+
+  var currentTutorial = TUTORIAL_GENERAL;
+  var STEPS = currentTutorial;
   // El modal de nueva cita es el mismo panel para 'nueva-cita' y las sub-acciones
   // 'cita-*': no se cierra entre esos pasos, solo cambia el foco.
   function groupOf(a){
@@ -1307,7 +1317,11 @@
       tourPrev=$('#tourPrev'), tourNext=$('#tourNext');
   var point=$('#point'), pointLabel=$('#pointLabel');
 
-  STEPS.forEach(function(_,i){ var d=document.createElement('span'); if(i===0)d.className='on'; tourDots.appendChild(d); });
+  function renderDots() {
+    tourDots.innerHTML = '';
+    STEPS.forEach(function(_,i){ var d=document.createElement('span'); if(i===ti)d.className='on'; tourDots.appendChild(d); });
+  }
+  renderDots();
 
   var lastRoute=null;
   function navFrame(route){
@@ -1363,13 +1377,25 @@
     setTimeout(function() {
       tourStep.textContent='Paso '+(ti+1)+' de '+STEPS.length;
       tourIc.innerHTML=ICONS[s.ic];
+      tourTitle.style.animation = 'none';
+      void tourTitle.offsetWidth; // trigger reflow
+      tourTitle.style.animation = null;
       tourTitle.textContent=s.t;
       tourText.textContent=s.d;
       var isConfigStep = !!s.isConfig;
       tour.classList.toggle('config-step', isConfigStep);
       Array.prototype.forEach.call(tourDots.children,function(d,i){ d.classList.toggle('on', i===ti); });
       tourPrev.disabled = ti===0;
-      tourNext.textContent = ti===STEPS.length-1 ? 'Entendido' : 'Siguiente';
+      
+      if (ti === STEPS.length - 1) {
+        if (currentTutorial === TUTORIAL_GENERAL) {
+          tourNext.textContent = 'Ver Configuración';
+        } else {
+          tourNext.textContent = 'Finalizar';
+        }
+      } else {
+        tourNext.textContent = 'Siguiente';
+      }
 
       // Coloca la guia en la esquina del paso para no tapar lo que senala.
       // En móvil siempre forzamos abajo-centro para que no rompa el layout compacto.
@@ -1407,7 +1433,21 @@
   }
   function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; lastAction=null; renderStep(); tour.classList.add('show'); }
   function closeTour(){ tour.classList.remove('show','minimized'); if(tourToggle) tourToggle.textContent='Minimizar'; setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); lastAction='cerrar'; }
-  tourNext.addEventListener('click',function(){ if(ti<STEPS.length-1){ ti++; renderStep(); } else { closeTour(); } });
+  tourNext.addEventListener('click',function(){ 
+    if(ti<STEPS.length-1){ 
+      ti++; renderStep(); 
+    } else { 
+      if (currentTutorial === TUTORIAL_GENERAL) {
+        currentTutorial = TUTORIAL_CONFIG;
+        STEPS = currentTutorial;
+        ti = 0;
+        renderDots();
+        renderStep();
+      } else {
+        closeTour(); 
+      }
+    } 
+  });
   tourPrev.addEventListener('click',function(){ if(ti>0){ ti--; renderStep(); } });
   tourSkip.addEventListener('click',closeTour);
 
@@ -1427,7 +1467,10 @@
     // reiniciaba el TEXTO y la ventana del ultimo paso se quedaba abierta (desync).
     demoAction('cerrar');
     lastRoute=null; lastAction='cerrar';
+    currentTutorial = TUTORIAL_GENERAL;
+    STEPS = currentTutorial;
     tourStarted=false; ti=0;
+    renderDots();
     if(tour) tour.classList.remove('minimized');
     if(tourToggle) tourToggle.textContent='Minimizar';
     startTour();
