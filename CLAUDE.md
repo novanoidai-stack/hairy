@@ -83,7 +83,7 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
 - Software: `/app` (login por `/acceso.html`) · Portal demo: `/app/r/demo`
 - La demo es interactiva y comparte datos: si alguien los ensucia, re-sembrar el tenant demo.
 
-## Estado y pendientes (14 jun 2026 — detalle en informes/MEGA_INFORME_MECHA.md y sus adendos)
+## Estado y pendientes (actualizado 17 jun 2026 — detalle en informes/MEGA_INFORME_MECHA.md y sus adendos)
 
 - Hecho y verificado: portal+QR, reseñas, lista de espera (v1), bloqueo clientes, etiquetas,
   consentimientos, fidelización v1, demo compartida estable, móvil de landing y software,
@@ -95,17 +95,25 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
   scroll horizontal en móvil; botón "Volver a la web" en Ajustes móvil; tab bar móvil afinada;
   **rediseño total de la navegación móvil** (panel lateral deslizante sin overflow); cita sintética
   para el tour de la demo (para evitar campos vacíos); y ficha/cierres sticky en móvil.
-- Pagos (Alexandro, en `master`): modelo de datos de señal (tabla `pagos`) + RPC
-  `requerir_senal_cita` ya aplicados. Falta la pasarela (Checkout+webhook) y la UI del pago.
+- **IA / mensajería / pagos (Alexandro, en `master`, 16-17 jun) — HECHO:**
+  - **RPCs base agentes IA (A1–A6):** `identificar_cliente`, `citas_de_cliente`, `cancelar/modificar_cita_publica`,
+    `crear_cita_publica` con canal, `cita_publica` (getter anónimo), tabla+RPC `conversaciones_ia`.
+  - **Motor de notificaciones WhatsApp** ACTIVO (workflow n8n, cron-pull 2 min): confirmación + recordatorio +
+    petición de reseña + **enlace de señal**; al reagendar reenvía la confirmación. Validado E2E (envío real a móvil).
+  - **Agente WhatsApp entrante** (n8n + LLM gpt-4o vía OpenRouter + RPCs): responde, consulta catálogo y reserva.
+  - **Stripe señal P1:** edge functions `crear-checkout-senal` + `stripe-webhook` (ya en `supabase/functions/`),
+    **página de pago `/app/pago/[ref]`** (+ `/app/pago/ok`), y **cron de expiración** (`expirar_citas_sin_senal`:
+    libera el hueco si no se paga en 15 min, workflow n8n "Mecha — Expirar señales").
+  - **Página de autogestión del cliente `/app/cita/[id]`** (ver/cambiar/cancelar). Rutas `cita` y `pago`
+    exentas de los guards de auth en `app/_layout.tsx` (como `r`/`resena`).
 - **Pendientes prioritarios:**
   1. Manual (Carlos): rotar credenciales Google de `Documentacion/n8n/`; activar
      "Leaked password protection" en Supabase Auth (dashboard).
-  2. RPCs A1–A6 (base agentes IA: identificar cliente por teléfono, cancelar/modificar cita,
-     canal+autoría IA, credencial de servicio, webhook saliente) — §7 del informe.
-  3. Cancelar/modificar cita desde el portal (criterio de lanzamiento del dossier).
-  4. Stripe: señal anti no-show (P1, backend ya empezado por Alexandro — falta pasarela+UI)
-     y cobro por QR en el local (P2) — §8 del informe.
-  5. Matching automático de lista de espera + avisos (motor de mensajería = Alexandro).
-  6. Caja fiscal M-CJ (doc modular 5): NO improvisar, requiere fiscalista.
+  2. UI (Carlos): badge "señal pagada" en la ficha de la cita.
+  3. Stripe: cobro por QR en el local (P2) — §8 del informe.
+  4. Matching automático de lista de espera + avisos (el motor de envío ya existe = Alexandro; falta el matching SQL).
+  5. Operacionalizar el **agente de voz Retell** (Alexandro; número Zadarma ya disponible) — se deja para el final.
+  6. Externo (usuario): apuntar **DNS de `mecha.app`** a Vercel + pasar la app Meta a producción (para clientes reales).
+  7. Caja fiscal M-CJ (doc modular 5): NO improvisar, requiere fiscalista.
 - **No hacer aún** (disciplina del dossier): inventario, app nativa del cliente final,
   contabilidad, marketplace, precios dinámicos.
