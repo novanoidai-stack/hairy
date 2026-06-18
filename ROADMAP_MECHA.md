@@ -167,12 +167,15 @@ Camino crítico, manual, para 1 salón. **Así onboardearemos a cada cliente nue
    en la ficha de la cita [C].
 4. **Cancelar/modificar desde el portal** [A+C] 🟢 **HECHO (17 jun)** — RPCs (cancelar/modificar) + **página
    `/app/cita/[id]` "gestiona tu cita"** (ver/cambiar/cancelar, gated por teléfono); probada en navegador.
-   Pendiente fino: al reagendar, reenviar confirmación; aviso de cancelación (necesita plantilla Meta nueva).
-5. **Operacionalizar el agente de voz Retell** para ese salón [A] 🔴 — base hecha; **falta número Zadarma +
-   alta del agente Retell apuntando al workflow de funciones** (depende de ti) + prompt del salón + llamada de prueba.
-→ Resultado: un salón con agenda + reservas + recordatorios + señal + agentes, **montado a mano por nosotros**.
-   Repetimos este mismo proceso por cada cliente nuevo. **Queda para cerrar Fase 1:** página de pago + cron de
-   expiración + agente de voz + validación E2E del salón completo + DNS de mecha.app.
+   🟢 Al reagendar **reenvía la confirmación** con la nueva fecha y reprograma el recordatorio (17 jun).
+   Pendiente fino: aviso de cancelación (necesita plantilla Meta nueva).
+5. **Operacionalizar el agente de voz Retell** [A] 🔴 — APARCADO al final (decisión 17 jun). Número Zadarma ya
+   disponible; falta alta del agente Retell + prompt + llamada de prueba. Se hace lo último, tras todo lo demás.
+6. **Aviso de lista de espera** (pieza del motor) [A] 🔴 — APARCADO casi al final, antes del agente de voz.
+   Matching SQL al liberarse hueco + plantilla Meta `aviso_lista_espera`.
+→ **Validación E2E del motor sobre el demo: ✅ (17 jun)** — reserva (crear_cita_publica), confirmación,
+   recordatorio, reseña, señal (cola+importe), expiración (libera hueco) y gestión/reagende, todos verificados.
+   **Para cerrar Fase 1 con un salón REAL solo falta (externo): DNS de mecha.app + app Meta a producción.**
 
 ### FASE 2 — "Como mínimo Booksy" + captación (lo que trae clientes)
 - **Paridad Booksy:** cerrar lo que falte para igualar/superar a Booksy. ⏳ **Pendiente el informe del socio
