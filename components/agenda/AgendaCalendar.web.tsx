@@ -10,6 +10,8 @@ import { syncAlergiasACliente } from '@/lib/syncAlergias';
 import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
+import { proponerRetrasoPorCita, construirUpdatesRetraso, type PropuestaRetraso } from '@/lib/retrasos';
+import RetrasoPropuestaModal from './RetrasoPropuestaModal';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -3935,6 +3937,45 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [motivoCancelacion, setMotivoCancelacion] = useState('');
   const [canceladoPor, setCanceladoPor] = useState<'clienta' | 'negocio'>('negocio');
+  // --- Retrasos encadenados (IA de agenda) ---
+  const [retrasoPickerOpen, setRetrasoPickerOpen] = useState(false);
+  const [propRetraso, setPropRetraso] = useState<PropuestaRetraso | null>(null);
+  const [retrasoMin, setRetrasoMin] = useState(0);
+  const [aplicandoRetraso, setAplicandoRetraso] = useState(false);
+  // Citas del MISMO profesional (pendientes/confirmadas) mapeadas para el calculo de cascada.
+  function citasDelProfParaCascada() {
+    return (allCitas || [])
+      .filter((c: any) => c.profesional_id === cita.profesional_id && (c.estado === 'pendiente' || c.estado === 'confirmada'))
+      .map((c: any) => ({
+        id: c.id, inicio: c.inicio, fin: c.fin, fin_activa: c.fin_activa, fin_espera: c.fin_espera,
+        cliente: clientes.find((x: any) => x.id === c.cliente_id)?.nombre ?? null,
+        telefono: clientes.find((x: any) => x.id === c.cliente_id)?.telefono ?? null,
+        servicio: servicios.find((x: any) => x.id === c.servicio_id)?.nombre ?? null,
+      }));
+  }
+  function abrirRetraso(min: number) {
+    setRetrasoMin(min);
+    setPropRetraso(proponerRetrasoPorCita(citasDelProfParaCascada(), cita.id, min));
+    setRetrasoPickerOpen(false);
+  }
+  async function aplicarRetraso(_avisarClientes: boolean) {
+    if (!propRetraso) return;
+    setAplicandoRetraso(true);
+    try {
+      const updates = construirUpdatesRetraso(propRetraso, citasDelProfParaCascada());
+      for (const u of updates) {
+        const { id, ...campos } = u;
+        await supabase.from('citas').update(campos).eq('id', id);
+      }
+      // El aviso por WhatsApp (avisarClientes) queda pendiente de la plantilla Meta `aviso_retraso`.
+      setPropRetraso(null);
+      onSaved?.();
+      triggerRefresh?.();
+      onClose?.();
+    } catch {
+      setAplicandoRetraso(false);
+    }
+  }
   const [fechaEditada, setFechaEditada] = useState(() => new Date(cita.inicio));
   const dateInputRef = useRef<HTMLInputElement>(null);
   const [horaEditada, setHoraEditada] = useState(() => {
@@ -5603,6 +5644,24 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
               <IconTrash /> Cancelar cita
             </button>
           )}
+          {cita.estado === CITA_STATUS.CONFIRMADA && new Date(cita.inicio) > new Date() && (
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setRetrasoPickerOpen((v) => !v)}
+                disabled={guardando}
+                style={{ padding: '9px 14px', background: 'rgba(245,158,11,0.10)', color: '#b45309', border: '1px solid rgba(245,158,11,0.55)', borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                Marcar retraso
+              </button>
+              {retrasoPickerOpen && (
+                <div style={{ position: 'absolute', bottom: '112%', left: 0, zIndex: 10, display: 'flex', gap: 6, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: 6, boxShadow: '0 10px 26px rgba(40,30,24,0.16)' }}>
+                  {[10, 15, 30].map((m) => (
+                    <button key={m} onClick={() => abrirRetraso(m)} style={{ padding: '7px 10px', background: 'rgba(245,158,11,0.12)', color: '#b45309', border: '1px solid rgba(245,158,11,0.4)', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>+{m} min</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {errMsg ? <div style={{ fontSize: 11, color: TOKENS.danger, padding: '6px 10px', background: `${TOKENS.danger}15`, borderRadius: 6, border: `1px solid ${TOKENS.danger}44` }}>{errMsg}</div> : null}
           <div style={{ display: 'flex', gap: 8 }}>
             <button
@@ -5648,6 +5707,17 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
       </div>
 
       {/* Modal cancelacion CU-AG-05 */}
+      {propRetraso && (
+        <RetrasoPropuestaModal
+          propuesta={propRetraso}
+          minutos={retrasoMin}
+          profesionalNombre={prof?.nombre}
+          avisarDisponible={false}
+          enviando={aplicandoRetraso}
+          onConfirmar={aplicarRetraso}
+          onCancelar={() => setPropRetraso(null)}
+        />
+      )}
       {showCancelModal && (
         <div onClick={(e) => e.stopPropagation()} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 28, width: 360, display: 'flex', flexDirection: 'column', gap: 16 }}>
