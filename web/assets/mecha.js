@@ -339,6 +339,17 @@
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
       linksWrap.appendChild(a);
     });
+
+    // Cabecera de cuenta: oculta por defecto; index.html (syncMobileAccount) la
+    // rellena con avatar + email y la muestra cuando hay sesion activa.
+    var account = document.createElement('div');
+    account.className = 'mnav-account';
+    account.style.display = 'none';
+    account.innerHTML = '<span class="mnav-av">·</span>' +
+      '<span class="mnav-acc-meta"><span class="mnav-acc-lbl">Tu cuenta</span>' +
+      '<span class="mnav-acc-eml"></span></span>';
+    panel.appendChild(account);
+
     panel.appendChild(linksWrap);
 
     // Pie: respeta el CTA de cada pagina (login/"Volver a la web" + demo).
@@ -371,9 +382,18 @@
     demoLink.href = srcDemo ? srcDemo.getAttribute('href') : 'demo.html';
     demoLink.textContent = (srcDemo && srcDemo.textContent.trim()) || 'Ver demo gratis';
 
+    // "Panel de staff": oculto por defecto; index.html (syncMobileStaff) lo muestra
+    // solo al equipo Mecha, como espejo del item #acctStaff del dropdown de escritorio.
+    var staffLink = document.createElement('a');
+    staffLink.className = 'mobile-menu-staff';
+    staffLink.href = 'admin.html';
+    staffLink.style.display = 'none';
+    staffLink.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg><span>Panel de staff</span>';
+
     foot.appendChild(loginLink);
     foot.appendChild(enterLink);
     foot.appendChild(demoLink);
+    foot.appendChild(staffLink);
     panel.appendChild(foot);
 
     body.appendChild(scrim);

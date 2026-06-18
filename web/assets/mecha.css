@@ -171,6 +171,7 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
 .hero h1 .em{font-family:var(--serif);font-weight:400;font-style:italic}
 .hero-sub{font-size:clamp(17px,2.3vw,21px);color:var(--text-sec);max-width:660px;margin:0 auto 36px;line-height:1.6}
 .hero-sub .sub-short{display:none} /* version larga por defecto; la corta solo en movil (media 600) */
+.cta-short,.hero-badge .hb-short{display:none} /* texto corto de CTA y badge: solo en movil (media 600) */
 .hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
 .hero-micro{font-size:13.5px;color:var(--text-ter);display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
 .hero-micro span{display:inline-flex;align-items:center;gap:6px}
@@ -180,6 +181,7 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
   border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--border-hi);
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:border-color .2s,transform .2s}
 .hero-rating:hover{border-color:var(--accent);transform:translateY(-1px)}
+.hero-rating .hr-label{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-ter)}
 .hero-rating .hr-flames{display:inline-flex;gap:1px}
 .hero-rating .hr-score{font-weight:800;font-size:15px;color:var(--text)}
 .hero-rating .hr-count{font-size:13px;color:var(--text-sec)}
@@ -386,6 +388,53 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
   background: rgba(255, 255, 255, .03);
 }
 
+/* Cabecera de cuenta del drawer (avatar + email cuando hay sesion) */
+.mnav-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 14px 2px;
+  padding: 13px 15px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid var(--border-hi);
+}
+.mnav-account .mnav-av {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: var(--grad-soft);
+  color: #fff;
+  font-weight: 800;
+  font-size: 17px;
+}
+.mnav-account .mnav-acc-meta { display: flex; flex-direction: column; min-width: 0; }
+.mnav-account .mnav-acc-lbl {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text-ter);
+}
+.mnav-account .mnav-acc-eml {
+  font-size: 14px; font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* "Panel de staff": enlace sutil del pie, con icono escudo */
+.mnav-foot .mobile-menu-staff {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; text-align: center;
+  font-size: 14px; font-weight: 600; color: var(--text-sec);
+  padding: 11px; border-radius: var(--r-md);
+  border: 1px solid var(--border-hi);
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+.mnav-foot .mobile-menu-staff svg { width: 16px; height: 16px; color: var(--accent-hi); }
+.mnav-foot .mobile-menu-staff:hover, .mnav-foot .mobile-menu-staff:active {
+  color: var(--text); border-color: var(--accent); background: rgba(255, 255, 255, .03);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mnav-panel { transition: none; }
   .mnav-links a { opacity: 1; transform: none; transition: color .2s ease, background .2s ease, border-color .2s ease; }
@@ -412,6 +461,18 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
   .hero-sub .sub-short{display:inline}
   .hero-actions{gap:10px;margin-bottom:14px}
   .hero-actions .btn-lg{width:100%}
+  /* Botones mas contenidos en movil (no tan grandes) */
+  .btn-lg{padding:13px 20px;font-size:14.5px}
+  /* CTA: texto corto en movil ("Habla con nosotros") */
+  .cta-full{display:none}
+  .cta-short{display:inline}
+  /* Badge del hero: solo "Especializado para salones" en movil */
+  .hero-badge .tag{display:none}
+  .hero-badge .hb-full{display:none}
+  .hero-badge .hb-short{display:inline}
+  /* Pill de valoraciones: que envuelva por chips enteros, sin partir "salones" */
+  .hero-rating{flex-wrap:wrap;justify-content:center;gap:7px;padding:8px 12px}
+  .hero-rating .hr-count,.hero-rating .hr-verif{white-space:nowrap}
   .hero-micro{gap:10px 18px;font-size:12.5px}
 }
 
