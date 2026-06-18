@@ -20,3 +20,4 @@ expo-env.d.ts
 seed-data.mjs
 scripts/seed-data.ts
 scripts/insert-data.sql
+supabase/.temp/
