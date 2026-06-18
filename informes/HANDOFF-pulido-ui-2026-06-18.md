@@ -22,12 +22,16 @@ npx tsc --noEmit             # typecheck (ignorar errores de supabase/functions:
 - `bd85ed1d` Reseñas: portal público premium, dashboard interno (filtros/stats/sentimiento), seguimiento "¿Ha dejado reseña?" en ficha de cliente y en detalle de cita (etiquetas reservadas en `lib/constants.ts`), fueguitos = logo.
 - `280b7c22` Web: login (panel izq. más grande, iconos SVG, costura de fondos integrada), ascuas throttle móvil (34 vs 120) en `acceso.html`, loader "fuego prendiendo", landing móvil (h1 33px, subtítulo corto, icono chat en CTA).
 - `aa4dec24` Agenda: vista de mes premium + responsive (fin de semana acentuado, "hoy" en círculo, puntos de color en móvil) y más contraste en vista de día (filas/horas/separadores).
+- `39db3a7c` **Tanda A (landing/nav móvil) — HECHA y verificada (375px + escritorio):** CTA corto "Habla con nosotros" en móvil; etiqueta "RESEÑAS" en el bloque de valoración del hero; badge "Especializado para salones" en móvil; `.btn-lg` más contenido en móvil; tarjeta Booksy/Fresha en 2 columnas compactas; nav móvil con cabecera de cuenta + "Panel de staff" (`syncMobileStaff`/`syncMobileAccount`).
 
 ---
 
 ## PENDIENTES
 
-### A) Landing / navegación móvil — `web/index.html`, `web/assets/mecha.css`, `web/assets/mecha.js`
+### A) Landing / navegación móvil — HECHA ✅ (commit `39db3a7c`, 18 jun)
+> Las 6 subtareas A1–A6 están completas y verificadas en navegador. Se conserva el detalle abajo por si hay que retomar matices.
+
+### A·detalle) Landing / navegación móvil — `web/index.html`, `web/assets/mecha.css`, `web/assets/mecha.js`
 1. **CTA "Habla con nosotros y te damos acceso ya"**: en móvil el texto es muy largo. Dar una versión corta en móvil (técnica de span `.cta-full`/`.cta-short` con `display` por media query, como ya se hizo con `.hero-sub .sub-full/.sub-short`). Ocurre en hero (`index.html` ~363) y en la sección CTA inferior (~871).
 2. **Bloque de valoración bajo los botones del hero** (`#heroRating`, se rellena por JS ~línea 1130): un visitante nuevo no entiende que son **reseñas**. Añadir etiqueta explícita ("Reseñas" / "Valoración media") y que enlace a `#resenas`.
 3. **Badge del hero** "Para salones · Hecho a medida, no una app genérica" (`index.html` ~353-356, `.hero-badge`): genera ruido en móvil. Cambiar a simplemente **"Especializado para salones"** en móvil.
@@ -61,4 +65,7 @@ npx tsc --noEmit             # typecheck (ignorar errores de supabase/functions:
 ---
 
 ## Prompt para continuar (pegar en sesión nueva)
-Ver bloque en el chat / al pie. Empezar por la tanda **A (landing/nav móvil)** salvo que el socio priorice otra.
+Ver bloque en el chat / al pie. La tanda **A (landing/nav móvil) está HECHA** (commit `39db3a7c`).
+Continuar por la tanda **B (agenda: colapsar mini-cal/KPIs + barra; acceso a mini-cal en móvil)**
+salvo que el socio priorice otra. Además hay un informe nuevo de POS/caja
+(`ARQUITECTURA_POS_Y_ESTADISTICAS_MECHA.md`) pendiente de decisión de Jose (no es de UI).
