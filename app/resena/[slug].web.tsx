@@ -44,6 +44,10 @@ const ANIM = `
     .rs-step, .rs-flame { animation: none !important }
     .rs-cta, .rs-star { transition: none !important }
   }
+  /* Grid de dos columnas que apila en movil (las columnas px fijas recortaban el
+     selector de valoracion en pantallas estrechas). */
+  .rs-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
+  @media (max-width: 560px) { .rs-grid2 { grid-template-columns: 1fr; gap: 14px } }
 `;
 
 const ETIQUETAS = ['', 'Lo siento', 'Mejorable', 'Bien', 'Muy bien', '¡Excelente!'];
@@ -529,7 +533,7 @@ export default function ResenaWeb() {
                   <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 10, fontFamily: SANS_SERIF }}>
                     Sobre el servicio recibido:
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 14 }}>
+                  <div className="rs-grid2" style={{ marginBottom: 14 }}>
                     <div>
                       <label style={{ display: 'block', fontSize: 12, color: T.textTer, marginBottom: 6 }}>
                         Trato recibido
