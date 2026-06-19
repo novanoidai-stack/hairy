@@ -78,10 +78,13 @@ export function proponerRetrasoPorCita(
 ): PropuestaRetraso {
   const c = citasDelProfesional.find((x) => x.id === citaId);
   if (!c || minutos <= 0) return { items: [], totalAfectadas: 0, cortaEn: null };
-  const barrera = +new Date(c.fin) + minutos * MIN;
-  const iniOrigen = +new Date(c.inicio);
-  const posteriores = citasDelProfesional.filter((x) => x.id !== citaId && +new Date(x.inicio) >= iniOrigen);
-  return calcularCascada(posteriores, barrera);
+  // La cita marcada SE RETRASA X min (se desplaza ella misma); las siguientes del profesional
+  // se recolocan en cascada absorbiendo huecos. La cita marcada es la PRIMERA de la cascada,
+  // por eso la incluimos y ponemos la barrera en su inicio + X (no en su fin).
+  const desde = +new Date(c.inicio);
+  const barrera = desde + minutos * MIN;
+  const afectadas = citasDelProfesional.filter((x) => +new Date(x.inicio) >= desde);
+  return calcularCascada(afectadas, barrera);
 }
 
 // Cita original con las 4 marcas de tiempo (para desplazarlas todas el mismo delta al aplicar).
