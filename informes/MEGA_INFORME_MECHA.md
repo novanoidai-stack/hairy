@@ -62,11 +62,16 @@ Desplegado a `master` (producción) en esta sesión:
   limpios). Botón **Cobrar** en la cita → modal (servicio, descuento, propina, total,
   método como etiqueta efectivo/datáfono/bizum) que registra el cobro y marca la cita
   "Cobrada". Nomenclatura "comprobante · no es factura".
+- **POS-1 (Caja) — Carlos:** arreglada la pantalla **Caja** (estaba ROTA: consultaba
+  columnas inexistentes —`fecha`, `cita_servicios`, `clientes.apellidos`— y un RPC que no
+  existía, y mostraba importes 100× mal tratando euros como céntimos). Ahora lista las
+  citas de hoy pendientes con el esquema real, cobra vía RPC `crear_cobro_desde_cita`
+  (security definer, comprueba negocio, descuenta señal, solo `authenticated`) y muestra
+  el **arqueo del día** (cobrado hoy total + efectivo/datáfono + propinas). Verificado E2E.
 
 **Pendiente (próxima tanda):**
-- **POS-1:** pantalla de **arqueo/cierre diario** (totales por método, propinas), **UI
-  de fichajes** (entrada/salida + registro de horas), e **interruptor "estimado vs
-  cobrado"** en informes (leer del libro de `cobros` cuando el negocio usa POS).
+- **POS-1 (resto):** **UI de fichajes** (entrada/salida + registro de horas) e
+  **interruptor "estimado vs cobrado"** en informes (leer del libro de `cobros`).
 - **Pulido demo:** enfoque más fino en el tutorial de config (señalar la pestaña del
   menú, no solo el panel) y afinar el velo cinemático en escritorio.
 - Sigue pendiente (manual): rotar credenciales Google de `Documentacion/n8n/`, activar
