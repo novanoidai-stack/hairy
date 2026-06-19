@@ -4122,6 +4122,14 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
   const [propRetraso, setPropRetraso] = useState<PropuestaRetraso | null>(null);
   const [retrasoMin, setRetrasoMin] = useState(0);
   const [aplicandoRetraso, setAplicandoRetraso] = useState(false);
+  // --- Cobro (POS-0): caja operativa NO fiscal. Metodo como etiqueta + propina/descuento. ---
+  const [cobrada, setCobrada] = useState<boolean>(!!cita.cobrada);
+  const [showCobro, setShowCobro] = useState(false);
+  const [cobroMetodo, setCobroMetodo] = useState<'efectivo' | 'datafono' | 'bizum'>('efectivo');
+  const [cobroDescuento, setCobroDescuento] = useState('');
+  const [cobroPropina, setCobroPropina] = useState('');
+  const [cobrando, setCobrando] = useState(false);
+  const [cobroErr, setCobroErr] = useState('');
   // Citas del MISMO profesional (pendientes/confirmadas) mapeadas para el calculo de cascada.
   function citasDelProfParaCascada() {
     return (allCitas || [])
@@ -4367,6 +4375,62 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
   const citaDate = new Date(cita.inicio).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'short' });
   const citaHora = new Date(cita.inicio).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
   const citaFinHora = new Date(cita.fin).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
+
+  const crearCobro = async () => {
+    const base = Number(selectedServicio?.precio ?? servicio?.precio ?? 0);
+    const desc = Math.max(0, parseFloat((cobroDescuento || '').replace(',', '.')) || 0);
+    const prop = Math.max(0, parseFloat((cobroPropina || '').replace(',', '.')) || 0);
+    const total = Math.max(0, base - desc) + prop;
+    if (total <= 0) { setCobroErr('El total debe ser mayor que 0.'); return; }
+    setCobroErr('');
+    setCobrando(true);
+    try {
+      const profile = await getUserProfile();
+      const negocioId = profile?.negocio_id;
+      if (!negocioId) { setCobroErr('No se pudo identificar el negocio.'); setCobrando(false); return; }
+      const totalCents = Math.round(total * 100);
+      const { data: cobro, error } = await supabase
+        .from('cobros')
+        .insert({
+          negocio_id: negocioId,
+          cita_id: cita.id,
+          grupo_id: cita.grupo_id ?? null,
+          profesional_id: cita.profesional_id ?? null,
+          cliente_id: cita.cliente_id ?? null,
+          total_cents: totalCents,
+          propina_cents: Math.round(prop * 100),
+          descuento_cents: Math.round(desc * 100),
+          metodo: cobroMetodo,
+          efectivo_cents: cobroMetodo === 'efectivo' ? totalCents : 0,
+          datafono_cents: cobroMetodo === 'datafono' ? totalCents : 0,
+          online_cents: 0,
+          origen: 'pos',
+          estado: 'completado',
+        })
+        .select('id')
+        .single();
+      if (error || !cobro) { setCobroErr(mensajeDeError(error, 'No se pudo registrar el cobro.')); setCobrando(false); return; }
+      // Linea del servicio (snapshot del nombre y precio)
+      await supabase.from('cobro_lineas').insert({
+        cobro_id: cobro.id,
+        tipo: 'servicio',
+        ref_id: selectedServicio?.id ?? cita.servicio_id ?? null,
+        nombre: selectedServicio?.nombre ?? servicio?.nombre ?? 'Servicio',
+        precio_cents: Math.round(base * 100),
+        cantidad: 1,
+      });
+      // Marcar la cita como cobrada
+      await supabase.from('citas').update({ cobrada: true, cobro_id: cobro.id }).eq('id', cita.id);
+      setCobrada(true);
+      setShowCobro(false);
+      onSaved?.({ id: cita.id, cobrada: true, cobro_id: cobro.id });
+      triggerRefresh?.();
+    } catch (e: any) {
+      setCobroErr(mensajeDeError(e, 'No se pudo registrar el cobro.'));
+    } finally {
+      setCobrando(false);
+    }
+  };
 
   const handleGuardar = async () => {
     if (!selectedCliente || !selectedServicio || !selectedProf) return;
@@ -5843,6 +5907,21 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
               )}
             </div>
           )}
+          {!cobrada && cita.estado !== CITA_STATUS.CANCELADA && (
+            <button
+              onClick={() => { setCobroErr(''); setCobroDescuento(''); setCobroPropina(''); setCobroMetodo('efectivo'); setShowCobro(true); }}
+              disabled={guardando}
+              style={{ padding: '9px 16px', background: 'linear-gradient(180deg,#16a34a,#15803d)', color: '#fff', border: 'none', borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 12px rgba(22,163,74,0.35)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>
+              Cobrar
+            </button>
+          )}
+          {cobrada && (
+            <span style={{ padding: '7px 12px', background: 'rgba(22,163,74,0.12)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.4)', borderRadius: 8, fontSize: 11.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <IconCheck /> Cobrada
+            </span>
+          )}
           </div>
           {errMsg ? <div style={{ fontSize: 11, color: TOKENS.danger, padding: '6px 10px', background: `${TOKENS.danger}15`, borderRadius: 6, border: `1px solid ${TOKENS.danger}44` }}>{errMsg}</div> : null}
           <div style={{ display: 'flex', gap: 8 }}>
@@ -5887,6 +5966,66 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
           </div>
         </div>
       </div>
+
+      {/* Modal de cobro (POS-0): caja operativa, NO fiscal */}
+      {showCobro && (() => {
+        const base = Number(selectedServicio?.precio ?? servicio?.precio ?? 0);
+        const desc = Math.max(0, parseFloat((cobroDescuento || '').replace(',', '.')) || 0);
+        const prop = Math.max(0, parseFloat((cobroPropina || '').replace(',', '.')) || 0);
+        const total = Math.max(0, base - desc) + prop;
+        const metodos: Array<[typeof cobroMetodo, string]> = [['efectivo', 'Efectivo'], ['datafono', 'Datáfono'], ['bizum', 'Bizum']];
+        return (
+          <div
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 210, padding: 16 }}
+            onClick={(e) => { if (e.target === e.currentTarget && !cobrando) setShowCobro(false); }}
+          >
+            <div style={{ background: TOKENS.bgPanel, border: '1px solid rgba(22,163,74,0.4)', borderRadius: 16, padding: 22, width: '100%', maxWidth: 400, boxShadow: '0 24px 70px rgba(0,0,0,0.8)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <h4 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: TOKENS.text }}>Cobrar</h4>
+                <span style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600 }}>Comprobante · no es factura</span>
+              </div>
+              <div style={{ fontSize: 12.5, color: TOKENS.textSec, marginBottom: 16 }}>{selectedCliente?.nombre || 'Cliente'} · {selectedServicio?.nombre || servicio?.nombre || 'Servicio'}</div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12.5, color: TOKENS.textSec }}>Servicio</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text }}>{base.toFixed(2)} €</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <label style={{ fontSize: 12.5, color: TOKENS.textSec }}>Descuento (€)</label>
+                  <input type="text" inputMode="decimal" value={cobroDescuento} onChange={(e) => setCobroDescuento(e.target.value)} placeholder="0" style={{ width: 92, padding: '8px 10px', textAlign: 'right', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.text, fontSize: 13, boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <label style={{ fontSize: 12.5, color: TOKENS.textSec }}>Propina (€)</label>
+                  <input type="text" inputMode="decimal" value={cobroPropina} onChange={(e) => setCobroPropina(e.target.value)} placeholder="0" style={{ width: 92, padding: '8px 10px', textAlign: 'right', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.text, fontSize: 13, boxSizing: 'border-box' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '12px 0', borderTop: `1px solid ${TOKENS.border}`, marginBottom: 14 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text }}>Total a cobrar</span>
+                <span style={{ fontSize: 24, fontWeight: 800, color: '#16a34a' }}>{total.toFixed(2)} €</span>
+              </div>
+
+              <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Método</div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                {metodos.map(([k, lbl]) => {
+                  const on = cobroMetodo === k;
+                  return (
+                    <button key={k} onClick={() => setCobroMetodo(k)} style={{ flex: 1, padding: '10px 0', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: on ? 'rgba(22,163,74,0.16)' : TOKENS.bgCard, border: `1px solid ${on ? 'rgba(22,163,74,0.55)' : TOKENS.border}`, color: on ? '#16a34a' : TOKENS.textSec }}>{lbl}</button>
+                  );
+                })}
+              </div>
+
+              {cobroErr && <div style={{ fontSize: 12, color: TOKENS.danger, marginBottom: 12 }}>{cobroErr}</div>}
+
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button onClick={() => setShowCobro(false)} disabled={cobrando} style={{ padding: '9px 18px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>Cancelar</button>
+                <button onClick={crearCobro} disabled={cobrando} style={{ padding: '9px 20px', background: 'linear-gradient(180deg,#16a34a,#15803d)', color: '#fff', border: 'none', borderRadius: 8, cursor: cobrando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, opacity: cobrando ? 0.7 : 1 }}>{cobrando ? 'Cobrando…' : 'Confirmar cobro'}</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal cancelacion CU-AG-05 */}
       {propRetraso && (
