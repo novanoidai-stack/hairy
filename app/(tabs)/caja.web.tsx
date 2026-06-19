@@ -91,6 +91,8 @@ export default function CajaScreen() {
   const [showCobroModal, setShowCobroModal] = useState(false);
   const [cobrando, setCobrando] = useState(false);
   const [mensaje, setMensaje] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // Arqueo del dia: lo cobrado HOY de verdad (libro de cobros), por metodo.
+  const [arqueo, setArqueo] = useState<{ total: number; efectivo: number; datafono: number; propinas: number; count: number } | null>(null);
 
   // Totales de la selección
   const seleccion = useMemo(() => {
@@ -110,54 +112,74 @@ export default function CajaScreen() {
         return;
       }
 
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const tomorrowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+
+      // Citas de hoy pendientes de cobro. El esquema real usa `inicio` (timestamptz),
+      // `servicio_id` (no tabla puente) y `pagos.importe_cents`.
       const { data, error } = await supabase
         .from('citas')
         .select(`
           id,
-          fecha,
-          hora_inicio,
+          inicio,
+          estado,
           cliente_id,
-          clientes (nombre, apellidos),
+          clientes (nombre),
           profesional_id,
           profesionales (nombre),
-          cita_servicios (
-            servicios (nombre, precio)
-          ),
-          pagos (tipo, amount_cents, estado)
+          servicio_id,
+          servicios (nombre, precio),
+          pagos (tipo, importe_cents, estado)
         `)
         .eq('negocio_id', profile.negocio_id)
         .eq('cobrada', false)
-        .in('estado', ['completada', 'finalizada'])
-        .gte('fecha', new Date().toISOString().split('T')[0])
-        .order('hora_inicio', { ascending: true });
+        .in('estado', ['completada', 'finalizada', 'confirmada'])
+        .gte('inicio', todayStart)
+        .lt('inicio', tomorrowStart)
+        .order('inicio', { ascending: true });
 
       if (error) throw error;
 
-      // Procesar datos
+      // Importes SIEMPRE en centimos internamente (servicios.precio viene en euros).
       const procesadas: CitaPendiente[] = (data || []).map((cita: any) => {
-        const servicios = cita.cita_servicios || [];
-        const servicio = servicios[0]?.servicios || {};
+        const servicio = cita.servicios || {};
+        const precioCents = Math.round((servicio.precio || 0) * 100);
         const pagos = cita.pagos || [];
         const sena = pagos
-          .filter((p: any) => p.tipo === 'senal' && p.estado === 'completado')
-          .reduce((s: number, p: any) => s + (p.amount_cents || 0), 0);
+          .filter((p: any) => p.tipo === 'senal' && ['completado', 'pagado', 'succeeded', 'paid'].includes(p.estado))
+          .reduce((s: number, p: any) => s + (p.importe_cents || 0), 0);
 
         return {
           id: cita.id,
-          fecha: cita.fecha,
-          hora_inicio: cita.hora_inicio,
-          cliente_nombre: cita.clientes
-            ? `${cita.clientes.nombre} ${cita.clientes.apellidos || ''}`.trim()
-            : null,
+          fecha: cita.inicio,
+          hora_inicio: cita.inicio,
+          cliente_nombre: cita.clientes?.nombre || null,
           profesional_nombre: cita.profesionales?.nombre || null,
           servicio_nombre: servicio.nombre || null,
-          servicio_precio: servicio.precio || 0,
+          servicio_precio: precioCents,
           sena_pagada: sena,
-          total_pendiente: (servicio.precio || 0) - sena,
+          total_pendiente: Math.max(0, precioCents - sena),
         };
       });
 
       setCitas(procesadas);
+
+      // Arqueo del dia: lo cobrado HOY de verdad (libro de cobros)
+      const { data: cobrosHoy } = await supabase
+        .from('cobros')
+        .select('total_cents, efectivo_cents, datafono_cents, propina_cents')
+        .eq('negocio_id', profile.negocio_id)
+        .eq('estado', 'completado')
+        .gte('cobrado_at', todayStart);
+      const cr = cobrosHoy || [];
+      setArqueo({
+        total: cr.reduce((s: number, r: any) => s + (r.total_cents || 0), 0),
+        efectivo: cr.reduce((s: number, r: any) => s + (r.efectivo_cents || 0), 0),
+        datafono: cr.reduce((s: number, r: any) => s + (r.datafono_cents || 0), 0),
+        propinas: cr.reduce((s: number, r: any) => s + (r.propina_cents || 0), 0),
+        count: cr.length,
+      });
     } catch (err) {
       console.error('Error cargando citas pendientes:', err);
       setMensaje({ type: 'error', text: mensajeDeError(err) });
@@ -209,7 +231,7 @@ export default function CajaScreen() {
         throw new Error(`${fallidos.length} de ${ids.length} cobros fallaron`);
       }
 
-      setMensaje({ type: 'success', text: `✓ ${ids.length} citas cobradas` });
+      setMensaje({ type: 'success', text: `${ids.length} cita${ids.length === 1 ? '' : 's'} cobrada${ids.length === 1 ? '' : 's'}` });
       setSelectedIds(new Set());
       setShowCobroModal(false);
       await cargarCitas(); // Recargar
@@ -251,6 +273,29 @@ export default function CajaScreen() {
           Cobra las citas completadas. Elige método, confirma y listo.
         </p>
       </div>
+
+      {/* Arqueo del dia (lo cobrado de verdad, por metodo) */}
+      {arqueo && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 16 }}>
+          <div style={{ background: T.card, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, color: T.textSec, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>Cobrado hoy</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginTop: 4 }}>{(arqueo.total / 100).toFixed(2)}€</div>
+            <div style={{ fontSize: 11, color: T.textTer, marginTop: 2 }}>{arqueo.count} cobro{arqueo.count === 1 ? '' : 's'}</div>
+          </div>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, color: T.textSec, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Icon name="cash" size={13} color={T.success} /> Efectivo</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: T.text, marginTop: 4 }}>{(arqueo.efectivo / 100).toFixed(2)}€</div>
+          </div>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, color: T.textSec, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Icon name="credit" size={13} color={T.primary} /> Datáfono</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: T.text, marginTop: 4 }}>{(arqueo.datafono / 100).toFixed(2)}€</div>
+          </div>
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, color: T.textSec, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>Propinas</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: T.success, marginTop: 4 }}>{(arqueo.propinas / 100).toFixed(2)}€</div>
+          </div>
+        </div>
+      )}
 
       {/* Mensaje */}
       {mensaje && (
