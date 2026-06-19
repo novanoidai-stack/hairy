@@ -371,12 +371,13 @@
     white-space: nowrap;
   }
   .share-bonus-card {
-    background: linear-gradient(135deg, rgba(244, 80, 30, 0.08) 0%, rgba(255, 122, 46, 0.03) 100%);
-    border: 1px dashed rgba(244, 80, 30, 0.35);
-    border-radius: 16px;
-    padding: 20px;
+    background: none;
+    border: 0;
+    padding: 14px 0 0;
+    margin-top: 4px;
     position: relative;
   }
+  .share-howlabel{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-ter);margin-bottom:10px}
   .share-bonus-badge {
     display: inline-flex;
     align-items: center;
@@ -545,6 +546,26 @@
     background: rgba(231, 76, 60, 0.1);
     border: 1px solid rgba(231, 76, 60, 0.3);
     color: #e74c3c;
+  }
+
+  /* --- Recompensa (gancho): que ganas tu / que gana quien entra --- */
+  .share-rewards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .share-reward{position:relative;padding:16px 14px;border-radius:16px;text-align:center;
+    background:linear-gradient(160deg,rgba(244,80,30,.14),rgba(255,122,46,.05));border:1px solid rgba(244,80,30,.32)}
+  .share-reward.alt{background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border-color:rgba(255,255,255,.12)}
+  .share-reward .rw-ic{width:34px;height:34px;border-radius:10px;margin:0 auto 9px;display:grid;place-items:center;background:rgba(244,80,30,.18);color:var(--accent-hi)}
+  .share-reward.alt .rw-ic{background:rgba(255,255,255,.08);color:#ffd9a8}
+  .share-reward .rw-ic svg{width:18px;height:18px}
+  .share-reward .rw-amt{font-family:var(--display);font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1;color:#fff}
+  .share-reward .rw-amt span{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text-ter);margin-left:4px;text-transform:uppercase;letter-spacing:.05em}
+  .share-reward .rw-lbl{font-size:12.5px;font-weight:700;color:var(--accent-hi);margin-top:6px}
+  .share-reward.alt .rw-lbl{color:#ffd9a8}
+  .share-reward .rw-sub{font-size:11px;color:var(--text-sec);line-height:1.4;margin-top:4px}
+  .share-foot-note{font-size:11.5px;color:var(--text-ter);text-align:center;margin:10px 0 0;line-height:1.45}
+  @media(max-width:480px){
+    .share-rewards{grid-template-columns:1fr;gap:8px}
+    .share-reward{padding:13px}
+    .share-reward .rw-amt{font-size:26px}
   }
 
   /* --- Visual Steps for Referral Program --- */
@@ -765,12 +786,24 @@
 <div class="share-modal-overlay" id="shareModalOverlay">
   <div class="share-modal">
     <div class="share-modal-header">
-      <h3>Compartir Mecha</h3>
+      <h3>Recomienda Mecha</h3>
       <button class="share-modal-close" id="shareModalClose" type="button" aria-label="Cerrar modal">&times;</button>
     </div>
     <div class="share-modal-body">
-      <div class="share-bonus-badge neutral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>Comparte la demo · cualquiera</div>
-      <p class="share-desc" style="margin-top:8px;">Pásale este enlace a quien quieras: verá la demo guiada por dentro <b>sin registrarse y sin ninguna cuenta iniciada</b>.</p>
+      <div class="share-rewards">
+        <div class="share-reward">
+          <div class="rw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg></div>
+          <div class="rw-amt">−40%<span>máx.</span></div>
+          <div class="rw-lbl">para ti</div>
+          <div class="rw-sub">por cada salón de tu red, hasta 3 niveles</div>
+        </div>
+        <div class="share-reward alt">
+          <div class="rw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg></div>
+          <div class="rw-amt">−15%</div>
+          <div class="rw-lbl">para quien entra</div>
+          <div class="rw-sub">de bienvenida al activar con tu enlace</div>
+        </div>
+      </div>
 
       <div class="share-link-row">
         <div class="share-input-wrapper">
@@ -781,7 +814,7 @@
       </div>
 
       <div class="share-bonus-card">
-        <div class="share-bonus-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><line x1="8.1" y1="10.9" x2="15.9" y2="6.1" /><line x1="8.1" y1="13.1" x2="15.9" y2="17.9" /></svg>RED DE REFERIDOS · ÁRBOL</div>
+        <div class="share-howlabel">Cómo funciona</div>
 
         <div class="share-steps">
           <div class="share-step">
@@ -801,9 +834,7 @@
           </div>
         </div>
 
-        <p style="font-size:12px;color:var(--text-sec);line-height:1.5;margin:10px 0 0;min-height:auto">
-          Ganas descuento por cada salón que activa su plan contigo <b>y también por los que ellos traen</b> (hasta 3 niveles, máximo −40%). Quien entra con tu enlace empieza con un −15% de bienvenida.
-        </p>
+        <p class="share-foot-note">Quien abra el enlace verá la demo guiada por dentro, sin registrarse ni dejar ninguna cuenta iniciada.</p>
 
         <!-- Estado CON sesión: tu enlace + tu árbol -->
         <div id="refLoggedIn" style="display:none;">
@@ -832,7 +863,7 @@
         <!-- Estado anónimo: crear cuenta para obtener enlace -->
         <div id="refAnon" style="display:none; margin-top:14px;">
           <a class="btn btn-primary btn-block btn-lg" href="acceso.html?next=demo#signup" style="font-weight:700;">
-            Crear cuenta gratis y obtener mi enlace
+            Crea tu cuenta y consigue tu −40%
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
           </a>
           <p style="font-size:11px;color:var(--text-ter);text-align:center;margin:10px 0 0;line-height:1.45;">
@@ -932,10 +963,10 @@
       lbl.textContent = 'Compartir demo';
       shareBtn.title = 'Copia el enlace y pásaselo a quien quieras: verá esta demo (con el tutorial) sin tener que registrarse.';
     } else if (profile) {
-      lbl.textContent = 'Recomendar Mecha';
+      lbl.textContent = 'Recomendar · gana −40%';
       shareBtn.title = 'Comparte tu enlace y gana descuento por cada salon de tu red, y por los que ellos traen (hasta -40%).';
     } else {
-      lbl.textContent = 'Recomendar Mecha';
+      lbl.textContent = 'Recomendar · gana −40%';
       shareBtn.title = 'Crea tu cuenta y consigue tu enlace de referido: ganas descuento por toda tu red.';
     }
   }
