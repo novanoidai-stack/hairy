@@ -87,10 +87,14 @@
   .dm-localnote p{font-size:13.5px;color:var(--text-sec);line-height:1.55}
 
   /* ---------- GUIDED TOUR ---------- */
-  .dm-tour{position:absolute;left:0;right:0;margin:0 auto;bottom:clamp(16px,3vw,34px);z-index:9;width:min(430px,calc(100% - 28px));
-    background:linear-gradient(180deg,rgba(30,23,18,.95),rgba(19,14,11,.975));border:1px solid rgba(244,80,30,.32);border-radius:var(--r-lg);
-    box-shadow:0 26px 64px -14px rgba(0,0,0,.74), 0 0 0 1px rgba(0,0,0,.30);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    padding:20px 20px 17px;display:none;transition:bottom 0.4s cubic-bezier(.16,1,.3,1), padding 0.3s, width 0.3s, opacity 0.3s}
+  /* Cinematica: el paso aparece como texto con gradiente sobre la zona que el
+     spotlight oscurece, sin tarjeta. Un velo radial suave (tipo subtitulo de cine)
+     garantiza legibilidad tambien en los pasos sin spotlight, sin parecer una carta. */
+  .dm-tour{position:absolute;left:clamp(16px,3.2vw,44px);right:auto;margin:0;bottom:clamp(20px,4vw,42px);z-index:9;
+    width:min(540px,calc(100% - 32px));background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+    padding:0;display:none;transition:left .45s cubic-bezier(.16,1,.3,1),right .45s cubic-bezier(.16,1,.3,1),top .45s cubic-bezier(.16,1,.3,1),bottom .45s cubic-bezier(.16,1,.3,1),opacity .3s}
+  .dm-tour::before{content:"";position:absolute;z-index:-1;left:-30px;right:-40px;top:-26px;bottom:-26px;pointer-events:none;
+    background:radial-gradient(120% 120% at 0% 100%, rgba(6,4,2,.92) 0%, rgba(6,4,2,.62) 42%, rgba(6,4,2,0) 72%);filter:blur(6px)}
   .dm-tour.show{display:block;animation:dmFade .5s cubic-bezier(.16,1,.3,1)}
   @keyframes dmFade{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
   /* Posicion de la guia por paso, para no tapar lo que se senala */
@@ -99,24 +103,26 @@
   .dm-tour.pos-tl{left:clamp(14px,2.5vw,28px);right:auto;margin:0;top:clamp(76px,11vh,116px);bottom:auto}
   .dm-tour.pos-tr{right:clamp(14px,2.5vw,28px);left:auto;margin:0;top:clamp(76px,11vh,116px);bottom:auto}
   .dm-tour-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-  .dm-tour-step{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-hi)}
-  .dm-tour-toggle{font-size:11.5px;font-weight:700;color:var(--accent-hi);background:none;border:none;cursor:pointer;
-    padding:4px 8px;border-radius:6px;transition:background .2s;margin-left:auto;margin-right:12px;border:1px solid rgba(244,80,30,.22)}
-  .dm-tour-toggle:hover{background:rgba(244,80,30,.12);border-color:rgba(244,80,30,.45)}
-  .dm-tour-skip{font-size:12px;color:var(--text-sec);background:none}
-  .dm-tour-skip:hover{color:var(--text)}
-  .dm-tour h4{font-family:var(--display);font-weight:800;font-size:19.5px;letter-spacing:-.02em;margin-bottom:7px;display:flex;align-items:center;gap:10px;color:#fff}
-  .dm-tour h4 .ic{width:32px;height:32px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi)}
-  .dm-tour h4 .ic svg{width:18px;height:18px}
-  .dm-tour p{font-size:14px;color:rgba(255,255,255,.82);line-height:1.6;min-height:60px}
-  .dm-dots{display:flex;gap:6px;margin:14px 0 14px}
-  .dm-dots span{width:7px;height:7px;border-radius:50%;background:var(--border-hi);transition:all .25s}
-  .dm-dots span.on{background:var(--accent-hi);width:18px;border-radius:4px}
-  .dm-tour-acts{display:flex;align-items:center;gap:10px}
-  .dm-tour-acts .btn{flex:1;justify-content:center;padding:10px;font-size:13.5px}
-  .dm-tour-acts .ghost{flex:0 0 auto;padding:10px 14px;font-size:13.5px;color:var(--text-sec);border:1px solid var(--border-hi);border-radius:11px;background:none}
-  .dm-tour-acts .ghost:hover{color:var(--text);border-color:var(--accent)}
-  .dm-tour-acts .ghost[disabled]{opacity:.4;pointer-events:none}
+  .dm-tour-step{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-hi);text-shadow:0 1px 8px rgba(0,0,0,.95)}
+  /* En cinematica no hace falta minimizar: el texto ya no es una tarjeta que tape. */
+  .dm-tour-toggle{display:none!important}
+  .dm-tour-skip{font-size:12px;color:rgba(255,255,255,.72);background:none;text-shadow:0 1px 8px rgba(0,0,0,.95);margin-left:auto}
+  .dm-tour-skip:hover{color:#fff}
+  .dm-tour h4{font-family:var(--display);font-weight:800;font-size:clamp(22px,3.4vw,28px);letter-spacing:-.025em;margin-bottom:10px;display:flex;align-items:center;gap:11px;
+    background:linear-gradient(118deg,#ff8a3d 0%,#ffcf4a 58%,#ffffff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 3px 16px rgba(244,80,30,.4))}
+  .dm-tour h4 .ic{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi);-webkit-text-fill-color:initial}
+  .dm-tour h4 .ic svg{width:19px;height:19px}
+  .dm-tour p{font-size:clamp(14.5px,2.2vw,16.5px);color:rgba(255,255,255,.94);line-height:1.6;min-height:0;max-width:46ch;
+    text-shadow:0 2px 20px rgba(0,0,0,.92),0 1px 3px rgba(0,0,0,.95)}
+  .dm-dots{display:flex;gap:6px;margin:16px 0 0}
+  .dm-dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.28);transition:all .25s;box-shadow:0 1px 4px rgba(0,0,0,.6)}
+  .dm-dots span.on{background:var(--accent-hi);width:18px;border-radius:4px;box-shadow:0 0 10px var(--accent-glow)}
+  .dm-tour-acts{display:flex;align-items:center;gap:10px;margin-top:16px}
+  .dm-tour-acts .btn{flex:0 0 auto;justify-content:center;padding:12px 26px;font-size:14px;box-shadow:0 10px 30px -8px rgba(244,80,30,.75)}
+  .dm-tour-acts .ghost{flex:0 0 auto;padding:11px 16px;font-size:13.5px;color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  .dm-tour-acts .ghost:hover{color:#fff;border-color:var(--accent)}
+  .dm-tour-acts .ghost[disabled]{opacity:.35;pointer-events:none}
 
   /* Minimized state styles */
   .dm-tour.minimized {
@@ -211,50 +217,35 @@
   @media(max-width:720px){
     .dm-stage{padding:0}
     .dm-appwrap{border-radius:0;border-left:0;border-right:0}
-    /* --- Tour compacto en móvil: glassmorphism, no tapa la app --- */
+    /* --- Tour cinematico en movil: banda inferior tipo subtitulo, sin tarjeta,
+       no tapa el centro donde esta el foco; controles fijos sobre la tab bar --- */
     .dm-tour{
-      left:6px;right:6px;bottom:68px;width:auto;
-      padding:10px 14px 10px;
-      border-radius:14px;
-      background:linear-gradient(180deg,rgba(22,17,12,.82),rgba(14,10,8,.88));
-      -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
-      box-shadow:0 16px 48px -10px rgba(0,0,0,.7),0 0 0 1px rgba(0,0,0,.25);
+      left:0;right:0;bottom:0;width:auto;margin:0;
+      padding:46px 16px calc(74px + env(safe-area-inset-bottom,0px));
+      background:linear-gradient(0deg,rgba(5,3,2,.97) 0%,rgba(5,3,2,.9) 46%,rgba(5,3,2,.55) 74%,transparent 100%);
+      border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0;
     }
+    .dm-tour::before{display:none}
     .dm-tour.pos-bl,.dm-tour.pos-br,.dm-tour.pos-tl,.dm-tour.pos-tr{
-      left:6px!important;right:6px!important;top:auto!important;bottom:68px!important;margin:0!important;
+      left:0!important;right:0!important;top:auto!important;bottom:0!important;margin:0!important;
     }
-    .dm-tour-top{margin-bottom:4px}
-    .dm-tour h4{font-size:14.5px;margin-bottom:2px;gap:8px}
-    .dm-tour h4 .ic{width:26px;height:26px;border-radius:8px}
-    .dm-tour h4 .ic svg{width:14px;height:14px}
-    .dm-tour p{
-      font-size:12px;line-height:1.45;min-height:auto;margin-bottom:4px;
-      display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
-    }
+    .dm-tour-top{margin-bottom:6px}
+    .dm-tour h4{font-size:19px;margin-bottom:6px;gap:8px}
+    .dm-tour h4 .ic{width:28px;height:28px;border-radius:8px}
+    .dm-tour h4 .ic svg{width:15px;height:15px}
+    .dm-tour p{font-size:13.5px;line-height:1.5;min-height:auto;margin-bottom:0;max-width:none}
     .dm-dots{display:none}
-    .dm-tour-acts{gap:8px}
-    .dm-tour-acts .btn{padding:9px 12px;font-size:12.5px;border-radius:9px}
-    .dm-tour-acts .ghost{padding:9px 12px;font-size:12.5px;border-radius:9px}
-    .dm-tour-skip{font-size:11px}
-    .dm-tour-toggle{font-size:10.5px;padding:3px 7px}
-    .dm-tour-step{font-size:10px;letter-spacing:.08em}
-    /* Minimized sits above tab bar */
-    .dm-tour.minimized {
-      bottom: 68px !important;
-      left: 6px !important;
-      right: 6px !important;
-      width: auto !important;
-    }
+    .dm-tour-acts{gap:8px;margin-top:14px}
+    .dm-tour-acts .btn{flex:1;padding:12px;font-size:13.5px;border-radius:11px}
+    .dm-tour-acts .ghost{padding:12px 16px;font-size:13.5px;border-radius:11px}
+    .dm-tour-skip{font-size:11.5px}
+    .dm-tour-step{font-size:10px;letter-spacing:.1em}
   }
   @media(max-width:480px){
-    .dm-tour{padding:9px 12px 9px;bottom:68px;left:5px;right:5px}
-    .dm-tour.minimized {
-      bottom: 68px !important;
-      padding: 6px 10px !important;
-    }
-    .dm-tour h4{font-size:13.5px}
-    .dm-tour p{font-size:11.5px;-webkit-line-clamp:2}
-    .dm-tour-acts .btn, .dm-tour-acts .ghost{padding:8px 10px;font-size:11.5px}
+    .dm-tour{padding:42px 14px calc(72px + env(safe-area-inset-bottom,0px))}
+    .dm-tour h4{font-size:17.5px}
+    .dm-tour p{font-size:13px}
+    .dm-tour-acts .btn, .dm-tour-acts .ghost{padding:11px 12px;font-size:13px}
   }
 
   /* ---------- SHARE MODAL (Drive-like) ---------- */
@@ -630,11 +621,10 @@
     100% { opacity: 1; transform: translateY(0); }
   }
   .dm-tour.config-step {
-    background: linear-gradient(180deg, rgba(11, 7, 5, 0.97), rgba(5, 3, 2, 0.99)) !important;
-    border: 1.5px solid #ff7a2e !important;
-    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.95), 0 0 32px rgba(244, 80, 30, 0.25) !important;
-    border-radius: 20px !important;
-    padding: 24px 24px 19px !important;
+    background: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }
   .dm-tour.config-step h4 {
     font-size: 22px !important;
@@ -646,17 +636,9 @@
     animation: fadeInGradient 0.6s ease forwards;
     margin-bottom: 0 !important;
   }
-  .dm-tour.config-step p {
-    display: none !important;
-  }
-  .dm-tour.config-step .dm-tour-step {
-    display: none !important;
-  }
-  .dm-tour.config-step .dm-dots {
-    display: none !important;
-  }
+  .dm-tour.config-step p { display: block !important; }
   .dm-tour.config-step .dm-tour-acts {
-    margin-top: 20px !important;
+    margin-top: 16px !important;
   }
   .dm-tour.config-step .dm-tour-acts .btn {
     border-radius: 12px !important;
@@ -671,17 +653,8 @@
     color: #fff !important;
   }
   @media(max-width:720px){
-    .dm-tour.config-step {
-      padding: 18px 20px !important;
-      bottom: 68px !important;
-      border-radius: 16px !important;
-    }
-    .dm-tour.config-step h4 {
-      font-size: 18px !important;
-    }
-    .dm-tour.config-step p {
-      display: none !important;
-    }
+    .dm-tour.config-step { padding: 0 !important; }
+    .dm-tour.config-step p { display: block !important; }
   }
 </style>
 </head>
