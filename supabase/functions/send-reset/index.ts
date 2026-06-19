@@ -1,5 +1,5 @@
 // Edge Function: send-reset
-// Envia el correo de recuperacion de contrasena con la marca Mecha (via Resend)
+// Envia el correo de recuperacion de contraseña con la marca Mecha (via Resend)
 // y -decision de producto- avisa si el correo NO tiene cuenta.
 //
 // Por que una funcion propia en vez de resetPasswordForEmail():
@@ -73,10 +73,10 @@ function resetEmailHtml(actionLink: string): string {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="dark" />
-<title>Restablece tu contrasena de Mecha</title>
+<title>Restablece tu contraseña de Mecha</title>
 </head>
 <body style="margin:0;padding:0;background:#070a14;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#070a14;">Crea una nueva contrasena para tu cuenta de Mecha. El enlace caduca en 1 hora.</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#070a14;">Crea una nueva contraseña para tu cuenta de Mecha. El enlace caduca en 1 hora.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#070a14;padding:32px 16px;">
   <tr>
     <td align="center">
@@ -96,30 +96,30 @@ function resetEmailHtml(actionLink: string): string {
               <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
             </svg>
             <span style="font-family:'Bricolage Grotesque',Arial,sans-serif;font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f6f8ff;">Mecha</span>
-            <span style="font-family:Arial,sans-serif;font-size:12px;color:#5e6a86;padding-left:6px;">Software para peluquerias</span>
+            <span style="font-family:Arial,sans-serif;font-size:12px;color:#5e6a86;padding-left:6px;">Software para peluquerías</span>
           </td>
         </tr>
         <!-- Tarjeta principal -->
         <tr>
           <td style="background:#0f172a;border:1px solid rgba(148,163,184,.14);border-radius:16px;padding:32px 28px;box-shadow:0 24px 64px -20px rgba(244,80,30,.12);">
-            <h1 style="margin:0 0 10px;font-family:'Bricolage Grotesque',Arial,sans-serif;font-size:23px;line-height:1.25;letter-spacing:-.02em;color:#f6f8ff;">Restablece tu contrasena</h1>
-            <p style="margin:0 0 24px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#9aa6c2;">Hemos recibido una solicitud para restablecer la contrasena de tu cuenta de Mecha. Pulsa el boton para crear una nueva. El enlace caduca en 1 hora.</p>
+            <h1 style="margin:0 0 10px;font-family:'Bricolage Grotesque',Arial,sans-serif;font-size:23px;line-height:1.25;letter-spacing:-.02em;color:#f6f8ff;">Restablece tu contraseña</h1>
+            <p style="margin:0 0 24px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#9aa6c2;">Hemos recibido una solicitud para restablecer la contraseña de tu cuenta de Mecha. Pulsa el botón para crear una nueva. El enlace caduca en 1 hora.</p>
             <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
               <tr>
                 <td align="center" style="border-radius:11px;background:#f4501e;background-image:linear-gradient(135deg,#f4501e 0%,#ff7a2e 50%,#ffb347 100%);box-shadow:0 8px 24px -8px rgba(244,80,30,.5);">
-                  <a href="${safeLink}" style="display:inline-block;padding:13px 28px;font-family:'Bricolage Grotesque',Arial,sans-serif;font-size:15px;font-weight:700;color:#160a02;text-decoration:none;border-radius:11px;">Crear nueva contrasena</a>
+                  <a href="${safeLink}" style="display:inline-block;padding:13px 28px;font-family:'Bricolage Grotesque',Arial,sans-serif;font-size:15px;font-weight:700;color:#160a02;text-decoration:none;border-radius:11px;">Crear nueva contraseña</a>
                 </td>
               </tr>
             </table>
             <p style="margin:0 0 6px;font-family:Arial,sans-serif;font-size:12px;line-height:1.5;color:#5e6a86;">Si el boton no funciona, copia y pega este enlace en tu navegador:</p>
             <p style="margin:0 0 20px;font-family:Arial,sans-serif;font-size:12px;line-height:1.5;word-break:break-all;"><a href="${safeLink}" style="color:#ff7a2e;text-decoration:underline;">${safeLink}</a></p>
-            <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;line-height:1.5;color:#5e6a86;">Si no fuiste tu, ignora este correo: tu contrasena no cambiara.</p>
+            <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;line-height:1.5;color:#5e6a86;">Si no fuiste tú, ignora este correo: tu contraseña no cambiará.</p>
           </td>
         </tr>
         <!-- Footer -->
         <tr>
           <td style="padding:16px 6px 0;font-family:Arial,sans-serif;font-size:11px;line-height:1.5;color:#475569;text-align:center;">
-            Mecha &middot; Gestion inteligente para tu salon
+            Mecha &middot; Gestión inteligente para tu salón
           </td>
         </tr>
       </table>
@@ -192,7 +192,7 @@ Deno.serve(async (req: Request) => {
     body: JSON.stringify({
       from,
       to: [email],
-      subject: 'Restablece tu contrasena de Mecha',
+      subject: 'Restablece tu contraseña de Mecha',
       html: resetEmailHtml(actionLink),
     }),
   });

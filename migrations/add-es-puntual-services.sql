@@ -1,16 +1,10 @@
--- Migración para añadir soporte a servicios puntuales
-ALTER TABLE public.services ADD COLUMN IF NOT EXISTS es_puntual boolean DEFAULT false;
-
--- Recrear la vista public.servicios de forma dinámica para incluir todas las columnas de public.services
--- Esto es compatible tanto con esquemas locales/antiguos como con producción/nuevos.
-DO $$
-DECLARE
-  v_cols text;
-BEGIN
-  SELECT string_agg(quote_ident(column_name), ', ') INTO v_cols
-  FROM information_schema.columns
-  WHERE table_name = 'services' AND table_schema = 'public';
-
-  EXECUTE 'CREATE OR REPLACE VIEW public.servicios AS SELECT ' || v_cols || ' FROM public.services;';
-END;
-$$;
+-- Servicios puntuales: servicios rápidos creados al vuelo desde la creación de una
+-- cita (casos extraordinarios, p. ej. cuando el responsable no está). Se guardan en
+-- el catálogo marcados como puntuales para poder listarlos aparte en Configuración.
+--
+-- NOTA: la tabla real del catálogo es public.servicios (en español). NO existe una
+-- tabla public.services; la versión anterior de esta migración apuntaba a `services`
+-- y por eso nunca llegó a aplicarse. Aplicada en remoto el 19 jun 2026 como
+-- migración `add_es_puntual_to_servicios`.
+ALTER TABLE public.servicios
+  ADD COLUMN IF NOT EXISTS es_puntual boolean NOT NULL DEFAULT false;

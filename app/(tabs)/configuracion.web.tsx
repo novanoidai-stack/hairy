@@ -41,6 +41,7 @@ interface Servicio {
   cancelacion_horas?: number | null;
   categoria_minima?: string | null;
   foto_url?: string | null;
+  es_puntual?: boolean;
 }
 
 interface Override {
@@ -1806,7 +1807,19 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
     return services.filter(s => s.nombre.toLowerCase().includes(q) || s.categoria.toLowerCase().includes(q));
   }, [services, search]);
 
-  const categories = useMemo(() => [...new Set(filtered.map(s => s.categoria))], [filtered]);
+  // Separamos los servicios puntuales (creados al vuelo desde una cita) en su
+  // propio grupo, para que no ensucien las categorias normales del catalogo.
+  const filteredNormales = useMemo(() => filtered.filter(s => !s.es_puntual), [filtered]);
+  const filteredPuntuales = useMemo(() => filtered.filter(s => s.es_puntual), [filtered]);
+  const grupos = useMemo(() => {
+    const cats = [...new Set(filteredNormales.map(s => s.categoria))];
+    const g: { key: string; label: string; items: Servicio[]; puntual: boolean }[] =
+      cats.map(cat => ({ key: cat, label: cat, items: filteredNormales.filter(s => s.categoria === cat), puntual: false }));
+    if (filteredPuntuales.length > 0) {
+      g.push({ key: '__puntuales__', label: 'Servicios puntuales', items: filteredPuntuales, puntual: true });
+    }
+    return g;
+  }, [filteredNormales, filteredPuntuales]);
   const profColor = profSelData?.color;
 
   return (
@@ -1875,15 +1888,20 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
           <div style={{ fontSize: 12 }}>Crea tu primer servicio para empezar</div>
         </div>
       ) : (
-        categories.map(cat => (
-          <div key={cat} style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, letterSpacing: 1.5, color: T.textTertiary, textTransform: 'uppercase', fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span>{cat}</span>
-              <div style={{ flex: 1, height: 1, background: T.border }} />
-              <span>{filtered.filter(s => s.categoria === cat).length}</span>
+        grupos.map(grupo => (
+          <div key={grupo.key} style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 10, letterSpacing: 1.5, color: grupo.puntual ? '#f59e0b' : T.textTertiary, textTransform: 'uppercase', fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>{grupo.label}</span>
+              <div style={{ flex: 1, height: 1, background: grupo.puntual ? 'rgba(245,158,11,0.3)' : T.border }} />
+              <span>{grupo.items.length}</span>
             </div>
-            <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, overflow: 'hidden' }}>
-              {filtered.filter(s => s.categoria === cat).map((s, i, arr) => {
+            {grupo.puntual && (
+              <div style={{ fontSize: 11, color: T.textSecondary, lineHeight: 1.5, marginTop: -2, marginBottom: 8 }}>
+                Servicios rapidos creados al vuelo desde una cita para casos extraordinarios. Puedes editarlos o eliminarlos.
+              </div>
+            )}
+            <div style={{ background: T.bgCard, border: `1px solid ${grupo.puntual ? 'rgba(245,158,11,0.3)' : T.border}`, borderRadius: 14, overflow: 'hidden' }}>
+              {grupo.items.map((s, i, arr) => {
                 const ov = s.id ? getOverride(s.id) : undefined;
                 const catalogDur = (s.duracion_activa_min || s.duracion || 0) + (s.duracion_espera_min || 0) + (s.duracion_activa_extra_min || 0);
                 const ovActiva = profId && ov?.duracion != null ? ov.duracion : (s.duracion_activa_min || s.duracion || 0);

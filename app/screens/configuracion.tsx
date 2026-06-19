@@ -25,6 +25,7 @@ interface Servicio {
   duracion_activa_extra_min: number;
   min_antelacion_min: number;
   activo: boolean;
+  es_puntual?: boolean;
 }
 
 const EMPTY_FORM = { nombre: '', precio: '', duracion_activa_min: '30', duracion_espera_min: '0', duracion_activa_extra_min: '0', min_antelacion_min: '0', activo: true };

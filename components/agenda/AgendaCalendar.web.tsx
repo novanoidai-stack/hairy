@@ -2570,6 +2570,15 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
   const [addonsDisponibles, setAddonsDisponibles] = useState<any[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [allProfSrvOverrides, setAllProfSrvOverrides] = useState<any[]>([]);
+  // Servicio puntual: crear al vuelo un servicio rápido para un caso extraordinario
+  // (p. ej. cuando el responsable no está) sin salir de la cita. Se guarda en el
+  // catálogo marcado como es_puntual para poder listarlo aparte en Configuración.
+  const [showPuntual, setShowPuntual] = useState(false);
+  const [puntualNombre, setPuntualNombre] = useState('');
+  const [puntualPrecio, setPuntualPrecio] = useState('');
+  const [puntualDuracion, setPuntualDuracion] = useState('30');
+  const [guardandoPuntual, setGuardandoPuntual] = useState(false);
+  const [puntualErr, setPuntualErr] = useState('');
   const today = selectedDate || new Date();
 
   // --- Demo guiada: el recorrido de demo.html pide rellenar el formulario paso a
@@ -3124,6 +3133,49 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
     }
   };
 
+  const crearServicioPuntual = async () => {
+    const nombre = puntualNombre.trim();
+    if (!nombre) { setPuntualErr('Ponle un nombre al servicio.'); return; }
+    const precioNum = parseFloat(puntualPrecio.replace(',', '.')) || 0;
+    if (precioNum <= 0) { setPuntualErr('El precio debe ser mayor que 0.'); return; }
+    const duracionNum = parseInt(puntualDuracion, 10) || 30;
+    setPuntualErr('');
+    setGuardandoPuntual(true);
+    try {
+      const { data, error } = await supabase
+        .from('servicios')
+        .insert({
+          negocio_id: negocioId,
+          nombre,
+          precio: precioNum,
+          duracion_activa_min: duracionNum,
+          duracion_espera_min: 0,
+          duracion_activa_extra_min: 0,
+          min_antelacion_min: 0,
+          activo: true,
+          es_puntual: true,
+        })
+        .select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, min_antelacion_min')
+        .single();
+      if (error || !data) {
+        setPuntualErr(mensajeDeError(error, 'No se pudo crear el servicio puntual.'));
+        setGuardandoPuntual(false);
+        return;
+      }
+      // Lo añadimos al catálogo local y lo dejamos seleccionado en la cita
+      setServicios((prev) => [...prev, data]);
+      setSelectedServicio(data.id);
+      setShowPuntual(false);
+      setPuntualNombre('');
+      setPuntualPrecio('');
+      setPuntualDuracion('30');
+    } catch (e: any) {
+      setPuntualErr(mensajeDeError(e, 'No se pudo crear el servicio puntual.'));
+    } finally {
+      setGuardandoPuntual(false);
+    }
+  };
+
   // Mientras carga, mostramos el MISMO fondo difuminado del modal (no una pantalla
   // negra a pantalla completa, que provocaba un parpadeo en negro al abrir la cita).
   if (loading) return (
@@ -3401,6 +3453,36 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
               );
             })}
           </div>
+          {/* Crear servicio puntual: caso extraordinario, lo más rápido posible */}
+          <button
+            type="button"
+            onClick={() => { setPuntualErr(''); setShowPuntual(true); }}
+            style={{
+              marginTop: 8,
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '11px 14px',
+              background: 'rgba(245,158,11,0.10)',
+              border: '1.5px dashed rgba(245,158,11,0.45)',
+              borderRadius: 10,
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.18s ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245,158,11,0.18)'; e.currentTarget.style.borderColor = 'rgba(245,158,11,0.7)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(245,158,11,0.10)'; e.currentTarget.style.borderColor = 'rgba(245,158,11,0.45)'; }}
+          >
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(245,158,11,0.18)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth={2.3} strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: '#f59e0b' }}>Crear servicio puntual</div>
+              <div style={{ fontSize: 10.5, color: TOKENS.textTer, marginTop: 1 }}>Caso especial · rápido, sin tenerlo en el catálogo</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="9 18 15 12 9 6" /></svg>
+          </button>
         </div>
 
         {/* Add-ons opcionales (5.6) */}
@@ -3786,6 +3868,104 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
                   }}
                 >
                   {creandoCliente ? '...' : 'Crear'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: crear servicio puntual (rápido) */}
+        {showPuntual && (
+          <div
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', zIndex: 210, padding: 16 }}
+            onClick={(e) => { if (e.target === e.currentTarget && !guardandoPuntual) setShowPuntual(false); }}
+          >
+            <div style={{ background: TOKENS.bgPanel, border: '1px solid rgba(245,158,11,0.4)', borderRadius: 16, padding: 22, width: '100%', maxWidth: 400, boxShadow: '0 24px 70px rgba(0,0,0,0.8)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(245,158,11,0.15)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+                </div>
+                <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: TOKENS.text }}>Servicio puntual</h4>
+              </div>
+              <p style={{ margin: '0 0 16px 42px', fontSize: 12, color: TOKENS.textSec, lineHeight: 1.5 }}>
+                Para un caso extraordinario: ponle nombre y precio y queda listo al instante.
+              </p>
+
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: TOKENS.textSec, display: 'block', marginBottom: 6 }}>Nombre del servicio</label>
+                <input
+                  autoFocus
+                  type="text"
+                  value={puntualNombre}
+                  onChange={(e) => setPuntualNombre(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') crearServicioPuntual(); }}
+                  placeholder="Ej: Retoque rápido"
+                  style={{ width: '100%', padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.text, fontSize: 13, boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: TOKENS.textSec, display: 'block', marginBottom: 6 }}>Precio (€)</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={puntualPrecio}
+                    onChange={(e) => setPuntualPrecio(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') crearServicioPuntual(); }}
+                    placeholder="15"
+                    style={{ width: '100%', padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.text, fontSize: 13, boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: TOKENS.textSec, display: 'block', marginBottom: 6 }}>Duración (min)</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={puntualDuracion}
+                    onChange={(e) => setPuntualDuracion(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') crearServicioPuntual(); }}
+                    placeholder="30"
+                    style={{ width: '100%', padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.text, fontSize: 13, boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              {/* Atajos de duración para que sea aún más rápido */}
+              <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+                {['15', '30', '45', '60'].map((d) => {
+                  const activo = puntualDuracion === d;
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setPuntualDuracion(d)}
+                      style={{ flex: 1, padding: '7px 0', borderRadius: 8, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease', background: activo ? 'rgba(245,158,11,0.18)' : TOKENS.bgCard, border: `1px solid ${activo ? 'rgba(245,158,11,0.55)' : TOKENS.border}`, color: activo ? '#f59e0b' : TOKENS.textSec }}
+                    >
+                      {d} min
+                    </button>
+                  );
+                })}
+              </div>
+
+              {puntualErr && (
+                <div style={{ fontSize: 12, color: TOKENS.danger, marginBottom: 12 }}>{puntualErr}</div>
+              )}
+
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => setShowPuntual(false)}
+                  disabled={guardandoPuntual}
+                  style={{ padding: '9px 18px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={crearServicioPuntual}
+                  disabled={guardandoPuntual}
+                  style={{ padding: '9px 18px', background: '#f59e0b', color: '#1a1206', border: 'none', borderRadius: 8, cursor: guardandoPuntual ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, opacity: guardandoPuntual ? 0.7 : 1 }}
+                >
+                  {guardandoPuntual ? 'Creando…' : 'Crear y seleccionar'}
                 </button>
               </div>
             </div>
@@ -5940,6 +6120,11 @@ function DropdownItem({ onClick, active, children }: any) {
 function TimeSlider({ label, hint, value, setValue, min, max, step, color, chips }: any) {
   const pct = ((value - min) / (max - min)) * 100;
   const trackRef = useRef<HTMLDivElement>(null);
+  // En movil el arrastre con el dedo se trababa: el navegador interpretaba el gesto
+  // como scroll y cancelaba el puntero. Con touchAction 'none' + captura de puntero
+  // + un flag de arrastre propio (e.buttons no es fiable en touch) el control sigue
+  // al dedo de forma fluida.
+  const dragging = useRef(false);
 
   const updateFromEvent = (clientX: number) => {
     if (!trackRef.current) return;
@@ -5952,13 +6137,19 @@ function TimeSlider({ label, hint, value, setValue, min, max, step, color, chips
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
-    trackRef.current?.setPointerCapture(e.pointerId);
+    dragging.current = true;
+    try { trackRef.current?.setPointerCapture(e.pointerId); } catch {}
     updateFromEvent(e.clientX);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    if (e.buttons === 0) return;
+    if (!dragging.current) return;
     updateFromEvent(e.clientX);
+  };
+
+  const endDrag = (e: React.PointerEvent) => {
+    dragging.current = false;
+    try { trackRef.current?.releasePointerCapture(e.pointerId); } catch {}
   };
 
   return (
@@ -6038,9 +6229,12 @@ function TimeSlider({ label, hint, value, setValue, min, max, step, color, chips
           marginBottom: 8,
           userSelect: 'none',
           cursor: 'grab',
+          touchAction: 'none',
         }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
       >
         {/* Track de fondo */}
         <div

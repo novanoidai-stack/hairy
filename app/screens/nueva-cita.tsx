@@ -919,7 +919,7 @@ const s = StyleSheet.create({
   puntualTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
   puntualContent: { padding: spacing.lg, gap: spacing.md },
   puntualLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, marginBottom: 4 },
-  puntualInput: { borderWidth: 1, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 10, fontSize: fontSize.base },
+  puntualInput: { borderWidth: 1, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 10, fontSize: fontSize.md },
   puntualInfo: { flexDirection: 'row', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, alignItems: 'flex-start' },
   puntualBtnCancel: { flex: 1, paddingVertical: 12, borderRadius: radius.md, borderWidth: 1, alignItems: 'center' },
   puntualBtnCancelText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
