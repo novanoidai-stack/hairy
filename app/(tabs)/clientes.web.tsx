@@ -145,7 +145,9 @@ function computeRiesgo(noshows: number): TagRiesgo {
 
 // Alertas que se muestran en el panel detalle
 type Alert = {
-  type: 'allergy' | 'inactive' | 'birthday' | 'new';
+  // 'no-allergy'/'no-phone' son capsulas informativas (sin alergias conocidas / sin telefono);
+  // cada alerta lleva su propio color/bg/border/icon, asi que el render no necesita switch por tipo.
+  type: 'allergy' | 'no-allergy' | 'inactive' | 'birthday' | 'new' | 'no-phone';
   message: string;
   color: string;
   icon: string;
