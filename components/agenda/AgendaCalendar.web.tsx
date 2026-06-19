@@ -2465,7 +2465,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                             <div
                               onMouseDown={(e) => { if (onClienteHistorial) e.stopPropagation(); }}
                               onClick={(e) => { if (onClienteHistorial) { e.stopPropagation(); const cli = clientes.find((cl: any) => cl.id === cita.cliente_id); if (cli) onClienteHistorial(cli); } }}
-                              style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelada ? 'line-through' : 'none', cursor: onClienteHistorial ? 'pointer' : 'default' }}
+                              style={{ display: 'inline-block', alignSelf: 'flex-start', maxWidth: '100%', fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelada ? 'line-through' : 'none', cursor: onClienteHistorial ? 'pointer' : 'default' }}
                               title="Ver historial de este cliente"
                             >
                               {nombreCliente}
