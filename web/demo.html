@@ -39,11 +39,23 @@
   .ver-back:hover{color:var(--text);border-color:var(--border-hi);background:rgba(255,255,255,.07)}
   .ver-back svg{width:15px;height:15px;flex-shrink:0}
   .dm-share{flex-shrink:0;box-shadow:0 0 0 1px rgba(244,80,30,.12),0 6px 18px -8px rgba(244,80,30,.55)}
-  /* Boton reiniciar tutorial */
-  .dm-restart{display:none;align-items:center;gap:7px;flex-shrink:0;padding:8px 12px;border-radius:10px;cursor:pointer;
-    border:1px solid var(--border-hi);background:rgba(255,255,255,.05);color:var(--text-sec);font:inherit;font-size:13px;font-weight:600;transition:all .18s ease;white-space:nowrap}
-  .dm-restart:hover{color:#fff;border-color:var(--accent);background:rgba(244,80,30,.12)}
-  .dm-restart svg{width:15px;height:15px;flex-shrink:0}
+  /* Selector de tutoriales: dos "videos" con play para lanzar/reiniciar cada recorrido */
+  .dm-tutsel{display:none;align-items:center;gap:4px;flex-shrink:0;padding:3px;border-radius:11px;border:1px solid var(--border-hi);background:rgba(255,255,255,.03)}
+  .dm-tut{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:8px;cursor:pointer;border:0;background:none;color:var(--text-sec);font:inherit;font-size:12.5px;font-weight:600;white-space:nowrap;transition:all .18s ease}
+  .dm-tut .pnum{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.08);color:var(--text-sec);font-size:10px;font-weight:800;flex-shrink:0;transition:all .18s ease}
+  .dm-tut svg{width:11px;height:11px;flex-shrink:0;opacity:.65}
+  .dm-tut:hover{color:var(--text)}
+  .dm-tut:hover .pnum{background:rgba(255,255,255,.14)}
+  .dm-tut.active{background:var(--accent-soft);color:var(--accent-hi);box-shadow:0 0 0 1px rgba(244,80,30,.3)}
+  .dm-tut.active .pnum{background:var(--accent-hi);color:#160a02}
+  .dm-tut.active svg{opacity:1}
+  /* En tablet/laptop estrecho el selector va compacto (play + numero) para no
+     ensanchar la cabecera; las etiquetas solo en escritorio amplio. */
+  @media(max-width:1024px){
+    .dm-tut .lbl{display:none}
+    .dm-tut{padding:6px 9px;gap:5px}
+    .dm-tut svg{width:11px;height:11px;opacity:.8}
+  }
   /* CTA "acceso completo" con latido sutil para que llame la atencion */
   .dm-bar-cta .btn{box-shadow:0 8px 22px -8px rgba(244,80,30,.6);animation:dmCtaPulse 2.8s ease-in-out infinite}
   @keyframes dmCtaPulse{0%,100%{box-shadow:0 8px 22px -8px rgba(244,80,30,.55)}50%{box-shadow:0 12px 32px -6px rgba(244,80,30,.95)}}
@@ -59,8 +71,11 @@
     .dm-share{font-size:0!important;padding:6px!important;border-radius:8px!important;min-width:auto}
     .dm-share .lbl{display:none!important}
     .dm-share svg{margin:0!important}
-    .dm-restart{font-size:0!important;padding:6px!important;border-radius:8px!important;gap:0}
-    .dm-restart span{display:none!important}
+    .dm-tutsel{padding:2px;gap:3px}
+    .dm-tut{padding:6px 9px;gap:5px;font-size:0}
+    .dm-tut .pnum{width:18px;height:18px;font-size:10.5px}
+    .dm-tut svg{display:inline;width:10px;height:10px;opacity:.8}
+    .dm-tut .lbl{display:none}
     .dm-bar .btn{padding:7px 12px;font-size:12px;border-radius:9px}
     .dm-bar .cta-long{display:none}
     .dm-bar .cta-short{display:inline}
@@ -685,10 +700,18 @@
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha</span></div>
   <span class="dm-pill"><span class="d"></span>Vista previa · interactiva</span>
   <span class="dm-visits" id="visits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg><span id="visitsText">Preparando…</span></span>
-  <button class="dm-restart" id="tourRestart" type="button" title="Volver a ver el tutorial desde el principio">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
-    <span>Reiniciar tutorial</span>
-  </button>
+  <div class="dm-tutsel" id="tutSel">
+    <button class="dm-tut" id="tutBtnGeneral" type="button" title="Ver el recorrido general desde el principio">
+      <span class="pnum">1</span>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
+      <span class="lbl">Recorrido</span>
+    </button>
+    <button class="dm-tut" id="tutBtnConfig" type="button" title="Ver el tutorial de configuracion desde el principio">
+      <span class="pnum">2</span>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20" /></svg>
+      <span class="lbl">Configuración</span>
+    </button>
+  </div>
   <button class="dm-share" id="shareBtn" type="button" title="Copia el enlace y pasaselo a quien quieras: vera esta demo (con el tutorial) sin registrarse." style="display:none;align-items:center;gap:7px;padding:9px 15px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,170,100,0.65);background:rgba(244,80,30,0.22);color:#ffe3d0;font:inherit;font-size:13.5px;font-weight:800;transition:background .18s ease" onmouseenter="this.style.background='rgba(244,80,30,0.32)'" onmouseleave="this.style.background='rgba(244,80,30,0.22)'">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
     <span class="lbl">Compartir demo</span>
@@ -874,7 +897,8 @@
 
   var gate=$('#gate'), end=$('#end'), frame=$('#appFrame'), localnote=$('#localnote');
   var visitsEl=$('#visits'), visitsText=$('#visitsText');
-  var tour=$('#tour'), shareBtn=$('#shareBtn'), restartBtn=$('#tourRestart');
+  var tour=$('#tour'), shareBtn=$('#shareBtn');
+  var tutSel=$('#tutSel'), tutBtnGeneral=$('#tutBtnGeneral'), tutBtnConfig=$('#tutBtnConfig');
 
   function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
@@ -1113,7 +1137,7 @@
     mountApp();
     startTour();
     // El boton de reiniciar el tutorial solo tiene sentido una vez dentro de la demo.
-    if(restartBtn) restartBtn.style.display='inline-flex';
+    if(tutSel) tutSel.style.display='inline-flex';
   }
 
   /* ---------- arranque ---------- */
@@ -1404,22 +1428,43 @@
       }, 420);
     }, 400);
   }
-  function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; lastAction=null; renderStep(); tour.classList.add('show'); }
+  // Marca en el selector cual de los dos tutoriales se esta reproduciendo.
+  function updateTutSel(){
+    var isGen = currentTutorial === TUTORIAL_GENERAL;
+    if(tutBtnGeneral) tutBtnGeneral.classList.toggle('active', isGen);
+    if(tutBtnConfig) tutBtnConfig.classList.toggle('active', !isGen);
+  }
+  function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; lastAction=null; updateTutSel(); renderStep(); tour.classList.add('show'); }
+  // Lanza (o reinicia) un tutorial concreto desde el paso 1, dejando el software limpio.
+  function startTutorial(which){
+    if(stepTimer) clearTimeout(stepTimer);
+    demoAction('cerrar');
+    lastRoute=null; lastAction='cerrar';
+    currentTutorial = (which==='config') ? TUTORIAL_CONFIG : TUTORIAL_GENERAL;
+    STEPS = currentTutorial;
+    ti=0; tourStarted=true;
+    renderDots();
+    updateTutSel();
+    if(tour) tour.classList.remove('minimized');
+    renderStep();
+    tour.classList.add('show');
+  }
   function closeTour(){ tour.classList.remove('show','minimized'); if(tourToggle) tourToggle.textContent='Minimizar'; setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); lastAction='cerrar'; }
-  tourNext.addEventListener('click',function(){ 
-    if(ti<STEPS.length-1){ 
-      ti++; renderStep(); 
-    } else { 
+  tourNext.addEventListener('click',function(){
+    if(ti<STEPS.length-1){
+      ti++; renderStep();
+    } else {
       if (currentTutorial === TUTORIAL_GENERAL) {
         currentTutorial = TUTORIAL_CONFIG;
         STEPS = currentTutorial;
         ti = 0;
         renderDots();
+        updateTutSel();
         renderStep();
       } else {
-        closeTour(); 
+        closeTour();
       }
-    } 
+    }
   });
   tourPrev.addEventListener('click',function(){ if(ti>0){ ti--; renderStep(); } });
   tourSkip.addEventListener('click',closeTour);
@@ -1432,23 +1477,9 @@
     });
   }
 
-  // Reiniciar tutorial: vuelve al paso 1 aunque se hubiera saltado o minimizado.
-  function restartTour(){
-    if(stepTimer) clearTimeout(stepTimer);
-    // Vuelve al paso 1 dejando el software en su estado inicial: cierra el panel
-    // que abriera un paso anterior y reposiciona la pantalla. Antes solo se
-    // reiniciaba el TEXTO y la ventana del ultimo paso se quedaba abierta (desync).
-    demoAction('cerrar');
-    lastRoute=null; lastAction='cerrar';
-    currentTutorial = TUTORIAL_GENERAL;
-    STEPS = currentTutorial;
-    tourStarted=false; ti=0;
-    renderDots();
-    if(tour) tour.classList.remove('minimized');
-    if(tourToggle) tourToggle.textContent='Minimizar';
-    startTour();
-  }
-  if(restartBtn){ restartBtn.addEventListener('click', restartTour); }
+  // Selector de tutoriales: cada boton lanza/reinicia su recorrido desde el paso 1.
+  if(tutBtnGeneral){ tutBtnGeneral.addEventListener('click', function(){ startTutorial('general'); }); }
+  if(tutBtnConfig){ tutBtnConfig.addEventListener('click', function(){ startTutorial('config'); }); }
 
   boot();
 })();
