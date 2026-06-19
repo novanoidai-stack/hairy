@@ -37,6 +37,43 @@
 
 ---
 
+## Adenda — Tanda 19 jun 2026 (Carlos + Claude)
+
+Desplegado a `master` (producción) en esta sesión:
+
+- **Quick wins:** servicio puntual REAL en la web (botón en la cita + sección en
+  Configuración; la migración previa apuntaba a una tabla `services` inexistente y
+  nunca se aplicó → arreglado, `es_puntual` en `servicios`). Slider de tiempos
+  activo/reposo fluido en móvil (`touch-action:none` + captura de puntero). Tildes
+  del correo de recuperación (requiere redeploy del edge `send-reset` por Alexandro).
+  `especificaciones.html` actualizada (servicio puntual + estado real de señal Stripe
+  y WhatsApp). Fix de tipos en `clientes.web.tsx`.
+- **Demo / tutoriales:** tour **cinemático** (título con gradiente + explicación sobre
+  la zona oscura del spotlight, sin tarjeta; móvil = banda inferior tipo subtítulo, no
+  tapa el centro; controles fijos). **Dos tutoriales con "play"** (Recorrido /
+  Configuración, lanzables por separado). El tutorial de config ya muestra título +
+  explicación (antes solo título).
+- **Compartir:** modal rediseñado liderando con la recompensa (−40% para ti / −15%
+  para quien entra), menos texto; el botón ya sugiere el descuento.
+- **Portales móvil:** arreglado el grid de valoración del portal de reseña que se
+  recortaba en móvil (el de reserva ya estaba bien).
+- **POS-0 (caja operativa, NO fiscal) — Carlos:** modelo de datos `cobros` +
+  `cobro_lineas` + `fichajes` + `citas.cobrada/cobro_id` con RLS multi-tenant (advisors
+  limpios). Botón **Cobrar** en la cita → modal (servicio, descuento, propina, total,
+  método como etiqueta efectivo/datáfono/bizum) que registra el cobro y marca la cita
+  "Cobrada". Nomenclatura "comprobante · no es factura".
+
+**Pendiente (próxima tanda):**
+- **POS-1:** pantalla de **arqueo/cierre diario** (totales por método, propinas), **UI
+  de fichajes** (entrada/salida + registro de horas), e **interruptor "estimado vs
+  cobrado"** en informes (leer del libro de `cobros` cuando el negocio usa POS).
+- **Pulido demo:** enfoque más fino en el tutorial de config (señalar la pestaña del
+  menú, no solo el panel) y afinar el velo cinemático en escritorio.
+- Sigue pendiente (manual): rotar credenciales Google de `Documentacion/n8n/`, activar
+  "Leaked password protection" en Supabase Auth, DNS de `mecha.app` y Meta a producción.
+
+---
+
 ## 1. Resumen ejecutivo
 
 ### 1.1 La frase
