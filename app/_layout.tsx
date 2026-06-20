@@ -27,8 +27,8 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   style.textContent = `
     * { color: #1c1814; }
     input::placeholder, textarea::placeholder { color: #8a7d70 !important; }
-    input, select, textarea { background-color: #ffffff; color: #1c1814 !important; border-color: rgba(40,30,24,0.14); }
-    option { background-color: #ffffff; color: #1c1814 !important; }
+    input, select, textarea { background-color: #f6f1ea; color: #1c1814 !important; border-color: rgba(40,30,24,0.14); }
+    option { background-color: #f6f1ea; color: #1c1814 !important; }
   `;
   document.head.appendChild(style);
 }

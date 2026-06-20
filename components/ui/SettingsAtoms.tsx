@@ -424,7 +424,7 @@ export function SSelect({ value, onChange, options, width = 200, disabled, place
         <div style={{
           position: 'absolute' as const, top: 'calc(100% + 4px)', left: 0, right: 0,
           background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 10,
-          boxShadow: '0 16px 40px rgba(0,0,0,.5)', padding: 4, zIndex: 50,
+          boxShadow: '0 16px 40px rgba(28,24,20,0.18)', padding: 4, zIndex: 50,
           maxHeight: 280, overflowY: 'auto' as const,
         }}>
           {options.map(o => {
@@ -441,7 +441,7 @@ export function SSelect({ value, onChange, options, width = 200, disabled, place
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
                   transition: 'background .12s',
                 }}
-                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(148,163,184,0.06)'; }}
+                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(244,80,30,0.06)'; }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

@@ -39,6 +39,9 @@ const ANIM = `
   .le-btn { transition: all 0.15s ease; cursor: pointer; }
   .le-btn:hover { filter: brightness(1.05); }
   .le-chip { transition: all 0.15s ease; cursor: pointer; }
+  .le-chip:hover { transform: translateY(-1px); }
+  .le-opt { transition: background 0.12s ease; }
+  .le-opt:hover { background: ${T.cardHi} !important; }
 `;
 
 function Icon({ name, size = 16, color = T.text }: { name: string; size?: number; color?: string }) {
@@ -77,6 +80,7 @@ interface ListaItem {
 }
 interface Servicio { id: string; nombre: string; }
 interface Profesional { id: string; nombre: string; color: string; }
+interface Cliente { id: string; nombre: string; telefono: string | null; }
 
 type FiltroEstado = 'activas' | 'esperando' | 'avisado' | 'todas';
 
@@ -89,6 +93,7 @@ export default function ListaEsperaScreen() {
   const [items, setItems] = useState<ListaItem[]>([]);
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [filtro, setFiltro] = useState<FiltroEstado>('activas');
   const [showAdd, setShowAdd] = useState(false);
 
@@ -98,14 +103,16 @@ export default function ListaEsperaScreen() {
     if (profile && !can(profile, 'agenda.ver_todas')) { setAccessDenied(true); setLoading(false); return; }
     const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
     setNegocioId(nId);
-    const [le, srv, prof] = await Promise.all([
+    const [le, srv, prof, cli] = await Promise.all([
       supabase.from('lista_espera').select('*').eq('negocio_id', nId).order('prioridad', { ascending: false }).order('created_at', { ascending: true }),
       supabase.from('servicios').select('id, nombre').eq('negocio_id', nId),
       supabase.from('profesionales').select('id, nombre, color').eq('negocio_id', nId).eq('activo', true),
+      supabase.from('clientes').select('id, nombre, telefono').eq('negocio_id', nId).order('nombre').limit(500),
     ]);
     setItems(le.data ?? []);
     setServicios(srv.data ?? []);
     setProfesionales(prof.data ?? []);
+    setClientes(cli.data ?? []);
     setLoading(false);
   }, []);
 
@@ -256,6 +263,7 @@ export default function ListaEsperaScreen() {
           negocioId={negocioId}
           servicios={servicios}
           profesionales={profesionales}
+          clientes={clientes}
           onClose={() => setShowAdd(false)}
           onSaved={() => { setShowAdd(false); cargar(); }}
         />
@@ -285,15 +293,17 @@ function pillBtn(color: string, soft: string): React.CSSProperties {
 // ---------------------------------------------------------------------------
 // Modal de alta
 // ---------------------------------------------------------------------------
-function AddModal({ negocioId, servicios, profesionales, onClose, onSaved }: {
+function AddModal({ negocioId, servicios, profesionales, clientes, onClose, onSaved }: {
   negocioId: string;
   servicios: Servicio[];
   profesionales: Profesional[];
+  clientes: Cliente[];
   onClose: () => void;
   onSaved: () => void;
 }) {
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
+  const [clienteId, setClienteId] = useState('');
   const [servicioId, setServicioId] = useState('');
   const [profesionalId, setProfesionalId] = useState('');
   const [franja, setFranja] = useState<'manana' | 'tarde' | 'cualquiera'>('cualquiera');
@@ -301,12 +311,18 @@ function AddModal({ negocioId, servicios, profesionales, onClose, onSaved }: {
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
 
+  const q = nombre.trim().toLowerCase();
+  const matchesClientes = q && !clienteId
+    ? clientes.filter(c => c.nombre.toLowerCase().includes(q) || (c.telefono || '').includes(nombre.trim())).slice(0, 6)
+    : [];
+
   const guardar = async () => {
     setErr('');
     if (!nombre.trim()) { setErr('Indica al menos el nombre.'); return; }
     setSaving(true);
     const { error } = await supabase.from('lista_espera').insert({
       negocio_id: negocioId,
+      cliente_id: clienteId || null,
       nombre: nombre.trim(),
       telefono: telefono.trim() || null,
       servicio_id: servicioId || null,
@@ -332,8 +348,29 @@ function AddModal({ negocioId, servicios, profesionales, onClose, onSaved }: {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <label style={labelStyle}>Nombre *</label>
-            <STextInput value={nombre} onChange={setNombre} placeholder="Nombre del cliente" />
+            <label style={labelStyle}>Cliente *</label>
+            <div style={{ position: 'relative' }}>
+              <STextInput value={nombre} onChange={(v) => { setNombre(v); setClienteId(''); }} placeholder="Busca por nombre o teléfono, o escribe uno nuevo" leadingIcon="search" />
+              {matchesClientes.length > 0 && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: T.panel, border: `1px solid ${T.borderHi}`, borderRadius: 10, boxShadow: '0 16px 40px rgba(28,24,20,0.18)', padding: 4, zIndex: 60, maxHeight: 220, overflowY: 'auto' }}>
+                  {matchesClientes.map(c => (
+                    <button key={c.id} className="le-opt" onClick={() => { setClienteId(c.id); setNombre(c.nombre); setTelefono(c.telefono || ''); }}
+                      style={{ width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 7, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{c.nombre}</span>
+                      {c.telefono && <span style={{ fontSize: 11, color: T.textTer }}>{c.telefono}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {clienteId ? (
+              <div style={{ marginTop: 6, fontSize: 11.5, color: T.success, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                Cliente existente
+                <button className="le-btn" onClick={() => setClienteId('')} style={{ border: 'none', background: 'transparent', color: T.textTer, fontSize: 11, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>cambiar</button>
+              </div>
+            ) : nombre.trim() ? (
+              <div style={{ marginTop: 6, fontSize: 11.5, color: T.textTer }}>Se añadirá como cliente nuevo</div>
+            ) : null}
           </div>
           <div>
             <label style={labelStyle}>Teléfono</label>
