@@ -52,6 +52,7 @@ function Icon({ name, size = 18, color = T.text }: { name: string; size?: number
     scisors: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="6" r="1"/><path d="M20.2 19.2L13 12"/><path d="M18 4l4 4-8.8 8.8a4 4 0 0 1-2.8 1.2H4l1.8-1.8a4 4 0 0 1 1.2-2.8L18 4z"/>',
     alert: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
     x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
   };
   return (
     <span style={{ display: 'inline-flex', color, flexShrink: 0 }} dangerouslySetInnerHTML={{
@@ -81,6 +82,23 @@ interface CobroFormData {
   descuento: number;
 }
 
+// Registros descargables (CSV) — como el modo gestor de novanoidai.
+function toCSV(rows: (string | number)[][]): string {
+  return rows.map(r => r.map(c => {
+    const s = String(c ?? '');
+    return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  }).join(';')).join('\r\n');
+}
+function downloadCSV(filename: string, rows: (string | number)[][]) {
+  // BOM para que Excel respete los acentos.
+  const blob = new Blob(['﻿' + toCSV(rows)], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────────
 // COMPONENTE PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────────
@@ -95,7 +113,14 @@ export default function CajaScreen() {
   const [arqueo, setArqueo] = useState<{ total: number; efectivo: number; datafono: number; propinas: number; count: number } | null>(null);
   // Fichajes (registro de jornada del equipo)
   const [userId, setUserId] = useState<string>('');
+  const [myName, setMyName] = useState<string>('');
+  // Rol del usuario: propietario/dirección ven TODO el equipo; el resto, lo suyo.
+  const [canSeeAll, setCanSeeAll] = useState(false);
+  // Mapa user_id -> nombre del miembro del equipo (para mostrar quién fichó).
+  const [staffMap, setStaffMap] = useState<Record<string, string>>({});
   const [fichajesHoy, setFichajesHoy] = useState<Array<{ tipo: string; marcado_at: string; user_id: string | null }>>([]);
+  // Cobros del día (filas crudas) para los registros descargables.
+  const [cobrosHoy, setCobrosHoy] = useState<Array<any>>([]);
   const [fichando, setFichando] = useState(false);
 
   // Totales de la selección
@@ -169,14 +194,28 @@ export default function CajaScreen() {
 
       setCitas(procesadas);
 
+      // Rol + equipo: el propietario/dirección ve el equipo entero; el resto, lo suyo.
+      setUserId(profile.id || '');
+      setMyName([profile.nombre, profile.apellido].filter(Boolean).join(' ').trim() || 'Tu jornada');
+      setCanSeeAll(profile.role === 'owner' || profile.role === 'admin');
+      const { data: team } = await supabase
+        .from('profiles')
+        .select('id, nombre, apellido')
+        .eq('negocio_id', profile.negocio_id);
+      const map: Record<string, string> = {};
+      (team || []).forEach((m: any) => { map[m.id] = [m.nombre, m.apellido].filter(Boolean).join(' ').trim() || 'Miembro'; });
+      setStaffMap(map);
+
       // Arqueo del dia: lo cobrado HOY de verdad (libro de cobros)
-      const { data: cobrosHoy } = await supabase
+      const { data: cobrosData } = await supabase
         .from('cobros')
-        .select('total_cents, efectivo_cents, datafono_cents, propina_cents')
+        .select('id, cobrado_at, total_cents, efectivo_cents, datafono_cents, propina_cents')
         .eq('negocio_id', profile.negocio_id)
         .eq('estado', 'completado')
-        .gte('cobrado_at', todayStart);
-      const cr = cobrosHoy || [];
+        .gte('cobrado_at', todayStart)
+        .order('cobrado_at', { ascending: false });
+      const cr = cobrosData || [];
+      setCobrosHoy(cr);
       setArqueo({
         total: cr.reduce((s: number, r: any) => s + (r.total_cents || 0), 0),
         efectivo: cr.reduce((s: number, r: any) => s + (r.efectivo_cents || 0), 0),
@@ -186,7 +225,6 @@ export default function CajaScreen() {
       });
 
       // Fichajes de hoy del negocio (registro de jornada)
-      setUserId(profile.id || '');
       const { data: fchs } = await supabase
         .from('fichajes')
         .select('tipo, marcado_at, user_id')
@@ -283,6 +321,30 @@ export default function CajaScreen() {
     }
   };
 
+  // Descargas (registros del día) — solo propietario/dirección.
+  const hoyStr = format(new Date(), 'yyyy-MM-dd');
+  const descargarCobros = () => {
+    const rows: (string | number)[][] = [['Hora', 'Total (€)', 'Efectivo (€)', 'Datáfono (€)', 'Propina (€)']];
+    cobrosHoy.forEach((c: any) => rows.push([
+      format(parseISO(c.cobrado_at), 'HH:mm', { locale: es }),
+      ((c.total_cents || 0) / 100).toFixed(2),
+      ((c.efectivo_cents || 0) / 100).toFixed(2),
+      ((c.datafono_cents || 0) / 100).toFixed(2),
+      ((c.propina_cents || 0) / 100).toFixed(2),
+    ]));
+    rows.push(['TOTAL', ((arqueo?.total || 0) / 100).toFixed(2), ((arqueo?.efectivo || 0) / 100).toFixed(2), ((arqueo?.datafono || 0) / 100).toFixed(2), ((arqueo?.propinas || 0) / 100).toFixed(2)]);
+    downloadCSV(`caja-cobros-${hoyStr}.csv`, rows);
+  };
+  const descargarFichajes = () => {
+    const rows: (string | number)[][] = [['Empleado', 'Tipo', 'Hora']];
+    [...fichajesHoy].reverse().forEach((f) => rows.push([
+      (f.user_id && staffMap[f.user_id]) || 'Miembro',
+      f.tipo === 'entrada' ? 'Entrada' : 'Salida',
+      format(parseISO(f.marcado_at), 'HH:mm', { locale: es }),
+    ]));
+    downloadCSV(`fichajes-${hoyStr}.csv`, rows);
+  };
+
   // ─────────────────────────────────────────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────────────
@@ -338,28 +400,51 @@ export default function CajaScreen() {
       {(() => {
         const miUltimo = fichajesHoy.find(f => f.user_id === userId);
         const fichado = miUltimo?.tipo === 'entrada';
+        // Lista de fichajes visible: el propietario/dirección ve el equipo
+        // entero; el resto, solo lo suyo.
+        const visibles = canSeeAll ? fichajesHoy : fichajesHoy.filter(f => f.user_id === userId);
         return (
           <div style={{ background: T.card, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Icon name="clock" size={18} color={fichado ? T.success : T.textTer} />
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Fichaje</div>
-                  <div style={{ fontSize: 12, color: T.textSec }}>{fichado ? 'Estás trabajando (entrada registrada)' : 'Fuera de turno'}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Tu fichaje · {myName}</div>
+                  <div style={{ fontSize: 12, color: T.textSec }}>{fichado ? 'Trabajando — entrada registrada' : 'Fuera de turno'}</div>
                 </div>
               </div>
               <button onClick={fichar} disabled={fichando} className="ca-btn" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: fichado ? T.danger : T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <Icon name="clock" size={15} color="#fff" /> {fichando ? '...' : (fichado ? 'Fichar salida' : 'Fichar entrada')}
               </button>
             </div>
-            {fichajesHoy.length > 0 && (
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {fichajesHoy.slice(0, 12).map((f, i) => (
-                  <span key={i} style={{ fontSize: 11.5, color: T.textSec, padding: '4px 9px', borderRadius: 999, background: T.bg, border: `1px solid ${T.border}`, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: f.tipo === 'entrada' ? T.success : T.textTer }} />
-                    {f.tipo === 'entrada' ? 'Entrada' : 'Salida'} {format(parseISO(f.marcado_at), 'HH:mm', { locale: es })}{f.user_id === userId ? ' · tú' : ''}
-                  </span>
-                ))}
+            {visibles.length > 0 && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}` }}>
+                {canSeeAll && (
+                  <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Jornada del equipo (hoy)</div>
+                )}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {visibles.slice(0, 24).map((f, i) => {
+                    const nombre = (f.user_id && staffMap[f.user_id]) || 'Miembro';
+                    const esMio = f.user_id === userId;
+                    return (
+                      <span key={i} style={{ fontSize: 11.5, color: T.textSec, padding: '4px 9px', borderRadius: 999, background: T.bg, border: `1px solid ${esMio ? T.borderHi : T.border}`, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: f.tipo === 'entrada' ? T.success : T.textTer }} />
+                        {canSeeAll ? `${nombre} · ` : ''}{f.tipo === 'entrada' ? 'Entrada' : 'Salida'} {format(parseISO(f.marcado_at), 'HH:mm', { locale: es })}{esMio && canSeeAll ? ' · tú' : ''}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {canSeeAll && (cobrosHoy.length > 0 || fichajesHoy.length > 0) && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 11, color: T.textTer, fontWeight: 600 }}>Registros del día:</span>
+                <button onClick={descargarCobros} disabled={cobrosHoy.length === 0} className="ca-btn" style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, border: `1px solid ${T.borderHi}`, background: T.bg, color: T.textSec, cursor: cobrosHoy.length ? 'pointer' : 'not-allowed', opacity: cobrosHoy.length ? 1 : 0.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <Icon name="download" size={13} color={T.textSec} /> Cobros (CSV)
+                </button>
+                <button onClick={descargarFichajes} disabled={fichajesHoy.length === 0} className="ca-btn" style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, border: `1px solid ${T.borderHi}`, background: T.bg, color: T.textSec, cursor: fichajesHoy.length ? 'pointer' : 'not-allowed', opacity: fichajesHoy.length ? 1 : 0.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <Icon name="download" size={13} color={T.textSec} /> Fichajes (CSV)
+                </button>
               </div>
             )}
           </div>
