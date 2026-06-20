@@ -68,10 +68,14 @@ Desplegado a `master` (producción) en esta sesión:
   citas de hoy pendientes con el esquema real, cobra vía RPC `crear_cobro_desde_cita`
   (security definer, comprueba negocio, descuenta señal, solo `authenticated`) y muestra
   el **arqueo del día** (cobrado hoy total + efectivo/datáfono + propinas). Verificado E2E.
+- **POS-1 (fichajes + informes) — Carlos:** **fichaje** de jornada en la pantalla Caja
+  (entrada/salida del usuario + registro del día, tabla `fichajes` con RLS) e
+  **interruptor "estimado vs cobrado"** en Informes: cuando hay cobros del periodo, el
+  KPI muestra "Ingresos (estim.)" + "Cobrado (real)" del libro de `cobros` (el hueco
+  previsto-vs-cobrado). Verificado E2E. **POS-1 COMPLETO.** Queda POS-2 (cobro
+  electrónico/Stripe Terminal) = Alexandro, y POS-3 (fiscalidad/VeriFactu) = fiscalista.
 
 **Pendiente (próxima tanda):**
-- **POS-1 (resto):** **UI de fichajes** (entrada/salida + registro de horas) e
-  **interruptor "estimado vs cobrado"** en informes (leer del libro de `cobros`).
 - **Pulido demo:** enfoque más fino en el tutorial de config (señalar la pestaña del
   menú, no solo el panel) y afinar el velo cinemático en escritorio.
 - Sigue pendiente (manual): rotar credenciales Google de `Documentacion/n8n/`, activar
