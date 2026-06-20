@@ -194,6 +194,7 @@ export default function AgendaCalendar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [showClienteHistorial, setShowClienteHistorial] = useState<any>(null);
+  const [recolocarRetraso, setRecolocarRetraso] = useState(true); // toggle de Configuracion (negocio_config.config)
   const [dropServicioOpen, setDropServicioOpen] = useState(false);
   const [dropEstadoOpen, setDropEstadoOpen] = useState(false);
   // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral
@@ -215,7 +216,7 @@ export default function AgendaCalendar() {
           negocioId = profile.negocio_id;
         }
 
-        const [profResult, citaResult, srvResult, cltResult, bloqueoResult, addonsResult] = await Promise.all([
+        const [profResult, citaResult, srvResult, cltResult, bloqueoResult, addonsResult, cfgResult] = await Promise.all([
           supabase.from('profesionales').select('id, nombre, color, activo').eq('negocio_id', negocioId),
           supabase
             .from('citas')
@@ -226,7 +227,10 @@ export default function AgendaCalendar() {
           supabase.from('clientes').select('id, nombre, telefono, alergias, fecha_nacimiento, etiquetas').eq('negocio_id', negocioId),
           supabase.from('bloqueos_profesional').select('*').eq('negocio_id', negocioId),
           supabase.from('cita_addons').select('cita_id, service_addons(nombre)'),
+          supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
         ]);
+        const cfg = ((cfgResult as any)?.data?.config ?? {}) as any;
+        setRecolocarRetraso(cfg.recolocarRetraso !== false);
 
         if (profResult.error) console.error('Prof error:', profResult.error);
         if (citaResult.error) console.error('Cita error:', citaResult.error);
@@ -520,8 +524,10 @@ export default function AgendaCalendar() {
     return map;
   }, [profesionales]);
 
+  // "Confirmadas" cuenta tambien las completadas: una cita completada SI estuvo confirmada,
+  // asi que marcarla como completada no debe restar del contador.
   const confirmadasHoy = useMemo(
-    () => citasHoy.filter((c: any) => c.estado === CITA_STATUS.CONFIRMADA).length,
+    () => citasHoy.filter((c: any) => c.estado === CITA_STATUS.CONFIRMADA || c.estado === CITA_STATUS.COMPLETADA).length,
     [citasHoy]
   );
 
@@ -1214,7 +1220,7 @@ export default function AgendaCalendar() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <ProfRow id="todos" name="Todos" color={TOKENS.primary} count={citasHoy.length} selected={selectedProf === 'todos'} onSel={() => setSelectedProf('todos')} />
               {visibleProfs.map((p) => (
-                <ProfRow key={p.id} id={p.id} name={p.nombre} role={p.rol} color={p.color} count={citasHoy.filter((c) => c.profesional_id === p.id).length} selected={selectedProf === p.id} onSel={() => setSelectedProf(p.id)} reposoUtil={reposoUtilMap[p.id]} onRetraso={() => setShowRetrasoProf(p.id)} />
+                <ProfRow key={p.id} id={p.id} name={p.nombre} role={p.rol} color={p.color} count={citasHoy.filter((c) => c.profesional_id === p.id).length} selected={selectedProf === p.id} onSel={() => setSelectedProf(p.id)} reposoUtil={reposoUtilMap[p.id]} onRetraso={recolocarRetraso ? () => setShowRetrasoProf(p.id) : undefined} />
               ))}
             </div>
           </div>
@@ -1393,6 +1399,7 @@ export default function AgendaCalendar() {
             setShowEditCita(false);
           }}
           cita={selectedCitaEdit}
+          retrasosActivo={recolocarRetraso}
           servicios={servicios}
           clientes={clientes}
           profesionales={profesionales}
@@ -1574,34 +1581,34 @@ export default function AgendaCalendar() {
         const citasProf = citasHoy.filter((c) => c.profesional_id === showRetrasoProf && c.estado === 'confirmada');
 
         async function retrasarTodas(minutos: number) {
-          const deltaMs = minutos * 60000;
+          // Cascada inteligente (misma logica que el retraso por cita): el profesional llega
+          // X tarde -> su primera cita aun no terminada se retrasa X y las siguientes se
+          // recolocan ABSORBIENDO los huecos (no se desplazan todas a ciegas).
+          const citasMapped = citasProf.map((c: any) => ({
+            id: c.id, inicio: c.inicio, fin: c.fin, fin_activa: c.fin_activa, fin_espera: c.fin_espera,
+          }));
+          const ahora = Date.now();
+          const primera = citasMapped
+            .filter((c) => +new Date(c.fin) > ahora)
+            .sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio))[0];
+          if (!primera) { setShowRetrasoProf(null); return; }
+          const prop = proponerRetrasoPorCita(citasMapped, primera.id, minutos);
+          const updates = construirUpdatesRetraso(prop, citasMapped);
+          if (updates.length === 0) { setShowRetrasoProf(null); return; }
           const profile = await getUserProfile();
           const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
-          for (const c of citasProf) {
-            const payload: any = {
-              inicio: new Date(new Date(c.inicio).getTime() + deltaMs).toISOString(),
-              fin: new Date(new Date(c.fin).getTime() + deltaMs).toISOString(),
-            };
-            if (c.fin_activa) payload.fin_activa = new Date(new Date(c.fin_activa).getTime() + deltaMs).toISOString();
-            if (c.fin_espera) payload.fin_espera = new Date(new Date(c.fin_espera).getTime() + deltaMs).toISOString();
-            await supabase.from('citas').update(payload).eq('id', c.id);
-            await registrarHistorial(c.id, nId, [
-              { campo: 'inicio', anterior: c.inicio, nuevo: payload.inicio },
-              { campo: 'fin', anterior: c.fin, nuevo: payload.fin },
+          for (const u of updates) {
+            const orig = citasProf.find((c: any) => c.id === u.id);
+            const { id, ...campos } = u;
+            await supabase.from('citas').update(campos).eq('id', id);
+            if (orig) await registrarHistorial(id, nId, [
+              { campo: 'inicio', anterior: orig.inicio, nuevo: campos.inicio },
+              { campo: 'fin', anterior: orig.fin, nuevo: campos.fin },
             ], `Profesional llega tarde (+${minutos} min)`);
           }
           setCitas((prev) => prev.map((c) => {
-            if (citasProf.some((cp) => cp.id === c.id)) {
-              const updated: any = {
-                ...c,
-                inicio: new Date(new Date(c.inicio).getTime() + deltaMs).toISOString(),
-                fin: new Date(new Date(c.fin).getTime() + deltaMs).toISOString(),
-              };
-              if (c.fin_activa) updated.fin_activa = new Date(new Date(c.fin_activa).getTime() + deltaMs).toISOString();
-              if (c.fin_espera) updated.fin_espera = new Date(new Date(c.fin_espera).getTime() + deltaMs).toISOString();
-              return updated;
-            }
-            return c;
+            const u = updates.find((x) => x.id === c.id);
+            return u ? { ...c, ...u } : c;
           }));
           setShowRetrasoProf(null);
         }
@@ -1613,7 +1620,7 @@ export default function AgendaCalendar() {
                 Profesional llega tarde
               </h3>
               <p style={{ margin: 0, marginBottom: 18, fontSize: 12, color: TOKENS.textSec }}>
-                {prof.nombre} tiene {citasProf.length} cita{citasProf.length > 1 ? 's' : ''} pendiente{citasProf.length > 1 ? 's' : ''} que deberian haber empezado. Retrasa todas a la vez.
+                {prof.nombre} tiene {citasProf.length} cita{citasProf.length > 1 ? 's' : ''} pendiente{citasProf.length > 1 ? 's' : ''}. Recoloca su dia absorbiendo los huecos.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18, maxHeight: 200, overflowY: 'auto' }}>
@@ -1630,7 +1637,7 @@ export default function AgendaCalendar() {
                 })}
               </div>
 
-              <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 6, display: 'block' }}>Retrasar todas las citas</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 6, display: 'block' }}>Recolocar a partir de la cita en curso</span>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 18 }}>
                 {[10, 15, 20, 30].map((min) => (
                   <button
@@ -4115,7 +4122,7 @@ function TimeNumBox({ value, label }: { value: string; label: string }) {
   );
 }
 
-function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesionales, citasHoy, allCitas }: any) {
+function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesionales, citasHoy, allCitas, retrasosActivo }: any) {
   const router = useRouter();
   const { triggerRefresh } = useCalendarRefresh();
   const { isMobile, isTablet } = useResponsive();
@@ -5911,7 +5918,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
               <IconTrash /> Cancelar cita
             </button>
           )}
-          {cita.estado === CITA_STATUS.CONFIRMADA && new Date(cita.inicio) > new Date() && (
+          {retrasosActivo && cita.estado === CITA_STATUS.CONFIRMADA && new Date(cita.inicio) > new Date() && (
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setRetrasoPickerOpen((v) => !v)}
