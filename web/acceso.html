@@ -13,22 +13,30 @@
 <link rel="stylesheet" href="assets/mecha.css" />
 <style>
   body{min-height:100vh}
-  /* Fondo LISO ceniza para todo el login (sobrescribe el .bg con brasas de la
-     landing). Sin gradientes naranjas, sin orbes, sin canvas. */
-  .bg{background:#16171d !important}
+  /* Fondo del login: degradado de marca (brasa fuego sobre oscuro cálido) con
+     profundidad, SIN partículas ni lecho rocoso. Dos resplandores suaves dan
+     contraste y sensación de espacio. */
+  .bg{background:
+    radial-gradient(120% 85% at 12% 112%, rgba(244,80,30,.26), transparent 56%),
+    radial-gradient(95% 75% at 90% -10%, rgba(192,38,10,.18), transparent 60%),
+    linear-gradient(158deg, #1a1310 0%, #0d0b0a 60%, #080706 100%) !important}
   .bg::before,.bg::after{display:none !important}
   .auth{position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
-  /* Panel izquierdo: fondo LISO ceniza con un velo calido muy sutil (sin texturas,
-     sin canvas, sin orbes). Coherente con el panel derecho. */
+  /* Panel izquierdo (marketing): velo cálido de marca sobre oscuro, con un brillo
+     de brasa en la base. Sin texturas/canvas/orbes. */
   .auth-aside{position:relative;overflow:hidden;padding:36px 44px;display:flex;flex-direction:column;justify-content:space-between;
-    background:#1c1814;}
+    background:
+      radial-gradient(110% 80% at 18% 110%, rgba(244,80,30,.28), transparent 58%),
+      linear-gradient(155deg, rgba(255,138,61,.10) 0%, rgba(192,38,10,.06) 46%, transparent 76%),
+      linear-gradient(160deg, #1d1411 0%, #120d0b 100%);}
   .auth-aside .a-orb{display:none}
   .auth-aside .top,.auth-aside .mid,.auth-aside .bot{position:relative;z-index:1}
 
-  /* Panel derecho (formulario): fondo LISO ceniza oscuro. */
+  /* Panel derecho (formulario): transparente para que se vea el degradado del
+     fondo (.bg). Asi en estado logged-in (centrado) no aparecen franjas. */
   .auth-main{
     display:flex;align-items:center;justify-content:center;padding:24px 28px;
-    background:#16171d;
+    background:transparent;
   }
   .a-quote{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(28px,3.1vw,42px);line-height:1.18;letter-spacing:-.01em;max-width:500px}
   .a-quote .grad-txt{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
