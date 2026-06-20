@@ -695,3 +695,19 @@ del periodo (Informes).
 (VeriFactu/numeración correlativa siguen siendo P3 con fiscalista). No usar "factura/ticket fiscal".
 **Pendiente de validación de Jose:** FPS de la landing en navegador real; y la vista de Caja con
 una cuenta de rol no-propietario (profesional/recepción) para confirmar que solo ve el fichaje.
+
+---
+
+## Pendiente — feedback en vivo de la demo (21-22 jun) → ver `informes/HANDOFF-2026-06-22.md`
+
+Jose revisó la demo en vivo y dio feedback NUEVO (no implementado todavía, documentado como tareas
+B1–B8 con causa raíz y criterios en `informes/HANDOFF-2026-06-22.md`):
+- **Tour**: reveal del texto en orden de escritura (palabra a palabra); bug del salto izq→der entre
+  pasos (no revelar hasta posición final); título de fase con contraste (chip oscuro) y bien
+  posicionado; texto con elementos de diseño (subrayar palabras clave, acentos); pasos fullscreen con
+  texto sobre el fondo CLARO de la app (no scrim oscuro); tutorial 2 (config) títulos en zona oscura
+  + resolver que "para en Fórmulas".
+- **Modal Recomienda Mecha**: recompensas −40%/−15% protagonistas, "cómo funciona" debajo, y
+  diferenciar el enlace que GANA % (referido) del que solo enseña la demo.
+- **Caja propietario**: jornada de todo el equipo (incluido el propietario) con horas trabajadas
+  calculadas (entrada/salida) y descansos, todo descargable en CSV (confirmar modelo de "descanso").
