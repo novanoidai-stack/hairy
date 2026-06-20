@@ -3074,9 +3074,11 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
     }
   };
 
+  // Los inputs crudos heredan el color de su contenedor (una regla global fuerza
+  // background:transparent en input/textarea; el color real lo da el marco que los envuelve).
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 8,
-    background: '#ffffff', border: `1px solid ${T.border}`,
+    background: 'transparent', border: `1px solid ${T.border}`,
     color: T.text, fontSize: 13, outline: 'none', fontFamily: 'inherit',
     boxSizing: 'border-box',
   };
@@ -3145,7 +3147,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
           {isProfMode ? (
             <div style={{ display: 'grid', gap: 14, paddingBottom: 4 }}>
               <FormField label="Precio (EUR)">
-                <input value={ovPrecio} onChange={e => setOvPrecio(e.target.value)} placeholder={String(service.precio)} style={inputStyle} />
+                <STextInput value={String(ovPrecio)} onChange={setOvPrecio} placeholder={String(service.precio)} />
                 {service.precio != null && (
                   <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Catalogo: {service.precio} EUR</div>
                 )}
@@ -3162,11 +3164,11 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                 <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Catalogo: {catalogActiva} min</div>
               </FormField>
               <FormField label="Tiempo de reposo (min)">
-                <input value={ovEspera} onChange={e => setOvEspera(parseInt(e.target.value) || 0)} placeholder="0" style={inputStyle} />
+                <STextInput value={String(ovEspera)} onChange={v => setOvEspera(parseInt(v) || 0)} placeholder="0" type="number" />
                 <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Catalogo: {service.duracion_espera_min || 0} min</div>
               </FormField>
               <FormField label="Tiempo activo extra (min)">
-                <input value={ovExtra} onChange={e => setOvExtra(parseInt(e.target.value) || 0)} placeholder="0" style={inputStyle} />
+                <STextInput value={String(ovExtra)} onChange={v => setOvExtra(parseInt(v) || 0)} placeholder="0" type="number" />
                 <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Catalogo: {service.duracion_activa_extra_min || 0} min</div>
               </FormField>
               <FormField label="Estado para este profesional">
@@ -3181,7 +3183,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
           ) : (
             <div style={{ display: 'grid', gap: 14, maxWidth: 480, paddingBottom: 4 }}>
               <FormField label="Nombre del servicio">
-                <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Corte + Barba" style={inputStyle} />
+                <STextInput value={nombre} onChange={setNombre} placeholder="Ej. Corte + Barba" />
               </FormField>
               <FormField label="Foto del servicio (opcional)">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -3214,7 +3216,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                 </div>
               </FormField>
               <FormField label="Precio (EUR)">
-                <input value={precio} onChange={e => setPrecio(e.target.value)} placeholder="28" style={inputStyle} />
+                <STextInput value={String(precio)} onChange={setPrecio} placeholder="28" />
               </FormField>
               <FormField label="Tiempo activo (min)">
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -3227,15 +3229,15 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                 </div>
               </FormField>
               <FormField label="Tiempo de reposo (opcional)">
-                <input value={espera} onChange={e => setEspera(parseInt(e.target.value) || 0)} placeholder="0 min" style={inputStyle} />
+                <STextInput value={String(espera)} onChange={v => setEspera(parseInt(v) || 0)} placeholder="0 min" type="number" />
                 <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Util para coloraciones donde el tinte reposa.</div>
               </FormField>
               <FormField label="Tiempo activo extra (opcional)">
-                <input value={activaExtra} onChange={e => setActivaExtra(parseInt(e.target.value) || 0)} placeholder="0 min" style={inputStyle} />
+                <STextInput value={String(activaExtra)} onChange={v => setActivaExtra(parseInt(v) || 0)} placeholder="0 min" type="number" />
                 <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Tiempo activo adicional tras la fase de reposo.</div>
               </FormField>
               <FormField label="Antelacion minima (min)">
-                <input value={minAntelacion} onChange={e => setMinAntelacion(parseInt(e.target.value) || 0)} placeholder="0" style={inputStyle} />
+                <STextInput value={String(minAntelacion)} onChange={v => setMinAntelacion(parseInt(v) || 0)} placeholder="0" type="number" />
                 <div style={{ fontSize: 10, color: T.textTertiary, marginTop: 4 }}>Tiempo minimo de antelacion para reservar este servicio. 0 = sin restriccion.</div>
               </FormField>
 
@@ -3499,10 +3501,10 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                 {prepagoRequerido && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10, paddingLeft: 12, borderLeft: `2px solid rgba(245,158,11,0.3)` }}>
                     <FormField label="Porcentaje (%)">
-                      <input value={prepagoPorcentaje} onChange={e => setPrepagoPorcentaje(e.target.value)} placeholder="Ej. 30" type="number" min="0" max="100" style={inputStyle} />
+                      <STextInput value={prepagoPorcentaje} onChange={setPrepagoPorcentaje} placeholder="Ej. 30" type="number" />
                     </FormField>
                     <FormField label="O cantidad fija (EUR)">
-                      <input value={prepagoCantidad} onChange={e => setPrepagoCantidad(e.target.value)} placeholder="Ej. 20" type="number" min="0" style={inputStyle} />
+                      <STextInput value={prepagoCantidad} onChange={setPrepagoCantidad} placeholder="Ej. 20" type="number" />
                     </FormField>
                   </div>
                 )}
@@ -3524,13 +3526,16 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <FormField label="Cancelacion minima (horas)">
-                    <input value={cancelacionHoras} onChange={e => setCancelacionHoras(e.target.value)} placeholder="24" type="number" min="0" style={inputStyle} />
+                    <STextInput value={cancelacionHoras} onChange={setCancelacionHoras} placeholder="24" type="number" />
                   </FormField>
                   <FormField label="Categoria minima">
-                    <select value={categoriaMinima} onChange={e => setCategoriaMinima(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
-                      <option value="">Sin restriccion</option>
-                      {CATEGORIAS_PROFESIONAL.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                    </select>
+                    <SSelect
+                      value={categoriaMinima}
+                      onChange={setCategoriaMinima}
+                      width="100%"
+                      placeholder="Sin restriccion"
+                      options={[{ value: '', label: 'Sin restriccion' }, ...CATEGORIAS_PROFESIONAL.map(c => ({ value: c.value, label: c.label }))]}
+                    />
                   </FormField>
                 </div>
               </div>

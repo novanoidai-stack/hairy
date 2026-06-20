@@ -5,6 +5,7 @@ import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
+import { SSelect, STextInput } from '@/components/ui/SettingsAtoms';
 
 // ---------------------------------------------------------------------------
 // Tokens (consistentes con el resto de .web.tsx)
@@ -319,10 +320,6 @@ function AddModal({ negocioId, servicios, profesionales, onClose, onSaved }: {
     onSaved();
   };
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '10px 12px', borderRadius: 9, border: `1.5px solid ${T.border}`,
-    fontSize: 14, color: T.text, background: T.card, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
-  };
   const labelStyle: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 5 };
 
   return (
@@ -336,25 +333,31 @@ function AddModal({ negocioId, servicios, profesionales, onClose, onSaved }: {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
             <label style={labelStyle}>Nombre *</label>
-            <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre del cliente" style={inputStyle} />
+            <STextInput value={nombre} onChange={setNombre} placeholder="Nombre del cliente" />
           </div>
           <div>
             <label style={labelStyle}>Teléfono</label>
-            <input value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="600 000 000" style={inputStyle} />
+            <STextInput value={telefono} onChange={setTelefono} placeholder="600 000 000" />
           </div>
           <div>
             <label style={labelStyle}>Servicio</label>
-            <select value={servicioId} onChange={e => setServicioId(e.target.value)} style={inputStyle}>
-              <option value="">Cualquier servicio</option>
-              {servicios.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
-            </select>
+            <SSelect
+              value={servicioId}
+              onChange={setServicioId}
+              width="100%"
+              placeholder="Cualquier servicio"
+              options={[{ value: '', label: 'Cualquier servicio' }, ...servicios.map(s => ({ value: String(s.id), label: s.nombre }))]}
+            />
           </div>
           <div>
             <label style={labelStyle}>Profesional preferido</label>
-            <select value={profesionalId} onChange={e => setProfesionalId(e.target.value)} style={inputStyle}>
-              <option value="">Cualquier profesional</option>
-              {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-            </select>
+            <SSelect
+              value={profesionalId}
+              onChange={setProfesionalId}
+              width="100%"
+              placeholder="Cualquier profesional"
+              options={[{ value: '', label: 'Cualquier profesional' }, ...profesionales.map(p => ({ value: String(p.id), label: p.nombre }))]}
+            />
           </div>
           <div>
             <label style={labelStyle}>Franja preferida</label>
@@ -369,7 +372,10 @@ function AddModal({ negocioId, servicios, profesionales, onClose, onSaved }: {
           </div>
           <div>
             <label style={labelStyle}>Nota</label>
-            <textarea value={nota} onChange={e => setNota(e.target.value)} placeholder="Disponibilidad, preferencias…" rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
+            <div style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 9, boxSizing: 'border-box' }}>
+              <textarea value={nota} onChange={e => setNota(e.target.value)} placeholder="Disponibilidad, preferencias…" rows={2}
+                style={{ width: '100%', padding: '10px 12px', background: 'transparent', border: 'none', outline: 'none', resize: 'vertical', color: T.text, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box', display: 'block' }} />
+            </div>
           </div>
         </div>
 

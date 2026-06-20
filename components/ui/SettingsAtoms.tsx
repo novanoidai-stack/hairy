@@ -374,7 +374,7 @@ interface SelectProps {
   value: string | number;
   onChange: (v: any) => void;
   options: SelectOption[];
-  width?: number;
+  width?: number | string;
   disabled?: boolean;
   placeholder?: string;
 }
