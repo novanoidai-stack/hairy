@@ -340,7 +340,7 @@ export default function InformesScreen() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [resenas, setResenas] = useState<{ puntuacion: number }[]>([]);
-  const [cobros, setCobros] = useState<{ total_cents: number }[]>([]);
+  const [cobros, setCobros] = useState<{ total_cents: number; cobrado_at?: string; efectivo_cents?: number; datafono_cents?: number; propina_cents?: number }[]>([]);
 
   // UI
   const [comisionPct, setComisionPct] = useState<number>(30);
@@ -379,7 +379,7 @@ export default function InformesScreen() {
       // Cobros reales del periodo (libro de caja): para comparar estimado vs cobrado.
       supabase
         .from('cobros')
-        .select('total_cents')
+        .select('total_cents, cobrado_at, efectivo_cents, datafono_cents, propina_cents')
         .eq('negocio_id', nId)
         .eq('estado', 'completado')
         .gte('cobrado_at', desde.toISOString())
@@ -426,6 +426,20 @@ export default function InformesScreen() {
   // cifra autoritativa; si no, queda en 0 y se sigue mostrando solo el estimado.
   const totalCobrado = useMemo(() => cobros.reduce((s, c) => s + (c.total_cents || 0), 0) / 100, [cobros]);
   const hayCobros = cobros.length > 0;
+
+  // Caja diaria: agrupa los cobros reales por día (total, efectivo, datáfono, propina).
+  const cajaPorDia = useMemo(() => {
+    const m = new Map<string, { fecha: string; total: number; efectivo: number; datafono: number; propina: number; n: number }>();
+    cobros.forEach(c => {
+      if (!c.cobrado_at) return;
+      const dia = c.cobrado_at.slice(0, 10); // YYYY-MM-DD
+      const e = m.get(dia) || { fecha: dia, total: 0, efectivo: 0, datafono: 0, propina: 0, n: 0 };
+      e.total += (c.total_cents || 0); e.efectivo += (c.efectivo_cents || 0);
+      e.datafono += (c.datafono_cents || 0); e.propina += (c.propina_cents || 0); e.n += 1;
+      m.set(dia, e);
+    });
+    return Array.from(m.values()).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  }, [cobros]);
 
   const tasaNoShow = totalCitas > 0 ? (noShows.length / totalCitas) * 100 : 0;
 
@@ -709,6 +723,20 @@ export default function InformesScreen() {
     });
     descargarCSV(`informe_completo_${periodo}.csv`, headers, rows);
   }, [citas, profMap, srvMap, cltMap, periodo]);
+
+  // Caja diaria: registro descargable de lo cobrado de verdad, día a día.
+  const exportCajaDiaria = useCallback(() => {
+    const headers = ['Fecha', 'Cobros', 'Total (EUR)', 'Efectivo (EUR)', 'Datafono (EUR)', 'Propinas (EUR)'];
+    const rows = cajaPorDia.map(d => [
+      format(parseISO(d.fecha), 'dd/MM/yyyy'),
+      String(d.n),
+      (d.total / 100).toFixed(2),
+      (d.efectivo / 100).toFixed(2),
+      (d.datafono / 100).toFixed(2),
+      (d.propina / 100).toFixed(2),
+    ]);
+    descargarCSV(`caja_diaria_${periodo}.csv`, headers, rows);
+  }, [cajaPorDia, periodo]);
 
   // -------------------------------------------------------------------------
   // Periodo labels
@@ -1452,6 +1480,58 @@ export default function InformesScreen() {
                 </div>
               </SectionBody>
             </div>
+
+            {/* ============================================================= */}
+            {/* Caja diaria (cobros reales del libro de caja)                 */}
+            {/* ============================================================= */}
+            {hayCobros && (
+              <div style={{ marginBottom: 14, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: isMobile ? 14 : 18 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Icon name="dollar" size={15} color={TOKENS.primary} />
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: TOKENS.text }}>Caja diaria (cobrado real)</div>
+                      <div style={{ fontSize: 11.5, color: TOKENS.textTer }}>Lo cobrado de verdad en el periodo, día a día · Total {fmtEur(totalCobrado)} EUR</div>
+                    </div>
+                  </div>
+                  <button onClick={exportCajaDiaria} style={{
+                    fontSize: 11, color: TOKENS.textTer, background: 'transparent', border: `1px solid ${TOKENS.border}`,
+                    borderRadius: 6, padding: '5px 11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, transition: 'all 0.2s ease',
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = TOKENS.primaryHi; (e.currentTarget as HTMLElement).style.borderColor = TOKENS.primary; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = TOKENS.textTer; (e.currentTarget as HTMLElement).style.borderColor = TOKENS.border; }}
+                  >
+                    <Icon name="download" size={11} color="currentColor" /> Descargar caja diaria (CSV)
+                  </button>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                    <thead>
+                      <tr style={{ textAlign: 'left', color: TOKENS.textTer }}>
+                        <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}` }}>Día</th>
+                        <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Cobros</th>
+                        <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Total</th>
+                        <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Efectivo</th>
+                        <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Datáfono</th>
+                        <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Propinas</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cajaPorDia.map((d) => (
+                        <tr key={d.fecha}>
+                          <td style={{ padding: '7px 8px', color: TOKENS.text, borderBottom: `1px solid ${TOKENS.border}`, whiteSpace: 'nowrap', textTransform: 'capitalize' }}>{format(parseISO(d.fecha), "EEE d MMM", { locale: es })}</td>
+                          <td style={{ padding: '7px 8px', color: TOKENS.textSec, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{d.n}</td>
+                          <td style={{ padding: '7px 8px', color: TOKENS.text, fontWeight: 700, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(d.total / 100)} €</td>
+                          <td style={{ padding: '7px 8px', color: TOKENS.textSec, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(d.efectivo / 100)} €</td>
+                          <td style={{ padding: '7px 8px', color: TOKENS.textSec, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(d.datafono / 100)} €</td>
+                          <td style={{ padding: '7px 8px', color: TOKENS.success, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(d.propina / 100)} €</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* ============================================================= */}
             {/* 9.6: Servicios top + combinaciones                            */}
