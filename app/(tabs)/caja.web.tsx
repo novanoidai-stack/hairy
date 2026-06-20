@@ -369,32 +369,35 @@ export default function CajaScreen() {
           Caja
         </h1>
         <p style={{ fontSize: 14, color: T.textSec, margin: 0 }}>
-          Cobra las citas completadas. Elige método, confirma y listo.
+          {canSeeAll
+            ? 'Cobra las citas completadas, controla el arqueo del día y la jornada del equipo.'
+            : 'Ficha tu entrada y tu salida del turno.'}
         </p>
       </div>
 
-      {/* Arqueo del dia (lo cobrado de verdad, por metodo) */}
-      {arqueo && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 16 }}>
-          <div style={{ background: T.card, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: T.textSec, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>Cobrado hoy</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginTop: 4 }}>{(arqueo.total / 100).toFixed(2)}€</div>
-            <div style={{ fontSize: 11, color: T.textTer, marginTop: 2 }}>{arqueo.count} cobro{arqueo.count === 1 ? '' : 's'}</div>
+      {/* Arqueo del dia — solo propietario/dirección (todo lo del dinero) */}
+      {canSeeAll && arqueo && (() => {
+        // IVA estimado (operativo, NO fiscal): peluquería 21% incluido en el precio.
+        const ivaEstim = Math.round(arqueo.total * 21 / 121);
+        const card = (label: string, value: string, opts: { hero?: boolean; color?: string; icon?: string; sub?: string } = {}) => (
+          <div style={{ background: T.card, border: `1px solid ${opts.hero ? 'rgba(244,80,30,0.32)' : T.border}`, borderRadius: 12, padding: '14px 16px', boxShadow: opts.hero ? '0 6px 20px -10px rgba(244,80,30,0.4)' : 'none' }}>
+            <div style={{ fontSize: 11, color: T.textSec, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4, display: 'flex', alignItems: 'center', gap: 5 }}>
+              {opts.icon ? <Icon name={opts.icon} size={13} color={opts.color || T.textSec} /> : null}{label}
+            </div>
+            <div style={{ fontSize: opts.hero ? 24 : 18, fontWeight: opts.hero ? 800 : 700, color: opts.color || T.text, marginTop: 4 }}>{value}</div>
+            {opts.sub ? <div style={{ fontSize: 11, color: T.textTer, marginTop: 2 }}>{opts.sub}</div> : null}
           </div>
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: T.textSec, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Icon name="cash" size={13} color={T.success} /> Efectivo</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: T.text, marginTop: 4 }}>{(arqueo.efectivo / 100).toFixed(2)}€</div>
+        );
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 16 }}>
+            {card('Cobrado hoy', `${(arqueo.total / 100).toFixed(2)}€`, { hero: true, sub: `${arqueo.count} cobro${arqueo.count === 1 ? '' : 's'}` })}
+            {card('Efectivo', `${(arqueo.efectivo / 100).toFixed(2)}€`, { icon: 'cash', color: T.text })}
+            {card('Datáfono', `${(arqueo.datafono / 100).toFixed(2)}€`, { icon: 'credit', color: T.text })}
+            {card('Propinas', `${(arqueo.propinas / 100).toFixed(2)}€`, { color: T.success })}
+            {card('IVA estim. (21%)', `${(ivaEstim / 100).toFixed(2)}€`, { color: T.textSec, sub: 'incluido en lo cobrado' })}
           </div>
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: T.textSec, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Icon name="credit" size={13} color={T.primary} /> Datáfono</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: T.text, marginTop: 4 }}>{(arqueo.datafono / 100).toFixed(2)}€</div>
-          </div>
-          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: T.textSec, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>Propinas</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: T.success, marginTop: 4 }}>{(arqueo.propinas / 100).toFixed(2)}€</div>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Fichaje (registro de jornada del equipo) */}
       {(() => {
@@ -463,8 +466,8 @@ export default function CajaScreen() {
         </div>
       )}
 
-      {/* Barra de acciones */}
-      {citas.length > 0 && (
+      {/* Barra de acciones — solo propietario/dirección */}
+      {canSeeAll && citas.length > 0 && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '14px 18px', background: T.card, borderRadius: 12,
@@ -507,8 +510,8 @@ export default function CajaScreen() {
         </div>
       )}
 
-      {/* Lista de citas */}
-      {citas.length === 0 ? (
+      {/* Lista de citas pendientes de cobro — solo propietario/dirección */}
+      {canSeeAll && (citas.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '60px 20px', background: T.card,
           borderRadius: 16, border: `1px solid ${T.border}`,
@@ -586,10 +589,10 @@ export default function CajaScreen() {
             );
           })}
         </div>
-      )}
+      ))}
 
-      {/* Modal de cobro */}
-      {showCobroModal && (
+      {/* Modal de cobro — solo propietario/dirección */}
+      {canSeeAll && showCobroModal && (
         <CobroModal
           seleccion={seleccion}
           onCobrar={cobrarSeleccionadas}

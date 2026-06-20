@@ -724,9 +724,19 @@ export default function InformesScreen() {
     descargarCSV(`informe_completo_${periodo}.csv`, headers, rows);
   }, [citas, profMap, srvMap, cltMap, periodo]);
 
-  // Caja diaria: registro descargable de lo cobrado de verdad, día a día.
+  // Totales de caja del periodo (efectivo, tarjeta/datáfono, propinas, IVA estimado 21%).
+  const cajaTotales = useMemo(() => {
+    const total = cobros.reduce((s, c) => s + (c.total_cents || 0), 0);
+    const efectivo = cobros.reduce((s, c) => s + (c.efectivo_cents || 0), 0);
+    const datafono = cobros.reduce((s, c) => s + (c.datafono_cents || 0), 0);
+    const propina = cobros.reduce((s, c) => s + (c.propina_cents || 0), 0);
+    const iva = Math.round(total * 21 / 121); // IVA estimado (operativo, NO fiscal)
+    return { total, efectivo, datafono, propina, iva };
+  }, [cobros]);
+
+  // Caja diaria: registro descargable de lo cobrado de verdad, día a día (con IVA estim.).
   const exportCajaDiaria = useCallback(() => {
-    const headers = ['Fecha', 'Cobros', 'Total (EUR)', 'Efectivo (EUR)', 'Datafono (EUR)', 'Propinas (EUR)'];
+    const headers = ['Fecha', 'Cobros', 'Total (EUR)', 'Efectivo (EUR)', 'Datafono (EUR)', 'Propinas (EUR)', 'IVA estim. 21% (EUR)'];
     const rows = cajaPorDia.map(d => [
       format(parseISO(d.fecha), 'dd/MM/yyyy'),
       String(d.n),
@@ -734,9 +744,11 @@ export default function InformesScreen() {
       (d.efectivo / 100).toFixed(2),
       (d.datafono / 100).toFixed(2),
       (d.propina / 100).toFixed(2),
+      (Math.round(d.total * 21 / 121) / 100).toFixed(2),
     ]);
+    rows.push(['TOTAL', String(cobros.length), (cajaTotales.total / 100).toFixed(2), (cajaTotales.efectivo / 100).toFixed(2), (cajaTotales.datafono / 100).toFixed(2), (cajaTotales.propina / 100).toFixed(2), (cajaTotales.iva / 100).toFixed(2)]);
     descargarCSV(`caja_diaria_${periodo}.csv`, headers, rows);
-  }, [cajaPorDia, periodo]);
+  }, [cajaPorDia, cajaTotales, cobros.length, periodo]);
 
   // -------------------------------------------------------------------------
   // Periodo labels
@@ -1504,6 +1516,22 @@ export default function InformesScreen() {
                     <Icon name="download" size={11} color="currentColor" /> Descargar caja diaria (CSV)
                   </button>
                 </div>
+
+                {/* Resumen del periodo: efectivo vs tarjeta + IVA estimado */}
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
+                  {[
+                    { label: 'Efectivo', value: cajaTotales.efectivo, color: TOKENS.success },
+                    { label: 'Tarjeta / datáfono', value: cajaTotales.datafono, color: TOKENS.primary },
+                    { label: 'Propinas', value: cajaTotales.propina, color: TOKENS.text },
+                    { label: 'IVA estim. (21%)', value: cajaTotales.iva, color: TOKENS.textSec },
+                  ].map((k) => (
+                    <div key={k.label} style={{ background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '10px 12px' }}>
+                      <div style={{ fontSize: 10.5, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>{k.label}</div>
+                      <div style={{ fontSize: 17, fontWeight: 700, color: k.color, marginTop: 3 }}>{fmtEur(k.value / 100)} €</div>
+                    </div>
+                  ))}
+                </div>
+
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
                     <thead>
@@ -1514,6 +1542,7 @@ export default function InformesScreen() {
                         <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Efectivo</th>
                         <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Datáfono</th>
                         <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>Propinas</th>
+                        <th style={{ padding: '6px 8px', fontWeight: 600, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>IVA estim.</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1525,8 +1554,18 @@ export default function InformesScreen() {
                           <td style={{ padding: '7px 8px', color: TOKENS.textSec, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(d.efectivo / 100)} €</td>
                           <td style={{ padding: '7px 8px', color: TOKENS.textSec, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(d.datafono / 100)} €</td>
                           <td style={{ padding: '7px 8px', color: TOKENS.success, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(d.propina / 100)} €</td>
+                          <td style={{ padding: '7px 8px', color: TOKENS.textSec, borderBottom: `1px solid ${TOKENS.border}`, textAlign: 'right' }}>{fmtEur(Math.round(d.total * 21 / 121) / 100)} €</td>
                         </tr>
                       ))}
+                      <tr>
+                        <td style={{ padding: '8px', color: TOKENS.text, fontWeight: 700 }}>TOTAL</td>
+                        <td style={{ padding: '8px', color: TOKENS.textSec, fontWeight: 700, textAlign: 'right' }}>{cobros.length}</td>
+                        <td style={{ padding: '8px', color: TOKENS.text, fontWeight: 800, textAlign: 'right' }}>{fmtEur(cajaTotales.total / 100)} €</td>
+                        <td style={{ padding: '8px', color: TOKENS.text, fontWeight: 700, textAlign: 'right' }}>{fmtEur(cajaTotales.efectivo / 100)} €</td>
+                        <td style={{ padding: '8px', color: TOKENS.text, fontWeight: 700, textAlign: 'right' }}>{fmtEur(cajaTotales.datafono / 100)} €</td>
+                        <td style={{ padding: '8px', color: TOKENS.success, fontWeight: 700, textAlign: 'right' }}>{fmtEur(cajaTotales.propina / 100)} €</td>
+                        <td style={{ padding: '8px', color: TOKENS.textSec, fontWeight: 700, textAlign: 'right' }}>{fmtEur(cajaTotales.iva / 100)} €</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
