@@ -140,6 +140,7 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
     plus: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
     chevronLeft: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>`,
     chevronRight: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>`,
+    chevronDown: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>`,
     maximize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
     minimize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
     x: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
@@ -207,6 +208,8 @@ export default function AgendaCalendar() {
   const [profsCollapsed, setProfsCollapsed] = useState(false);
   // Modal del calendario en movil
   const [showMobileCalendar, setShowMobileCalendar] = useState(false);
+  // Hoja selectora de profesional en movil (un profesional a la vez)
+  const [showProfPicker, setShowProfPicker] = useState(false);
 
   useEffect(() => {
     async function cargar() {
@@ -443,6 +446,15 @@ export default function AgendaCalendar() {
 
   // El rail se colapsa solo si railCollapsed=true o si estamos en movil/tablet
   const isReallyCollapsed = railCollapsed || isMobile || isTablet;
+
+  // En movil mostramos UN profesional a la vez: las columnas multiples se aplastan
+  // (160px cada una) y la agenda se ve gigante. Al cargar, si seguimos en "todos",
+  // seleccionamos el primer profesional para que la columna ocupe todo el ancho.
+  useEffect(() => {
+    if (isMobile && selectedProf === 'todos' && visibleProfs.length > 0) {
+      setSelectedProf(visibleProfs[0].id);
+    }
+  }, [isMobile, visibleProfs, selectedProf]);
 
   const timelineProfs = useMemo(() => {
     if (selectedProf === 'todos') return visibleProfs;
@@ -1270,12 +1282,13 @@ export default function AgendaCalendar() {
                       </button>
                     )}
                   </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 0 }}>
-                      <h2 style={{ margin: 0, fontSize: isMobile ? 18 : 21, fontWeight: 700, letterSpacing: -0.3, textTransform: 'capitalize' }}>
+                  <div onClick={() => { if (isMobile || isTablet) setShowMobileCalendar(true); }} style={{ minWidth: 0, cursor: (isMobile || isTablet) ? 'pointer' : 'default' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 0 }}>
+                      <h2 style={{ margin: 0, fontSize: isMobile ? 17 : 21, fontWeight: 700, letterSpacing: -0.3, textTransform: 'capitalize' }}>
                         {selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'short' })}
                       </h2>
-                      {selectedDateObj.toDateString() === today.toDateString() && <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.warning }}>HOY</span>}
+                      {selectedDateObj.toDateString() === today.toDateString() && <span style={{ fontSize: 10.5, fontWeight: 700, color: TOKENS.warning }}>HOY</span>}
+                      {(isMobile || isTablet) && <Icon name="chevronDown" size={15} color={TOKENS.textTer} />}
                     </div>
                     <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 2 }}>
                       {totalCitasHoy} citas programadas · {confirmadasHoy} confirmadas
@@ -1301,8 +1314,43 @@ export default function AgendaCalendar() {
                 )}
               </div>
 
-              {/* Selector de profesionales en movil/tablet */}
-              {(isMobile || isTablet) && (
+              {/* Selector de profesional en movil: UNO a la vez (switcher con flechas
+                  + toque para elegir de una lista). Evita las columnas aplastadas. */}
+              {isMobile && visibleProfs.length > 0 && (() => {
+                const idx = Math.max(0, visibleProfs.findIndex((p) => p.id === selectedProf));
+                const curr = visibleProfs[idx] || visibleProfs[0];
+                const count = citasHoy.filter((c: any) => c.profesional_id === curr.id).length;
+                const conf = citasHoy.filter((c: any) => c.profesional_id === curr.id && (c.estado === CITA_STATUS.CONFIRMADA || c.estado === CITA_STATUS.COMPLETADA)).length;
+                const multi = visibleProfs.length > 1;
+                const go = (dir: number) => { const n = (idx + dir + visibleProfs.length) % visibleProfs.length; setSelectedProf(visibleProfs[n].id); };
+                const iniciales = curr.nombre.split(' ').map((s: string) => s[0]).slice(0, 2).join('').toUpperCase();
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: TOKENS.bgCard, border: `1.5px solid ${curr.color}`, borderRadius: 13, padding: '8px 10px', marginBottom: 12 }}>
+                    <button
+                      onClick={() => { if (multi) setShowProfPicker(true); }}
+                      style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 9, background: 'none', border: 'none', cursor: multi ? 'pointer' : 'default', textAlign: 'left', padding: 0 }}
+                    >
+                      <span style={{ width: 32, height: 32, borderRadius: 9, background: curr.color, color: '#fff', fontSize: 13, fontWeight: 700, display: 'grid', placeItems: 'center', flexShrink: 0 }}>{iniciales}</span>
+                      <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14.5, fontWeight: 700, color: TOKENS.text }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150 }}>{curr.nombre}</span>
+                          {multi && <Icon name="chevronDown" size={14} color={TOKENS.textTer} />}
+                        </span>
+                        <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>{count} cita{count !== 1 ? 's' : ''} hoy · {conf} confirmada{conf !== 1 ? 's' : ''}</span>
+                      </span>
+                    </button>
+                    {multi && (
+                      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                        <button onClick={() => go(-1)} aria-label="Profesional anterior" style={{ width: 30, height: 30, borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}><Icon name="chevronLeft" size={16} color={TOKENS.textSec} /></button>
+                        <button onClick={() => go(1)} aria-label="Profesional siguiente" style={{ width: 30, height: 30, borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}><Icon name="chevronRight" size={16} color={TOKENS.textSec} /></button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* En tablet si caben varias columnas mantenemos los chips de filtro */}
+              {isTablet && (
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1786,6 +1834,37 @@ export default function AgendaCalendar() {
               >
                 Hoy
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hoja selectora de profesional (movil): elegir a quien ver de un toque */}
+      {showProfPicker && (
+        <div onClick={() => setShowProfPicker(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(8,6,4,0.55)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 9999, animation: 'fadeIn 0.2s ease' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxHeight: '70vh', overflowY: 'auto', background: TOKENS.bgPanel, borderRadius: '20px 20px 0 0', border: `1px solid ${TOKENS.border}`, borderBottom: 'none', padding: '16px 16px 28px', animation: 'slideInUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
+            <div style={{ width: 38, height: 4, borderRadius: 999, background: TOKENS.border, margin: '0 auto 14px' }} />
+            <div style={{ fontSize: 15, fontWeight: 700, color: TOKENS.text, marginBottom: 12 }}>Ver profesional</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {visibleProfs.map((p) => {
+                const sel = p.id === selectedProf;
+                const n = citasHoy.filter((c: any) => c.profesional_id === p.id).length;
+                const iniciales = p.nombre.split(' ').map((s: string) => s[0]).slice(0, 2).join('').toUpperCase();
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => { setSelectedProf(p.id); setShowProfPicker(false); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 12px', borderRadius: 12, background: sel ? 'rgba(244,80,30,0.10)' : TOKENS.bgCard, border: `1px solid ${sel ? p.color : TOKENS.border}`, cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    <span style={{ width: 34, height: 34, borderRadius: 9, background: p.color, color: '#fff', fontSize: 13, fontWeight: 700, display: 'grid', placeItems: 'center', flexShrink: 0 }}>{iniciales}</span>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: TOKENS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</span>
+                      <span style={{ display: 'block', fontSize: 11.5, color: TOKENS.textSec }}>{n} cita{n !== 1 ? 's' : ''} hoy</span>
+                    </span>
+                    {sel && <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.primaryHi, flexShrink: 0 }}>Viendo</span>}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -3250,22 +3329,25 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
       <div style={{
         width: '100%',
         maxWidth: isMobileOrTablet ? '100%' : 580,
-        maxHeight: isMobileOrTablet ? '85vh' : '90vh',
-        overflowY: 'auto',
+        height: isMobileOrTablet ? '92vh' : 'auto',
+        maxHeight: isMobileOrTablet ? '92vh' : '90vh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
         background: TOKENS.bgPanel,
         border: isMobileOrTablet ? 'none' : `1px solid ${TOKENS.borderHi}`,
         borderRadius: isMobileOrTablet ? '24px 24px 0 0' : 18,
-        padding: isMobileOrTablet ? '20px 20px 32px' : 24,
         boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)',
         animation: isMobileOrTablet ? 'slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' : 'scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, position: 'sticky', top: 0, zIndex: 4, background: TOKENS.bgPanel, paddingTop: isMobileOrTablet ? 0 : 4, paddingBottom: 12, marginTop: isMobileOrTablet ? -2 : -4, borderBottom: `1px solid ${TOKENS.border}` }}>
-          <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: TOKENS.text }}>Nueva cita</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, zIndex: 4, background: TOKENS.bgPanel, padding: isMobileOrTablet ? '16px 20px' : '20px 24px 14px', borderBottom: `1px solid ${TOKENS.border}` }}>
+          <h3 style={{ margin: 0, fontSize: isMobileOrTablet ? 18 : 20, fontWeight: 700, color: TOKENS.text }}>Nueva cita</h3>
           <button onClick={onClose} aria-label="Cerrar" style={{ width: isMobileOrTablet ? 38 : 32, height: isMobileOrTablet ? 38 : 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18, transition: 'all 0.2s ease', transform: 'scale(1) rotate(0deg)', flexShrink: 0 }} onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.border; e.currentTarget.style.color = TOKENS.text; e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.color = TOKENS.textSec; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}>
             ✕
           </button>
         </div>
 
+        <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: isMobileOrTablet ? '16px 20px' : '20px 24px' }}>
         {/* Reloj actual + hora elegida: referencia rapida al crear la cita */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 13px', borderRadius: 11, background: 'rgba(148,163,184,0.08)', border: `1px solid ${TOKENS.border}` }}>
@@ -4014,14 +4096,16 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
           </div>
         )}
 
-        {/* Bottom buttons */}
+        </div>
+
+        {/* Bottom buttons — barra fija inferior: siempre visible y alcanzable */}
         {(() => {
           const formCompleto = !!(selectedCliente && selectedServicio && selectedProf && horaActual);
           const totalCitas = citasConfirmadas.length + (formCompleto ? 1 : 0);
           const puedeGuardar = totalCitas > 0 && selectedCliente && !guardando;
           const puedeEncadenar = formCompleto && !guardando;
           return (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18, paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0, padding: isMobileOrTablet ? '14px 20px 22px' : '16px 24px', borderTop: `1px solid ${TOKENS.border}`, background: TOKENS.bgPanel }}>
               <button
                 onClick={onClose}
                 style={{
@@ -4064,7 +4148,8 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
                 onClick={handleGuardar}
                 disabled={!puedeGuardar}
                 style={{
-                  padding: '9px 18px',
+                  flex: isMobileOrTablet ? 1 : undefined,
+                  padding: isMobileOrTablet ? '12px 18px' : '9px 18px',
                   background: !puedeGuardar ? 'rgba(244,80,30,0.5)' : `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`,
                   color: '#fff',
                   border: 'none',
@@ -4923,7 +5008,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 60, minWidth: 0 }}>
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 0, minWidth: 0 }}>
 
         {/* Header. En movil queda fijo (sticky) para que el boton de cerrar
             siga a la vista aunque el tour baje hasta la secuencia o la formula. */}
@@ -5896,13 +5981,18 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
           </div>
         )}
 
-        {/* Footer */}
+        {/* Footer — barra inferior fija (sticky) para que las acciones (descartar,
+            guardar, cobrar) sigan a la vista en movil aunque el contenido sea largo. */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: isMobileOrTablet ? '16px 20px 24px' : '20px 32px',
+            position: isMobileOrTablet ? 'sticky' : 'relative',
+            bottom: 0,
+            zIndex: 4,
+            background: TOKENS.bgPanel,
+            padding: isMobileOrTablet ? '12px 18px 22px' : '20px 32px',
             borderTop: `1px solid ${TOKENS.border}`,
             gap: 12,
             flexWrap: 'wrap',
