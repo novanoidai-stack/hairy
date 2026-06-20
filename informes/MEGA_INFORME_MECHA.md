@@ -675,3 +675,23 @@ conviene confirmarlo y, si algún paso canta, está el campo `side` por paso com
 **Posible mejora futura (caja/fichajes):** registros descargables por rango de fechas (no solo el
 día) y por empleado; hoy la descarga de cobros/fichajes es del día en curso (Caja) y la caja diaria
 del periodo (Informes).
+
+---
+
+## Adenda 21 jun 2026 (3ª tanda) — rendimiento + caja por rol/IVA (Carlos)
+
+- **Landing — rendimiento** (`13f448aa`): el lecho de brasas recreaba decenas de gradientes por
+  frame (lo más caro). Ahora se **pre-renderiza una sola vez a un canvas offscreen** y cada frame
+  solo se bliteа con un breathing global muy ligero → gran subida de FPS sin perder calidad. Las
+  chispas siguen siendo fuego (rojo/naranja) sobre fondo ceniza.
+- **Caja por ROL** (`02e40e0f`): si el usuario NO es propietario/dirección (owner/admin), la
+  pantalla Caja muestra **solo el fichaje** (entrada/salida + su jornada); nada de dinero. El
+  propietario/dirección ve todo: arqueo (con **IVA estimado 21%**, operativo no fiscal), cobros,
+  citas pendientes, registros CSV.
+- **Informes — caja** (`02e40e0f`): la sección Caja diaria añade resumen del periodo (efectivo,
+  tarjeta/datáfono, propinas, IVA estim.), columna IVA y fila TOTAL en tabla y CSV.
+
+**Nomenclatura fiscal:** el IVA mostrado es **estimado/operativo** (21% incluido), NO fiscal
+(VeriFactu/numeración correlativa siguen siendo P3 con fiscalista). No usar "factura/ticket fiscal".
+**Pendiente de validación de Jose:** FPS de la landing en navegador real; y la vista de Caja con
+una cuenta de rol no-propietario (profesional/recepción) para confirmar que solo ve el fichaje.
