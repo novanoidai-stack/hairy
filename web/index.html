@@ -1330,61 +1330,65 @@ window.MECHA_CHAT = [
     rocks.sort((a, b) => a.layer - b.layer);
   }
 
-  function drawRocks(t) {
-    const rocksCvs = document.getElementById('rocksCanvas');
-    if (!rocksCvs) return;
-    const rCtx = rocksCvs.getContext('2d');
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const rw = rocksCvs.width / dpr;
-    const rh = 120;
-    rCtx.clearRect(0, 0, rw, rh);
-    
-    // 1. Capa de magma/fuego líquido de fondo (luz que asoma por las grietas)
-    const magmaGrad = rCtx.createLinearGradient(0, rh - 70, 0, rh);
+  // RENDIMIENTO: el lecho de rocas era lo más caro (recreaba decenas de gradientes
+  // por frame). Ahora se pre-renderiza UNA vez a un canvas offscreen (renderRocksOffscreen)
+  // y cada frame solo se "blitea" con un brillo global barato (drawRocks). Cero gradientes
+  // por frame; el shimmer se simula con un overlay global muy ligero.
+  let rocksOff = null;     // canvas offscreen con el lecho ya pintado
+  let rocksOffW = 0, rocksOffH = 0, rocksDpr = 1;
+
+  function renderRocksOffscreen(rw, rh, dpr) {
+    rocksDpr = dpr;
+    rocksOffW = rw; rocksOffH = rh;
+    if (!rocksOff) rocksOff = document.createElement('canvas');
+    rocksOff.width = Math.ceil(rw * dpr);
+    rocksOff.height = Math.ceil(rh * dpr);
+    const o = rocksOff.getContext('2d');
+    o.setTransform(dpr, 0, 0, dpr, 0, 0);
+    o.clearRect(0, 0, rw, rh);
+
+    // 1. Magma/fuego de fondo (luz que asoma por las grietas)
+    const magmaGrad = o.createLinearGradient(0, rh - 70, 0, rh);
     magmaGrad.addColorStop(0, 'transparent');
     magmaGrad.addColorStop(0.3, 'rgba(190, 30, 5, 0.18)');
     magmaGrad.addColorStop(0.7, 'rgba(255, 95, 15, 0.45)');
     magmaGrad.addColorStop(1, 'rgba(255, 185, 30, 0.75)');
-    rCtx.fillStyle = magmaGrad;
-    rCtx.fillRect(0, rh - 85, rw, 85);
+    o.fillStyle = magmaGrad;
+    o.fillRect(0, rh - 85, rw, 85);
 
-    // 2. Dibujar rocas superpuestas
-    rCtx.globalCompositeOperation = 'source-over';
-    
+    // 2. Rocas (heat fijo representativo: ya no depende del tiempo)
+    o.globalCompositeOperation = 'source-over';
     for (const r of rocks) {
-      const pulse = Math.sin(t * 0.002 + r.phase) * 0.5 + 0.5; // brillo oscilante lento
-      const currentHeat = r.heat * 0.35 + pulse * 0.65; // valor final de incandescencia
-
-      // Silueta de la roca
-      rCtx.beginPath();
-      rCtx.moveTo(r.points[0].x, r.points[0].y);
-      for (let i = 1; i < r.points.length; i++) {
-        rCtx.lineTo(r.points[i].x, r.points[i].y);
-      }
-      rCtx.closePath();
-
-      // Relleno: carbón oscuro con matices rojizos según el calor
-      const rockR = Math.floor(14 + currentHeat * 24);
-      const rockG = Math.floor(10 + currentHeat * 12);
-      const rockB = Math.floor(10 + currentHeat * 6);
-      rCtx.fillStyle = `rgb(${rockR}, ${rockG}, ${rockB})`;
-      rCtx.fill();
-
-      // Borde incandescente (el fuego que sale de las grietas)
-      rCtx.lineWidth = 1.2 + currentHeat * 1.6;
-      rCtx.strokeStyle = `rgba(255, ${Math.floor(80 + currentHeat * 140)}, ${Math.floor(15 + currentHeat * 60)}, ${0.25 + currentHeat * 0.75})`;
-      rCtx.stroke();
-
-      // Núcleo caliente interno (radial gradient para incandescencia orgánica)
+      const currentHeat = r.heat * 0.35 + 0.62 * 0.65;
+      o.beginPath();
+      o.moveTo(r.points[0].x, r.points[0].y);
+      for (let i = 1; i < r.points.length; i++) o.lineTo(r.points[i].x, r.points[i].y);
+      o.closePath();
+      o.fillStyle = `rgb(${Math.floor(14 + currentHeat * 24)}, ${Math.floor(10 + currentHeat * 12)}, ${Math.floor(10 + currentHeat * 6)})`;
+      o.fill();
+      o.lineWidth = 1.2 + currentHeat * 1.6;
+      o.strokeStyle = `rgba(255, ${Math.floor(80 + currentHeat * 140)}, ${Math.floor(15 + currentHeat * 60)}, ${0.25 + currentHeat * 0.75})`;
+      o.stroke();
       if (currentHeat > 0.35) {
-        const radG = rCtx.createRadialGradient(r.x, r.y - r.size*0.1, 0, r.x, r.y - r.size*0.1, r.size * 0.7);
+        const radG = o.createRadialGradient(r.x, r.y - r.size*0.1, 0, r.x, r.y - r.size*0.1, r.size * 0.7);
         radG.addColorStop(0, `rgba(255, 195, 55, ${(currentHeat - 0.35) * 1.35})`);
         radG.addColorStop(0.35, `rgba(255, 65, 10, ${(currentHeat - 0.35) * 0.85})`);
         radG.addColorStop(1, 'transparent');
-        rCtx.fillStyle = radG;
-        rCtx.fill();
+        o.fillStyle = radG;
+        o.fill();
       }
     }
+  }
+
+  function drawRocks(t) {
+    const rocksCvs = document.getElementById('rocksCanvas');
+    if (!rocksCvs || !rocksOff) return;
+    const rCtx = rocksCvs.getContext('2d');
+    rCtx.clearRect(0, 0, rocksOffW, rocksOffH);
+    // Blit barato del lecho pre-renderizado, con un breathing global muy ligero.
+    rCtx.globalAlpha = 0.9 + 0.1 * Math.sin(t * 0.0012);
+    rCtx.drawImage(rocksOff, 0, 0, rocksOffW, rocksOffH);
+    rCtx.globalAlpha = 1;
   }
 
   function createEmber(scatter) {
@@ -1617,6 +1621,7 @@ window.MECHA_CHAT = [
       const rCtx = rocksCvs.getContext('2d');
       rCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
       generateRocks(W, 120);
+      renderRocksOffscreen(W, 120, dpr); // pre-render una sola vez (no por frame)
     }
   }
 
