@@ -200,6 +200,9 @@ export default function AgendaCalendar() {
   const [railCollapsed, setRailCollapsed] = useState(false);
   // Colapso de la barra de filtros (vista/servicio/estado)
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
+  // Colapso independiente de los bloques del rail lateral (KPIs y mini-calendario)
+  const [kpisCollapsed, setKpisCollapsed] = useState(false);
+  const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
   // Modal del calendario en movil
   const [showMobileCalendar, setShowMobileCalendar] = useState(false);
 
@@ -1089,11 +1092,19 @@ export default function AgendaCalendar() {
         {/* Left rail */}
         {!isReallyCollapsed && (
         <div style={{ borderRight: `1px solid ${TOKENS.border}`, padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {/* KPIs con visualización fija */}
+          {/* KPIs — colapsable de forma independiente */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <button
+              onClick={() => setKpisCollapsed((v) => !v)}
+              title={kpisCollapsed ? 'Mostrar resumen' : 'Ocultar resumen'}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: kpisCollapsed ? 0 : 10, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
               <span style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>Resumen</span>
-            </div>
+              <span style={{ display: 'grid', placeItems: 'center', transform: kpisCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', transition: 'transform 0.18s ease' }}>
+                <Icon name="chevronRight" size={14} color={TOKENS.textTer} />
+              </span>
+            </button>
+            {!kpisCollapsed && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, animation: 'slideInUp 0.3s ease both' }}>
               <div style={{ animation: 'slideInUp 0.5s ease 0.1s both' }}>
                 <StatCard label="HOY" value={totalCitasHoy} sub="citas" tone={TOKENS.primary} />
@@ -1108,13 +1119,22 @@ export default function AgendaCalendar() {
                 <StatCard label="OCUPACIÓN" value={`${ocupacionMes}%`} sub="este mes" tone={TOKENS.violet} progress={ocupacionMes / 100} />
               </div>
             </div>
+            )}
           </div>
 
-          {/* Mini-calendario con visualización fija */}
+          {/* Mini-calendario — colapsable de forma independiente */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <button
+              onClick={() => setMiniCalCollapsed((v) => !v)}
+              title={miniCalCollapsed ? 'Mostrar calendario' : 'Ocultar calendario'}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: miniCalCollapsed ? 0 : 10, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
               <span style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>Calendario</span>
-            </div>
+              <span style={{ display: 'grid', placeItems: 'center', transform: miniCalCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', transition: 'transform 0.18s ease' }}>
+                <Icon name="chevronRight" size={14} color={TOKENS.textTer} />
+              </span>
+            </button>
+            {!miniCalCollapsed && (
             <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: 14, animation: 'slideInUp 0.3s ease both' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <button className="m-btn-icon m-btn-icon-rotate-l" onClick={handlePrevMonth} style={{ width: 40, height: 40, borderRadius: 10, background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0 }}>
@@ -1186,6 +1206,7 @@ export default function AgendaCalendar() {
                 })}
               </div>
             </div>
+            )}
           </div>
 
           <div>
@@ -2108,7 +2129,8 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
   return (
     <>
     <div style={{
-      background: TOKENS.bgCard,
+      // Lienzo crema cálido (no blanco "bloc de notas"): se nota la marca Mecha.
+      background: '#fffdfb',
       border: `1px solid ${TOKENS.borderHi}`,
       borderRadius: 16,
       overflowX: isMobile || isTablet ? 'auto' : 'hidden',
@@ -2120,7 +2142,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
         minWidth: (isMobile || isTablet) && profesionales.length > 1 ? profesionales.length * 160 + 56 : '100%',
         position: 'relative',
       }}>
-        <div style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(244,80,30,0.04)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(244,80,30,0.16)`, background: 'rgba(244,80,30,0.07)' }}>
         <div />
         {profesionales.map((p: any) => (
           <div key={p.id} style={{ padding: '12px 14px', borderLeft: `1px solid ${TOKENS.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -2190,7 +2212,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
           );
         })()}
         {HOURS.map((h, idx) => (
-          <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(40,30,24,0.10)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(40,30,24,0.045)' }}>
+          <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(192,38,10,0.09)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(244,80,30,0.045)' }}>
             <div style={{ padding: '8px 8px', fontSize: 11.5, fontWeight: 600, color: TOKENS.textSec, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
               {h}:00
             </div>
