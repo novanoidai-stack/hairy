@@ -633,3 +633,45 @@ fácil de ajustar paso a paso si alguno cae sobre la zona iluminada; (b) el aspe
 **partículas ceniza** de la landing; (c) el spotlight de la **sub-sección** del tutorial 2 (hoy
 enfoca la primera sección de cada pestaña — se puede afinar a sub-secciones más concretas, p. ej.
 "lunes y martes" en Horarios, añadiendo refs por sub-sección si se quiere granularidad mayor).
+
+---
+
+## Adenda 21 jun 2026 (2ª tanda) — correcciones del feedback de Jose (Carlos)
+
+Tras revisar lo desplegado, Jose pidió correcciones; todas HECHAS y desplegadas a `master` por fases.
+
+- **Landing** (`a216d4cf`): las partículas vuelven a **fuego** (rojo/naranja/oro, chispas) — el
+  gris ceniza era una sobre-interpretación. Se mantiene el fondo ceniza oscuro y la optimización
+  de FPS. Lecho rocoso y resplandor de base, otra vez cálidos.
+- **Login** (`a216d4cf`): el fondo liso quedaba plano y sin marca → ahora **degradado de marca**
+  (brasa fuego sobre oscuro cálido) con profundidad; el panel del formulario es transparente para
+  no generar franjas en el estado de carga. Sin partículas ni lecho.
+- **Demo/tour** (`e087f4e2`):
+  - Texto cinemático con **diseño** (relleno en degradado blanco→melocotón→fuego, no blanco plano)
+    y **reveal lento izquierda→derecha** (1.7s, borde suave) — antes aparecía de golpe.
+  - El texto/título **ya no tapa lo enfocado**: `DemoSpotlight` ahora envía su hueco a `demo.html`
+    (postMessage) y `positionTour` coloca el texto en la mayor zona oscura (lado izq/der o banda) y
+    baja el título de fase si el hueco invade arriba. Pasos sin spotlight: scrim contenido/redondeado
+    (no franja). Tutorial 2 (config): enfoca la **cabecera concreta** de la sección (no toda) y la
+    pestaña activa sigue resaltada.
+  - **Modal Compartir** rehecho **horizontal** (2 columnas: recompensas+enlace | cómo funciona/árbol)
+    para no tener que scrollear en vertical.
+- **Agenda** (`2e9c2cb7`): la rejilla "dorada apagada" ahora **resalta**: lienzo blanco ELEVADO
+  (sombra) con cabecera cálida definida, sobre el lienzo crema de la app. **Profesionales** también
+  se colapsa (coherente con Resumen/Calendario). La **X de Nueva cita** es sticky también en
+  escritorio (antes se ocultaba al scrollear).
+- **Caja** (`966306ab`): el fichaje ya no dice "tú" sin más → muestra el **nombre del empleado**
+  ('Tu fichaje · Nombre') y, en la lista, el nombre de cada miembro. **Visibilidad por rol**:
+  propietario/dirección ven la jornada de TODO el equipo; el resto solo la suya. **Registros del día
+  descargables** (cobros y fichajes en CSV), estilo modo gestor de novanoidai, para propietario/dir.
+- **Informes** (`e79bebb0`): nueva sección **"Caja diaria" (cobrado real)** con desglose por día
+  (total/efectivo/datáfono/propinas + nº de cobros) y **CSV descargable**, junto a la comparación ya
+  existente Ingresos (estim.) vs Cobrado (real).
+
+**Pendiente de validación visual de Jose** (no verificable en el preview por rAF pausado):
+partículas de fuego sobre fondo ceniza de la landing; degradado del login; y el tour en navegador
+real (lado del texto por paso ahora es automático según el hueco que reporta el spotlight, pero
+conviene confirmarlo y, si algún paso canta, está el campo `side` por paso como override).
+**Posible mejora futura (caja/fichajes):** registros descargables por rango de fechas (no solo el
+día) y por empleado; hoy la descarga de cobros/fichajes es del día en curso (Caja) y la caja diaria
+del periodo (Informes).
