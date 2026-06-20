@@ -340,6 +340,7 @@ export default function InformesScreen() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [resenas, setResenas] = useState<{ puntuacion: number }[]>([]);
+  const [cobros, setCobros] = useState<{ total_cents: number }[]>([]);
 
   // UI
   const [comisionPct, setComisionPct] = useState<number>(30);
@@ -359,7 +360,7 @@ export default function InformesScreen() {
 
     const { desde, hasta } = getRango(periodo);
 
-    const [citaRes, profRes, srvRes, cltRes, resRes] = await Promise.all([
+    const [citaRes, profRes, srvRes, cltRes, resRes, cobRes] = await Promise.all([
       supabase
         .from('citas')
         .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id')
@@ -375,6 +376,14 @@ export default function InformesScreen() {
         .eq('negocio_id', nId)
         .gte('created_at', desde.toISOString())
         .lte('created_at', hasta.toISOString()),
+      // Cobros reales del periodo (libro de caja): para comparar estimado vs cobrado.
+      supabase
+        .from('cobros')
+        .select('total_cents')
+        .eq('negocio_id', nId)
+        .eq('estado', 'completado')
+        .gte('cobrado_at', desde.toISOString())
+        .lte('cobrado_at', hasta.toISOString()),
     ]);
 
     setCitas(citaRes.data ?? []);
@@ -382,6 +391,7 @@ export default function InformesScreen() {
     setServicios(srvRes.data ?? []);
     setClientes(cltRes.data ?? []);
     setResenas(resRes.data ?? []);
+    setCobros(cobRes.data ?? []);
     setLoading(false);
   }
 
@@ -412,6 +422,10 @@ export default function InformesScreen() {
   const totalIngresos = useMemo(() => {
     return activas.reduce((sum, c) => sum + (srvMap.get(c.servicio_id ?? '')?.precio || 0), 0);
   }, [activas, srvMap]);
+  // Cobrado REAL del periodo (libro de cobros). Si el negocio usa el POS, esta es la
+  // cifra autoritativa; si no, queda en 0 y se sigue mostrando solo el estimado.
+  const totalCobrado = useMemo(() => cobros.reduce((s, c) => s + (c.total_cents || 0), 0) / 100, [cobros]);
+  const hayCobros = cobros.length > 0;
 
   const tasaNoShow = totalCitas > 0 ? (noShows.length / totalCitas) * 100 : 0;
 
@@ -1159,7 +1173,8 @@ export default function InformesScreen() {
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 24 }}>
               {[
                 { label: 'Citas totales', value: totalCitas, icon: 'calendar', color: TOKENS.primary, bg: TOKENS.primarySoft },
-                { label: 'Ingresos', value: `${fmtEur(totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
+                { label: hayCobros ? 'Ingresos (estim.)' : 'Ingresos', value: `${fmtEur(totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
+                ...(hayCobros ? [{ label: 'Cobrado (real)', value: `${fmtEur(totalCobrado)} EUR`, icon: 'dollar', color: TOKENS.primary, bg: TOKENS.primarySoft }] : []),
                 { label: 'Citas/profesional', value: `${Math.round(ocupacionGlobal * 10) / 10}`, icon: 'barChart', color: TOKENS.cyan, bg: TOKENS.cyanSoft },
                 { label: 'No-shows', value: `${noShows.length} (${fmtPct(tasaNoShow)})`, icon: 'alertTriangle', color: TOKENS.danger, bg: TOKENS.dangerSoft },
                 { label: 'Tiempo espera medio', value: `${Math.round(esperaData.avgGlobal)} min`, icon: 'clock', color: TOKENS.warning, bg: TOKENS.warningSoft },
