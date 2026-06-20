@@ -107,6 +107,7 @@ interface ConfigState {
   noShowGrace: number;
   retrasoGrace: number;
   contadorRetraso: boolean;
+  recolocarRetraso: boolean;
   reposoMargen: number;
   alertaReposo: boolean;
   alertaReposoUmbral: number;
@@ -188,7 +189,7 @@ const DEFAULT_CONFIG: ConfigState = {
   antelacionGlobal: 60, antelacionMax: 60, permitirMismoDia: true,
   solapamiento: 'reposo', confirmacionModo: 'manual',
   confirmacionTimeout: 120, confirmacionNotificar: true,
-  noShowGrace: 15, retrasoGrace: 10, contadorRetraso: true,
+  noShowGrace: 15, retrasoGrace: 10, contadorRetraso: true, recolocarRetraso: true,
   reposoMargen: 5, alertaReposo: true, alertaReposoUmbral: 3, aprovecharReposo: true,
   comisionBase: 30, comisionBaseImporte: 'neto',
   comisionAddons: true, comisionPropinas: false, comisionPeriodo: 'mensual',
@@ -2147,6 +2148,9 @@ function TabAgenda({ config, setC, bloqueoCounts }: {
         </FieldRow>
         <FieldRow label="Mostrar contador en cita" hint="Un contador visible en la cita cuando supera la hora de inicio sin check-in.">
           <Toggle on={config.contadorRetraso} onChange={v => setC('contadorRetraso', v)} />
+        </FieldRow>
+        <FieldRow label="Recolocacion por retraso" hint="Activa el boton 'Marcar retraso' en las citas: recalcula y propone como recolocar el resto del dia del profesional, absorbiendo los huecos.">
+          <Toggle on={config.recolocarRetraso} onChange={v => setC('recolocarRetraso', v)} />
         </FieldRow>
       </Section>
 
