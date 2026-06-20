@@ -266,7 +266,11 @@ export default function ConfiguracionWeb() {
       const root = contentRef.current;
       const first = root?.firstElementChild as HTMLElement | null;
       if (first && first.getBoundingClientRect().height > 0) {
-        demoTargetRef.current = first;
+        // Enfoca un trozo CONCRETO y corto (la cabecera de la primera seccion:
+        // titulo + descripcion) en vez de toda la seccion, para que el texto del
+        // tour tenga sitio en la zona oscura y no tape lo enfocado.
+        const header = first.querySelector('header') as HTMLElement | null;
+        demoTargetRef.current = (header && header.getBoundingClientRect().height > 0) ? header : first;
       } else if (tries++ < 30) {
         raf = requestAnimationFrame(pick);
       } else {

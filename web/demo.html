@@ -133,12 +133,21 @@
   .dm-cine::before{content:"";position:absolute;z-index:-1;inset:-30px -40px;pointer-events:none;
     background:radial-gradient(120% 120% at 28% 50%, rgba(6,4,2,.92) 0%, rgba(6,4,2,.6) 46%, rgba(6,4,2,0) 78%);filter:blur(8px)}
   .dm-cine.side-right::before{background:radial-gradient(120% 120% at 72% 50%, rgba(6,4,2,.92) 0%, rgba(6,4,2,.6) 46%, rgba(6,4,2,0) 78%)}
-  .dm-cine.side-center::before{inset:-28px -46px;background:linear-gradient(180deg, rgba(6,4,2,0) 0%, rgba(6,4,2,.82) 40%, rgba(6,4,2,.92) 100%)}
-  .dm-cine p{margin:0;font-family:var(--display);font-weight:700;
-    font-size:clamp(20px,2.7vw,32px);line-height:1.32;letter-spacing:-.015em;color:#fff;
-    text-shadow:0 2px 24px rgba(0,0,0,.92),0 1px 3px rgba(0,0,0,.95)}
-  .dm-cine.revealing p{animation:dmReveal .75s cubic-bezier(.22,1,.36,1) both}
-  @keyframes dmReveal{from{clip-path:inset(0 100% 0 0);opacity:.15}to{clip-path:inset(0 0 0 0);opacity:1}}
+  /* Banda central (pasos sin spotlight): scrim CONTENIDO y redondeado (no una
+     franja ancha), tipo subtitulo recortado. */
+  .dm-cine.side-center::before{inset:-22px -34px;border-radius:22px;
+    background:radial-gradient(120% 135% at 50% 50%, rgba(6,4,2,.92) 0%, rgba(6,4,2,.74) 55%, rgba(6,4,2,0) 100%)}
+  /* Texto con diseño de marca: relleno en degradado cálido (blanco -> melocotón
+     -> fuego), no caracteres planos. drop-shadow para legibilidad sobre lo oscuro. */
+  .dm-cine p{margin:0;font-family:var(--display);font-weight:800;
+    font-size:clamp(22px,2.9vw,34px);line-height:1.3;letter-spacing:-.02em;
+    background:linear-gradient(100deg,#ffffff 0%,#ffd9b3 52%,#ff8a3d 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 2px 16px rgba(0,0,0,.9)) drop-shadow(0 1px 2px rgba(0,0,0,.95))}
+  /* Reveal LENTO de izquierda a derecha (cinemático), con borde suave. */
+  .dm-cine p{-webkit-mask-image:linear-gradient(90deg,#000 86%,transparent 100%);mask-image:linear-gradient(90deg,#000 86%,transparent 100%)}
+  .dm-cine.revealing p{animation:dmReveal 1.7s cubic-bezier(.33,0,.12,1) both}
+  @keyframes dmReveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 
   /* 3) Controles FIJOS abajo-centro (posicion constante en todos los pasos) */
   .dm-controls{position:absolute;left:50%;bottom:clamp(20px,4vw,40px);transform:translateX(-50%);
@@ -262,7 +271,7 @@
     background: linear-gradient(180deg, #101626 0%, #0a0d18 100%);
     border: 1px solid rgba(244, 80, 30, 0.28);
     border-radius: 20px;
-    width: min(520px, calc(100% - 32px));
+    width: min(860px, calc(100% - 32px));
     box-shadow: 0 32px 80px -20px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05);
     padding: 28px;
     transform: translateY(16px) scale(0.97);
@@ -421,6 +430,23 @@
   .share-modal {
     max-height: 90vh;
     overflow-y: auto;
+  }
+  /* Layout horizontal (2 columnas) para que no haya que scrollear en vertical:
+     izquierda = recompensas + enlace; derecha = como funciona + arbol/CTA. */
+  .share-modal-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  .share-modal-body .share-rewards { grid-column: 1; margin-bottom: 0; }
+  .share-modal-body .share-link-row { grid-column: 1; margin-bottom: 0; }
+  .share-modal-body .share-bonus-card { grid-column: 2; grid-row: 1 / span 2; padding-top: 0; }
+  @media(max-width: 720px) {
+    .share-modal-body { grid-template-columns: 1fr; gap: 16px; }
+    .share-modal-body .share-rewards,
+    .share-modal-body .share-link-row,
+    .share-modal-body .share-bonus-card { grid-column: 1; grid-row: auto; }
   }
   .share-rec-form {
     margin-top: 16px;
@@ -1316,14 +1342,65 @@
   // entre pasos consecutivos (p. ej. el recorrido por la ventana de nueva cita).
   var lastAction=null;
   var loader = $('#tourLoader');
-  // Lado del texto cinematico: lo del paso (s.side) o derivado del guidePos
-  // (la esquina libre/oscura). En movil siempre va a la banda inferior (center).
+  // Lado del texto cinematico cuando NO conocemos el hueco (pasos sin spotlight):
+  // el del paso (s.side). En movil siempre banda inferior (center).
   function sideOf(s){
     if(window.innerWidth<=720) return 'center';
-    if(s.side) return s.side;
-    if(s.guidePos==='bl'||s.guidePos==='tl') return 'left';
-    if(s.guidePos==='br'||s.guidePos==='tr') return 'right';
-    return 'center';
+    return s.side || 'center';
+  }
+
+  // --- Colocacion del texto en la ZONA OSCURA ---
+  // El spotlight de la app nos manda su hueco (coords del viewport del iframe).
+  // Con eso colocamos el texto cinematico y el titulo de fase fuera del hueco,
+  // en el mayor espacio oscuro, para no tapar lo que se esta enfocando.
+  var spotHole = null;     // {top,left,width,height} en coords de la pagina
+  var curSide = 'center';  // fallback del paso actual cuando no hay hueco
+  window.addEventListener('message', function(ev){
+    if(ev.origin !== location.origin) return;
+    var d = ev.data; if(!d || d.type !== 'mecha-spotlight') return;
+    if(!d.rect){ spotHole = null; }
+    else {
+      var fr = frame.getBoundingClientRect();
+      spotHole = { top:d.rect.top+fr.top, left:d.rect.left+fr.left, width:d.rect.width, height:d.rect.height };
+    }
+    positionTour();
+  });
+
+  function positionTour(){
+    if(!tourCine) return;
+    var W = window.innerWidth, H = window.innerHeight;
+    // limpiar inline previo
+    tourCine.style.top=''; tourCine.style.bottom=''; tourCine.style.left=''; tourCine.style.right=''; tourCine.style.transform='';
+    if(tourPhase){ tourPhase.style.top=''; tourPhase.style.bottom=''; }
+    tourCine.classList.remove('side-left','side-right','side-center');
+
+    if(window.innerWidth<=720 || !spotHole){
+      tourCine.classList.add('side-'+curSide);
+      return;
+    }
+    var h = spotHole;
+    var leftGap = h.left, rightGap = W-(h.left+h.width);
+    var topGap = h.top, botGap = H-(h.top+h.height);
+    var NEED = 340;
+    var vCenter = Math.max(140, Math.min(H-200, h.top + h.height/2));
+    if(rightGap >= NEED && rightGap >= leftGap){
+      tourCine.classList.add('side-right');
+      tourCine.style.top = vCenter+'px'; tourCine.style.transform='translateY(-50%)';
+    } else if(leftGap >= NEED){
+      tourCine.classList.add('side-left');
+      tourCine.style.top = vCenter+'px'; tourCine.style.transform='translateY(-50%)';
+    } else if(botGap >= topGap){
+      tourCine.classList.add('side-center'); // banda inferior (CSS)
+    } else {
+      // mas espacio arriba que abajo: banda anclada arriba
+      tourCine.classList.add('side-center');
+      tourCine.style.bottom='auto'; tourCine.style.top='118px'; tourCine.style.left='50%'; tourCine.style.transform='translateX(-50%)';
+    }
+    // Titulo de fase: si el hueco invade la franja superior-central, bajarlo
+    // sobre los controles para que no lo tape.
+    if(tourPhase && h.top < 150 && h.left < W*0.62 && (h.left+h.width) > W*0.38){
+      tourPhase.style.top='auto'; tourPhase.style.bottom='92px';
+    }
   }
 
   function renderStep(){
@@ -1354,10 +1431,13 @@
         lastPhase = phase;
       }
 
-      // Texto cinematico: coloca el lado y dispara el reveal izq->der.
+      // Texto cinematico: nuevo paso -> olvidamos el hueco anterior y colocamos
+      // por el fallback del paso; cuando la app reporte su spotlight, positionTour
+      // recoloca el texto en la zona oscura real.
       tourText.textContent=s.d;
-      tourCine.classList.remove('side-left','side-right','side-center');
-      tourCine.classList.add('side-'+sideOf(s));
+      curSide = sideOf(s);
+      spotHole = null;
+      positionTour();
       tourCine.style.opacity = '1';
       tourCine.classList.remove('revealing');
       void tourCine.offsetWidth; // reflow para reiniciar el reveal

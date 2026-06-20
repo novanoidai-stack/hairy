@@ -32,7 +32,20 @@ export function DemoSpotlight({
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!active) return;
-    
+
+    // Comunica al contenedor de la demo (demo.html, mismo origen) el rect del
+    // hueco iluminado, para que coloque el texto del tour en la zona OSCURA y no
+    // tape lo que se esta enfocando. Solo emite cuando cambia de forma apreciable.
+    let lastPosted: Rect | null = null;
+    const postHole = (r: Rect | null) => {
+      try {
+        const parent = window.parent;
+        if (parent && parent !== window) {
+          parent.postMessage({ type: 'mecha-spotlight', rect: r }, window.location.origin);
+        }
+      } catch (e) { /* cross-origin: ignorar */ }
+    };
+
     let raf = 0;
     const measure = () => {
       const el = targetRef.current;
@@ -41,13 +54,21 @@ export function DemoSpotlight({
         // Evita parpadeos cuando aun no esta colocado (height 0)
         if (r.width > 0 && r.height > 0) {
           setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+          // Hueco iluminado (con el padding visual aplicado), en coords del viewport del iframe.
+          const hole = { top: r.top - padding, left: r.left - padding, width: r.width + padding * 2, height: r.height + padding * 2 };
+          if (!lastPosted ||
+              Math.abs(hole.top - lastPosted.top) > 1 || Math.abs(hole.left - lastPosted.left) > 1 ||
+              Math.abs(hole.width - lastPosted.width) > 1 || Math.abs(hole.height - lastPosted.height) > 1) {
+            lastPosted = hole;
+            postHole(hole);
+          }
         }
       }
       raf = requestAnimationFrame(measure);
     };
     measure();
-    return () => cancelAnimationFrame(raf);
-  }, [active, targetRef]);
+    return () => { cancelAnimationFrame(raf); postHole(null); };
+  }, [active, targetRef, padding]);
 
   if (!rect) return null;
 
