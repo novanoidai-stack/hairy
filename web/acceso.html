@@ -13,43 +13,22 @@
 <link rel="stylesheet" href="assets/mecha.css" />
 <style>
   body{min-height:100vh}
+  /* Fondo LISO ceniza para todo el login (sobrescribe el .bg con brasas de la
+     landing). Sin gradientes naranjas, sin orbes, sin canvas. */
+  .bg{background:#16171d !important}
+  .bg::before,.bg::after{display:none !important}
   .auth{position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+  /* Panel izquierdo: fondo LISO ceniza con un velo calido muy sutil (sin texturas,
+     sin canvas, sin orbes). Coherente con el panel derecho. */
   .auth-aside{position:relative;overflow:hidden;padding:36px 44px;display:flex;flex-direction:column;justify-content:space-between;
-    /* Sin borde duro: el fondo grisaceo se funde a transparente por la derecha para que las
-       ascuas (canvas a nivel body) continuen bajo la costura e integren ambas mitades. */
-    background:linear-gradient(160deg,rgba(244,80,30,.18),rgba(255,176,60,.07) 55%,transparent),linear-gradient(90deg,var(--bg-2) 0%,var(--bg-2) 58%,transparent 100%);
-    /* Fondo rocoso sutil en la base */
-    background-image:
-      linear-gradient(160deg,rgba(244,80,30,.18),rgba(255,176,60,.07) 55%,transparent),
-      linear-gradient(90deg,var(--bg-2) 0%,var(--bg-2) 58%,transparent 100%),
-      url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Cdefs%3E%3Cfilter id="n"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch"/%3E%3CfeColorMatrix type="saturate" values="0"/%3E%3CfeComponentTransfer%3E%3CfeFuncA type="linear" slope="0.10"/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3C/defs%3E%3Crect width="100" height="100" fill="transparent"/%3E%3Crect width="100" height="100" filter="url(%23n)" opacity="0.50"/%3E%3C/svg%3E');}
-  .auth-aside .a-orb{position:absolute;border-radius:50%;filter:blur(70px);mix-blend-mode:screen;pointer-events:none}
-  .auth-aside .a-orb.x1{width:360px;height:360px;top:-100px;left:-80px;background:radial-gradient(circle,rgba(244,80,30,.8),transparent 65%);opacity:.5}
-  .auth-aside .a-orb.x2{width:300px;height:300px;bottom:-120px;right:-60px;background:radial-gradient(circle,rgba(255,176,60,.5),transparent 65%);opacity:.4}
+    background:#1c1814;}
+  .auth-aside .a-orb{display:none}
   .auth-aside .top,.auth-aside .mid,.auth-aside .bot{position:relative;z-index:1}
 
-  /* Sección principal con fondo rocoso */
+  /* Panel derecho (formulario): fondo LISO ceniza oscuro. */
   .auth-main{
     display:flex;align-items:center;justify-content:center;padding:24px 28px;
-    background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Cdefs%3E%3Cfilter id="n2"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/%3E%3CfeColorMatrix type="saturate" values="0"/%3E%3CfeComponentTransfer%3E%3CfeFuncA type="linear" slope="0.12"/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3C/defs%3E%3Crect width="100" height="100" fill="transparent"/%3E%3Crect width="100" height="100" filter="url(%23n2)" opacity="0.55"/%3E%3C/svg%3E');
-    background-size: 200px 200px;
-    background-position: center bottom;
-    background-repeat: repeat;
-  }
-  /* Glow de brasas en la base del main */
-  .auth-main::before{
-    content:"";position:absolute;bottom:0;left:0;right:0;height:25vh;
-    background:linear-gradient(to top,rgba(224,52,14,.08)0%,rgba(255,122,46,.04)30%,transparent 70%);
-    pointer-events:none
-  }
-
-  /* Línea divisoria vertical (solo desktop) */
-  @media(min-width: 861px){
-    .auth::before{
-      content:"";position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);
-      width:1px;background:linear-gradient(to bottom,transparent 0%,rgba(244,80,30,.15) 20%,rgba(244,80,30,.25) 50%,rgba(244,80,30,.15) 80%,transparent 100%);
-      pointer-events:none;z-index:1
-    }
+    background:#16171d;
   }
   .a-quote{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(28px,3.1vw,42px);line-height:1.18;letter-spacing:-.01em;max-width:500px}
   .a-quote .grad-txt{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
@@ -328,8 +307,10 @@
   }
 
 
+  /* Pantalla de carga: solo el loader sobre fondo liso ceniza (sin franjas,
+     sin lecho rocoso, sin ascuas). El fondo ceniza lo da .bg / .auth-main. */
   #paneLoading {
-    background: radial-gradient(ellipse at center, rgba(244,80,30,.06), transparent 70%);
+    background: transparent;
   }
 </style>
 </head>
@@ -347,24 +328,12 @@
   </defs>
 </svg>
 
-<div class="bg" aria-hidden="true">
-  <!-- Glow de brasas en la base -->
-  <div style="position:absolute;bottom:0;left:0;right:0;height:35vh;background:linear-gradient(to top,rgba(224,52,14,.15)0%,rgba(255,122,46,.08)25%,rgba(255,180,60,.04)50%,transparent 100%);pointer-events:none"></div>
-  <canvas id="embers" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
-  <div class="bg-noise" style="opacity:.025"></div>
-  <!-- Lecho de rocas (fuente de las brasas) -->
-  <div style="position:absolute;bottom:0;left:0;right:0;height:120px;pointer-events:none;overflow:hidden">
-    <!-- Brillos puntuales (fondo de luz) -->
-    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 30% 60% at 20% 100%,rgba(255,180,60,.3),transparent 50%),radial-gradient(ellipse 25% 45% at 45% 100%,rgba(255,140,40,.25),transparent 50%),radial-gradient(ellipse 35% 50% at 70% 100%,rgba(255,160,50,.28),transparent 50%),radial-gradient(ellipse 20% 40% at 85% 100%,rgba(224,52,14,.2),transparent 50%)"></div>
-    <!-- Rocas poligonales calientes -->
-    <canvas id="rocksCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
-  </div>
-</div>
+<!-- Fondo liso ceniza (sin ascuas ni lecho rocoso): el color lo da .bg en CSS. -->
+<div class="bg" aria-hidden="true"></div>
 
 <div class="auth">
   <!-- ASIDE -->
   <aside class="auth-aside">
-    <span class="a-orb x1"></span><span class="a-orb x2"></span>
     <div class="top">
       <a class="brand" href="index.html" aria-label="Mecha, inicio">
         <svg class="brand-mark" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg>
@@ -689,6 +658,28 @@
     if (authContainer) authContainer.classList.toggle('logged-in', postLogin);
   }
 
+  // Navegacion del boton "atras": en pantallas de transicion iniciadas por el
+  // usuario (Conectando con Google, ¿Que quieres hacer?) empujamos un estado al
+  // historial para que "atras" vuelva al formulario de login en vez de salir a
+  // la landing. Se intercepta en popstate.
+  var backGuardArmed = false;
+  var stagePushed = false;
+  function guardBackToLogin() {
+    if (!stagePushed) {
+      try { history.pushState({ mechaStage: true }, '', location.href); stagePushed = true; } catch (e) {}
+    }
+    if (backGuardArmed) return;
+    backGuardArmed = true;
+    window.addEventListener('popstate', function () {
+      stagePushed = false;
+      var authContainer = document.querySelector('.auth');
+      // Si estabamos en una pantalla de transicion, volvemos al login.
+      if (authContainer && authContainer.classList.contains('logged-in')) {
+        if (window.MechaInitForms) window.MechaInitForms();
+      }
+    });
+  }
+
   function gotoApp() { if (api && api.goToApp) api.goToApp(); else window.location.href = '/app'; }
   function gotoDemo() { clearDemoIntent(); window.location.href = 'demo.html'; }
   function gotoAdmin() { window.location.href = 'admin.html'; }
@@ -753,7 +744,7 @@
             return;
           }
           // El equipo Mecha elige destino (el panel admin no necesita datos de salon).
-          if (staff) { showStage('paneChooser'); return; }
+          if (staff) { showStage('paneChooser'); guardBackToLogin(); return; }
           if (incomplete) { prefillComplete(profile); showStage('paneComplete'); return; }
           routeByPlan(profile);
         });
@@ -899,7 +890,7 @@
         if (wantsDemo()) { gotoDemo(); return; }
         var savedProfile = r && r.data ? r.data : { plan: 'free', nombre_negocio: salon, phone: phone, codigo_postal: cp };
         Promise.resolve(api && api.isStaff ? api.isStaff() : false).then(function (staff) {
-          if (staff) { showStage('paneChooser'); return; }
+          if (staff) { showStage('paneChooser'); guardBackToLogin(); return; }
           routeByPlan(savedProfile);
         });
       });
@@ -1030,6 +1021,7 @@
       var prev = ssoGoogle.innerHTML;
       ssoGoogle.textContent = 'Abriendo Google...';
       startLoading('Conectando con Google...');
+      guardBackToLogin();
       api.signInWithGoogle({ redirectTo: redirectTo }).then(function (r) {
         if (r && r.error) {
           showStage('paneLogin');
@@ -1060,427 +1052,6 @@
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0b0a12" /><g transform="scale(2.5)"><path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="#ff7a2e" /><path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#ffd9a8" /></g></svg>
 </template>
 
-<!-- ============ BRASAS CANVAS ============ -->
-<script>
-(function(){
-  var cvs = document.getElementById('embers');
-  if (!cvs) return;
-  var ctx = cvs.getContext('2d', { alpha: true });
-  
-  var W, H;
-  var sparks = []; // sparks dinámicos
-  // En movil las particulas abruman (y cargan la GPU): reducimos densidad bajo 768px.
-  var IS_MOBILE = (window.matchMedia && window.matchMedia('(max-width:767px)').matches) || window.innerWidth < 768;
-  var MAX_EMBERS = IS_MOBILE ? 50 : 160; // Más elementos para rellenar espacio
-  var MAX_SPARKS = IS_MOBILE ? 24 : 80;
-  var embers = new Array(MAX_EMBERS);
-  var rocks = []; // rocas del lecho
-
-  var COLORS = [
-    { r:255, g:218, b:80  }, // amarillo oro brillante
-    { r:255, g:152, b:46  }, // naranja claro
-    { r:255, g:102, b:25  }, // naranja Mecha
-    { r:230, g:40,  b:10  }, // rojo profundo
-    { r:255, g:75,  b:20  }, // naranja rojizo
-    { r:190, g:25,  b:5   }  // rojo oscuro brasa
-  ];
-
-  // Pre-render glow textures
-  var GLOW_SIZE = 64;
-  var glowTextures = COLORS.map(function(c) {
-    var off = document.createElement('canvas');
-    off.width = GLOW_SIZE; off.height = GLOW_SIZE;
-    var oc = off.getContext('2d');
-    var cx = GLOW_SIZE / 2;
-    var g = oc.createRadialGradient(cx, cx, 0, cx, cx, cx);
-    g.addColorStop(0,   'rgba(' + c.r + ',' + c.g + ',' + c.b + ',1)');
-    g.addColorStop(0.18,'rgba(' + c.r + ',' + c.g + ',' + c.b + ',.75)');
-    g.addColorStop(0.45,'rgba(' + c.r + ',' + c.g + ',' + c.b + ',.25)');
-    g.addColorStop(1,   'rgba(' + c.r + ',' + c.g + ',' + c.b + ',0)');
-    oc.fillStyle = g;
-    oc.fillRect(0, 0, GLOW_SIZE, GLOW_SIZE);
-    return off;
-  });
-
-  function createEmber(scatter) {
-    var originXs = [0.15, 0.3, 0.48, 0.65, 0.8, 0.92];
-    var targetOrigin = originXs[Math.floor(Math.random() * originXs.length)];
-    var x = W * targetOrigin + (Math.random() - 0.5) * (W * 0.12);
-    var maxLife = 200 + Math.random() * 350;
-    return {
-      x: x,
-      y: scatter ? Math.random() * H : H + 15 + Math.random() * 35,
-      vy: -(0.16 + Math.random() * 0.64), // 50% más lento
-      vx: (Math.random() - 0.5) * 0.20,   // 50% más lento
-      swayAmp: 0.16 + Math.random() * 0.64, // 50% más lento
-      swayFreq: 0.0042 + Math.random() * 0.008, // 50% más lento
-      swayPhase: Math.random() * Math.PI * 2,
-      baseSize: 1.2 + Math.random() * 2.8,
-      maxLife: maxLife,
-      life: scatter ? Math.random() * maxLife : maxLife,
-      flickerSpeed: 0.04 + Math.random() * 0.08,
-      flickerPhase: Math.random() * Math.PI * 2,
-      colorIdx: Math.floor(Math.random() * COLORS.length),
-      glowBase: 6 + Math.random() * 8,
-      windDrift: (Math.random() - 0.5) * 0.002,
-      t: 0,
-      canSpark: true
-    };
-  }
-
-  function createSpark(x, y) {
-    var count = 2 + Math.floor(Math.random() * 3);
-    var pattern = Math.random();
-    var weight = Math.random();
-    var newSparks = [];
-    for (var i = 0; i < count; i++) {
-      var size = 0.3 + Math.random() * 0.6;
-      var baseAngle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI / 1.5;
-      var speed = (0.3 + weight * 0.8) * (0.6 + Math.random() * 0.6); // 50% más lento
-
-      newSparks.push({
-        x: x, y: y,
-        vx: Math.cos(baseAngle) * speed * 0.4 + (Math.random() - 0.5) * 0.14, // 50% más lento
-        vy: Math.sin(baseAngle) * speed - 0.08 - Math.random() * 0.14,       // 50% más lento
-        maxLife: 45 + Math.random() * 55,
-        life: 45 + Math.random() * 55,
-        baseSize: size * (0.8 + weight * 0.4),
-        colorIdx: 1 + Math.floor(Math.random() * 4),
-        glowBase: 3 + Math.random() * 4,
-        flickerSpeed: 0.10 + Math.random() * 0.14,
-        flickerPhase: Math.random() * Math.PI * 2,
-        t: 0,
-        pattern: pattern,
-        weight: weight,
-        zigzagPhase: Math.random() * Math.PI * 2,
-        zigzagAmp: (0.12 + Math.random() * 0.36) * (1 - weight * 0.5) // 50% más lento
-      });
-    }
-    return newSparks;
-  }
-
-  // ============ SISTEMA DE ROCAS (lecho de brasas) ============
-  function generateRockPolygon(centerX, centerY, rx, ry, numPoints) {
-    var points = [];
-    var angleStep = (Math.PI * 2) / numPoints;
-    for (var i = 0; i < numPoints; i++) {
-      var angle = i * angleStep;
-      var radX = rx * (0.75 + Math.random() * 0.4);
-      var radY = ry * (0.65 + Math.random() * 0.4);
-      points.push({
-        x: centerX + Math.cos(angle) * radX,
-        y: centerY + Math.sin(angle) * radY
-      });
-    }
-    return points;
-  }
-
-  function generateRocks(rw, rh) {
-    rocks.length = 0;
-
-    // Capa de fondo (carbones más pequeños y profundos)
-    var bgCount = 28;
-    var bgSegment = rw / bgCount;
-    for (var i = 0; i < bgCount; i++) {
-      var rx = 16 + Math.random() * 18;
-      var ry = 10 + Math.random() * 12;
-      var cx = i * bgSegment + (Math.random() - 0.5) * bgSegment;
-      var cy = rh - 5 + Math.random() * 12;
-      var heat = 0.2 + Math.random() * 0.4;
-      var phase = Math.random() * Math.PI * 2;
-      var numPoints = 5 + Math.floor(Math.random() * 3);
-
-      rocks.push({
-        x: cx,
-        y: cy,
-        size: Math.max(rx, ry),
-        heat: heat,
-        phase: phase,
-        layer: 0,
-        points: generateRockPolygon(cx, cy, rx, ry, numPoints)
-      });
-    }
-
-    // Capa del frente (carbones grandes, muy calientes, superpuestos)
-    var fgCount = 20;
-    var fgSegment = rw / fgCount;
-    for (var i = 0; i < fgCount; i++) {
-      var rx = 28 + Math.random() * 26;
-      var ry = 16 + Math.random() * 18;
-      var cx = i * fgSegment + (Math.random() - 0.5) * fgSegment;
-      var cy = rh + Math.random() * 10;
-      var heat = 0.4 + Math.random() * 0.6;
-      var phase = Math.random() * Math.PI * 2;
-      var numPoints = 6 + Math.floor(Math.random() * 3);
-
-      rocks.push({
-        x: cx,
-        y: cy,
-        size: Math.max(rx, ry),
-        heat: heat,
-        phase: phase,
-        layer: 1,
-        points: generateRockPolygon(cx, cy, rx, ry, numPoints)
-      });
-    }
-
-    rocks.sort(function(a, b) { return a.layer - b.layer; });
-  }
-
-  function drawRocks(t) {
-    var rocksCvs = document.getElementById('rocksCanvas');
-    if (!rocksCvs) return;
-    var rCtx = rocksCvs.getContext('2d');
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var rw = rocksCvs.width / dpr;
-    var rh = 120;
-    rCtx.clearRect(0, 0, rw, rh);
-
-    // 1. Capa de magma/fuego líquido de fondo (luz que asoma por las grietas)
-    var magmaGrad = rCtx.createLinearGradient(0, rh - 70, 0, rh);
-    magmaGrad.addColorStop(0, 'transparent');
-    magmaGrad.addColorStop(0.3, 'rgba(190, 30, 5, 0.18)');
-    magmaGrad.addColorStop(0.7, 'rgba(255, 95, 15, 0.45)');
-    magmaGrad.addColorStop(1, 'rgba(255, 185, 30, 0.75)');
-    rCtx.fillStyle = magmaGrad;
-    rCtx.fillRect(0, rh - 85, rw, 85);
-
-    // 2. Dibujar rocas superpuestas
-    rCtx.globalCompositeOperation = 'source-over';
-
-    for (var i = 0; i < rocks.length; i++) {
-      var r = rocks[i];
-      var pulse = Math.sin(t * 0.002 + r.phase) * 0.5 + 0.5; // brillo oscilante lento
-      var currentHeat = r.heat * 0.35 + pulse * 0.65; // valor final de incandescencia
-
-      // Silueta de la roca
-      rCtx.beginPath();
-      rCtx.moveTo(r.points[0].x, r.points[0].y);
-      for (var j = 1; j < r.points.length; j++) {
-        rCtx.lineTo(r.points[j].x, r.points[j].y);
-      }
-      rCtx.closePath();
-
-      // Relleno: carbón oscuro con matices rojizos según el calor
-      var rockR = Math.floor(14 + currentHeat * 24);
-      var rockG = Math.floor(10 + currentHeat * 12);
-      var rockB = Math.floor(10 + currentHeat * 6);
-      rCtx.fillStyle = 'rgb(' + rockR + ',' + rockG + ',' + rockB + ')';
-      rCtx.fill();
-
-      // Borde incandescente (el fuego que sale de las grietas)
-      rCtx.lineWidth = 1.2 + currentHeat * 1.6;
-      rCtx.strokeStyle = 'rgba(255,' + Math.floor(80 + currentHeat * 140) + ',' + Math.floor(15 + currentHeat * 60) + ',' + (0.25 + currentHeat * 0.75) + ')';
-      rCtx.stroke();
-
-      // Núcleo caliente interno (radial gradient para incandescencia orgánica)
-      if (currentHeat > 0.35) {
-        var radG = rCtx.createRadialGradient(r.x, r.y - r.size*0.1, 0, r.x, r.y - r.size*0.1, r.size * 0.7);
-        radG.addColorStop(0, 'rgba(255, 195, 55,' + ((currentHeat - 0.35) * 1.35) + ')');
-        radG.addColorStop(0.35, 'rgba(255, 65, 10,' + ((currentHeat - 0.35) * 0.85) + ')');
-        radG.addColorStop(1, 'transparent');
-        rCtx.fillStyle = radG;
-        rCtx.fill();
-      }
-    }
-  }
-
-  function resetEmber(p) {
-    var originXs = [0.15, 0.3, 0.48, 0.65, 0.8, 0.92];
-    var targetOrigin = originXs[Math.floor(Math.random() * originXs.length)];
-    p.x = W * targetOrigin + (Math.random() - 0.5) * (W * 0.12);
-    p.y = H + 15 + Math.random() * 35;
-    p.vy = -(0.16 + Math.random() * 0.64); // 50% más lento
-    p.vx = (Math.random() - 0.5) * 0.20;   // 50% más lento
-    p.swayAmp = 0.16 + Math.random() * 0.64; // 50% más lento
-    p.swayFreq = 0.0042 + Math.random() * 0.008; // 50% más lento
-    p.swayPhase = Math.random() * Math.PI * 2;
-    p.baseSize = 1.2 + Math.random() * 2.8;
-    p.maxLife = 200 + Math.random() * 350;
-    p.life = p.maxLife;
-    p.flickerSpeed = 0.04 + Math.random() * 0.08;
-    p.flickerPhase = Math.random() * Math.PI * 2;
-    p.colorIdx = Math.floor(Math.random() * COLORS.length);
-    p.glowBase = 6 + Math.random() * 8;
-    p.windDrift = (Math.random() - 0.5) * 0.002;
-    p.t = 0;
-    p.canSpark = true;
-  }
-
-  var STEP = 1000 / 60;
-  var lastTime = 0;
-  var accumulator = 0;
-
-  function physicsTick() {
-    for (var i = 0; i < MAX_EMBERS; i++) {
-      var p = embers[i];
-      p.t++;
-      p.life--;
-
-      p.y += p.vy;
-      p.vy -= 0.0005; // 50% más lento
-      p.vx += p.windDrift;
-      p.x += p.vx + Math.sin(p.t * p.swayFreq + p.swayPhase) * p.swayAmp;
-
-      if (p.canSpark && sparks.length < MAX_SPARKS) {
-        var lifeRatio = p.life / p.maxLife;
-        if (lifeRatio > 0.35 && lifeRatio < 0.65 && Math.random() < 0.02) {
-          p.canSpark = false;
-          sparks.push.apply(sparks, createSpark(p.x, p.y));
-        }
-      }
-
-      if (p.life <= 0 || p.y < -25 || p.x < -50 || p.x > W + 50) {
-        resetEmber(p);
-      }
-    }
-
-    for (var i = sparks.length - 1; i >= 0; i--) {
-      var s = sparks[i];
-      s.t++;
-      s.life--;
-
-      if (s.pattern < 0.17) {
-        s.zigzagPhase += 0.12;
-        s.x += s.vx + Math.sin(s.zigzagPhase) * s.zigzagAmp * 0.4 * (1 - s.weight * 0.4);
-        s.y += s.vy;
-      } else if (s.pattern < 0.33) {
-        s.x += s.vx * 1.25;
-        s.y += s.vy * 1.1;
-      } else if (s.pattern < 0.5) {
-        s.zigzagPhase += 0.35;
-        s.x += s.vx + Math.sin(s.zigzagPhase) * s.zigzagAmp * 0.8;
-        s.y += s.vy * 0.9;
-      } else if (s.pattern < 0.67) {
-        s.x += s.vx + Math.sin(s.t * 0.08) * 0.25;
-        s.y += s.vy;
-      } else if (s.pattern < 0.83) {
-        s.zigzagPhase += 0.22;
-        s.x += s.vx + Math.cos(s.zigzagPhase) * 0.3;
-        s.y += s.vy + Math.sin(s.zigzagPhase) * 0.2;
-      } else {
-        s.x += s.vx * 0.6;
-        s.y += s.vy;
-      }
-
-      s.vy -= 0.0060 * (0.5 + s.weight * 0.5); // 50% más lento
-
-      if (s.life <= 0 || s.y < -12) {
-        sparks.splice(i, 1);
-      }
-    }
-  }
-
-  function render() {
-    ctx.clearRect(0, 0, W, H);
-    ctx.globalCompositeOperation = 'screen';
-
-    for (var i = 0; i < MAX_EMBERS; i++) {
-      var p = embers[i];
-      if (!p) continue;
-      var lifeRatio = p.life / p.maxLife;
-      var flicker = Math.sin(p.t * p.flickerSpeed + p.flickerPhase);
-
-      var alpha = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.85 ? (1 - lifeRatio) / 0.15 : 1;
-      alpha *= (0.7 + 0.3 * (flicker * 0.5 + 0.5));
-      alpha *= 0.55; // 45% de reducción de brillo (más sutil)
-      if (alpha < 0.02) continue;
-
-      var size = p.baseSize * (0.65 + 0.35 * (flicker * 0.5 + 0.5)) * (0.45 + 0.55 * lifeRatio);
-      var drawSize = size * (p.glowBase * 0.5);
-
-      ctx.globalAlpha = Math.min(alpha, 1);
-      ctx.drawImage(
-        glowTextures[p.colorIdx],
-        p.x - drawSize * 0.5,
-        p.y - drawSize * 0.5,
-        drawSize,
-        drawSize
-      );
-    }
-
-    for (var i = 0; i < sparks.length; i++) {
-      var s = sparks[i];
-      var lifeRatio = s.life / s.maxLife;
-      var flicker = Math.sin(s.t * s.flickerSpeed + s.flickerPhase);
-
-      var alpha = lifeRatio * (0.75 + 0.25 * (flicker * 0.5 + 0.5));
-      alpha *= 0.55; // 45% de reducción de brillo (más sutil)
-      if (alpha < 0.05) continue;
-
-      var size = s.baseSize * (0.4 + 0.6 * lifeRatio) * (0.75 + 0.25 * (flicker * 0.5 + 0.5));
-      var drawSize = size * s.glowBase * 1.0;
-
-      ctx.globalAlpha = Math.min(alpha, 1);
-      ctx.drawImage(
-        glowTextures[s.colorIdx],
-        s.x - drawSize * 0.5,
-        s.y - drawSize * 0.5,
-        drawSize,
-        drawSize
-      );
-
-      if (alpha > 0.5 && Math.random() < 0.65) {
-        var coreSize = drawSize * 0.32;
-        ctx.globalAlpha = Math.min(alpha * 1.2, 1);
-        ctx.drawImage(
-          glowTextures[s.colorIdx],
-          s.x - coreSize * 0.5,
-          s.y - coreSize * 0.5,
-          coreSize,
-          coreSize
-        );
-      }
-    }
-
-    ctx.globalAlpha = 1;
-  }
-
-  function resize() {
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    cvs.width  = W * dpr;
-    cvs.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    // Configurar canvas de rocas
-    var rocksCvs = document.getElementById('rocksCanvas');
-    if (rocksCvs) {
-      rocksCvs.width = W * dpr;
-      rocksCvs.height = 120 * dpr;
-      var rCtx = rocksCvs.getContext('2d');
-      rCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      generateRocks(W, 120);
-    }
-  }
-
-  function animate(now) {
-    if (!lastTime) lastTime = now;
-    var dt = now - lastTime;
-    lastTime = now;
-
-    accumulator += Math.min(dt, 100);
-    while (accumulator >= STEP) {
-      physicsTick();
-      accumulator -= STEP;
-    }
-
-    render();
-    drawRocks(now); // Dibujar rocas en cada frame
-    requestAnimationFrame(animate);
-  }
-
-  window.addEventListener('resize', resize);
-  resize();
-
-  for (var i = 0; i < MAX_EMBERS; i++) {
-    embers[i] = createEmber(true);
-  }
-
-  requestAnimationFrame(animate);
-})();
-</script>
 
 <script src="assets/cookies.js"></script>
 </body>
