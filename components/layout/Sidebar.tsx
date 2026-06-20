@@ -20,6 +20,7 @@ const WORDMARK_FONT = Platform.select({
 
 const NAV_ITEMS: { label: string; icon: string; activeIcon: string; href: string; cap?: Capability }[] = [
   { label: 'Agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
+  { label: 'Caja', icon: 'wallet-outline', activeIcon: 'wallet', href: '/(tabs)/caja' },
   { label: 'Lista de espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas' },
   { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver' },
   { label: 'Reseñas', icon: 'star-outline', activeIcon: 'star', href: '/(tabs)/resenas' },

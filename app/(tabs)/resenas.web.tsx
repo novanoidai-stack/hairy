@@ -269,7 +269,7 @@ export default function ResenasScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: TOKENS.bg, padding: PAD, fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ height: '100vh', overflowY: 'auto', background: TOKENS.bg, padding: PAD, fontFamily: 'Inter, system-ui, sans-serif' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIMATIONS }} />
 
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
