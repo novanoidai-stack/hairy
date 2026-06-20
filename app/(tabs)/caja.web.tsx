@@ -93,6 +93,10 @@ export default function CajaScreen() {
   const [mensaje, setMensaje] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   // Arqueo del dia: lo cobrado HOY de verdad (libro de cobros), por metodo.
   const [arqueo, setArqueo] = useState<{ total: number; efectivo: number; datafono: number; propinas: number; count: number } | null>(null);
+  // Fichajes (registro de jornada del equipo)
+  const [userId, setUserId] = useState<string>('');
+  const [fichajesHoy, setFichajesHoy] = useState<Array<{ tipo: string; marcado_at: string; user_id: string | null }>>([]);
+  const [fichando, setFichando] = useState(false);
 
   // Totales de la selección
   const seleccion = useMemo(() => {
@@ -180,6 +184,16 @@ export default function CajaScreen() {
         propinas: cr.reduce((s: number, r: any) => s + (r.propina_cents || 0), 0),
         count: cr.length,
       });
+
+      // Fichajes de hoy del negocio (registro de jornada)
+      setUserId(profile.id || '');
+      const { data: fchs } = await supabase
+        .from('fichajes')
+        .select('tipo, marcado_at, user_id')
+        .eq('negocio_id', profile.negocio_id)
+        .gte('marcado_at', todayStart)
+        .order('marcado_at', { ascending: false });
+      setFichajesHoy(fchs || []);
     } catch (err) {
       console.error('Error cargando citas pendientes:', err);
       setMensaje({ type: 'error', text: mensajeDeError(err) });
@@ -246,6 +260,29 @@ export default function CajaScreen() {
     }
   };
 
+  // Fichar: alterna entrada/salida para el usuario actual.
+  const fichar = async () => {
+    setFichando(true);
+    try {
+      const profile = await getUserProfile();
+      if (!profile?.negocio_id) { setFichando(false); return; }
+      const miUltimo = fichajesHoy.find(f => f.user_id === profile.id);
+      const tipo = miUltimo?.tipo === 'entrada' ? 'salida' : 'entrada';
+      const { error } = await supabase.from('fichajes').insert({
+        negocio_id: profile.negocio_id,
+        user_id: profile.id,
+        tipo,
+      });
+      if (error) throw error;
+      await cargarCitas();
+    } catch (err) {
+      console.error('Error fichando:', err);
+      setMensaje({ type: 'error', text: mensajeDeError(err) });
+    } finally {
+      setFichando(false);
+    }
+  };
+
   // ─────────────────────────────────────────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────────────
@@ -296,6 +333,38 @@ export default function CajaScreen() {
           </div>
         </div>
       )}
+
+      {/* Fichaje (registro de jornada del equipo) */}
+      {(() => {
+        const miUltimo = fichajesHoy.find(f => f.user_id === userId);
+        const fichado = miUltimo?.tipo === 'entrada';
+        return (
+          <div style={{ background: T.card, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Icon name="clock" size={18} color={fichado ? T.success : T.textTer} />
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Fichaje</div>
+                  <div style={{ fontSize: 12, color: T.textSec }}>{fichado ? 'Estás trabajando (entrada registrada)' : 'Fuera de turno'}</div>
+                </div>
+              </div>
+              <button onClick={fichar} disabled={fichando} className="ca-btn" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: fichado ? T.danger : T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <Icon name="clock" size={15} color="#fff" /> {fichando ? '...' : (fichado ? 'Fichar salida' : 'Fichar entrada')}
+              </button>
+            </div>
+            {fichajesHoy.length > 0 && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {fichajesHoy.slice(0, 12).map((f, i) => (
+                  <span key={i} style={{ fontSize: 11.5, color: T.textSec, padding: '4px 9px', borderRadius: 999, background: T.bg, border: `1px solid ${T.border}`, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: f.tipo === 'entrada' ? T.success : T.textTer }} />
+                    {f.tipo === 'entrada' ? 'Entrada' : 'Salida'} {format(parseISO(f.marcado_at), 'HH:mm', { locale: es })}{f.user_id === userId ? ' · tú' : ''}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Mensaje */}
       {mensaje && (
