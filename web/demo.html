@@ -101,74 +101,60 @@
   .dm-localnote h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em;margin-bottom:7px}
   .dm-localnote p{font-size:13.5px;color:var(--text-sec);line-height:1.55}
 
-  /* ---------- GUIDED TOUR ---------- */
-  /* Cinematica: el paso aparece como texto con gradiente sobre la zona que el
-     spotlight oscurece, sin tarjeta. Un velo radial suave (tipo subtitulo de cine)
-     garantiza legibilidad tambien en los pasos sin spotlight, sin parecer una carta. */
-  .dm-tour{position:absolute;left:clamp(16px,3.2vw,44px);right:auto;margin:0;bottom:clamp(20px,4vw,42px);z-index:9;
-    width:min(540px,calc(100% - 32px));background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
-    padding:0;display:none;transition:left .45s cubic-bezier(.16,1,.3,1),right .45s cubic-bezier(.16,1,.3,1),top .45s cubic-bezier(.16,1,.3,1),bottom .45s cubic-bezier(.16,1,.3,1),opacity .3s}
-  .dm-tour::before{content:"";position:absolute;z-index:-1;left:-30px;right:-40px;top:-26px;bottom:-26px;pointer-events:none;
-    background:radial-gradient(120% 120% at 0% 100%, rgba(6,4,2,.92) 0%, rgba(6,4,2,.62) 42%, rgba(6,4,2,0) 72%);filter:blur(6px)}
-  .dm-tour.show{display:block;animation:dmFade .5s cubic-bezier(.16,1,.3,1)}
-  @keyframes dmFade{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
-  /* Posicion de la guia por paso, para no tapar lo que se senala */
-  .dm-tour.pos-bl{left:clamp(14px,2.5vw,28px);right:auto;margin:0}
-  .dm-tour.pos-br{right:clamp(14px,2.5vw,28px);left:auto;margin:0}
-  .dm-tour.pos-tl{left:clamp(14px,2.5vw,28px);right:auto;margin:0;top:clamp(76px,11vh,116px);bottom:auto}
-  .dm-tour.pos-tr{right:clamp(14px,2.5vw,28px);left:auto;margin:0;top:clamp(76px,11vh,116px);bottom:auto}
-  .dm-tour-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-  .dm-tour-step{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-hi);text-shadow:0 1px 8px rgba(0,0,0,.95)}
-  /* En cinematica no hace falta minimizar: el texto ya no es una tarjeta que tape. */
-  .dm-tour-toggle{display:none!important}
-  .dm-tour-skip{font-size:12px;color:rgba(255,255,255,.72);background:none;text-shadow:0 1px 8px rgba(0,0,0,.95);margin-left:auto}
-  .dm-tour-skip:hover{color:#fff}
-  .dm-tour h4{font-family:var(--display);font-weight:800;font-size:clamp(22px,3.4vw,28px);letter-spacing:-.025em;margin-bottom:10px;display:flex;align-items:center;gap:11px;
-    background:linear-gradient(118deg,#ff8a3d 0%,#ffcf4a 58%,#ffffff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 3px 16px rgba(244,80,30,.4))}
-  .dm-tour h4 .ic{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi);-webkit-text-fill-color:initial}
-  .dm-tour h4 .ic svg{width:19px;height:19px}
-  .dm-tour p{font-size:clamp(14.5px,2.2vw,16.5px);color:rgba(255,255,255,.94);line-height:1.6;min-height:0;max-width:46ch;
-    text-shadow:0 2px 20px rgba(0,0,0,.92),0 1px 3px rgba(0,0,0,.95)}
-  .dm-dots{display:flex;gap:6px;margin:16px 0 0}
-  .dm-dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.28);transition:all .25s;box-shadow:0 1px 4px rgba(0,0,0,.6)}
-  .dm-dots span.on{background:var(--accent-hi);width:18px;border-radius:4px;box-shadow:0 0 10px var(--accent-glow)}
-  .dm-tour-acts{display:flex;align-items:center;gap:10px;margin-top:16px}
-  .dm-tour-acts .btn{flex:0 0 auto;justify-content:center;padding:12px 26px;font-size:14px;box-shadow:0 10px 30px -8px rgba(244,80,30,.75)}
-  .dm-tour-acts .ghost{flex:0 0 auto;padding:11px 16px;font-size:13.5px;color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
-  .dm-tour-acts .ghost:hover{color:#fff;border-color:var(--accent)}
-  .dm-tour-acts .ghost[disabled]{opacity:.35;pointer-events:none}
+  /* ---------- GUIDED TOUR (cinematico) ----------
+     El tour se compone de 3 regiones INDEPENDIENTES sobre el iframe:
+       1) titulo de fase FIJO arriba-centro (cambia solo al cambiar de fase),
+       2) texto cinematico grande en la zona oscura, con reveal izq->der,
+       3) controles FIJOS abajo-centro (Atras/Siguiente no se mueven nunca).
+     Asi los botones no bailan entre pasos y el texto no tapa lo iluminado. */
+  .dm-tour{position:absolute;inset:0;z-index:9;display:none;pointer-events:none}
+  .dm-tour.show{display:block}
+  .dm-tour.show .dm-phase,.dm-tour.show .dm-cine,.dm-tour.show .dm-controls{opacity:1}
 
-  /* Minimized state styles */
-  .dm-tour.minimized {
-    padding: 8px 12px;
-    width: min(430px, calc(100% - 16px)) !important;
-    bottom: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .dm-tour.minimized .dm-tour-top {
-    margin-bottom: 0;
-    flex: 1;
-    justify-content: flex-start;
-  }
-  .dm-tour.minimized #tourSkip,
-  .dm-tour.minimized .dm-tour-body {
-    display: none !important;
-  }
-  .dm-tour.minimized .dm-tour-acts {
-    gap: 6px;
-    flex-shrink: 0;
-  }
-  .dm-tour.minimized .dm-tour-acts .btn,
-  .dm-tour.minimized .dm-tour-acts .ghost {
-    padding: 6px 12px;
-    font-size: 12.5px;
-    border-radius: 8px;
-    height: auto;
-  }
+  /* 1) Titulo de fase fijo arriba-centro */
+  .dm-phase{position:absolute;top:clamp(70px,9vh,104px);left:50%;transform:translateX(-50%);
+    text-align:center;pointer-events:none;opacity:0;transition:opacity .3s;max-width:min(640px,90%)}
+  .dm-phase .ph{display:inline-flex;align-items:center;gap:11px;
+    font-family:var(--display);font-weight:800;font-size:clamp(20px,3vw,30px);letter-spacing:-.02em;
+    background:linear-gradient(118deg,#ff8a3d 0%,#ffcf4a 58%,#fff 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 3px 16px rgba(244,80,30,.4))}
+  .dm-phase .ic{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;
+    background:var(--accent-soft);color:var(--accent-hi);-webkit-text-fill-color:initial}
+  .dm-phase .ic svg{width:19px;height:19px}
+  .dm-phase.changing{animation:dmPhaseIn .5s cubic-bezier(.16,1,.3,1)}
+  @keyframes dmPhaseIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+  /* 2) Texto cinematico grande con reveal izq->der, colocado en la zona oscura */
+  .dm-cine{position:absolute;max-width:min(560px,42vw);pointer-events:none;opacity:0;transition:opacity .3s}
+  .dm-cine.side-left{left:clamp(20px,4vw,56px);right:auto;top:50%;transform:translateY(-50%)}
+  .dm-cine.side-right{right:clamp(20px,4vw,56px);left:auto;top:50%;transform:translateY(-50%)}
+  .dm-cine.side-center{left:50%;right:auto;bottom:clamp(110px,16vh,156px);top:auto;transform:translateX(-50%);max-width:min(720px,86vw);text-align:center}
+  .dm-cine::before{content:"";position:absolute;z-index:-1;inset:-30px -40px;pointer-events:none;
+    background:radial-gradient(120% 120% at 28% 50%, rgba(6,4,2,.92) 0%, rgba(6,4,2,.6) 46%, rgba(6,4,2,0) 78%);filter:blur(8px)}
+  .dm-cine.side-right::before{background:radial-gradient(120% 120% at 72% 50%, rgba(6,4,2,.92) 0%, rgba(6,4,2,.6) 46%, rgba(6,4,2,0) 78%)}
+  .dm-cine.side-center::before{inset:-28px -46px;background:linear-gradient(180deg, rgba(6,4,2,0) 0%, rgba(6,4,2,.82) 40%, rgba(6,4,2,.92) 100%)}
+  .dm-cine p{margin:0;font-family:var(--display);font-weight:700;
+    font-size:clamp(20px,2.7vw,32px);line-height:1.32;letter-spacing:-.015em;color:#fff;
+    text-shadow:0 2px 24px rgba(0,0,0,.92),0 1px 3px rgba(0,0,0,.95)}
+  .dm-cine.revealing p{animation:dmReveal .75s cubic-bezier(.22,1,.36,1) both}
+  @keyframes dmReveal{from{clip-path:inset(0 100% 0 0);opacity:.15}to{clip-path:inset(0 0 0 0);opacity:1}}
+
+  /* 3) Controles FIJOS abajo-centro (posicion constante en todos los pasos) */
+  .dm-controls{position:absolute;left:50%;bottom:clamp(20px,4vw,40px);transform:translateX(-50%);
+    display:flex;align-items:center;gap:14px;pointer-events:auto;opacity:0;transition:opacity .3s;
+    padding:10px 14px;border-radius:16px;background:rgba(10,7,5,.66);
+    border:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    box-shadow:0 16px 40px -12px rgba(0,0,0,.7)}
+  .dm-controls .dm-tour-skip{font-size:12px;color:rgba(255,255,255,.72);background:none;border:0;cursor:pointer}
+  .dm-controls .dm-tour-skip:hover{color:#fff}
+  .dm-dots{display:flex;gap:6px;margin:0}
+  .dm-dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.28);transition:all .25s}
+  .dm-dots span.on{background:var(--accent-hi);width:18px;border-radius:4px;box-shadow:0 0 10px var(--accent-glow)}
+  .dm-controls .ghost{padding:11px 16px;font-size:13.5px;color:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(0,0,0,.28);cursor:pointer}
+  .dm-controls .ghost:hover{color:#fff;border-color:var(--accent)}
+  .dm-controls .ghost[disabled]{opacity:.35;pointer-events:none}
+  .dm-controls .btn{justify-content:center;padding:12px 26px;font-size:14px;box-shadow:0 10px 30px -8px rgba(244,80,30,.75)}
 
   /* ---------- POINTER / FLECHA ---------- */
   /* Senala la zona del paso actual sobre el software. Es una pista de region
@@ -232,35 +218,25 @@
   @media(max-width:720px){
     .dm-stage{padding:0}
     .dm-appwrap{border-radius:0;border-left:0;border-right:0}
-    /* --- Tour cinematico en movil: banda inferior tipo subtitulo, sin tarjeta,
-       no tapa el centro donde esta el foco; controles fijos sobre la tab bar --- */
-    .dm-tour{
-      left:0;right:0;bottom:0;width:auto;margin:0;
-      padding:46px 16px calc(74px + env(safe-area-inset-bottom,0px));
-      background:linear-gradient(0deg,rgba(5,3,2,.97) 0%,rgba(5,3,2,.9) 46%,rgba(5,3,2,.55) 74%,transparent 100%);
-      border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0;
-    }
-    .dm-tour::before{display:none}
-    .dm-tour.pos-bl,.dm-tour.pos-br,.dm-tour.pos-tl,.dm-tour.pos-tr{
-      left:0!important;right:0!important;top:auto!important;bottom:0!important;margin:0!important;
-    }
-    .dm-tour-top{margin-bottom:6px}
-    .dm-tour h4{font-size:19px;margin-bottom:6px;gap:8px}
-    .dm-tour h4 .ic{width:28px;height:28px;border-radius:8px}
-    .dm-tour h4 .ic svg{width:15px;height:15px}
-    .dm-tour p{font-size:13.5px;line-height:1.5;min-height:auto;margin-bottom:0;max-width:none}
+    /* --- Tour cinematico en movil: fase arriba-centro, texto en banda inferior
+       (siempre 'center'), controles fijos justo encima --- */
+    .dm-phase{top:62px;max-width:92%}
+    .dm-phase .ph{font-size:18px;gap:8px}
+    .dm-phase .ic{width:26px;height:26px;border-radius:8px}
+    .dm-phase .ic svg{width:14px;height:14px}
+    /* En movil el texto cinematico siempre va abajo-centro (banda), nunca a los lados */
+    .dm-cine,.dm-cine.side-left,.dm-cine.side-right,.dm-cine.side-center{
+      left:0;right:0;bottom:118px;top:auto;transform:none;max-width:none;text-align:left;padding:0 16px}
+    .dm-cine::before{inset:-30px 0 -200px 0;background:linear-gradient(0deg,rgba(5,3,2,.97) 0%,rgba(5,3,2,.9) 50%,rgba(5,3,2,.5) 78%,transparent 100%);filter:none}
+    .dm-cine p{font-size:17px;line-height:1.42}
+    .dm-controls{left:0;right:0;bottom:0;transform:none;border-radius:0;justify-content:center;gap:10px;
+      padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));background:rgba(5,3,2,.95);border-left:0;border-right:0;border-bottom:0}
+    .dm-controls .btn{flex:1}
     .dm-dots{display:none}
-    .dm-tour-acts{gap:8px;margin-top:14px}
-    .dm-tour-acts .btn{flex:1;padding:12px;font-size:13.5px;border-radius:11px}
-    .dm-tour-acts .ghost{padding:12px 16px;font-size:13.5px;border-radius:11px}
-    .dm-tour-skip{font-size:11.5px}
-    .dm-tour-step{font-size:10px;letter-spacing:.1em}
   }
   @media(max-width:480px){
-    .dm-tour{padding:42px 14px calc(72px + env(safe-area-inset-bottom,0px))}
-    .dm-tour h4{font-size:17.5px}
-    .dm-tour p{font-size:13px}
-    .dm-tour-acts .btn, .dm-tour-acts .ghost{padding:11px 12px;font-size:13px}
+    .dm-cine p{font-size:15.5px}
+    .dm-controls .btn,.dm-controls .ghost{padding:11px 12px;font-size:13px}
   }
 
   /* ---------- SHARE MODAL (Drive-like) ---------- */
@@ -422,16 +398,6 @@
       height: 44px;
       justify-content: center;
     }
-  }
-
-  /* --- Transición Cinemática del Tour --- */
-  .dm-tour-body {
-    transition: opacity 0.4s cubic-bezier(.16,1,.3,1), transform 0.4s cubic-bezier(.16,1,.3,1), filter 0.4s ease;
-  }
-  .dm-tour-body.dm-step-changing {
-    opacity: 0;
-    transform: translateY(10px) scale(.97);
-    filter: blur(2px);
   }
 
   /* --- Barra de carga superior --- */
@@ -656,42 +622,6 @@
     0% { opacity: 0; transform: translateY(-8px); }
     100% { opacity: 1; transform: translateY(0); }
   }
-  .dm-tour.config-step {
-    background: none !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-  }
-  .dm-tour.config-step h4 {
-    font-size: 22px !important;
-    background: linear-gradient(135deg, #ff7a2e 0%, #ffcf4a 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800 !important;
-    animation: fadeInGradient 0.6s ease forwards;
-    margin-bottom: 0 !important;
-  }
-  .dm-tour.config-step p { display: block !important; }
-  .dm-tour.config-step .dm-tour-acts {
-    margin-top: 16px !important;
-  }
-  .dm-tour.config-step .dm-tour-acts .btn {
-    border-radius: 12px !important;
-    font-weight: 800 !important;
-    box-shadow: 0 8px 24px rgba(244, 80, 30, 0.35) !important;
-  }
-  .dm-tour.config-step .dm-tour-acts .ghost {
-    border-radius: 12px !important;
-    color: rgba(255,255,255,0.7) !important;
-  }
-  .dm-tour.config-step .dm-tour-acts .ghost:hover {
-    color: #fff !important;
-  }
-  @media(max-width:720px){
-    .dm-tour.config-step { padding: 0 !important; }
-    .dm-tour.config-step p { display: block !important; }
-  }
 </style>
 </head>
 <body data-theme="dark">
@@ -764,19 +694,18 @@
 
     <!-- GUIDED TOUR -->
     <div class="dm-tour" id="tour">
-      <div class="dm-tour-top">
-        <span class="dm-tour-step" id="tourStep">Paso 1 de 6</span>
-        <button class="dm-tour-toggle" id="tourToggle" type="button">Minimizar</button>
-        <button class="dm-tour-skip" id="tourSkip">Saltar guía</button>
+      <!-- 1) Titulo de fase FIJO arriba-centro (cambia solo al cambiar de fase) -->
+      <div class="dm-phase" id="tourPhase">
+        <span class="ph"><span class="ic" id="tourIc"></span><span id="tourTitle">Tu agenda</span></span>
       </div>
-      <div class="dm-tour-body" id="tourBody">
-        <h4><span class="ic" id="tourIc"></span><span id="tourTitle">Tu agenda real</span></h4>
-        <p id="tourText"></p>
+      <!-- 2) Texto cinematico grande en la zona oscura (reveal izq->der) -->
+      <div class="dm-cine side-center" id="tourCine"><p id="tourText"></p></div>
+      <!-- 3) Controles FIJOS abajo-centro (no se mueven entre pasos) -->
+      <div class="dm-controls">
+        <button class="dm-tour-skip" id="tourSkip" type="button">Saltar</button>
         <div class="dm-dots" id="tourDots"></div>
-      </div>
-      <div class="dm-tour-acts">
-        <button class="ghost" id="tourPrev">Atrás</button>
-        <button class="btn btn-primary" id="tourNext">Siguiente</button>
+        <button class="ghost" id="tourPrev" type="button">Atrás</button>
+        <button class="btn btn-primary" id="tourNext" type="button">Siguiente</button>
       </div>
     </div>
   </div>
@@ -1258,76 +1187,79 @@
   // Cada paso lleva el iframe a una pantalla (route) y pide a la app que abra un
   // panel y/o enfoque una zona con spotlight (action). Ya NO usamos flechas: el
   // enfoque lo dibuja la propia app oscureciendo todo menos la zona del paso.
+  // ph = titulo de fase (fijo arriba-centro; se mantiene entre pasos de la misma
+  // fase). d = texto cinematico (cambia cada paso con reveal). side = lado de la
+  // zona oscura donde cae el texto (left/right/center; en movil siempre center).
   var TUTORIAL_GENERAL=[
-    {ic:'agenda', route:'/(tabs)', action:'cerrar', guidePos:'br',
+    {ic:'agenda', route:'/(tabs)', action:'cerrar', guidePos:'bc', ph:'La agenda', side:'center',
      t:'Tu agenda real',
      d:'Cada columna es un profesional y cada bloque, una cita. Pulsa cualquier hueco y se crea una cita: te lo enseno paso a paso.'},
-    {ic:'nueva', route:'/(tabs)', action:'nueva-cita', guidePos:'bl',
+    {ic:'nueva', route:'/(tabs)', action:'nueva-cita', guidePos:'bl', ph:'Crear una cita', side:'left',
      t:'Crear una cita',
      d:'Al pulsar un hueco se abre esta ventana con la hora ya puesta. Vamos por orden: cliente, servicio y hora.'},
-    {ic:'clientes', route:'/(tabs)', action:'cita-cliente', guidePos:'tr',
-     t:'1 · El cliente',
+    {ic:'clientes', route:'/(tabs)', action:'cita-cliente', guidePos:'tl', ph:'El cliente', side:'left',
+     t:'El cliente',
      d:'Mira: selecciono el cliente de la lista. Tambien puedes crearlo al momento con su nombre y telefono, y su ficha se rellena sola.'},
-    {ic:'nueva', route:'/(tabs)', action:'cita-servicio', guidePos:'tr',
-     t:'2 · El servicio',
+    {ic:'nueva', route:'/(tabs)', action:'cita-servicio', guidePos:'tl', ph:'El servicio', side:'left',
+     t:'El servicio',
      d:'Elijo el servicio: marca la duracion y el precio. Puedes encadenar varios en la misma cita, incluso entre profesionales.'},
-    {ic:'nueva', route:'/(tabs)', action:'cita-hora', guidePos:'tr',
-     t:'3 · La hora',
+    {ic:'nueva', route:'/(tabs)', action:'cita-hora', guidePos:'tl', ph:'La hora', side:'left',
+     t:'La hora',
      d:'Y elijo una hora libre. Arriba siempre ves "Ahora" y la "Hora de la cita" elegida, para no equivocarte.'},
-    {ic:'nueva', route:'/(tabs)', action:'cita-detalle', guidePos:'tr',
+    {ic:'nueva', route:'/(tabs)', action:'cita-detalle', guidePos:'tl', ph:'La cita por dentro', side:'left',
      t:'Tu cita por dentro',
      d:'Asi queda la cita. Al abrirla ves y editas TODO: el servicio que cobras, el cliente, el profesional y la hora. Te enseno los bloques clave.'},
-    {ic:'fich', route:'/(tabs)', action:'detalle-estado', guidePos:'tr',
+    {ic:'fich', route:'/(tabs)', action:'detalle-estado', guidePos:'tl', ph:'El estado', side:'left',
      t:'El estado de la cita',
      d:'Confirmada, en curso, finalizada, cobrada, no presentada... El estado manda: marca el color en la agenda y lo que cuenta en los informes.'},
-    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo', guidePos:'tl',
+    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo', guidePos:'tl', ph:'Los reposos', side:'left',
      t:'1 · Tiempo activo',
      d:'La primera fase es el trabajo inicial (ej. aplicar tinte). Ajusta los minutos con los botones − y + a la derecha de la barra para definir la duracion exacta.'},
-    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-reposo', guidePos:'tl',
+    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-reposo', guidePos:'tl', ph:'Los reposos', side:'left',
      t:'2 · Tiempo de reposo',
      d:'La fase clave: tiempo de espera (tinte actuando). Usa − y + para regularlo: Mecha libera tu agenda en este bloque para que atiendas a otro cliente.'},
-    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo2', guidePos:'tl',
+    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo2', guidePos:'tl', ph:'Los reposos', side:'left',
      t:'3 · Segundo activo',
      d:'El acabado final (lavar y peinar). Ajusta la duracion con − y +. La cita se divide sola en bloques, aprovechando tu tiempo al 100% sin alargar el dia.'},
-    {ic:'clientes', route:'/(tabs)', action:'detalle-formula', guidePos:'tl',
+    {ic:'clientes', route:'/(tabs)', action:'detalle-formula', guidePos:'tl', ph:'La formula', side:'left',
      t:'Formula guardada',
      d:'Producto, tono, tiempo y resultado quedan guardados para repetir el color exacto la proxima vez. Puedes partir de las plantillas que creas en Configuracion.'},
-    {ic:'avisos', route:'/(tabs)', action:'notificaciones', guidePos:'bl',
+    {ic:'avisos', route:'/(tabs)', action:'notificaciones', guidePos:'bl', ph:'Los avisos', side:'left',
      t:'Avisos que no se escapan',
      d:'Citas sin confirmar de las proximas 48 h y los cumpleanos de la semana, juntos. Pulsa cualquiera y la agenda salta a ese dia.'},
-    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', guidePos:'bl',
+    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', guidePos:'bc', ph:'Las fichas', side:'center',
      t:'Fichas de cliente',
      d:'Una ficha real a pantalla completa: formula de color, alergias, fotos de cada corte, historial y preferencias. Todo a un toque, sin papeles.'},
-    {ic:'ia', route:'/(tabs)', action:'cerrar', guidePos:'bc',
+    {ic:'ia', route:'/(tabs)', action:'cerrar', guidePos:'bc', ph:'Recepcion con IA', side:'center',
      t:'Tu recepcion con IA',
      d:'Al activar tu cuenta conectamos la IA: atiende por WhatsApp y por telefono, responde y reserva citas sola, 24/7. Aqui la ves como sera; se enchufa al darte de alta.'},
-    {ic:'fich', route:'/(tabs)/equipo', action:'cerrar', guidePos:'bc',
+    {ic:'fich', route:'/(tabs)/equipo', action:'cerrar', guidePos:'bc', ph:'El equipo', side:'center',
      t:'Tu equipo y su rentabilidad',
      d:'Roles, turnos y comisiones por profesional, con metricas de quien rinde mas. Todo el equipo organizado desde una sola pantalla.'},
-    {ic:'rep', route:'/(tabs)/informes', action:'informes-export', guidePos:'bl',
+    {ic:'rep', route:'/(tabs)/informes', action:'informes-export', guidePos:'bl', ph:'Informes', side:'left',
      t:'Informes claros · PDF y CSV',
      d:'Ingresos, ocupacion, no-shows y ticket medio, actualizados solos. Y lo mejor: te lo descargas TODO en PDF (con tu marca) o en CSV con un clic, mira el boton arriba a la derecha.'}
   ];
 
   var TUTORIAL_CONFIG=[
-    {ic:'org', route:'/(tabs)/configuracion', action:'config-general', guidePos:'br', isConfig:true,
+    {ic:'org', route:'/(tabs)/configuracion', action:'config-general', guidePos:'bc', isConfig:true, ph:'Datos del negocio', side:'center',
      t:'Configuración general',
-     d:'Personaliza la identidad de tu salón de forma sencilla: desde el nombre comercial, moneda y huso horario hasta los colores de tu marca y la vista por defecto de la agenda.'},
-    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-horarios', guidePos:'br', isConfig:true,
+     d:'Personaliza la identidad de tu salón: nombre comercial, moneda, huso horario, colores de tu marca y la vista por defecto de la agenda.'},
+    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-horarios', guidePos:'bc', isConfig:true, ph:'Horarios', side:'center',
      t:'Horarios y descansos',
-     d:'Configura tus horarios de apertura y jornadas laborales. Añade bloques de pausa (comidas, descansos) para que el sistema organice la agenda sin solapamientos accidentales.'},
-    {ic:'nueva', route:'/(tabs)/configuracion', action:'config-servicios', guidePos:'br', isConfig:true,
+     d:'Configura tus horarios de apertura y jornadas. Añade bloques de pausa (comidas, descansos) para que la agenda se organice sin solapamientos.'},
+    {ic:'nueva', route:'/(tabs)/configuracion', action:'config-servicios', guidePos:'bc', isConfig:true, ph:'Servicios', side:'center',
      t:'Servicios y tarifas',
-     d:'Crea tu catálogo indicando precios y duraciones por profesional. Permite definir tiempos de reposo en tratamientos complejos para liberar tu agenda mientras actúan los productos.'},
-    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-agenda', guidePos:'br', isConfig:true,
+     d:'Crea tu catálogo con precios y duraciones por profesional. Define tiempos de reposo en tratamientos para liberar tu agenda mientras actúan los productos.'},
+    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-agenda', guidePos:'bc', isConfig:true, ph:'Reglas de reserva', side:'center',
      t:'Lógica y políticas',
-     d:'Controla las reglas de reserva online: antelación mínima para reservar, políticas de cancelación, tiempos de cortesía por retraso y la activación de prepagos para evitar ausencias.'},
-    {ic:'rep', route:'/(tabs)/configuracion', action:'config-comisiones', guidePos:'br', isConfig:true,
+     d:'Controla la reserva online: antelación mínima, políticas de cancelación, cortesía por retraso y prepagos para evitar ausencias.'},
+    {ic:'rep', route:'/(tabs)/configuracion', action:'config-comisiones', guidePos:'bc', isConfig:true, ph:'Comisiones', side:'center',
      t:'Comisiones y objetivos',
-     d:'Define esquemas de comisiones fijas o porcentuales por servicios y venta de productos. Motiva a tu equipo asignando objetivos y calcula la rentabilidad real de cada profesional.'},
-    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-plantillas', guidePos:'br', isConfig:true,
+     d:'Define comisiones fijas o porcentuales por servicios y venta de productos. Asigna objetivos y calcula la rentabilidad real de cada profesional.'},
+    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-plantillas', guidePos:'bc', isConfig:true, ph:'Formulas y plantillas', side:'center',
      t:'Fórmulas y plantillas',
-     d:'Predefine plantillas de notas e historiales clínicos de color (tinte, decoloración). Facilita al equipo guardar la fórmula exacta en la ficha del cliente en pocos segundos.'}
+     d:'Predefine plantillas de notas e historiales de color (tinte, decoloración). El equipo guarda la fórmula exacta en la ficha del cliente en segundos.'}
   ];
 
   var currentTutorial = TUTORIAL_GENERAL;
@@ -1340,9 +1272,11 @@
     return a;
   }
   var ti=0, tourStarted=false, stepTimer=null;
-  var tourStep=$('#tourStep'), tourSkip=$('#tourSkip'), tourIc=$('#tourIc'),
+  var tourSkip=$('#tourSkip'), tourIc=$('#tourIc'),
+      tourPhase=$('#tourPhase'), tourCine=$('#tourCine'),
       tourTitle=$('#tourTitle'), tourText=$('#tourText'), tourDots=$('#tourDots'),
       tourPrev=$('#tourPrev'), tourNext=$('#tourNext');
+  var lastPhase=null;
   var point=$('#point'), pointLabel=$('#pointLabel');
 
   function renderDots() {
@@ -1382,7 +1316,15 @@
   // entre pasos consecutivos (p. ej. el recorrido por la ventana de nueva cita).
   var lastAction=null;
   var loader = $('#tourLoader');
-  var tourBody = $('#tourBody');
+  // Lado del texto cinematico: lo del paso (s.side) o derivado del guidePos
+  // (la esquina libre/oscura). En movil siempre va a la banda inferior (center).
+  function sideOf(s){
+    if(window.innerWidth<=720) return 'center';
+    if(s.side) return s.side;
+    if(s.guidePos==='bl'||s.guidePos==='tl') return 'left';
+    if(s.guidePos==='br'||s.guidePos==='tr') return 'right';
+    return 'center';
+  }
 
   function renderStep(){
     var s=STEPS[ti];
@@ -1396,25 +1338,34 @@
       loader.style.width = '85%';
     }
 
-    // 2. Transición del cartel de información (fade-out)
-    if (tourBody) {
-      tourBody.classList.add('dm-step-changing');
-    }
+    // 2. Fundir el texto cinematico antes de cambiarlo
+    if (tourCine) tourCine.style.opacity = '0';
 
-    // Esperar 400ms a que termine el fade-out cinemático
+    // Esperar a que termine el fade-out
     setTimeout(function() {
-      tourStep.textContent='Paso '+(ti+1)+' de '+STEPS.length;
+      // Titulo de FASE fijo arriba-centro: solo se reanima si cambia de fase.
+      var phase = s.ph || s.t;
       tourIc.innerHTML=ICONS[s.ic];
-      tourTitle.style.animation = 'none';
-      void tourTitle.offsetWidth; // trigger reflow
-      tourTitle.style.animation = null;
-      tourTitle.textContent=s.t;
+      tourTitle.textContent=phase;
+      if (phase !== lastPhase) {
+        tourPhase.classList.remove('changing');
+        void tourPhase.offsetWidth; // reflow para reiniciar la animacion
+        tourPhase.classList.add('changing');
+        lastPhase = phase;
+      }
+
+      // Texto cinematico: coloca el lado y dispara el reveal izq->der.
       tourText.textContent=s.d;
-      var isConfigStep = !!s.isConfig;
-      tour.classList.toggle('config-step', isConfigStep);
+      tourCine.classList.remove('side-left','side-right','side-center');
+      tourCine.classList.add('side-'+sideOf(s));
+      tourCine.style.opacity = '1';
+      tourCine.classList.remove('revealing');
+      void tourCine.offsetWidth; // reflow para reiniciar el reveal
+      tourCine.classList.add('revealing');
+
       Array.prototype.forEach.call(tourDots.children,function(d,i){ d.classList.toggle('on', i===ti); });
       tourPrev.disabled = ti===0;
-      
+
       if (ti === STEPS.length - 1) {
         if (currentTutorial === TUTORIAL_GENERAL) {
           tourNext.textContent = 'Ver Configuración';
@@ -1425,20 +1376,8 @@
         tourNext.textContent = 'Siguiente';
       }
 
-      // Coloca la guia en la esquina del paso para no tapar lo que senala.
-      // En móvil siempre forzamos abajo-centro para que no rompa el layout compacto.
-      tour.classList.remove('pos-bl','pos-br','pos-tl','pos-tr');
-      var isMobile = window.innerWidth <= 720;
-      if(!isMobile && s.guidePos && s.guidePos!=='bc') tour.classList.add('pos-'+s.guidePos);
-
       setPointer();
       navFrame(s.route);
-
-      // Fade-in cinemático: forzar reflow y remover la clase
-      if (tourBody) {
-        void tourBody.offsetWidth;
-        tourBody.classList.remove('dm-step-changing');
-      }
 
       var act=s.action||'cerrar';
       if(stepTimer) clearTimeout(stepTimer);
@@ -1465,7 +1404,7 @@
     if(tutBtnGeneral) tutBtnGeneral.classList.toggle('active', isGen);
     if(tutBtnConfig) tutBtnConfig.classList.toggle('active', !isGen);
   }
-  function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; lastAction=null; updateTutSel(); renderStep(); tour.classList.add('show'); }
+  function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; lastAction=null; lastPhase=null; updateTutSel(); renderStep(); tour.classList.add('show'); }
   // Lanza (o reinicia) un tutorial concreto desde el paso 1, dejando el software limpio.
   function startTutorial(which){
     if(stepTimer) clearTimeout(stepTimer);
@@ -1476,11 +1415,11 @@
     ti=0; tourStarted=true;
     renderDots();
     updateTutSel();
-    if(tour) tour.classList.remove('minimized');
+    lastPhase=null;
     renderStep();
     tour.classList.add('show');
   }
-  function closeTour(){ tour.classList.remove('show','minimized'); if(tourToggle) tourToggle.textContent='Minimizar'; setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); lastAction='cerrar'; }
+  function closeTour(){ tour.classList.remove('show'); setPointer(null); if(stepTimer) clearTimeout(stepTimer); demoAction('cerrar'); lastAction='cerrar'; }
   tourNext.addEventListener('click',function(){
     if(ti<STEPS.length-1){
       ti++; renderStep();
@@ -1489,6 +1428,7 @@
         currentTutorial = TUTORIAL_CONFIG;
         STEPS = currentTutorial;
         ti = 0;
+        lastPhase = null;
         renderDots();
         updateTutSel();
         renderStep();
@@ -1499,14 +1439,6 @@
   });
   tourPrev.addEventListener('click',function(){ if(ti>0){ ti--; renderStep(); } });
   tourSkip.addEventListener('click',closeTour);
-
-  var tourToggle = $('#tourToggle');
-  if(tourToggle){
-    tourToggle.addEventListener('click', function(){
-      var isMin = tour.classList.toggle('minimized');
-      tourToggle.textContent = isMin ? 'Leer ▴' : 'Minimizar';
-    });
-  }
 
   // Selector de tutoriales: cada boton lanza/reinicia su recorrido desde el paso 1.
   if(tutBtnGeneral){ tutBtnGeneral.addEventListener('click', function(){ startTutorial('general'); }); }

@@ -233,6 +233,10 @@ export default function ConfiguracionWeb() {
 
   const [demoActionName, setDemoActionName] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  // Objetivo concreto del spotlight en la demo de Configuracion: en vez de
+  // oscurecer y enfocar TODO el panel, enfocamos una sub-seccion concreta
+  // (la primera de la pestana) y resaltamos ademas la pestana activa.
+  const demoTargetRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -249,6 +253,28 @@ export default function ConfiguracionWeb() {
     window.addEventListener('mecha-demo', onDemo);
     return () => window.removeEventListener('mecha-demo', onDemo);
   }, []);
+
+  // Tras cambiar de pestana/accion, apunta el spotlight a la primera sub-seccion
+  // real del contenido (no al panel entero). Se reintenta unos frames porque la
+  // pestana acaba de montarse.
+  useEffect(() => {
+    if (demoActionName === null) { demoTargetRef.current = null; return; }
+    let tries = 0;
+    let raf = 0;
+    const pick = () => {
+      const root = contentRef.current;
+      const first = root?.firstElementChild as HTMLElement | null;
+      if (first && first.getBoundingClientRect().height > 0) {
+        demoTargetRef.current = first;
+      } else if (tries++ < 30) {
+        raf = requestAnimationFrame(pick);
+      } else {
+        demoTargetRef.current = root;
+      }
+    };
+    pick();
+    return () => cancelAnimationFrame(raf);
+  }, [demoActionName, tab]);
 
   useEffect(() => {
     if (!isMobile && tab === null) {
@@ -805,7 +831,7 @@ export default function ConfiguracionWeb() {
                 marginTop: sIdx === 0 ? 0 : 14,
               }}>{sec.name}</div>
               {sec.items.map(t => (
-                <TabButton key={t.id} t={t} active={tab === t.id} onClick={() => setTab(t.id)} />
+                <TabButton key={t.id} t={t} active={tab === t.id} demoActive={demoActionName !== null && tab === t.id} onClick={() => setTab(t.id)} />
               ))}
             </div>
           ))}
@@ -924,7 +950,7 @@ export default function ConfiguracionWeb() {
         />
       )}
       <DemoSpotlight
-        targetRef={contentRef}
+        targetRef={demoTargetRef}
         active={demoActionName !== null}
         padding={10}
         radius={16}
@@ -937,7 +963,7 @@ export default function ConfiguracionWeb() {
 // Tab button
 // ---------------------------------------------------------------------------
 
-function TabButton({ t, active, onClick }: { t: TabDef; active: boolean; onClick: () => void }) {
+function TabButton({ t, active, onClick, demoActive = false }: { t: TabDef; active: boolean; onClick: () => void; demoActive?: boolean }) {
   const [hov, setHov] = useState(false);
   return (
     <button onClick={onClick}
@@ -945,7 +971,11 @@ function TabButton({ t, active, onClick }: { t: TabDef; active: boolean; onClick
       style={{
         display: 'flex', alignItems: 'center', gap: 11,
         padding: '9px 12px', borderRadius: 10, position: 'relative',
-        background: active ? T.primarySoft : (hov ? 'rgba(148,163,184,0.05)' : 'transparent'),
+        // En la demo, la pestana activa se eleva por encima del velo del
+        // spotlight (z-index 1000) y se ilumina, para que se vea en que pagina
+        // estamos mientras se enfoca la sub-seccion.
+        ...(demoActive ? { zIndex: 1001, boxShadow: '0 0 0 2px rgba(244,80,30,0.9), 0 8px 28px rgba(244,80,30,0.45)' } : {}),
+        background: demoActive ? '#ffffff' : (active ? T.primarySoft : (hov ? 'rgba(148,163,184,0.05)' : 'transparent')),
         border: `1px solid ${active ? 'rgba(244,80,30,0.25)' : 'transparent'}`,
         color: active ? T.text : T.textSecondary,
         fontSize: 13, fontWeight: active ? 600 : 500,
