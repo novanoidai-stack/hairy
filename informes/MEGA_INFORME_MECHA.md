@@ -588,3 +588,48 @@ las estadísticas salen hoy de las citas y además metemos un POS que cobra?
 opción (c), arrancar por POS-0/POS-1, nomenclatura no-fiscal, cuándo entra el fiscalista, producto
 sí/no en el POS, y reetiquetar ya "ingresos" → "ingresos estimados"). No bloquea a Alexandro.
 
+
+---
+
+## Adenda 20 jun 2026 — pulido UI (landing/login/agenda/reseñas) + rehacer demo (Carlos)
+
+Sesión de frontend desplegada a `master` por fases (producción despliega de `master`). Todo
+verificado por DOM en el preview (los screenshots se cuelgan por la animación de canvas; el
+spotlight in-app y las partículas dependen de `requestAnimationFrame`, pausado en el preview, así
+que su render visual no es pixel-verificable ahí, pero la lógica de estado/targeting sí se validó).
+
+- **Fase 1 — bugs rápidos** (`dda65b7d`): "Caja" añadido al `NAV_ITEMS` del Sidebar de escritorio
+  (`components/layout/Sidebar.tsx`; la pantalla existía pero era inaccesible en escritorio); scroll
+  de Reseñas arreglado (`app/(tabs)/resenas.web.tsx`: `minHeight:100vh` sin overflow → `height:100vh`
+  + `overflowY:auto`, patrón de informes).
+- **Fase 2 — login** (`4126f815`, `web/acceso.html`): fuera TODAS las partículas (`#embers`) y el
+  lecho rocoso (`#rocksCanvas`) + su script (código muerto); dos fondos LISOS ceniza (aside `#1c1814`,
+  main `#16171d`); `.bg` plano que sobrescribe las brasas de la landing; eliminada la línea divisoria
+  vertical; "Conectando con Google" deja solo el loader sobre ceniza (sin franjas, sin fondo radial);
+  "atrás" del navegador vuelve al login (no a la landing) en las pantallas de transición vía
+  `pushState`+`popstate`.
+- **Fase 3 — landing** (`a22e5751`, `web/index.html`): CTA "Habla con nosotros…" → **"¿Quieres el
+  acceso ya?"** (corta "Acceso ya"); fondo detrás de las partículas en CENIZA (`.bg #0c0d12` +
+  vignettes frías, efecto agua/espacio); partículas y lecho rocoso desaturados a grises ceniza;
+  FPS: cap de render ~36fps con delta, lecho ~18fps, dpr capado a 1.5, menos partículas.
+- **Fase 4 — agenda** (`1577762c`, `components/agenda/AgendaCalendar.web.tsx`): rejilla del día
+  pasa de blanco "bloc de notas" a crema de marca (`#fffdfb` + zebra/cabecera melocotón + líneas de
+  hora cálidas); **KPIs y mini-calendario ahora se colapsan de forma independiente** (botón propio
+  con chevron; antes solo existía ocultar el rail entero). Verificado: KPIs y celdas del mini-cal
+  aparecen/desaparecen al toggle.
+- **Fase 5 — demo/tutorial** (`661ab136`, `web/demo.html` + `app/(tabs)/configuracion.web.tsx`):
+  rediseño cinemático (C7). Tour en 3 regiones independientes: **controles Atrás/Siguiente FIJOS
+  abajo-centro** (verificado: posición constante en todos los pasos), **sin contador** "Paso X de N",
+  **título de fase fijo arriba-centro** (campo `ph`; se mantiene entre sub-pasos de la misma fase),
+  **texto cinemático grande con reveal izq→der** colocado en la zona oscura por lado (`side`/guidePos;
+  móvil = banda inferior; paso 1 y pasos sin spotlight usan banda con scrim para no tapar lo
+  iluminado). Tutorial 2 (configuración): el spotlight enfoca la **primera sub-sección concreta** de
+  la pestaña (no el panel entero) y la **pestaña activa se resalta** por encima del velo (z-index
+  1001 + fondo blanco + glow).
+
+**Pendiente de validación visual de Jose/Carlos en navegador real** (no verificable en el preview):
+(a) el **lado** del texto cinemático por paso en el tour general — está puesto por `side`/guidePos,
+fácil de ajustar paso a paso si alguno cae sobre la zona iluminada; (b) el aspecto final de las
+**partículas ceniza** de la landing; (c) el spotlight de la **sub-sección** del tutorial 2 (hoy
+enfoca la primera sección de cada pestaña — se puede afinar a sub-secciones más concretas, p. ej.
+"lunes y martes" en Horarios, añadiendo refs por sub-sección si se quiere granularidad mayor).
