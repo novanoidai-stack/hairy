@@ -19,6 +19,21 @@ import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 
 const T = DESIGN_TOKENS;
 
+// Fondo crema en TODOS los cuadros de texto de Configuracion. Una regla global
+// (WebScrollbarStyles) fuerza `input/textarea { background: transparent !important }`
+// para que el color lo ponga el marco que envuelve cada campo (los atomos de
+// SettingsAtoms). Los inputs "crudos" sin ese marco salian blancos sobre la tarjeta.
+// Esta clase, mas especifica que el selector global de elemento, restituye el crema.
+if (typeof document !== 'undefined') {
+  const id = 'cfg-fields-bg';
+  if (!document.getElementById(id)) {
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = '.cfg-fields input, .cfg-fields textarea { background-color: #f6f1ea !important; }';
+    document.head.appendChild(style);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -121,6 +136,16 @@ interface ConfigState {
   bonusObjetivo: boolean;
   bonusObjetivoImporte: number;
   bonusEstrella: boolean;
+  // Notificaciones (gatean el motor de envio por salon)
+  notifConfirmacionActiva: boolean;
+  notifRecordatorioActiva: boolean;
+  notifRecordatorioHoras: number;
+  notifResenaActiva: boolean;
+  notifSenalActiva: boolean;
+  notifRetrasoActiva: boolean;
+  notifNoMolestar: boolean;
+  notifNoMolestarInicio: string;
+  notifNoMolestarFin: string;
   // Plantillas reutilizables (catalogos del salon)
   catalogoAlergias: string[];
   plantillasFormula: PlantillaTexto[];
@@ -162,7 +187,7 @@ const TABS: TabDef[] = [
   { id: 'agenda',         label: 'Agenda',         icon: 'calendar',  section: 'Operativa' },
   { id: 'comisiones',     label: 'Comisiones',     icon: 'percent',   section: 'Operativa' },
   { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
-  { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion', soon: true },
+  { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion' },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion', soon: true },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
   { id: 'referidos',      label: 'Invita y gana',  icon: 'gift',      section: 'Cuenta' },
@@ -194,6 +219,9 @@ const DEFAULT_CONFIG: ConfigState = {
   comisionBase: 30, comisionBaseImporte: 'neto',
   comisionAddons: true, comisionPropinas: false, comisionPeriodo: 'mensual',
   bonusProducto: 10, bonusObjetivo: true, bonusObjetivoImporte: 250, bonusEstrella: false,
+  notifConfirmacionActiva: true, notifRecordatorioActiva: true, notifRecordatorioHoras: 24,
+  notifResenaActiva: true, notifSenalActiva: true, notifRetrasoActiva: true,
+  notifNoMolestar: false, notifNoMolestarInicio: '22:00', notifNoMolestarFin: '08:00',
   catalogoAlergias: ['Parafenilendiamina (PPD)', 'Amoniaco', 'Resorcina', 'Persulfatos', 'Fragancias', 'Niquel', 'Latex'],
   plantillasFormula: [],
   plantillasNota: [],
@@ -743,7 +771,7 @@ export default function ConfiguracionWeb() {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: T.bg, color: T.text, fontFamily: 'Inter, sans-serif' }}>
+    <div className="cfg-fields" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: T.bg, color: T.text, fontFamily: 'Inter, sans-serif' }}>
       {/* ── Topbar ──────────────────────────────────────────────────────── */}
       <header style={{
         padding: isMobile ? '12px 16px' : '18px 28px 16px',
@@ -929,7 +957,7 @@ export default function ConfiguracionWeb() {
             {tab === 'plantillas' && (
               <TabPlantillas config={config} setC={setC} />
             )}
-            {tab === 'notificaciones' && <TabNotificaciones />}
+            {tab === 'notificaciones' && <TabNotificaciones config={config} setC={setC} />}
             {tab === 'politicas' && <TabPoliticas />}
             {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
             {tab === 'referidos' && <TabReferidos />}
@@ -2508,74 +2536,50 @@ function PlantillaEditor({ title, desc, items, onChange, placeholderNombre, plac
 // Future tabs (disabled)
 // ===========================================================================
 
-function TabNotificaciones() {
+function TabNotificaciones({ config, setC }: {
+  config: ConfigState; setC: (k: keyof ConfigState, v: any) => void;
+}) {
   return (
     <>
-      <SoonBanner icon="bell" title="Notificaciones -- fase 4"
-        desc="Los campos siguientes estan reservados para la proxima fase. Podras configurarlos cuando se libere el modulo de mensajeria." />
-      <Section soon disabled title="Canal preferido" desc="Por que medio se envian los recordatorios y confirmaciones.">
-        <FieldRow label="Canal principal" hint="El primero al que se intenta enviar. Si falla, se cae al siguiente.">
-          <Segmented disabled value="whatsapp" onChange={() => {}} options={[
-            { value: 'whatsapp', label: 'WhatsApp' },
-            { value: 'sms', label: 'SMS' },
-            { value: 'email', label: 'Email' },
-          ]} />
+      <Section title="Avisos automaticos al cliente" desc="Que mensajes de WhatsApp envia el salon. El motor solo manda los que tengas activos aqui.">
+        <FieldRow label="Confirmacion de cita" hint="Se envia al confirmarse la cita, con fecha, hora y enlace de gestion.">
+          <Toggle on={config.notifConfirmacionActiva} onChange={v => setC('notifConfirmacionActiva', v)} />
         </FieldRow>
-        <FieldRow label="Canal de respaldo" hint="Se intenta solo si el principal falla.">
-          <SSelect disabled width={200} value="email" onChange={() => {}} options={[
-            { value: 'whatsapp', label: 'WhatsApp' },
-            { value: 'sms', label: 'SMS' },
-            { value: 'email', label: 'Email' },
-            { value: 'none', label: 'Ninguno' },
-          ]} />
+        <FieldRow label="Recordatorio previo" hint="Aviso antes de la cita para reducir olvidos y no-shows.">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <Toggle on={config.notifRecordatorioActiva} onChange={v => setC('notifRecordatorioActiva', v)} />
+            <NumberInput value={config.notifRecordatorioHoras} onChange={v => setC('notifRecordatorioHoras', v)}
+              unit="h antes" min={1} max={72} step={1} width={150} disabled={!config.notifRecordatorioActiva} />
+          </div>
         </FieldRow>
-        <FieldRow label="Remitente" hint="Nombre que aparece como remitente en SMS y emails. Limitado por carrier.">
-          <STextInput disabled value="Salon Bonita" onChange={() => {}} width={240} />
+        <FieldRow label="Peticion de resena" hint="Tras la cita completada, invita a la clienta a dejar una resena.">
+          <Toggle on={config.notifResenaActiva} onChange={v => setC('notifResenaActiva', v)} />
+        </FieldRow>
+        <FieldRow label="Enlace de pago de senal" hint="Si el servicio requiere senal, envia el enlace para pagarla y asegurar la reserva.">
+          <Toggle on={config.notifSenalActiva} onChange={v => setC('notifSenalActiva', v)} />
+        </FieldRow>
+        <FieldRow label="Aviso de retraso" hint="Cuando reorganizas el dia por un retraso, avisa a los clientes afectados de su nueva hora. Al aplicar el retraso debes marcar la casilla 'avisar'.">
+          <Toggle on={config.notifRetrasoActiva} onChange={v => setC('notifRetrasoActiva', v)} />
         </FieldRow>
       </Section>
 
-      <Section soon disabled title="Recordatorios automaticos" desc="Cuando se envian los avisos a la cliente antes de su cita.">
-        {[
-          { l: '48 h antes', on: true },
-          { l: '24 h antes', on: true },
-          { l: '2 h antes', on: true },
-          { l: 'En el momento de la cita', on: false },
-        ].map((r, i) => (
-          <FieldRow key={i} label={r.l} hint="Aviso con detalles de hora y profesional.">
-            <Toggle disabled on={r.on} onChange={() => {}} />
-          </FieldRow>
-        ))}
-        <FieldRow label="Horario de no molestar" hint="No se envian mensajes en este rango horario. Se guardan en cola y se entregan al abrir.">
+      <Section title="Horario sin envios (no molestar)" desc="En esta franja no se mandan recordatorios ni peticiones de resena; se entregan al salir de ella. Las confirmaciones, la senal y los avisos de retraso se envian siempre (son urgentes).">
+        <FieldRow label="Activar horario sin envios" hint="Evita mensajes a horas intempestivas.">
+          <Toggle on={config.notifNoMolestar} onChange={v => setC('notifNoMolestar', v)} />
+        </FieldRow>
+        <FieldRow label="Franja sin envios" hint="Desde / hasta, en hora local del salon.">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <TimeInput disabled value="22:00" onChange={() => {}} />
+            <TimeInput value={config.notifNoMolestarInicio} onChange={v => setC('notifNoMolestarInicio', v)} disabled={!config.notifNoMolestar} />
             <span style={{ fontSize: 11, color: T.textTertiary }}>a</span>
-            <TimeInput disabled value="08:00" onChange={() => {}} />
+            <TimeInput value={config.notifNoMolestarFin} onChange={v => setC('notifNoMolestarFin', v)} disabled={!config.notifNoMolestar} />
           </div>
         </FieldRow>
       </Section>
 
-      <Section soon disabled title="Plantillas de mensaje" desc="Texto base que se personaliza con datos de la cita. Las variables se sustituyen automaticamente.">
-        {[
-          { l: 'Confirmacion de cita', body: 'Hola {nombre}, tu cita de {servicio} con {profesional} esta confirmada para el {fecha} a las {hora}.' },
-          { l: 'Recordatorio 24 h', body: 'Hasta manana, {nombre}! Te esperamos para tu {servicio} a las {hora}.' },
-          { l: 'Cancelacion', body: 'Hemos cancelado tu cita del {fecha}. Reagendamos? Pulsa aqui: {link_reagendar}' },
-          { l: 'Agradecimiento post-visita', body: 'Gracias por confiar en {salon}, {nombre}. Esperamos que estes encantada con el resultado.' },
-        ].map((t, i) => (
-          <div key={i} style={{
-            background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: 14, marginBottom: 8,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: T.text }}>{t.l}</div>
-              <Btn disabled size="sm" variant="ghost" icon="edit">Editar</Btn>
-            </div>
-            <div style={{ fontSize: 11.5, color: T.textSecondary, lineHeight: 1.55, padding: 10, background: T.bgCardHi, borderRadius: 8, border: `1px solid ${T.border}` }}>
-              {t.body.split(/(\{[^}]+\})/).map((part, idx) => part.startsWith('{') ?
-                <span key={idx} style={{ color: T.primaryHi, fontWeight: 600 }}>{part}</span> :
-                <span key={idx}>{part}</span>
-              )}
-            </div>
-          </div>
-        ))}
+      <Section title="Canal de envio" desc="Hoy los avisos se mandan por WhatsApp. Las plantillas estan aprobadas por Meta: el texto es fijo y solo se rellenan los datos de cada cita (nombre, servicio, hora...).">
+        <FieldRow label="Canal" hint="SMS / email de respaldo: proximamente.">
+          <Badge tone="primary">WhatsApp</Badge>
+        </FieldRow>
       </Section>
     </>
   );

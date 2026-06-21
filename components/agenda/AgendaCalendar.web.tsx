@@ -196,6 +196,7 @@ export default function AgendaCalendar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [showClienteHistorial, setShowClienteHistorial] = useState<any>(null);
   const [recolocarRetraso, setRecolocarRetraso] = useState(true); // toggle de Configuracion (negocio_config.config)
+  const [avisarRetraso, setAvisarRetraso] = useState(true); // notifRetrasoActiva (negocio_config.config)
   const [dropServicioOpen, setDropServicioOpen] = useState(false);
   const [dropEstadoOpen, setDropEstadoOpen] = useState(false);
   // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral
@@ -235,6 +236,7 @@ export default function AgendaCalendar() {
         ]);
         const cfg = ((cfgResult as any)?.data?.config ?? {}) as any;
         setRecolocarRetraso(cfg.recolocarRetraso !== false);
+        setAvisarRetraso(cfg.notifRetrasoActiva !== false);
 
         if (profResult.error) console.error('Prof error:', profResult.error);
         if (citaResult.error) console.error('Cita error:', citaResult.error);
@@ -1460,6 +1462,7 @@ export default function AgendaCalendar() {
           }}
           cita={selectedCitaEdit}
           retrasosActivo={recolocarRetraso}
+          avisarRetrasoActivo={avisarRetraso}
           servicios={servicios}
           clientes={clientes}
           profesionales={profesionales}
@@ -4220,7 +4223,7 @@ function TimeNumBox({ value, label }: { value: string; label: string }) {
   );
 }
 
-function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesionales, citasHoy, allCitas, retrasosActivo }: any) {
+function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesionales, citasHoy, allCitas, retrasosActivo, avisarRetrasoActivo }: any) {
   const router = useRouter();
   const { triggerRefresh } = useCalendarRefresh();
   const { isMobile, isTablet } = useResponsive();
@@ -4273,16 +4276,26 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
     setPropRetraso(proponerRetrasoPorCita(citasDelProfParaCascada(), cita.id, min));
     setRetrasoPickerOpen(false);
   }
-  async function aplicarRetraso(_avisarClientes: boolean) {
+  async function aplicarRetraso(avisarClientes: boolean) {
     if (!propRetraso) return;
     setAplicandoRetraso(true);
     try {
       const updates = construirUpdatesRetraso(propRetraso, citasDelProfParaCascada());
+      // Citas movidas a las que se enviara el aviso de retraso: las que tienen telefono
+      // (cliente real). El motor las recoge por el flag retraso_aviso_pendiente y manda la
+      // plantilla aviso_retraso (gateado tambien por notifRetrasoActiva del salon).
+      const avisar = new Set<string>(
+        avisarClientes
+          ? propRetraso.items
+              .filter((it: any) => it.telefono && String(it.telefono).trim().length >= 6)
+              .map((it: any) => it.cita_id)
+          : []
+      );
       for (const u of updates) {
         const { id, ...campos } = u;
+        if (avisar.has(id)) (campos as any).retraso_aviso_pendiente = true;
         await supabase.from('citas').update(campos).eq('id', id);
       }
-      // El aviso por WhatsApp (avisarClientes) queda pendiente de la plantilla Meta `aviso_retraso`.
       setPropRetraso(null);
       onSaved?.();
       triggerRefresh?.();
@@ -6165,7 +6178,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
           propuesta={propRetraso}
           minutos={retrasoMin}
           profesionalNombre={prof?.nombre}
-          avisarDisponible={false}
+          avisarDisponible={avisarRetrasoActivo}
           enviando={aplicandoRetraso}
           onConfirmar={aplicarRetraso}
           onCancelar={() => setPropRetraso(null)}
