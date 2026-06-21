@@ -123,6 +123,7 @@ interface ConfigState {
   retrasoGrace: number;
   contadorRetraso: boolean;
   recolocarRetraso: boolean;
+  completarManual: boolean;
   reposoMargen: number;
   alertaReposo: boolean;
   alertaReposoUmbral: number;
@@ -223,6 +224,7 @@ const DEFAULT_CONFIG: ConfigState = {
   solapamiento: 'reposo', confirmacionModo: 'manual',
   confirmacionTimeout: 120, confirmacionNotificar: true,
   noShowGrace: 15, retrasoGrace: 10, contadorRetraso: true, recolocarRetraso: true,
+  completarManual: false,
   reposoMargen: 5, alertaReposo: true, alertaReposoUmbral: 3, aprovecharReposo: true,
   comisionBase: 30, comisionBaseImporte: 'neto',
   comisionAddons: true, comisionPropinas: false, comisionPeriodo: 'mensual',
@@ -2179,6 +2181,13 @@ function TabAgenda({ config, setC, bloqueoCounts }: {
         </FieldRow>
         <FieldRow label="Avisar al equipo en pendientes nuevas" hint="Una notificacion interna cuando entra una cita pendiente de confirmacion.">
           <Toggle on={config.confirmacionNotificar} onChange={v => setC('confirmacionNotificar', v)} disabled={config.confirmacionModo === 'auto'} />
+        </FieldRow>
+      </Section>
+
+      <Section title="Cierre de citas" desc="Como se marcan las citas como completadas cuando terminan.">
+        <FieldRow label="Marcar completadas manualmente" hint="Activado: cada cita tiene un boton en la agenda para marcarla como completada a mano. Desactivado: las citas se completan solas al terminar y se oculta ese boton.">
+          <Toggle on={config.completarManual} onChange={v => setC('completarManual', v)}
+            label={config.completarManual ? 'Manual' : 'Automatico'} />
         </FieldRow>
       </Section>
 

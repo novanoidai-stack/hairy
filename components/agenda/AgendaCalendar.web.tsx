@@ -197,6 +197,7 @@ export default function AgendaCalendar() {
   const [showClienteHistorial, setShowClienteHistorial] = useState<any>(null);
   const [recolocarRetraso, setRecolocarRetraso] = useState(true); // toggle de Configuracion (negocio_config.config)
   const [avisarRetraso, setAvisarRetraso] = useState(true); // notifRetrasoActiva (negocio_config.config)
+  const [completarManual, setCompletarManual] = useState(false); // completarManual (negocio_config); false = autocompletar + sin boton
   const [dropServicioOpen, setDropServicioOpen] = useState(false);
   const [dropEstadoOpen, setDropEstadoOpen] = useState(false);
   // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral
@@ -237,6 +238,7 @@ export default function AgendaCalendar() {
         const cfg = ((cfgResult as any)?.data?.config ?? {}) as any;
         setRecolocarRetraso(cfg.recolocarRetraso !== false);
         setAvisarRetraso(cfg.notifRetrasoActiva !== false);
+        setCompletarManual(cfg.completarManual === true);
 
         if (profResult.error) console.error('Prof error:', profResult.error);
         if (citaResult.error) console.error('Cita error:', citaResult.error);
@@ -1412,7 +1414,7 @@ export default function AgendaCalendar() {
                 </div>
               )}
 
-              <DayTimeline citas={filtered} profesionales={timelineProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={isReallyCollapsed} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} />
+              <DayTimeline citas={filtered} profesionales={timelineProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={isReallyCollapsed} completarManual={completarManual} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} />
             </>
           )}
           {view === 'week' && (
@@ -2037,7 +2039,7 @@ const BLOQUEO_LABELS: Record<string, string> = {
   descanso:   'Descanso',
 };
 
-function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial, vivid = false, onCreateSlot }: any) {
+function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial, vivid = false, completarManual = false, onCreateSlot }: any) {
   const { isMobile, isTablet } = useResponsive();
   const HOURS = [];
   for (let h = HORARIO_APERTURA.horas; h < HORARIO_CIERRE.horas; h++) HOURS.push(h);
@@ -2515,7 +2517,8 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         const esCompletada = cita.estado === CITA_STATUS.COMPLETADA;
                         const esNoShow = cita.estado === CITA_STATUS.NO_PRESENTADA;
                         let icon: any = null;
-                        if (!cancelada && !esNoShow) {
+                        // El boton de marcar/desmarcar completada solo si el salon usa cierre manual.
+                        if (!cancelada && !esNoShow && completarManual) {
                           if (esCompletada) {
                             icon = (
                               <div
