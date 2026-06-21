@@ -146,6 +146,14 @@ interface ConfigState {
   notifNoMolestar: boolean;
   notifNoMolestarInicio: string;
   notifNoMolestarFin: string;
+  // Lista de espera (matching automatico de huecos)
+  listaEsperaMatchingActivo: boolean;
+  listaEsperaVentanaMin: number;
+  listaEsperaMaxBloqueoHoras: number;
+  listaEsperaAntelacionMinHoras: number;
+  listaEsperaDesbloqueoDesde: string;
+  listaEsperaOfertaPideSenal: boolean;
+  listaEsperaAvisarCaducado: boolean;
   // Plantillas reutilizables (catalogos del salon)
   catalogoAlergias: string[];
   plantillasFormula: PlantillaTexto[];
@@ -222,6 +230,9 @@ const DEFAULT_CONFIG: ConfigState = {
   notifConfirmacionActiva: true, notifRecordatorioActiva: true, notifRecordatorioHoras: 24,
   notifResenaActiva: true, notifSenalActiva: true, notifRetrasoActiva: true,
   notifNoMolestar: false, notifNoMolestarInicio: '22:00', notifNoMolestarFin: '08:00',
+  listaEsperaMatchingActivo: false, listaEsperaVentanaMin: 30, listaEsperaMaxBloqueoHoras: 2,
+  listaEsperaAntelacionMinHoras: 4, listaEsperaDesbloqueoDesde: 'primer_aviso',
+  listaEsperaOfertaPideSenal: false, listaEsperaAvisarCaducado: false,
   catalogoAlergias: ['Parafenilendiamina (PPD)', 'Amoniaco', 'Resorcina', 'Persulfatos', 'Fragancias', 'Niquel', 'Latex'],
   plantillasFormula: [],
   plantillasNota: [],
@@ -2573,6 +2584,37 @@ function TabNotificaciones({ config, setC }: {
             <span style={{ fontSize: 11, color: T.textTertiary }}>a</span>
             <TimeInput value={config.notifNoMolestarFin} onChange={v => setC('notifNoMolestarFin', v)} disabled={!config.notifNoMolestar} />
           </div>
+        </FieldRow>
+      </Section>
+
+      <Section title="Lista de espera (avisos de hueco)" desc="Cuando se cancela una cita, ofrece el hueco automaticamente a los clientes de la lista de espera, uno a uno, reservandoselo un tiempo. Apagado: la lista funciona en manual (el equipo avisa a mano).">
+        <FieldRow label="Ofrecer huecos automaticamente" hint="Avisa por WhatsApp al mejor candidato compatible cuando se libera un hueco.">
+          <Toggle on={config.listaEsperaMatchingActivo} onChange={v => setC('listaEsperaMatchingActivo', v)} />
+        </FieldRow>
+        <FieldRow label="Ventana de respuesta" hint="Tiempo que tiene cada candidato para confirmar antes de pasar al siguiente.">
+          <NumberInput value={config.listaEsperaVentanaMin} onChange={v => setC('listaEsperaVentanaMin', v)}
+            unit="min" min={5} max={180} step={5} width={150} disabled={!config.listaEsperaMatchingActivo} />
+        </FieldRow>
+        <FieldRow label="Tiempo maximo de reserva del hueco" hint="Tope que el hueco se mantiene reservado mientras se recorre la lista.">
+          <NumberInput value={config.listaEsperaMaxBloqueoHoras} onChange={v => setC('listaEsperaMaxBloqueoHoras', v)}
+            unit="h" min={1} max={48} step={1} width={130} disabled={!config.listaEsperaMatchingActivo} />
+        </FieldRow>
+        <FieldRow label="El tope cuenta desde" hint="Si el maximo empieza en el primer aviso o se reinicia con cada nuevo candidato.">
+          <SSelect width={210} value={config.listaEsperaDesbloqueoDesde} onChange={v => setC('listaEsperaDesbloqueoDesde', v)}
+            disabled={!config.listaEsperaMatchingActivo} options={[
+              { value: 'primer_aviso', label: 'El primer aviso' },
+              { value: 'ultimo_aviso', label: 'El ultimo aviso' },
+            ]} />
+        </FieldRow>
+        <FieldRow label="Antelacion minima del hueco" hint="No ofrecer automaticamente huecos a menos de estas horas vista.">
+          <NumberInput value={config.listaEsperaAntelacionMinHoras} onChange={v => setC('listaEsperaAntelacionMinHoras', v)}
+            unit="h" min={0} max={72} step={1} width={130} disabled={!config.listaEsperaMatchingActivo} />
+        </FieldRow>
+        <FieldRow label="La oferta pide senal" hint="Si el servicio tiene senal configurada, exigir su pago para confirmar el hueco ofrecido.">
+          <Toggle on={config.listaEsperaOfertaPideSenal} onChange={v => setC('listaEsperaOfertaPideSenal', v)} disabled={!config.listaEsperaMatchingActivo} />
+        </FieldRow>
+        <FieldRow label="Avisar si el hueco caduca" hint="Mensaje al candidato cuando el hueco que se le ofrecio lo reserva otra persona.">
+          <Toggle on={config.listaEsperaAvisarCaducado} onChange={v => setC('listaEsperaAvisarCaducado', v)} disabled={!config.listaEsperaMatchingActivo} />
         </FieldRow>
       </Section>
 

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
 import {
-  getCitaPublica, cancelarCitaPublica, modificarCitaPublica,
+  getCitaPublica, cancelarCitaPublica, modificarCitaPublica, confirmarCitaOferta,
   getDiasDisponibles, getDisponibilidad,
   type CitaPublica, type SlotDisponible,
 } from '@/lib/reservaPublica';
@@ -98,7 +98,7 @@ function diaClaveLocal(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-type Step = 'phone' | 'view' | 'confirmCancel' | 'reschedule' | 'cancelled' | 'rescheduled';
+type Step = 'phone' | 'view' | 'confirmCancel' | 'reschedule' | 'cancelled' | 'rescheduled' | 'confirmedOffer';
 
 export default function GestionCitaWeb() {
   const params = useLocalSearchParams<{ id: string; s?: string }>();
@@ -209,6 +209,30 @@ export default function GestionCitaWeb() {
     }
   }, [cita, slotSel, slug, citaId, tel]);
 
+  // Cita ofrecida por la lista de espera (pendiente de confirmar por el candidato)
+  const esOferta = !!cita && cita.es_oferta_espera && cita.estado === 'pendiente';
+  const confirmarOferta = useCallback(async () => {
+    if (!cita) return;
+    setErr(''); setBusy(true);
+    try {
+      const r = await confirmarCitaOferta(citaId, tel.trim());
+      if (r.needs_payment) {
+        window.location.href = `/app/pago/${citaId}`;
+        return;
+      }
+      if (r.ok) {
+        setCita({ ...cita, estado: 'confirmada' });
+        setStep('confirmedOffer');
+      } else {
+        setErr('Este hueco ya no esta disponible. Quiza lo ha tomado otra persona.');
+      }
+    } catch {
+      setErr('No se pudo confirmar. Intentalo de nuevo en un momento.');
+    } finally {
+      setBusy(false);
+    }
+  }, [cita, citaId, tel]);
+
   const diasView = useMemo(() => dias.map(d => {
     const dt = new Date(d + 'T12:00:00');
     return {
@@ -254,7 +278,24 @@ export default function GestionCitaWeb() {
       )}
 
       {/* PASO — Ver cita */}
-      {step === 'view' && cita && (
+      {step === 'view' && cita && esOferta && (
+        <Panel>
+          <div className="gc-step">
+            <H titulo="Se ha liberado un hueco" sub="Estabas en la lista de espera. Confírmalo para que sea tuyo: te lo guardamos un rato." />
+            <CitaCard cita={cita} />
+            {err && <ErrBox msg={err} />}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 18 }}>
+              <button className="gc-cta" onClick={confirmarOferta} disabled={busy} style={{ ...primaryBtn, opacity: busy ? 0.6 : 1 }}>
+                {busy ? 'Confirmando…' : (cita.deposito_requerido && !cita.deposito_pagado ? 'Confirmar y pagar la señal' : 'Confirmar esta cita')}
+              </button>
+              <button className="gc-ghost" onClick={() => setStep('confirmCancel')} style={ghostBtn(T.danger)}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}><Icon name="x" size={16} color={T.danger} /> No me viene bien</span>
+              </button>
+            </div>
+          </div>
+        </Panel>
+      )}
+      {step === 'view' && cita && !esOferta && (
         <Panel>
           <div className="gc-step">
             <H titulo="Tu cita" sub={estadoSub(cita)} />
@@ -372,6 +413,15 @@ export default function GestionCitaWeb() {
       {step === 'rescheduled' && cita && (
         <Panel>
           <Exito titulo="Cita actualizada" sub={`Tu cita es ahora el ${fmtFechaLarga(cita.inicio)} a las ${fmtHora(cita.inicio)}.`}>
+            <CitaCard cita={cita} />
+          </Exito>
+        </Panel>
+      )}
+
+      {/* PASO — Oferta confirmada OK */}
+      {step === 'confirmedOffer' && cita && (
+        <Panel>
+          <Exito titulo="Cita confirmada" sub={`Te esperamos el ${fmtFechaLarga(cita.inicio)} a las ${fmtHora(cita.inicio)}. El hueco es tuyo.`}>
             <CitaCard cita={cita} />
           </Exito>
         </Panel>

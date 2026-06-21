@@ -233,6 +233,9 @@ export interface CitaPublica {
   fin: string;
   salon: string;
   slug: string;
+  es_oferta_espera: boolean;
+  deposito_requerido: boolean;
+  deposito_pagado: boolean;
   cancelable: boolean;
   cancelacion_horas: number;
   fuera_de_plazo: boolean;
@@ -247,6 +250,24 @@ export async function getCitaPublica(slug: string, citaId: string, telefono: str
   });
   if (error) throw error;
   return data as CitaPublica;
+}
+
+export interface ConfirmarOfertaResult {
+  ok: boolean;
+  cita_id?: string;
+  needs_payment?: boolean; // la oferta pide senal -> redirigir a /app/pago/{cita_id}
+  error?: 'oferta_no_disponible' | 'telefono_no_coincide';
+}
+
+// Confirma una cita ofrecida por la lista de espera (gated por par cita+telefono).
+// Si pide senal, devuelve needs_payment=true (la pagina redirige a la pasarela).
+export async function confirmarCitaOferta(citaId: string, telefono: string): Promise<ConfirmarOfertaResult> {
+  const { data, error } = await supabase.rpc('confirmar_cita_oferta', {
+    p_cita_id: citaId,
+    p_telefono: telefono,
+  });
+  if (error) throw error;
+  return data as ConfirmarOfertaResult;
 }
 
 export interface CancelarCitaResult {
