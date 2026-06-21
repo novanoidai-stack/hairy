@@ -2183,7 +2183,7 @@ function TabAgenda({ config, setC, bloqueoCounts }: {
       </Section>
 
       <Section title="No-show y retrasos" desc="Que hace la agenda cuando una cliente no aparece o llega tarde. La cita pasa a un estado especial que afecta a los informes.">
-        <FieldRow label="Tiempo para marcar no-show" hint="Minutos desde la hora prevista de la cita antes de marcarla automaticamente como NO_PRESENTADA.">
+        <FieldRow label="Tiempo para marcar no-show" hint="Minutos desde la hora prevista de la cita antes de marcarla automaticamente como no presentada.">
           <NumberInput value={config.noShowGrace} onChange={v => setC('noShowGrace', v)} unit="min" min={5} max={120} step={5} />
         </FieldRow>
         <FieldRow label="Tiempo de gracia para retraso" hint="Cuantos minutos esperar antes de mostrar opciones de reorganizacion (mover, acortar, derivar a otro profesional).">

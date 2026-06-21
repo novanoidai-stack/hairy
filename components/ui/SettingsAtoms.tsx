@@ -164,13 +164,13 @@ export function FieldRow({ label, hint, htmlFor, children, full, disabled, actio
     <div style={{
       display: 'grid',
       gridTemplateColumns: stacked ? '1fr' : '220px 1fr',
-      alignItems: 'flex-start',
+      alignItems: stacked ? 'flex-start' : 'center',
       gap: stacked ? 8 : 24,
       padding: '14px 0',
       borderTop: `1px solid ${T.border}`,
       opacity: disabled ? 0.55 : 1,
     }}>
-      <div style={{ paddingTop: 6 }}>
+      <div style={{ minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <label htmlFor={htmlFor} style={{
             fontSize: 12.5, fontWeight: 600, color: T.text,
@@ -178,7 +178,7 @@ export function FieldRow({ label, hint, htmlFor, children, full, disabled, actio
           {hint && <InfoHint text={hint} />}
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const, justifyContent: 'flex-start', minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const, justifyContent: 'flex-start', minWidth: 0, minHeight: 36 }}>
         <div style={{ flex: stacked ? '1 1 100%' : '0 1 auto', minWidth: 0, maxWidth: '100%' }}>{children}</div>
         {action && <div style={{ marginLeft: stacked ? 0 : 'auto' }}>{action}</div>}
       </div>
