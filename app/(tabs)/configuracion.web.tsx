@@ -2593,14 +2593,14 @@ function TabNotificaciones({ config, setC }: {
         </FieldRow>
         <FieldRow label="Ventana de respuesta" hint="Tiempo que tiene cada candidato para confirmar antes de pasar al siguiente.">
           <NumberInput value={config.listaEsperaVentanaMin} onChange={v => setC('listaEsperaVentanaMin', v)}
-            unit="min" min={5} max={180} step={5} width={150} disabled={!config.listaEsperaMatchingActivo} />
+            unit="min" min={5} max={180} step={5} width={200} disabled={!config.listaEsperaMatchingActivo} />
         </FieldRow>
         <FieldRow label="Tiempo maximo de reserva del hueco" hint="Tope que el hueco se mantiene reservado mientras se recorre la lista.">
           <NumberInput value={config.listaEsperaMaxBloqueoHoras} onChange={v => setC('listaEsperaMaxBloqueoHoras', v)}
-            unit="h" min={1} max={48} step={1} width={130} disabled={!config.listaEsperaMatchingActivo} />
+            unit="h" min={1} max={48} step={1} width={200} disabled={!config.listaEsperaMatchingActivo} />
         </FieldRow>
         <FieldRow label="El tope cuenta desde" hint="Si el maximo empieza en el primer aviso o se reinicia con cada nuevo candidato.">
-          <SSelect width={210} value={config.listaEsperaDesbloqueoDesde} onChange={v => setC('listaEsperaDesbloqueoDesde', v)}
+          <SSelect width={200} value={config.listaEsperaDesbloqueoDesde} onChange={v => setC('listaEsperaDesbloqueoDesde', v)}
             disabled={!config.listaEsperaMatchingActivo} options={[
               { value: 'primer_aviso', label: 'El primer aviso' },
               { value: 'ultimo_aviso', label: 'El ultimo aviso' },
@@ -2608,7 +2608,7 @@ function TabNotificaciones({ config, setC }: {
         </FieldRow>
         <FieldRow label="Antelacion minima del hueco" hint="No ofrecer automaticamente huecos a menos de estas horas vista.">
           <NumberInput value={config.listaEsperaAntelacionMinHoras} onChange={v => setC('listaEsperaAntelacionMinHoras', v)}
-            unit="h" min={0} max={72} step={1} width={130} disabled={!config.listaEsperaMatchingActivo} />
+            unit="h" min={0} max={72} step={1} width={200} disabled={!config.listaEsperaMatchingActivo} />
         </FieldRow>
         <FieldRow label="La oferta pide senal" hint="Si el servicio tiene senal configurada, exigir su pago para confirmar el hueco ofrecido.">
           <Toggle on={config.listaEsperaOfertaPideSenal} onChange={v => setC('listaEsperaOfertaPideSenal', v)} disabled={!config.listaEsperaMatchingActivo} />

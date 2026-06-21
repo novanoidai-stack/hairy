@@ -134,12 +134,8 @@ export function Section({ title, desc, action, soon, disabled, children, dense, 
 // ---------------------------------------------------------------------------
 export function InfoHint({ text }: { text: string }) {
   return (
-    <span className="sa-tip" style={{ cursor: 'help', flexShrink: 0 }}>
-      <span aria-hidden style={{
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: 15, height: 15, borderRadius: 999, border: `1.3px solid ${T.textTer}`,
-        color: T.textTer, fontSize: 10, fontWeight: 800, fontStyle: 'italic', lineHeight: 1,
-      }}>i</span>
+    <span className="sa-tip" style={{ cursor: 'help', flexShrink: 0, lineHeight: 0, display: 'inline-flex', alignItems: 'center' }}>
+      <SettingsIcon name="info" size={16} color={T.textTer} />
       <span className="sa-tip-bubble" role="tooltip">{text}</span>
     </span>
   );
