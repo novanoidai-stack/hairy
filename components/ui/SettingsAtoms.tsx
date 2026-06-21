@@ -22,6 +22,10 @@ if (typeof document !== 'undefined') {
       @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.5}}
       .sa-num::-webkit-inner-spin-button,.sa-num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
       .sa-num{-moz-appearance:textfield}
+      .sa-tip{position:relative;display:inline-flex}
+      .sa-tip-bubble{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);background:#241a14;color:#fff;padding:8px 11px;border-radius:9px;font-size:11.5px;line-height:1.45;font-weight:500;width:max-content;max-width:240px;box-shadow:0 10px 28px rgba(28,24,20,0.28);opacity:0;visibility:hidden;transition:opacity .14s ease;z-index:200;pointer-events:none;text-align:left;white-space:normal}
+      .sa-tip-bubble::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#241a14}
+      .sa-tip:hover .sa-tip-bubble,.sa-tip:active .sa-tip-bubble{opacity:1;visibility:visible}
     `;
     document.head.appendChild(style);
   }
@@ -125,6 +129,23 @@ export function Section({ title, desc, action, soon, disabled, children, dense, 
 }
 
 // ---------------------------------------------------------------------------
+// InfoHint — circulo "i" con globo (tooltip) al pasar el raton. Sustituye al
+// texto de ayuda siempre-visible para descongestionar el formulario.
+// ---------------------------------------------------------------------------
+export function InfoHint({ text }: { text: string }) {
+  return (
+    <span className="sa-tip" style={{ cursor: 'help', flexShrink: 0 }}>
+      <span aria-hidden style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        width: 15, height: 15, borderRadius: 999, border: `1.3px solid ${T.textTer}`,
+        color: T.textTer, fontSize: 10, fontWeight: 800, fontStyle: 'italic', lineHeight: 1,
+      }}>i</span>
+      <span className="sa-tip-bubble" role="tooltip">{text}</span>
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // FieldRow
 // ---------------------------------------------------------------------------
 interface FieldRowProps {
@@ -154,10 +175,12 @@ export function FieldRow({ label, hint, htmlFor, children, full, disabled, actio
       opacity: disabled ? 0.55 : 1,
     }}>
       <div style={{ paddingTop: 6 }}>
-        <label htmlFor={htmlFor} style={{
-          display: 'block', fontSize: 12.5, fontWeight: 600, color: T.text, marginBottom: 3,
-        }}>{label}</label>
-        {hint && <div style={{ fontSize: 11, color: T.textTer, lineHeight: 1.5 }}>{hint}</div>}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <label htmlFor={htmlFor} style={{
+            fontSize: 12.5, fontWeight: 600, color: T.text,
+          }}>{label}</label>
+          {hint && <InfoHint text={hint} />}
+        </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const, justifyContent: 'flex-start', minWidth: 0 }}>
         <div style={{ flex: stacked ? '1 1 100%' : '0 1 auto', minWidth: 0, maxWidth: '100%' }}>{children}</div>
