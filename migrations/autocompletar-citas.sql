@@ -2,8 +2,8 @@
 -- que es el DEFAULT), las citas confirmadas que acaban de terminar pasan solas a 'completada'.
 -- Ventana de 6h: solo citas recien terminadas (evita barrer el historico y soltar una rafaga de
 -- peticiones de resena al activar el cron). El motor de notificaciones manda la resena igual que
--- cuando se completa a mano. Lo llama un workflow n8n dedicado cada ~15 min. service_role only.
--- Aplicada en remoto (vtrggiogjrhqtwbhbgia) via Supabase MCP el 2026-06-21.
+-- cuando se completa a mano. Lo programa pg_cron cada 15 min (planificador nativo de Supabase,
+-- sin n8n). service_role only. Aplicada en remoto (vtrggiogjrhqtwbhbgia) via Supabase MCP el 2026-06-21.
 
 create or replace function public.autocompletar_citas()
  returns jsonb language sql security definer set search_path to 'public' as $function$
@@ -22,3 +22,7 @@ $function$;
 
 revoke execute on function public.autocompletar_citas() from public, anon, authenticated;
 grant execute on function public.autocompletar_citas() to service_role;
+
+-- Planificacion nativa en la BD (pg_cron), cada 15 min. Idempotente por nombre de job.
+create extension if not exists pg_cron;
+select cron.schedule('autocompletar-citas', '*/15 * * * *', $$select public.autocompletar_citas();$$);
