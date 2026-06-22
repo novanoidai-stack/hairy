@@ -6,6 +6,7 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
 import { SSelect, STextInput } from '@/components/ui/SettingsAtoms';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 
 // ---------------------------------------------------------------------------
 // Tokens (consistentes con el resto de .web.tsx)
@@ -374,7 +375,7 @@ function AddModal({ negocioId, servicios, profesionales, clientes, onClose, onSa
           </div>
           <div>
             <label style={labelStyle}>Teléfono</label>
-            <STextInput value={telefono} onChange={setTelefono} placeholder="600 000 000" />
+            <PhoneInput value={telefono} onChange={(e164) => setTelefono(e164)} placeholder="600 000 000" />
           </div>
           <div>
             <label style={labelStyle}>Servicio</label>

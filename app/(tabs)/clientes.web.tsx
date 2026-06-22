@@ -9,6 +9,7 @@ import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA } from '@/lib/constants';
 import { PageLoader } from '@/components/ui/DesignComponents';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 import * as XLSX from 'xlsx';
 
 // Iconos SVG simples
@@ -2719,7 +2720,7 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Field label="Telefono">
-              <Input value={telefono} onChange={setTelefono} placeholder="+34 611 234 567" />
+              <PhoneInput value={telefono} onChange={(e164) => setTelefono(e164)} placeholder="611 234 567" />
             </Field>
             <Field label="Email">
               <Input value={email} onChange={setEmail} placeholder="cliente@correo.com" />

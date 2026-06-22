@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 import { makeT, localeOf, type TFn } from '@/lib/portalI18n';
 import {
   getPortalInfo, getDisponibilidad, getDiasDisponibles, crearCitaPublica, fechaISOaClave, getResenasPublicas,
@@ -631,7 +632,10 @@ export default function PortalReservaWeb() {
           <H titulo={t('step_datos')} sub={t('s4_sub')} />
           <div className="rp-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <Field icon="user" label={t('f_nombre')} value={nombre} onChange={setNombre} placeholder={t('f_nombre_ph')} />
-            <Field icon="phone" label={t('f_tel')} value={telefono} onChange={setTelefono} placeholder="600 000 000" type="tel" />
+            <div>
+              <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: T.textSec, marginBottom: 6 }}>{t('f_tel')}</span>
+              <PhoneInput value={telefono} onChange={(e164) => setTelefono(e164)} placeholder="600 000 000" />
+            </div>
             <Field icon="mail" label={t('f_email')} value={email} onChange={setEmail} placeholder="tu@email.com" type="email" />
             <Field icon="edit" label={t('f_notas')} value={notas} onChange={setNotas} placeholder={t('f_notas_ph')} multiline />
           </div>

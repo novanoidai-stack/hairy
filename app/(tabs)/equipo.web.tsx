@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, can } from '@/lib/auth';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
@@ -1251,7 +1252,7 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div>
               <div style={labelStyle}>Telefono</div>
-              <input value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+34 600 000 000" style={inputStyle} />
+              <PhoneInput value={telefono} onChange={(e164) => setTelefono(e164)} placeholder="600 000 000" />
             </div>
             <div>
               <div style={labelStyle}>Email</div>

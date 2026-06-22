@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 import {
   getCitaPublica, cancelarCitaPublica, modificarCitaPublica, confirmarCitaOferta,
   getDiasDisponibles, getDisponibilidad,
@@ -257,20 +258,9 @@ export default function GestionCitaWeb() {
           <div className="gc-step">
             <H titulo="Gestiona tu cita" sub="Introduce tu teléfono para ver, cambiar o cancelar tu cita." />
             <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: T.textSec, marginBottom: 7 }}>Tu teléfono</label>
-            <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)' }}><Icon name="phone" size={16} color={T.textTer} /></span>
-              <input
-                className="gc-field"
-                value={tel}
-                onChange={e => setTel(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') cargarCita(); }}
-                inputMode="tel"
-                placeholder="600 000 000"
-                style={{ width: '100%', boxSizing: 'border-box', padding: '14px 14px 14px 40px', borderRadius: 13, border: `1.5px solid ${T.border}`, background: T.card, fontSize: 15, color: T.text, outline: 'none' }}
-              />
-            </div>
+            <PhoneInput value={tel} onChange={(e164) => setTel(e164)} placeholder="600 000 000" autoFocus />
             {err && <ErrBox msg={err} />}
-            <button className="gc-cta" onClick={cargarCita} disabled={busy || !tel.trim()} style={{ ...primaryBtn, opacity: busy || !tel.trim() ? 0.6 : 1 }}>
+            <button className="gc-cta" onClick={cargarCita} disabled={busy || tel.length < 8} style={{ ...primaryBtn, opacity: busy || tel.length < 8 ? 0.6 : 1 }}>
               {busy ? 'Buscando…' : 'Ver mi cita'}
             </button>
           </div>
