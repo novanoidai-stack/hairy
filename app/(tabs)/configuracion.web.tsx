@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { PageLoader } from '@/components/ui/DesignComponents';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 import {
   Section, FieldRow, FieldStack, Toggle, NumberInput, STextInput, SSelect,
   Segmented, TimeInput, Badge, SoonBadge, SoonBanner, StatBox,
@@ -1064,7 +1065,7 @@ function TabGeneral({ config, setC }: { config: ConfigState; setC: (k: keyof Con
           <STextInput value={config.direccion} onChange={v => setC('direccion', v)} width={420} leadingIcon="map" />
         </FieldRow>
         <FieldRow label="Telefono" hint="Numero publico de contacto.">
-          <STextInput value={config.telefono} onChange={v => setC('telefono', v)} width={220} leadingIcon="phone" mono />
+          <div style={{ width: 240 }}><PhoneInput compact value={config.telefono} onChange={(e164) => setC('telefono', e164)} /></div>
         </FieldRow>
         <FieldRow label="Email del salon" hint="Direccion para confirmaciones y respuestas de clientes.">
           <STextInput value={config.email} onChange={v => setC('email', v)} width={340} leadingIcon="mail" type="email" />
@@ -1507,7 +1508,7 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
           <STextInput value={apellido} onChange={setApellido} width={260} disabled={demo} placeholder="Tus apellidos" />
         </FieldRow>
         <FieldRow label="Telefono" hint="Para avisos y contacto.">
-          <STextInput value={telefono} onChange={setTelefono} width={220} disabled={demo} leadingIcon="phone" type="tel" placeholder="600 000 000" />
+          <div style={{ width: 240 }}><PhoneInput compact value={telefono} onChange={(e164) => setTelefono(e164)} disabled={demo} placeholder="600 000 000" /></div>
         </FieldRow>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
           {profileErr ? <span style={{ fontSize: 12, color: T.danger, fontWeight: 600 }}>{profileErr}</span> : null}
@@ -2911,7 +2912,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
           <STextInput value={direccion} onChange={setDireccion} placeholder="Calle, numero, ciudad" width={360} />
         </FieldRow>
         <FieldRow label="Telefono" hint="Telefono de contacto para las clientes. Opcional.">
-          <STextInput value={telefono} onChange={setTelefono} placeholder="600 000 000" width={200} />
+          <div style={{ width: 240 }}><PhoneInput compact value={telefono} onChange={(e164) => setTelefono(e164)} placeholder="600 000 000" /></div>
         </FieldRow>
         <FieldRow label="Sitio web" hint="Tu web o redes. Se muestra en el portal para que las clientes te encuentren. Opcional.">
           <STextInput value={web} onChange={setWeb} placeholder="https://tusalon.com" width={360} />

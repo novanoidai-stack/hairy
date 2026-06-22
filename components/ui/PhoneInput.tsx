@@ -16,8 +16,10 @@ export function PhoneInput({ value, onChange, defaultCountry = 'ES', placeholder
 
   useEffect(() => {
     if (value && value !== lastEmitted.current) {
-      const p = parsePhoneNumberFromString(value);
+      const p = parsePhoneNumberFromString(value) || parsePhoneNumberFromString(value, defaultCountry);
       if (p) { setCountry(p.country ?? defaultCountry); setNational(p.formatNational()); return; }
+      setNational(value);
+      return;
     }
     if (!value) setNational('');
   }, [value, defaultCountry]);

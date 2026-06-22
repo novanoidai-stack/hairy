@@ -16,9 +16,10 @@ export type PhoneInputProps = {
   placeholder?: string;
   disabled?: boolean;
   autoFocus?: boolean;
+  compact?: boolean;                              // altura 36px para filas de Ajustes
 };
 
-export function PhoneInput({ value, onChange, defaultCountry = 'ES', placeholder = 'Número de teléfono', disabled, autoFocus }: PhoneInputProps) {
+export function PhoneInput({ value, onChange, defaultCountry = 'ES', placeholder = 'Número de teléfono', disabled, autoFocus, compact }: PhoneInputProps) {
   const [country, setCountry] = useState<CountryCode>(defaultCountry);
   const [national, setNational] = useState('');
   const [open, setOpen] = useState(false);
@@ -29,8 +30,11 @@ export function PhoneInput({ value, onChange, defaultCountry = 'ES', placeholder
   // Prefill desde un E.164 externo (modo edicion). Solo cuando el value externo no es lo que emitimos.
   useEffect(() => {
     if (value && value !== lastEmitted.current) {
-      const p = parsePhoneNumberFromString(value);
+      // Parsea E.164; si es un valor legado sin prefijo, reintenta con el pais por defecto.
+      const p = parsePhoneNumberFromString(value) || parsePhoneNumberFromString(value, defaultCountry);
       if (p) { setCountry(p.country ?? defaultCountry); setNational(p.formatNational()); return; }
+      setNational(value);
+      return;
     }
     if (!value) setNational('');
   }, [value, defaultCountry]);
@@ -69,21 +73,24 @@ export function PhoneInput({ value, onChange, defaultCountry = 'ES', placeholder
   }, [search]);
 
   const cur = COUNTRIES.find(c => c.iso === country);
+  const H = compact ? 36 : 46;
+  const R = compact ? 9 : 12;
+  const FS = compact ? 13 : 15;
 
   return (
     <div ref={rootRef} style={{ position: 'relative', display: 'flex', gap: 8 }}>
       <button type="button" disabled={disabled} onClick={() => setOpen(o => !o)}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 12px', height: 46, borderRadius: 12,
+        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: compact ? '0 10px' : '0 12px', height: H, borderRadius: R,
           border: '1px solid rgba(28,24,20,0.14)', background: '#f6f1ea', cursor: disabled ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
         <span style={{ fontSize: 14, color: '#1c1814' }}>+{cur?.code}</span>
         <span style={{ fontSize: 11, opacity: 0.6 }}>▾</span>
       </button>
       <input value={national} disabled={disabled} autoFocus={autoFocus} inputMode="tel" placeholder={placeholder}
         onChange={e => onNationalChange(e.target.value)}
-        style={{ flex: 1, minWidth: 0, height: 46, padding: '0 14px', borderRadius: 12,
-          border: '1px solid rgba(28,24,20,0.14)', background: '#f6f1ea', fontSize: 15, color: '#1c1814', boxSizing: 'border-box' }} />
+        style={{ flex: 1, minWidth: 0, height: H, padding: compact ? '0 12px' : '0 14px', borderRadius: R,
+          border: '1px solid rgba(28,24,20,0.14)', background: '#f6f1ea', fontSize: FS, color: '#1c1814', boxSizing: 'border-box' }} />
       {open && (
-        <div style={{ position: 'absolute', top: 52, left: 0, zIndex: 50, width: 320, maxHeight: 320, overflow: 'auto',
+        <div style={{ position: 'absolute', top: H + 6, left: 0, zIndex: 50, width: 320, maxHeight: 320, overflow: 'auto',
           background: '#fffdfb', border: '1px solid rgba(28,24,20,0.14)', borderRadius: 14, boxShadow: '0 12px 32px rgba(28,24,20,0.18)' }}>
           <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar país o prefijo…"
             style={{ width: '100%', height: 42, padding: '0 14px', border: 'none', borderBottom: '1px solid rgba(28,24,20,0.1)',
