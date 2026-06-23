@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { Topbar, Card, Input, Btn, Pill, EmptyState, Loading } from '@/components/ui/DesignComponents';
 import { TText } from '@/components/ui/TText';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 
 const tokens = DESIGN_TOKENS;
 
@@ -410,7 +411,10 @@ export default function ClientesScreen() {
           <TText style={[s.sectionTitle, { color: c.textTertiary }]}>DATOS DE CONTACTO</TText>
           <Card>
             <LabelInput label="Nombre" value={editNombre} onChangeText={setEditNombre} c={c} />
-            <LabelInput label="Telefono" value={editTelefono} onChangeText={setEditTelefono} c={c} keyboardType="phone-pad" />
+            <View style={{ marginBottom: tokens.spacing.md }}>
+              <TText style={[s.fieldLabel, { color: c.textTertiary }]}>Telefono</TText>
+              <PhoneInput value={editTelefono} onChange={(e164) => setEditTelefono(e164)} />
+            </View>
             <LabelInput label="Email" value={editEmail} onChangeText={setEditEmail} c={c} keyboardType="email-address" />
           </Card>
 
@@ -812,7 +816,10 @@ export default function ClientesScreen() {
             <TText style={[s.modalTitle, { color: c.text }]}>Nuevo cliente</TText>
 
             <LabelInput label="Nombre *" value={nuevoNombre} onChangeText={setNuevoNombre} c={c} />
-            <LabelInput label="Telefono" value={nuevoTelefono} onChangeText={setNuevoTelefono} c={c} keyboardType="phone-pad" placeholder="Ej: 612345678" />
+            <View style={{ marginBottom: tokens.spacing.md }}>
+              <TText style={[s.fieldLabel, { color: c.textTertiary }]}>Telefono</TText>
+              <PhoneInput value={nuevoTelefono} onChange={(e164) => setNuevoTelefono(e164)} placeholder="Ej: 612345678" />
+            </View>
             <LabelInput label="Email" value={nuevoEmail} onChangeText={setNuevoEmail} c={c} keyboardType="email-address" placeholder="Ej: maria@email.com" />
 
             <TText style={[s.hint, { color: c.textTertiary }]}>Se necesita al menos telefono o email</TText>
