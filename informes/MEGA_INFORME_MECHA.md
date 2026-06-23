@@ -37,6 +37,46 @@
 
 ---
 
+## Adenda — Tanda 24 jun 2026 (Carlos + Claude)
+
+> **En árbol de trabajo, SIN commitear** (rama `master`, pendiente OK de Carlos). Verificado
+> por DOM dentro del iframe de `/demo.html?share=1` a 375px (el `preview_screenshot` se cuelga
+> por el rAF de DemoSpotlight). `tsc` y `npm run build:web` limpios, sin errores de consola.
+
+**¿Hay POS? Sí.** Aclaración de estado (no cambió esta tanda): la pantalla **Caja ES el POS
+operativo**. POS-0 (botón **Cobrar** desde la cita → `cobros`+`cobro_lineas`, método/propina/
+descuento, descuenta señal, `origen:'pos'`, marca `citas.cobrada`) y POS-1 (pantalla Caja: cobro
+de pendientes vía `crear_cobro_desde_cita`, **arqueo del día**, **fichajes**, **estimado vs
+cobrado** en Informes, CSV) siguen **COMPLETO**. Falta **POS-2** = cobro electrónico real en el
+local (Stripe Terminal/datáfono integrado/QR de mostrador) — hoy efectivo/datáfono son **etiqueta**,
+el dinero se mueve fuera; el cobro online existe solo para la **señal** al reservar (Alexandro). Y
+**POS-3** = fiscalidad (VeriFactu, ticket/factura legal) — fiscalista. Hasta P3: "recibo/comprobante",
+nunca "factura".
+
+**Barrido móvil del software (sección 2 del HANDOFF-2026-06-23):**
+- **Informes** (`app/(tabs)/informes.web.tsx`): contenido compactado en móvil (contenedor de scroll
+  `14px 14px 96px` con clearance de tab bar, valor KPI 22→18, `SectionHeader`/`SectionBody`/
+  `BarHorizontal` y gaps de sección reducidos).
+- **Equipo** (`app/(tabs)/equipo.web.tsx`): listado y panel de detalle con `padding-bottom: 88px`
+  (el último card ya no queda bajo la tab bar).
+- **Caja** (`app/(tabs)/caja.web.tsx`): **arreglado el scroll en móvil** — usaba `minHeight:100vh`
+  sin dueño de scroll → reestructurada a flex column + contenedor `overflowY:auto` con
+  `padding-bottom:96px`, + `useResponsive`.
+- **Agenda** (`components/agenda/AgendaCalendar.web.tsx`): (1) **filtros Día/Semana/Mes plegables en
+  móvil** (`toolbarCollapsed` arranca colapsado <768 + chip "Filtros/Ocultar" ya visible en móvil);
+  (2) **mini-calendario** endurecido contra overflow (`maxHeight:calc(100dvh-32px)`+scroll; no se
+  reprodujo el "corte" a 375/360); (3) **"Ver todos" los profesionales** (opción en el selector +
+  barra dedicada; el grid ya scrollea en horizontal con varias columnas a 160px; el auto-revert a un
+  prof ahora solo corre en la 1ª carga); (4) **servicio deseleccionable** (toggle off — era el "color
+  de raíz" pegado); (5) **cita anónima "Sin cliente"** (chip opt-in; la validación permite `cliente_id`
+  nulo, el insert ya hacía `|| null`).
+
+**Pendiente:** re-sembrar el tenant demo `demo_salon_001` (agenda con pocas citas). Cobro anónimo no
+verificado E2E con guardado real (para no ensuciar la demo compartida; la columna `cliente_id` es
+nullable y ya hay citas "Sin cliente"). Pulir display de cita anónima en el timeline (hoy "—").
+
+---
+
 ## Adenda — Tanda 19 jun 2026 (Carlos + Claude)
 
 Desplegado a `master` (producción) en esta sesión:

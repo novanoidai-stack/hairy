@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase';
 // ---------------------------------------------------------------------------
 const T = {
   card: '#ffffff', cardHi: '#fbf5ef', border: 'rgba(40,30,24,0.10)',
-  text: '#241a14', textSec: '#5c5249', textTer: '#8a7d70',
+  text: '#241a14', textSec: '#5c5249', textTer: '#736658',
   primary: '#f4501e', primaryHi: '#c0260a', primarySoft: 'rgba(244,80,30,0.10)',
   success: '#0f9d6b', danger: '#e23b34', dangerSoft: 'rgba(226,59,52,0.10)',
 };

@@ -20,7 +20,7 @@ const T = {
   borderHi: 'rgba(40,30,24,0.16)',
   text: '#1c1814',
   textSec: '#5c5249',
-  textTer: '#8a7d70',
+  textTer: '#736658',
   primary: '#f4501e',
   primaryHi: '#c0260a',
   primarySoft: 'rgba(244,80,30,0.10)',

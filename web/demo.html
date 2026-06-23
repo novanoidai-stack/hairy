@@ -26,11 +26,6 @@
   .dm-pill{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
     color:var(--accent-hi);background:var(--accent-soft);border:1px solid var(--accent-soft);padding:5px 11px;border-radius:999px}
   .dm-pill .d{width:6px;height:6px;border-radius:50%;background:var(--accent-hi);box-shadow:0 0 10px var(--accent-glow)}
-  .dm-visits{display:inline-flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;font-weight:600;color:var(--text-sec);
-    padding:6px 13px;border:1px solid var(--border-hi);border-radius:10px;background:var(--card);white-space:nowrap;flex-shrink:1;min-width:0;overflow:hidden}
-  .dm-visits svg{width:15px;height:15px;color:var(--accent-hi);flex-shrink:0}
-  .dm-visits.low{color:#ffb07a;border-color:rgba(244,80,30,.4)}
-  .dm-visits.low svg{color:#ffb07a}
   .dm-bar-cta{display:flex;align-items:center;gap:10px;flex-shrink:0}
   .dm-bar .btn{padding:9px 16px;font-size:13.5px;white-space:nowrap}
   .dm-bar .cta-short{display:none}
@@ -38,16 +33,21 @@
     padding:6px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.03);transition:all .2s;flex-shrink:0}
   .ver-back:hover{color:var(--text);border-color:var(--border-hi);background:rgba(255,255,255,.07)}
   .ver-back svg{width:15px;height:15px;flex-shrink:0}
-  .dm-share{flex-shrink:0;box-shadow:0 0 0 1px rgba(244,80,30,.12),0 6px 18px -8px rgba(244,80,30,.55)}
+  /* Recomendar: boton secundario sobrio (con badge -40%) */
+  .dm-share{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;padding:8px 13px;font-size:13px;font-weight:600;border-radius:10px;
+    color:#e6e9ef;background:rgba(255,255,255,.04);border:1px solid var(--border-hi);cursor:pointer;white-space:nowrap;transition:background .18s,border-color .18s,color .18s}
+  .dm-share:hover{background:rgba(255,255,255,.08);border-color:rgba(255,138,61,.5);color:#fff}
+  .dm-share svg{width:15px;height:15px;flex-shrink:0}
+  .dm-share-badge{font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.02em;color:var(--accent-hi);background:rgba(244,80,30,.16);padding:2px 6px;border-radius:6px}
   /* Selector de tutoriales: dos "videos" con play para lanzar/reiniciar cada recorrido */
-  .dm-tutsel{display:none;align-items:center;gap:4px;flex-shrink:0;padding:3px;border-radius:11px;border:1px solid var(--border-hi);background:rgba(255,255,255,.03)}
+  .dm-tutsel{display:none;align-items:center;gap:4px;flex-shrink:0;margin-left:auto;padding:3px;border-radius:11px;border:1px solid var(--border-hi);background:rgba(255,255,255,.03)}
   .dm-tut{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:8px;cursor:pointer;border:0;background:none;color:var(--text-sec);font:inherit;font-size:12.5px;font-weight:600;white-space:nowrap;transition:all .18s ease}
   .dm-tut .pnum{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.08);color:var(--text-sec);font-size:10px;font-weight:800;flex-shrink:0;transition:all .18s ease}
   .dm-tut svg{width:11px;height:11px;flex-shrink:0;opacity:.65}
   .dm-tut:hover{color:var(--text)}
   .dm-tut:hover .pnum{background:rgba(255,255,255,.14)}
-  .dm-tut.active{background:var(--accent-soft);color:var(--accent-hi);box-shadow:0 0 0 1px rgba(244,80,30,.3)}
-  .dm-tut.active .pnum{background:var(--accent-hi);color:#160a02}
+  .dm-tut.active{background:var(--accent);color:#fff}
+  .dm-tut.active .pnum{background:rgba(255,255,255,.28);color:#fff}
   .dm-tut.active svg{opacity:1}
   /* En tablet/laptop estrecho el selector va compacto (play + numero) para no
      ensanchar la cabecera; las etiquetas solo en escritorio amplio. */
@@ -67,9 +67,8 @@
     .ver-back{padding:6px;font-size:0;gap:0;border-radius:8px;border-color:transparent;background:none}
     .ver-back:hover{background:rgba(255,255,255,.06)}
     .ver-back span{display:none}
-    .dm-visits{font-size:11.5px;padding:5px 9px;gap:5px;margin-left:0;border-radius:8px}
     .dm-share{font-size:0!important;padding:6px!important;border-radius:8px!important;min-width:auto}
-    .dm-share .lbl{display:none!important}
+    .dm-share .lbl,.dm-share-badge{display:none!important}
     .dm-share svg{margin:0!important}
     .dm-tutsel{padding:2px;gap:3px}
     .dm-tut{padding:6px 9px;gap:5px;font-size:0}
@@ -79,10 +78,8 @@
     .dm-bar .btn{padding:7px 12px;font-size:12px;border-radius:9px}
     .dm-bar .cta-long{display:none}
     .dm-bar .cta-short{display:inline}
-    .dm-bar-cta{margin-left:auto}
   }
   @media(max-width:374px){
-    .dm-visits{padding:5px 6px;gap:4px}
     .dm-bar .btn{padding:6px 10px;font-size:11.5px}
   }
 
@@ -101,104 +98,126 @@
   .dm-localnote h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em;margin-bottom:7px}
   .dm-localnote p{font-size:13.5px;color:var(--text-sec);line-height:1.55}
 
-  /* ---------- GUIDED TOUR (cinematico) ----------
-     El tour se compone de 3 regiones INDEPENDIENTES sobre el iframe:
-       1) titulo de fase FIJO arriba-centro (cambia solo al cambiar de fase),
-       2) texto cinematico grande en la zona oscura, con reveal izq->der,
-       3) controles FIJOS abajo-centro (Atras/Siguiente no se mueven nunca).
-     Asi los botones no bailan entre pasos y el texto no tapa lo iluminado. */
-  .dm-tour{position:absolute;inset:0;z-index:9;display:none;pointer-events:none}
-  .dm-tour.show{display:block}
-  .dm-tour.show .dm-phase,.dm-tour.show .dm-cine,.dm-tour.show .dm-controls{opacity:1}
+  /* ============================================================
+     MECHA — Tour guiado (v3: limpio, sobrio, "software real")
+     Referencias: driver.js / Intercom Product Tours / Linear / Stripe.
+     Dock fijo abajo (los controles NUNCA se mueven) + foco que se desliza.
+     Superficie neutra oscura, alto contraste, movil = hoja inferior impecable.
+     ============================================================ */
+.gt{position:absolute;inset:0;z-index:9;pointer-events:none;display:none;
+  font-family:var(--display);-webkit-font-smoothing:antialiased}
+.gt.show{display:block}
 
-  /* 1) Titulo de fase fijo arriba-centro */
-  .dm-phase{position:absolute;top:clamp(62px,8vh,96px);left:50%;transform:translateX(-50%);
-    text-align:center;pointer-events:none;opacity:0;transition:opacity .3s;max-width:min(660px,92%)}
-  /* Chip oscuro contenido: el titulo de fase SIEMPRE legible, sobre fondo claro u oscuro */
-  .dm-phase .ph{display:inline-flex;align-items:center;gap:10px;
-    font-family:var(--display);font-weight:800;font-size:clamp(18px,2.5vw,27px);letter-spacing:-.02em;
-    padding:8px 16px;border-radius:14px;background:rgba(12,8,5,.74);border:1px solid rgba(255,255,255,.14);
-    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 14px 36px -14px rgba(0,0,0,.75)}
-  .dm-phase #tourTitle{background:linear-gradient(118deg,#ffd9a8 0%,#ffcf4a 50%,#fff 100%);
-    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 2px 10px rgba(244,80,30,.45))}
-  .dm-phase .ic{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;
-    background:var(--accent-soft);color:var(--accent-hi);-webkit-text-fill-color:initial}
-  .dm-phase .ic svg{width:19px;height:19px}
-  .dm-phase.changing{animation:dmPhaseIn .5s cubic-bezier(.16,1,.3,1)}
-  @keyframes dmPhaseIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* ---------- FOCO / SPOTLIGHT (cutout nitido, sin adornos) ---------- */
+/* Velo MUY suave para pasos de pantalla completa (sin foco): la app se lee con
+   contraste casi pleno; el dock (oscuro y solido) ya destaca de sobra. */
+.gt-veil{position:absolute;inset:0;opacity:0;background:rgba(9,11,16,.15);transition:opacity .26s ease}
+.gt-veil.on{opacity:1}
+/* Foco: oscurece MAS la zona de alrededor (mejor contraste) y se desliza rapido. */
+.gt-spot{position:absolute;top:50%;left:50%;width:0;height:0;border-radius:12px;opacity:0;
+  box-shadow:0 0 0 9999px rgba(9,11,16,.72), 0 0 0 1px rgba(255,255,255,.22), 0 0 0 4px rgba(244,80,30,.22);
+  transition:top .32s cubic-bezier(.4,0,.2,1), left .32s cubic-bezier(.4,0,.2,1),
+    width .32s cubic-bezier(.4,0,.2,1), height .32s cubic-bezier(.4,0,.2,1), opacity .22s ease;
+  will-change:top,left,width,height}
+.gt-spot.on{opacity:1}
+@media(prefers-reduced-motion:reduce){ .gt-spot{transition-duration:.2s} }
 
-  /* 2) Texto cinematico grande con reveal izq->der, colocado en la zona oscura */
-  .dm-cine{position:absolute;max-width:min(560px,42vw);pointer-events:none;opacity:0;transition:opacity .3s}
-  .dm-cine.side-left{left:clamp(20px,4vw,56px);right:auto;top:50%;transform:translateY(-50%)}
-  .dm-cine.side-right{right:clamp(20px,4vw,56px);left:auto;top:50%;transform:translateY(-50%)}
-  .dm-cine.side-center{left:50%;right:auto;bottom:clamp(110px,16vh,156px);top:auto;transform:translateX(-50%);max-width:min(720px,86vw);text-align:center}
-  .dm-cine::before{content:"";position:absolute;z-index:-1;inset:-30px -40px;pointer-events:none;
-    background:radial-gradient(120% 120% at 28% 50%, rgba(6,4,2,.92) 0%, rgba(6,4,2,.6) 46%, rgba(6,4,2,0) 78%);filter:blur(8px)}
-  .dm-cine.side-right::before{background:radial-gradient(120% 120% at 72% 50%, rgba(6,4,2,.92) 0%, rgba(6,4,2,.6) 46%, rgba(6,4,2,0) 78%)}
-  /* Banda central (pasos sin spotlight): scrim CONTENIDO y redondeado (no una
-     franja ancha), tipo subtitulo recortado. */
-  .dm-cine.side-center::before{inset:-22px -34px;border-radius:22px;
-    background:radial-gradient(120% 135% at 50% 50%, rgba(6,4,2,.92) 0%, rgba(6,4,2,.74) 55%, rgba(6,4,2,0) 100%)}
-  /* Texto con diseño de marca: relleno en degradado cálido (blanco -> melocotón
-     -> fuego), no caracteres planos. drop-shadow para legibilidad sobre lo oscuro. */
-  .dm-cine p{margin:0;font-family:var(--display);font-weight:800;
-    font-size:clamp(22px,2.9vw,34px);line-height:1.32;letter-spacing:-.02em;color:#fff;
-    filter:drop-shadow(0 2px 16px rgba(0,0,0,.9)) drop-shadow(0 1px 2px rgba(0,0,0,.95))}
-  /* Reveal PALABRA A PALABRA en orden de escritura (izq->der, arriba->abajo) */
-  .dm-cine p .w{display:inline-block;opacity:0}
-  .dm-cine.revealing p .w{animation:dmWord .42s cubic-bezier(.2,.75,.25,1) both}
-  @keyframes dmWord{from{opacity:0;transform:translateY(.5em)}to{opacity:1;transform:translateY(0)}}
-  /* Palabras clave resaltadas (marcadas con **...** en la copy) */
-  .dm-cine p .hl{color:#ffb27a;-webkit-text-fill-color:#ffb27a;
-    background:linear-gradient(180deg,transparent 66%,rgba(244,80,30,.5) 66%);border-radius:2px;padding:0 2px}
-  /* Acento grafico: barrita de fuego que lidera el texto */
-  .dm-cine p .acc{display:inline-block;width:20px;height:3px;border-radius:2px;vertical-align:middle;margin-right:11px;
-    background:linear-gradient(90deg,#ff8a3d,#f4501e);opacity:0;transform:scaleX(.3);transform-origin:left}
-  .dm-cine.revealing p .acc{animation:dmAcc .5s cubic-bezier(.2,.75,.25,1) both}
-  @keyframes dmAcc{to{opacity:1;transform:scaleX(1)}}
-  /* B5: pasos SIN spotlight (fullscreen sobre el fondo CLARO de la app): texto
-     oscuro con velo claro y contraste suficiente, NUNCA recuadro oscuro. */
-  .dm-cine.on-light p{color:#1c1814;filter:drop-shadow(0 1px 0 rgba(255,255,255,.6))}
-  .dm-cine.on-light p .hl{color:#c0260a;-webkit-text-fill-color:#c0260a;
-    background:linear-gradient(180deg,transparent 66%,rgba(244,80,30,.26) 66%)}
-  .dm-cine.on-light p .acc{background:linear-gradient(90deg,#f4501e,#c0260a)}
-  .dm-cine.on-light::before{background:radial-gradient(120% 135% at 50% 50%, rgba(255,253,251,.92) 0%, rgba(255,253,251,.74) 52%, rgba(255,253,251,0) 100%)}
-  .dm-cine.on-light.side-left::before,.dm-cine.on-light.side-right::before{background:radial-gradient(120% 120% at 50% 50%, rgba(255,253,251,.9) 0%, rgba(255,253,251,.6) 48%, rgba(255,253,251,0) 80%)}
+/* ---------- DOCK FIJO (controles que nunca se mueven) ---------- */
+.gt-dock{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);pointer-events:auto;
+  width:min(700px,calc(100vw - 40px));
+  display:grid;grid-template-columns:1fr auto;column-gap:24px;align-items:end;
+  padding:22px 22px 20px;
+  background:rgba(19,21,27,.97);
+  border:1px solid rgba(255,255,255,.09);border-radius:16px;
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.7), 0 2px 8px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+  -webkit-backdrop-filter:blur(20px) saturate(130%);backdrop-filter:blur(20px) saturate(130%);
+  animation:gtDockIn .4s cubic-bezier(.16,1,.3,1)}
+@keyframes gtDockIn{from{transform:translateX(-50%) translateY(12px)}to{transform:translateX(-50%) translateY(0)}}
 
-  /* 3) Controles FIJOS abajo-centro (posicion constante en todos los pasos) */
-  .dm-controls{position:absolute;left:50%;bottom:clamp(20px,4vw,40px);transform:translateX(-50%);
-    display:flex;align-items:center;gap:14px;pointer-events:auto;opacity:0;transition:opacity .3s;
-    padding:10px 14px;border-radius:16px;background:rgba(10,7,5,.66);
-    border:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
-    box-shadow:0 16px 40px -12px rgba(0,0,0,.7)}
-  .dm-controls .dm-tour-skip{font-size:12px;color:rgba(255,255,255,.72);background:none;border:0;cursor:pointer}
-  .dm-controls .dm-tour-skip:hover{color:#fff}
-  .dm-dots{display:flex;gap:6px;margin:0}
-  .dm-dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.28);transition:all .25s}
-  .dm-dots span.on{background:var(--accent-hi);width:18px;border-radius:4px;box-shadow:0 0 10px var(--accent-glow)}
-  .dm-controls .ghost{padding:11px 16px;font-size:13.5px;color:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(0,0,0,.28);cursor:pointer}
-  .dm-controls .ghost:hover{color:#fff;border-color:var(--accent)}
-  .dm-controls .ghost[disabled]{opacity:.35;pointer-events:none}
-  .dm-controls .btn{justify-content:center;padding:12px 26px;font-size:14px;box-shadow:0 10px 30px -8px rgba(244,80,30,.75)}
+/* progreso: linea fina y sobria arriba */
+.gt-dock-prog{position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.07)}
+.gt-dock-prog i{display:block;height:100%;background:var(--accent);transition:width .55s cubic-bezier(.4,0,.2,1)}
 
-  /* ---------- POINTER / FLECHA ---------- */
-  /* Senala la zona del paso actual sobre el software. Es una pista de region
-     (no apunta a un pixel exacto del iframe): el panel que se abre es la senal fuerte. */
-  /* Flecha curva dibujada a mano (mismo estilo que la landing, .fnote .arrow):
-     trazo curvo + punta de chevron, color de acento, sin pildora. */
-  .dm-point{position:absolute;z-index:8;display:none;align-items:center;gap:9px;pointer-events:none;white-space:nowrap;
-    transition:top .5s var(--ease),left .5s var(--ease),right .5s var(--ease),bottom .5s var(--ease),opacity .3s}
-  .dm-point.show{display:inline-flex;animation:dmBob 1.7s ease-in-out infinite}
-  .dm-point .ar{width:58px;height:42px;color:var(--accent-hi);flex-shrink:0;transition:transform .3s;filter:drop-shadow(0 3px 7px rgba(0,0,0,.45))}
-  .dm-point .ar svg{width:100%;height:100%;overflow:visible}
-  .dm-point .lbl{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;
-    background:rgba(18,13,10,.84);padding:5px 11px;border-radius:8px;border:1px solid rgba(244,80,30,.42);box-shadow:0 8px 20px -6px rgba(0,0,0,.6)}
-  .dm-point.up .ar{transform:rotate(0)} .dm-point.down .ar{transform:rotate(180deg)}
-  .dm-point.left .ar{transform:rotate(-90deg)} .dm-point.right .ar{transform:rotate(90deg)}
-  .dm-point.left{flex-direction:row-reverse}
-  @keyframes dmBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-  @media(max-width:720px){ .dm-point .ar{width:46px;height:34px} .dm-point .lbl{font-size:10px} }
+/* contenido (micro-slide; sin opacity para que nunca quede invisible) */
+.gt-content{grid-column:1;min-width:0;transition:transform .26s cubic-bezier(.16,1,.3,1)}
+.gt-content.swap{transform:translateY(6px)}
+.gt-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.gt-ic{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:grid;place-items:center;
+  background:rgba(244,80,30,.14);color:var(--accent-hi);border:1px solid rgba(244,80,30,.24)}
+.gt-ic svg{width:15px;height:15px}
+.gt-phase-lbl{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ff9b66;white-space:nowrap}
+.gt-dot{width:3px;height:3px;border-radius:50%;background:#5a6172;flex-shrink:0}
+.gt-count{font-family:var(--mono);font-size:11.5px;font-weight:600;color:#9aa3b5;white-space:nowrap}
+.gt-count b{color:#fff}
+
+.gt-title{font-size:23px;line-height:1.12;font-weight:700;letter-spacing:-.02em;color:#fff;margin:0 0 7px;text-wrap:balance}
+.gt-body{font-family:var(--display);font-weight:400;font-size:14.5px;line-height:1.5;color:#cfd4de;margin:0;max-width:430px;text-wrap:pretty}
+.gt-body .hl{color:#ffae7d;font-weight:600}
+
+/* micro-ilustracion (plana, sin caramelo) */
+.gt-viz{margin-top:14px;display:none}
+.gt-viz.on{display:block}
+.gt-viz-lane{position:relative;height:38px;border-radius:8px;background:rgba(255,255,255,.045);overflow:hidden;max-width:430px;border:1px solid rgba(255,255,255,.06)}
+.gt-viz-seg{position:absolute;top:4px;bottom:4px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-size:9.5px;font-weight:600;letter-spacing:.01em;color:#fff;transition:left .55s var(--ease),width .55s var(--ease),opacity .4s}
+.gt-viz .v-act{background:rgba(244,80,30,.26);border:1px solid rgba(244,80,30,.45);color:#ffcaa8}
+.gt-viz .v-rest{background:repeating-linear-gradient(45deg,rgba(245,158,11,.16),rgba(245,158,11,.16) 6px,transparent 6px,transparent 12px);border:1px dashed rgba(245,158,11,.5);color:#fbc04e}
+.gt-viz .v-new{background:rgba(16,185,129,.26);border:1px solid rgba(16,185,129,.5);color:#7ee6bd;opacity:0}
+.gt-viz-lane.split .v-new{opacity:1}
+.gt-viz-cap{margin-top:7px;font-family:var(--mono);font-size:10.5px;color:#9aa3b5;display:flex;align-items:center;gap:6px}
+.gt-viz-cap b{color:#34d399}
+.gt-viz .v-chat{display:flex;flex-direction:column;gap:6px;max-width:430px}
+.gt-bubble{max-width:86%;font-size:11.5px;font-weight:500;padding:7px 10px;border-radius:10px;line-height:1.35}
+.gt-bubble.them{align-self:flex-start;background:rgba(255,255,255,.06);color:#dfe3ea;border-top-left-radius:3px}
+.gt-bubble.me{align-self:flex-end;background:rgba(244,80,30,.2);border:1px solid rgba(244,80,30,.4);color:#ffd9c2;border-top-right-radius:3px}
+.gt-viz .v-export{display:flex;gap:8px}
+.gt-fmt{flex:1;display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
+.gt-fmt .b{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-family:var(--mono);font-size:9.5px;font-weight:800;color:#fff}
+.gt-fmt .t{font-size:11.5px;font-weight:600;color:#fff}
+.gt-fmt .s{font-size:10px;color:#9aa3b5}
+
+/* ---------- CONTROLES (posicion FIJA) ---------- */
+.gt-nav{grid-column:2;align-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.gt-skip{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.03em;color:#8b93a4;background:none;border:0;cursor:pointer;padding:2px 2px}
+.gt-skip:hover{color:#fff}
+.gt-nav .row{display:flex;gap:9px;align-items:stretch}
+.gt-prev,.gt-next{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:13.5px;font-weight:600;
+  border-radius:10px;cursor:pointer;transition:background .18s,border-color .18s,color .18s,transform .18s,opacity .18s}
+.gt-prev{width:44px;height:42px;color:#cfd4de;border:1px solid rgba(255,255,255,.14);background:transparent}
+.gt-prev:hover{color:#fff;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.24)}
+.gt-prev:disabled{opacity:.3;pointer-events:none}
+.gt-next{min-width:128px;height:42px;padding:0 18px;color:#fff;background:var(--accent);border:1px solid var(--accent);
+  box-shadow:0 1px 0 rgba(255,255,255,.12) inset}
+.gt-next:hover{background:#ff5a2a;border-color:#ff5a2a;transform:translateY(-1px)}
+.gt-next:active{transform:none}
+.gt-next svg{width:15px;height:15px}
+
+/* ---------- RESPONSIVE — movil: hoja inferior impecable ---------- */
+@media(max-width:760px){
+  .gt-veil.on{opacity:1}
+  .gt-dock{left:0;right:0;bottom:0;width:auto;transform:none;display:block;
+    border-radius:18px 18px 0 0;border-left:0;border-right:0;border-bottom:0;
+    padding:20px 18px calc(16px + env(safe-area-inset-bottom,0px));
+    box-shadow:0 -16px 40px -18px rgba(0,0,0,.8);
+    animation:gtSheetIn .4s cubic-bezier(.16,1,.3,1)}
+  @keyframes gtSheetIn{from{transform:translateY(20px)}to{transform:translateY(0)}}
+  .gt-dock-prog{height:3px}
+  .gt-content{grid-column:auto}
+  .gt-head{margin-bottom:8px}
+  .gt-title{font-size:20px;line-height:1.15}
+  .gt-body{font-size:14px;max-width:none}
+  .gt-viz-lane,.gt-viz .v-chat,.gt-viz .v-export{max-width:none}
+  .gt-nav{grid-column:auto;align-items:stretch;margin-top:16px;gap:12px;
+    flex-direction:row-reverse;flex-wrap:wrap}
+  .gt-nav .row{flex:1;gap:10px}
+  .gt-nav .row .gt-next{flex:1;min-width:0;height:46px;font-size:14.5px}
+  .gt-nav .row .gt-prev{width:50px;height:46px}
+  .gt-skip{order:2;align-self:center;width:100%;text-align:center;padding:4px;margin-top:2px}
+}
+@media(max-width:380px){
+  .gt-title{font-size:18.5px}
+  .gt-dock{padding:18px 14px calc(14px + env(safe-area-inset-bottom,0px))}
+}
 
   /* ---------- ACCESS / INTRO GATE ---------- */
   .dm-gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:22px;
@@ -244,26 +263,6 @@
   @media(max-width:720px){
     .dm-stage{padding:0}
     .dm-appwrap{border-radius:0;border-left:0;border-right:0}
-    /* --- Tour cinematico en movil: fase arriba-centro, texto en banda inferior
-       (siempre 'center'), controles fijos justo encima --- */
-    .dm-phase{top:62px;max-width:92%}
-    .dm-phase .ph{font-size:18px;gap:8px}
-    .dm-phase .ic{width:26px;height:26px;border-radius:8px}
-    .dm-phase .ic svg{width:14px;height:14px}
-    /* En movil el texto cinematico siempre va abajo-centro (banda), nunca a los lados */
-    .dm-cine,.dm-cine.side-left,.dm-cine.side-right,.dm-cine.side-center{
-      left:0;right:0;bottom:118px;top:auto;transform:none;max-width:none;text-align:left;padding:0 16px}
-    .dm-cine::before{inset:-30px 0 -200px 0;background:linear-gradient(0deg,rgba(5,3,2,.97) 0%,rgba(5,3,2,.9) 50%,rgba(5,3,2,.5) 78%,transparent 100%);filter:none}
-    .dm-cine.on-light::before{background:linear-gradient(0deg,rgba(255,253,251,.97) 0%,rgba(255,253,251,.9) 52%,rgba(255,253,251,.45) 80%,transparent 100%)}
-    .dm-cine p{font-size:17px;line-height:1.42}
-    .dm-controls{left:0;right:0;bottom:0;transform:none;border-radius:0;justify-content:center;gap:10px;
-      padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));background:rgba(5,3,2,.95);border-left:0;border-right:0;border-bottom:0}
-    .dm-controls .btn{flex:1}
-    .dm-dots{display:none}
-  }
-  @media(max-width:480px){
-    .dm-cine p{font-size:15.5px}
-    .dm-controls .btn,.dm-controls .ghost{padding:11px 12px;font-size:13px}
   }
 
   /* ---------- SHARE MODAL (Drive-like) ---------- */
@@ -427,44 +426,44 @@
     }
   }
 
-  /* --- Barra de carga superior --- */
-  .tour-loader {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 3px;
-    width: 0%;
-    background: linear-gradient(90deg, #f4501e, #ff7a2e);
-    z-index: 999;
-    opacity: 0;
-    transition: opacity 0.15s ease, width 0.35s cubic-bezier(0.1, 0.8, 0.2, 1);
-    box-shadow: 0 1px 8px rgba(244, 80, 30, 0.5);
-  }
-  .tour-loader.active {
-    opacity: 1;
-  }
-
   /* --- Formulario de Recomendaciones --- */
   .share-modal {
     max-height: 90vh;
     overflow-y: auto;
   }
-  /* Layout horizontal (2 columnas) para que no haya que scrollear en vertical:
-     izquierda = recompensas + enlace; derecha = como funciona + arbol/CTA. */
+  /* B7: recompensas PROTAGONISTAS arriba (ancho completo); debajo, 2 columnas:
+     izquierda el enlace que GANA % (referido, destacado), derecha "como funciona"
+     + el enlace que SOLO enseña la demo (secundario). Cabe sin scroll vertical. */
   .share-modal-body {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    gap: 18px 22px;
     align-items: start;
   }
-  .share-modal-body .share-rewards { grid-column: 1; margin-bottom: 0; }
-  .share-modal-body .share-link-row { grid-column: 1; margin-bottom: 0; }
-  .share-modal-body .share-bonus-card { grid-column: 2; grid-row: 1 / span 2; padding-top: 0; }
+  .share-modal-body > .share-rewards { grid-column: 1 / -1; margin-bottom: 0; }
+  .share-col-earn { grid-column: 1; min-width: 0; }
+  .share-col-right { grid-column: 2; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+  /* Enlace que GANA dinero: bloque con borde de acento + etiqueta clara */
+  .share-earn { padding: 14px; border-radius: 14px; background: rgba(244,80,30,.06);
+    border: 1px solid rgba(244,80,30,.34); box-shadow: 0 0 0 3px rgba(244,80,30,.05); }
+  .share-earn .share-link-row { margin-bottom: 0; }
+  .share-earn-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 9px; }
+  .share-earn-label b { color: var(--accent-hi); }
+  .share-earn-label .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); flex-shrink: 0; }
+  /* Enlace que SOLO enseña la demo: secundario/atenuado, sin % */
+  .share-demo { padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,.02); border: 1px dashed rgba(255,255,255,.16); }
+  .share-demo .share-link-row { margin-bottom: 0; }
+  .share-demo-label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-sec); margin-bottom: 8px; }
+  .share-demo-label span { color: var(--text-ter); font-weight: 600; }
+  .share-demo-sub { font-size: 11px; color: var(--text-ter); line-height: 1.45; margin: 9px 2px 0; }
+  .share-demo .btn { background: rgba(255,255,255,.06); color: var(--text-sec); border: 1px solid var(--border); }
+  .share-demo .btn:hover { color: #fff; border-color: var(--border-hi); }
+  /* La tarjeta −40% como recompensa principal */
+  .share-reward.hero { border-color: rgba(244,80,30,.42); background: linear-gradient(160deg, rgba(244,80,30,.16), rgba(244,80,30,.05)); }
   @media(max-width: 720px) {
-    .share-modal-body { grid-template-columns: 1fr; gap: 16px; }
-    .share-modal-body .share-rewards,
-    .share-modal-body .share-link-row,
-    .share-modal-body .share-bonus-card { grid-column: 1; grid-row: auto; }
+    .share-modal-body { grid-template-columns: 1fr; gap: 14px; }
+    .share-modal-body > .share-rewards,
+    .share-col-earn, .share-col-right { grid-column: 1; }
   }
   .share-rec-form {
     margin-top: 16px;
@@ -690,11 +689,9 @@
 
 <!-- ============ DEMO BAR ============ -->
 <header class="dm-bar">
-  <div id="tourLoader" class="tour-loader"></div>
   <a class="ver-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg><span>Volver</span></a>
   <div class="brand"><svg viewBox="0 0 40 40"><use href="#mecha-mark" /></svg><span class="nm">Mecha</span></div>
   <span class="dm-pill"><span class="d"></span>Vista previa · interactiva</span>
-  <span class="dm-visits" id="visits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg><span id="visitsText">Preparando…</span></span>
   <div class="dm-tutsel" id="tutSel">
     <button class="dm-tut" id="tutBtnGeneral" type="button" title="Ver el recorrido general desde el principio">
       <span class="pnum">1</span>
@@ -707,9 +704,10 @@
       <span class="lbl">Configuración</span>
     </button>
   </div>
-  <button class="dm-share" id="shareBtn" type="button" title="Copia el enlace y pasaselo a quien quieras: vera esta demo (con el tutorial) sin registrarse." style="display:none;align-items:center;gap:7px;padding:9px 15px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,170,100,0.65);background:rgba(244,80,30,0.22);color:#ffe3d0;font:inherit;font-size:13.5px;font-weight:800;transition:background .18s ease" onmouseenter="this.style.background='rgba(244,80,30,0.32)'" onmouseleave="this.style.background='rgba(244,80,30,0.22)'">
+  <button class="dm-share" id="shareBtn" type="button" style="display:none" title="Comparte Mecha y gana descuento por cada salón de tu red.">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
-    <span class="lbl">Compartir demo</span>
+    <span class="lbl">Recomendar</span>
+    <span class="dm-share-badge">−40%</span>
   </button>
   <div class="dm-bar-cta">
     <a class="btn btn-primary" href="reservar.html"><span class="cta-long">Quiero el acceso completo</span><span class="cta-short">Solicitar acceso</span>
@@ -730,28 +728,8 @@
     </div>
     <iframe class="dm-appframe" id="appFrame" title="Mecha — software real e interactivo" referrerpolicy="same-origin" style="display:none"></iframe>
 
-    <!-- POINTER / FLECHA: senala la zona del paso actual -->
-    <div class="dm-point" id="point">
-      <span class="ar"><svg viewBox="0 0 44 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 37 C 15 27, 29 19, 22 6" /><path d="M13 15 l9 -10 9 10" /></svg></span>
-      <span class="lbl" id="pointLabel">Aquí</span>
-    </div>
-
-    <!-- GUIDED TOUR -->
-    <div class="dm-tour" id="tour">
-      <!-- 1) Titulo de fase FIJO arriba-centro (cambia solo al cambiar de fase) -->
-      <div class="dm-phase" id="tourPhase">
-        <span class="ph"><span class="ic" id="tourIc"></span><span id="tourTitle">Tu agenda</span></span>
-      </div>
-      <!-- 2) Texto cinematico grande en la zona oscura (reveal izq->der) -->
-      <div class="dm-cine side-center" id="tourCine"><p id="tourText"></p></div>
-      <!-- 3) Controles FIJOS abajo-centro (no se mueven entre pasos) -->
-      <div class="dm-controls">
-        <button class="dm-tour-skip" id="tourSkip" type="button">Saltar</button>
-        <div class="dm-dots" id="tourDots"></div>
-        <button class="ghost" id="tourPrev" type="button">Atrás</button>
-        <button class="btn btn-primary" id="tourNext" type="button">Siguiente</button>
-      </div>
-    </div>
+    <!-- GUIDED TOUR (dock v2): el motor construye dentro velo + foco + dock fijo -->
+    <div class="gt" id="gt"></div>
   </div>
 </main>
 
@@ -763,8 +741,9 @@
       <button class="share-modal-close" id="shareModalClose" type="button" aria-label="Cerrar modal">&times;</button>
     </div>
     <div class="share-modal-body">
+      <!-- 1) Recompensas PROTAGONISTAS (ancho completo, arriba) -->
       <div class="share-rewards">
-        <div class="share-reward">
+        <div class="share-reward hero">
           <div class="rw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg></div>
           <div class="rw-amt">−40%<span>máx.</span></div>
           <div class="rw-lbl">para ti</div>
@@ -778,70 +757,81 @@
         </div>
       </div>
 
-      <div class="share-link-row">
-        <div class="share-input-wrapper">
-          <svg class="share-link-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-          <input type="text" id="shareModalInput" readonly value="Cargando enlace..." onclick="this.select()" />
-        </div>
-        <button class="btn btn-primary" id="shareModalCopy" type="button">Copiar enlace</button>
-      </div>
-
-      <div class="share-bonus-card">
-        <div class="share-howlabel">Cómo funciona</div>
-
-        <div class="share-steps">
-          <div class="share-step">
-            <span class="share-step-num">1</span>
-            <div class="share-step-title">Comparte tu enlace</div>
-            <div class="share-step-desc">Tu enlace único de salón</div>
-          </div>
-          <div class="share-step">
-            <span class="share-step-num">2</span>
-            <div class="share-step-title">Entran contigo</div>
-            <div class="share-step-desc">Otros salones se dan de alta</div>
-          </div>
-          <div class="share-step">
-            <span class="share-step-num">3</span>
-            <div class="share-step-title">Ganáis los dos</div>
-            <div class="share-step-desc">Tú por tu red · ellos al entrar</div>
-          </div>
-        </div>
-
-        <p class="share-foot-note">Quien abra el enlace verá la demo guiada por dentro, sin registrarse ni dejar ninguna cuenta iniciada.</p>
-
-        <!-- Estado CON sesión: tu enlace + tu árbol -->
+      <!-- 2) Columna IZQ: el enlace que GANA dinero (referido) -->
+      <div class="share-col-earn">
+        <!-- CON sesión: tu enlace de referido + tu árbol -->
         <div id="refLoggedIn" style="display:none;">
-          <div class="share-rec-field share-rec-full" style="margin-top:14px;">
-            <label>Tu enlace de referido</label>
-            <div class="share-link-row" style="margin-top:4px;">
+          <div class="share-earn">
+            <div class="share-earn-label"><span class="dot"></span>Tu enlace para ganar <b>−40%</b></div>
+            <div class="share-link-row">
               <div class="share-input-wrapper">
+                <svg class="share-link-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
                 <input type="text" id="refLinkInput" readonly value="" onclick="this.select()" />
               </div>
               <button class="btn btn-primary" id="refLinkCopy" type="button">Copiar</button>
             </div>
           </div>
 
-          <div id="referralTrackerSection" style="margin-top:16px; padding:15px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
+          <div id="referralTrackerSection" style="margin-top:14px; padding:15px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
             <h5 style="margin:0 0 10px 0; color:#fff; display:flex; align-items:center; gap:8px;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff7a2e" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               Tu red
             </h5>
             <div id="referralTrackerStats" style="font-size:13px; color:var(--text-sec); margin-bottom:12px; font-weight:600;"></div>
-            <div id="referralTrackerList" style="display:flex; flex-direction:column; gap:8px; max-height:170px; overflow-y:auto; padding-right:4px;">
+            <div id="referralTrackerList" style="display:flex; flex-direction:column; gap:8px; max-height:150px; overflow-y:auto; padding-right:4px;">
               <!-- Filas del árbol aquí -->
             </div>
           </div>
         </div>
 
-        <!-- Estado anónimo: crear cuenta para obtener enlace -->
-        <div id="refAnon" style="display:none; margin-top:14px;">
-          <a class="btn btn-primary btn-block btn-lg" href="acceso.html?next=demo#signup" style="font-weight:700;">
-            Crea tu cuenta y consigue tu −40%
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-          </a>
-          <p style="font-size:11px;color:var(--text-ter);text-align:center;margin:10px 0 0;line-height:1.45;">
-            Tu enlace se genera solo al crear tu cuenta. Sin tarjeta.
-          </p>
+        <!-- ANÓNIMO: crear cuenta para obtener el enlace que gana -->
+        <div id="refAnon" style="display:none;">
+          <div class="share-earn">
+            <div class="share-earn-label"><span class="dot"></span>Tu enlace para ganar <b>−40%</b></div>
+            <a class="btn btn-primary btn-block btn-lg" href="acceso.html?next=demo#signup" style="font-weight:700;">
+              Crea tu cuenta y consíguelo
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </a>
+            <p style="font-size:11px;color:var(--text-ter);margin:9px 2px 0;line-height:1.45;">
+              Tu enlace se genera solo al crear tu cuenta. Sin tarjeta.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3) Columna DCHA: cómo funciona + enlace que SOLO enseña la demo -->
+      <div class="share-col-right">
+        <div class="share-how">
+          <div class="share-howlabel">Cómo funciona</div>
+          <div class="share-steps">
+            <div class="share-step">
+              <span class="share-step-num">1</span>
+              <div class="share-step-title">Comparte tu enlace</div>
+              <div class="share-step-desc">Tu enlace único de salón</div>
+            </div>
+            <div class="share-step">
+              <span class="share-step-num">2</span>
+              <div class="share-step-title">Entran contigo</div>
+              <div class="share-step-desc">Otros salones se dan de alta</div>
+            </div>
+            <div class="share-step">
+              <span class="share-step-num">3</span>
+              <div class="share-step-title">Ganáis los dos</div>
+              <div class="share-step-desc">Tú por tu red · ellos al entrar</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="share-demo">
+          <div class="share-demo-label">Solo para enseñar la demo <span>· no da %</span></div>
+          <div class="share-link-row">
+            <div class="share-input-wrapper">
+              <svg class="share-link-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+              <input type="text" id="shareModalInput" readonly value="Cargando enlace..." onclick="this.select()" />
+            </div>
+            <button class="btn" id="shareModalCopy" type="button">Copiar</button>
+          </div>
+          <p class="share-demo-sub">Quien lo abra ve la demo guiada, sin registrarse ni dejar sesión iniciada.</p>
         </div>
       </div>
     </div>
@@ -901,16 +891,19 @@
 
   var gate=$('#gate'), end=$('#end'), frame=$('#appFrame'), localnote=$('#localnote');
   var visitsEl=$('#visits'), visitsText=$('#visitsText');
-  var tour=$('#tour'), shareBtn=$('#shareBtn');
+  var shareBtn=$('#shareBtn');
   var tutSel=$('#tutSel'), tutBtnGeneral=$('#tutBtnGeneral'), tutBtnConfig=$('#tutBtnConfig');
 
   function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
   function showGate(){ gate.classList.remove('hide'); }
   function hideGate(){ gate.classList.add('hide'); }
-  function showEnd(){ end.classList.add('show'); visitsText.textContent='0 visitas'; visitsEl.classList.add('low'); }
+  function showEnd(){ end.classList.add('show'); if(visitsText) visitsText.textContent='0 visitas'; if(visitsEl) visitsEl.classList.add('low'); }
 
   function setVisits(remaining){
+    // El chip de visitas se quito de la barra (decision de diseno): el conteo de
+    // visitas sigue funcionando por dentro (gate -> useDemoVisit -> showEnd).
+    if(!visitsText) return;
     if(remaining===null||typeof remaining==='undefined'){ visitsText.textContent='Demo activa'; return; }
     var n=remaining;
     // Texto corto en móvil para que no corte la barra
@@ -930,16 +923,19 @@
     if(!shareBtn) return;
     shareBtn.style.display='inline-flex';
     var lbl = shareBtn.querySelector('.lbl');
-    if (!lbl) return;
-    
+    var badge = shareBtn.querySelector('.dm-share-badge');
+
     if (isStaff) {
-      lbl.textContent = 'Compartir demo';
+      if(lbl) lbl.textContent = 'Compartir demo';
+      if(badge) badge.style.display = 'none'; // compartir no da %: sin badge
       shareBtn.title = 'Copia el enlace y pásaselo a quien quieras: verá esta demo (con el tutorial) sin tener que registrarse.';
     } else if (profile) {
-      lbl.textContent = 'Recomendar · gana −40%';
-      shareBtn.title = 'Comparte tu enlace y gana descuento por cada salon de tu red, y por los que ellos traen (hasta -40%).';
+      if(lbl) lbl.textContent = 'Recomendar';
+      if(badge) badge.style.display = '';
+      shareBtn.title = 'Comparte tu enlace y gana descuento por cada salón de tu red, y por los que ellos traen (hasta −40%).';
     } else {
-      lbl.textContent = 'Recomendar · gana −40%';
+      if(lbl) lbl.textContent = 'Recomendar';
+      if(badge) badge.style.display = '';
       shareBtn.title = 'Crea tu cuenta y consigue tu enlace de referido: ganas descuento por toda tu red.';
     }
   }
@@ -1226,369 +1222,281 @@
     nueva:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>',
     avisos:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>'
   };
-  // Cada paso lleva el iframe a una pantalla (route) y, si toca, abre un panel
-  // real (action) y coloca una flecha sobre su zona (point).
   // Cada paso lleva el iframe a una pantalla (route) y pide a la app que abra un
-  // panel y/o enfoque una zona con spotlight (action). Ya NO usamos flechas: el
-  // enfoque lo dibuja la propia app oscureciendo todo menos la zona del paso.
-  // ph = titulo de fase (fijo arriba-centro; se mantiene entre pasos de la misma
-  // fase). d = texto cinematico (cambia cada paso con reveal). side = lado de la
-  // zona oscura donde cae el texto (left/right/center; en movil siempre center).
-  var TUTORIAL_GENERAL=[
-    {ic:'agenda', route:'/(tabs)', action:'cerrar', guidePos:'bc', ph:'La agenda', side:'center',
-     t:'Tu agenda real',
-     d:'Aquí ves a tus **profesionales** y sus **citas** del día. Pulsa un hueco y se crea una cita: te lo enseño paso a paso.'},
-    {ic:'nueva', route:'/(tabs)', action:'nueva-cita', guidePos:'bl', ph:'Crear una cita', side:'left',
-     t:'Crear una cita',
-     d:'Al pulsar un hueco se abre esta ventana con la hora ya puesta. Vamos por orden: cliente, servicio y hora.'},
-    {ic:'clientes', route:'/(tabs)', action:'cita-cliente', guidePos:'tl', ph:'El cliente', side:'left',
-     t:'El cliente',
-     d:'Mira: selecciono el cliente de la lista. Tambien puedes crearlo al momento con su nombre y telefono, y su ficha se rellena sola.'},
-    {ic:'nueva', route:'/(tabs)', action:'cita-servicio', guidePos:'tl', ph:'El servicio', side:'left',
-     t:'El servicio',
-     d:'Elijo el servicio: marca la duracion y el precio. Puedes encadenar varios en la misma cita, incluso entre profesionales.'},
-    {ic:'nueva', route:'/(tabs)', action:'cita-hora', guidePos:'tl', ph:'La hora', side:'left',
-     t:'La hora',
-     d:'Y elijo una hora libre. Arriba siempre ves "Ahora" y la "Hora de la cita" elegida, para no equivocarte.'},
-    {ic:'nueva', route:'/(tabs)', action:'cita-detalle', guidePos:'tl', ph:'La cita por dentro', side:'left',
-     t:'Tu cita por dentro',
-     d:'Asi queda la cita. Al abrirla ves y editas TODO: el servicio que cobras, el cliente, el profesional y la hora. Te enseno los bloques clave.'},
-    {ic:'fich', route:'/(tabs)', action:'detalle-estado', guidePos:'tl', ph:'El estado', side:'left',
-     t:'El estado de la cita',
-     d:'Confirmada, en curso, finalizada, cobrada, no presentada... El estado manda: marca el color en la agenda y lo que cuenta en los informes.'},
-    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo', guidePos:'tl', ph:'Los reposos', side:'left',
-     t:'1 · Tiempo activo',
-     d:'La primera fase es el trabajo inicial (ej. aplicar tinte). Ajusta los minutos con los botones − y + a la derecha de la barra para definir la duracion exacta.'},
-    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-reposo', guidePos:'tl', ph:'Los reposos', side:'left',
-     t:'2 · Tiempo de reposo',
-     d:'La fase clave: el tiempo de espera (el tinte actuando). Usa − y + para regularlo: Mecha **libera tu agenda** en este bloque para que atiendas a **otro cliente**.'},
-    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo2', guidePos:'tl', ph:'Los reposos', side:'left',
-     t:'3 · Segundo activo',
-     d:'El acabado final (lavar y peinar). Ajusta la duracion con − y +. La cita se divide sola en bloques, aprovechando tu tiempo al 100% sin alargar el dia.'},
-    {ic:'clientes', route:'/(tabs)', action:'detalle-formula', guidePos:'tl', ph:'La formula', side:'left',
-     t:'Formula guardada',
-     d:'Producto, tono, tiempo y resultado quedan guardados para repetir el color exacto la proxima vez. Puedes partir de las plantillas que creas en Configuracion.'},
-    {ic:'avisos', route:'/(tabs)', action:'notificaciones', guidePos:'bl', ph:'Los avisos', side:'left',
-     t:'Avisos que no se escapan',
-     d:'Citas sin confirmar de las proximas 48 h y los cumpleanos de la semana, juntos. Pulsa cualquiera y la agenda salta a ese dia.'},
-    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', guidePos:'bc', ph:'Las fichas', side:'center',
-     t:'Fichas de cliente',
-     d:'Una ficha real a pantalla completa: formula de color, alergias, fotos de cada corte, historial y preferencias. Todo a un toque, sin papeles.'},
-    {ic:'ia', route:'/(tabs)', action:'cerrar', guidePos:'bc', ph:'Recepcion con IA', side:'center',
-     t:'Tu recepcion con IA',
-     d:'Al activar tu cuenta conectamos la IA: atiende por WhatsApp y por telefono, responde y reserva citas sola, 24/7. Aqui la ves como sera; se enchufa al darte de alta.'},
-    {ic:'fich', route:'/(tabs)/equipo', action:'cerrar', guidePos:'bc', ph:'El equipo', side:'center',
-     t:'Tu equipo y su rentabilidad',
-     d:'Roles, turnos y comisiones por profesional, con metricas de quien rinde mas. Todo el equipo organizado desde una sola pantalla.'},
-    {ic:'rep', route:'/(tabs)/informes', action:'informes-export', guidePos:'bl', ph:'Informes', side:'left',
-     t:'Informes claros · PDF y CSV',
-     d:'Ingresos, ocupación, no-shows y ticket medio, actualizados solos. Y lo mejor: te lo descargas TODO en **PDF** (con tu marca) o en **CSV** con un clic, mira el botón arriba a la derecha.'}
+  // panel real y enfoque su zona (action). El software responde con el rect del
+  // spotlight. ic = icono, ph = fase (chip del dock), t = titulo, d = cuerpo
+  // (**palabra** = resaltada), viz = micro-ilustracion opcional en el dock.
+  var TUT_GENERAL=[
+    {ic:'agenda', route:'/(tabs)', action:'cerrar', ph:'La agenda',
+     t:'Tu día entero, en una pantalla', d:'Tus **profesionales** y sus **citas**, juntos. Toca un hueco y nace una cita.'},
+    {ic:'nueva', route:'/(tabs)', action:'nueva-cita', ph:'Crear una cita',
+     t:'De hueco a cita en 3 toques', d:'Tocas el hueco y se abre con la **hora ya puesta**. Cliente, servicio, hora. Listo.'},
+    {ic:'clientes', route:'/(tabs)', action:'cita-cliente', ph:'Crear una cita',
+     t:'Elige (o crea) al cliente', d:'Lo eliges de la lista —o lo creas al vuelo. Su **ficha se rellena sola**.'},
+    {ic:'nueva', route:'/(tabs)', action:'cita-servicio', ph:'Crear una cita',
+     t:'El servicio pone precio y duración', d:'Marca **duración y precio** solos. Encadena varios, hasta entre profesionales.'},
+    {ic:'nueva', route:'/(tabs)', action:'cita-hora', ph:'Crear una cita',
+     t:'La hora, sin equivocarte', d:'Eliges un hueco libre. Arriba ves siempre **«Ahora»** y la hora elegida.'},
+    {ic:'fich', route:'/(tabs)', action:'cita-detalle', ph:'La cita por dentro',
+     t:'Toda la cita, editable', d:'Servicio, cliente, profesional y hora. Ábrela y **cámbialo todo** en segundos.'},
+    {ic:'fich', route:'/(tabs)', action:'detalle-estado', ph:'La cita por dentro',
+     t:'El estado lo manda todo', d:'Confirmada, en curso, cobrada, no-show… **pinta la agenda** y cuenta en tus informes.'},
+    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo', ph:'Los reposos',
+     t:'1 · El trabajo inicial', d:'La primera fase: **aplicar el tinte**. Ajusta sus minutos con − y +.', viz:'reposo-1'},
+    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-reposo', ph:'Los reposos',
+     t:'2 · El reposo que te regala tiempo', d:'Mientras el tinte **actúa solo**, Mecha **libera tu agenda** y te deja atender a **otro cliente** en ese hueco.', viz:'reposo-2'},
+    {ic:'rep', route:'/(tabs)', action:'detalle-secuencia-activo2', ph:'Los reposos',
+     t:'3 · El acabado', d:'Lavar y peinar. La cita **se parte sola** en tres bloques y aprovecha tu tiempo al **100%** sin alargar el día.', viz:'reposo-3'},
+    {ic:'clientes', route:'/(tabs)', action:'detalle-formula', ph:'La ficha',
+     t:'El color, guardado para siempre', d:'Producto, tono, tiempo y resultado. **Repite el color exacto** la próxima vez.'},
+    {ic:'avisos', route:'/(tabs)', action:'notificaciones', ph:'Los avisos',
+     t:'Nada se te escapa', d:'Citas **sin confirmar** y **cumpleaños** de la semana, juntos. Toca y la agenda salta allí.'},
+    {ic:'clientes', route:'/(tabs)/clientes', action:'ficha', ph:'Las fichas',
+     t:'La ficha que lo sabe todo', d:'Fórmula, alergias, fotos e historial. **A un toque**, sin papeles.'},
+    {ic:'ia', route:'/(tabs)', action:'cerrar', ph:'Recepción con IA',
+     t:'Una recepcionista que no duerme', d:'La IA atiende **WhatsApp y teléfono**, responde y **reserva sola**, 24/7.', viz:'ia'},
+    {ic:'fich', route:'/(tabs)/equipo', action:'cerrar', ph:'El equipo',
+     t:'Tu equipo y lo que rinde', d:'Roles, turnos y **comisiones** por profesional, con quién factura más.'},
+    {ic:'rep', route:'/(tabs)/informes', action:'informes-export', ph:'Informes',
+     t:'Tus números, claros y descargables', d:'Ingresos, ocupación, no-shows y ticket medio. Descárgalo en **PDF** o **CSV**.', viz:'export'}
   ];
 
-  var TUTORIAL_CONFIG=[
-    {ic:'org', route:'/(tabs)/configuracion', action:'config-general', guidePos:'bc', isConfig:true, ph:'Datos del negocio', side:'center',
-     t:'Configuración general',
-     d:'Personaliza la identidad de tu salón: nombre comercial, moneda, huso horario, colores de tu marca y la vista por defecto de la agenda.'},
-    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-horarios', guidePos:'bc', isConfig:true, ph:'Horarios', side:'center',
-     t:'Horarios y descansos',
-     d:'Configura tus horarios de apertura y jornadas. Añade bloques de pausa (comidas, descansos) para que la agenda se organice sin solapamientos.'},
-    {ic:'nueva', route:'/(tabs)/configuracion', action:'config-servicios', guidePos:'bc', isConfig:true, ph:'Servicios', side:'center',
-     t:'Servicios y tarifas',
-     d:'Crea tu catálogo con precios y duraciones por profesional. Define tiempos de reposo en tratamientos para liberar tu agenda mientras actúan los productos.'},
-    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-agenda', guidePos:'bc', isConfig:true, ph:'Reglas de reserva', side:'center',
-     t:'Lógica y políticas',
-     d:'Controla la reserva online: antelación mínima, políticas de cancelación, cortesía por retraso y prepagos para evitar ausencias.'},
-    {ic:'rep', route:'/(tabs)/configuracion', action:'config-comisiones', guidePos:'bc', isConfig:true, ph:'Comisiones', side:'center',
-     t:'Comisiones y objetivos',
-     d:'Define comisiones fijas o porcentuales por servicios y venta de productos. Asigna objetivos y calcula la rentabilidad real de cada profesional.'},
-    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-plantillas', guidePos:'bc', isConfig:true, ph:'Formulas y plantillas', side:'center',
-     t:'Fórmulas y plantillas',
-     d:'Predefine plantillas de notas e historiales de color (tinte, decoloración). El equipo guarda la **fórmula exacta** en la ficha del cliente en segundos.'},
-    {ic:'avisos', route:'/(tabs)/configuracion', action:'config-notificaciones', guidePos:'bc', isConfig:true, ph:'Notificaciones', side:'center',
-     t:'Avisos automáticos',
-     d:'Los **recordatorios por WhatsApp** (confirmación, aviso y reseña) ya se envían solos. Aquí podrás personalizarlos a tu gusto muy pronto.'},
-    {ic:'ia', route:'/(tabs)/configuracion', action:'config-reserva', guidePos:'bc', isConfig:true, ph:'Reserva online', side:'center',
-     t:'Tu página de reservas',
-     d:'Activa tu **página pública**: los clientes reservan solos 24/7, con tu marca, tus servicios y tus horarios. Comparte el enlace o el **código QR**.'},
-    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-referidos', guidePos:'bc', isConfig:true, ph:'Invita y gana', side:'center',
-     t:'Programa de referidos',
-     d:'Comparte Mecha y **gana descuentos**: tu enlace propio trae nuevos salones y ves crecer tu red y tus recompensas desde aquí.'},
-    {ic:'fich', route:'/(tabs)/configuracion', action:'config-accesos', guidePos:'bc', isConfig:true, ph:'Accesos y roles', side:'center',
-     t:'Equipo y permisos',
-     d:'Invita a tu equipo y asigna **roles**: cada profesional ve lo justo. Tú, como propietario, controlas el dinero y la configuración.'},
-    {ic:'org', route:'/(tabs)/configuracion', action:'config-cuenta', guidePos:'bc', isConfig:true, ph:'Tu cuenta', side:'center',
-     t:'Tu cuenta y tu plan',
-     d:'Aquí gestionas tu **plan, tu facturación y tus datos**. Todo tu salón bajo control desde un único sitio. Y con esto cierras el recorrido.'}
+  var TUT_CONFIG=[
+    {ic:'org', route:'/(tabs)/configuracion', action:'config-general', ph:'Datos del negocio',
+     t:'Tu salón, tu identidad', d:'Nombre, moneda, huso horario y **colores de marca**.'},
+    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-horarios', ph:'Horarios',
+     t:'Horarios y descansos', d:'Apertura y jornadas. Añade **pausas** y la agenda se ordena sin solapes.'},
+    {ic:'nueva', route:'/(tabs)/configuracion', action:'config-servicios', ph:'Servicios',
+     t:'Tu catálogo y tus tarifas', d:'Precios y duraciones por profesional. Define **reposos** para liberar tu agenda.'},
+    {ic:'agenda', route:'/(tabs)/configuracion', action:'config-agenda', ph:'Reglas de reserva',
+     t:'Las reglas del juego', d:'Antelación, cancelaciones y **prepagos** contra las ausencias.'},
+    {ic:'rep', route:'/(tabs)/configuracion', action:'config-comisiones', ph:'Comisiones',
+     t:'Comisiones y objetivos', d:'Fijas o por %. Mide la **rentabilidad real** de cada profesional.'},
+    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-plantillas', ph:'Fórmulas y plantillas',
+     t:'Plantillas que ahorran tiempo', d:'Predefine notas y fórmulas de color. Se guardan en la ficha **en segundos**.'},
+    {ic:'avisos', route:'/(tabs)/configuracion', action:'config-notificaciones', ph:'Notificaciones',
+     t:'Avisos en automático', d:'Recordatorios por **WhatsApp** —confirma, avisa y pide reseña— ya salen solos.'},
+    {ic:'ia', route:'/(tabs)/configuracion', action:'config-reserva', ph:'Reserva online',
+     t:'Tu página de reservas 24/7', d:'Tus clientes reservan solos, con tu marca. Comparte **enlace o QR**.'},
+    {ic:'clientes', route:'/(tabs)/configuracion', action:'config-referidos', ph:'Invita y gana',
+     t:'Comparte Mecha, gana descuento', d:'Tu enlace trae salones y ves crecer **tu red y tus recompensas**.'},
+    {ic:'fich', route:'/(tabs)/configuracion', action:'config-accesos', ph:'Accesos y roles',
+     t:'Tu equipo, con permisos', d:'Asigna **roles**: cada uno ve lo justo. Tú controlas dinero y ajustes.'},
+    {ic:'org', route:'/(tabs)/configuracion', action:'config-cuenta', ph:'Tu cuenta',
+     t:'Tu plan, bajo control', d:'Plan, facturación y datos en un solo sitio. Y con esto **cierras el recorrido**.'}
   ];
 
-  var currentTutorial = TUTORIAL_GENERAL;
-  var STEPS = currentTutorial;
   // El modal de nueva cita es el mismo panel para 'nueva-cita' y las sub-acciones
-  // 'cita-*': no se cierra entre esos pasos, solo cambia el foco.
+  // 'cita-*'; el de detalle para 'cita-detalle' y 'detalle-*'. Solo cerramos el
+  // panel cuando cambia el GRUPO (asi la transicion cita -> detalle no falla).
   function groupOf(a){
-    if(a==='cita-detalle'||(a&&a.indexOf('detalle-')===0)) return 'detalle'; // modal de detalle de cita
-    if(a==='nueva-cita'||(a&&a.indexOf('cita-')===0)) return 'cita';         // modal de nueva cita
+    if(a==='cita-detalle'||(a&&a.indexOf('detalle-')===0)) return 'detalle';
+    if(a==='nueva-cita'||(a&&a.indexOf('cita-')===0)) return 'cita';
     return a;
   }
-  var ti=0, tourStarted=false, stepTimer=null, revealed=false, revealTimer=null;
-  var tourSkip=$('#tourSkip'), tourIc=$('#tourIc'),
-      tourPhase=$('#tourPhase'), tourCine=$('#tourCine'),
-      tourTitle=$('#tourTitle'), tourText=$('#tourText'), tourDots=$('#tourDots'),
-      tourPrev=$('#tourPrev'), tourNext=$('#tourNext');
-  var lastPhase=null;
-  var point=$('#point'), pointLabel=$('#pointLabel');
 
-  function renderDots() {
-    tourDots.innerHTML = '';
-    STEPS.forEach(function(_,i){ var d=document.createElement('span'); if(i===ti)d.className='on'; tourDots.appendChild(d); });
-  }
-  renderDots();
+  // ---- estado del tour (dock v2) ----
+  var STEPS=TUT_GENERAL, ti=0, hole=null, tourStarted=false, tourBooted=false;
+  var actTimer=null, swapTimer=null, busyTimer=null, busy=false, lastAct=null;
+  var gt={};
 
-  var lastRoute=null;
-  function navFrame(route){
-    if(maqueta||!route) return;
-    lastRoute=route;
-    try{
-      if(frame.contentWindow){
-        frame.contentWindow.postMessage({ type:'mecha-nav', route:route }, location.origin);
-      }
-    }catch(e){}
-  }
+  function pad2(n){ return (n<10?'0':'')+n; }
+  // Reusa escHtml (definido arriba) y resalta **palabra** como <span class="hl">.
+  function fmtBody(t){ return escHtml(String(t)).replace(/\*\*([^*]+)\*\*/g,'<span class="hl">$1</span>'); }
 
-  // Pide a la app que abra/cierre un panel real (nueva cita, ficha, avisos).
-  // _layout reemite el mensaje como CustomEvent y cada pantalla reacciona.
-  function demoAction(action){
-    if(maqueta||!action) return;
-    try{
-      if(frame.contentWindow){
-        frame.contentWindow.postMessage({ type:'mecha-demo', action:action }, location.origin);
-      }
-    }catch(e){}
-  }
-
-  // Ya no usamos flechas (senalaban a zonas equivocadas). El enfoque lo dibuja la
-  // propia app con un spotlight sobre la zona del paso. Mantenemos esta funcion
-  // como no-op para ocultar el puntero heredado del marcado.
-  function setPointer(){ if(point){ point.className='dm-point'; point.style.display='none'; } }
-
-  // Recuerda el ultimo panel abierto para no reabrir/reiniciar la misma ventana
-  // entre pasos consecutivos (p. ej. el recorrido por la ventana de nueva cita).
-  var lastAction=null;
-  var loader = $('#tourLoader');
-  // Lado del texto cinematico cuando NO conocemos el hueco (pasos sin spotlight):
-  // el del paso (s.side). En movil siempre banda inferior (center).
-  function sideOf(s){
-    if(window.innerWidth<=720) return 'center';
-    return s.side || 'center';
+  // Construye el dock dentro de #gt (una sola vez).
+  function buildDock(){
+    var root=$('#gt'); if(!root) return;
+    root.innerHTML=''+
+      '<div class="gt-veil" id="gtVeil"></div>'+
+      '<div class="gt-spot" id="gtSpot"></div>'+
+      '<div class="gt-dock" id="gtDock">'+
+        '<div class="gt-dock-prog"><i id="gtProg"></i></div>'+
+        '<div class="gt-content" id="gtContent">'+
+          '<div class="gt-head"><span class="gt-ic" id="gtIc"></span><span class="gt-phase-lbl" id="gtPhase"></span><span class="gt-dot"></span><span class="gt-count" id="gtCount"></span></div>'+
+          '<h3 class="gt-title" id="gtTitle"></h3>'+
+          '<p class="gt-body" id="gtBody"></p>'+
+          '<div class="gt-viz" id="gtViz"></div>'+
+        '</div>'+
+        '<div class="gt-nav">'+
+          '<button class="gt-skip" id="gtSkip" type="button">Saltar guía</button>'+
+          '<div class="row"><button class="gt-prev" id="gtPrev" type="button" aria-label="Anterior"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>'+
+          '<button class="gt-next" id="gtNext" type="button">Siguiente</button></div>'+
+        '</div>'+
+      '</div>';
+    gt.root=root;
+    ['Veil','Spot','Dock','Prog','Content','Ic','Phase','Count','Title','Body','Viz','Skip','Prev','Next']
+      .forEach(function(k){ gt[k.charAt(0).toLowerCase()+k.slice(1)]=root.querySelector('#gt'+k); });
+    gt.skip.addEventListener('click', closeTour);
+    gt.prev.addEventListener('click', tourPrev);
+    gt.next.addEventListener('click', tourNext);
   }
 
-  // --- Colocacion del texto en la ZONA OSCURA ---
-  // El spotlight de la app nos manda su hueco (coords del viewport del iframe).
-  // Con eso colocamos el texto cinematico y el titulo de fase fuera del hueco,
-  // en el mayor espacio oscuro, para no tapar lo que se esta enfocando.
-  var spotHole = null;     // {top,left,width,height} en coords de la pagina
-  var curSide = 'center';  // fallback del paso actual cuando no hay hueco
+  function navFrame(route){ if(maqueta||!route) return; try{ if(frame.contentWindow) frame.contentWindow.postMessage({ type:'mecha-nav', route:route }, location.origin); }catch(e){} }
+  function demoAction(action){ if(maqueta||!action) return; try{ if(frame.contentWindow) frame.contentWindow.postMessage({ type:'mecha-demo', action:action }, location.origin); }catch(e){} }
+
+  // El software nos manda el rect a iluminar (coords del viewport del iframe).
+  // Como #gt es position:absolute inset:0 dentro de .dm-appwrap (= el iframe),
+  // usamos el rect directamente, sin sumar el offset de la barra.
+  function setHole(rect){ hole = rect ? {top:rect.top,left:rect.left,width:rect.width,height:rect.height} : null; drawSpot(); }
+  function drawSpot(){
+    var s=gt.spot;
+    if(!hole){
+      // Paso de pantalla completa (sin foco): velo suave para que la app SIGA
+      // siendo legible, y el dock manda con el texto.
+      s.classList.remove('on'); gt.veil.classList.add('on');
+    } else {
+      gt.veil.classList.remove('on');
+      // Si venia oculto, colocalo sin animar el tamano desde 0 (evita el "crece").
+      if(!s.classList.contains('on')){ s.style.top=(hole.top+hole.height/2)+'px'; s.style.left=(hole.left+hole.width/2)+'px'; }
+      s.style.top=hole.top+'px'; s.style.left=hole.left+'px'; s.style.width=hole.width+'px'; s.style.height=hole.height+'px';
+      s.classList.add('on');
+    }
+  }
+
+  function setProgress(){ var pct = STEPS.length>1 ? (ti/(STEPS.length-1))*100 : 100; gt.prog.style.width = pct.toFixed(2)+'%'; }
+
+  function renderViz(kind){
+    var v=gt.viz;
+    if(!kind){ v.className='gt-viz'; v.innerHTML=''; return; }
+    v.className='gt-viz on';
+    if(kind.indexOf('reposo')===0){
+      var split=(kind!=='reposo-1');
+      var cap = kind==='reposo-1' ? 'Una cita, tres bloques'
+              : (kind==='reposo-2' ? 'Hueco productivo: <b>+1 cliente</b>' : 'Tu tiempo, al <b>100%</b>');
+      v.innerHTML='<div class="gt-viz-lane'+(split?' split':'')+'">'
+        +'<div class="gt-viz-seg v-act" style="left:0;width:33%">Tinte</div>'
+        +'<div class="gt-viz-seg v-rest" style="left:34%;width:31%">Reposo</div>'
+        +'<div class="gt-viz-seg v-new" style="left:35.5%;width:28%">+ Cliente</div>'
+        +'<div class="gt-viz-seg v-act" style="left:66%;width:34%">Peinar</div>'
+        +'</div><div class="gt-viz-cap">'+cap+'</div>';
+    } else if(kind==='ia'){
+      v.innerHTML='<div class="v-chat">'
+        +'<div class="gt-bubble them">Hola, ¿tenéis hueco mañana para mechas?</div>'
+        +'<div class="gt-bubble me">¡Sí! Mañana 11:00 con Sofía. ¿Te la reservo? ✨</div>'
+        +'</div>';
+    } else if(kind==='export'){
+      v.innerHTML='<div class="v-export">'
+        +'<div class="gt-fmt"><span class="b" style="background:#e0340e">PDF</span><div><div class="t">Con tu marca</div><div class="s">listo para imprimir</div></div></div>'
+        +'<div class="gt-fmt"><span class="b" style="background:#1f8a5b">CSV</span><div><div class="t">Datos en bruto</div><div class="s">para tu gestor</div></div></div>'
+        +'</div>';
+    }
+  }
+
+  function fillContent(s){
+    gt.ic.innerHTML=ICONS[s.ic]||'';
+    gt.phase.textContent=s.ph;
+    gt.count.innerHTML='<b>'+pad2(ti+1)+'</b> / '+pad2(STEPS.length);
+    gt.title.textContent=s.t;
+    gt.body.innerHTML=fmtBody(s.d);
+    renderViz(s.viz);
+  }
+  function updateNav(){
+    gt.prev.disabled = (ti===0);
+    var last = ti===STEPS.length-1;
+    var arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+    var check='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    gt.next.innerHTML = (last && STEPS===TUT_GENERAL) ? ('Ver Configuración '+arrow)
+        : (last ? ('Finalizar '+check) : ('Siguiente '+arrow));
+  }
+  function syncSelector(){
+    if(tutBtnGeneral) tutBtnGeneral.classList.toggle('active', STEPS===TUT_GENERAL);
+    if(tutBtnConfig) tutBtnConfig.classList.toggle('active', STEPS===TUT_CONFIG);
+  }
+
+  // Conduce el software: navega y, tras un respiro, abre el panel del paso.
+  // Cierra el panel del grupo anterior solo si cambia de grupo (cita/detalle).
+  function driveSoftware(s){
+    navFrame(s.route);
+    var a=s.action||'cerrar';
+    // Pasos SIN foco (pantalla completa o solo-abrir-modal): vuelve al velo suave
+    // ya, para que el foco del paso anterior no se quede pegado al ir/volver.
+    // En pasos CON foco no tocamos el hueco: el spot se desliza al llegar el nuevo.
+    var expectSpot = a!=='cerrar' && a!=='nueva-cita';
+    if(!expectSpot) setHole(null);
+    if(actTimer) clearTimeout(actTimer);
+    actTimer=setTimeout(function(){
+      var g=groupOf(a), lg=(lastAct==null)?null:groupOf(lastAct);
+      if(lg!==null && g!==lg) demoAction('cerrar');
+      if(a!=='cerrar') demoAction(a);
+      lastAct=a;
+    }, 60);
+  }
+
+  // Bloqueo breve: pulsar muy rapido NO debe encadenar abrir/cerrar paneles en el
+  // software (era el bug del boton "Atras"). Ignora next/prev durante la transicion.
+  function lockBriefly(){ busy=true; if(busyTimer) clearTimeout(busyTimer); busyTimer=setTimeout(function(){ busy=false; }, 240); }
+
+  // Cambia de paso de forma FLUIDA: el foco se desliza, el contenido hace un
+  // micro cross-fade y los controles del dock no se mueven nunca.
+  function renderStep(){
+    var s=STEPS[ti];
+    setProgress(); updateNav(); syncSelector();
+    driveSoftware(s);
+    gt.content.classList.add('swap');
+    if(swapTimer) clearTimeout(swapTimer);
+    swapTimer=setTimeout(function(){ fillContent(s); gt.content.classList.remove('swap'); }, 150);
+  }
+
+  function tourNext(){
+    if(busy) return; lockBriefly();
+    if(ti<STEPS.length-1){ ti++; renderStep(); return; }
+    if(STEPS===TUT_GENERAL){ STEPS=TUT_CONFIG; ti=0; renderStep(); }
+    else { closeTour(); }
+  }
+  function tourPrev(){ if(busy) return; if(ti>0){ lockBriefly(); ti--; renderStep(); } }
+  function closeTour(){
+    if(!gt.root) return;
+    gt.root.classList.remove('show');
+    if(actTimer) clearTimeout(actTimer);
+    if(swapTimer) clearTimeout(swapTimer);
+    demoAction('cerrar'); hole=null; lastAct='cerrar';
+  }
+
+  // Arranca (o reinicia) un tutorial desde el paso 1. El primer paso se pinta
+  // directo (sin cross-fade) para que aparezca al instante.
+  function playTutorial(which){
+    if(actTimer) clearTimeout(actTimer);
+    STEPS = (which==='config') ? TUT_CONFIG : TUT_GENERAL;
+    ti=0; tourStarted=true; hole=null; lastAct=null; busy=false;
+    gt.veil.classList.add('on'); gt.spot.classList.remove('on');
+    gt.root.classList.add('show');
+    setProgress(); updateNav(); syncSelector(); fillContent(STEPS[0]); gt.content.classList.remove('swap');
+    navFrame(STEPS[0].route);
+    var a0=STEPS[0].action||'cerrar';
+    actTimer=setTimeout(function(){ demoAction('cerrar'); if(a0!=='cerrar') demoAction(a0); lastAct=a0; }, 120);
+  }
+
+  function bootTourEngine(){ if(tourBooted) return; tourBooted=true; buildDock(); }
+
+  // El software nos reenvia el rect del foco; lo dibujamos sobre #gt.
   window.addEventListener('message', function(ev){
     if(ev.origin !== location.origin) return;
     var d = ev.data; if(!d || d.type !== 'mecha-spotlight') return;
-    if(!d.rect){ spotHole = null; positionTour(); return; }
-    var fr = frame.getBoundingClientRect();
-    spotHole = { top:d.rect.top+fr.top, left:d.rect.left+fr.left, width:d.rect.width, height:d.rect.height };
-    // Hay hueco real => paso CON spotlight: el texto va sobre lo oscuro (no on-light)
-    tourCine.classList.remove('on-light');
-    positionTour();
-    doReveal(); // B2: revelar ya, en la posicion final, una sola vez (sin saltos)
+    if(!gt.root) return;
+    setHole(d.rect||null);
+  });
+  document.addEventListener('keydown', function(e){
+    if(!gt.root || !gt.root.classList.contains('show')) return;
+    var sh=$('#shareModalOverlay');
+    if(sh && sh.classList.contains('show')) return; // no navegar con el modal de recomendar abierto
+    if(e.key==='ArrowRight'){ tourNext(); } else if(e.key==='ArrowLeft'){ tourPrev(); } else if(e.key==='Escape'){ closeTour(); }
   });
 
-  function positionTour(){
-    if(!tourCine) return;
-    var W = window.innerWidth, H = window.innerHeight;
-    // limpiar inline previo
-    tourCine.style.top=''; tourCine.style.bottom=''; tourCine.style.left=''; tourCine.style.right=''; tourCine.style.transform='';
-    if(tourPhase){ tourPhase.style.top=''; tourPhase.style.bottom=''; }
-    tourCine.classList.remove('side-left','side-right','side-center');
-
-    if(window.innerWidth<=720 || !spotHole){
-      tourCine.classList.add('side-'+curSide);
-      return;
-    }
-    var h = spotHole;
-    var leftGap = h.left, rightGap = W-(h.left+h.width);
-    var topGap = h.top, botGap = H-(h.top+h.height);
-    var NEED = 340;
-    var vCenter = Math.max(140, Math.min(H-200, h.top + h.height/2));
-    if(rightGap >= NEED && rightGap >= leftGap){
-      tourCine.classList.add('side-right');
-      tourCine.style.top = vCenter+'px'; tourCine.style.transform='translateY(-50%)';
-    } else if(leftGap >= NEED){
-      tourCine.classList.add('side-left');
-      tourCine.style.top = vCenter+'px'; tourCine.style.transform='translateY(-50%)';
-    } else if(botGap >= topGap){
-      tourCine.classList.add('side-center'); // banda inferior (CSS)
-    } else {
-      // mas espacio arriba que abajo: banda anclada arriba
-      tourCine.classList.add('side-center');
-      tourCine.style.bottom='auto'; tourCine.style.top='118px'; tourCine.style.left='50%'; tourCine.style.transform='translateX(-50%)';
-    }
-    // Titulo de fase: si el hueco invade la franja superior-central, bajarlo
-    // sobre los controles para que no lo tape.
-    if(tourPhase && h.top < 150 && h.left < W*0.62 && (h.left+h.width) > W*0.38){
-      tourPhase.style.top='auto'; tourPhase.style.bottom='92px';
-    }
+  // Llamado por enterDemo: monta el dock y arranca cuando el iframe esta listo
+  // (con respaldo por tiempo para maqueta o si se pierde el evento load).
+  function startTour(){
+    if(tourStarted) return; tourStarted=true;
+    bootTourEngine();
+    var fired=false;
+    function go(){ if(fired) return; fired=true; playTutorial('general'); }
+    if(frame){ frame.addEventListener('load', function(){ setTimeout(go, 300); }); }
+    setTimeout(go, 1700);
   }
-
-  // --- B1/B4: construye el texto cinematico troceado en PALABRAS (reveal en orden
-  // de escritura) con resaltado de **palabras clave** y una barra de acento. ---
-  function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function buildCine(text){
-    var parts=[], re=/\*\*([^*]+)\*\*/g, last=0, m;
-    function pushWords(str,hl){ str.split(/\s+/).forEach(function(w){ if(w) parts.push({w:w,hl:hl}); }); }
-    while((m=re.exec(text))){ pushWords(text.slice(last,m.index),false); pushWords(m[1],true); last=re.lastIndex; }
-    pushWords(text.slice(last),false);
-    var i=0, out='<span class="acc" aria-hidden="true"></span>';
-    out += parts.map(function(p){
-      var d=(i++*0.045).toFixed(3);
-      return '<span class="w'+(p.hl?' hl':'')+'" style="animation-delay:'+d+'s">'+escHtml(p.w)+'</span>';
-    }).join(' ');
-    return out;
-  }
-  // B2: revela el texto UNA sola vez, ya colocado en su posicion final (sin saltos).
-  function doReveal(){
-    if(revealed) return; revealed=true;
-    if(revealTimer){ clearTimeout(revealTimer); revealTimer=null; }
-    positionTour();
-    void tourCine.offsetWidth; // reflow para (re)iniciar la animacion por palabra
-    tourCine.classList.add('revealing');
-  }
-
-  function renderStep(){
-    var s=STEPS[ti];
-
-    // 1. Iniciar barra de carga premium
-    if (loader) {
-      loader.classList.add('active');
-      loader.style.width = '0%';
-      // Forzar reflow para reiniciar la animación
-      loader.offsetWidth;
-      loader.style.width = '85%';
-    }
-
-    // 2. Fundir el texto cinematico antes de cambiarlo
-    if (tourCine) tourCine.style.opacity = '0';
-
-    // Esperar a que termine el fade-out
-    setTimeout(function() {
-      // Titulo de FASE fijo arriba-centro: solo se reanima si cambia de fase.
-      var phase = s.ph || s.t;
-      tourIc.innerHTML=ICONS[s.ic];
-      tourTitle.textContent=phase;
-      if (phase !== lastPhase) {
-        tourPhase.classList.remove('changing');
-        void tourPhase.offsetWidth; // reflow para reiniciar la animacion
-        tourPhase.classList.add('changing');
-        lastPhase = phase;
-      }
-
-      // Texto cinematico: nuevo paso -> olvidamos el hueco anterior y colocamos
-      // por el fallback del paso; cuando la app reporte su spotlight, positionTour
-      // recoloca el texto en la zona oscura real.
-      // B1+B4: texto troceado en PALABRAS (orden de escritura) con **palabras clave**
-      tourText.innerHTML = buildCine(s.d);
-      curSide = sideOf(s);
-      spotHole = null;
-      // B5: por defecto asumimos paso fullscreen sobre el fondo CLARO de la app; si
-      // luego llega un spotlight real, el handler quita on-light (texto sobre oscuro).
-      tourCine.classList.add('on-light');
-      tourCine.classList.remove('revealing');
-      positionTour();
-      tourCine.style.opacity = '1';
-      // B2: NO revelar aun. Esperar a conocer la posicion final (spotlight del paso)
-      // o, si no llega, a un timeout corto (pasos sin spotlight). Una sola vez.
-      revealed = false;
-      if(revealTimer) clearTimeout(revealTimer);
-      var expectSpot = (s.action||'cerrar') !== 'cerrar';
-      revealTimer = setTimeout(doReveal, expectSpot ? 1100 : 360);
-
-      Array.prototype.forEach.call(tourDots.children,function(d,i){ d.classList.toggle('on', i===ti); });
-      tourPrev.disabled = ti===0;
-
-      if (ti === STEPS.length - 1) {
-        if (currentTutorial === TUTORIAL_GENERAL) {
-          tourNext.textContent = 'Ver Configuración';
-        } else {
-          tourNext.textContent = 'Finalizar';
-        }
-      } else {
-        tourNext.textContent = 'Siguiente';
-      }
-
-      setPointer();
-      navFrame(s.route);
-
-      var act=s.action||'cerrar';
-      if(stepTimer) clearTimeout(stepTimer);
-      stepTimer=setTimeout(function(){
-        var g=groupOf(act), lg=(lastAction==null)?null:groupOf(lastAction);
-        if(lg!==null && g!==lg){ demoAction('cerrar'); }
-        if(act!=='cerrar') demoAction(act);
-        lastAction=act;
-
-        // Completar la carga de la barra
-        if (loader) {
-          loader.style.width = '100%';
-          setTimeout(function() {
-            loader.classList.remove('active');
-            setTimeout(function() { loader.style.width = '0%'; }, 250);
-          }, 200);
-        }
-      }, 420);
-    }, 400);
-  }
-  // Marca en el selector cual de los dos tutoriales se esta reproduciendo.
-  function updateTutSel(){
-    var isGen = currentTutorial === TUTORIAL_GENERAL;
-    if(tutBtnGeneral) tutBtnGeneral.classList.toggle('active', isGen);
-    if(tutBtnConfig) tutBtnConfig.classList.toggle('active', !isGen);
-  }
-  function startTour(){ if(tourStarted) return; tourStarted=true; ti=0; lastAction=null; lastPhase=null; updateTutSel(); renderStep(); tour.classList.add('show'); }
-  // Lanza (o reinicia) un tutorial concreto desde el paso 1, dejando el software limpio.
-  function startTutorial(which){
-    if(stepTimer) clearTimeout(stepTimer);
-    demoAction('cerrar');
-    lastRoute=null; lastAction='cerrar';
-    currentTutorial = (which==='config') ? TUTORIAL_CONFIG : TUTORIAL_GENERAL;
-    STEPS = currentTutorial;
-    ti=0; tourStarted=true;
-    renderDots();
-    updateTutSel();
-    lastPhase=null;
-    renderStep();
-    tour.classList.add('show');
-  }
-  function closeTour(){ tour.classList.remove('show'); setPointer(null); if(stepTimer) clearTimeout(stepTimer); if(revealTimer) clearTimeout(revealTimer); demoAction('cerrar'); lastAction='cerrar'; }
-  tourNext.addEventListener('click',function(){
-    if(ti<STEPS.length-1){
-      ti++; renderStep();
-    } else {
-      if (currentTutorial === TUTORIAL_GENERAL) {
-        currentTutorial = TUTORIAL_CONFIG;
-        STEPS = currentTutorial;
-        ti = 0;
-        lastPhase = null;
-        renderDots();
-        updateTutSel();
-        renderStep();
-      } else {
-        closeTour();
-      }
-    }
-  });
-  tourPrev.addEventListener('click',function(){ if(ti>0){ ti--; renderStep(); } });
-  tourSkip.addEventListener('click',closeTour);
 
   // Selector de tutoriales: cada boton lanza/reinicia su recorrido desde el paso 1.
-  if(tutBtnGeneral){ tutBtnGeneral.addEventListener('click', function(){ startTutorial('general'); }); }
-  if(tutBtnConfig){ tutBtnConfig.addEventListener('click', function(){ startTutorial('config'); }); }
+  if(tutBtnGeneral){ tutBtnGeneral.addEventListener('click', function(){ bootTourEngine(); playTutorial('general'); }); }
+  if(tutBtnConfig){ tutBtnConfig.addEventListener('click', function(){ bootTourEngine(); playTutorial('config'); }); }
 
   boot();
 })();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mecha — Wallpaper</title>
+  <title>Mecha — Simple</title>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
@@ -18,23 +18,6 @@
       width: 100vw; height: 100vh;
       display: grid;
       place-items: center;
-    }
-
-    /* ---- Ambient background glow ---- */
-    .ambient {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: radial-gradient(ellipse 50% 55% at 50% 52%, rgba(224,52,14,.05) 0%, transparent 70%);
-    }
-
-    /* ---- Embers canvas (lightweight) ---- */
-    #embers {
-      position: absolute;
-      inset: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 1;
     }
 
     /* ---- Logo container ---- */
@@ -74,9 +57,6 @@
 <body>
 
 <div class="scene">
-  <div class="ambient"></div>
-  <canvas id="embers"></canvas>
-
   <!-- Logo -->
   <div class="mark-wrap">
     <div class="mark-glow"></div>
@@ -94,174 +74,5 @@
   </div>
 </div>
 
-<script>
-// ============================================================
-//  Ultra-optimized fire-ember system — pre-rendered glow textures
-//  No ctx.shadowBlur, no save/restore per particle → max FPS
-// ============================================================
-const cvs = document.getElementById('embers');
-const ctx = cvs.getContext('2d', { alpha: true });
-let W, H;
-
-function resize() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  W = window.innerWidth;
-  H = window.innerHeight;
-  cvs.width  = W * dpr;
-  cvs.height = H * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-window.addEventListener('resize', resize);
-resize();
-
-// ---- Pre-render glow textures (one per color) ----
-const COLORS = [
-  { r:255, g:207, b:74  },
-  { r:255, g:152, b:46  },
-  { r:255, g:122, b:46  },
-  { r:224, g:52,  b:14  },
-  { r:255, g:90,  b:30  },
-  { r:200, g:40,  b:10  },
-];
-
-const GLOW_SIZE = 64; // texture size in px
-const glowTextures = COLORS.map(c => {
-  const off = document.createElement('canvas');
-  off.width = GLOW_SIZE; off.height = GLOW_SIZE;
-  const oc = off.getContext('2d');
-  const cx = GLOW_SIZE / 2;
-  const g = oc.createRadialGradient(cx, cx, 0, cx, cx, cx);
-  g.addColorStop(0,   `rgba(${c.r},${c.g},${c.b},1)`);
-  g.addColorStop(0.15,`rgba(${c.r},${c.g},${c.b},.7)`);
-  g.addColorStop(0.4, `rgba(${c.r},${c.g},${c.b},.2)`);
-  g.addColorStop(1,   `rgba(${c.r},${c.g},${c.b},0)`);
-  oc.fillStyle = g;
-  oc.fillRect(0, 0, GLOW_SIZE, GLOW_SIZE);
-  return off;
-});
-
-const MAX_PARTICLES = 90;
-const particles = new Array(MAX_PARTICLES);
-
-// ---- Flat arrays for particle state (cache-friendly) ----
-function createEmber(scatter) {
-  const centerBias = Math.random() < 0.4;
-  const x = centerBias ? W * 0.3 + Math.random() * W * 0.4 : Math.random() * W;
-  const maxLife = 200 + Math.random() * 350;
-  return {
-    x,
-    y: scatter ? Math.random() * H : H + 10 + Math.random() * 40,
-    vy: -(0.3 + Math.random() * 1.2),
-    vx: (Math.random() - 0.5) * 0.4,
-    swayAmp:   0.3 + Math.random() * 1.2,
-    swayFreq:  0.008 + Math.random() * 0.015,
-    swayPhase: Math.random() * Math.PI * 2,
-    baseSize:  1 + Math.random() * 2.5,
-    maxLife,
-    life: scatter ? Math.random() * maxLife : maxLife,
-    flickerSpeed: 0.05 + Math.random() * 0.12,
-    flickerPhase: Math.random() * Math.PI * 2,
-    colorIdx: Math.floor(Math.random() * COLORS.length),
-    glowBase: 6 + Math.random() * 10,
-    windDrift: (Math.random() - 0.5) * 0.003,
-    t: 0
-  };
-}
-
-for (let i = 0; i < MAX_PARTICLES; i++) {
-  particles[i] = createEmber(true);
-}
-
-function resetEmber(p) {
-  const centerBias = Math.random() < 0.4;
-  p.x = centerBias ? W * 0.3 + Math.random() * W * 0.4 : Math.random() * W;
-  p.y = H + 10 + Math.random() * 40;
-  p.vy = -(0.3 + Math.random() * 1.2);
-  p.vx = (Math.random() - 0.5) * 0.4;
-  p.swayAmp = 0.3 + Math.random() * 1.2;
-  p.swayFreq = 0.008 + Math.random() * 0.015;
-  p.swayPhase = Math.random() * Math.PI * 2;
-  p.baseSize = 1 + Math.random() * 2.5;
-  p.maxLife = 200 + Math.random() * 350;
-  p.life = p.maxLife;
-  p.flickerSpeed = 0.05 + Math.random() * 0.12;
-  p.flickerPhase = Math.random() * Math.PI * 2;
-  p.colorIdx = Math.floor(Math.random() * COLORS.length);
-  p.glowBase = 6 + Math.random() * 10;
-  p.windDrift = (Math.random() - 0.5) * 0.003;
-  p.t = 0;
-}
-
-// ---- Animation loop — physics locked to 60fps, render at monitor rate ----
-const STEP = 1000 / 60; // 16.67ms per physics tick
-let lastTime = 0;
-let accumulator = 0;
-
-function physicsTick() {
-  for (let i = 0; i < MAX_PARTICLES; i++) {
-    const p = particles[i];
-    p.t++;
-    p.life--;
-
-    p.y += p.vy;
-    p.vy -= 0.001;
-    p.vx += p.windDrift;
-    p.x += p.vx + Math.sin(p.t * p.swayFreq + p.swayPhase) * p.swayAmp;
-
-    if (p.life <= 0 || p.y < -20 || p.x < -40 || p.x > W + 40) {
-      resetEmber(p);
-    }
-  }
-}
-
-function render() {
-  ctx.clearRect(0, 0, W, H);
-  ctx.globalCompositeOperation = 'screen';
-
-  for (let i = 0; i < MAX_PARTICLES; i++) {
-    const p = particles[i];
-    const lifeRatio = p.life / p.maxLife;
-    const flicker = Math.sin(p.t * p.flickerSpeed + p.flickerPhase);
-
-    let alpha = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.85 ? (1 - lifeRatio) / 0.15 : 1;
-    alpha *= (0.7 + 0.3 * (flicker * 0.5 + 0.5));
-    if (alpha < 0.02) continue;
-
-    const size = p.baseSize * (0.6 + 0.4 * (flicker * 0.5 + 0.5)) * (0.4 + 0.6 * lifeRatio);
-    const drawSize = size * (p.glowBase * 0.5);
-
-    ctx.globalAlpha = Math.min(alpha, 1);
-    ctx.drawImage(
-      glowTextures[p.colorIdx],
-      p.x - drawSize * 0.5,
-      p.y - drawSize * 0.5,
-      drawSize,
-      drawSize
-    );
-  }
-
-  ctx.globalAlpha = 1;
-}
-
-function animate(now) {
-  if (!lastTime) lastTime = now;
-  const dt = now - lastTime;
-  lastTime = now;
-
-  // Accumulate time, run physics at fixed 60fps steps
-  accumulator += Math.min(dt, 100); // cap to avoid spiral of death
-  while (accumulator >= STEP) {
-    physicsTick();
-    accumulator -= STEP;
-  }
-
-  render();
-  requestAnimationFrame(animate);
-}
-
-requestAnimationFrame(animate);
-</script>
-
 </body>
 </html>
-

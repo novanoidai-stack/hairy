@@ -3,7 +3,7 @@
 // TYPOGRAPHY HIERARCHY (4 niveles de color de texto sobre fondo claro):
 // - text: #1c1814        → títulos, nombres destacados, valores seleccionados
 // - textSecondary: #5c5249 → texto del cuerpo, descripciones, valores en reposo
-// - textTertiary: #8a7d70  → labels UPPERCASE, placeholders, meta info, "Sin teléfono"
+// - textTertiary: #736658  → labels UPPERCASE, placeholders, meta info, "Sin teléfono"
 // - textMuted: #b3a89d     → estados deshabilitados
 //
 // FONT WEIGHTS (Inter):
@@ -38,10 +38,10 @@ export const DESIGN_TOKENS = {
   // Text — carbón cálido, alto contraste
   text: '#1c1814',
   textSecondary: '#5c5249',
-  textTertiary: '#8a7d70',
+  textTertiary: '#736658',
   textMuted: '#b3a89d',
   textSec: '#5c5249',
-  textTer: '#8a7d70',
+  textTer: '#736658',
 
   // Primary (Fuego Mecha)
   primary: '#f4501e',
@@ -109,5 +109,5 @@ export const STATUS_META = {
   confirmada: { label: 'Confirmada', color: '#f4501e', soft: 'rgba(244,80,30,0.12)' },
   completada: { label: 'Completada', color: '#0f9d6b', soft: 'rgba(15,157,107,0.14)' },
   no_show: { label: 'No-show', color: '#e23b34', soft: 'rgba(226,59,52,0.14)' },
-  cancelada: { label: 'Cancelada', color: '#8a7d70', soft: 'rgba(138,125,112,0.14)' },
+  cancelada: { label: 'Cancelada', color: '#736658', soft: 'rgba(138,125,112,0.14)' },
 };

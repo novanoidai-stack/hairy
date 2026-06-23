@@ -53,7 +53,7 @@ const TOKENS = {
   borderHi: 'rgba(40,30,24,0.14)',
   text: '#1c1814',
   textSec: '#5c5249',
-  textTer: '#8a7d70',
+  textTer: '#736658',
   primary: '#f4501e',
   primaryHi: '#c0260a',
   primarySoft: 'rgba(244,80,30,0.12)',
@@ -480,21 +480,22 @@ export default function ClientesWeb() {
           <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4 }}>Clientes</h1>
           <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: TOKENS.textSec }}>{clientes.length} clientes activos</p>
         </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: isMobile ? 8 : 12, alignItems: 'center' }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <button
               onClick={() => setShowImportModal(true)}
-              style={{ padding: '9px 14px', background: '#ffffff', color: TOKENS.text, border: `1px solid ${TOKENS.border}`, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s ease' }}
+              title="Importar Excel"
+              style={{ padding: isMobile ? '9px 11px' : '9px 14px', background: '#ffffff', color: TOKENS.text, border: `1px solid ${TOKENS.border}`, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: isMobile ? 0 : 6, transition: 'all 0.15s ease' }}
             >
               <Icon name="upload" size={16} color={TOKENS.text} />
-              Importar Excel
+              {!isMobile && 'Importar Excel'}
             </button>
             <div 
               className="import-info-trigger"
               style={{
                 marginLeft: 8,
                 cursor: 'pointer',
-                display: 'flex',
+                display: isMobile ? 'none' : 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 width: 22,
@@ -539,17 +540,18 @@ export default function ClientesWeb() {
           <button
             className="m-btn-primary"
             onClick={() => { setEditingCliente(null); setShowClienteModal(true); }}
-            style={{ padding: '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6 }}
+            title="Nuevo cliente"
+            style={{ padding: isMobile ? '9px 11px' : '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: isMobile ? 0 : 6 }}
           >
             <Icon name="plus" size={16} color="#fff" />
-            Nuevo cliente
+            {!isMobile && 'Nuevo cliente'}
           </button>
         </div>
       </div>
 
       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (!c ? '1fr 0px' : (panelExpanded ? '0fr 1fr' : '1fr 420px')), overflow: 'hidden', transition: 'grid-template-columns 0.35s cubic-bezier(0.16,1,0.3,1)' }}>
         {/* List */}
-        <div style={{ display: (isMobile && selected) ? 'none' : 'block', overflowY: 'auto', overflowX: 'hidden', padding: (panelExpanded || (isMobile && selected)) ? 0 : (isMobile ? 12 : 24), minWidth: 0 }}>
+        <div style={{ display: (isMobile && selected) ? 'none' : 'block', overflowY: 'auto', overflowX: 'hidden', padding: (panelExpanded || (isMobile && selected)) ? 0 : (isMobile ? '12px 12px 88px' : 24), minWidth: 0 }}>
           {/* Search */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: '11px 14px', marginBottom: 16 }}>
             <Icon name="search" size={16} color={TOKENS.textSec} />
@@ -642,12 +644,16 @@ export default function ClientesWeb() {
                                 ⚠️ Alergias
                               </Pill>
                             );
-                          } else {
+                          } else if (!isMobile) {
+                            // En movil ocultamos "Sin alergias" (ruido en cada fila): solo
+                            // se marca cuando SI hay alergias. Asi la fila no envuelve.
                             return (
                               <Pill color="#64748b" style={{ background: 'rgba(148,163,184,0.06)', borderColor: 'rgba(148,163,184,0.12)' }}>
                                 Sin alergias
                               </Pill>
                             );
+                          } else {
+                            return null;
                           }
                         })()}
 
@@ -793,7 +799,7 @@ export default function ClientesWeb() {
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (panelExpanded ? 'repeat(4, 1fr)' : '1fr 1fr'), gap: isMobile ? '10px' : '14px 18px', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : (panelExpanded ? 'repeat(4, 1fr)' : '1fr 1fr'), gap: isMobile ? '10px 14px' : '14px 18px', marginTop: isMobile ? 12 : 16, paddingTop: isMobile ? 12 : 16, borderTop: `1px solid ${TOKENS.border}` }}>
                     <ContactRow icon="phone" label="Teléfono" value={c.telefono || '—'} accent={c.telefono ? TOKENS.primary : undefined} />
                     <ContactRow icon="mail" label="Email" value={c.email || '—'} accent={c.email ? TOKENS.cyan : undefined} />
                     <ContactRow icon="cake" label="Cumpleaños" value={cumpleStr} accent={cumpleStr !== '—' ? '#fb923c' : undefined} />
@@ -3280,16 +3286,16 @@ async function exportFichaPDF(c: any, citas: Cita[], servicios: any[]) {
   .meta { text-align:right; font-size:12px; color:#5c5249; line-height:1.6; }
   .meta strong { color:#1c1814; }
   h1 { font-size:22px; font-weight:800; letter-spacing:-0.5px; margin-bottom:2px; }
-  .sub { font-size:12.5px; color:#8a7d70; font-weight:600; }
+  .sub { font-size:12.5px; color:#736658; font-weight:600; }
   h2 { font-size:13px; font-weight:700; margin:20px 0 9px; padding-left:9px; border-left:4px solid #f4501e; text-transform:uppercase; letter-spacing:0.4px; }
   .stats { display:flex; gap:10px; margin-top:14px; }
   .stat { flex:1; border:1px solid rgba(40,30,24,0.12); border-radius:12px; padding:12px; text-align:center; }
   .stat .v { font-size:20px; font-weight:800; }
-  .stat .k { font-size:10px; color:#8a7d70; text-transform:uppercase; letter-spacing:0.6px; }
+  .stat .k { font-size:10px; color:#736658; text-transform:uppercase; letter-spacing:0.6px; }
   table { width:100%; border-collapse:collapse; font-size:12px; }
   th,td { text-align:left; padding:7px 9px; border-bottom:1px solid rgba(40,30,24,0.08); }
-  th { font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#8a7d70; }
-  .empty { color:#8a7d70; font-style:italic; }
+  th { font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#736658; }
+  .empty { color:#736658; font-style:italic; }
   .muted { color:#5c5249; font-size:12.5px; line-height:1.5; }
   .chips { display:flex; flex-wrap:wrap; gap:6px; }
   .chip { background:rgba(244,80,30,0.10); color:#c0260a; border:1px solid rgba(244,80,30,0.25); border-radius:999px; padding:4px 10px; font-size:11.5px; font-weight:600; }

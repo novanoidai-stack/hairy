@@ -50,7 +50,7 @@ const TOKENS = {
   borderHi: 'rgba(40,30,24,0.14)',
   text: '#1c1814',
   textSec: '#5c5249',
-  textTer: '#8a7d70',
+  textTer: '#736658',
   primary: '#f4501e',
   primaryHi: '#c0260a',
   primarySoft: 'rgba(244,80,30,0.12)',
@@ -136,7 +136,7 @@ const ANIMATIONS = `
 // InfoDot: icono "i" con explicacion al pasar el raton o pulsar.
 // Texto: que mide, en que franja/periodo y para que sirve.
 // ---------------------------------------------------------------------------
-const InfoDot = ({ text, color = '#8a7d70' }: { text: string; color?: string }) => {
+const InfoDot = ({ text, color = '#736658' }: { text: string; color?: string }) => {
   const [open, setOpen] = useState(false);
   return (
     <span
@@ -861,26 +861,26 @@ export default function InformesScreen() {
   .head { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 3px solid #f4501e; padding-bottom: 14px; margin-bottom: 22px; }
   .brand { font-size: 27px; font-weight: 800; letter-spacing: -0.6px; }
   .brand .dot { color: #f4501e; }
-  .brand .sub { font-size: 12px; font-weight: 600; color: #8a7d70; letter-spacing: 0.4px; margin-top: 2px; }
+  .brand .sub { font-size: 12px; font-weight: 600; color: #736658; letter-spacing: 0.4px; margin-top: 2px; }
   .meta { text-align: right; font-size: 12px; color: #5c5249; line-height: 1.6; }
   .meta strong { color: #1c1814; }
   h2 { font-size: 14px; font-weight: 700; margin: 22px 0 10px; padding-left: 10px; border-left: 4px solid #f4501e; }
   .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .kpi { border: 1px solid rgba(40,30,24,0.12); border-radius: 10px; padding: 11px 13px; }
-  .kpi-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #8a7d70; font-weight: 700; }
+  .kpi-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #736658; font-weight: 700; }
   .kpi-value { font-size: 19px; font-weight: 800; margin-top: 4px; letter-spacing: -0.3px; }
   table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-  th { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #8a7d70; font-weight: 700; padding: 6px 9px; border-bottom: 2px solid rgba(40,30,24,0.14); }
+  th { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #736658; font-weight: 700; padding: 6px 9px; border-bottom: 2px solid rgba(40,30,24,0.14); }
   td { padding: 6px 9px; border-bottom: 1px solid rgba(40,30,24,0.07); }
   th.num, td.num { text-align: right; }
   tr:nth-child(even) td { background: #faf7f3; }
   tfoot td { font-weight: 800; border-top: 2px solid rgba(40,30,24,0.20); background: #fff !important; }
-  .empty { color: #8a7d70; font-style: italic; }
+  .empty { color: #736658; font-style: italic; }
   .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
   .cols3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
   .coltitle { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #5c5249; margin-bottom: 6px; }
   section { page-break-inside: avoid; margin-bottom: 6px; }
-  .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid rgba(40,30,24,0.12); font-size: 9.5px; color: #8a7d70; text-align: center; }
+  .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid rgba(40,30,24,0.12); font-size: 9.5px; color: #736658; text-align: center; }
   @page { margin: 13mm; }
   @media print { body { padding: 0; } }
 </style></head>
@@ -1016,10 +1016,10 @@ export default function InformesScreen() {
 
   const BarHorizontal = ({ pct, color, label, sublabel, delay = 0 }: { pct: number; color: string; label: string; sublabel?: string; delay?: number }) => (
     <div className="metric-row" style={{
-      display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px',
+      display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 12, padding: isMobile ? '6px 8px' : '8px 12px',
       borderRadius: 8, cursor: 'default',
     }}>
-      <div style={{ minWidth: 100, fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>{label}</div>
+      <div style={{ minWidth: isMobile ? 74 : 100, fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>{label}</div>
       <div style={{ flex: 1, height: 8, borderRadius: 4, background: 'rgba(148,163,184,0.08)' }}>
         <div className="bar-fill" style={{
           width: `${Math.min(pct, 100)}%`, height: '100%', borderRadius: 4,
@@ -1027,8 +1027,8 @@ export default function InformesScreen() {
           transitionDelay: `${delay}ms`,
         }} />
       </div>
-      <div style={{ minWidth: 48, fontSize: 12, color: TOKENS.textSec, textAlign: 'right', fontWeight: 600 }}>{fmtPct(pct)}</div>
-      {sublabel && <div style={{ minWidth: 60, fontSize: 11, color: TOKENS.textTer, textAlign: 'right' }}>{sublabel}</div>}
+      <div style={{ minWidth: isMobile ? 38 : 48, fontSize: 12, color: TOKENS.textSec, textAlign: 'right', fontWeight: 600 }}>{fmtPct(pct)}</div>
+      {sublabel && <div style={{ minWidth: isMobile ? 46 : 60, fontSize: 11, color: TOKENS.textTer, textAlign: 'right' }}>{sublabel}</div>}
     </div>
   );
 
@@ -1082,23 +1082,23 @@ export default function InformesScreen() {
   const SectionHeader = ({ id, icon, iconColor, title, subtitle }: { id?: SeccionId; icon: string; iconColor: string; title: string; subtitle: string }) => (
     <div
       style={{
-        display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px',
+        display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12, padding: isMobile ? '11px 13px' : '14px 18px',
         borderRadius: '14px 14px 0 0', background: TOKENS.bgCard,
         border: `1px solid ${TOKENS.border}`, borderBottom: `1px solid ${TOKENS.border}`,
       }}
     >
       <div style={{
-        width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: `${iconColor}18`,
+        width: isMobile ? 30 : 36, height: isMobile ? 30 : 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: `${iconColor}18`, flexShrink: 0,
       }}>
-        <Icon name={icon} size={18} color={iconColor} />
+        <Icon name={icon} size={isMobile ? 16 : 18} color={iconColor} />
       </div>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>{title}</span>
+          <span style={{ fontSize: isMobile ? 13.5 : 14, fontWeight: 700, color: TOKENS.text }}>{title}</span>
           {id && SECTION_INFO[id] && <InfoDot text={SECTION_INFO[id]} color={iconColor} />}
         </div>
-        <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 1 }}>{subtitle}</div>
+        <div style={{ fontSize: isMobile ? 10.5 : 11, color: TOKENS.textTer, marginTop: 1 }}>{subtitle}</div>
       </div>
     </div>
   );
@@ -1106,7 +1106,7 @@ export default function InformesScreen() {
   // Cuerpo de seccion (siempre renderizado, parte inferior de la tarjeta)
   const SectionBody = ({ children }: { id?: SeccionId; children: React.ReactNode }) => (
     <div className="section-card" style={{
-      padding: 18, borderRadius: '0 0 14px 14px', background: TOKENS.bgCard,
+      padding: isMobile ? 13 : 18, borderRadius: '0 0 14px 14px', background: TOKENS.bgCard,
       border: `1px solid ${TOKENS.border}`, borderTop: 'none', marginTop: 0,
     }}>
       {children}
@@ -1124,12 +1124,12 @@ export default function InformesScreen() {
 
       {/* Topbar */}
       <div className="informe-topbar" style={{
-        padding: '20px 28px 16px', borderBottom: `1px solid ${TOKENS.border}`,
+        padding: isMobile ? '12px 16px' : '20px 28px 16px', borderBottom: `1px solid ${TOKENS.border}`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: 12,
+        flexWrap: 'wrap', gap: isMobile ? 10 : 12,
       }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: TOKENS.text, margin: 0 }}>Informes</h1>
+          <h1 style={{ fontSize: isMobile ? 19 : 22, fontWeight: 700, color: TOKENS.text, margin: 0 }}>Informes</h1>
           <div style={{ fontSize: 12, color: TOKENS.textTer, marginTop: 2 }}>{periodoLabel}</div>
         </div>
         {/* flexWrap: en movil el selector de periodo y los botones CSV/PDF no
@@ -1142,8 +1142,8 @@ export default function InformesScreen() {
                 key={p.key}
                 onClick={() => setPeriodo(p.key)}
                 style={{
-                  padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  fontSize: 12, fontWeight: periodo === p.key ? 600 : 400,
+                  padding: isMobile ? '6px 11px' : '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  fontSize: isMobile ? 11.5 : 12, fontWeight: periodo === p.key ? 600 : 400,
                   background: periodo === p.key ? TOKENS.primary : 'transparent',
                   color: periodo === p.key ? '#fff' : TOKENS.textSec,
                   transition: 'all 0.2s ease',
@@ -1175,7 +1175,7 @@ export default function InformesScreen() {
           <button
             onClick={exportPDF}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px',
+              display: 'flex', alignItems: 'center', gap: 6, padding: isMobile ? '7px 12px' : '7px 16px',
               borderRadius: 10, border: 'none', cursor: 'pointer',
               background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff',
               fontSize: 12, fontWeight: 600, boxShadow: '0 6px 18px rgba(244,80,30,0.40)',
@@ -1185,14 +1185,14 @@ export default function InformesScreen() {
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(244,80,30,0.40)'; }}
           >
             <Icon name="download" size={14} color="#fff" />
-            Descargar PDF
+            {isMobile ? 'PDF' : 'Descargar PDF'}
           </button>
           </div>
         </div>
       </div>
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px 40px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '14px 14px 96px' : '20px 28px 40px' }}>
         {accessDenied ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, gap: 8, flexDirection: 'column' }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: TOKENS.text }}>Acceso restringido</div>
@@ -1210,7 +1210,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* minmax(0,1fr): sin el minimo 0 las tarjetas no encogen por debajo
                 de su contenido y la columna derecha se sale de la pantalla en movil */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: isMobile ? 14 : 24 }}>
               {[
                 { label: 'Citas totales', value: totalCitas, icon: 'calendar', color: TOKENS.primary, bg: TOKENS.primarySoft },
                 { label: hayCobros ? 'Ingresos (estim.)' : 'Ingresos', value: `${fmtEur(totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
@@ -1244,7 +1244,7 @@ export default function InformesScreen() {
                       {KPI_INFO[kpi.label] && <InfoDot text={KPI_INFO[kpi.label]} color={kpi.color} />}
                     </span>
                   </div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: TOKENS.text, animation: 'countUp 0.6s ease both', animationDelay: `${i * 60 + 200}ms` }}>
+                  <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: TOKENS.text, animation: 'countUp 0.6s ease both', animationDelay: `${i * 60 + 200}ms` }}>
                     {kpi.value}
                   </div>
                 </div>
@@ -1254,7 +1254,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* C4: Evolucion temporal                                        */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader icon="trendingUp" iconColor={TOKENS.success} title="Evolucion del periodo" subtitle="Ingresos y citas dia a dia" />
               <SectionBody>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 18 }}>
@@ -1273,7 +1273,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* 9.1: Ocupacion                                                */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader id="ocupacion" icon="barChart" iconColor={TOKENS.cyan} title="Distribucion de citas" subtitle={`${ocupacionData.total} citas en el periodo`} />
               <SectionBody id="ocupacion">
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
@@ -1324,7 +1324,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* 9.2: No-shows                                                 */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader id="noshows" icon="alertTriangle" iconColor={TOKENS.danger} title="Tasa de no-shows" subtitle={`${noShows.length} no-shows de ${totalCitas} citas (${fmtPct(tasaNoShow)})`} />
               <SectionBody id="noshows">
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
@@ -1369,7 +1369,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* 9.3: Tiempo medio de espera                                   */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader id="espera" icon="clock" iconColor={TOKENS.warning} title="Tiempo medio de espera entre citas" subtitle={`Media global: ${Math.round(esperaData.avgGlobal)} minutos`} />
               <SectionBody id="espera">
                 {profsActivos.length === 0 && <div style={{ fontSize: 12, color: TOKENS.textTer, padding: 8 }}>Sin datos</div>}
@@ -1393,7 +1393,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* 9.4: Reposo aprovechado                                       */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader id="reposo" icon="zap" iconColor={TOKENS.violet} title="Tiempos de reposo aprovechados" subtitle={`${Math.round(reposoData.globalUsed)} de ${Math.round(reposoData.globalTotal)} min de reposo utilizados`} />
               <SectionBody id="reposo">
                 {/* Global gauge */}
@@ -1419,7 +1419,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* 9.5: Ingresos                                                 */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader id="ingresos" icon="dollar" iconColor={TOKENS.success} title="Ingresos" subtitle={`Total: ${fmtEur(totalIngresos)} EUR`} />
               <SectionBody id="ingresos">
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
@@ -1575,7 +1575,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* 9.6: Servicios top + combinaciones                            */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader id="servicios" icon="scissors" iconColor={TOKENS.primary} title="Servicios mas solicitados" subtitle={`${serviciosData.totalServicios} servicios realizados`} />
               <SectionBody id="servicios">
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
@@ -1620,7 +1620,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* 9.7: Retencion de clientes                                    */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader id="retencion" icon="heart" iconColor={TOKENS.rose} title="Retencion de clientes" subtitle={`${retencionData.clientesActivos} clientes activos en el periodo`} />
               <SectionBody id="retencion">
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
@@ -1661,7 +1661,7 @@ export default function InformesScreen() {
             {/* ============================================================= */}
             {/* 9.8: Comisiones                                               */}
             {/* ============================================================= */}
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
               <SectionHeader id="comisiones" icon="percent" iconColor={TOKENS.amber} title="Comisiones por profesional" subtitle={`Porcentaje aplicado: ${comisionPct}%`} />
               <SectionBody id="comisiones">
                 {/* Commission % selector — envuelve en movil para no salirse */}

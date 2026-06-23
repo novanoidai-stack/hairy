@@ -24,7 +24,7 @@ export const colors = {
     borderStrong: 'rgba(40,30,24,0.14)',
     text: '#1c1814',
     textSecondary: '#5c5249',
-    textTertiary: '#8a7d70',
+    textTertiary: '#736658',
     tabBar: '#fffdfb',
     tabBarBorder: 'rgba(40,30,24,0.08)',
   },

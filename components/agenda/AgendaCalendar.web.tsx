@@ -203,8 +203,9 @@ export default function AgendaCalendar() {
   const [dropEstadoOpen, setDropEstadoOpen] = useState(false);
   // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral
   const [railCollapsed, setRailCollapsed] = useState(false);
-  // Colapso de la barra de filtros (vista/servicio/estado)
-  const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
+  // Colapso de la barra de filtros (vista/servicio/estado). En movil arranca plegada:
+  // ocupa demasiado alto y el dia es la vista principal; se despliega con el chip "Filtros".
+  const [toolbarCollapsed, setToolbarCollapsed] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
   // Colapso independiente de los bloques del rail lateral (KPIs y mini-calendario)
   const [kpisCollapsed, setKpisCollapsed] = useState(false);
   const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
@@ -452,11 +453,14 @@ export default function AgendaCalendar() {
   // El rail se colapsa solo si railCollapsed=true o si estamos en movil/tablet
   const isReallyCollapsed = railCollapsed || isMobile || isTablet;
 
-  // En movil mostramos UN profesional a la vez: las columnas multiples se aplastan
-  // (160px cada una) y la agenda se ve gigante. Al cargar, si seguimos en "todos",
-  // seleccionamos el primer profesional para que la columna ocupe todo el ancho.
+  // En movil arrancamos mostrando UN profesional a la vez (columna a ancho completo);
+  // "todos" repartiria el ancho y se ve apretado. Solo forzamos el primer profesional
+  // en la PRIMERA carga: si despues el usuario elige "Ver todos" a proposito, se respeta
+  // (la rejilla ya scrollea en horizontal con varias columnas a 160px).
+  const didAutoPickProf = useRef(false);
   useEffect(() => {
-    if (isMobile && selectedProf === 'todos' && visibleProfs.length > 0) {
+    if (isMobile && selectedProf === 'todos' && visibleProfs.length > 0 && !didAutoPickProf.current) {
+      didAutoPickProf.current = true;
       setSelectedProf(visibleProfs[0].id);
     }
   }, [isMobile, visibleProfs, selectedProf]);
@@ -1300,28 +1304,50 @@ export default function AgendaCalendar() {
                     </div>
                   </div>
                 </div>
-                {/* Toggles de vista */}
-                {!isMobile && !isTablet && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {/* Toggle barra de filtros */}
-                    <button
-                      onClick={() => setToolbarCollapsed(v => !v)}
-                      title={toolbarCollapsed ? 'Mostrar filtros' : 'Ocultar filtros'}
-                      style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', background: toolbarCollapsed ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${toolbarCollapsed ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, color: toolbarCollapsed ? TOKENS.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                      </svg>
-                      {toolbarCollapsed ? 'Filtros' : 'Ocultar'}
-                    </button>
-
-                  </div>
-                )}
+                {/* Toggle de la barra de filtros (vista/servicio/estado/buscador).
+                    Tambien en movil/tablet: alli la barra arranca plegada porque ocupa
+                    mucho alto, y este chip la despliega/recoge. */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  <button
+                    onClick={() => setToolbarCollapsed(v => !v)}
+                    title={toolbarCollapsed ? 'Mostrar filtros' : 'Ocultar filtros'}
+                    aria-label={toolbarCollapsed ? 'Mostrar filtros' : 'Ocultar filtros'}
+                    style={{ display: 'flex', alignItems: 'center', gap: 7, padding: isMobile ? '7px 11px' : '7px 12px', background: toolbarCollapsed ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${toolbarCollapsed ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, color: toolbarCollapsed ? TOKENS.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, flexShrink: 0, minHeight: 33 }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                    </svg>
+                    {toolbarCollapsed ? 'Filtros' : 'Ocultar'}
+                  </button>
+                </div>
               </div>
 
               {/* Selector de profesional en movil: UNO a la vez (switcher con flechas
                   + toque para elegir de una lista). Evita las columnas aplastadas. */}
               {isMobile && visibleProfs.length > 0 && (() => {
+                // "Ver todos": barra distinta (icono cuadricula + nº de columnas); el
+                // toque reabre el selector para volver a un solo profesional.
+                if (selectedProf === 'todos') {
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: TOKENS.bgCard, border: `1.5px solid ${TOKENS.primary}`, borderRadius: 13, padding: '8px 10px', marginBottom: 12 }}>
+                      <button
+                        onClick={() => setShowProfPicker(true)}
+                        style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 9, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}
+                      >
+                        <span style={{ width: 32, height: 32, borderRadius: 9, background: TOKENS.primary, color: '#fff', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                          <svg width="15" height="15" viewBox="0 0 12 12" fill="#fff"><rect x="0" y="0" width="5" height="5" rx="1"/><rect x="7" y="0" width="5" height="5" rx="1"/><rect x="0" y="7" width="5" height="5" rx="1"/><rect x="7" y="7" width="5" height="5" rx="1"/></svg>
+                        </span>
+                        <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14.5, fontWeight: 700, color: TOKENS.text }}>
+                            Todos los profesionales
+                            <Icon name="chevronDown" size={14} color={TOKENS.textTer} />
+                          </span>
+                          <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>{visibleProfs.length} columnas · desliza en horizontal</span>
+                        </span>
+                      </button>
+                    </div>
+                  );
+                }
                 const idx = Math.max(0, visibleProfs.findIndex((p) => p.id === selectedProf));
                 const curr = visibleProfs[idx] || visibleProfs[0];
                 const count = citasHoy.filter((c: any) => c.profesional_id === curr.id).length;
@@ -1740,8 +1766,10 @@ export default function AgendaCalendar() {
       })()}
       {/* Modal del calendario en movil */}
       {showMobileCalendar && (
-        <div onClick={() => setShowMobileCalendar(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'grid', placeItems: 'center', zIndex: 9999, animation: 'fadeIn 0.2s ease' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: 340, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 20, animation: 'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
+        <div onClick={() => setShowMobileCalendar(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'grid', placeItems: 'center', zIndex: 9999, animation: 'fadeIn 0.2s ease', padding: 16 }}>
+          {/* maxHeight + overflow: en pantallas bajas (movil apaisado, SE) el calendario
+              no debe cortarse; scrollea dentro de la tarjeta en vez de salirse. */}
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: 340, maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 20, animation: 'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: TOKENS.text }}>Ir a fecha</h3>
               <button
@@ -1852,6 +1880,20 @@ export default function AgendaCalendar() {
             <div style={{ width: 38, height: 4, borderRadius: 999, background: TOKENS.border, margin: '0 auto 14px' }} />
             <div style={{ fontSize: 15, fontWeight: 700, color: TOKENS.text, marginBottom: 12 }}>Ver profesional</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {/* Ver todos: muestra todas las columnas a la vez (scroll horizontal) */}
+              <button
+                onClick={() => { setSelectedProf('todos'); setShowProfPicker(false); }}
+                style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 12px', borderRadius: 12, background: selectedProf === 'todos' ? 'rgba(244,80,30,0.10)' : TOKENS.bgCard, border: `1px solid ${selectedProf === 'todos' ? TOKENS.primary : TOKENS.border}`, cursor: 'pointer', textAlign: 'left' }}
+              >
+                <span style={{ width: 34, height: 34, borderRadius: 9, background: TOKENS.primary, color: '#fff', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <svg width="15" height="15" viewBox="0 0 12 12" fill="#fff"><rect x="0" y="0" width="5" height="5" rx="1"/><rect x="7" y="0" width="5" height="5" rx="1"/><rect x="0" y="7" width="5" height="5" rx="1"/><rect x="7" y="7" width="5" height="5" rx="1"/></svg>
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: TOKENS.text }}>Todos los profesionales</span>
+                  <span style={{ display: 'block', fontSize: 11.5, color: TOKENS.textSec }}>Ver todas las columnas (desliza en horizontal)</span>
+                </span>
+                {selectedProf === 'todos' && <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.primaryHi, flexShrink: 0 }}>Viendo</span>}
+              </button>
               {visibleProfs.map((p) => {
                 const sel = p.id === selectedProf;
                 const n = citasHoy.filter((c: any) => c.profesional_id === p.id).length;
@@ -2691,6 +2733,9 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
   const [nuevoClienteTelefono, setNuevoClienteTelefono] = useState('');
   const [creandoCliente, setCreandoCliente] = useState(false);
   const [clienteSearch, setClienteSearch] = useState('');
+  // Cita anonima ("invitado"): permite guardar sin ficha de cliente. Es opt-in
+  // explicito para no crear citas sin cliente por descuido.
+  const [sinCliente, setSinCliente] = useState(false);
   const [citasConfirmadas, setCitasConfirmadas] = useState<any[]>([]);
   const citasConfirmadasRef = useRef<any[]>([]);
   citasConfirmadasRef.current = citasConfirmadas;
@@ -3071,8 +3116,8 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
       setErrMsg('Por favor completa todos los campos');
       return;
     }
-    if (!selectedCliente) {
-      setErrMsg('Por favor selecciona un cliente');
+    if (!selectedCliente && !sinCliente) {
+      setErrMsg('Selecciona un cliente o marca "Sin cliente"');
       return;
     }
 
@@ -3336,8 +3381,10 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
       <div style={{
         width: '100%',
         maxWidth: isMobileOrTablet ? '100%' : 580,
-        height: isMobileOrTablet ? '92vh' : 'auto',
-        maxHeight: isMobileOrTablet ? '92vh' : '90vh',
+        // dvh (no vh): en movil el alto de la barra del navegador NO se descuenta
+        // con vh, y el fondo del modal (con el boton Reservar) quedaba cortado.
+        height: isMobileOrTablet ? '92dvh' : 'auto',
+        maxHeight: isMobileOrTablet ? '92dvh' : '90vh',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -3413,11 +3460,11 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 22 }}>
           {[1, 2, 3].map((n) => (
             <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: n < 3 ? 1 : undefined }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, background: (n === 1 && selectedCliente) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${(n === 1 && selectedCliente) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? 'rgba(244,80,30,0.4)' : TOKENS.border}` }}>
-                <div style={{ width: 18, height: 18, borderRadius: 999, background: (n === 1 && selectedCliente) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? TOKENS.primary : 'rgba(148,163,184,0.18)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'grid', placeItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, background: (n === 1 && (selectedCliente || sinCliente)) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${(n === 1 && (selectedCliente || sinCliente)) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? 'rgba(244,80,30,0.4)' : TOKENS.border}` }}>
+                <div style={{ width: 18, height: 18, borderRadius: 999, background: (n === 1 && (selectedCliente || sinCliente)) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? TOKENS.primary : 'rgba(148,163,184,0.18)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'grid', placeItems: 'center' }}>
                   {n}
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 600, color: (n === 1 && selectedCliente) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? TOKENS.primaryHi : TOKENS.textSec }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: (n === 1 && (selectedCliente || sinCliente)) || (n === 2 && selectedServicio) || (n === 3 && selectedHora) ? TOKENS.primaryHi : TOKENS.textSec }}>
                   {['Cliente', 'Servicio', 'Hora'][n - 1]}
                 </span>
               </div>
@@ -3430,7 +3477,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
         {citasConfirmadas.length > 0 ? (
           <div style={{ marginBottom: 14, padding: '10px 14px', background: 'rgba(244,80,30,0.06)', border: `1px solid rgba(244,80,30,0.2)`, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Cliente:</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.primaryHi }}>{clientes.find((c: any) => c.id === selectedCliente)?.nombre || ''}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.primaryHi }}>{clientes.find((c: any) => c.id === selectedCliente)?.nombre || (sinCliente ? 'Sin cliente' : '')}</div>
           </div>
         ) : (
         <div ref={(el) => { clienteZoneRef.current = el; }} style={{ marginBottom: 14 }}>
@@ -3466,7 +3513,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
             {clientes.filter((c) => norm(c.nombre).includes(norm(clienteSearch))).map((c) => (
               <button
                 key={c.id}
-                onClick={() => setSelectedCliente(c.id)}
+                onClick={() => { setSelectedCliente(c.id); setSinCliente(false); }}
                 style={{
                   padding: '8px 12px',
                   background: selectedCliente === c.id ? 'rgba(244,80,30,0.18)' : TOKENS.bgCard,
@@ -3516,6 +3563,25 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
             >
               + Crear
             </button>
+            {/* Cita anonima / invitado: guardar sin ficha de cliente */}
+            <button
+              onClick={() => { setSinCliente((v) => { const nv = !v; if (nv) setSelectedCliente(''); return nv; }); }}
+              title="Crear la cita sin asignar un cliente"
+              style={{
+                padding: '8px 12px',
+                background: sinCliente ? 'rgba(244,80,30,0.18)' : TOKENS.bgCard,
+                border: `1px dashed ${sinCliente ? 'rgba(244,80,30,0.45)' : TOKENS.borderHi}`,
+                borderRadius: 8,
+                color: sinCliente ? TOKENS.primaryHi : TOKENS.textSec,
+                cursor: 'pointer',
+                fontSize: 11,
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Sin cliente
+            </button>
           </div>
         </div>
         )}
@@ -3550,7 +3616,9 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
               return (
                 <button
                   key={s.id}
-                  onClick={() => setSelectedServicio(s.id)}
+                  // Toggle: si ya esta elegido, un segundo clic lo deselecciona
+                  // (antes quedaba "pegado" y no se podia quitar el servicio elegido).
+                  onClick={() => setSelectedServicio(selectedServicio === s.id ? '' : s.id)}
                   style={{
                     padding: '12px',
                     background: selectedServicio === s.id ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard,
@@ -4097,7 +4165,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
           const puedeGuardar = totalCitas > 0 && selectedCliente && !guardando;
           const puedeEncadenar = formCompleto && !guardando;
           return (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0, padding: isMobileOrTablet ? '14px 20px 22px' : '16px 24px', borderTop: `1px solid ${TOKENS.border}`, background: TOKENS.bgPanel }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0, padding: isMobileOrTablet ? '14px 20px calc(18px + env(safe-area-inset-bottom, 0px))' : '16px 24px', borderTop: `1px solid ${TOKENS.border}`, background: TOKENS.bgPanel }}>
               <button
                 onClick={onClose}
                 style={{
@@ -5025,7 +5093,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
           borderRadius: isMobileOrTablet ? '24px 24px 0 0' : 16,
           maxWidth: 900,
           width: isMobileOrTablet ? '100%' : '95%',
-          maxHeight: isMobileOrTablet ? '90vh' : '90vh',
+          maxHeight: isMobileOrTablet ? '90dvh' : '90vh',
           overflow: 'hidden',
           border: isMobileOrTablet ? 'none' : `1px solid ${TOKENS.border}`,
           boxShadow: `0 20px 60px rgba(0,0,0,0.4)`,
@@ -6020,7 +6088,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
             bottom: 0,
             zIndex: 4,
             background: TOKENS.bgPanel,
-            padding: isMobileOrTablet ? '12px 18px 22px' : '20px 32px',
+            padding: isMobileOrTablet ? '12px 18px calc(18px + env(safe-area-inset-bottom, 0px))' : '20px 32px',
             borderTop: `1px solid ${TOKENS.border}`,
             gap: 12,
             flexWrap: 'wrap',

@@ -4,6 +4,7 @@ import { getUserProfile } from '@/lib/auth';
 import { format, parseISO, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
+import { useResponsive } from '@/lib/hooks/useResponsive';
 
 // ─────────────────────────────────────────────────────────────────────────────────
 // Tokens (consistente con el resto de .web.tsx)
@@ -17,7 +18,7 @@ const T = {
   borderHi: 'rgba(40,30,24,0.16)',
   text: '#1c1814',
   textSec: '#5c5249',
-  textTer: '#8a7d70',
+  textTer: '#736658',
   primary: '#f4501e',
   primaryHi: '#c0260a',
   primarySoft: 'rgba(244,80,30,0.10)',
@@ -103,6 +104,7 @@ function downloadCSV(filename: string, rows: (string | number)[][]) {
 // COMPONENTE PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────────
 export default function CajaScreen() {
+  const { isMobile } = useResponsive();
   const [citas, setCitas] = useState<CitaPendiente[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -358,17 +360,22 @@ export default function CajaScreen() {
   }
 
   return (
-    <div style={{ background: T.bg, minHeight: '100vh', padding: '20px' }}>
+    <div style={{ background: T.bg, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <style>{ANIM}</style>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
+      {/* Contenedor con scroll propio: en movil la pantalla vive en una escena de
+          altura acotada (con la tab bar de 58px abajo); sin overflowY propio + padding
+          inferior, el contenido se cortaba y no se podia hacer scroll. */}
+      <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: isMobile ? '16px 14px 96px' : '20px' }}>
+
       {/* Header */}
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: T.text, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Icon name="wallet" size={28} color={T.primary} />
+      <div style={{ marginBottom: isMobile ? 16 : 20 }}>
+        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="wallet" size={isMobile ? 22 : 28} color={T.primary} />
           Caja
         </h1>
-        <p style={{ fontSize: 14, color: T.textSec, margin: 0 }}>
+        <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>
           {canSeeAll
             ? 'Cobra las citas completadas, controla el arqueo del día y la jornada del equipo.'
             : 'Ficha tu entrada y tu salida del turno.'}
@@ -590,8 +597,9 @@ export default function CajaScreen() {
           })}
         </div>
       ))}
+      </div>{/* fin contenedor con scroll */}
 
-      {/* Modal de cobro — solo propietario/dirección */}
+      {/* Modal de cobro — solo propietario/dirección (fixed: fuera del scroll) */}
       {canSeeAll && showCobroModal && (
         <CobroModal
           seleccion={seleccion}
