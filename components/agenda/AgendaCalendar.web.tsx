@@ -12,6 +12,7 @@ import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { proponerRetrasoPorCita, construirUpdatesRetraso, type PropuestaRetraso } from '@/lib/retrasos';
 import RetrasoPropuestaModal from './RetrasoPropuestaModal';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -3947,22 +3948,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
                 </div>
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 600, color: TOKENS.textSec, display: 'block', marginBottom: 6 }}>Teléfono (opcional)</label>
-                  <input
-                    type="tel"
-                    value={nuevoClienteTelefono}
-                    onChange={(e) => setNuevoClienteTelefono(e.target.value)}
-                    placeholder="Ej: +34 666 123 456"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: TOKENS.bgCard,
-                      border: `1px solid ${TOKENS.border}`,
-                      borderRadius: 8,
-                      color: TOKENS.text,
-                      fontSize: 13,
-                      boxSizing: 'border-box',
-                    }}
-                  />
+                  <PhoneInput value={nuevoClienteTelefono} onChange={(e164) => setNuevoClienteTelefono(e164)} placeholder="666 123 456" />
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
