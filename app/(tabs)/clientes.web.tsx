@@ -2716,14 +2716,14 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
 
         <div style={{ display: 'grid', gap: 12, marginBottom: 18 }}>
           <Field label="Nombre*">
-            <Input value={nombre} onChange={setNombre} placeholder="Ej. Maria Garcia" />
+            <Input value={nombre} onChange={setNombre} placeholder="Ej. Maria Garcia" style={{ height: 46 }} />
           </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.3fr)', gap: 12 }}>
             <Field label="Telefono">
               <PhoneInput value={telefono} onChange={(e164) => setTelefono(e164)} placeholder="611 234 567" />
             </Field>
             <Field label="Email">
-              <Input value={email} onChange={setEmail} placeholder="cliente@correo.com" />
+              <Input value={email} onChange={setEmail} placeholder="cliente@correo.com" style={{ height: 46 }} />
             </Field>
           </div>
           <Field label="Cumpleanos (dia y mes)">
