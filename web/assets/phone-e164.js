@@ -1,0 +1,105 @@
+/* Selector de pais + numero -> E.164 para los formularios HTML estaticos (no React).
+   Consistente con el componente PhoneInput de la app: salida en E.164 ('+34612345678').
+   API global: PhoneE164.mount(input[, isoPorDefecto]) / .e164(input) / .valid(input) / .set(input, valor) */
+(function () {
+  // ISO 3166-1 alpha-2 -> prefijo de llamada (E.164)
+  var CODES = {
+    AD:'376',AE:'971',AF:'93',AG:'1',AI:'1',AL:'355',AM:'374',AO:'244',AR:'54',AT:'43',AU:'61',AW:'297',AZ:'994',
+    BA:'387',BB:'1',BD:'880',BE:'32',BF:'226',BG:'359',BH:'973',BI:'257',BJ:'229',BM:'1',BN:'673',BO:'591',BR:'55',BS:'1',BT:'975',BW:'267',BY:'375',BZ:'501',
+    CA:'1',CD:'243',CF:'236',CG:'242',CH:'41',CI:'225',CL:'56',CM:'237',CN:'86',CO:'57',CR:'506',CU:'53',CV:'238',CW:'599',CY:'357',CZ:'420',
+    DE:'49',DJ:'253',DK:'45',DM:'1',DO:'1',DZ:'213',
+    EC:'593',EE:'372',EG:'20',ER:'291',ES:'34',ET:'251',
+    FI:'358',FJ:'679',FM:'691',FO:'298',FR:'33',
+    GA:'241',GB:'44',GD:'1',GE:'995',GF:'594',GH:'233',GI:'350',GL:'299',GM:'220',GN:'224',GP:'590',GQ:'240',GR:'30',GT:'502',GU:'1',GW:'245',GY:'592',
+    HK:'852',HN:'504',HR:'385',HT:'509',HU:'36',
+    ID:'62',IE:'353',IL:'972',IN:'91',IQ:'964',IR:'98',IS:'354',IT:'39',
+    JM:'1',JO:'962',JP:'81',
+    KE:'254',KG:'996',KH:'855',KI:'686',KM:'269',KN:'1',KP:'850',KR:'82',KW:'965',KY:'1',KZ:'7',
+    LA:'856',LB:'961',LC:'1',LI:'423',LK:'94',LR:'231',LS:'266',LT:'370',LU:'352',LV:'371',LY:'218',
+    MA:'212',MC:'377',MD:'373',ME:'382',MG:'261',MH:'692',MK:'389',ML:'223',MM:'95',MN:'976',MO:'853',MP:'1',MQ:'596',MR:'222',MS:'1',MT:'356',MU:'230',MV:'960',MW:'265',MX:'52',MY:'60',MZ:'258',
+    NA:'264',NC:'687',NE:'227',NG:'234',NI:'505',NL:'31',NO:'47',NP:'977',NR:'674',NZ:'64',
+    OM:'968',
+    PA:'507',PE:'51',PF:'689',PG:'675',PH:'63',PK:'92',PL:'48',PM:'508',PR:'1',PS:'970',PT:'351',PW:'680',PY:'595',
+    QA:'974',
+    RE:'262',RO:'40',RS:'381',RU:'7',RW:'250',
+    SA:'966',SB:'677',SC:'248',SD:'249',SE:'46',SG:'65',SI:'386',SK:'421',SL:'232',SM:'378',SN:'221',SO:'252',SR:'597',SS:'211',ST:'239',SV:'503',SX:'1',SY:'963',SZ:'268',
+    TC:'1',TD:'235',TG:'228',TH:'66',TJ:'992',TL:'670',TM:'993',TN:'216',TO:'676',TR:'90',TT:'1',TV:'688',TW:'886',TZ:'255',
+    UA:'380',UG:'256',US:'1',UY:'598',UZ:'998',
+    VA:'39',VC:'1',VE:'58',VG:'1',VI:'1',VN:'84',VU:'678',
+    WS:'685',YE:'967',ZA:'27',ZM:'260',ZW:'263'
+  };
+
+  var dn = null;
+  try { dn = new Intl.DisplayNames(['es'], { type: 'region' }); } catch (e) { dn = null; }
+  function nameOf(iso) { return (dn && dn.of(iso)) || iso; }
+
+  var LIST = Object.keys(CODES).map(function (iso) {
+    return { iso: iso, code: CODES[iso], name: nameOf(iso) };
+  }).sort(function (a, b) { return a.name.localeCompare(b.name, 'es'); });
+
+  var styled = false;
+  function injectStyle() {
+    if (styled) return; styled = true;
+    var s = document.createElement('style');
+    s.textContent =
+      '.cc-wrap{display:flex;flex:1 1 auto;align-items:center;gap:6px;min-width:0;}' +
+      '.cc-wrap>input{flex:1 1 auto;min-width:0;}' +
+      '.cc-select{flex:0 0 auto;width:66px;box-sizing:border-box;border:1px solid rgba(0,0,0,.14);border-radius:8px;' +
+      'background:rgba(0,0,0,.02);color:inherit;font:inherit;font-size:.88em;padding:6px 2px;cursor:pointer;outline:none;}';
+    document.head.appendChild(s);
+  }
+
+  function mount(input, defIso) {
+    if (!input || input._cc) return input && input._cc;
+    injectStyle();
+    defIso = defIso || 'ES';
+    var sel = document.createElement('select');
+    sel.className = 'cc-select';
+    sel.setAttribute('aria-label', 'Prefijo de pais');
+    LIST.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c.iso;
+      o.textContent = '+' + c.code + '  ' + c.name;
+      if (c.iso === defIso) o.selected = true;
+      sel.appendChild(o);
+    });
+    var wrap = document.createElement('div');
+    wrap.className = 'cc-wrap';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(sel);
+    wrap.appendChild(input);
+    input.setAttribute('inputmode', 'tel');
+    input._cc = sel;
+    return sel;
+  }
+
+  function e164(input) {
+    if (!input) return '';
+    var raw = (input.value || '').trim();
+    if (raw.charAt(0) === '+') return '+' + raw.replace(/\D/g, '');
+    var nat = raw.replace(/\D/g, '').replace(/^0+/, '');
+    if (!nat) return '';
+    var sel = input._cc;
+    var code = sel ? (CODES[sel.value] || '34') : '34';
+    return '+' + code + nat;
+  }
+
+  function valid(input) { return e164(input).replace(/\D/g, '').length >= 8; }
+
+  function set(input, value) {
+    if (!input) return;
+    value = (value || '').trim();
+    var sel = input._cc;
+    if (value.charAt(0) === '+' && sel) {
+      var digits = value.replace(/\D/g, '');
+      var best = null;
+      LIST.forEach(function (c) {
+        if (digits.indexOf(c.code) === 0 && (!best || c.code.length > best.code.length)) best = c;
+      });
+      if (best) { sel.value = best.iso; input.value = digits.slice(best.code.length); return; }
+    }
+    input.value = value;
+  }
+
+  window.PhoneE164 = { mount: mount, e164: e164, valid: valid, set: set };
+})();

@@ -543,6 +543,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script src="assets/auth.js"></script>
+<script src="assets/phone-e164.js"></script>
 <script>
 (function () {
   var tabLogin = document.getElementById('tabLogin');
@@ -592,6 +593,7 @@
 
   // ---- Cableado Supabase (login / signup) ----
   var val = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  if (window.PhoneE164) { PhoneE164.mount(document.getElementById('suPhone')); PhoneE164.mount(document.getElementById('cpPhone')); }
   function msg(el, type, text) {
     if (!el) return;
     el.className = 'auth-msg show ' + type;
@@ -873,7 +875,7 @@
   function prefillComplete(profile) {
     if (!profile) return;
     var s = document.getElementById('cpSalon'); if (s && profile.nombre_negocio) s.value = profile.nombre_negocio;
-    var t = document.getElementById('cpPhone'); if (t && profile.phone) t.value = profile.phone;
+    var t = document.getElementById('cpPhone'); if (t && profile.phone) { if (window.PhoneE164) PhoneE164.set(t, profile.phone); else t.value = profile.phone; }
     var c = document.getElementById('cpCp'); if (c && profile.codigo_postal) c.value = profile.codigo_postal;
   }
   var cpBtn = document.getElementById('cpBtn');
@@ -881,7 +883,7 @@
   if (cpBtn) {
     cpBtn.addEventListener('click', function () {
       clearMsg(cpMsg);
-      var salon = val('cpSalon'), phone = val('cpPhone'), cp = val('cpCp');
+      var salon = val('cpSalon'), phone = PhoneE164.e164(document.getElementById('cpPhone')), cp = val('cpCp');
       if (!salon || !phone || !cp) { msg(cpMsg, 'err', 'Completa los tres campos para continuar.'); return; }
       if (!api || !api.updateProfile) { msg(cpMsg, 'err', 'No se pudo conectar. Recarga la página.'); return; }
       cpBtn.disabled = true; var prev = cpBtn.textContent; cpBtn.textContent = 'Guardando...';
@@ -980,7 +982,7 @@
     signupBtn.addEventListener('click', function () {
       clearMsg(signupMsg);
       var d = {
-        salon: val('suSalon'), nombre: val('suName'), telefono: val('suPhone'),
+        salon: val('suSalon'), nombre: val('suName'), telefono: PhoneE164.e164(document.getElementById('suPhone')),
         email: val('suEmail'), password: val('signupPw')
       };
       if (!d.salon || !d.nombre || !d.email || !d.password) {

@@ -311,7 +311,7 @@
         <div class="bk-row2">
           <div class="bk-field">
             <label for="fPhone">Teléfono</label>
-            <input class="bk-input" id="fPhone" type="tel" placeholder="+34 600 000 000" autocomplete="tel" />
+            <input class="bk-input" id="fPhone" type="tel" placeholder="600 000 000" autocomplete="tel" />
             <span class="bk-err">Necesitamos un teléfono para la llamada.</span>
           </div>
           <div class="bk-field">
@@ -393,10 +393,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script src="assets/auth.js"></script>
+<script src="assets/phone-e164.js"></script>
 <script>
 (function(){
   var $=function(s,c){return (c||document).querySelector(s);};
   var $$=function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s));};
+  if (window.PhoneE164) PhoneE164.mount($('#fPhone'));
   function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
   var DOW=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
@@ -549,7 +551,7 @@
     var ok=true;
     [['fName',function(v){return v.trim().length>1;}],
      ['fSalon',function(v){return v.trim().length>0;}],
-     ['fPhone',function(v){return v.replace(/[^0-9]/g,'').length>=7;}],
+     ['fPhone',function(v){return PhoneE164.valid(document.getElementById('fPhone'));}],
      ['fEmail',function(v){return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim());}],
      ['fTeam',function(v){return v.trim().length>0;}]
     ].forEach(function(f){
@@ -581,7 +583,7 @@
       tipo:'reserva_llamada',
       nombre:$('#fName').value.trim(),
       salon:$('#fSalon').value.trim(),
-      telefono:$('#fPhone').value.trim(),
+      telefono:PhoneE164.e164($('#fPhone')),
       email:$('#fEmail').value.trim(),
       num_profesionales:$('#fTeam').value,
       herramienta_actual:state.tool||null,
@@ -596,7 +598,7 @@
         body:JSON.stringify({
           nombre:$('#fName').value.trim(),
           email:$('#fEmail').value.trim(),
-          telefono:$('#fPhone').value.trim(),
+          telefono:PhoneE164.e164($('#fPhone')),
           salon:$('#fSalon').value.trim(),
           notas:$('#fNote').value.trim()||null,
           fecha_hora: fechaHoraISO
