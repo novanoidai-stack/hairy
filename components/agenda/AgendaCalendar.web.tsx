@@ -4236,6 +4236,9 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [motivoCancelacion, setMotivoCancelacion] = useState('');
   const [canceladoPor, setCanceladoPor] = useState<'clienta' | 'negocio'>('negocio');
+  // Lista de espera: candidatos compatibles con el hueco liberado al cancelar
+  const [candidatosHueco, setCandidatosHueco] = useState<any[] | null>(null);
+  const [asignandoCand, setAsignandoCand] = useState<string | null>(null);
   // --- Retrasos encadenados (IA de agenda) ---
   const [retrasoPickerOpen, setRetrasoPickerOpen] = useState(false);
   const [propRetraso, setPropRetraso] = useState<PropuestaRetraso | null>(null);
@@ -4735,6 +4738,13 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
         await supabase.from('citas').update(payload).eq('grupo_id', cita.grupo_id).neq('id', cita.id);
       }
       triggerRefresh();
+      // Hueco liberado: ofrecer los candidatos de la lista de espera compatibles (sin WhatsApp)
+      let cands: any[] = [];
+      try {
+        const { data } = await supabase.rpc('candidatos_para_hueco', { p_cita_id: cita.id });
+        if (Array.isArray(data)) cands = data;
+      } catch { /* si falla, simplemente no mostramos el panel */ }
+      if (cands.length > 0) { setCandidatosHueco(cands); return; }
       onSaved?.() ?? onClose();
     } catch (err) {
       console.error('Error al cancelar:', err);
@@ -4742,6 +4752,22 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
     } finally {
       setGuardando(false);
       setShowCancelModal(false);
+    }
+  };
+
+  const asignarCandidato = async (candId: string) => {
+    setAsignandoCand(candId);
+    try {
+      const { data, error } = await supabase.rpc('asignar_candidato_hueco', { p_cita_id: cita.id, p_candidato_id: candId });
+      if (error) throw error;
+      if (!data || !data.ok) throw new Error(data?.error || 'No se pudo asignar');
+      triggerRefresh();
+      setCandidatosHueco(null);
+      onSaved?.() ?? onClose();
+    } catch (err) {
+      console.error('Error al asignar candidato:', err);
+      alert(mensajeDeError(err, 'No se pudo asignar el candidato al hueco.'));
+      setAsignandoCand(null);
     }
   };
 
@@ -6228,6 +6254,43 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
               >
                 {guardando ? '...' : 'Cancelar cita'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {candidatosHueco && (
+        <div onClick={(e) => e.stopPropagation()} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 24, width: 460, maxWidth: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: TOKENS.text }}>Hueco libre · lista de espera</div>
+              <div style={{ fontSize: 13, color: TOKENS.textSec, marginTop: 4 }}>
+                {candidatosHueco.length} {candidatosHueco.length === 1 ? 'persona compatible' : 'personas compatibles'} con {servicio?.nombre || 'este hueco'}{prof ? ` · ${prof.nombre}` : ''}, el {new Date(cita.inicio).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} a las {new Date(cita.inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}.
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto' }}>
+              {candidatosHueco.map((cand) => {
+                const tel = (cand.telefono || '').replace(/\D/g, '');
+                const franja = cand.franja === 'manana' ? 'Mañanas' : cand.franja === 'tarde' ? 'Tardes' : 'Cualquier hora';
+                return (
+                  <div key={cand.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, borderRadius: 12 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>{cand.nombre || 'Sin nombre'}</div>
+                      <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 2 }}>{franja}{cand.telefono ? ` · ${cand.telefono}` : ' · sin teléfono'}</div>
+                      {cand.nota && <div style={{ fontSize: 12, color: TOKENS.textTer, marginTop: 2, fontStyle: 'italic' }}>{cand.nota}</div>}
+                    </div>
+                    {tel && (
+                      <a href={`https://wa.me/${tel}`} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, padding: '8px 10px', borderRadius: 8, border: `1px solid ${TOKENS.border}`, color: '#16a34a', textDecoration: 'none', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>WhatsApp</a>
+                    )}
+                    <button onClick={() => asignarCandidato(cand.id)} disabled={asignandoCand !== null} style={{ flexShrink: 0, padding: '8px 12px', background: TOKENS.primary, border: 'none', borderRadius: 8, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: asignandoCand ? 'not-allowed' : 'pointer', opacity: (asignandoCand && asignandoCand !== cand.id) ? 0.5 : 1 }}>
+                      {asignandoCand === cand.id ? '...' : 'Asignar'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => { setCandidatosHueco(null); onSaved?.() ?? onClose(); }} style={{ padding: '8px 16px', background: 'transparent', border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.textSec, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cerrar</button>
             </div>
           </div>
         </div>
