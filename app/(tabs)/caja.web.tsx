@@ -115,7 +115,6 @@ export default function CajaScreen() {
   const [arqueo, setArqueo] = useState<{ total: number; efectivo: number; datafono: number; propinas: number; count: number } | null>(null);
   // Fichajes (registro de jornada del equipo)
   const [userId, setUserId] = useState<string>('');
-  const [myName, setMyName] = useState<string>('');
   // Rol del usuario: propietario/dirección ven TODO el equipo; el resto, lo suyo.
   const [canSeeAll, setCanSeeAll] = useState(false);
   // Mapa user_id -> nombre del miembro del equipo (para mostrar quién fichó).
@@ -123,7 +122,6 @@ export default function CajaScreen() {
   const [fichajesHoy, setFichajesHoy] = useState<Array<{ tipo: string; marcado_at: string; user_id: string | null }>>([]);
   // Cobros del día (filas crudas) para los registros descargables.
   const [cobrosHoy, setCobrosHoy] = useState<Array<any>>([]);
-  const [fichando, setFichando] = useState(false);
 
   // Totales de la selección
   const seleccion = useMemo(() => {
@@ -198,7 +196,6 @@ export default function CajaScreen() {
 
       // Rol + equipo: el propietario/dirección ve el equipo entero; el resto, lo suyo.
       setUserId(profile.id || '');
-      setMyName([profile.nombre, profile.apellido].filter(Boolean).join(' ').trim() || 'Tu jornada');
       setCanSeeAll(profile.role === 'owner' || profile.role === 'admin');
       const { data: team } = await supabase
         .from('profiles')
@@ -300,28 +297,8 @@ export default function CajaScreen() {
     }
   };
 
-  // Fichar: alterna entrada/salida para el usuario actual.
-  const fichar = async () => {
-    setFichando(true);
-    try {
-      const profile = await getUserProfile();
-      if (!profile?.negocio_id) { setFichando(false); return; }
-      const miUltimo = fichajesHoy.find(f => f.user_id === profile.id);
-      const tipo = miUltimo?.tipo === 'entrada' ? 'salida' : 'entrada';
-      const { error } = await supabase.from('fichajes').insert({
-        negocio_id: profile.negocio_id,
-        user_id: profile.id,
-        tipo,
-      });
-      if (error) throw error;
-      await cargarCitas();
-    } catch (err) {
-      console.error('Error fichando:', err);
-      setMensaje({ type: 'error', text: mensajeDeError(err) });
-    } finally {
-      setFichando(false);
-    }
-  };
+  // El fichaje personal vive ahora en "Mi jornada". Aqui Caja solo supervisa
+  // la jornada del equipo (lista + CSV), funcion de gestor.
 
   // Descargas (registros del día) — solo propietario/dirección.
   const hoyStr = format(new Date(), 'yyyy-MM-dd');
@@ -376,9 +353,7 @@ export default function CajaScreen() {
           Caja
         </h1>
         <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>
-          {canSeeAll
-            ? 'Cobra las citas completadas, controla el arqueo del día y la jornada del equipo.'
-            : 'Ficha tu entrada y tu salida del turno.'}
+          Cobra las citas completadas, controla el arqueo del día y la jornada del equipo.
         </p>
       </div>
 
@@ -406,60 +381,45 @@ export default function CajaScreen() {
         );
       })()}
 
-      {/* Fichaje (registro de jornada del equipo) */}
-      {(() => {
-        const miUltimo = fichajesHoy.find(f => f.user_id === userId);
-        const fichado = miUltimo?.tipo === 'entrada';
-        // Lista de fichajes visible: el propietario/dirección ve el equipo
-        // entero; el resto, solo lo suyo.
-        const visibles = canSeeAll ? fichajesHoy : fichajesHoy.filter(f => f.user_id === userId);
-        return (
-          <div style={{ background: T.card, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Icon name="clock" size={18} color={fichado ? T.success : T.textTer} />
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Tu fichaje · {myName}</div>
-                  <div style={{ fontSize: 12, color: T.textSec }}>{fichado ? 'Trabajando — entrada registrada' : 'Fuera de turno'}</div>
-                </div>
+      {/* Jornada del equipo (hoy) — supervisión de gestor. El fichaje personal vive en Mi jornada. */}
+      {canSeeAll && (
+        <div style={{ background: T.card, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Icon name="clock" size={18} color={T.textTer} />
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Jornada del equipo</div>
+              <div style={{ fontSize: 12, color: T.textSec }}>Entradas y salidas de hoy. Tu propio fichaje está en Mi jornada.</div>
+            </div>
+          </div>
+          {fichajesHoy.length > 0 && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}` }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {fichajesHoy.slice(0, 40).map((f, i) => {
+                  const nombre = (f.user_id && staffMap[f.user_id]) || 'Miembro';
+                  const esMio = f.user_id === userId;
+                  return (
+                    <span key={i} style={{ fontSize: 11.5, color: T.textSec, padding: '4px 9px', borderRadius: 999, background: T.bg, border: `1px solid ${esMio ? T.borderHi : T.border}`, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: f.tipo === 'entrada' ? T.success : T.textTer }} />
+                      {nombre} · {f.tipo === 'entrada' ? 'Entrada' : 'Salida'} {format(parseISO(f.marcado_at), 'HH:mm', { locale: es })}{esMio ? ' · tú' : ''}
+                    </span>
+                  );
+                })}
               </div>
-              <button onClick={fichar} disabled={fichando} className="ca-btn" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: fichado ? T.danger : T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                <Icon name="clock" size={15} color="#fff" /> {fichando ? '...' : (fichado ? 'Fichar salida' : 'Fichar entrada')}
+            </div>
+          )}
+          {(cobrosHoy.length > 0 || fichajesHoy.length > 0) && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: T.textTer, fontWeight: 600 }}>Registros del día:</span>
+              <button onClick={descargarCobros} disabled={cobrosHoy.length === 0} className="ca-btn" style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, border: `1px solid ${T.borderHi}`, background: T.bg, color: T.textSec, cursor: cobrosHoy.length ? 'pointer' : 'not-allowed', opacity: cobrosHoy.length ? 1 : 0.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="download" size={13} color={T.textSec} /> Cobros (CSV)
+              </button>
+              <button onClick={descargarFichajes} disabled={fichajesHoy.length === 0} className="ca-btn" style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, border: `1px solid ${T.borderHi}`, background: T.bg, color: T.textSec, cursor: fichajesHoy.length ? 'pointer' : 'not-allowed', opacity: fichajesHoy.length ? 1 : 0.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="download" size={13} color={T.textSec} /> Fichajes (CSV)
               </button>
             </div>
-            {visibles.length > 0 && (
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}` }}>
-                {canSeeAll && (
-                  <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Jornada del equipo (hoy)</div>
-                )}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {visibles.slice(0, 24).map((f, i) => {
-                    const nombre = (f.user_id && staffMap[f.user_id]) || 'Miembro';
-                    const esMio = f.user_id === userId;
-                    return (
-                      <span key={i} style={{ fontSize: 11.5, color: T.textSec, padding: '4px 9px', borderRadius: 999, background: T.bg, border: `1px solid ${esMio ? T.borderHi : T.border}`, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: f.tipo === 'entrada' ? T.success : T.textTer }} />
-                        {canSeeAll ? `${nombre} · ` : ''}{f.tipo === 'entrada' ? 'Entrada' : 'Salida'} {format(parseISO(f.marcado_at), 'HH:mm', { locale: es })}{esMio && canSeeAll ? ' · tú' : ''}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-            {canSeeAll && (cobrosHoy.length > 0 || fichajesHoy.length > 0) && (
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                <span style={{ fontSize: 11, color: T.textTer, fontWeight: 600 }}>Registros del día:</span>
-                <button onClick={descargarCobros} disabled={cobrosHoy.length === 0} className="ca-btn" style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, border: `1px solid ${T.borderHi}`, background: T.bg, color: T.textSec, cursor: cobrosHoy.length ? 'pointer' : 'not-allowed', opacity: cobrosHoy.length ? 1 : 0.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Icon name="download" size={13} color={T.textSec} /> Cobros (CSV)
-                </button>
-                <button onClick={descargarFichajes} disabled={fichajesHoy.length === 0} className="ca-btn" style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, border: `1px solid ${T.borderHi}`, background: T.bg, color: T.textSec, cursor: fichajesHoy.length ? 'pointer' : 'not-allowed', opacity: fichajesHoy.length ? 1 : 0.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Icon name="download" size={13} color={T.textSec} /> Fichajes (CSV)
-                </button>
-              </div>
-            )}
-          </div>
-        );
-      })()}
+          )}
+        </div>
+      )}
 
       {/* Mensaje */}
       {mensaje && (

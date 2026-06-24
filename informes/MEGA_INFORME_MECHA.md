@@ -75,6 +75,35 @@ nunca "factura".
 verificado E2E con guardado real (para no ensuciar la demo compartida; la columna `cliente_id` es
 nullable y ya hay citas "Sin cliente"). Pulir display de cita anónima en el timeline (hoy "—").
 
+**"Mi jornada" — panel personal por profesional (NUEVO, Carlos):** vista por rol para que el empleado
+deje de ver la Caja del salón y tenga su propio seguimiento. Spec en
+`docs/superpowers/specs/2026-06-24-mi-jornada-panel-profesional-design.md`.
+- **Página nueva** `app/(tabs)/mi-jornada.web.tsx` en el nav principal (Sidebar + bottom-tab) para
+  todos los roles: fichaje propio (mudado desde Caja), selector Hoy/Semana/Mes, y métricas propias
+  (citas completadas con lista, tintes/color, horas trabajadas, cobrado, propinas, ticket medio, y
+  comisión opcional).
+- **RPC** `mi_jornada_resumen(p_desde,p_hasta)` `security definer` (`migrations/mi-jornada-resumen-rpc.sql`,
+  aplicada): resuelve `auth.uid()` → `profesionales.profile_id`, agrega la actividad y **gatea el
+  dinero/comisión en el servidor** según `negocio_config` (no solo en UI). Revocada a `anon`. Advisors
+  sin nuevos hallazgos (solo el patrón ya conocido de funciones definer ejecutables por authenticated).
+  Verificado por impersonación SQL: empleado con flag OFF → sin importes (`total:null`), con ON → `8800`.
+- **Vínculo cuenta↔ficha** en Equipo (`equipo.web.tsx`): selector "Cuenta de acceso" en la ficha
+  (vincula `profile_id` o **invita** reusando la edge function `crear-acceso-empleado`) + badge
+  **"Sin cuenta"**. El alta de empleados ya existía (Config → Accesos y roles). 2 badges verificados en demo.
+- **Config** (`configuracion.web.tsx` → Comisiones): toggles `mi_jornada_mostrar_importes` (ON) y
+  `mi_jornada_mostrar_comision` (OFF) en `negocio_config.config` (claves snake_case que lee la RPC).
+- **Caja** (`caja.web.tsx`) queda **solo para gestores** (Sidebar `cap:'config.ver'`); se le quitó el
+  fichaje personal y conserva "Jornada del equipo" (supervisión + CSV). El **bottom-tab móvil**
+  (`_layout.tsx`) ahora **gatea por rol** (el empleado ya no ve Caja/Equipo/Informes/Ajustes).
+- **Demo:** `demo_salon_001` no tiene cuentas de empleado; se vinculó la ficha "Maria Garcia" a
+  `demo.publico` + fichaje y cobros de hoy para poder enseñarlo. Idempotente y checkeado en
+  `migrations/demo-mi-jornada-seed.sql` (incluir al re-sembrar).
+- **Ojo (corrección):** `cobros.profesional_id` en el remoto es **uuid** (la migración vieja
+  `pos-caja-modelo-datos.sql` decía `text`). El historial remoto manda.
+- Verificado en navegador (demo iframe 375px y desktop): Mi jornada de Maria carga sin errores de
+  consola, selector de periodo refetchea, lista de citas con badge "Color". Filtros de la agenda
+  **confirmados colapsables en móvil** (Filtros ⇄ Ocultar). `tsc` 0 errores, `build:web` OK.
+
 ---
 
 ## Adenda — Tanda 19 jun 2026 (Carlos + Claude)

@@ -138,6 +138,9 @@ interface ConfigState {
   bonusObjetivo: boolean;
   bonusObjetivoImporte: number;
   bonusEstrella: boolean;
+  // Mi jornada (panel del profesional). Claves en snake_case: las lee la RPC mi_jornada_resumen.
+  mi_jornada_mostrar_importes: boolean;
+  mi_jornada_mostrar_comision: boolean;
   // Notificaciones (gatean el motor de envio por salon)
   notifConfirmacionActiva: boolean;
   notifRecordatorioActiva: boolean;
@@ -230,6 +233,7 @@ const DEFAULT_CONFIG: ConfigState = {
   comisionBase: 30, comisionBaseImporte: 'neto',
   comisionAddons: true, comisionPropinas: false, comisionPeriodo: 'mensual',
   bonusProducto: 10, bonusObjetivo: true, bonusObjetivoImporte: 250, bonusEstrella: false,
+  mi_jornada_mostrar_importes: true, mi_jornada_mostrar_comision: false,
   notifConfirmacionActiva: true, notifRecordatorioActiva: true, notifRecordatorioHoras: 24,
   notifResenaActiva: true, notifSenalActiva: true, notifRetrasoActiva: true,
   notifNoMolestar: false, notifNoMolestarInicio: '22:00', notifNoMolestarFin: '08:00',
@@ -2295,6 +2299,15 @@ function TabComisiones({ config, setC, profesionales, comisionesProf, setComisio
             { value: 'quincenal', label: 'Quincenal' },
             { value: 'mensual', label: 'Mensual' },
           ]} />
+        </FieldRow>
+      </Section>
+
+      <Section title="Mi jornada — panel del profesional" desc="Cada profesional tiene una pagina 'Mi jornada' donde ficha y sigue su actividad (citas, horas, tintes). Define que datos de dinero ve de si mismo. La direccion y el propietario siempre lo ven todo.">
+        <FieldRow label="Mostrar importes" hint="Si el profesional ve lo que ha cobrado, propinas y ticket medio de su propia actividad.">
+          <Toggle on={config.mi_jornada_mostrar_importes} onChange={v => setC('mi_jornada_mostrar_importes', v)} />
+        </FieldRow>
+        <FieldRow label="Mostrar comision estimada" hint="Si ademas ve una estimacion de su comision (segun su porcentaje). Dato sensible: desactivado por defecto.">
+          <Toggle on={config.mi_jornada_mostrar_comision} onChange={v => setC('mi_jornada_mostrar_comision', v)} />
         </FieldRow>
       </Section>
 
