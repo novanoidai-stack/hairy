@@ -3,7 +3,7 @@
 // Lecturas se ejecutan aquí (server-side, service key).
 // Escrituras NO se ejecutan: devuelven accion_propuesta al panel.
 
-import Anthropic from 'npm:@anthropic-ai/sdk@0.65';
+import OpenAI from 'npm:openai@4';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 // ---------------------------------------------------------------------------
@@ -25,7 +25,13 @@ const json = (b: unknown, status = 200) =>
 // ---------------------------------------------------------------------------
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const svc = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
-const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY') ?? '' });
+// Claude Sonnet via OpenRouter (OpenAI-compatible).
+const openai = new OpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: Deno.env.get('OPENROUTER_API_KEY') ?? '',
+});
+// Slug de OpenRouter para Claude Sonnet (confirmar contra la lista de modelos de OpenRouter).
+const MODEL = 'anthropic/claude-sonnet-4.6';
 
 // ---------------------------------------------------------------------------
 // Tipos de accion (deben coincidir con lib/agendaOps.ts)
@@ -56,17 +62,17 @@ type AccionPropuesta =
 // ---------------------------------------------------------------------------
 // Definicion de tools
 // ---------------------------------------------------------------------------
-const TOOLS: Anthropic.Tool[] = [
+const TOOLS = [
   // --- LECTURA ---
   {
     name: 'info_catalogo',
     description: 'Servicios (con duraciones y precio) y profesionales activos del salon.',
-    input_schema: { type: 'object' as const, properties: {} },
+    parameters: { type: 'object' as const, properties: {} },
   },
   {
     name: 'buscar_cliente',
     description: 'Busca clientes por nombre o telefono. Devuelve candidatos para resolver cliente_id.',
-    input_schema: {
+    parameters: {
       type: 'object' as const,
       properties: { texto: { type: 'string', description: 'Nombre o telefono parcial' } },
       required: ['texto'],
@@ -75,7 +81,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'listar_citas',
     description: 'Citas en un rango de fechas. Filtra por profesional, cliente o estado.',
-    input_schema: {
+    parameters: {
       type: 'object' as const,
       properties: {
         desde: { type: 'string', description: 'YYYY-MM-DD (inclusivo)' },
@@ -90,7 +96,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'consultar_disponibilidad',
     description: 'Citas y bloqueos de un dia. Permite al LLM razonar sobre huecos libres.',
-    input_schema: {
+    parameters: {
       type: 'object' as const,
       properties: {
         fecha: { type: 'string', description: 'YYYY-MM-DD' },
@@ -103,7 +109,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'crear_cita',
     description: 'Propone crear una cita. Antes de invocarla resuelve cliente y profesional con las tools de lectura.',
-    input_schema: {
+    parameters: {
       type: 'object' as const,
       properties: {
         servicio: { type: 'string', description: 'Nombre del servicio' },
@@ -117,7 +123,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'reagendar_cita',
     description: 'Propone mover una cita existente a otra hora y/o profesional.',
-    input_schema: {
+    parameters: {
       type: 'object' as const,
       properties: {
         cita_id: { type: 'string', description: 'UUID de la cita' },
@@ -130,7 +136,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'cancelar_cita',
     description: 'Propone cancelar una cita.',
-    input_schema: {
+    parameters: {
       type: 'object' as const,
       properties: {
         cita_id: { type: 'string', description: 'UUID de la cita' },
@@ -142,7 +148,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'bloquear_hueco',
     description: 'Propone bloquear una franja de tiempo de un profesional.',
-    input_schema: {
+    parameters: {
       type: 'object' as const,
       properties: {
         profesional: { type: 'string', description: 'Nombre del profesional' },
@@ -156,7 +162,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'liberar_hueco',
     description: 'Propone eliminar un bloqueo existente.',
-    input_schema: {
+    parameters: {
       type: 'object' as const,
       properties: { bloqueo_id: { type: 'string', description: 'UUID del bloqueo' } },
       required: ['bloqueo_id'],
@@ -237,7 +243,7 @@ Deno.serve(async (req) => {
 
     // --- Body ---
     const body = await req.json().catch(() => ({}));
-    const mensajes: Anthropic.MessageParam[] = Array.isArray(body?.mensajes) ? body.mensajes : [];
+    const mensajes = Array.isArray(body?.mensajes) ? body.mensajes : [];
 
     // --- Ejecutar agente ---
     const resultado = await runAgente(negocioId, role, user.id, realScope, effort, mensajes);
@@ -255,101 +261,93 @@ async function runAgente(
   _role: string,
   userId: string,
   scope: 'all' | 'self' | 'none',
-  effort: string,
-  mensajes: Anthropic.MessageParam[],
+  _effort: string,
+  mensajes: { role: 'user' | 'assistant'; content: string }[],
 ): Promise<{ texto: string; accion_propuesta?: AccionPropuesta }> {
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }); // YYYY-MM-DD
-  const conv: Anthropic.MessageParam[] = [...mensajes];
+
+  // OpenAI-compatible (OpenRouter): el system va como primer mensaje.
+  const messages: any[] = [
+    { role: 'system', content: buildSystemPrompt(hoy, scope) },
+    ...mensajes.map((m) => ({ role: m.role, content: m.content })),
+  ];
+
+  const tools = TOOLS.map((t) => ({ type: 'function' as const, function: t }));
+
+  const parseArgs = (tc: { function: { arguments: string } }): Record<string, string> => {
+    try {
+      return JSON.parse(tc.function.arguments || '{}');
+    } catch {
+      return {};
+    }
+  };
 
   for (let i = 0; i < 6; i++) {
-    const resp = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+    const resp = await openai.chat.completions.create({
+      model: MODEL,
       max_tokens: 1024,
-      thinking: { type: 'adaptive' } as Anthropic.ThinkingConfigParam,
-      // effort (low|medium|high): GA en claude-sonnet-4-6, sin beta header.
-      // El SDK 0.65 aun no lo tipa; por eso el doble cast de mas abajo.
-      output_config: { effort },
-      system: [
-        {
-          type: 'text',
-          text: buildSystemPrompt(hoy, scope),
-          cache_control: { type: 'ephemeral' },
-        },
-      ] as Anthropic.TextBlockParam[],
-      tools: TOOLS,
-      messages: conv,
-    } as unknown as Parameters<typeof anthropic.messages.create>[0]);
+      messages,
+      tools,
+      tool_choice: 'auto',
+    });
 
-    conv.push({ role: 'assistant', content: resp.content });
+    const msg = resp.choices[0]?.message;
+    if (!msg) return { texto: 'No he recibido respuesta del modelo.' };
+    messages.push(msg);
 
-    const toolUses = resp.content.filter(
-      (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use',
-    );
+    const toolCalls = msg.tool_calls ?? [];
 
     // Sin tool calls: respuesta final de texto
-    if (toolUses.length === 0) {
-      const texto = resp.content
-        .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-        .map((b) => b.text)
-        .join('\n');
-      await registrarConv(negocioId, userId, conv);
-      return { texto };
+    if (toolCalls.length === 0) {
+      await registrarConv(negocioId, userId, messages);
+      return { texto: msg.content ?? '' };
     }
 
     // ¿Hay alguna tool de escritura?
-    const escritura = toolUses.find((t) => ESCRITURA.has(t.name));
-    if (escritura) {
+    const writeCall = toolCalls.find((tc) => ESCRITURA.has(tc.function.name));
+    if (writeCall) {
       if (scope === 'none') {
-        await registrarConv(negocioId, userId, conv);
+        await registrarConv(negocioId, userId, messages);
         return { texto: 'No tienes permiso para modificar la agenda; solo puedo consultarla por ti.' };
       }
 
       const propuesta = await construirPropuesta(
-        escritura,
+        { name: writeCall.function.name, input: parseArgs(writeCall) },
         negocioId,
         scope,
         userId,
       );
 
-      if ('error' in propuesta) {
-        // Reinyectar el error para que el LLM repregunte
-        conv.push({
-          role: 'user',
-          content: [
-            {
-              type: 'tool_result',
-              tool_use_id: escritura.id,
-              content: propuesta.error,
-              is_error: true,
-            } as Anthropic.ToolResultBlockParam,
-          ],
-        });
-        continue;
+      if (!('error' in propuesta)) {
+        await registrarConv(negocioId, userId, messages);
+        return {
+          texto: msg.content || 'Revisa la accion propuesta y confirma:',
+          accion_propuesta: propuesta,
+        };
       }
 
-      const texto = resp.content
-        .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-        .map((b) => b.text)
-        .join('\n');
-
-      await registrarConv(negocioId, userId, conv);
-      return {
-        texto: texto || 'Revisa la accion propuesta y confirma:',
-        accion_propuesta: propuesta,
-      };
+      // OpenAI exige responder a TODAS las tool calls del turno antes de continuar.
+      for (const tc of toolCalls) {
+        let content: string;
+        if (tc.id === writeCall.id) {
+          content = propuesta.error;
+        } else if (ESCRITURA.has(tc.function.name)) {
+          content = 'Procesa una sola operacion a la vez.';
+        } else {
+          content = JSON.stringify(
+            await ejecutarLectura({ name: tc.function.name, input: parseArgs(tc) }, negocioId, scope, userId),
+          );
+        }
+        messages.push({ role: 'tool', tool_call_id: tc.id, content });
+      }
+      continue;
     }
 
     // Solo lecturas: ejecutar y reinyectar resultados
-    const results: Anthropic.ToolResultBlockParam[] = [];
-    for (const t of toolUses) {
-      const r = await ejecutarLectura(t, negocioId, scope, userId);
-      results.push({
-        type: 'tool_result',
-        tool_use_id: t.id,
-        content: JSON.stringify(r),
-      });
+    for (const tc of toolCalls) {
+      const r = await ejecutarLectura({ name: tc.function.name, input: parseArgs(tc) }, negocioId, scope, userId);
+      messages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(r) });
     }
-    conv.push({ role: 'user', content: results });
   }
 
   return { texto: 'No he podido completar la peticion en el numero de pasos permitido. ¿Puedes reformularla?' };
@@ -359,7 +357,7 @@ async function runAgente(
 // Ejecutar tools de LECTURA
 // ---------------------------------------------------------------------------
 async function ejecutarLectura(
-  t: Anthropic.ToolUseBlock,
+  t: { name: string; input: Record<string, string> },
   negocioId: string,
   scope: 'all' | 'self' | 'none',
   userId: string,
@@ -494,7 +492,7 @@ async function ejecutarLectura(
 // Construir propuesta de ESCRITURA (resuelve nombres→ids, calcula fines, marca solapa)
 // ---------------------------------------------------------------------------
 async function construirPropuesta(
-  t: Anthropic.ToolUseBlock,
+  t: { name: string; input: Record<string, string> },
   negocioId: string,
   scope: 'all' | 'self',
   userId: string,
@@ -848,7 +846,7 @@ async function resolverProfesionalDelUsuario(negocioId: string, userId: string):
 async function registrarConv(
   negocioId: string,
   _userId: string,
-  conv: Anthropic.MessageParam[],
+  conv: { role: string; content: unknown }[],
 ): Promise<void> {
   try {
     // registrar_conversacion_ia requiere p_slug (no negocio_id directo)
