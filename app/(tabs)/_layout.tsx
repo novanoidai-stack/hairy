@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
@@ -52,6 +52,17 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       <Ionicons name={(focused ? name : `${name}-outline`) as any} size={23} color={color} />
     );
 
+  // Label de pestana a mano: el label por defecto de bottom-tabs en web calcula
+  // su propio alto (clase con mayor especificidad que tabBarLabelStyle) y en
+  // movil colapsaba a ~1px — el texto quedaba en el DOM pero invisible. Con un
+  // <Text> propio evitamos depender de esa medida.
+  const tabLabel = (title: string) =>
+    ({ color }: { color: string }) => (
+      <Text style={{ fontSize: 10.5, lineHeight: 13, minHeight: 13, flexShrink: 0, fontWeight: '600', letterSpacing: 0.1, marginTop: 1, color, width: '100%', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } as any}>
+        {title}
+      </Text>
+    );
+
   return (
     <Tabs
       screenOptions={{
@@ -66,19 +77,18 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
         },
         tabBarActiveTintColor: '#f4501e',
         tabBarInactiveTintColor: c.textTertiary,
-        tabBarLabelStyle: { fontSize: 10.5, fontWeight: '600', letterSpacing: 0.1, marginTop: 1 },
         tabBarItemStyle: { paddingTop: 1 },
         contentStyle: { backgroundColor: '#f6f1ea' },
       } as any}
     >
-      <Tabs.Screen name="index" options={{ title: 'Agenda', tabBarIcon: tabIcon('calendar') }} />
-      <Tabs.Screen name="mi-jornada" options={{ title: 'Mi jornada', tabBarIcon: tabIcon('person-circle') }} />
-      <Tabs.Screen name="caja" options={{ title: 'Caja', tabBarIcon: tabIcon('wallet'), href: isManager ? undefined : null }} />
-      <Tabs.Screen name="clientes" options={{ title: 'Clientes', tabBarIcon: tabIcon('people'), href: allows('clientes.ver') ? undefined : null }} />
-      <Tabs.Screen name="resenas" options={{ title: 'Reseñas', tabBarIcon: tabIcon('star') }} />
-      <Tabs.Screen name="equipo" options={{ title: 'Equipo', tabBarIcon: tabIcon('person'), href: allows('equipo.ver') ? undefined : null }} />
-      <Tabs.Screen name="informes" options={{ title: 'Informes', tabBarIcon: tabIcon('bar-chart'), href: allows('informes.ver') ? undefined : null }} />
-      <Tabs.Screen name="configuracion" options={{ title: 'Ajustes', tabBarIcon: tabIcon('settings'), href: allows('config.ver') ? undefined : null }} />
+      <Tabs.Screen name="index" options={{ title: 'Agenda', tabBarIcon: tabIcon('calendar'), tabBarLabel: tabLabel('Agenda') }} />
+      <Tabs.Screen name="mi-jornada" options={{ title: 'Mi jornada', tabBarIcon: tabIcon('person-circle'), tabBarLabel: tabLabel('Mi jornada') }} />
+      <Tabs.Screen name="caja" options={{ title: 'Caja', tabBarIcon: tabIcon('wallet'), tabBarLabel: tabLabel('Caja'), href: isManager ? undefined : null }} />
+      <Tabs.Screen name="clientes" options={{ title: 'Clientes', tabBarIcon: tabIcon('people'), tabBarLabel: tabLabel('Clientes'), href: allows('clientes.ver') ? undefined : null }} />
+      <Tabs.Screen name="resenas" options={{ title: 'Reseñas', tabBarIcon: tabIcon('star'), tabBarLabel: tabLabel('Reseñas') }} />
+      <Tabs.Screen name="equipo" options={{ title: 'Equipo', tabBarIcon: tabIcon('person'), tabBarLabel: tabLabel('Equipo'), href: allows('equipo.ver') ? undefined : null }} />
+      <Tabs.Screen name="informes" options={{ title: 'Informes', tabBarIcon: tabIcon('bar-chart'), tabBarLabel: tabLabel('Informes'), href: allows('informes.ver') ? undefined : null }} />
+      <Tabs.Screen name="configuracion" options={{ title: 'Ajustes', tabBarIcon: tabIcon('settings'), tabBarLabel: tabLabel('Ajustes'), href: allows('config.ver') ? undefined : null }} />
       <Tabs.Screen name="lista-espera" options={{ href: null }} />
     </Tabs>
   );
