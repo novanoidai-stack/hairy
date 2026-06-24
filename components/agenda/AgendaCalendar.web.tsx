@@ -13,6 +13,7 @@ import { mensajeDeError } from '@/lib/errores';
 import { proponerRetrasoPorCita, construirUpdatesRetraso, type PropuestaRetraso } from '@/lib/retrasos';
 import RetrasoPropuestaModal from './RetrasoPropuestaModal';
 import { PhoneInput } from '@/components/ui/PhoneInput';
+import AsistenteAgenda from './AsistenteAgenda';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -151,7 +152,7 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
 };
 
 export default function AgendaCalendar() {
-  const { refreshTrigger } = useCalendarRefresh();
+  const { refreshTrigger, triggerRefresh } = useCalendarRefresh();
   const { isMobile, isTablet } = useResponsive();
   const router = useRouter();
   const [citas, setCitas] = useState<Cita[]>([]);
@@ -199,6 +200,9 @@ export default function AgendaCalendar() {
   const [recolocarRetraso, setRecolocarRetraso] = useState(true); // toggle de Configuracion (negocio_config.config)
   const [avisarRetraso, setAvisarRetraso] = useState(true); // notifRetrasoActiva (negocio_config.config)
   const [completarManual, setCompletarManual] = useState(false); // completarManual (negocio_config); false = autocompletar + sin boton
+  const [asistenteActivo, setAsistenteActivo] = useState(false); // asistenteAgendaActivo (negocio_config)
+  const [negocioId, setNegocioId] = useState(NEGOCIO_ID_FALLBACK);
+  const [userProfile, setUserProfile] = useState<{ id: string; role?: string | null } | null>(null);
   const [dropServicioOpen, setDropServicioOpen] = useState(false);
   const [dropEstadoOpen, setDropEstadoOpen] = useState(false);
   // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral
@@ -241,6 +245,9 @@ export default function AgendaCalendar() {
         setRecolocarRetraso(cfg.recolocarRetraso !== false);
         setAvisarRetraso(cfg.notifRetrasoActiva !== false);
         setCompletarManual(cfg.completarManual === true);
+        setAsistenteActivo(cfg.asistenteAgendaActivo === true);
+        setNegocioId(negocioId);
+        setUserProfile(profile ? { id: profile.id, role: (profile as any).role ?? null } : null);
 
         if (profResult.error) console.error('Prof error:', profResult.error);
         if (citaResult.error) console.error('Cita error:', citaResult.error);
@@ -1874,6 +1881,15 @@ export default function AgendaCalendar() {
       )}
 
       {/* Hoja selectora de profesional (movil): elegir a quien ver de un toque */}
+      {/* Asistente IA de agenda — flota sobre la pantalla, gateado por config */}
+      {asistenteActivo && userProfile && (
+        <AsistenteAgenda
+          negocioId={negocioId}
+          profile={userProfile}
+          onAgendaChanged={triggerRefresh}
+        />
+      )}
+
       {showProfPicker && (
         <div onClick={() => setShowProfPicker(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(8,6,4,0.55)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 9999, animation: 'fadeIn 0.2s ease' }}>
           <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxHeight: '70vh', overflowY: 'auto', background: TOKENS.bgPanel, borderRadius: '20px 20px 0 0', border: `1px solid ${TOKENS.border}`, borderBottom: 'none', padding: '16px 16px 28px', animation: 'slideInUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>

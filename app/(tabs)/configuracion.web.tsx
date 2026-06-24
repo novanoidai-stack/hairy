@@ -151,6 +151,10 @@ interface ConfigState {
   notifNoMolestar: boolean;
   notifNoMolestarInicio: string;
   notifNoMolestarFin: string;
+  // Asistente de agenda (IA)
+  asistenteAgendaActivo: boolean;
+  asistenteProfesionalEscribe: boolean;
+  asistenteEffort: 'low' | 'medium' | 'high';
   // Lista de espera (matching automatico de huecos)
   listaEsperaMatchingActivo: boolean;
   listaEsperaVentanaMin: number;
@@ -237,6 +241,7 @@ const DEFAULT_CONFIG: ConfigState = {
   notifConfirmacionActiva: true, notifRecordatorioActiva: true, notifRecordatorioHoras: 24,
   notifResenaActiva: true, notifSenalActiva: true, notifRetrasoActiva: true,
   notifNoMolestar: false, notifNoMolestarInicio: '22:00', notifNoMolestarFin: '08:00',
+  asistenteAgendaActivo: false, asistenteProfesionalEscribe: false, asistenteEffort: 'medium',
   listaEsperaMatchingActivo: false, listaEsperaVentanaMin: 30, listaEsperaMaxBloqueoHoras: 2,
   listaEsperaAntelacionMinHoras: 4, listaEsperaDesbloqueoDesde: 'primer_aviso',
   listaEsperaOfertaPideSenal: false, listaEsperaAvisarCaducado: false,
@@ -2224,6 +2229,22 @@ function TabAgenda({ config, setC, bloqueoCounts }: {
         </FieldRow>
         <FieldRow label="Permitir aprovechar reposo en otra cliente" hint="Sugerir automaticamente huecos productivos durante un reposo (servicios cortos como flequillo o brushing).">
           <Toggle on={config.aprovecharReposo} onChange={v => setC('aprovecharReposo', v)} />
+        </FieldRow>
+      </Section>
+
+      <Section title="Asistente de agenda (IA)" desc="Chat interno para consultar y operar la agenda en lenguaje natural. Solo visible para el equipo; los clientes no lo ven.">
+        <FieldRow label="Asistente de agenda (IA)" hint="Activa un chat interno para consultar y operar la agenda en lenguaje natural.">
+          <Toggle on={config.asistenteAgendaActivo} onChange={v => setC('asistenteAgendaActivo', v)} />
+        </FieldRow>
+        <FieldRow label="Permitir que cada profesional opere su propia agenda" hint="Cada miembro del equipo puede usar el asistente para gestionar sus propias citas." disabled={!config.asistenteAgendaActivo}>
+          <Toggle on={config.asistenteProfesionalEscribe} onChange={v => setC('asistenteProfesionalEscribe', v)} disabled={!config.asistenteAgendaActivo} />
+        </FieldRow>
+        <FieldRow label="Nivel del asistente" hint="Profundidad de razonamiento: Basico es rapido, Alto es mas preciso en instrucciones complejas." disabled={!config.asistenteAgendaActivo}>
+          <Segmented value={config.asistenteEffort} onChange={v => setC('asistenteEffort', v)} options={[
+            { value: 'low',    label: 'Basico' },
+            { value: 'medium', label: 'Normal' },
+            { value: 'high',   label: 'Alto' },
+          ]} />
         </FieldRow>
       </Section>
 
