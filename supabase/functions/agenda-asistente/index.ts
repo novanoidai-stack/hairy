@@ -185,7 +185,8 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'): stri
 
   return [
     'Eres el asistente de agenda de un salon de peluqueria. Operas en espanol, con tono breve y profesional.',
-    `Hoy es ${hoyISO} (zona Europe/Madrid). Resuelve referencias relativas ("manana", "las 5", "el lunes") a fechas/horas concretas en formato ISO 8601.`,
+    `Hoy es ${hoyISO} (zona Europe/Madrid). Resuelve referencias relativas ("manana", "las 5", "el lunes") a fecha/hora concreta en hora LOCAL de Madrid, en formato YYYY-MM-DDTHH:mm SIN sufijo de zona (no pongas Z ni offset).`,
+    'No uses emojis en tus respuestas.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad).',
     'Para proponer operaciones usa las tools de escritura (crear_cita, reagendar_cita, cancelar_cita, bloquear_hueco, liberar_hueco).',
     'ANTES de proponer una escritura: resuelve nombres a entidades reales con buscar_cliente e info_catalogo.',
@@ -489,6 +490,33 @@ async function ejecutarLectura(
 }
 
 // ---------------------------------------------------------------------------
+// Helpers de tiempo: interpretar la hora del LLM como hora local de Madrid.
+// ---------------------------------------------------------------------------
+function offsetMinutes(date: Date, tz: string): number {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  });
+  const p: Record<string, string> = {};
+  for (const part of dtf.formatToParts(date)) p[part.type] = part.value;
+  const asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+  return (asUTC - date.getTime()) / 60000;
+}
+
+// Si la cadena trae zona (Z u offset) se respeta; si es naive se interpreta
+// como hora local de Madrid y se convierte al instante UTC correcto (con DST).
+function parseInstante(s: string): Date {
+  const v = s.trim();
+  const tieneZona = /[zZ]$|[+-]\d{2}:?\d{2}$/.test(v);
+  if (tieneZona) return new Date(v);
+  const provisional = new Date(v.replace(' ', 'T') + 'Z');
+  if (isNaN(provisional.getTime())) return provisional;
+  const off = offsetMinutes(provisional, 'Europe/Madrid');
+  return new Date(provisional.getTime() - off * 60000);
+}
+
+// ---------------------------------------------------------------------------
 // Construir propuesta de ESCRITURA (resuelve nombres→ids, calcula fines, marca solapa)
 // ---------------------------------------------------------------------------
 async function construirPropuesta(
@@ -559,7 +587,7 @@ async function construirPropuesta(
       }
 
       // 5. Calcular fines
-      const inicio = new Date(inp.inicio);
+      const inicio = parseInstante(inp.inicio);
       if (isNaN(inicio.getTime())) return { error: `Hora de inicio no valida: "${inp.inicio}"` };
 
       const durActiva: number = servicio.duracion_activa_min ?? 0;
@@ -651,7 +679,7 @@ async function construirPropuesta(
       const durExtra: number = servicio?.duracion_activa_extra_min ?? 0;
 
       // 5. Calcular fines con el nuevo inicio
-      const nuevoInicio = new Date(inp.nuevo_inicio);
+      const nuevoInicio = parseInstante(inp.nuevo_inicio);
       if (isNaN(nuevoInicio.getTime()))
         return { error: `Hora de inicio no valida: "${inp.nuevo_inicio}"` };
 
@@ -728,8 +756,8 @@ async function construirPropuesta(
           return { error: 'Solo puedes bloquear tu propia agenda.' };
       }
 
-      const inicio = new Date(inp.inicio);
-      const fin = new Date(inp.fin);
+      const inicio = parseInstante(inp.inicio);
+      const fin = parseInstante(inp.fin);
       if (isNaN(inicio.getTime()) || isNaN(fin.getTime()))
         return { error: 'Rango de horas no valido.' };
 

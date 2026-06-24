@@ -122,7 +122,7 @@ export async function ejecutarAccion(
           profesional_id: a.profesional_id,
           inicio: a.inicio,
           fin: a.fin,
-          tipo: 'manual',
+          tipo: 'otro',
           motivo: a.motivo,
         });
         if (error) return { ok: false, error: error.message };
