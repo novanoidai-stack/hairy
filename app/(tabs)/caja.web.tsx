@@ -5,6 +5,7 @@ import { format, parseISO, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import { CobroSheet } from '@/components/pos/CobroSheet';
 
 // ─────────────────────────────────────────────────────────────────────────────────
 // Tokens (consistente con el resto de .web.tsx)
@@ -77,12 +78,6 @@ interface CitaPendiente {
   total_pendiente: number; // lo que falta cobrar
 }
 
-interface CobroFormData {
-  metodo: 'efectivo' | 'datafono';
-  propina: number;
-  descuento: number;
-}
-
 // Registros descargables (CSV) — como el modo gestor de novanoidai.
 function toCSV(rows: (string | number)[][]): string {
   return rows.map(r => r.map(c => {
@@ -109,7 +104,6 @@ export default function CajaScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showCobroModal, setShowCobroModal] = useState(false);
-  const [cobrando, setCobrando] = useState(false);
   const [mensaje, setMensaje] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   // Arqueo del dia: lo cobrado HOY de verdad (libro de cobros), por metodo.
   const [arqueo, setArqueo] = useState<{ total: number; efectivo: number; datafono: number; propinas: number; count: number } | null>(null);
@@ -259,42 +253,13 @@ export default function CajaScreen() {
     }
   };
 
-  // Cobrar
-  const cobrarSeleccionadas = async (formData: CobroFormData) => {
-    setCobrando(true);
-    setMensaje(null);
-
-    try {
-      const ids = Array.from(selectedIds);
-      const resultados = await Promise.all(
-        ids.map(id =>
-          supabase.rpc('crear_cobro_desde_cita', {
-            p_cita_id: id,
-            p_metodo: formData.metodo,
-            p_propina_cents: formData.propina,
-            p_descuento_cents: formData.descuento,
-          })
-        )
-      );
-
-      const fallidos = resultados.filter(r => r.error);
-      if (fallidos.length > 0) {
-        throw new Error(`${fallidos.length} de ${ids.length} cobros fallaron`);
-      }
-
-      setMensaje({ type: 'success', text: `${ids.length} cita${ids.length === 1 ? '' : 's'} cobrada${ids.length === 1 ? '' : 's'}` });
-      setSelectedIds(new Set());
-      setShowCobroModal(false);
-      await cargarCitas(); // Recargar
-
-      // Ocultar mensaje después de 3s
-      setTimeout(() => setMensaje(null), 3000);
-    } catch (err) {
-      console.error('Error cobrando:', err);
-      setMensaje({ type: 'error', text: mensajeDeError(err) });
-    } finally {
-      setCobrando(false);
-    }
+  // Tras cobrar con exito desde el CobroSheet: recargar, avisar, cerrar.
+  const handleCobroSuccess = async (cobroIds: string[]) => {
+    setMensaje({ type: 'success', text: `${cobroIds.length} cita${cobroIds.length === 1 ? '' : 's'} cobrada${cobroIds.length === 1 ? '' : 's'}` });
+    setSelectedIds(new Set());
+    setShowCobroModal(false);
+    await cargarCitas(); // Recargar
+    setTimeout(() => setMensaje(null), 3000);
   };
 
   // El fichaje personal vive ahora en "Mi jornada". Aqui Caja solo supervisa
@@ -561,206 +526,15 @@ export default function CajaScreen() {
 
       {/* Modal de cobro — solo propietario/dirección (fixed: fuera del scroll) */}
       {canSeeAll && showCobroModal && (
-        <CobroModal
-          seleccion={seleccion}
-          onCobrar={cobrarSeleccionadas}
+        <CobroSheet
+          citaIds={Array.from(selectedIds)}
+          pendienteCents={seleccion.pendiente}
+          senalCents={seleccion.totalSenas}
+          titulo={`Cobrar ${seleccion.count} cita${seleccion.count > 1 ? 's' : ''}`}
           onClose={() => setShowCobroModal(false)}
-          cobrando={cobrando}
+          onSuccess={handleCobroSuccess}
         />
       )}
     </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────────
-// MODAL DE COBRO
-// ─────────────────────────────────────────────────────────────────────────────────
-interface CobroModalProps {
-  seleccion: { count: number; pendiente: number };
-  onCobrar: (data: CobroFormData) => void;
-  onClose: () => void;
-  cobrando: boolean;
-}
-
-function CobroModal({ seleccion, onCobrar, onClose, cobrando }: CobroModalProps) {
-  const [metodo, setMetodo] = useState<'efectivo' | 'datafono'>('efectivo');
-  const [propina, setPropina] = useState('');
-  const [descuento, setDescuento] = useState('');
-
-  const propinaCents = Math.round(parseFloat(propina || '0') * 100);
-  const descuentoCents = Math.round(parseFloat(descuento || '0') * 100);
-  const totalFinal = seleccion.pendiente + propinaCents - descuentoCents;
-
-  const handleCobrar = () => {
-    onCobrar({ metodo, propina: propinaCents, descuento: descuentoCents });
-  };
-
-  return (
-    <>
-      <div
-        className="ca-modal-overlay"
-        onClick={onClose}
-        style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
-        }}
-      />
-      <div
-        className="ca-modal"
-        style={{
-          position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          background: T.card, borderRadius: 16, padding: 24, width: '90%', maxWidth: 400,
-          zIndex: 101, border: `1px solid ${T.borderHi}`,
-        }}
-      >
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: T.text, margin: '0 0 16px' }}>
-          Cobrar {seleccion.count} cita{seleccion.count > 1 ? 's' : ''}
-        </h2>
-
-        {/* Método */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: T.textSec, marginBottom: 8, display: 'block' }}>
-            Método de pago
-          </label>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button
-              onClick={() => setMetodo('efectivo')}
-              style={{
-                flex: 1, padding: '12px', borderRadius: 10, border: `2px solid ${metodo === 'efectivo' ? T.primary : T.border}`,
-                background: metodo === 'efectivo' ? T.primarySoft : T.card,
-                fontSize: 14, fontWeight: 600, color: metodo === 'efectivo' ? T.primary : T.text,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer',
-              }}
-            >
-              <Icon name="cash" size={18} />
-              Efectivo
-            </button>
-            <button
-              onClick={() => setMetodo('datafono')}
-              style={{
-                flex: 1, padding: '12px', borderRadius: 10, border: `2px solid ${metodo === 'datafono' ? T.primary : T.border}`,
-                background: metodo === 'datafono' ? T.primarySoft : T.card,
-                fontSize: 14, fontWeight: 600, color: metodo === 'datafono' ? T.primary : T.text,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer',
-              }}
-            >
-              <Icon name="credit" size={18} />
-              Tarjeta
-            </button>
-          </div>
-        </div>
-
-        {/* Propina */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: T.textSec, marginBottom: 6, display: 'block' }}>
-            Propina (para el profesional)
-          </label>
-          <input
-            type="number"
-            value={propina}
-            onChange={(e) => setPropina(e.target.value)}
-            placeholder="0.00"
-            step="0.01"
-            min="0"
-            style={{
-              width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${T.borderHi}`,
-              fontSize: 14, background: T.panel, color: T.text,
-            }}
-          />
-        </div>
-
-        {/* Descuento */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: T.textSec, marginBottom: 6, display: 'block' }}>
-            Descuento
-          </label>
-          <input
-            type="number"
-            value={descuento}
-            onChange={(e) => setDescuento(e.target.value)}
-            placeholder="0.00"
-            step="0.01"
-            min="0"
-            style={{
-              width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${T.borderHi}`,
-              fontSize: 14, background: T.panel, color: T.text,
-            }}
-          />
-        </div>
-
-        {/* Resumen */}
-        <div style={{ padding: '12px', background: T.bg, borderRadius: 10, marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 13, color: T.textSec }}>Servicios</span>
-            <span style={{ fontSize: 13, color: T.text }}>
-              {(seleccion.pendiente / 100).toFixed(2)}€
-            </span>
-          </div>
-          {propinaCents > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 13, color: T.textSec }}>+ Propina</span>
-              <span style={{ fontSize: 13, color: T.success }}>
-                +{(propinaCents / 100).toFixed(2)}€
-              </span>
-            </div>
-          )}
-          {descuentoCents > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 13, color: T.textSec }}>- Descuento</span>
-              <span style={{ fontSize: 13, color: T.danger }}>
-                -{(descuentoCents / 100).toFixed(2)}€
-              </span>
-            </div>
-          )}
-          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8, borderTop: `1px solid ${T.borderHi}` }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>Total</span>
-            <span style={{ fontSize: 16, fontWeight: 700, color: T.primary }}>
-              {(totalFinal / 100).toFixed(2)}€
-            </span>
-          </div>
-        </div>
-
-        {/* Acciones */}
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button
-            onClick={onClose}
-            disabled={cobrando}
-            style={{
-              flex: 1, padding: '12px', borderRadius: 10, border: `1px solid ${T.borderHi}`,
-              background: T.card, fontSize: 14, fontWeight: 600, color: T.textSec,
-              cursor: cobrando ? 'not-allowed' : 'pointer',
-            }}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleCobrar}
-            disabled={cobrando}
-            style={{
-              flex: 2, padding: '12px', borderRadius: 10, border: 'none',
-              background: cobrando ? T.textTer : T.primary,
-              fontSize: 14, fontWeight: 600, color: 'white',
-              cursor: cobrando ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            }}
-          >
-            {cobrando ? (
-              <>
-                <div className="spinner" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                Cobrando...
-              </>
-            ) : (
-              <>
-                <Icon name="check" size={16} color="white" />
-                Cobrar
-              </>
-            )}
-          </button>
-        </div>
-
-        <p style={{ fontSize: 11, color: T.textTer, marginTop: 12, margin: '0 0 0', textAlign: 'center' }}>
-          {metodo === 'datafono' ? 'El cliente pagará con tarjeta en el datáfono físico.' : 'El cliente pagará en efectivo.'}
-        </p>
-      </div>
-    </>
   );
 }
