@@ -43,6 +43,7 @@ interface Profesional {
   nombre: string;
   color: string;
   activo: boolean;
+  profile_id?: string | null;
   rol?: string;
   citas?: number;
   exp?: string;
@@ -167,7 +168,7 @@ export default function EquipoWeb() {
       const mesFin = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
       const [{ data: profsRaw }, { data: citsData }, { data: srvData }] = await Promise.all([
-        supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email').eq('negocio_id', negocioId),
+        supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id').eq('negocio_id', negocioId),
         supabase.from('citas').select('id, profesional_id, cliente_id, servicio_id, inicio, estado')
           .eq('negocio_id', negocioId)
           .gte('inicio', mesInicio)
@@ -425,9 +426,10 @@ export default function EquipoWeb() {
                       {p.nombre.split(' ').map((n) => n[0]).slice(0, 2).join('')}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{p.nombre}</div>
                         {!p.activo && <Pill color={TOKENS.textTer}>Inactivo</Pill>}
+                        {!p.profile_id && <Pill color="#e08a00">Sin cuenta</Pill>}
                       </div>
                       <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 2 }}>
                         {CATEGORIAS_PROF.find(c => c.value === p.categoria)?.label || 'Oficial'}
@@ -931,7 +933,7 @@ export default function EquipoWeb() {
         )}
 
       {showNewProf && <NewProfModal onClose={() => setShowNewProf(false)} negocioId={negocioId} onCreated={() => { setShowNewProf(false); location.reload(); }} />}
-      {editingProf && <EditProfModal prof={editingProf} onClose={() => setEditingProf(null)} onSaved={() => { setEditingProf(null); location.reload(); }} />}
+      {editingProf && <EditProfModal prof={editingProf} negocioId={negocioId} onClose={() => setEditingProf(null)} onSaved={() => { setEditingProf(null); location.reload(); }} />}
       {showNewBloqueo && <NewBloqueoModal profesionales={profesionales} selectedId={selected} negocioId={negocioId} onClose={() => setShowNewBloqueo(false)} onCreated={() => { setShowNewBloqueo(false); location.reload(); }} />}
       {editBloqueo && <EditBloqueoModal bloqueo={editBloqueo} onClose={() => setEditBloqueo(null)} onSaved={() => { setEditBloqueo(null); cargarPanelDerecho(); }} />}
       </div>
@@ -1159,7 +1161,9 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
   );
 }
 
-function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose: () => void; onSaved: () => void }) {
+interface CuentaNegocio { id: string; nombre: string | null; apellido: string | null; email: string | null; role: string; }
+
+function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesional; negocioId: string; onClose: () => void; onSaved: () => void }) {
   const { isMobile } = useResponsive();
   const [nombre, setNombre] = useState(prof.nombre);
   const [color, setColor] = useState(prof.color);
@@ -1170,6 +1174,55 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
   const [email, setEmail] = useState(prof.email ?? '');
   const [tipoRelacion, setTipoRelacion] = useState(prof.tipo_relacion ?? 'empleado');
   const [loading, setLoading] = useState(false);
+
+  // Cuenta de acceso: vincula esta ficha con una cuenta de login del negocio
+  // (profesionales.profile_id). Permite vincular una existente o invitar una nueva.
+  const [cuentaId, setCuentaId] = useState<string>(prof.profile_id ?? '');
+  const [cuentas, setCuentas] = useState<CuentaNegocio[]>([]);
+  const [linkedIds, setLinkedIds] = useState<Set<string>>(new Set());
+  const [invitando, setInvitando] = useState(false);
+  const [cuentaMsg, setCuentaMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      if (!negocioId) return;
+      const [{ data: profs }, { data: links }] = await Promise.all([
+        supabase.from('profiles').select('id, nombre, apellido, email, role').eq('negocio_id', negocioId),
+        supabase.from('profesionales').select('profile_id').eq('negocio_id', negocioId).not('profile_id', 'is', null),
+      ]);
+      setCuentas((profs as CuentaNegocio[]) ?? []);
+      // Cuentas ya vinculadas a OTRA ficha (no a esta) — no se pueden reasignar a la ligera.
+      const taken = new Set<string>();
+      (links ?? []).forEach((l: any) => { if (l.profile_id && l.profile_id !== prof.profile_id) taken.add(l.profile_id); });
+      setLinkedIds(taken);
+    })();
+  }, [negocioId, prof.profile_id]);
+
+  const invitarCuenta = async () => {
+    setCuentaMsg(null);
+    const mail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { setCuentaMsg({ ok: false, text: 'Indica un email válido en la ficha para invitar.' }); return; }
+    if (!nombre.trim()) { setCuentaMsg({ ok: false, text: 'Indica el nombre.' }); return; }
+    setInvitando(true);
+    const { data, error } = await supabase.functions.invoke('crear-acceso-empleado', {
+      body: { email: mail, nombre: nombre.trim(), rol: 'employee' },
+    });
+    setInvitando(false);
+    if (error || (data && (data as any).error)) {
+      const code = (data && (data as any).error) || 'error';
+      const msg = code === 'email_exists'
+        ? 'Ya existe una cuenta con ese email: selecciónala en la lista.'
+        : 'No se pudo invitar. Revisa el email o créala en Ajustes → Accesos y roles.';
+      setCuentaMsg({ ok: false, text: msg });
+      return;
+    }
+    const newId = (data as any).user_id as string;
+    // Refrescar lista y dejar la nueva cuenta seleccionada.
+    const { data: profs } = await supabase.from('profiles').select('id, nombre, apellido, email, role').eq('negocio_id', negocioId);
+    setCuentas((profs as CuentaNegocio[]) ?? []);
+    if (newId) setCuentaId(newId);
+    setCuentaMsg({ ok: true, text: 'Cuenta invitada por email. Quedará vinculada al guardar.' });
+  };
 
   const COLORS = ['#f4501e', '#c0260a', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#ef4444'];
   const TIPOS_REL = [
@@ -1195,6 +1248,7 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
       telefono: telefono.trim() || null,
       email: email.trim() || null,
       tipo_relacion: tipoRelacion,
+      profile_id: cuentaId || null,
     }).eq('id', prof.id);
     setLoading(false);
     onSaved();
@@ -1257,6 +1311,28 @@ function EditProfModal({ prof, onClose, onSaved }: { prof: Profesional; onClose:
             <div>
               <div style={labelStyle}>Email</div>
               <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nombre@salon.com" style={inputStyle} />
+            </div>
+          </div>
+          {/* Cuenta de acceso al software: vincula esta ficha con un login del negocio */}
+          <div>
+            <div style={labelStyle}>Cuenta de acceso</div>
+            <select value={cuentaId} onChange={(e) => setCuentaId(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+              <option value="">Sin cuenta vinculada</option>
+              {cuentas.map((c) => {
+                const taken = linkedIds.has(c.id);
+                const nom = `${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || c.email || 'Cuenta';
+                return <option key={c.id} value={c.id} disabled={taken}>{nom}{c.email ? ` · ${c.email}` : ''}{taken ? ' (otra ficha)' : ''}</option>;
+              })}
+            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+              <button type="button" onClick={invitarCuenta} disabled={invitando} style={{ padding: '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.text, borderRadius: 9, cursor: invitando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+                {invitando ? 'Invitando...' : 'Invitar nueva por email'}
+              </button>
+              <span style={{ fontSize: 11.5, color: TOKENS.textTer }}>Usa el email de la ficha; la persona pone su contraseña desde el correo.</span>
+            </div>
+            {cuentaMsg && <div style={{ fontSize: 11.5, marginTop: 6, color: cuentaMsg.ok ? TOKENS.success : '#e23b34' }}>{cuentaMsg.text}</div>}
+            <div style={{ fontSize: 11.5, marginTop: 6, color: TOKENS.textTer }}>
+              Vincúlala para que vea sus citas, cobros y rendimiento en Mi jornada.
             </div>
           </div>
           <div>
