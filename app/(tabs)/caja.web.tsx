@@ -104,6 +104,7 @@ export default function CajaScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showCobroModal, setShowCobroModal] = useState(false);
+  const [showWalkin, setShowWalkin] = useState(false);
   const [mensaje, setMensaje] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   // Arqueo del dia: lo cobrado HOY de verdad (libro de cobros), por metodo.
   const [arqueo, setArqueo] = useState<{ total: number; efectivo: number; datafono: number; propinas: number; count: number } | null>(null);
@@ -262,6 +263,14 @@ export default function CajaScreen() {
     setTimeout(() => setMensaje(null), 3000);
   };
 
+  // Cobro rapido (walk-in): venta sin cita, mismo motor, sin lista de pendientes que tocar.
+  const handleWalkinSuccess = async () => {
+    setMensaje({ type: 'success', text: 'Venta cobrada' });
+    setShowWalkin(false);
+    await cargarCitas(); // Recargar arqueo del dia
+    setTimeout(() => setMensaje(null), 3000);
+  };
+
   // El fichaje personal vive ahora en "Mi jornada". Aqui Caja solo supervisa
   // la jornada del equipo (lista + CSV), funcion de gestor.
 
@@ -312,14 +321,26 @@ export default function CajaScreen() {
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: isMobile ? '16px 14px 96px' : '20px' }}>
 
       {/* Header */}
-      <div style={{ marginBottom: isMobile ? 16 : 20 }}>
-        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Icon name="wallet" size={isMobile ? 22 : 28} color={T.primary} />
-          Caja
-        </h1>
-        <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>
-          Cobra las citas completadas, controla el arqueo del día y la jornada del equipo.
-        </p>
+      <div style={{ marginBottom: isMobile ? 16 : 20, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Icon name="wallet" size={isMobile ? 22 : 28} color={T.primary} />
+            Caja
+          </h1>
+          <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>
+            Cobra las citas completadas, controla el arqueo del día y la jornada del equipo.
+          </p>
+        </div>
+        {canSeeAll && (
+          <button
+            onClick={() => setShowWalkin(true)}
+            className="ca-btn"
+            style={{ padding: '10px 18px', background: T.card, border: `1px solid ${T.borderHi}`, color: T.text, borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
+          >
+            <Icon name="cash" size={15} color={T.primary} />
+            Cobro rápido
+          </button>
+        )}
       </div>
 
       {/* Arqueo del dia — solo propietario/dirección (todo lo del dinero) */}
@@ -527,12 +548,20 @@ export default function CajaScreen() {
       {/* Modal de cobro — solo propietario/dirección (fixed: fuera del scroll) */}
       {canSeeAll && showCobroModal && (
         <CobroSheet
+          mode="cita"
           citaIds={Array.from(selectedIds)}
           pendienteCents={seleccion.pendiente}
           senalCents={seleccion.totalSenas}
           titulo={`Cobrar ${seleccion.count} cita${seleccion.count > 1 ? 's' : ''}`}
           onClose={() => setShowCobroModal(false)}
           onSuccess={handleCobroSuccess}
+        />
+      )}
+      {canSeeAll && showWalkin && (
+        <CobroSheet
+          mode="walkin"
+          onClose={() => setShowWalkin(false)}
+          onSuccess={handleWalkinSuccess}
         />
       )}
     </div>

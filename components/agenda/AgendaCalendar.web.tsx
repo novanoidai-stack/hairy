@@ -6170,6 +6170,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
         const pendienteCents = Math.max(0, baseCents - cobroSenalCents);
         return (
           <CobroSheet
+            mode="cita"
             citaIds={[cita.id]}
             pendienteCents={pendienteCents}
             senalCents={cobroSenalCents}

@@ -107,14 +107,14 @@ botón de fichaje se mueve ahí**. Para que encaje con el POS sin pisarnos, este
 | **Rendimiento** | derivado | cobrado/hora, ticket medio, ocupación (citas vs hueco), comisión estimada |
 | **Rol** | `profiles.role` / `profesionales` | identidad |
 
-### 4.2 La trampa a resolver YA: `fichajes` se guarda por `user_id`, no por `profesional_id`
-La tabla `fichajes` tiene **las dos columnas** (`user_id` y `profesional_id`), pero el código
-actual de Caja **solo rellena `user_id`** (`fichar()` en `caja.web.tsx`). El perfil quiere
-agrupar por **profesional**. Hay que decidir y dejar fijo el **mapa `profesional ↔ user`**:
-- Opción recomendada: **rellenar `fichajes.profesional_id`** al fichar (además de `user_id`),
-  resolviendo el profesional del usuario actual. Requiere un vínculo `profesionales.user_id`
-  (o `profiles.profesional_id`) — **verificar si existe**; si no, es una migración pequeña y es
-  **prerrequisito** del perfil. Esto es lo primero a acordar con la sesión paralela.
+### 4.2 RESUELTO (24 jun, lo construyó la sesión paralela): `fichajes` sigue por `user_id`
+No hizo falta poblar `fichajes.profesional_id` ni migración nueva. El perfil (`mi-jornada.web.tsx`
++ RPC `mi_jornada_resumen`) resuelve **horas** directamente de `fichajes WHERE user_id = auth.uid()`
+(siempre poblado, porque cada uno ficha por sí mismo) y resuelve **citas/cobros/comisión** por
+`profesional_id` via `profesionales WHERE profile_id = auth.uid()` — sin pasar por fichajes para
+eso. El vínculo `profesionales.profile_id` → `profiles.id` ya existe y tiene UI en Equipo (badge
+"Sin cuenta" + vincular/invitar). `fichar()` sigue rellenando solo `user_id`; no es un bug, es el
+diseño real que se usó.
 
 ### 4.3 Quién posee qué (para no chocar con la sesión paralela)
 - **Sesión paralela (perfil/fichaje):** pantalla de perfil, el **botón de fichaje** y su
@@ -174,10 +174,13 @@ Alexandro (la pasarela define su propio modo offline).
 ---
 
 ## 7. Plan incremental propuesto (encaja con POS-0..3 del doc de arquitectura)
-1. **Unificar el motor de cobro** (`<CobroSheet>`) usado por cita y por Caja. (Carlos)
-2. **"Cobro rápido / venta sin cita"** en Caja (`cita_id` null + líneas producto). (Carlos)
-3. **Contrato con la sesión paralela**: `fichajes.profesional_id` poblado + perfil leyendo
-   `cobros`/`citas` por `profesional_id`; mover fichaje a perfil; Caja conserva arqueo. (acordar)
+1. ~~**Unificar el motor de cobro** (`<CobroSheet>`) usado por cita y por Caja.~~ **HECHO** (24-25
+   jun, commit `3e8e9a05`) — de paso corrigió que la ficha de cita no descontaba la señal pagada.
+2. ~~**"Cobro rápido / venta sin cita"** en Caja~~ **HECHO** (25 jun): botón "Cobro rápido" en Caja,
+   líneas libres (sin catálogo), profesional opcional, RPC nueva `crear_cobro_walkin`. Sin cliente
+   en esta tanda (queda para más adelante si se necesita).
+3. ~~**Contrato con la sesión paralela**~~ **RESUELTO sin cambios de código en POS** (ver §4.2): el
+   perfil no necesitó `fichajes.profesional_id`.
 4. **Comisiones reales** en Informes y perfil = sobre `cobros` (base sin IVA) por profesional.
 5. **PWA + caché de hoy** (Fase A online-resiliente). (Carlos)
 6. **Cola de cobros offline** con `idempotency_key` (Fase B). (Carlos)
@@ -186,9 +189,9 @@ Alexandro (la pasarela define su propio modo offline).
 ---
 
 ## 8. Decisiones para Jose / coordinación
-1. **¿Existe ya un vínculo `profesional ↔ user`** (`profesionales.user_id` o
-   `profiles.profesional_id`)? Es prerrequisito del perfil y de poblar `fichajes.profesional_id`.
-   Si no, migración pequeña primero.
+1. ~~¿Existe ya un vínculo profesional ↔ user?~~ **RESUELTO** (ver §4.2): sí existe
+   (`profesionales.profile_id`), tiene UI en Equipo, y el perfil no necesitó poblar
+   `fichajes.profesional_id`.
 2. **¿El "cobro sin cita" (walk-in/venta) entra ya**, o esperamos a tener el perfil? (Recomiendo
    entrarlo: es lo que hace que "cobrar citas" sea un POS de verdad.)
 3. **Online/offline:** ¿confirmamos el enfoque **"online resiliente + cola de cobros"** (Fases
