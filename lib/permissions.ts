@@ -40,6 +40,7 @@ export type Capability =
   | 'agenda.ver_propia'
   | 'agenda.ver_todas'
   | 'agenda.gestionar_todas'
+  | 'agenda.gestionar_propia'   // operar SOLO la agenda propia (gateado por toggle de salon)
   | 'clientes.ver'
   | 'clientes.editar'
   | 'clientes.notas_internas'
@@ -127,3 +128,18 @@ export const ROLE_TO_VALUE: Record<Role, string> = {
   recepcion: 'recepcion',
   profesional: 'employee',
 };
+
+// Alcance de escritura del asistente de agenda.
+// 'all'  = opera a cualquier profesional (Recepcion/Direccion/Propietario).
+// 'self' = opera solo su propia agenda (Profesional, si el salon lo permite).
+// 'none' = solo consulta.
+export type AsistenteWriteScope = 'all' | 'self' | 'none';
+
+export function asistenteWriteScope(
+  profile: { role?: string | null } | null | undefined,
+  profesionalEscribeFlag: boolean,
+): AsistenteWriteScope {
+  if (can(profile, 'agenda.gestionar_todas')) return 'all';
+  if (profesionalEscribeFlag && roleOf(profile) === 'profesional') return 'self';
+  return 'none';
+}
