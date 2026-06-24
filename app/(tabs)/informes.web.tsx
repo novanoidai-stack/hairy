@@ -340,7 +340,7 @@ export default function InformesScreen() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [resenas, setResenas] = useState<{ puntuacion: number }[]>([]);
-  const [cobros, setCobros] = useState<{ total_cents: number; cobrado_at?: string; efectivo_cents?: number; datafono_cents?: number; propina_cents?: number }[]>([]);
+  const [cobros, setCobros] = useState<{ total_cents: number; cobrado_at?: string; efectivo_cents?: number; datafono_cents?: number; propina_cents?: number; profesional_id?: string | null }[]>([]);
 
   // UI
   const [comisionPct, setComisionPct] = useState<number>(30);
@@ -376,10 +376,11 @@ export default function InformesScreen() {
         .eq('negocio_id', nId)
         .gte('created_at', desde.toISOString())
         .lte('created_at', hasta.toISOString()),
-      // Cobros reales del periodo (libro de caja): para comparar estimado vs cobrado.
+      // Cobros reales del periodo (libro de caja): para comparar estimado vs cobrado
+      // y para comisiones reales por profesional.
       supabase
         .from('cobros')
-        .select('total_cents, cobrado_at, efectivo_cents, datafono_cents, propina_cents')
+        .select('total_cents, cobrado_at, efectivo_cents, datafono_cents, propina_cents, profesional_id')
         .eq('negocio_id', nId)
         .eq('estado', 'completado')
         .gte('cobrado_at', desde.toISOString())
@@ -666,16 +667,27 @@ export default function InformesScreen() {
   }, [activas]);
 
   // -- 9.8: Comisiones --
+  // Real cuando el profesional tiene cobros en el periodo (libro de cobros, base sin IVA,
+  // sin la propina porque esa ya es integra del profesional); si no, sigue el estimado de
+  // catalogo de siempre — mismo patron que totalIngresos vs totalCobrado mas arriba.
   const comisionesData = useMemo(() => {
-    const porProf: { profId: string; nombre: string; color: string; ingresos: number; comision: number; citas: number }[] = [];
+    const porProf: { profId: string; nombre: string; color: string; ingresos: number; comision: number; citas: number; real: boolean }[] = [];
     // El IVA es de Hacienda, no del salon: la comision se calcula sobre la BASE SIN IVA.
-    // Los precios de catalogo incluyen IVA (21% general de servicios), asi que se descuenta
-    // antes de aplicar el porcentaje de comision.
     const IVA_PCT = 21;
 
     profsActivos.forEach(p => {
       const profCitas = activas.filter(c => c.profesional_id === p.id);
-      const ingresos = profCitas.reduce((s, c) => s + (srvMap.get(c.servicio_id ?? '')?.precio || 0), 0);
+      const profCobros = cobros.filter(c => c.profesional_id === p.id);
+      const real = profCobros.length > 0;
+
+      let ingresos: number;
+      if (real) {
+        // total_cents ya viene neto de descuento y señal; se le quita la propina (no es
+        // base comisionable) antes de pasar a euros.
+        ingresos = profCobros.reduce((s, c) => s + ((c.total_cents || 0) - (c.propina_cents || 0)), 0) / 100;
+      } else {
+        ingresos = profCitas.reduce((s, c) => s + (srvMap.get(c.servicio_id ?? '')?.precio || 0), 0);
+      }
       const baseSinIva = ingresos / (1 + IVA_PCT / 100);
       porProf.push({
         profId: p.id,
@@ -684,11 +696,12 @@ export default function InformesScreen() {
         ingresos,
         comision: Math.round(baseSinIva * comisionPct / 100),
         citas: profCitas.length,
+        real,
       });
     });
     porProf.sort((a, b) => b.ingresos - a.ingresos);
     return porProf;
-  }, [profsActivos, activas, srvMap, comisionPct]);
+  }, [profsActivos, activas, cobros, srvMap, comisionPct]);
 
   // -------------------------------------------------------------------------
   // CSV export callbacks (9.9)
@@ -700,8 +713,8 @@ export default function InformesScreen() {
   }, [ocupacionData, periodo]);
 
   const exportIngresos = useCallback(() => {
-    const headers = ['Profesional', 'Ingresos (EUR)', 'Comision (EUR)'];
-    const rows = comisionesData.map(p => [p.nombre, String(p.ingresos), String(p.comision)]);
+    const headers = ['Profesional', 'Ingresos (EUR)', 'Comision (EUR)', 'Base'];
+    const rows = comisionesData.map(p => [p.nombre, String(p.ingresos), String(p.comision), p.real ? 'Real (cobros)' : 'Estimado (catalogo)']);
     descargarCSV(`ingresos_${periodo}.csv`, headers, rows);
   }, [comisionesData, periodo]);
 
@@ -847,8 +860,8 @@ export default function InformesScreen() {
     ].map(k => `<div class="kpi"><div class="kpi-label">${esc(k.label)}</div><div class="kpi-value">${esc(k.value)}</div></div>`).join('');
 
     // Comisiones
-    const comRows = comisionesData.map(p => `<tr><td>${esc(p.nombre)}</td><td class="num">${p.citas}</td><td class="num">${fmtEur(p.ingresos)} €</td><td class="num">${fmtEur(p.comision)} €</td></tr>`).join('')
-      || '<tr><td colspan="4" class="empty">Sin datos</td></tr>';
+    const comRows = comisionesData.map(p => `<tr><td>${esc(p.nombre)}</td><td class="num">${p.citas}</td><td class="num">${fmtEur(p.ingresos)} €</td><td class="num">${fmtEur(p.comision)} €</td><td>${p.real ? 'Real' : 'Estimado'}</td></tr>`).join('')
+      || '<tr><td colspan="5" class="empty">Sin datos</td></tr>';
     const comTotCitas = comisionesData.reduce((s, p) => s + p.citas, 0);
     const comTotIng = comisionesData.reduce((s, p) => s + p.ingresos, 0);
     const comTotCom = comisionesData.reduce((s, p) => s + p.comision, 0);
@@ -988,9 +1001,9 @@ export default function InformesScreen() {
   <section>
     <h2>Comisiones · ${esc(comisionPct)}% aplicado</h2>
     <table>
-      <thead><tr><th>Profesional</th><th class="num">Citas</th><th class="num">Ingresos</th><th class="num">Comisión</th></tr></thead>
+      <thead><tr><th>Profesional</th><th class="num">Citas</th><th class="num">Ingresos</th><th class="num">Comisión</th><th>Base</th></tr></thead>
       <tbody>${comRows}</tbody>
-      <tfoot><tr><td>Total</td><td class="num">${comTotCitas}</td><td class="num">${fmtEur(comTotIng)} €</td><td class="num">${fmtEur(comTotCom)} €</td></tr></tfoot>
+      <tfoot><tr><td>Total</td><td class="num">${comTotCitas}</td><td class="num">${fmtEur(comTotIng)} €</td><td class="num">${fmtEur(comTotCom)} €</td><td></td></tr></tfoot>
     </table>
   </section>
 
@@ -1662,7 +1675,7 @@ export default function InformesScreen() {
             {/* 9.8: Comisiones                                               */}
             {/* ============================================================= */}
             <div style={{ marginBottom: isMobile ? 10 : 14 }}>
-              <SectionHeader id="comisiones" icon="percent" iconColor={TOKENS.amber} title="Comisiones por profesional" subtitle={`Porcentaje aplicado: ${comisionPct}%`} />
+              <SectionHeader id="comisiones" icon="percent" iconColor={TOKENS.amber} title="Comisiones por profesional" subtitle={`Porcentaje aplicado: ${comisionPct}% · sobre cobros reales cuando hay, si no estimado por catálogo`} />
               <SectionBody id="comisiones">
                 {/* Commission % selector — envuelve en movil para no salirse */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '8px 12px', borderRadius: 8, background: TOKENS.amberSoft, flexWrap: 'wrap' }}>
@@ -1735,6 +1748,9 @@ export default function InformesScreen() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 8, minWidth: 0 }}>
                           <div style={{ width: 4, height: 20, borderRadius: 2, background: p.color, flexShrink: 0 }} />
                           <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</span>
+                          <span title={p.real ? 'Calculado sobre cobros reales del periodo' : 'Sin cobros en el periodo: estimado por catálogo'} style={{ fontSize: 9, fontWeight: 700, color: p.real ? TOKENS.success : TOKENS.textTer, background: p.real ? TOKENS.successSoft : TOKENS.bgPanel, border: `1px solid ${p.real ? TOKENS.success : TOKENS.border}`, borderRadius: 999, padding: '1px 6px', flexShrink: 0 }}>
+                            {p.real ? 'real' : 'estim.'}
+                          </span>
                         </div>
                         <div style={{ fontSize: 12, color: TOKENS.textSec, textAlign: 'right' }}>{p.citas}</div>
                         <div style={{ fontSize: 12, color: TOKENS.success, fontWeight: 600, textAlign: 'right' }}>{fmtEur(p.ingresos)}{isMobile ? ' €' : ' EUR'}</div>
