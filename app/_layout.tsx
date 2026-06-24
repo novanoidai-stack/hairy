@@ -7,6 +7,7 @@ import { View, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebScrollbarStyles } from '@/components/WebScrollbarStyles';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { MotionStyles } from '@/lib/motion';
 import { ThemeProvider } from '@/lib/themeContext';
 import { CalendarProvider } from '@/lib/calendarContext';
@@ -21,6 +22,19 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap';
   link.rel = 'stylesheet';
   document.head.appendChild(link);
+
+  // PWA: manifest + theme-color. No se puede usar app/+html.tsx (este proyecto
+  // exporta en modo SPA, no static; +html.tsx no se aplica), asi que se inyecta
+  // en runtime igual que las fuentes de arriba.
+  const manifestLink = document.createElement('link');
+  manifestLink.rel = 'manifest';
+  manifestLink.href = '/app/manifest.json';
+  document.head.appendChild(manifestLink);
+
+  const themeColorMeta = document.createElement('meta');
+  themeColorMeta.name = 'theme-color';
+  themeColorMeta.content = '#f4501e';
+  document.head.appendChild(themeColorMeta);
 
   // Inject global CSS with warm charcoal as default text on light bg
   const style = document.createElement('style');
@@ -44,6 +58,7 @@ function ThemedRoot({ children }: { children: React.ReactNode }) {
       <WebScrollbarStyles />
       <MotionStyles />
       <StatusBar style={isDark ? 'light' : 'dark'} />
+      <OfflineBanner />
       {children}
     </GestureHandlerRootView>
   );

@@ -1,0 +1,12 @@
+{
+  "id": "/app",
+  "name": "Mecha",
+  "short_name": "Mecha",
+  "description": "Gestion inteligente para salones y peluquerias",
+  "start_url": "/app",
+  "scope": "/app",
+  "display": "standalone",
+  "background_color": "#f6f1ea",
+  "theme_color": "#f4501e",
+  "icons": []
+}
