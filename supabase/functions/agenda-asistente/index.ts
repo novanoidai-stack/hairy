@@ -266,9 +266,9 @@ async function runAgente(
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       thinking: { type: 'adaptive' } as Anthropic.ThinkingConfigParam,
-      // output_config con effort: disponible en el SDK cuando el modelo lo soporta
-      // Se pasa via betas si el campo no esta en el tipo principal
-      ...(effort !== 'medium' ? { betas: [`output-128k-2025-02-19`] } : {}),
+      // effort (low|medium|high): GA en claude-sonnet-4-6, sin beta header.
+      // El SDK 0.65 aun no lo tipa; por eso el doble cast de mas abajo.
+      output_config: { effort },
       system: [
         {
           type: 'text',
@@ -278,7 +278,7 @@ async function runAgente(
       ] as Anthropic.TextBlockParam[],
       tools: TOOLS,
       messages: conv,
-    } as Parameters<typeof anthropic.messages.create>[0]);
+    } as unknown as Parameters<typeof anthropic.messages.create>[0]);
 
     conv.push({ role: 'assistant', content: resp.content });
 
