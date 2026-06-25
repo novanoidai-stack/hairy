@@ -145,12 +145,6 @@ export function Sidebar() {
         </TouchableOpacity>
       )}
 
-      {/* Search */}
-      <TouchableOpacity style={[s.searchBox, collapsed && s.searchBoxCollapsed]} {...webTitle('Buscar')}>
-        <Ionicons name="search-outline" size={collapsed ? 18 : 14} color={tokens.textTertiary} />
-        {!collapsed && <TText style={s.searchPlaceholder}>Buscar…</TText>}
-        {!collapsed && <TText style={s.searchShortcut}>⌘K</TText>}
-      </TouchableOpacity>
 
       {/* Navigation */}
       <View style={s.navSection}>
@@ -287,6 +281,13 @@ const s = StyleSheet.create({
     paddingBottom: tokens.spacing.lg,
     justifyContent: 'space-between',
     transition: 'width 0.2s ease' as any,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   sidebarCollapsed: {
     width: 76,
@@ -355,39 +356,6 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.border,
     marginBottom: tokens.spacing.md,
-  },
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tokens.spacing.sm,
-    padding: tokens.spacing.sm,
-    backgroundColor: tokens.bgCard,
-    borderRadius: tokens.radius.md,
-    borderWidth: 1,
-    borderColor: tokens.border,
-    marginBottom: tokens.spacing.xl,
-  },
-  searchBoxCollapsed: {
-    justifyContent: 'center',
-    width: 44,
-    height: 44,
-    padding: 0,
-    marginBottom: tokens.spacing.lg,
-  },
-  searchPlaceholder: {
-    flex: 1,
-    fontSize: tokens.fontSize.sm,
-    color: tokens.textTertiary,
-  },
-  searchShortcut: {
-    fontSize: 10,
-    padding: 2,
-    paddingHorizontal: tokens.spacing.xs,
-    borderRadius: 4,
-    backgroundColor: tokens.bg,
-    borderWidth: 1,
-    borderColor: tokens.border,
-    color: tokens.textSecondary,
   },
   navSection: {
     flex: 1,

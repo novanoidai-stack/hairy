@@ -1216,6 +1216,14 @@ window.MECHA_CHAT = [
   }
   loadMechaReviews();
 
+  // Timeout por si el fetch falla o tarda mucho
+  setTimeout(function() {
+    var sb = document.getElementById('mechaStatsBox');
+    if (sb && sb.innerHTML.includes('Cargando')) {
+      sb.innerHTML = '<div style="display:flex;align-items:center;gap:5px;color:var(--text-ter);font-size:13px">Valoraciones verificadas de clientes reales</div>';
+    }
+  }, 8000);
+
 })();
 </script>
 

@@ -143,6 +143,7 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
 .nav-links a{font-size:14.2px;font-weight:500;color:var(--text-sec);padding:8px 14px;border-radius:999px;
   transition:color .2s,background .2s}
 .nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-links a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;background:rgba(244,80,30,.08)}
 .nav-cta{display:flex;align-items:center;gap:10px}
 .nav-cta .login{font-size:14.2px;font-weight:500;color:var(--text-sec);padding:8px 12px}
 .nav-cta .login:hover{color:var(--text)}
@@ -223,16 +224,19 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
 .foot-col h5{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-ter);margin-bottom:16px}
 .foot-col a{display:block;font-size:14px;color:var(--text-sec);padding:5px 0;transition:color .2s}
 .foot-col a:hover{color:var(--text)}
+.foot-col a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;background:rgba(244,80,30,.05);border-radius:4px}
 .foot-bot{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;
   align-items:center;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--text-ter)}
 .foot-bot .soc{display:flex;gap:10px}
 .foot-bot .soc a{width:44px;height:44px;border-radius:9px;border:1px solid var(--border);display:grid;
   place-items:center;color:var(--text-sec);transition:all .2s}
 .foot-bot .soc a:hover{color:var(--text);border-color:var(--accent)}
+.foot-bot .soc a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;background:rgba(244,80,30,.05)}
 .foot-bot .soc svg{width:16px;height:16px}
 .foot-legal{display:flex;gap:18px;flex-wrap:wrap}
 .foot-legal a{font-size:13px;color:var(--text-ter);transition:color .2s}
 .foot-legal a:hover{color:var(--text)}
+.foot-legal a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;background:rgba(244,80,30,.05);border-radius:4px}
 /* ============================================================
    RESPONSIVE (core) + MOBILE NAV (panel lateral deslizante)
    ============================================================ */
@@ -353,6 +357,7 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
 .mnav-links a svg { width: 18px; height: 18px; color: var(--text-ter); transition: transform .2s ease, color .2s ease; }
 .mnav-links a:hover, .mnav-links a:active { color: var(--text); background: rgba(255, 255, 255, .04); border-color: var(--border); }
 .mnav-links a:hover svg { color: var(--accent-hi); transform: translateX(3px); }
+.mnav-links a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; background: rgba(244,80,30,.08); border-color: var(--accent); }
 /* Entrada escalonada de los enlaces al abrir */
 .nav-menu-open .mnav-links a { opacity: 1; transform: none; }
 .nav-menu-open .mnav-links a:nth-child(2) { transition-delay: .08s; }
