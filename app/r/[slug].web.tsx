@@ -8,32 +8,15 @@ import {
   type PortalInfo, type PortalServicio, type SlotDisponible, type CrearCitaResult, type ResenaResumen,
 } from '@/lib/reservaPublica';
 import { EmbersCanvas } from '../resena/[slug].web';
+import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
 
 // ---------------------------------------------------------------------------
 // Tokens — marca Mecha (Basalto oscuro). El gradiente FIRE es el del
 // simbolo de la llama (#mecha-mark): se usa en CTAs, progreso y exito.
 // ---------------------------------------------------------------------------
-const T = {
-  bg: '#060202', // Basalt black
-  panel: 'rgba(11, 16, 32, 0.72)', // Glassmorphic very dark gray-blue
-  card: '#101729',
-  cardHi: '#16203a',
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderHi: 'rgba(255, 255, 255, 0.16)',
-  text: '#f6f8ff',
-  textSec: '#9aa6c2',
-  textTer: '#8a9ab8',
-  primary: '#f4501e',
-  primaryHi: '#ff8a3d',
-  primarySoft: 'rgba(244,80,30,0.14)',
-  success: '#10b981',
-  successSoft: 'rgba(16,185,129,0.14)',
-  danger: '#ef4444',
-  dangerSoft: 'rgba(239,68,68,0.14)',
-  ember: '#f59e0b',
-};
-const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
-const SERIF = "'Inter', system-ui, sans-serif";
+const T = PORTAL_TOKENS;
+const FIRE = FIRE_GRADIENT;
+const SERIF = SANS_SERIF;
 
 const ANIM = `
   @keyframes rpFade { from { opacity: 0 } to { opacity: 1 } }
@@ -298,6 +281,7 @@ export default function PortalReservaWeb() {
         slug, servicioId: servicio.id, profesionalId: slotSel.profesional_id, inicioISO: slotSel.slot,
         clienteNombre: nombre.trim(), clienteTelefono: telefono.trim(),
         clienteEmail: email.trim() || undefined, notas: notas.trim() || undefined,
+        consentimientoDatos: consent,
       });
       setResultado(r);
       setStep('confirmado');

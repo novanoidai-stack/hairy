@@ -252,7 +252,7 @@ export function CobroSheet(props: CobroSheetProps) {
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onClose} disabled={enviando} style={{ padding: '9px 18px', background: T.bgCard, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, cursor: enviando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>Cancelar</button>
-          <button onClick={confirmar} disabled={enviando} style={{ padding: '9px 20px', background: enviando ? T.textTer : 'linear-gradient(180deg,#16a34a,#15803d)', color: '#fff', border: 'none', borderRadius: 8, cursor: enviando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, opacity: enviando ? 0.7 : 1 }}>
+          <button onClick={confirmar} disabled={enviando} style={{ padding: '9px 20px', background: enviando ? T.textTer : 'linear-gradient(180deg,T.success,#15803d)', color: '#fff', border: 'none', borderRadius: 8, cursor: enviando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, opacity: enviando ? 0.7 : 1 }}>
             {enviando ? 'Cobrando…' : 'Confirmar cobro'}
           </button>
         </div>

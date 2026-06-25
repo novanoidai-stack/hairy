@@ -56,6 +56,7 @@ export const DESIGN_TOKENS = {
   warningSoft: 'rgba(224,138,0,0.16)',
   danger: '#e23b34',
   dangerSoft: 'rgba(226,59,52,0.14)',
+  fireGradient: 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)',
 
   // Additional
   violet: '#c0260a',

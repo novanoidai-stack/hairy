@@ -50,8 +50,8 @@ function DrumColumn({ items, value, onChange }: { items: string[]; value: string
 
   const handleScroll = () => {
     if (isProgrammatic.current) return;
-    if (timer.current !== undefined) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
+    if (timer.current !== undefined) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
       if (!scrollRef.current) return;
       const idx = Math.max(0, Math.min(Math.round(scrollRef.current.scrollTop / ITEM_H), items.length - 1));
       isProgrammatic.current = true;

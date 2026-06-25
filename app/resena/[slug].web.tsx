@@ -3,28 +3,10 @@ import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
 import { getPortalInfo, getResenasPublicas, crearResenaPublica, type PortalNegocio, type ResenaResumen } from '@/lib/reservaPublica';
 import { PageLoader } from '@/components/ui/DesignComponents';
+import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
 
-const T = {
-  bg: '#060202', // Basalt black
-  panel: 'rgba(11, 16, 32, 0.72)', // Glassmorphic very dark gray-blue
-  card: '#101729',
-  cardHi: '#16203a',
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderHi: 'rgba(255, 255, 255, 0.16)',
-  text: '#f6f8ff',
-  textSec: '#9aa6c2',
-  textTer: '#8a9ab8',
-  primary: '#f4501e',
-  primaryHi: '#ff8a3d',
-  primarySoft: 'rgba(244,80,30,0.14)',
-  star: '#f59e0b',
-  success: '#10b981',
-  successSoft: 'rgba(16,185,129,0.14)',
-  danger: '#ef4444',
-};
-
-const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
-const SANS_SERIF = '"Space Grotesk", "Outfit", "Inter", sans-serif';
+const T = PORTAL_TOKENS;
+const FIRE = FIRE_GRADIENT;
 
 const ANIM = `
   @keyframes rsUp { from { opacity:0; transform: translateY(14px) } to { opacity:1; transform: translateY(0) } }

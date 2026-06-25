@@ -2,12 +2,13 @@ import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { fontSize, fontWeight, radius, useTheme } from '@/lib/theme';
 import { TText } from '@/components/ui/TText';
 import type { Cita } from './AgendaView';
+import { STATUS_META } from '@/lib/designTokens';
 
 const ESTADO_COLORS: Record<Cita['estado'], string> = {
-  confirmada: '#f4501e',
-  completada: '#10b981',
-  cancelada: '#94a3b8',
-  no_presentada: '#ef4444',
+  confirmada: STATUS_META.confirmada.color,
+  completada: STATUS_META.completada.color,
+  cancelada: STATUS_META.cancelada.color,
+  no_presentada: STATUS_META.no_show.color,
 };
 
 interface Props {

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { PropuestaRetraso } from '@/lib/retrasos';
+import { DESIGN_TOKENS } from '@/lib/designTokens';
 
 // Modal de propuesta de retraso encadenado (IA de agenda). Muestra como se recolocan las
 // citas siguientes del profesional y deja al profesional CONFIRMAR (aplicar + avisar) o
@@ -8,12 +9,19 @@ import type { PropuestaRetraso } from '@/lib/retrasos';
 // Spec: docs/superpowers/specs/2026-06-18-retrasos-encadenados-design.md
 
 const T = {
-  panel: '#fffdfb', card: '#ffffff', border: 'rgba(40,30,24,0.10)',
-  text: '#241a14', textSec: '#5c5249', textTer: '#736658',
-  primary: '#f4501e', primaryHi: '#c0260a', primarySoft: 'rgba(244,80,30,0.10)',
-  amber: '#f59e0b', amberSoft: 'rgba(245,158,11,0.12)',
+  panel: DESIGN_TOKENS.bgPanel,
+  card: DESIGN_TOKENS.bgCard,
+  border: DESIGN_TOKENS.borderHi,
+  text: DESIGN_TOKENS.text,
+  textSec: DESIGN_TOKENS.textSecondary,
+  textTer: DESIGN_TOKENS.textTertiary,
+  primary: DESIGN_TOKENS.primary,
+  primaryHi: DESIGN_TOKENS.primaryHi,
+  primarySoft: DESIGN_TOKENS.primarySoft,
+  amber: DESIGN_TOKENS.warning,
+  amberSoft: DESIGN_TOKENS.warningSoft,
 };
-const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
+const FIRE = DESIGN_TOKENS.fireGradient;
 
 function fmtHora(iso: string) {
   return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });

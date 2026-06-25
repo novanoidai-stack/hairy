@@ -32,7 +32,7 @@ Para avanzar de forma ordenada y realista, clasificamos el trabajo de cumplimien
 1.  **[HECHO] Inmutabilidad SQL (Anti-fraude):** Bloquear la eliminación física de registros financieros mediante triggers en la base de datos Supabase (Ver [compliance-antifraude-inmutabilidad.sql](file:///c:/Users/carli/OneDrive/Escritorio/novanoidai/Hairy/migrations/compliance-antifraude-inmutabilidad.sql)).
 2.  **Cadena de Tickets Inmutables (Pre-VeriFactu):** Generar una función de hashing que enlace cada recibo de cobro con el anterior, impidiendo la manipulación de fechas e importes.
 3.  **Protección de Datos Sensibles (RGPD):** Cambiar a privados los buckets de fotos de clientas y generar tokens de acceso temporal (signed URLs) dinámicamente desde el servidor.
-4.  **Bitácora de Consentimiento:** Crear una tabla de logs en Supabase para registrar la firma digital del cliente, su dirección IP y el timestamp al aceptar la política de alergias y RGPD.
+4.  **[HECHO] Bitácora de Consentimiento (RGPD):** Creación de la tabla `consentimientos_cliente` en Supabase y cableado automático mediante el RPC backend `crear_cita_publica` para registrar la dirección IP, el timestamp y el User Agent del navegador al realizar la reserva en el portal web (Ver [consentimientos-gdpr.sql](file:///c:/Users/carli/OneDrive/Escritorio/novanoidai/Hairy/migrations/consentimientos-gdpr.sql)).
 
 ### B. Tareas manuales que deben realizar los fundadores (Carlos/Alexandro/José):
 1.  **KYC de Stripe (Salón):** Cada salón (ej. L'Acanze) debe iniciar sesión en Stripe y subir su DNI de administrador, escrituras del negocio y certificado bancario para poder retirar dinero.
@@ -100,21 +100,16 @@ $$ language plpgsql security definer set search_path = public;
 
 El software registra alergias técnicas (de tintes y tratamientos) y fotos del cuero cabelludo/pelo de las clientas de L'Acanze. La Agencia Española de Protección de Datos (AEPD) considera esto **datos de salud** (Art. 9 del RGPD), sometidos a la máxima protección.
 
-### A. Registro de Consentimiento Explícito (En Código)
+### A. Registro de Consentimiento Explícito (En Código) [HECHO]
 No basta con marcar una casilla de "Acepto". Ante una inspección, el salón debe demostrar cuándo, desde qué IP y bajo qué términos aceptó la clienta.
-*   **Tabla en base de datos `consentimientos_clientes`:**
-    ```sql
-    create table if not exists consentimientos_clientes (
-      id uuid primary key default gen_random_uuid(),
-      negocio_id text not null,
-      cliente_id uuid not null references clientes(id) on delete cascade,
-      tipo_consentimiento text not null check (tipo_consentimiento in ('alergias_salud', 'fotos_imagen', 'marketing')),
-      firma_svg text not null, -- Guardar los trazos vectoriales de la firma digital de la tablet
-      ip_registro text,
-      user_agent text,
-      created_at timestamptz not null default now()
-    );
-    ```
+*   **Tabla en base de datos `consentimientos_cliente` (singular):**
+    Esta tabla almacena los logs de consentimientos otorgados por los clientes (alergias, tratamientos de datos, etc.). En la migración [consentimientos-gdpr.sql](file:///c:/Users/carli/OneDrive/Escritorio/novanoidai/Hairy/migrations/consentimientos-gdpr.sql) se agregaron campos adicionales para el cumplimiento:
+    - `ip_registro` (text): Captura la dirección IP desde donde se realizó la aceptación.
+    - `user_agent` (text): Registra el navegador/plataforma utilizado por el usuario.
+    - `firma_svg` (text): Reservado para trazos vectoriales de firmas en tablets de salón.
+
+*   **Arquitectura de Registro Automático en Backend:**
+    Para evitar la fuga de IDs internos de negocio en el frontend del portal de reservas (que opera de forma anónima con la `anon` key), la inserción en la tabla `consentimientos_cliente` se realiza de forma atómica dentro de la función de base de datos `crear_cita_publica` (que opera con privilegios `security definer`). La IP de origen se resuelve dinámicamente mediante `public.request_ip()` y el User Agent se extrae automáticamente de las cabeceras HTTP de PostgREST.
 
 ### B. Fotos Privadas de Clientes (En Código)
 El bucket de almacenamiento Supabase Storage para fotos de tintes no debe ser público. 
@@ -138,7 +133,7 @@ En la configuración del sistema de telefonía (Retell / Twilio), el flujo de en
 
 ## 5. Próximos Pasos en el Repositorio
 
-*   **[HECHO] Paso 1 (IA):** Crear los scripts de migración SQL para habilitar los campos de hash inmutable en la tabla `cobros` y la tabla `consentimientos_clientes`. (Triggers de inmutabilidad implementados en [compliance-antifraude-inmutabilidad.sql](file:///c:/Users/carli/OneDrive/Escritorio/novanoidai/Hairy/migrations/compliance-antifraude-inmutabilidad.sql)).
-*   **Paso 2 (Carlos):** Cablear el componente de firma en el portal y en la ficha de cliente para registrar los consentimientos en la nueva tabla.
+*   **[HECHO] Paso 1 (IA):** Crear los scripts de migración SQL para habilitar la inmutabilidad financiera ( triggers aplicados en [compliance-antifraude-inmutabilidad.sql](file:///c:/Users/carli/OneDrive/Escritorio/novanoidai/Hairy/migrations/compliance-antifraude-inmutabilidad.sql)).
+*   **[HECHO] Paso 2 (IA):** Crear la migración [consentimientos-gdpr.sql](file:///c:/Users/carli/OneDrive/Escritorio/novanoidai/Hairy/migrations/consentimientos-gdpr.sql) para añadir campos de consentimiento RGPD (IP, User Agent) y actualizar el RPC `crear_cita_publica`. Modificar la app web de reservas en `app/r/[slug].web.tsx` para enviar el consentimiento de datos de forma segura al backend. Código libre de errores de TypeScript y compilado.
 *   **Paso 3 (Alexandro):** Cambiar a privada la lectura de Supabase Storage para las imágenes y generar URLs firmadas.
-*   **Paso 4 (Fundadores):** Completar los registros manuales requeridos con Meta, Twilio y Stripe para poder pasar la app a producción.
+*   **Paso 4 (Fundadores):** Completar los registros manuales requeridos con Meta, Twilio y Stripe para poder pasar la app a producción, y ejecutar manualmente la migración `consentimientos-gdpr.sql` en el panel de Supabase de producción.

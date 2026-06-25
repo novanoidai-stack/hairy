@@ -64,6 +64,7 @@ export interface CrearCitaArgs {
   clienteTelefono: string;
   clienteEmail?: string;
   notas?: string;
+  consentimientoDatos?: boolean;
 }
 
 // Cabecera + servicios reservables + profesionales del salon. null si el portal no existe / esta apagado.
@@ -120,6 +121,7 @@ export async function crearCitaPublica(args: CrearCitaArgs): Promise<CrearCitaRe
     p_cliente_telefono: args.clienteTelefono,
     p_cliente_email: args.clienteEmail ?? null,
     p_notas: args.notas ?? null,
+    p_consentimiento_datos: args.consentimientoDatos ?? true,
   });
   if (error) throw error;
   return data as CrearCitaResult;

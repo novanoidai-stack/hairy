@@ -780,3 +780,21 @@ B1–B8 con causa raíz y criterios en `informes/HANDOFF-2026-06-22.md`):
   diferenciar el enlace que GANA % (referido) del que solo enseña la demo.
 - **Caja propietario**: jornada de todo el equipo (incluido el propietario) con horas trabajadas
   calculadas (entrada/salida) y descansos, todo descargable en CSV (confirmar modelo de "descanso").
+
+---
+
+## Adenda 25 de junio de 2026 — Consentimientos RGPD & Corrección de Compilación (IA)
+
+Se implementó el flujo completo de registro de consentimientos RGPD y se resolvieron todos los errores latentes de compilación de TypeScript en el proyecto.
+
+- **Base de Datos (Migración C7 RGPD)**:
+  - Se creó el archivo de migración [consentimientos-gdpr.sql](file:///c:/Users/carli/OneDrive/Escritorio/novanoidai/Hairy/migrations/consentimientos-gdpr.sql) para añadir las columnas `consentimiento_datos` y `consentimiento_at` a la tabla `citas`, y `firma_svg`, `ip_registro` y `user_agent` a la tabla `consentimientos_cliente`.
+  - Se actualizó el RPC `crear_cita_publica` para registrar automáticamente el consentimiento y recolectar de forma segura en el backend los metadatos de conexión del cliente (`request_ip()` y `user-agent` desde cabeceras HTTP de PostgREST) sin exponer la ID interna del salón al navegador web (RLS).
+- **Frontend y Firma del Portal**:
+  - Se actualizó `lib/reservaPublica.ts` y `app/r/[slug].web.tsx` para pasar el consentimiento del usuario (`consentimientoDatos`) atómicamente a la llamada del RPC.
+  - Se removió el bloque anterior que intentaba escribir en la tabla `consentimientos_cliente` desde el frontend, eliminando la dependencia del negocio ID y previniendo fallos de seguridad RLS.
+- **Limpieza de Tipos & Compilación**:
+  - Se resolvió el error de `fireGradient` no definido en `RetrasoPropuestaModal.web.tsx` agregando la clave a `DESIGN_TOKENS` en `lib/designTokens.ts`.
+  - Se corrigió el error de incompatibilidad de tipos `NodeJS.Timeout` en `components/ui/Pickers.tsx` forzando el contexto del navegador con `window.setTimeout` y `window.clearTimeout`.
+  - Se actualizó y validó el entorno a Node `v24.14.0` vía `nvm`, superando la restricción de versión de Metro/Expo.
+  - Se comprobó que `npx tsc --noEmit` y `npm run build:web` compilan y exportan la aplicación web a `web/app` con un 100% de éxito.

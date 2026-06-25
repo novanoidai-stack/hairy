@@ -533,6 +533,10 @@
   .nc-modal{width:88%}
   .flow{gap:8px}
 }
+/* Fix: en móviles muy pequeños (<400px) las 2 columnas se aplastan */
+@media (max-width:400px){
+  .met-grid{grid-template-columns:1fr}
+}
 
 /* ============================================================
    NUEVA CITA — step panes
