@@ -130,6 +130,50 @@ function resetEmailHtml(actionLink: string): string {
 </html>`;
 }
 
+// Rate limiting: max 3 intentos por email/hora para prevenir flood y enumeracion abusiva
+async function checkRateLimit(email: string, supabase: ReturnType<typeof createClient>): Promise<boolean> {
+  const ONE_HOUR = 3600;
+  const now = Math.floor(Date.now() / 1000);
+  const windowStart = now - ONE_HOUR;
+
+  const { data, error } = await supabase
+    .from('rate_limit_reset')
+    .select('attempts, window_start')
+    .eq('email', email)
+    .single();
+
+  if (error || !data) {
+    // Primer intento - crear registro
+    await supabase.from('rate_limit_reset').insert({
+      email,
+      attempts: 1,
+      window_start: now,
+      updated_at: new Date().toISOString()
+    });
+    return true;
+  }
+
+  // Si la ventana ha pasado, resetear
+  if (data.window_start < windowStart) {
+    await supabase.from('rate_limit_reset')
+      .update({ attempts: 1, window_start: now, updated_at: new Date().toISOString() })
+      .eq('email', email);
+    return true;
+  }
+
+  // Dentro de la ventana - verificar limite
+  if (data.attempts >= 3) {
+    return false; // Rate limit excedido
+  }
+
+  // Incrementar contador
+  await supabase.from('rate_limit_reset')
+    .update({ attempts: data.attempts + 1, updated_at: new Date().toISOString() })
+    .eq('email', email);
+
+  return true;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405, req);
@@ -144,6 +188,21 @@ Deno.serve(async (req: Request) => {
   const email = (payload.email || '').trim().toLowerCase();
   if (!email || !EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400, req);
 
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+  const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  // Rate limiting check
+  const allowed = await checkRateLimit(email, admin);
+  if (!allowed) {
+    return json({
+      error: 'too_many_attempts',
+      message: 'Demasiados intentos. Por favor, espera 1 hora antes de volver a intentar.'
+    }, 429, req);
+  }
+
   // redirectTo validado contra allowlist (anti open-redirect).
   let redirectTo = DEFAULT_REDIRECT;
   if (payload.redirectTo) {
@@ -154,12 +213,6 @@ Deno.serve(async (req: Request) => {
       // valor invalido -> nos quedamos con el de produccion
     }
   }
-
-  const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-  const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
 
   // 1) Comprobar existencia + obtener el enlace. generateLink('recovery') falla
   //    si el usuario no existe (no crea cuentas), asi que sirve de check.
