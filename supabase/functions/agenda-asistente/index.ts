@@ -57,7 +57,13 @@ type AccionPropuesta =
       negocio_id: string; profesional_id: string; profesional_nombre: string;
       inicio: string; fin: string; motivo: string | null; resumen: string; solapa: boolean;
     }
-  | { tipo: 'liberar_hueco'; bloqueo_id: string; resumen: string };
+  | { tipo: 'liberar_hueco'; bloqueo_id: string; resumen: string }
+  | {
+      tipo: 'cambiar_config';
+      negocio_id: string; clave: string; label: string;
+      valor: boolean | number | string; valor_actual: boolean | number | string | null;
+      resumen: string;
+    };
 
 // ---------------------------------------------------------------------------
 // Definicion de tools
@@ -168,6 +174,18 @@ const TOOLS = [
       required: ['bloqueo_id'],
     },
   },
+  {
+    name: 'cambiar_config',
+    description: 'Propone cambiar un ajuste de la configuracion del salon (SOLO propietario). Usa la CLAVE exacta de la lista AJUSTES EDITABLES del system prompt.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        clave: { type: 'string', description: 'Clave exacta del ajuste (de la lista AJUSTES EDITABLES)' },
+        valor: { type: 'string', description: 'Nuevo valor: activar/desactivar, un numero, una hora HH:MM, o una opcion del enum' },
+      },
+      required: ['clave', 'valor'],
+    },
+  },
 ];
 
 const ESCRITURA = new Set(['crear_cita', 'reagendar_cita', 'cancelar_cita', 'bloquear_hueco', 'liberar_hueco']);
@@ -198,6 +216,85 @@ GRUPO CUENTA
 - Cuenta: tus datos (nombre, telefono), acceso y seguridad (email y contrasena), el negocio al que perteneces, plan y plazas.
 - Soporte: contacto con el equipo de Mecha.`;
 
+// Ajustes de negocio_config que el asistente puede CAMBIAR (solo propietario).
+// Operativos; se excluyen identidad/cuenta/contrasena por seguridad.
+type ConfigMeta = { label: string; tipo: 'bool' | 'num' | 'enum' | 'hora'; valores?: string[]; min?: number; max?: number };
+const CONFIG_EDITABLE: Record<string, ConfigMeta> = {
+  notifConfirmacionActiva: { label: 'Confirmacion de cita (aviso al cliente)', tipo: 'bool' },
+  notifRecordatorioActiva: { label: 'Recordatorio previo', tipo: 'bool' },
+  notifRecordatorioHoras: { label: 'Horas de antelacion del recordatorio', tipo: 'num', min: 1, max: 168 },
+  notifResenaActiva: { label: 'Peticion de resena', tipo: 'bool' },
+  notifSenalActiva: { label: 'Enlace de pago de senal', tipo: 'bool' },
+  notifRetrasoActiva: { label: 'Aviso de retraso', tipo: 'bool' },
+  notifNoMolestar: { label: 'Horario sin envios (no molestar)', tipo: 'bool' },
+  notifNoMolestarInicio: { label: 'Inicio del horario sin envios', tipo: 'hora' },
+  notifNoMolestarFin: { label: 'Fin del horario sin envios', tipo: 'hora' },
+  antelacionGlobal: { label: 'Antelacion minima para reservar (min)', tipo: 'num', min: 0, max: 10080 },
+  antelacionMax: { label: 'Antelacion maxima para reservar', tipo: 'num', min: 0 },
+  permitirMismoDia: { label: 'Permitir reservas el mismo dia', tipo: 'bool' },
+  solapamiento: { label: 'Solapamiento de citas', tipo: 'enum', valores: ['nunca', 'reposo', 'siempre'] },
+  confirmacionModo: { label: 'Modo de confirmacion', tipo: 'enum', valores: ['auto', 'manual'] },
+  confirmacionTimeout: { label: 'Tiempo maximo sin confirmar (min)', tipo: 'num', min: 0 },
+  confirmacionNotificar: { label: 'Avisar al equipo en pendientes nuevas', tipo: 'bool' },
+  noShowGrace: { label: 'Tiempo para marcar no-show (min)', tipo: 'num', min: 0 },
+  retrasoGrace: { label: 'Tiempo de gracia para retraso (min)', tipo: 'num', min: 0 },
+  contadorRetraso: { label: 'Mostrar contador de retraso en la cita', tipo: 'bool' },
+  recolocarRetraso: { label: 'Recolocacion por retraso', tipo: 'bool' },
+  completarManual: { label: 'Marcar citas completadas manualmente', tipo: 'bool' },
+  reposoMargen: { label: 'Margen de seguridad para reposo (min)', tipo: 'num', min: 0 },
+  alertaReposo: { label: 'Alertar en exceso de reposos simultaneos', tipo: 'bool' },
+  alertaReposoUmbral: { label: 'Umbral de reposos simultaneos', tipo: 'num', min: 1 },
+  aprovecharReposo: { label: 'Permitir aprovechar reposo en otra cliente', tipo: 'bool' },
+  asistenteAgendaActivo: { label: 'Asistente de agenda (IA)', tipo: 'bool' },
+  asistenteProfesionalEscribe: { label: 'Permitir que el profesional opere su propia agenda', tipo: 'bool' },
+  asistenteEffort: { label: 'Nivel del asistente', tipo: 'enum', valores: ['low', 'medium', 'high'] },
+  listaEsperaMatchingActivo: { label: 'Ofrecer huecos automaticamente (lista de espera)', tipo: 'bool' },
+  listaEsperaVentanaMin: { label: 'Ventana de respuesta de la oferta (min)', tipo: 'num', min: 1 },
+  listaEsperaMaxBloqueoHoras: { label: 'Tiempo maximo de reserva del hueco (horas)', tipo: 'num', min: 1 },
+  listaEsperaAntelacionMinHoras: { label: 'Antelacion minima del hueco (horas)', tipo: 'num', min: 0 },
+  listaEsperaDesbloqueoDesde: { label: 'Desde cuando cuenta el tope', tipo: 'enum', valores: ['primer_aviso', 'ultimo_aviso'] },
+  listaEsperaOfertaPideSenal: { label: 'La oferta de hueco pide senal', tipo: 'bool' },
+  listaEsperaAvisarCaducado: { label: 'Avisar si el hueco caduca', tipo: 'bool' },
+  comisionBase: { label: 'Porcentaje base de comision', tipo: 'num', min: 0, max: 100 },
+  comisionBaseImporte: { label: 'Base de calculo de comision', tipo: 'enum', valores: ['bruto', 'neto'] },
+  comisionAddons: { label: 'Incluir add-ons en la comision', tipo: 'bool' },
+  comisionPropinas: { label: 'Incluir propinas en la comision', tipo: 'bool' },
+  comisionPeriodo: { label: 'Periodo de liquidacion', tipo: 'enum', valores: ['semanal', 'quincenal', 'mensual'] },
+  slotInterval: { label: 'Granularidad de los huecos (min)', tipo: 'num', min: 5, max: 60 },
+  defaultView: { label: 'Vista por defecto del calendario', tipo: 'enum', valores: ['dia', 'semana', 'mes'] },
+  startOfWeek: { label: 'Primer dia de la semana', tipo: 'enum', valores: ['lun', 'dom'] },
+};
+
+const CONFIG_EDITABLE_TEXT = 'AJUSTES EDITABLES (solo propietario). Para cambiar uno, usa la tool cambiar_config con la CLAVE exacta de esta lista:\n' +
+  Object.entries(CONFIG_EDITABLE).map(([k, m]) => {
+    const t = m.tipo === 'enum' ? `opciones: ${(m.valores || []).join('/')}` : m.tipo === 'bool' ? 'activar/desactivar' : m.tipo === 'hora' ? 'HH:MM' : 'numero';
+    return `- ${k}: ${m.label} (${t})`;
+  }).join('\n');
+
+function coerceConfigValor(meta: ConfigMeta, valorRaw: string): { ok: true; valor: boolean | number | string } | { ok: false; error: string } {
+  const v = String(valorRaw).trim().toLowerCase();
+  if (meta.tipo === 'bool') {
+    if (['true', 'si', 'sí', 'activar', 'activado', 'activa', 'on', '1'].includes(v)) return { ok: true, valor: true };
+    if (['false', 'no', 'desactivar', 'desactivado', 'desactiva', 'off', '0'].includes(v)) return { ok: true, valor: false };
+    return { ok: false, error: `Para "${meta.label}" indica activar o desactivar.` };
+  }
+  if (meta.tipo === 'num') {
+    const n = Number(String(valorRaw).replace(',', '.').replace(/[^0-9.\-]/g, ''));
+    if (isNaN(n)) return { ok: false, error: `"${valorRaw}" no es un numero valido para "${meta.label}".` };
+    if (meta.min != null && n < meta.min) return { ok: false, error: `El minimo de "${meta.label}" es ${meta.min}.` };
+    if (meta.max != null && n > meta.max) return { ok: false, error: `El maximo de "${meta.label}" es ${meta.max}.` };
+    return { ok: true, valor: n };
+  }
+  if (meta.tipo === 'enum') {
+    const match = (meta.valores || []).find((x) => x.toLowerCase() === v);
+    if (!match) return { ok: false, error: `Valor no valido para "${meta.label}". Opciones: ${(meta.valores || []).join(', ')}.` };
+    return { ok: true, valor: match };
+  }
+  const m = String(valorRaw).match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return { ok: false, error: `Indica la hora en formato HH:MM para "${meta.label}".` };
+  return { ok: true, valor: `${m[1].padStart(2, '0')}:${m[2]}` };
+}
+
 function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'): string {
   const scopeMsg =
     scope === 'none'
@@ -210,14 +307,15 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'): stri
     'Eres el asistente del software de gestion del salon (Mecha): gestionas la agenda Y guias al usuario sobre como usar y configurar el software. Operas en espanol, con tono breve y profesional.',
     `Hoy es ${hoyISO} (zona Europe/Madrid). Resuelve referencias relativas ("manana", "las 5", "el lunes") a fecha/hora concreta en hora LOCAL de Madrid, en formato YYYY-MM-DDTHH:mm SIN sufijo de zona (no pongas Z ni offset).`,
     'No uses emojis en tus respuestas.',
-    'GUIA DE CONFIGURACION: si el usuario pregunta como o donde configurar/personalizar algo, o que se puede ajustar de una funcion, responde con el MAPA DE CONFIGURACION del final: da la RUTA exacta (Configuracion > Pestana > Seccion) y enumera que se puede ajustar ahi. Cinete ESTRICTAMENTE al mapa: no inventes ajustes, opciones, valores de ejemplo ni rutas que no esten escritos en el (por ejemplo, no anadas "cada 15/30 min" ni "SMS/email" si el mapa no lo dice). Si te preguntan por algo que no esta en el mapa, dilo con franqueza en vez de suponer. Por ahora SOLO informas y guias sobre la configuracion; NO la cambias tu (eso llegara en una fase futura).',
+    'GUIA DE CONFIGURACION: si el usuario pregunta como o donde configurar/personalizar algo, o que se puede ajustar de una funcion, responde con el MAPA DE CONFIGURACION del final: da la RUTA exacta (Configuracion > Pestana > Seccion) y enumera que se puede ajustar ahi. Cinete ESTRICTAMENTE al mapa: no inventes ajustes, opciones, valores de ejemplo ni rutas que no esten escritos en el (por ejemplo, no anadas "cada 15/30 min" ni "SMS/email" si el mapa no lo dice). Si te preguntan por algo que no esta en el mapa, dilo con franqueza en vez de suponer.',
+    'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar un ajuste (por ejemplo "activa los recordatorios" o "pon la antelacion minima en 4h"), usa la tool cambiar_config con la CLAVE exacta de la lista AJUSTES EDITABLES del final. Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad).',
     'Para proponer operaciones usa las tools de escritura (crear_cita, reagendar_cita, cancelar_cita, bloquear_hueco, liberar_hueco).',
     'ANTES de proponer una escritura: resuelve nombres a entidades reales con buscar_cliente e info_catalogo.',
     'Si hay ambiguedad (varios clientes con ese nombre, servicio no encontrado), PREGUNTA al usuario en vez de proponer con datos inciertos.',
     'Las propuestas de escritura NO se ejecutan automaticamente: el sistema mostrara una tarjeta de confirmacion al usuario.',
     scopeMsg,
-  ].join('\n') + '\n\n' + MAPA_CONFIG;
+  ].join('\n') + '\n\n' + MAPA_CONFIG + '\n\n' + CONFIG_EDITABLE_TEXT;
 }
 
 // ---------------------------------------------------------------------------
@@ -283,7 +381,7 @@ Deno.serve(async (req) => {
 // ---------------------------------------------------------------------------
 async function runAgente(
   negocioId: string,
-  _role: string,
+  role: string,
   userId: string,
   scope: 'all' | 'self' | 'none',
   _effort: string,
@@ -328,20 +426,29 @@ async function runAgente(
       return { texto: msg.content ?? '' };
     }
 
-    // ¿Hay alguna tool de escritura?
-    const writeCall = toolCalls.find((tc) => ESCRITURA.has(tc.function.name));
+    // ¿Hay alguna tool de escritura (agenda o config)?
+    const writeCall = toolCalls.find((tc) => ESCRITURA.has(tc.function.name) || tc.function.name === 'cambiar_config');
     if (writeCall) {
-      if (scope === 'none') {
+      const esConfig = writeCall.function.name === 'cambiar_config';
+
+      // Permisos: config solo propietario; agenda gateada por scope.
+      if (esConfig && role !== 'owner') {
+        await registrarConv(negocioId, userId, messages);
+        return { texto: 'Solo el propietario puede cambiar la configuracion del salon. Puedo indicarte donde esta el ajuste para que lo cambies tu.' };
+      }
+      if (!esConfig && scope === 'none') {
         await registrarConv(negocioId, userId, messages);
         return { texto: 'No tienes permiso para modificar la agenda; solo puedo consultarla por ti.' };
       }
 
-      const propuesta = await construirPropuesta(
-        { name: writeCall.function.name, input: parseArgs(writeCall) },
-        negocioId,
-        scope,
-        userId,
-      );
+      const propuesta = esConfig
+        ? await construirPropuestaConfig(parseArgs(writeCall), negocioId)
+        : await construirPropuesta(
+            { name: writeCall.function.name, input: parseArgs(writeCall) },
+            negocioId,
+            scope as 'all' | 'self',
+            userId,
+          );
 
       if (!('error' in propuesta)) {
         await registrarConv(negocioId, userId, messages);
@@ -356,7 +463,7 @@ async function runAgente(
         let content: string;
         if (tc.id === writeCall.id) {
           content = propuesta.error;
-        } else if (ESCRITURA.has(tc.function.name)) {
+        } else if (ESCRITURA.has(tc.function.name) || tc.function.name === 'cambiar_config') {
           content = 'Procesa una sola operacion a la vez.';
         } else {
           content = JSON.stringify(
@@ -542,6 +649,34 @@ function parseInstante(s: string): Date {
 // ---------------------------------------------------------------------------
 // Construir propuesta de ESCRITURA (resuelve nombres→ids, calcula fines, marca solapa)
 // ---------------------------------------------------------------------------
+// Construye la propuesta de cambio de configuracion (valida clave + valor, lee el valor actual).
+async function construirPropuestaConfig(
+  inp: Record<string, string>,
+  negocioId: string,
+): Promise<AccionPropuesta | { error: string }> {
+  const clave = (inp.clave ?? '').trim();
+  const meta = CONFIG_EDITABLE[clave];
+  if (!meta) return { error: `"${clave}" no es un ajuste que pueda cambiar. Dime en palabras que quieres cambiar y te digo si se puede.` };
+
+  const c = coerceConfigValor(meta, inp.valor ?? '');
+  if (!c.ok) return { error: c.error };
+
+  const { data: cfgRow } = await svc.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle();
+  const actual = ((cfgRow?.config ?? {}) as Record<string, unknown>)[clave];
+  const fmt = (val: unknown): string =>
+    meta.tipo === 'bool' ? (val ? 'activado' : 'desactivado') : (val === undefined || val === null ? '(sin definir)' : String(val));
+
+  return {
+    tipo: 'cambiar_config',
+    negocio_id: negocioId,
+    clave,
+    label: meta.label,
+    valor: c.valor,
+    valor_actual: (actual ?? null) as boolean | number | string | null,
+    resumen: `Cambiar "${meta.label}": ${fmt(actual)} -> ${fmt(c.valor)}`,
+  };
+}
+
 async function construirPropuesta(
   t: { name: string; input: Record<string, string> },
   negocioId: string,

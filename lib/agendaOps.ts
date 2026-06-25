@@ -52,6 +52,15 @@ export type AccionPropuesta =
       tipo: 'liberar_hueco';
       bloqueo_id: string;
       resumen: string;
+    }
+  | {
+      tipo: 'cambiar_config';
+      negocio_id: string;
+      clave: string;
+      label: string;
+      valor: boolean | number | string;
+      valor_actual: boolean | number | string | null;
+      resumen: string;
     };
 
 export type EjecucionResultado =
@@ -136,6 +145,22 @@ export async function ejecutarAccion(
           .eq('id', a.bloqueo_id);
         if (error) return { ok: false, error: error.message };
         return { ok: true, mensaje: `Hueco liberado: ${a.resumen}` };
+      }
+
+      case 'cambiar_config': {
+        // Lee la config actual, mezcla la clave y reescribe (RLS de la sesion del usuario).
+        const { data: row, error: eRead } = await supabase
+          .from('negocio_config')
+          .select('config')
+          .eq('negocio_id', a.negocio_id)
+          .maybeSingle();
+        if (eRead) return { ok: false, error: eRead.message };
+        const nuevo = { ...((row?.config as Record<string, unknown>) ?? {}), [a.clave]: a.valor };
+        const { error } = await supabase
+          .from('negocio_config')
+          .upsert({ negocio_id: a.negocio_id, config: nuevo }, { onConflict: 'negocio_id' });
+        if (error) return { ok: false, error: error.message };
+        return { ok: true, mensaje: `Hecho: ${a.resumen}` };
       }
 
       default: {
