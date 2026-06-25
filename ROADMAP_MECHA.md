@@ -5,6 +5,8 @@
 > la evolución y, sobre todo, **la apuesta de escalabilidad** (plataforma autoservicio).
 > **Fecha:** 14 jun 2026 · **Recopilado por:** Alexandro (lista + audios).
 > **Actualizado:** 17 jun 2026 (estado real tras los commits de Carlos + el trabajo de IA/pagos de Alexandro).
+> **Actualizado:** 25 jun 2026 — integrada la **estrategia de pagos** (§4, base de la pasarela) y la
+> **arquitectura fiscal/compliance** (§8) de los dos informes de Carlos/Antigravity (`informes/`).
 > **Leyenda dueño:** [A]=Alexandro (backend/IA/pagos/integraciones) · [C]=Carlos (frontend/UX/datos) · [A+C]=handoff.
 > **Leyenda estado:** 🟢 base hecha · 🟡 empezado · 🔴 sin empezar.
 
@@ -112,13 +114,46 @@
 
 ---
 
-## 4. Pagos
+## 4. Pagos — *plan de la pasarela: `informes/ESTRATEGIA_PAGOS_SUPERIORIDAD.md` (Carlos/Antigravity, 25 jun)*
 
-- **4.1 Señal del cliente por enlace (WhatsApp/web)** 🔴 [A] — *prioritario, Fase 1*
-  Enviar enlace de pago de la señal por WhatsApp (o web) y conciliar el cobro. Stripe Checkout/Payment Link.
-  🟢 Base: modelo de datos de señal (`pagos`, `requerir_senal_cita`) ya existe; falta pasarela.
-- **4.2 Pago del salón a Mecha** → **MANUAL** (factura/enlace de pago, estilo agencia). **NO pago in-app, NO
-  suscripción automática, NO App Store** (decisión del socio 14 jun). La automatización es Fase 4 (aparcada).
+> **La estrategia de pagos es la base sobre la que construiremos toda la pasarela del software.** El doc
+> ataca las dos vulnerabilidades de Booksy/Fresha (te obligan a su pasarela ~2.5%+0.20€ + datáfono propietario
+> de ~149€) con **4 pilares**. Abajo, cada pilar cruzado con lo que YA está hecho.
+
+- **4.1 Señal del cliente por enlace** 🟢 **HECHO (Fase 1)** [A]
+  Enlace de pago de la señal por WhatsApp/web + conciliación. Stripe Checkout + webhook
+  `checkout.session.completed` → `deposito_pagado`+`confirmada`; cron de expiración libera el hueco.
+  ⚠️ **Divergencia con el doc a saldar al endurecer la pasarela:** el doc pide tabla `cita_pago_enlaces`
+  con **tokens opacos** (que el cliente no vea su `cita_id` en la URL de pago) e **idempotencia**
+  (`cobros.idempotency_key` para no cobrar dos veces si el webhook se repite). Hoy la URL lleva `cita_id`
+  y no hay idempotency key.
+
+- **4.2 Modelo de tasas híbrido + BYOP ("Bring Your Own Processor")** 🔴 [A] — *Pilar 1*
+  Dos caminos: **Mecha Pay** (Stripe por defecto, ~1.9%+0.10€, ideal salones pequeños) **o** conectar el
+  **TPV propio del salón** (Redsýs/Bizum, con la tasa de su banco ~0.4%) por una **cuota fija mensual (+19/29€)**.
+  Es el gancho comercial para salones de volumen ("me ahorro >800€/mes de Fresha por 29€").
+
+- **4.3 Datáfono virtual (sin hardware propietario)** 🔴 [A+C] — *Pilar 2*
+  - **Tap to Pay** en el móvil del estilista vía SDK `@stripe/stripe-terminal-react-native` (chip NFC).
+  - **QR dinámico de pago en mostrador** (Bizum / Apple / Google Pay) al marcar la cita como cobrada.
+  🟢 Base: el cobro en local por QR (P2) ya estaba en el radar (MEGA §8); aquí entra el detalle técnico.
+
+- **4.4 Depósitos dinámicos por perfil de riesgo** 🟡 [A] — *Pilar 3*
+  Fianza variable según el CRM: VIP/Habitual = 0% (reserva en 1 clic, sin tarjeta), cliente nuevo = 20%/pre-auth,
+  historial de no-show = 50-100%. **Holds (pre-autorizaciones)** en vez de cobro hasta que el cliente asista.
+  🟢 Base: el perfil de riesgo y la segmentación ya existen; la señal de hoy es **plana** → falta hacerla dinámica.
+
+- **4.5 Automatización financiera E2E** 🔴 [A+C] — *Pilar 4*
+  Propinas (sugeridas al pagar por QR y asignadas al profesional en "Mi Jornada"), **pago familiar/grupal
+  dividido**, y fiscalidad **VeriFactu** (hash inmutable correlativo + facturas simplificadas). → liga con **§8 Cumplimiento**.
+
+- **4.6 Pago del salón a Mecha** → **MANUAL** [A]
+  Factura/enlace de pago (estilo agencia). **NO pago in-app, NO suscripción automática, NO App Store**
+  (decisión del socio 14 jun). La automatización es Fase 4 (aparcada).
+
+> **Ruta de desarrollo del doc:** Fase 1 = enlace + webhook Stripe (🟢 hecho; falta endurecer tokens opacos +
+> idempotencia) · Fase 2 = **Bizum directo + conector Redsýs** (🔴, diferenciador en España) · Fase 3 = **SDK
+> Stripe Terminal / Tap to Pay** (🔴).
 
 ---
 
@@ -200,6 +235,33 @@ App Store). **NO ahora.** Todo manual hasta tener volumen; entonces se planifica
 - ✅ **Ya resuelto:** API key n8n con escritura · cuenta+claves **Stripe** test · **5 plantillas WhatsApp aprobadas**
   · credencial **WhatsApp Cloud** (Phone Number ID + token permanente) · API key **OpenRouter** del agente · salón
   objetivo (`demo` para construir).
+
+---
+
+## 8. Cumplimiento legal y fiscal — *fuente: `informes/ARQUITECTURA_FISCAL_Y_COMPLIANCE_MECHA.md` (25 jun)*
+
+> Reparto **IA-en-código vs gestión manual** de los fundadores. Normativa española: RGPD,
+> **Ley Antifraude 11/2021**, **VeriFactu**. Cruza con §4.5 (fiscalidad de pagos) y §6.2 (caja fiscal).
+
+**Implementable por IA (en código):**
+- **8.1 Inmutabilidad de cobros (anti-fraude)** 🟢 **HECHO** [A] — triggers que bloquean físicamente `DELETE`
+  y el `UPDATE` de campos monetarios en `cobros`/`cobro_lineas`; las correcciones se hacen con un
+  **"cobro de rectificación"** (fila nueva con importes negativos), nunca borrando.
+  (`migrations/compliance-antifraude-inmutabilidad.sql`, commit `9dc3a778`.)
+- **8.2 Encadenamiento de tickets (pre-VeriFactu)** 🔴 [A] — `hash = SHA256(id + fecha + total + hash_anterior)`
+  por negocio (`numero_ticket_secuencial`, `hash_registro`, `hash_anterior` + trigger antes de insertar),
+  para que no se puedan inyectar cobros falsos en el pasado.
+- **8.3 Bitácora de consentimiento RGPD** 🟡 [A+C] — tabla `consentimientos_clientes` (tipo, `firma_svg`, IP,
+  user_agent, timestamp) para demostrar cuándo/desde dónde aceptó la clienta (datos de salud, Art. 9 RGPD).
+  🟢 Base: ya hay consentimientos; falta el log granular con IP/firma. Cableado de la firma en el portal/ficha = [C].
+- **8.4 Fotos privadas de clientas** 🟢 **HECHO** [A] — bucket `cliente-fotos` privado + signed URLs (expiración 15 min).
+- **8.5 Aviso de grabación en telefonía/IA** 🔴 [A] — locución de consentimiento antes de conectar la llamada
+  a la IA de voz (Retell/Twilio), por la Ley General de Telecomunicaciones.
+
+**Manual (fundadores Carlos/Alexandro/José):** KYC de **Stripe** por salón (DNI/escrituras/certificado bancario) ·
+registrar a Mecha como **BSP en Meta** (habilita Embedded Signup de WhatsApp) · **Twilio Regulatory Bundles**
+(comprar números +34) · contratar **fiscalista** que valide el POS antes de emitir tickets oficiales (M-CJ) ·
+redactar el **DPA** (Data Processing Agreement) en PDF para que el salón lo firme. (Cruza con la Fase 4 aparcada.)
 
 ---
 
