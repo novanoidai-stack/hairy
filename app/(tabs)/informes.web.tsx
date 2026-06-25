@@ -1253,7 +1253,10 @@ export default function InformesScreen() {
                       <Icon name={kpi.icon} size={16} color={kpi.color} />
                     </div>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }} title={kpi.label}>{kpi.label}</span>
+                      <span style={isMobile
+                        ? { fontSize: 11, color: TOKENS.textTer, fontWeight: 500, flex: 1, lineHeight: 1.25 }
+                        : { fontSize: 11, color: TOKENS.textTer, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }
+                      } title={kpi.label}>{kpi.label}</span>
                       {KPI_INFO[kpi.label] && <InfoDot text={KPI_INFO[kpi.label]} color={kpi.color} />}
                     </span>
                   </div>

@@ -29,7 +29,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       <View style={{ flex: 1, flexDirection: 'row', backgroundColor: c.bg }}>
         <Sidebar />
         <View style={{ flex: 1 }}>
-          <Tabs screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } as any, unmountOnBlur: false, contentStyle: { backgroundColor: '#f6f1ea' } } as any}>
+          <Tabs screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } as any, unmountOnBlur: false, sceneStyle: { backgroundColor: '#f6f1ea' } } as any}>
             <Tabs.Screen name="index" />
             <Tabs.Screen name="mi-jornada" />
             <Tabs.Screen name="caja" />
@@ -78,7 +78,11 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
         tabBarActiveTintColor: '#f4501e',
         tabBarInactiveTintColor: c.textTertiary,
         tabBarItemStyle: { paddingTop: 1 },
-        contentStyle: { backgroundColor: '#f6f1ea' },
+        // sceneStyle (no contentStyle, que es de Stack y aqui no hacia nada): fondo
+        // solido en el contenedor de escena de bottom-tabs. Sin esto, una pantalla
+        // activa mas corta que el viewport dejaba ver la pantalla de detras (z-index
+        // -1 pero sin pintura propia que la cubra) por el hueco.
+        sceneStyle: { backgroundColor: '#f6f1ea' },
       } as any}
     >
       <Tabs.Screen name="index" options={{ title: 'Agenda', tabBarIcon: tabIcon('calendar'), tabBarLabel: tabLabel('Agenda') }} />
