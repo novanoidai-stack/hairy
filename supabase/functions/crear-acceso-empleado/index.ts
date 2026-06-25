@@ -89,10 +89,8 @@ Deno.serve(async (req: Request) => {
 
   // 2) Invitar al usuario por email (evita enviar password por la red y almacena metadatos).
   const { data: created, error: cErr } = await admin.auth.admin.inviteUserByEmail(email, {
-    options: {
-      data: { nombre },
-      redirectTo: 'https://hairy-two.vercel.app/acceso.html',
-    },
+    data: { nombre },
+    redirectTo: 'https://hairy-two.vercel.app/acceso.html',
   });
 
   if (cErr) {

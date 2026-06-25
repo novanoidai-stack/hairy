@@ -131,7 +131,7 @@ function resetEmailHtml(actionLink: string): string {
 }
 
 // Rate limiting: max 3 intentos por email/hora para prevenir flood y enumeracion abusiva
-async function checkRateLimit(email: string, supabase: ReturnType<typeof createClient>): Promise<boolean> {
+async function checkRateLimit(email: string, supabase: any): Promise<boolean> {
   const ONE_HOUR = 3600;
   const now = Math.floor(Date.now() / 1000);
   const windowStart = now - ONE_HOUR;
