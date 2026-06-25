@@ -18,6 +18,13 @@ Deno.serve(async (req) => {
     return new Response('Bad signature: ' + String((e as Error)?.message ?? e), { status: 400 });
   }
 
+  // Replay protection: rechazar eventos antiguos (más de 5 minutos)
+  const eventTimestamp = event.created;
+  const now = Math.floor(Date.now() / 1000);
+  if (now - eventTimestamp > 300) {
+    return new Response('Stale event - replay detected', { status: 400 });
+  }
+
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
     const pagoId = (session.metadata?.pago_id as string) ?? (session.client_reference_id ?? '');

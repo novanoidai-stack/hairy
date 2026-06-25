@@ -3146,7 +3146,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
     const file = files?.[0];
     if (!file || !negocioId) return;
     if (!file.type.startsWith('image/')) { setFotoErr('Selecciona una imagen.'); return; }
-    if (file.size > 5 * 1024 * 1024) { setFotoErr('Maximo 5 MB.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setFotoErr('La imagen excede 5MB. Por favor, usa una imagen más pequeña.'); return; }
     setSubiendoFoto(true); setFotoErr('');
     try {
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';

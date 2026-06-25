@@ -3160,6 +3160,12 @@ function FotosClienteSection({ cliente, negocioId, bare = false, gridRef }: { cl
       const uid = u?.user?.id ?? null;
       for (const file of Array.from(files)) {
         if (!file.type.startsWith('image/')) continue;
+        // Validar tamaño de archivo (máximo 5MB para prevenir DoS)
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+        if (file.size > MAX_FILE_SIZE) {
+          setErr(`La foto "${file.name}" excede 5MB. Por favor, usa una imagen más pequeña.`);
+          continue;
+        }
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
         const c: any = (globalThis as any).crypto;
         const rand = c && typeof c.randomUUID === 'function' ? c.randomUUID() : `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
