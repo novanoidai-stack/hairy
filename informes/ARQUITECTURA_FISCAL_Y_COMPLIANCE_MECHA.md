@@ -29,7 +29,7 @@ Para avanzar de forma ordenada y realista, clasificamos el trabajo de cumplimien
 ```
 
 ### A. Tareas que la IA puede implementar automáticamente en el código:
-1.  **Inmutabilidad SQL (Anti-fraude):** Bloquear la eliminación física de registros financieros mediante triggers en la base de datos Supabase.
+1.  **[HECHO] Inmutabilidad SQL (Anti-fraude):** Bloquear la eliminación física de registros financieros mediante triggers en la base de datos Supabase (Ver [compliance-antifraude-inmutabilidad.sql](file:///c:/Users/carli/OneDrive/Escritorio/novanoidai/Hairy/migrations/compliance-antifraude-inmutabilidad.sql)).
 2.  **Cadena de Tickets Inmutables (Pre-VeriFactu):** Generar una función de hashing que enlace cada recibo de cobro con el anterior, impidiendo la manipulación de fechas e importes.
 3.  **Protección de Datos Sensibles (RGPD):** Cambiar a privados los buckets de fotos de clientas y generar tokens de acceso temporal (signed URLs) dinámicamente desde el servidor.
 4.  **Bitácora de Consentimiento:** Crear una tabla de logs en Supabase para registrar la firma digital del cliente, su dirección IP y el timestamp al aceptar la política de alergias y RGPD.
@@ -47,9 +47,10 @@ Para avanzar de forma ordenada y realista, clasificamos el trabajo de cumplimien
 
 La **Ley 11/2021 (Medidas de Prevención y Lucha contra el Fraude Fiscal)** prohíbe los softwares de gestión de ventas que permitan ocultar ingresos (los llamados softwares de doble uso).
 
-### A. Inmutabilidad de Cobros (Implementado por la IA en Supabase)
-Para evitar que se puedan borrar tickets o alterar importes a fin de mes, implementaremos políticas de seguridad (RLS) y triggers de PostgreSQL en la tabla `cobros` y `cobro_lineas`:
-*   **Políticas RLS:** Se prohíben las acciones `DELETE` y `UPDATE` para cualquier rol sobre la tabla `cobros`.
+### A. Inmutabilidad de Cobros (Implementado por la IA en Supabase) [HECHO]
+Para evitar que se puedan borrar tickets o alterar importes a fin de mes, se han implementado políticas de seguridad (RLS) y triggers de PostgreSQL en la tabla `cobros` y `cobro_lineas` (ver archivo [compliance-antifraude-inmutabilidad.sql](file:///c:/Users/carli/OneDrive/Escritorio/novanoidai/Hairy/migrations/compliance-antifraude-inmutabilidad.sql)):
+*   **Bloqueo de Borrado (DELETE):** Un trigger en `cobros` y `cobro_lineas` impide físicamente cualquier operación `DELETE` devolviendo una excepción del servidor. Se han revocado además las políticas de borrado de RLS.
+*   **Bloqueo de Modificación Financiera (UPDATE):** Un trigger en `cobros` impide la modificación de cualquier campo monetario (`total_cents`, `efectivo_cents`, `datafono_cents`, `online_cents`, `propina_cents`, `descuento_cents`), `negocio_id` o `cita_id`.
 *   **Correctivas en lugar de borrados:** Si un estilista se equivoca al cobrar una cita, el sistema le obliga a emitir un **"Cobro de Rectificación"** (una fila nueva con importes negativos). El histórico permanece intacto.
 
 ### B. Encadenamiento de Registros (Lógica Pre-VeriFactu en BD)
@@ -137,7 +138,7 @@ En la configuración del sistema de telefonía (Retell / Twilio), el flujo de en
 
 ## 5. Próximos Pasos en el Repositorio
 
-*   **Paso 1 (IA):** Crear los scripts de migración SQL para habilitar los campos de hash inmutable en la tabla `cobros` y la tabla `consentimientos_clientes`.
+*   **[HECHO] Paso 1 (IA):** Crear los scripts de migración SQL para habilitar los campos de hash inmutable en la tabla `cobros` y la tabla `consentimientos_clientes`. (Triggers de inmutabilidad implementados en [compliance-antifraude-inmutabilidad.sql](file:///c:/Users/carli/OneDrive/Escritorio/novanoidai/Hairy/migrations/compliance-antifraude-inmutabilidad.sql)).
 *   **Paso 2 (Carlos):** Cablear el componente de firma en el portal y en la ficha de cliente para registrar los consentimientos en la nueva tabla.
 *   **Paso 3 (Alexandro):** Cambiar a privada la lectura de Supabase Storage para las imágenes y generar URLs firmadas.
 *   **Paso 4 (Fundadores):** Completar los registros manuales requeridos con Meta, Twilio y Stripe para poder pasar la app a producción.
