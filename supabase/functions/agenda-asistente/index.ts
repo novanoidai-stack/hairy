@@ -371,8 +371,7 @@ async function ejecutarLectura(
         svc
           .from('servicios')
           .select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min')
-          .eq('negocio_id', negocioId)
-          .eq('activo', true),
+          .eq('negocio_id', negocioId),
         svc
           .from('profesionales')
           .select('id, nombre')
@@ -534,7 +533,6 @@ async function construirPropuesta(
         .from('servicios')
         .select('id, nombre, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min')
         .eq('negocio_id', negocioId)
-        .eq('activo', true)
         .ilike('nombre', `%${inp.servicio}%`);
 
       if (!servicios || servicios.length === 0)
