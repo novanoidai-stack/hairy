@@ -66,9 +66,14 @@ create table categorias_servicio (
 -- RLS: select/insert/update/delete filtrado por negocio_id = propio (igual que el resto de tablas).
 
 alter table servicios add column categoria_id uuid references categorias_servicio(id);
-alter table cobro_lineas add column categoria_nombre text;
-alter table cobro_lineas add column categoria_color text;
 ```
+
+No se toca `cobro_lineas`: comprobado en código que `caja.web.tsx` no renderiza líneas de
+cobro individuales (solo el arqueo agregado del día vía la tabla `cobros`), así que no hay
+ninguna pantalla hoy que consuma un snapshot de categoría ahí — añadirlo sería una columna
+muerta. El día que exista un listado de tickets detallado, se puede unir en vivo por
+`ref_id → servicios.categoria_id` (igual que `citas_pendientes_cobro` ya hace con
+`servicio_nombre`), sin necesidad de snapshot.
 
 El color se guarda como **nombre de token** (no hex), mapeado en código a los hex reales de
 `designTokens.ts` (`lib/categoryColors.ts` nuevo, con `{bg, text, border}` derivados de los tokens
@@ -94,11 +99,13 @@ Botón "Gestionar categorías" (visible solo a propietario) → modal con:
   cada grupo con el color de su categoría (barra lateral o punto, igual que en los mockups).
 - Servicios sin categoría se agrupan bajo "Sin categoría" (gris/slate), sin romper el resto.
 
-## 4. Crear cita — `nueva-cita.tsx`
+## 4. Crear cita — `nueva-cita.tsx` (nativo) y el modal de creación dentro de `AgendaCalendar.web.tsx` (web)
 
-El selector de servicios (línea ~398-422), hoy lista plana, pasa a secciones por categoría: cabecera
-con barra de color + nombre de categoría, servicios debajo en el mismo estilo de fila actual. Sin
-controles nuevos (cero toques extra). Orden de las secciones = `categorias_servicio.orden`.
+Son dos implementaciones independientes de la misma pantalla (patrón de split de plataforma: la web
+no navega a `nueva-cita.tsx`, tiene su propio modal embebido). Las dos listas de servicios, hoy
+planas, pasan a secciones por categoría: cabecera con barra de color + nombre de categoría, servicios
+debajo en el mismo estilo de fila/grid actual de cada una. Sin controles nuevos (cero toques extra).
+Orden de las secciones = `categorias_servicio.orden`.
 
 ## 5. Portal público — `app/r/[slug].web.tsx` + RPC `portal_info`
 
@@ -112,13 +119,17 @@ controles nuevos (cero toques extra). Orden de las secciones = `categorias_servi
 
 ## 6. Caja + ficha de cita ("órdenes")
 
-- **Ficha/resumen de cita** (detalle en agenda y página de autogestión `app/cita/[id]`): cada línea
-  de servicio elegido lleva un punto de color de su categoría junto al nombre (lookup en vivo vía
-  `categoria_id`, porque la cita aún es mutable).
-- **Ticket de caja** (`cobro_lineas`): al generar la línea de cobro, además de congelar `nombre` y
-  `precio_cents` (como ya hace hoy), se congela `categoria_nombre` y `categoria_color` leídos en ese
-  momento. Así un ticket de hace 6 meses no cambia visualmente si luego renombras o borras la
-  categoría.
+- **Ficha de cita en agenda** (`DetalleCitaModal` dentro de `components/agenda/AgendaCalendar.web.tsx`):
+  punto de color de categoría junto al nombre del servicio en la cabecera y en el selector de
+  servicio, vía lookup en vivo (`categoria_id` → mapa de categorías ya cargado en el mismo archivo).
+- **Página de autogestión del cliente** (`app/cita/[id].web.tsx`): el RPC `cita_publica` hace join
+  en vivo a `categorias_servicio` (igual que ya hace con `servicios` para el nombre) y devuelve
+  `categoria_nombre`/`categoria_color`; se pinta el mismo punto de color junto al servicio.
+- **Ticket de caja**: el momento real de "cobrar" es el `CobroSheet` (`components/pos/CobroSheet.tsx`),
+  que para el flujo de cita ya recibe el servicio seleccionado en memoria — se le pasa el color de
+  categoría como prop y se pinta junto al nombre del servicio en su cabecera. No se toca
+  `cobro_lineas`: no existe hoy ninguna pantalla que liste líneas de cobro históricas por servicio
+  (`caja.web.tsx` solo muestra el arqueo agregado del día), así que no hay snapshot que hacer todavía.
 
 ## 7. Migración de datos existentes
 
@@ -157,29 +168,32 @@ Automática, sin intervención manual:
 ## Pruebas
 
 - **SQL:** migración crea categorías correctas por negocio (sin mezclar negocios), backfill de
-  `categoria_id` correcto, `cobro_lineas` nuevas filas incluyen snapshot de categoría.
+  `categoria_id` correcto, RLS de `categorias_servicio` filtra por `negocio_id`.
 - **Admin:** crear/editar/reordenar/borrar categoría; borrar con servicios asociados muestra aviso;
   selector de categoría en `EditServiceModal` lista categorías reales y permite alta inline.
-- **Agenda:** `nueva-cita.tsx` agrupa correctamente con catálogos de varias categorías y con
-  servicios sin categoría.
-- **Portal:** chips filtran bien, "Todos" muestra todo, RPC devuelve color/nombre de categoría.
-- **Caja:** un cobro nuevo snapshotea categoría; renombrar la categoría después no cambia tickets ya
-  emitidos.
-- **Seguridad:** advisors de Supabase limpios tras la migración; RLS de `categorias_servicio`
-  filtra por `negocio_id`.
+- **Agenda:** `nueva-cita.tsx` (nativo) y el modal de creación en `AgendaCalendar.web.tsx` (web)
+  agrupan correctamente con catálogos de varias categorías y con servicios sin categoría;
+  `DetalleCitaModal` y `CobroSheet` muestran el color correcto del servicio elegido.
+- **Portal:** chips filtran bien, "Todos" muestra todo, RPC `portal_info` devuelve color/nombre de
+  categoría; RPC `cita_publica` idem para la autogestión del cliente.
+- **Seguridad:** advisors de Supabase limpios tras la migración.
 
 ## Orden de implementación
 
-1. Migración SQL aditiva: tabla `categorias_servicio` + columnas nuevas (`servicios.categoria_id`,
-   `cobro_lineas.categoria_nombre/color`) + backfill + RLS + `create or replace function portal_info`
-   ya apuntando a `categoria_id` (no se toca todavía `servicios.categoria`, queda en paralelo) + advisors.
-2. `lib/categoryColors.ts` (mapa token → hex) + componente reutilizable de swatch/badge de color.
+1. Migración SQL aditiva: tabla `categorias_servicio` + columna `servicios.categoria_id` + backfill +
+   RLS + `create or replace function portal_info` y `cita_publica` ya apuntando a `categoria_id`
+   (no se toca todavía `servicios.categoria`, queda en paralelo) + advisors.
+2. `lib/categoryColors.ts` (mapa token → hex) + componente reutilizable de punto/badge de color en
+   `components/ui/DesignComponents.tsx`.
 3. Gestión de categorías en Configuración → Servicios (modal CRUD) + selector dinámico en
    `EditServiceModal` + color en cabeceras de `TabServicios`.
-4. Agrupación en `nueva-cita.tsx`.
-5. Chips de filtro en `app/r/[slug].web.tsx` (ya consume `categoria_id` desde el paso 1).
-6. Badge en ficha/resumen de cita (agenda + `app/cita/[id]`) + snapshot en `cobro_lineas`/caja.
-7. `npx tsc --noEmit`, `npm run build:web`, smoke test local (`scripts/serve-web.mjs`), advisors.
-8. Commit, merge a `master`, deploy (Vercel vía Git).
-9. Migración de limpieza (aparte, tras confirmar que nada lee ya `servicios.categoria`):
-   `alter table servicios drop column categoria`.
+4. Agrupación en `nueva-cita.tsx` (nativo).
+5. Agrupación en el modal de creación de `AgendaCalendar.web.tsx` + mapa de categorías compartido +
+   badge de color en `DetalleCitaModal` (cabecera y selector de servicio) + prop de color a
+   `CobroSheet`.
+6. Chips de filtro en `app/r/[slug].web.tsx` (ya consume `categoria_id` desde el paso 1).
+7. Badge en `app/cita/[id].web.tsx` (autogestión, vía `cita_publica` ya actualizado en el paso 1).
+8. `npx tsc --noEmit`, `npm run build:web`, smoke test local (`scripts/serve-web.mjs`), advisors.
+9. Commit, merge a `master`, deploy (Vercel vía Git).
+10. Migración de limpieza (aparte, tras confirmar que nada lee ya `servicios.categoria`):
+    `alter table servicios drop column categoria`.
