@@ -21,3 +21,6 @@ seed-data.mjs
 scripts/seed-data.ts
 scripts/insert-data.sql
 supabase/.temp/
+
+# Mockups del companion visual de brainstorming (Claude)
+.superpowers/
