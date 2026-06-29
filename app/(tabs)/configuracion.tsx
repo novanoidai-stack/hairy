@@ -31,7 +31,7 @@ export default function ConfiguracionScreen() {
 
       const { data: servs } = await supabase
         .from('servicios')
-        .select('id, nombre, categoria, precio, duracion_minutos, activo')
+        .select('id, nombre, precio, duracion_minutos, activo')
         .eq('negocio_id', profile.negocio_id)
         .order('nombre');
 

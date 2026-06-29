@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, useWindowDimensions } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, useWindowDimensions, Modal } from 'react-native';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, parseISO, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { useTheme } from '@/lib/theme';
-import { supabase } from '@/lib/supabase';
+import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
+import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
+import { OnboardingCard } from '@/components/onboarding/OnboardingCard';
+import OnboardingPanel from '@/components/onboarding/OnboardingPanel';
+import type { OnboardingStepId } from '@/lib/onboarding';
 
 const tokens = DESIGN_TOKENS;
 
@@ -49,6 +53,16 @@ export default function AgendaCalendar() {
   const [negocioId, setNegocioId] = useState('');
   const [selectedProf, setSelectedProf] = useState<string | null>(null);
 
+  // --- Onboarding: checklist de puesta en marcha del salon (paridad nativa) ---
+  const [userProfile, setUserProfile] = useState<{ id: string; role?: string | null } | null>(null);
+  const obParams = useLocalSearchParams<{ onboarding?: string }>();
+  const esGestor = userProfile?.role === 'owner' || userProfile?.role === 'admin';
+  const onboardingEligible = !!userProfile && esGestor && !IS_DEMO_MODE && negocioId !== 'demo_salon_001';
+  const onboarding = useOnboardingStatus(onboardingEligible ? negocioId : null, onboardingEligible);
+  const [showOnboardingPanel, setShowOnboardingPanel] = useState(false);
+  const [obSkipped, setObSkipped] = useState<OnboardingStepId[]>([]);
+  const obKey = negocioId ? `mecha-onboarding:${negocioId}` : '';
+
   // Cargar datos
   useEffect(() => {
     (async () => {
@@ -58,6 +72,7 @@ export default function AgendaCalendar() {
         return;
       }
       setNegocioId(profile.negocio_id);
+      setUserProfile({ id: profile.id, role: profile.role });
 
       const { data: profs } = await supabase
         .from('profesionales')
@@ -91,6 +106,50 @@ export default function AgendaCalendar() {
       setLoading(false);
     })();
   }, [currentDate, refreshTrigger]);
+
+  // --- Onboarding effects ---
+  // Load skipped from localStorage
+  useEffect(() => {
+    if (!onboardingEligible || !obKey) {
+      setObSkipped([]);
+      return;
+    }
+    try {
+      // React Native doesn't have localStorage by default; using AsyncStorage would be better
+      // For now, we'll skip localStorage persistence in native and only track session skipped
+      setObSkipped([]);
+    } catch (e) {
+      setObSkipped([]);
+    }
+  }, [obKey, onboardingEligible]);
+
+  // Handle ?onboarding=1 to reopen panel
+  useEffect(() => {
+    if (obParams?.onboarding === '1' && onboardingEligible) {
+      setShowOnboardingPanel(true);
+    }
+  }, [obParams?.onboarding, onboardingEligible]);
+
+  // Refresh onboarding status when screen regains focus
+  useFocusEffect(
+    useCallback(() => {
+      if (onboardingEligible) {
+        onboarding.refresh();
+      }
+    }, [onboardingEligible, onboarding.refresh])
+  );
+
+  // Skip/Unskip helpers
+  const skipStep = useCallback((id: OnboardingStepId) => {
+    setObSkipped(prev => (prev.includes(id) ? prev : [...prev, id]));
+  }, []);
+
+  const unskipStep = useCallback((id: OnboardingStepId) => {
+    setObSkipped(prev => prev.filter(x => x !== id));
+  }, []);
+
+  // Show card if core not done
+  const onboardingPending = onboardingEligible && onboarding.ready && !onboarding.coreDone;
 
   useFocusEffect(
     useCallback(() => {
@@ -168,6 +227,9 @@ export default function AgendaCalendar() {
       setSelectedProf={setSelectedProf}
       router={router}
       c={c}
+      onboardingPending={onboardingPending}
+      onboarding={onboarding}
+      onOpenOnboarding={() => { setShowOnboardingPanel(true); onboarding.refresh(); }}
     />;
   }
 
@@ -177,13 +239,16 @@ export default function AgendaCalendar() {
     currentDate={currentDate}
     setCurrentDate={setCurrentDate}
     citas={citas}
-    citasHoy={filteredCitas} // Use filteredCitas to match desktop behavior if needed
+    citasHoy={filteredCitas}
     citasConfirmadas={citasConfirmadas}
     ingresosMes={ingresosMes}
     router={router}
     insets={insets}
     c={c}
     profesionales={profesionales}
+    onboardingPending={onboardingPending}
+    onboarding={onboarding}
+    onOpenOnboarding={() => { setShowOnboardingPanel(true); onboarding.refresh(); }}
   />;
 }
 

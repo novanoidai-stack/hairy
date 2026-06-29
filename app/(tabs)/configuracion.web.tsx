@@ -55,7 +55,6 @@ interface Servicio {
   nombre: string;
   precio: number;
   duracion_activa_min: number;
-  categoria: string;
   categoria_id?: string | null;
   duracion_espera_min?: number;
   duracion_activa_extra_min?: number;
@@ -437,7 +436,7 @@ export default function ConfiguracionWeb() {
         { data: horariosRows },
         { data: catData },
       ] = await Promise.all([
-        supabase.from('servicios').select('*').eq('negocio_id', nid).order('categoria'),
+        supabase.from('servicios').select('*').eq('negocio_id', nid).order('nombre'),
         supabase.from('profesionales').select('id, nombre, color, categoria, comision_pct, activo').eq('negocio_id', nid).eq('activo', true).order('nombre'),
         supabase.from('negocio_config').select('config').eq('negocio_id', nid).maybeSingle(),
         supabase.from('negocio_horarios').select('*').eq('negocio_id', nid),
@@ -626,7 +625,6 @@ export default function ConfiguracionWeb() {
         nombre: service.nombre,
         precio: service.precio,
         duracion_activa_min: service.duracion_activa_min,
-        categoria: service.categoria,
         categoria_id: service.categoria_id ?? null,
         duracion_espera_min: service.duracion_espera_min || 0,
         duracion_activa_extra_min: service.duracion_activa_extra_min || 0,
@@ -647,7 +645,7 @@ export default function ConfiguracionWeb() {
         const { error } = await supabase.from('servicios').insert({ ...payload, negocio_id: negocioId });
         if (error) throw error;
       }
-      const { data, error: fetchError } = await supabase.from('servicios').select('*').eq('negocio_id', negocioId).order('categoria');
+      const { data, error: fetchError } = await supabase.from('servicios').select('*').eq('negocio_id', negocioId).order('nombre');
       if (fetchError) throw fetchError;
       setServicios(data ?? []);
       setEdit(null);
@@ -712,7 +710,7 @@ export default function ConfiguracionWeb() {
       setEdit(null);
     } catch (e: any) {
       if (e.message?.includes('foreign key')) {
-        const { data } = await supabase.from('servicios').select('*').eq('negocio_id', negocioId).order('categoria');
+        const { data } = await supabase.from('servicios').select('*').eq('negocio_id', negocioId).order('nombre');
         if (data) setServicios(data);
       } else {
         alert(mensajeDeError(e, 'No se pudo guardar.'));
@@ -1999,11 +1997,12 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
   const { isMobile } = useResponsive();
   const [search, setSearch] = useState('');
   const [expandedDur, setExpandedDur] = useState<string | null>(null);
+  const categoriaNombrePorId = useMemo(() => new Map(categorias.map(c => [c.id, c.nombre.toLowerCase()])), [categorias]);
   const filtered = useMemo(() => {
     if (!search.trim()) return services;
     const q = search.toLowerCase();
-    return services.filter(s => s.nombre.toLowerCase().includes(q) || s.categoria.toLowerCase().includes(q));
-  }, [services, search]);
+    return services.filter(s => s.nombre.toLowerCase().includes(q) || (s.categoria_id && categoriaNombrePorId.get(s.categoria_id)?.includes(q)));
+  }, [services, search, categoriaNombrePorId]);
 
   // Separamos los servicios puntuales (creados al vuelo desde una cita) en su
   // propio grupo, para que no ensucien las categorias normales del catalogo.
@@ -2046,7 +2045,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
               </Btn>
             )}
             <Btn variant="primary" size="md" icon="plus"
-              onClick={() => onEdit({ nombre: '', precio: 0, duracion_activa_min: 30, categoria: '', categoria_id: null })}>
+              onClick={() => onEdit({ nombre: '', precio: 0, duracion_activa_min: 30, categoria_id: null })}>
               Nuevo servicio
             </Btn>
           </div>
@@ -3157,7 +3156,6 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
   const [nombre, setNombre] = useState(service.nombre || '');
   const [precio, setPrecio] = useState<string | number>(service.precio ?? '');
   const [durActiva, setDurActiva] = useState(catalogActiva);
-  const [categoria, setCategoria] = useState(service.categoria || 'Corte');
   const [categoriaId, setCategoriaId] = useState<string | null>(service.categoria_id ?? null);
   const [creandoCategoria, setCreandoCategoria] = useState(false);
   const [nuevaCategoriaNombre, setNuevaCategoriaNombre] = useState('');
@@ -3328,10 +3326,9 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
       });
     } else {
       if (!nombre.trim()) { alert('El nombre del servicio es requerido'); setGuardando(false); return; }
-      const categoriaSeleccionada = categorias.find(c => c.id === categoriaId);
       onSave({
         ...service, nombre, precio: parseFloat(String(precio)) || 0, duracion_activa_min: durActiva,
-        categoria: categoriaSeleccionada?.nombre || categoria, categoria_id: categoriaId,
+        categoria_id: categoriaId,
         duracion_espera_min: espera, duracion_activa_extra_min: activaExtra, min_antelacion_min: minAntelacion,
         reservable_online: reservableOnline, prepago_requerido: prepagoRequerido,
         prepago_porcentaje: prepagoPorcentaje.trim() ? parseFloat(prepagoPorcentaje) : null,

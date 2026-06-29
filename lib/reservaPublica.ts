@@ -10,7 +10,6 @@ export interface PortalServicio {
   descripcion: string | null;
   precio: number;
   duracion: number; // minutos totales (activa + espera + extra)
-  categoria: string | null;
   categoria_id: string | null;
   categoria_nombre: string | null;
   categoria_color: string | null;
