@@ -33,6 +33,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
             <Tabs.Screen name="index" />
             <Tabs.Screen name="mi-jornada" />
             <Tabs.Screen name="caja" />
+            <Tabs.Screen name="presupuestos" />
             <Tabs.Screen name="lista-espera" />
             <Tabs.Screen name="clientes" />
             <Tabs.Screen name="equipo" />
@@ -88,6 +89,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       <Tabs.Screen name="index" options={{ title: 'Agenda', tabBarIcon: tabIcon('calendar'), tabBarLabel: tabLabel('Agenda') }} />
       <Tabs.Screen name="mi-jornada" options={{ title: 'Mi jornada', tabBarIcon: tabIcon('person-circle'), tabBarLabel: tabLabel('Mi jornada') }} />
       <Tabs.Screen name="caja" options={{ title: 'Caja', tabBarIcon: tabIcon('wallet'), tabBarLabel: tabLabel('Caja'), href: isManager ? undefined : null }} />
+      <Tabs.Screen name="presupuestos" options={{ title: 'Presupuestos', tabBarIcon: tabIcon('document-text'), tabBarLabel: tabLabel('Presup.') }} />
       <Tabs.Screen name="clientes" options={{ title: 'Clientes', tabBarIcon: tabIcon('people'), tabBarLabel: tabLabel('Clientes'), href: allows('clientes.ver') ? undefined : null }} />
       <Tabs.Screen name="resenas" options={{ title: 'Reseñas', tabBarIcon: tabIcon('star'), tabBarLabel: tabLabel('Reseñas') }} />
       <Tabs.Screen name="equipo" options={{ title: 'Equipo', tabBarIcon: tabIcon('person'), tabBarLabel: tabLabel('Equipo'), href: allows('equipo.ver') ? undefined : null }} />

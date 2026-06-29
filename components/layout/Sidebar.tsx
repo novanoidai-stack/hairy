@@ -22,6 +22,7 @@ const NAV_ITEMS: { label: string; icon: string; activeIcon: string; href: string
   { label: 'Agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
   { label: 'Mi jornada', icon: 'person-circle-outline', activeIcon: 'person-circle', href: '/(tabs)/mi-jornada' },
   { label: 'Caja', icon: 'wallet-outline', activeIcon: 'wallet', href: '/(tabs)/caja', cap: 'config.ver' },
+  { label: 'Presupuestos', icon: 'document-text-outline', activeIcon: 'document-text', href: '/(tabs)/presupuestos' },
   { label: 'Lista de espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas' },
   { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver' },
   { label: 'Reseñas', icon: 'star-outline', activeIcon: 'star', href: '/(tabs)/resenas' },

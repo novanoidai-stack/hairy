@@ -5,6 +5,7 @@ import { roleOf } from '@/lib/permissions';
 import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { CATEGORY_COLOR_TOKENS, categoryColorHex, type CategoryColorToken } from '@/lib/categoryColors';
+import { TabPresupuestoConceptos } from '@/components/config/TabPresupuestoConceptos';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -214,6 +215,7 @@ const TABS: TabDef[] = [
   { id: 'servicios',      label: 'Servicios',      icon: 'scissors',  section: 'Operativa' },
   { id: 'agenda',         label: 'Agenda',         icon: 'calendar',  section: 'Operativa' },
   { id: 'comisiones',     label: 'Comisiones',     icon: 'percent',   section: 'Operativa' },
+  { id: 'presupuestos',   label: 'Presupuestos',   icon: 'copy',      section: 'Operativa' },
   { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion' },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion', soon: true },
@@ -1066,6 +1068,9 @@ export default function ConfiguracionWeb() {
             )}
             {tab === 'agenda' && (
               <TabAgenda config={config} setC={setC} bloqueoCounts={bloqueoCounts} />
+            )}
+            {tab === 'presupuestos' && (
+              <TabPresupuestoConceptos negocioId={negocioId} />
             )}
             {tab === 'comisiones' && (
               <TabComisiones

@@ -107,6 +107,10 @@ export default function CajaScreen() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showCobroModal, setShowCobroModal] = useState(false);
   const [showWalkin, setShowWalkin] = useState(false);
+  // Presupuestos aceptados pendientes de cobro (se cobran con el mismo motor).
+  type PresupuestoCobrable = { id: string; numero: number | null; contacto_nombre: string | null; total_cents: number };
+  const [presupuestosCobrables, setPresupuestosCobrables] = useState<PresupuestoCobrable[]>([]);
+  const [cobroPresupuesto, setCobroPresupuesto] = useState<PresupuestoCobrable | null>(null);
   const [mensaje, setMensaje] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   // Arqueo del dia: lo cobrado HOY de verdad (libro de cobros), por metodo.
   const [arqueo, setArqueo] = useState<{ total: number; efectivo: number; datafono: number; propinas: number; count: number } | null>(null);
@@ -231,6 +235,16 @@ export default function CajaScreen() {
         .gte('marcado_at', todayStart)
         .order('marcado_at', { ascending: false });
       setFichajesHoy(fchs || []);
+
+      // Presupuestos aceptados, aún sin cobrar.
+      const { data: presData } = await supabase
+        .from('presupuestos')
+        .select('id, numero, contacto_nombre, total_cents')
+        .eq('negocio_id', profile.negocio_id)
+        .eq('estado', 'aceptado')
+        .is('cobro_id', null)
+        .order('created_at', { ascending: true });
+      setPresupuestosCobrables((presData || []) as PresupuestoCobrable[]);
     } catch (err) {
       console.error('Error cargando citas pendientes:', err);
       setMensaje({ type: 'error', text: mensajeDeError(err) });
@@ -273,6 +287,13 @@ export default function CajaScreen() {
     setMensaje({ type: 'success', text: 'Venta cobrada' });
     setShowWalkin(false);
     await cargarCitas(); // Recargar arqueo del dia
+    setTimeout(() => setMensaje(null), 3000);
+  };
+
+  const handleCobroPresupuestoSuccess = async () => {
+    setMensaje({ type: 'success', text: 'Presupuesto cobrado' });
+    setCobroPresupuesto(null);
+    await cargarCitas();
     setTimeout(() => setMensaje(null), 3000);
   };
 
@@ -551,6 +572,34 @@ export default function CajaScreen() {
           })}
         </div>
       ))}
+
+      {/* Presupuestos aceptados pendientes de cobro */}
+      {canSeeAll && presupuestosCobrables.length > 0 && (
+        <div style={{ marginTop: 22 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="check" size={16} color={T.primary} /> Presupuestos aceptados
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {presupuestosCobrables.map((p) => (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 18px', background: T.card, borderRadius: 12, border: `1px solid ${T.border}` }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: T.textTer }}>P-{p.numero}</span>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: T.text }}>{p.contacto_nombre || 'Sin nombre'}</span>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: T.textSec, marginTop: 2 }}>Presupuesto aceptado · pendiente de cobro</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: T.text, whiteSpace: 'nowrap' }}>{(p.total_cents / 100).toFixed(2)}€</span>
+                  <button onClick={() => setCobroPresupuesto(p)} className="ca-btn" style={{ padding: '9px 16px', background: T.primary, color: 'white', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                    <Icon name="cash" size={14} color="white" /> Cobrar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       </div>{/* fin contenedor con scroll */}
 
       {/* Modal de cobro — solo propietario/dirección (fixed: fuera del scroll) */}
@@ -570,6 +619,17 @@ export default function CajaScreen() {
           mode="walkin"
           onClose={() => setShowWalkin(false)}
           onSuccess={handleWalkinSuccess}
+        />
+      )}
+      {canSeeAll && cobroPresupuesto && (
+        <CobroSheet
+          mode="presupuesto"
+          presupuestoId={cobroPresupuesto.id}
+          pendienteCents={cobroPresupuesto.total_cents}
+          titulo={`Cobrar presupuesto P-${cobroPresupuesto.numero}`}
+          subtitulo={cobroPresupuesto.contacto_nombre || undefined}
+          onClose={() => setCobroPresupuesto(null)}
+          onSuccess={handleCobroPresupuestoSuccess}
         />
       )}
     </div>

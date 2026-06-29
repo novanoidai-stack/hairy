@@ -30,7 +30,20 @@ interface CobroSheetWalkinProps {
   onSuccess: (cobroIds: string[]) => void;
 }
 
-type CobroSheetProps = CobroSheetCitaProps | CobroSheetWalkinProps;
+interface CobroSheetPresupuestoProps {
+  mode: 'presupuesto';
+  // Cobro de un presupuesto aceptado: las lineas salen del propio presupuesto
+  // (RPC crear_cobro_desde_presupuesto). pendienteCents = total del presupuesto.
+  presupuestoId: string;
+  pendienteCents: number;
+  titulo?: string;
+  subtitulo?: string;
+  subtituloColor?: string;
+  onClose: () => void;
+  onSuccess: (cobroIds: string[]) => void;
+}
+
+type CobroSheetProps = CobroSheetCitaProps | CobroSheetWalkinProps | CobroSheetPresupuestoProps;
 
 const METODOS: Array<[CobroMetodo, string]> = [
   ['efectivo', 'Efectivo'],
@@ -99,8 +112,8 @@ export function CobroSheet(props: CobroSheetProps) {
     0
   );
 
-  const pendienteCents = isWalkin ? lineasBaseCents : props.pendienteCents;
-  const senalCents = isWalkin ? 0 : (props.senalCents ?? 0);
+  const pendienteCents = props.mode === 'walkin' ? lineasBaseCents : props.pendienteCents;
+  const senalCents = props.mode === 'cita' ? (props.senalCents ?? 0) : 0;
   const descuentoCents = Math.round(aEntero(descuento) * 100);
   const propinaCents = Math.round(aEntero(propina) * 100);
   const totalCents = Math.max(0, pendienteCents - descuentoCents) + propinaCents;
@@ -123,6 +136,15 @@ export function CobroSheet(props: CobroSheetProps) {
           p_propina_cents: propinaCents,
           p_descuento_cents: descuentoCents,
           p_profesional_id: profesionalId || null,
+        });
+        if (rpcErr) throw rpcErr;
+        onSuccess([data as string]);
+      } else if (props.mode === 'presupuesto') {
+        const { data, error: rpcErr } = await supabase.rpc('crear_cobro_desde_presupuesto', {
+          p_presupuesto_id: props.presupuestoId,
+          p_metodo: metodo,
+          p_propina_cents: propinaCents,
+          p_descuento_cents: descuentoCents,
         });
         if (rpcErr) throw rpcErr;
         onSuccess([data as string]);
@@ -154,9 +176,13 @@ export function CobroSheet(props: CobroSheetProps) {
 
   const titulo = props.mode === 'cita'
     ? (props.titulo || `Cobrar ${props.citaIds.length} cita${props.citaIds.length > 1 ? 's' : ''}`)
-    : 'Cobro rápido';
-  const subtitulo = props.mode === 'cita' ? props.subtitulo : 'Venta sin cita (producto, servicio puntual, propina suelta)';
-  const subtituloColor = props.mode === 'cita' ? props.subtituloColor : undefined;
+    : props.mode === 'presupuesto'
+      ? (props.titulo || 'Cobrar presupuesto')
+      : 'Cobro rápido';
+  const subtitulo = props.mode === 'walkin'
+    ? 'Venta sin cita (producto, servicio puntual, propina suelta)'
+    : props.subtitulo;
+  const subtituloColor = props.mode === 'walkin' ? undefined : props.subtituloColor;
 
   return (
     <div
