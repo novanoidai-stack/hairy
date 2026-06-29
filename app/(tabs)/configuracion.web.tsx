@@ -5,7 +5,7 @@ import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { PageLoader } from '@/components/ui/DesignComponents';
@@ -337,6 +337,19 @@ export default function ConfiguracionWeb() {
       setTab('general');
     }
   }, [isMobile, tab]);
+
+  // Deep-link desde el onboarding: abrir directamente una pestana (?tab=servicios).
+  // Una sola vez, para no reabrir la pestana si luego el usuario navega a otra.
+  const searchParams = useLocalSearchParams<{ tab?: string }>();
+  const tabParamHandled = useRef(false);
+  useEffect(() => {
+    const raw = searchParams?.tab;
+    const t = Array.isArray(raw) ? raw[0] : raw;
+    if (!tabParamHandled.current && t && TABS.some((x) => x.id === t)) {
+      tabParamHandled.current = true;
+      setTab(t);
+    }
+  }, [searchParams?.tab]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

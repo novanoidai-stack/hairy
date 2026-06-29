@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
-import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/supabase';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { validarHorarioLaboral } from '@/lib/horarios';
 import { getUserProfile } from '@/lib/auth';
 import { TimeDrumPicker } from '@/components/ui/Pickers';
@@ -15,6 +15,10 @@ import RetrasoPropuestaModal from './RetrasoPropuestaModal';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import AsistenteAgenda from './AsistenteAgenda';
 import { CobroSheet } from '@/components/pos/CobroSheet';
+import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
+import { OnboardingCard } from '@/components/onboarding/OnboardingCard.web';
+import OnboardingPanel from '@/components/onboarding/OnboardingPanel.web';
+import type { OnboardingStepId } from '@/lib/onboarding';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -204,6 +208,58 @@ export default function AgendaCalendar() {
   const [asistenteActivo, setAsistenteActivo] = useState(false); // asistenteAgendaActivo (negocio_config)
   const [negocioId, setNegocioId] = useState(NEGOCIO_ID_FALLBACK);
   const [userProfile, setUserProfile] = useState<{ id: string; role?: string | null } | null>(null);
+
+  // --- Onboarding: checklist de puesta en marcha del salon ---
+  // Solo para gestores (owner/admin) en su negocio propio; nunca en la demo ni para
+  // prospectos free (que viven en demo_salon_001).
+  const obParams = useLocalSearchParams<{ onboarding?: string }>();
+  const esGestor = userProfile?.role === 'owner' || userProfile?.role === 'admin';
+  const onboardingEligible = !!userProfile && esGestor && !IS_DEMO_MODE && negocioId !== 'demo_salon_001';
+  const onboarding = useOnboardingStatus(onboardingEligible ? negocioId : null, onboardingEligible);
+  const [showOnboardingPanel, setShowOnboardingPanel] = useState(false);
+  const [obSkipped, setObSkipped] = useState<OnboardingStepId[]>([]);
+  const [obHidden, setObHidden] = useState(false);
+  const obKey = negocioId ? `mecha-onboarding:${negocioId}` : '';
+
+  // Preferencias locales (omitidos / ocultar) por negocio. localStorage: onboarding unico,
+  // normalmente en el mismo dispositivo. No necesita backend.
+  useEffect(() => {
+    if (!onboardingEligible || !obKey) { setObSkipped([]); setObHidden(false); return; }
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(obKey) : null;
+      const v = raw ? JSON.parse(raw) : null;
+      setObSkipped(v && Array.isArray(v.skipped) ? v.skipped : []);
+    } catch { setObSkipped([]); }
+    // "Ahora no" oculta solo en esta sesion: reaparece al volver mientras falte el nucleo.
+    setObHidden(false);
+  }, [obKey, onboardingEligible]);
+
+  const persistSkipped = useCallback((skippedNext: OnboardingStepId[]) => {
+    try {
+      if (typeof localStorage !== 'undefined' && obKey) {
+        localStorage.setItem(obKey, JSON.stringify({ skipped: skippedNext }));
+      }
+    } catch { /* sin persistencia si el navegador la bloquea */ }
+  }, [obKey]);
+
+  const skipStep = useCallback((id: OnboardingStepId) => {
+    setObSkipped((prev) => { const next = prev.includes(id) ? prev : [...prev, id]; persistSkipped(next); return next; });
+  }, [persistSkipped]);
+  const unskipStep = useCallback((id: OnboardingStepId) => {
+    setObSkipped((prev) => { const next = prev.filter((x) => x !== id); persistSkipped(next); return next; });
+  }, [persistSkipped]);
+  const hideOnboarding = useCallback(() => setObHidden(true), []);
+
+  // Re-comprobar el estado al volver a la agenda (p.ej. tras configurar algo).
+  useFocusEffect(useCallback(() => { if (onboardingEligible) onboarding.refresh(); }, [onboardingEligible, onboarding.refresh]));
+
+  // Reapertura del panel desde Ajustes (navega con ?onboarding=1).
+  useEffect(() => {
+    if (obParams?.onboarding === '1' && onboardingEligible) setShowOnboardingPanel(true);
+  }, [obParams?.onboarding, onboardingEligible]);
+
+  // La tarjeta aparece mientras el nucleo no este completo y no se haya ocultado.
+  const onboardingPending = onboardingEligible && onboarding.ready && !onboarding.coreDone && !obHidden;
   const [dropServicioOpen, setDropServicioOpen] = useState(false);
   const [dropEstadoOpen, setDropEstadoOpen] = useState(false);
   // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral
@@ -680,7 +736,7 @@ export default function AgendaCalendar() {
               style={{ padding: 7, background: showNotif ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${showNotif ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, borderRadius: 9, color: TOKENS.textSec, position: 'relative', cursor: 'pointer', width: 33, height: 33, display: 'grid', placeItems: 'center' }}
             >
               <Icon name="bell" size={18} color={showNotif ? TOKENS.primaryHi : TOKENS.textSec} />
-              {totalAvisos > 0 && <span style={{ position: 'absolute', top: 5, right: 5, width: 7, height: 7, background: sinConfirmar48h > 0 ? TOKENS.danger : '#fb923c', borderRadius: 999, boxShadow: `0 0 0 2px ${TOKENS.bg}`, animation: 'pulse 2s infinite' }} />}
+              {(totalAvisos > 0 || onboardingPending) && <span style={{ position: 'absolute', top: 5, right: 5, width: 7, height: 7, background: sinConfirmar48h > 0 ? TOKENS.danger : (onboardingPending && totalAvisos === 0 ? TOKENS.primary : '#fb923c'), borderRadius: 999, boxShadow: `0 0 0 2px ${TOKENS.bg}`, animation: 'pulse 2s infinite' }} />}
             </button>
             {showNotif && (
               <>
@@ -697,13 +753,22 @@ export default function AgendaCalendar() {
                     <span>Avisos</span>
                     {totalAvisos > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: sinConfirmar48h > 0 ? '#ef4444' : '#fb923c', background: sinConfirmar48h > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(251,146,60,0.14)', borderRadius: 999, padding: '2px 8px' }}>{totalAvisos}</span>}
                   </div>
+                  {onboardingPending && (
+                    <OnboardingCard
+                      coreCompletados={onboarding.coreCompletados}
+                      coreTotal={onboarding.coreTotal}
+                      isMobile={isMobile}
+                      onOpen={() => { setShowNotif(false); onboarding.refresh(); setShowOnboardingPanel(true); }}
+                      onHide={hideOnboarding}
+                    />
+                  )}
                   {reposoGlobal && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.22)', borderRadius: 10, marginBottom: 10 }}>
                       <span style={{ width: 6, height: 6, borderRadius: 999, background: '#f59e0b', flexShrink: 0 }} />
                       <span style={{ fontSize: 11.5, color: '#f59e0b', fontWeight: 600 }}>{reposoGlobal.pct}% del reposo aprovechado hoy</span>
                     </div>
                   )}
-                  {totalAvisos === 0 ? (
+                  {totalAvisos === 0 && !onboardingPending ? (
                     <div style={{ fontSize: 12, color: TOKENS.textTer, textAlign: 'center', padding: '18px 0' }}>No hay avisos pendientes</div>
                   ) : (
                     <>
@@ -1489,6 +1554,19 @@ export default function AgendaCalendar() {
       {showNewCita && <NewCitaModal onClose={() => { setShowNewCita(false); setNewCitaPrefill(null); }} onSaved={(nuevaCita: any) => { if (nuevaCita) setCitas(prev => [...prev, nuevaCita]); setShowNewCita(false); setNewCitaPrefill(null); }} selectedDate={selectedDateObj} prefillHora={newCitaPrefill?.hora} prefillProf={newCitaPrefill?.profId} />}
       {/* Demo guiada: spotlight sobre el panel de avisos (no la campana ni "Cerrar salon") */}
       <DemoSpotlight targetRef={notifPanelRef} active={demoFocus === 'avisos'} label="Avisos" padding={8} radius={16} />
+      {showOnboardingPanel && (
+        <OnboardingPanel
+          isMobile={isMobile}
+          done={onboarding.done}
+          coreCompletados={onboarding.coreCompletados}
+          coreTotal={onboarding.coreTotal}
+          skipped={obSkipped}
+          onSkip={skipStep}
+          onUnskip={unskipStep}
+          onNavigate={(step) => { setShowOnboardingPanel(false); router.push({ pathname: step.pathname, params: step.params } as any); }}
+          onClose={() => setShowOnboardingPanel(false)}
+        />
+      )}
       {showClienteHistorial && <ClienteHistorialModal cliente={showClienteHistorial} onClose={() => setShowClienteHistorial(null)} citas={citas} servicioMap={servicioMap} profesionalMap={profesionalMap} />}
       {showEditCita && selectedCitaEdit && (
         <DetalleCitaModal
