@@ -23,8 +23,14 @@ ficha de cita ("órdenes"). Velocidad de escaneo > decoración — coherente con
 ## Decisiones (fijadas por el usuario, 26 jun)
 
 - **Una sola categoría por servicio** (no etiquetas múltiples). Coincide con el campo actual.
-- **Color de una paleta curada** (8 tonos ya existentes en la app), no un hex libre — garantiza
-  contraste sobre el dark theme y coherencia con el resto del producto.
+- **Color de una paleta curada de 10 tonos**, no un hex libre — garantiza contraste sobre el tema
+  claro/crema de la app y coherencia con el resto del producto. 6 son tokens ya existentes y en uso
+  (`primary, success, warning, danger, cyan, rose`); 4 son tokens **nuevos y aditivos** que se añaden
+  a `lib/designTokens.ts` sin tocar ninguno existente: `indigo` (#4f46e5), `purple` (#8b5cf6), `teal`
+  (#0d9488), `slate` (#64748b). **No se reutiliza el token `violet`**: aunque su nombre sugiere
+  morado, su valor real es `#c0260a` (idéntico a `primaryHi`) y está en uso activo de verdad en
+  `clientes.web.tsx` (fichas de color/química) e `informes.web.tsx` (stats de ocupación) — repintarlo
+  rompería esas pantallas. Queda como deuda aparte, no se toca aquí.
 - **Crear cita:** secciones agrupadas por categoría con cabecera de color, siempre desplegadas
   (mismo patrón que ya usa hoy Configuración → Servicios).
 - **Portal público:** fila de chips de filtro ("Todos" + una por categoría) encima de la lista del
@@ -57,7 +63,7 @@ create table categorias_servicio (
   id uuid primary key default gen_random_uuid(),
   negocio_id text not null,
   nombre text not null,
-  color text not null,           -- token: 'primary'|'success'|'warning'|'danger'|'violet'|'cyan'|'rose'|'slate'
+  color text not null,           -- token: 'primary'|'success'|'warning'|'danger'|'cyan'|'rose'|'indigo'|'purple'|'teal'|'slate'
   orden integer not null default 0,
   activo boolean not null default true,
   created_at timestamptz not null default now(),
