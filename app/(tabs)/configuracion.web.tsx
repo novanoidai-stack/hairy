@@ -282,6 +282,7 @@ const SOPORTE_TEL = '+34690792975';
 export default function ConfiguracionWeb() {
   const { isMobile, isTablet } = useResponsive();
   const [tab, setTab] = useState<string | null>(null);
+  const router = useRouter();
 
   const [demoActionName, setDemoActionName] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -957,7 +958,16 @@ export default function ConfiguracionWeb() {
         <div key={tab || 'none'} style={{ display: (isMobile && tab === null) ? 'none' : 'block', overflowY: 'auto', padding: isMobile ? '16px 16px 60px' : '24px 28px 60px' }}>
           <div ref={contentRef} style={{ maxWidth: 1080, margin: '0 auto' }}>
             {tab === 'general' && (
-              <TabGeneral config={config} setC={setC} />
+              <>
+                <button
+                  onClick={() => router.push({ pathname: '/(tabs)', params: { onboarding: '1' } } as any)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 18, padding: '8px 12px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Abrir guia de puesta en marcha
+                  <span style={{ fontSize: 15, color: T.primary }}>{'→'}</span>
+                </button>
+                <TabGeneral config={config} setC={setC} />
+              </>
             )}
             {tab === 'horarios' && (
               <TabHorarios

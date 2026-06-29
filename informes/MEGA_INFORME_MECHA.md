@@ -817,6 +817,10 @@ master (commit `6fcc796a8`). Spec: `docs/superpowers/specs/2026-06-26-onboarding
   solo si se borra el dato. "Configurar →" hace deep-link a la pestaña exacta de Ajustes (`?tab=`).
 - **Solo gestores en su negocio propio; nunca en la demo** ni para prospectos free (demo_salon_001).
   "Ahora no" oculta solo en la sesión; en localStorage solo se guardan los recomendados omitidos.
-- **Diferido (no bloqueante):** auto-abrir la ficha del primer profesional sin horario con
-  `?focus=horarios` en Equipo; punto de entrada en Ajustes para reabrir el panel (el efecto
-  `?onboarding=1` ya existe); paridad nativa. `tsc` y `build:web` en verde.
+- **Rematado (2ª tanda, 29 jun):** `?focus=horarios` ya abre en Equipo la ficha del primer
+  profesional activo (su editor de horario); Ajustes › General tiene "Abrir guía de puesta en
+  marcha" que navega a la agenda con `?onboarding=1` y reabre el panel.
+- **Diferido:** paridad nativa. La agenda **nativa** (`AgendaCalendar.tsx`) no tiene panel de
+  avisos que hospede la tarjeta, así que sería una superficie nueva, no un port directo; el
+  producto vivo es la web. Los componentes son `.web` aislados, no rompen el build nativo.
+- `npx tsc --noEmit` y `npm run build:web` en verde tras ambas tandas.

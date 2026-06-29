@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, can } from '@/lib/auth';
@@ -241,6 +242,20 @@ export default function EquipoWeb() {
     if (!selected) return;
     cargarPanelDerecho(selected);
   }, [selected]);
+
+  // Deep-link desde el onboarding (?focus=horarios): abre la ficha del primer
+  // profesional activo para que el dueno configure su horario sin tener que buscarlo.
+  const focusParams = useLocalSearchParams<{ focus?: string }>();
+  const focusHandled = useRef(false);
+  useEffect(() => {
+    if (focusHandled.current) return;
+    const f = Array.isArray(focusParams.focus) ? focusParams.focus[0] : focusParams.focus;
+    if (f === 'horarios' && profesionales.length > 0) {
+      focusHandled.current = true;
+      const target = profesionales.find((p) => p.activo) ?? profesionales[0];
+      if (target) setSelected(target.id);
+    }
+  }, [focusParams.focus, profesionales]);
 
   if (accessDenied) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: TOKENS.bg, color: TOKENS.textSec, flexDirection: 'column', gap: 8, fontFamily: 'Inter, sans-serif' }}>
