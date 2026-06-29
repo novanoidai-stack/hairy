@@ -798,3 +798,25 @@ Se implementó el flujo completo de registro de consentimientos RGPD y se resolv
   - Se corrigió el error de incompatibilidad de tipos `NodeJS.Timeout` en `components/ui/Pickers.tsx` forzando el contexto del navegador con `window.setTimeout` y `window.clearTimeout`.
   - Se actualizó y validó el entorno a Node `v24.14.0` vía `nvm`, superando la restricción de versión de Metro/Expo.
   - Se comprobó que `npx tsc --noEmit` y `npm run build:web` compilan y exportan la aplicación web a `web/app` con un 100% de éxito.
+
+---
+
+## Adenda 29 jun 2026 — Onboarding "Pon en marcha tu salón" en Avisos (Carlos + Claude)
+
+Checklist guiado para que un salón nuevo configure lo esencial y quede operativo. Desplegado a
+master (commit `6fcc796a8`). Spec: `docs/superpowers/specs/2026-06-26-onboarding-checklist-design.md`.
+
+- **Dónde:** panel de **Avisos** de la agenda → tarjeta `OnboardingCard` que abre `OnboardingPanel`
+  (`components/onboarding/`, web). La campana enciende su punto si hay onboarding pendiente.
+- **Pasos graduados por necesidad objetiva** (`lib/onboarding.ts`): núcleo 1-5 (servicios, equipo,
+  horario de cada profesional, horario del salón, datos del negocio) = **operativo** → la tarjeta
+  desaparece sola; recomendados 6-8 (reserva online, fotos, recordatorios WhatsApp) con "Omitir";
+  opcionales 9-10 (señal, comisiones) solo mencionados.
+- **Estado derivado del dato, sin flags ni migración** (`lib/hooks/useOnboardingStatus.ts`): cada
+  paso se marca hecho leyendo las tablas reales (el dueño ya tiene RLS de lectura). Un paso se reabre
+  solo si se borra el dato. "Configurar →" hace deep-link a la pestaña exacta de Ajustes (`?tab=`).
+- **Solo gestores en su negocio propio; nunca en la demo** ni para prospectos free (demo_salon_001).
+  "Ahora no" oculta solo en la sesión; en localStorage solo se guardan los recomendados omitidos.
+- **Diferido (no bloqueante):** auto-abrir la ficha del primer profesional sin horario con
+  `?focus=horarios` en Equipo; punto de entrada en Ajustes para reabrir el panel (el efecto
+  `?onboarding=1` ya existe); paridad nativa. `tsc` y `build:web` en verde.
