@@ -11,6 +11,9 @@ export interface PortalServicio {
   precio: number;
   duracion: number; // minutos totales (activa + espera + extra)
   categoria: string | null;
+  categoria_id: string | null;
+  categoria_nombre: string | null;
+  categoria_color: string | null;
   prepago: boolean;
   foto_url: string | null;
 }
@@ -229,6 +232,8 @@ export interface CitaPublica {
   estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada' | 'no_show';
   servicio_id: string | null;
   servicio: string;
+  categoria_nombre: string;
+  categoria_color: string;
   profesional_id: string | null;
   profesional: string;
   inicio: string;

@@ -9,6 +9,7 @@ import {
 } from '@/lib/reservaPublica';
 import { EmbersCanvas } from '../resena/[slug].web';
 import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
+import { categoryColorHex } from '@/lib/categoryColors';
 
 // ---------------------------------------------------------------------------
 // Tokens — marca Mecha (Basalto oscuro). El gradiente FIRE es el del
@@ -159,6 +160,7 @@ export default function PortalReservaWeb() {
 
   const [step, setStep] = useState<Step>('servicio');
   const [servicio, setServicio] = useState<PortalServicio | null>(null);
+  const [categoriaFiltro, setCategoriaFiltro] = useState<string | null>(null);
   const [profId, setProfId] = useState<string>(ANY_PRO);
   const [fecha, setFecha] = useState<Date>(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
   const [slots, setSlots] = useState<SlotDisponible[]>([]);
@@ -429,9 +431,46 @@ export default function PortalReservaWeb() {
       {step === 'servicio' && (
         <div className="rp-step">
           <H titulo={t('s1_title')} sub={t('s1_sub')} />
+          {(() => {
+            const cats: { id: string; nombre: string; color: string }[] = [];
+            const vistos = new Set<string>();
+            for (const sv of info.servicios) {
+              if (sv.categoria_id && !vistos.has(sv.categoria_id)) {
+                vistos.add(sv.categoria_id);
+                cats.push({ id: sv.categoria_id, nombre: sv.categoria_nombre || '', color: sv.categoria_color || 'primary' });
+              }
+            }
+            if (cats.length < 2) return null;
+            return (
+              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 14 }}>
+                <button onClick={() => setCategoriaFiltro(null)} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999,
+                  background: categoriaFiltro === null ? T.primarySoft : 'transparent',
+                  border: `1px solid ${categoriaFiltro === null ? T.primary : T.border}`,
+                  color: categoriaFiltro === null ? T.primaryHi : T.textSec,
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                }}>Todos</button>
+                {cats.map(cat => {
+                  const hex = categoryColorHex(cat.color);
+                  const activo = categoriaFiltro === cat.id;
+                  return (
+                    <button key={cat.id} onClick={() => setCategoriaFiltro(activo ? null : cat.id)} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999,
+                      background: activo ? `${hex}26` : 'transparent',
+                      border: `1px solid ${activo ? hex : T.border}`,
+                      color: T.textSec, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    }}>
+                      <span style={{ width: 7, height: 7, borderRadius: 99, background: hex, flexShrink: 0 }} />
+                      {cat.nombre}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
           <div className="rp-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             {info.servicios.length === 0 && <Empty titulo={t('empty_servicios_t')} texto={t('empty_servicios_x')} />}
-            {info.servicios.map((sv, i) => (
+            {info.servicios.filter(sv => !categoriaFiltro || sv.categoria_id === categoriaFiltro).map((sv, i) => (
               <button key={sv.id} className="rp-opt" onClick={() => elegirServicio(sv)} style={{ ...optStyle, animationDelay: `${i * 0.05}s` }}>
                 {sv.foto_url ? (
                   <span style={{ position: 'relative', width: 72, height: 72, borderRadius: 14, overflow: 'hidden', flexShrink: 0, background: T.cardHi, boxShadow: 'inset 0 0 0 1px rgba(40,30,24,0.05)' }}>

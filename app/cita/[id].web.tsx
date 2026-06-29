@@ -7,6 +7,7 @@ import {
   getDiasDisponibles, getDisponibilidad,
   type CitaPublica, type SlotDisponible,
 } from '@/lib/reservaPublica';
+import { categoryColorHex } from '@/lib/categoryColors';
 
 // ---------------------------------------------------------------------------
 // Pagina "gestiona tu cita" (/app/cita/[id]?s=<slug>). Es el destino del enlace
@@ -440,9 +441,10 @@ function estadoSub(c: CitaPublica): string {
 }
 
 function CitaCard({ cita }: { cita: CitaPublica }) {
+  const catColor = cita.categoria_color ? categoryColorHex(cita.categoria_color) : null;
   return (
     <div style={{ border: `1px solid ${T.border}`, borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 26px rgba(40,30,24,0.05)', marginTop: 4 }}>
-      <Row icon="scissors" label="Servicio" value={cita.servicio || '—'} />
+      <Row icon="scissors" label="Servicio" value={cita.servicio || '—'} dotColor={catColor} />
       <Row icon="user" label="Profesional" value={cita.profesional || '—'} />
       <Row icon="calendar" label="Día" value={fmtFechaLarga(cita.inicio)} />
       <Row icon="clock" label="Hora" value={fmtHora(cita.inicio)} last />
@@ -450,13 +452,16 @@ function CitaCard({ cita }: { cita: CitaPublica }) {
   );
 }
 
-function Row({ icon, label, value, last }: { icon: string; label: string; value: string; last?: boolean }) {
+function Row({ icon, label, value, last, dotColor }: { icon: string; label: string; value: string; last?: boolean; dotColor?: string | null }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px', background: T.card, borderBottom: last ? 'none' : `1px solid ${T.border}` }}>
       <span style={{ display: 'inline-flex', width: 32, height: 32, borderRadius: 9, background: T.primarySoft, alignItems: 'center', justifyContent: 'center' }}><Icon name={icon} size={16} color={T.primary} /></span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 11.5, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
-        <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{value}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: T.text, display: 'flex', alignItems: 'center', gap: 6 }}>
+          {dotColor && <span style={{ width: 7, height: 7, borderRadius: 99, background: dotColor, flexShrink: 0 }} />}
+          {value}
+        </div>
       </div>
     </div>
   );
