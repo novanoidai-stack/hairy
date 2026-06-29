@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo, useCallback, useRef, type ReactNode } from 'react';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile, canAccessConfig } from '@/lib/auth';
+import { roleOf } from '@/lib/permissions';
 import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
+import { CATEGORY_COLOR_TOKENS, categoryColorHex, type CategoryColorToken } from '@/lib/categoryColors';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -39,12 +41,22 @@ if (typeof document !== 'undefined') {
 // Types
 // ---------------------------------------------------------------------------
 
+interface CategoriaServicio {
+  id: string;
+  negocio_id?: string;
+  nombre: string;
+  color: CategoryColorToken | string;
+  orden: number;
+  activo?: boolean;
+}
+
 interface Servicio {
   id?: string;
   nombre: string;
   precio: number;
   duracion_activa_min: number;
   categoria: string;
+  categoria_id?: string | null;
   duracion_espera_min?: number;
   duracion_activa_extra_min?: number;
   duracion?: number;
@@ -358,6 +370,7 @@ export default function ConfiguracionWeb() {
   const [negocioId, setNegocioId] = useState('');
   const [userId, setUserId] = useState('');
   const [account, setAccount] = useState<AccountInfo | null>(null);
+  const isOwnerUser = roleOf(account) === 'propietario';
 
   // Config state (JSONB)
   const [config, setConfig] = useState<ConfigState>(DEFAULT_CONFIG);
@@ -374,6 +387,8 @@ export default function ConfiguracionWeb() {
   // Services state
   const [services, setServicios] = useState<Servicio[]>([]);
   const [edit, setEdit] = useState<Servicio | null>(null);
+  const [categorias, setCategorias] = useState<CategoriaServicio[]>([]);
+  const [showCategoriasModal, setShowCategoriasModal] = useState(false);
   const [profesionales, setProfesionales] = useState<any[]>([]);
   const [profId, setProfId] = useState<string | null>(null);
   const [allOverrides, setAllOverrides] = useState<Override[]>([]);
@@ -420,14 +435,17 @@ export default function ConfiguracionWeb() {
         { data: profData },
         { data: cfgRow },
         { data: horariosRows },
+        { data: catData },
       ] = await Promise.all([
         supabase.from('servicios').select('*').eq('negocio_id', nid).order('categoria'),
         supabase.from('profesionales').select('id, nombre, color, categoria, comision_pct, activo').eq('negocio_id', nid).eq('activo', true).order('nombre'),
         supabase.from('negocio_config').select('config').eq('negocio_id', nid).maybeSingle(),
         supabase.from('negocio_horarios').select('*').eq('negocio_id', nid),
+        supabase.from('categorias_servicio').select('*').eq('negocio_id', nid).eq('activo', true).order('orden'),
       ]);
 
       setServicios(srvData ?? []);
+      setCategorias(catData ?? []);
       setProfesionales(profData ?? []);
 
       // Config JSONB
@@ -609,6 +627,7 @@ export default function ConfiguracionWeb() {
         precio: service.precio,
         duracion_activa_min: service.duracion_activa_min,
         categoria: service.categoria,
+        categoria_id: service.categoria_id ?? null,
         duracion_espera_min: service.duracion_espera_min || 0,
         duracion_activa_extra_min: service.duracion_activa_extra_min || 0,
         min_antelacion_min: service.min_antelacion_min || 0,
@@ -709,6 +728,61 @@ export default function ConfiguracionWeb() {
       setServicios(prev => prev.map(x => x.id === s.id ? { ...x, activo: nuevoActivo } : x));
     } catch (e: any) {
       alert(mensajeDeError(e));
+    }
+  };
+
+  const handleSaveCategoria = async (categoria: { id?: string; nombre: string; color: string; orden?: number }): Promise<CategoriaServicio | null> => {
+    if (!negocioId) return null;
+    try {
+      if (categoria.id) {
+        const { data, error } = await supabase
+          .from('categorias_servicio')
+          .update({ nombre: categoria.nombre, color: categoria.color })
+          .eq('id', categoria.id)
+          .select()
+          .single();
+        if (error) throw error;
+        setCategorias(prev => prev.map(c => c.id === data.id ? data : c).sort((a, b) => a.orden - b.orden));
+        return data;
+      }
+      const orden = categoria.orden ?? categorias.length;
+      const { data, error } = await supabase
+        .from('categorias_servicio')
+        .insert({ negocio_id: negocioId, nombre: categoria.nombre, color: categoria.color, orden })
+        .select()
+        .single();
+      if (error) throw error;
+      setCategorias(prev => [...prev, data].sort((a, b) => a.orden - b.orden));
+      return data;
+    } catch (e: any) {
+      alert(mensajeDeError(e, 'No se pudo guardar la categoria.'));
+      return null;
+    }
+  };
+
+  const handleReorderCategorias = async (orderedIds: string[]) => {
+    setCategorias(prev => {
+      const byId = new Map(prev.map(c => [c.id, c]));
+      return orderedIds.map((id, i) => ({ ...byId.get(id)!, orden: i }));
+    });
+    await Promise.all(orderedIds.map((id, i) => supabase.from('categorias_servicio').update({ orden: i }).eq('id', id)));
+  };
+
+  const handleDeleteCategoria = async (id: string) => {
+    const categoria = categorias.find(c => c.id === id);
+    const nombre = categoria?.nombre || 'esta categoria';
+    const afectados = services.filter(s => s.categoria_id === id).length;
+    const aviso = afectados > 0
+      ? `"${nombre}" tiene ${afectados} servicio${afectados === 1 ? '' : 's'}. Si la eliminas, ${afectados === 1 ? 'quedara' : 'quedaran'} sin categoria. Continuar?`
+      : `Eliminar "${nombre}"?`;
+    if (!window.confirm(aviso)) return;
+    try {
+      const { error } = await supabase.from('categorias_servicio').delete().eq('id', id);
+      if (error) throw error;
+      setCategorias(prev => prev.filter(c => c.id !== id));
+      setServicios(prev => prev.map(s => s.categoria_id === id ? { ...s, categoria_id: null } : s));
+    } catch (e: any) {
+      alert(mensajeDeError(e, 'No se pudo eliminar la categoria.'));
     }
   };
 
@@ -984,6 +1058,8 @@ export default function ConfiguracionWeb() {
                 profSelData={profSelData}
                 variantCounts={variantCounts}
                 catPricing={catPricing}
+                categorias={categorias} isOwnerUser={isOwnerUser}
+                onManageCategorias={() => setShowCategoriasModal(true)}
                 onEdit={setEdit} onToggle={handleToggleServicio}
                 onDelete={handleDeleteService} onSaveOverride={handleSaveOverride}
                 onResetOverride={handleResetOverride}
@@ -1026,6 +1102,18 @@ export default function ConfiguracionWeb() {
           onSaveOverride={handleSaveOverride}
           onResetOverride={handleResetOverride}
           negocioId={negocioId}
+          categorias={categorias}
+          onCreateCategoria={(input) => handleSaveCategoria(input)}
+        />
+      )}
+      {showCategoriasModal && (
+        <CategoriasModal
+          categorias={categorias}
+          services={services}
+          onClose={() => setShowCategoriasModal(false)}
+          onSave={handleSaveCategoria}
+          onDelete={handleDeleteCategoria}
+          onReorder={handleReorderCategorias}
         />
       )}
       <DemoSpotlight
@@ -1892,7 +1980,7 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
 
 // En movil la fila de servicio pasa de grid de 5 columnas con 410px fijos
 // (que dejaba el NOMBRE a ancho 0) a dos lineas: nombre + datos.
-function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, duracionesProf, profSelData, variantCounts, catPricing, onEdit, onToggle, onDelete, onSaveOverride, onResetOverride, onSaveDurProf, onResetDurProf }: {
+function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, duracionesProf, profSelData, variantCounts, catPricing, categorias, isOwnerUser, onManageCategorias, onEdit, onToggle, onDelete, onSaveOverride, onResetOverride, onSaveDurProf, onResetDurProf }: {
   services: Servicio[]; profesionales: any[];
   profId: string | null; setProfId: (id: string | null) => void;
   allOverrides: Override[]; getOverride: (sid: string) => Override | undefined;
@@ -1900,6 +1988,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
   profSelData: any;
   variantCounts: Record<string, number>;
   catPricing: Record<string, Record<string, number>>;
+  categorias: CategoriaServicio[]; isOwnerUser: boolean; onManageCategorias: () => void;
   onEdit: (s: Servicio) => void; onToggle: (s: Servicio) => void;
   onDelete: (id: string) => void;
   onSaveOverride: (sid: string, patch: Partial<Override>) => Promise<void>;
@@ -1921,14 +2010,23 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
   const filteredNormales = useMemo(() => filtered.filter(s => !s.es_puntual), [filtered]);
   const filteredPuntuales = useMemo(() => filtered.filter(s => s.es_puntual), [filtered]);
   const grupos = useMemo(() => {
-    const cats = [...new Set(filteredNormales.map(s => s.categoria))];
-    const g: { key: string; label: string; items: Servicio[]; puntual: boolean }[] =
-      cats.map(cat => ({ key: cat, label: cat, items: filteredNormales.filter(s => s.categoria === cat), puntual: false }));
+    const g: { key: string; label: string; color: string | null; items: Servicio[]; puntual: boolean }[] =
+      categorias
+        .map(cat => ({
+          key: cat.id, label: cat.nombre, color: cat.color,
+          items: filteredNormales.filter(s => s.categoria_id === cat.id),
+          puntual: false,
+        }))
+        .filter(grp => grp.items.length > 0);
+    const sinCategoria = filteredNormales.filter(s => !s.categoria_id);
+    if (sinCategoria.length > 0) {
+      g.push({ key: '__sin_categoria__', label: 'Sin categoria', color: null, items: sinCategoria, puntual: false });
+    }
     if (filteredPuntuales.length > 0) {
-      g.push({ key: '__puntuales__', label: 'Servicios puntuales', items: filteredPuntuales, puntual: true });
+      g.push({ key: '__puntuales__', label: 'Servicios puntuales', color: null, items: filteredPuntuales, puntual: true });
     }
     return g;
-  }, [filteredNormales, filteredPuntuales]);
+  }, [filteredNormales, filteredPuntuales, categorias]);
   const profColor = profSelData?.color;
 
   return (
@@ -1941,10 +2039,17 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
           </div>
         </div>
         {!profId && (
-          <Btn variant="primary" size="md" icon="plus"
-            onClick={() => onEdit({ nombre: '', precio: 0, duracion_activa_min: 30, categoria: 'Corte' })}>
-            Nuevo servicio
-          </Btn>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {isOwnerUser && (
+              <Btn variant="soft" size="md" icon="pricetag-outline" onClick={onManageCategorias}>
+                Gestionar categorias
+              </Btn>
+            )}
+            <Btn variant="primary" size="md" icon="plus"
+              onClick={() => onEdit({ nombre: '', precio: 0, duracion_activa_min: 30, categoria: '', categoria_id: null })}>
+              Nuevo servicio
+            </Btn>
+          </div>
         )}
       </div>
 
@@ -1997,9 +2102,12 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
           <div style={{ fontSize: 12 }}>Crea tu primer servicio para empezar</div>
         </div>
       ) : (
-        grupos.map(grupo => (
+        grupos.map(grupo => {
+          const grupoColor = grupo.puntual ? '#f59e0b' : grupo.color ? categoryColorHex(grupo.color) : T.textTertiary;
+          return (
           <div key={grupo.key} style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, letterSpacing: 1.5, color: grupo.puntual ? '#f59e0b' : T.textTertiary, textTransform: 'uppercase', fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 10, letterSpacing: 1.5, color: grupoColor, textTransform: 'uppercase', fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+              {grupo.color && <span style={{ width: 7, height: 7, borderRadius: 999, background: grupoColor, flexShrink: 0 }} />}
               <span>{grupo.label}</span>
               <div style={{ flex: 1, height: 1, background: grupo.puntual ? 'rgba(245,158,11,0.3)' : T.border }} />
               <span>{grupo.items.length}</span>
@@ -2163,7 +2271,8 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
               })}
             </div>
           </div>
-        ))
+          );
+        })
       )}
     </>
   );
@@ -3027,7 +3136,7 @@ function FlamesRow({ value, size = 16, color }: { value: number; size?: number; 
 // EditServiceModal (preserved from original)
 // ===========================================================================
 
-function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, onSaveOverride, onResetOverride, negocioId }: {
+function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, onSaveOverride, onResetOverride, negocioId, categorias, onCreateCategoria }: {
   service: Servicio;
   onClose: () => void;
   onSave: (s: Servicio) => void;
@@ -3037,6 +3146,8 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
   onSaveOverride?: (serviceId: string, patch: Partial<Override>) => Promise<void>;
   onResetOverride?: (serviceId: string) => Promise<void>;
   negocioId?: string;
+  categorias: CategoriaServicio[];
+  onCreateCategoria: (input: { nombre: string; color: string }) => Promise<CategoriaServicio | null>;
 }) {
   const isNew = !service.id;
   const isProfMode = !!prof;
@@ -3047,6 +3158,10 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
   const [precio, setPrecio] = useState<string | number>(service.precio ?? '');
   const [durActiva, setDurActiva] = useState(catalogActiva);
   const [categoria, setCategoria] = useState(service.categoria || 'Corte');
+  const [categoriaId, setCategoriaId] = useState<string | null>(service.categoria_id ?? null);
+  const [creandoCategoria, setCreandoCategoria] = useState(false);
+  const [nuevaCategoriaNombre, setNuevaCategoriaNombre] = useState('');
+  const [nuevaCategoriaColor, setNuevaCategoriaColor] = useState<CategoryColorToken>('primary');
   const [espera, setEspera] = useState(service.duracion_espera_min || 0);
   const [activaExtra, setActivaExtra] = useState(service.duracion_activa_extra_min || 0);
   const [minAntelacion, setMinAntelacion] = useState(service.min_antelacion_min || 0);
@@ -3213,8 +3328,10 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
       });
     } else {
       if (!nombre.trim()) { alert('El nombre del servicio es requerido'); setGuardando(false); return; }
+      const categoriaSeleccionada = categorias.find(c => c.id === categoriaId);
       onSave({
-        ...service, nombre, precio: parseFloat(String(precio)) || 0, duracion_activa_min: durActiva, categoria,
+        ...service, nombre, precio: parseFloat(String(precio)) || 0, duracion_activa_min: durActiva,
+        categoria: categoriaSeleccionada?.nombre || categoria, categoria_id: categoriaId,
         duracion_espera_min: espera, duracion_activa_extra_min: activaExtra, min_antelacion_min: minAntelacion,
         reservable_online: reservableOnline, prepago_requerido: prepagoRequerido,
         prepago_porcentaje: prepagoPorcentaje.trim() ? parseFloat(prepagoPorcentaje) : null,
@@ -3320,13 +3437,46 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
               </FormField>
               <FormField label="Categoria">
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {['Corte', 'Color', 'Tratamiento', 'Peinado', 'Otro'].map(c => (
-                    <button key={c} onClick={() => setCategoria(c)}
-                      style={{ padding: '6px 12px', borderRadius: 999, background: categoria === c ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${categoria === c ? 'rgba(244,80,30,0.4)' : T.border}`, color: categoria === c ? T.primaryHi : T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
-                      {c}
-                    </button>
-                  ))}
+                  {categorias.map(cat => {
+                    const hex = categoryColorHex(cat.color);
+                    const sel = categoriaId === cat.id;
+                    return (
+                      <button key={cat.id} onClick={() => setCategoriaId(cat.id)}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, background: sel ? `${hex}22` : 'rgba(148,163,184,0.06)', border: `1px solid ${sel ? `${hex}66` : T.border}`, color: sel ? hex : T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                        <span style={{ width: 7, height: 7, borderRadius: 999, background: hex, flexShrink: 0 }} />
+                        {cat.nombre}
+                      </button>
+                    );
+                  })}
+                  <button onClick={() => setCategoriaId(null)}
+                    style={{ padding: '6px 12px', borderRadius: 999, background: categoriaId === null ? 'rgba(148,163,184,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${T.border}`, color: T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                    Sin categoria
+                  </button>
+                  <button onClick={() => setCreandoCategoria(v => !v)}
+                    style={{ padding: '6px 12px', borderRadius: 999, background: 'transparent', border: `1px dashed ${T.borderHi}`, color: T.textTertiary, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                    + Nueva
+                  </button>
                 </div>
+                {creandoCategoria && (
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 10, padding: 10, borderRadius: 10, background: T.bg }}>
+                    <STextInput value={nuevaCategoriaNombre} onChange={setNuevaCategoriaNombre} placeholder="Nombre (ej. Mechas)" width={160} />
+                    {CATEGORY_COLOR_TOKENS.map(token => (
+                      <button key={token} onClick={() => setNuevaCategoriaColor(token)} title={token}
+                        style={{ width: 22, height: 22, borderRadius: 999, background: categoryColorHex(token), border: nuevaCategoriaColor === token ? `2px solid ${T.text}` : '2px solid transparent', cursor: 'pointer', padding: 0 }} />
+                    ))}
+                    <Btn variant="primary" size="sm" onClick={async () => {
+                      if (!nuevaCategoriaNombre.trim()) return;
+                      const nueva = await onCreateCategoria({ nombre: nuevaCategoriaNombre.trim(), color: nuevaCategoriaColor });
+                      if (nueva) {
+                        setCategoriaId(nueva.id);
+                        setNuevaCategoriaNombre('');
+                        setCreandoCategoria(false);
+                      }
+                    }}>
+                      Crear
+                    </Btn>
+                  </div>
+                )}
               </FormField>
               <FormField label="Precio (EUR)">
                 <STextInput value={String(precio)} onChange={setPrecio} placeholder="28" />
@@ -3677,6 +3827,111 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
               {guardando ? 'Guardando...' : isProfMode ? `Guardar para ${prof!.nombre}` : 'Guardar servicio'}
             </Btn>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CategoriasModal — CRUD de categorias de servicio (solo propietario)
+// ---------------------------------------------------------------------------
+
+function CategoriasModal({ categorias, services, onClose, onSave, onDelete, onReorder }: {
+  categorias: CategoriaServicio[];
+  services: Servicio[];
+  onClose: () => void;
+  onSave: (input: { id?: string; nombre: string; color: string }) => Promise<CategoriaServicio | null>;
+  onDelete: (id: string) => Promise<void>;
+  onReorder: (orderedIds: string[]) => Promise<void>;
+}) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [creando, setCreando] = useState(false);
+  const [nombre, setNombre] = useState('');
+  const [color, setColor] = useState<CategoryColorToken>('primary');
+
+  function startEdit(cat: CategoriaServicio) {
+    setEditingId(cat.id);
+    setCreando(false);
+    setNombre(cat.nombre);
+    setColor((cat.color as CategoryColorToken) || 'primary');
+  }
+  function startCreate() {
+    setEditingId(null);
+    setCreando(true);
+    setNombre('');
+    setColor('primary');
+  }
+  function cancelarForm() {
+    setEditingId(null);
+    setCreando(false);
+  }
+  async function guardar() {
+    if (!nombre.trim()) return;
+    await onSave({ id: editingId ?? undefined, nombre: nombre.trim(), color });
+    cancelarForm();
+  }
+  function mover(idx: number, dir: -1 | 1) {
+    const dest = idx + dir;
+    if (dest < 0 || dest >= categorias.length) return;
+    const ids = categorias.map(c => c.id);
+    [ids[idx], ids[dest]] = [ids[dest], ids[idx]];
+    onReorder(ids);
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: 24 }}>
+      <div style={{ width: 460, maxWidth: '100%', maxHeight: '85vh', background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 18, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 22px', paddingBottom: 0 }}>
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: T.text }}>Categorias de servicio</h3>
+          <button
+            onClick={onClose}
+            style={{ width: 32, height: 32, borderRadius: 8, background: T.bgCard, border: `1px solid ${T.border}`, color: T.textSecondary, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 16 }}
+          >x</button>
+        </div>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '18px 22px 22px' }}>
+          <div style={{ fontSize: 12, color: T.textSecondary, marginBottom: 14, lineHeight: 1.5 }}>
+            Agrupan tus servicios con un color para que se vean organizados al crear una cita,
+            en el catalogo y en la reserva online.
+          </div>
+          {categorias.length === 0 && (
+            <div style={{ fontSize: 12, color: T.textSecondary, marginBottom: 12 }}>Aun no hay categorias. Crea la primera.</div>
+          )}
+          {categorias.map((cat, idx) => {
+            const hex = categoryColorHex(cat.color);
+            const count = services.filter(s => s.categoria_id === cat.id).length;
+            return (
+              <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 4px', borderBottom: idx < categorias.length - 1 ? `1px solid ${T.border}` : 'none' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <button onClick={() => mover(idx, -1)} disabled={idx === 0}
+                    style={{ background: 'none', border: 'none', color: idx === 0 ? T.textMuted : T.textTertiary, cursor: idx === 0 ? 'default' : 'pointer', padding: 0, lineHeight: 1, fontSize: 12 }}>^</button>
+                  <button onClick={() => mover(idx, 1)} disabled={idx === categorias.length - 1}
+                    style={{ background: 'none', border: 'none', color: idx === categorias.length - 1 ? T.textMuted : T.textTertiary, cursor: idx === categorias.length - 1 ? 'default' : 'pointer', padding: 0, lineHeight: 1, fontSize: 12 }}>v</button>
+                </div>
+                <span style={{ width: 14, height: 14, borderRadius: 999, background: hex, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{cat.nombre}</div>
+                  <div style={{ fontSize: 10, color: T.textTertiary }}>{count} servicio{count === 1 ? '' : 's'}</div>
+                </div>
+                <IconBtn icon="edit" size={28} onClick={() => startEdit(cat)} title="Editar" />
+                <IconBtn icon="trash" size={28} tone="danger" onClick={() => onDelete(cat.id)} title="Eliminar" />
+              </div>
+            );
+          })}
+
+          {(creando || editingId) ? (
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 14, padding: 10, borderRadius: 10, background: T.bg }}>
+              <STextInput value={nombre} onChange={setNombre} placeholder="Nombre (ej. Mechas)" width={160} />
+              {CATEGORY_COLOR_TOKENS.map(token => (
+                <button key={token} onClick={() => setColor(token)} title={token}
+                  style={{ width: 22, height: 22, borderRadius: 999, background: categoryColorHex(token), border: color === token ? `2px solid ${T.text}` : '2px solid transparent', cursor: 'pointer', padding: 0 }} />
+              ))}
+              <Btn variant="primary" size="sm" onClick={guardar}>{editingId ? 'Guardar' : 'Crear'}</Btn>
+              <Btn variant="ghost" size="sm" onClick={cancelarForm}>Cancelar</Btn>
+            </div>
+          ) : (
+            <Btn variant="soft" size="md" icon="plus" onClick={startCreate}>Nueva categoria</Btn>
+          )}
         </div>
       </div>
     </div>

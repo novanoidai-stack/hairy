@@ -16,6 +16,8 @@ interface CobroSheetCitaProps {
   senalCents?: number;
   titulo?: string;
   subtitulo?: string;
+  // Color de la categoria del servicio cobrado (punto junto al subtitulo). Opcional.
+  subtituloColor?: string;
   onClose: () => void;
   onSuccess: (cobroIds: string[]) => void;
 }
@@ -154,6 +156,7 @@ export function CobroSheet(props: CobroSheetProps) {
     ? (props.titulo || `Cobrar ${props.citaIds.length} cita${props.citaIds.length > 1 ? 's' : ''}`)
     : 'Cobro rápido';
   const subtitulo = props.mode === 'cita' ? props.subtitulo : 'Venta sin cita (producto, servicio puntual, propina suelta)';
+  const subtituloColor = props.mode === 'cita' ? props.subtituloColor : undefined;
 
   return (
     <div
@@ -168,7 +171,12 @@ export function CobroSheet(props: CobroSheetProps) {
           <h4 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: T.text }}>{titulo}</h4>
           <span style={{ fontSize: 10, color: T.textTer, fontWeight: 600 }}>Comprobante · no es factura</span>
         </div>
-        {subtitulo && <div style={{ fontSize: 12.5, color: T.textSec, marginBottom: 16 }}>{subtitulo}</div>}
+        {subtitulo && (
+          <div style={{ fontSize: 12.5, color: T.textSec, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+            {subtituloColor && <span style={{ width: 7, height: 7, borderRadius: 99, background: subtituloColor, flexShrink: 0 }} />}
+            {subtitulo}
+          </div>
+        )}
 
         {isWalkin && (
           <div style={{ marginBottom: 14, marginTop: subtitulo ? 0 : 14 }}>

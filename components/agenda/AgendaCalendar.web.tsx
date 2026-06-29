@@ -8,6 +8,7 @@ import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { syncAlergiasACliente } from '@/lib/syncAlergias';
 import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
+import { categoryColorHex } from '@/lib/categoryColors';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { proponerRetrasoPorCita, construirUpdatesRetraso, type PropuestaRetraso } from '@/lib/retrasos';
@@ -163,6 +164,7 @@ export default function AgendaCalendar() {
   const [citas, setCitas] = useState<Cita[]>([]);
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
+  const [categorias, setCategorias] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
   const today = new Date();
   const [selectedDate, setSelectedDate] = useState(today.getDate());
@@ -285,18 +287,19 @@ export default function AgendaCalendar() {
           negocioId = profile.negocio_id;
         }
 
-        const [profResult, citaResult, srvResult, cltResult, bloqueoResult, addonsResult, cfgResult] = await Promise.all([
+        const [profResult, citaResult, srvResult, cltResult, bloqueoResult, addonsResult, cfgResult, catResult] = await Promise.all([
           supabase.from('profesionales').select('id, nombre, color, activo').eq('negocio_id', negocioId),
           supabase
             .from('citas')
             .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo')
             .eq('negocio_id', negocioId)
             .eq('oculta_en_calendario', false),
-          supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min').eq('negocio_id', negocioId),
+          supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria_id').eq('negocio_id', negocioId),
           supabase.from('clientes').select('id, nombre, telefono, alergias, fecha_nacimiento, etiquetas').eq('negocio_id', negocioId),
           supabase.from('bloqueos_profesional').select('*').eq('negocio_id', negocioId),
           supabase.from('cita_addons').select('cita_id, service_addons(nombre)'),
           supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
+          supabase.from('categorias_servicio').select('id, nombre, color, orden').eq('negocio_id', negocioId).eq('activo', true).order('orden'),
         ]);
         const cfg = ((cfgResult as any)?.data?.config ?? {}) as any;
         setRecolocarRetraso(cfg.recolocarRetraso !== false);
@@ -314,6 +317,7 @@ export default function AgendaCalendar() {
         setProfesionales(profResult.data ?? []);
         setCitas(citaResult.data ?? []);
         setServicios(srvResult.data ?? []);
+        setCategorias(catResult.data ?? []);
         setClientes(cltResult.data ?? []);
         setBloqueos(bloqueoResult.data ?? []);
         const addonMap: Record<string, any[]> = {};
@@ -1579,6 +1583,7 @@ export default function AgendaCalendar() {
           retrasosActivo={recolocarRetraso}
           avisarRetrasoActivo={avisarRetraso}
           servicios={servicios}
+          categorias={categorias}
           clientes={clientes}
           profesionales={profesionales}
           citasHoy={citasHoy}
@@ -2802,6 +2807,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
   const { isMobile, isTablet } = useResponsive();
   const [clientes, setClientes] = useState<any[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
+  const [categorias, setCategorias] = useState<any[]>([]);
   const [profesionales, setProfesionales] = useState<any[]>([]);
   const [citasHoy, setCitasHoy] = useState<any[]>([]);
   const [selectedCliente, setSelectedCliente] = useState('');
@@ -2961,13 +2967,14 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
       const tomorrow = new Date(today.getTime() + 86400000);
       const tomorrowStr = tomorrow.getFullYear() + '-' + String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' + String(tomorrow.getDate()).padStart(2, '0');
 
-      const [{ data: clts, error: cltsErr }, { data: srvs, error: srvsErr }, { data: prfs, error: prfsErr }, { data: cits, error: citsErr }, { data: durOverrides }, { data: profSrvOverrides }] = await Promise.all([
+      const [{ data: clts, error: cltsErr }, { data: srvs, error: srvsErr }, { data: prfs, error: prfsErr }, { data: cits, error: citsErr }, { data: durOverrides }, { data: profSrvOverrides }, { data: cats }] = await Promise.all([
         supabase.from('clientes').select('id, nombre, telefono, alergias').eq('negocio_id', negocioId).order('nombre'),
-        supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, min_antelacion_min').eq('negocio_id', negocioId).order('nombre'),
+        supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, min_antelacion_min, categoria_id').eq('negocio_id', negocioId).order('nombre'),
         supabase.from('profesionales').select('id, nombre, color').eq('negocio_id', negocioId).eq('activo', true),
         supabase.from('citas').select('id, inicio, fin, fin_activa, fin_espera, profesional_id, grupo_id, orden_en_grupo').eq('negocio_id', negocioId).gte('inicio', `${todayStr}T00:00:00`).lt('inicio', `${tomorrowStr}T00:00:00`).eq('estado', CITA_STATUS.CONFIRMADA),
         supabase.from('duraciones_profesional').select('profesional_id, servicio_id, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min'),
         supabase.from('professional_service_overrides').select('professional_id, service_id, duracion, duracion_espera_min, duracion_activa_extra_min, precio, activo'),
+        supabase.from('categorias_servicio').select('id, nombre, color, orden').eq('negocio_id', negocioId).eq('activo', true).order('orden'),
       ]);
 
       if (srvsErr) console.error('Servicios error:', srvsErr);
@@ -2982,6 +2989,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
 
       setClientes(clts ?? []);
       setServicios(srvs ?? []);
+      setCategorias(cats ?? []);
       setProfesionales(prfs ?? []);
       setCitasHoy(cits ?? []);
       setAllDurOverrides(durOverrides ?? []);
@@ -3093,6 +3101,22 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
     }),
     [servicios, profOverrides]
   );
+
+  // Agrupa el selector de servicios por categoria (color de cabecera), orden = categorias_servicio.orden.
+  const gruposServicio = useMemo(() => {
+    const baseList = selectedProf ? serviciosFiltrados : servicios;
+    const grupos = categorias
+      .map((cat: any) => ({
+        key: cat.id, nombre: cat.nombre, color: cat.color as string | null,
+        items: baseList.filter((s: any) => s.categoria_id === cat.id),
+      }))
+      .filter((g) => g.items.length > 0);
+    const sinCategoria = baseList.filter((s: any) => !s.categoria_id);
+    if (sinCategoria.length > 0) {
+      grupos.push({ key: '__sin_categoria__', nombre: 'Sin categoria', color: null, items: sinCategoria });
+    }
+    return grupos;
+  }, [categorias, selectedProf, serviciosFiltrados, servicios]);
 
   // Duration resolution: manual → prof service override → duraciones_profesional → service default
   const duracionActiva = duracionActivaCustom
@@ -3700,53 +3724,63 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
         {/* FormField Servicio */}
         <div ref={(el) => { servicioZoneRef.current = el; }} style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Servicio</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            {(selectedProf ? serviciosFiltrados : servicios).map((s) => {
-              const ov = profOverrides.find((o: any) => o.service_id === s.id);
-              const catalogDur = (s.duracion_activa_min || 0) + (s.duracion_espera_min || 0) + (s.duracion_activa_extra_min || 0);
-              const efectivoDur = selectedProf && ov?.duracion != null
-                ? (ov.duracion + (ov.duracion_espera_min ?? s.duracion_espera_min ?? 0) + (ov.duracion_activa_extra_min ?? s.duracion_activa_extra_min ?? 0))
-                : (catalogDur || 30);
-              const efectivoPrecio = selectedProf && ov?.precio != null ? ov.precio : s.precio;
-              return (
-                <button
-                  key={s.id}
-                  // Toggle: si ya esta elegido, un segundo clic lo deselecciona
-                  // (antes quedaba "pegado" y no se podia quitar el servicio elegido).
-                  onClick={() => setSelectedServicio(selectedServicio === s.id ? '' : s.id)}
-                  style={{
-                    padding: '12px',
-                    background: selectedServicio === s.id ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard,
-                    border: `1px solid ${selectedServicio === s.id ? 'rgba(244,80,30,0.4)' : TOKENS.border}`,
-                    borderRadius: 10,
-                    color: TOKENS.text,
-                    cursor: 'pointer',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    textAlign: 'left',
-                    transition: 'all 0.2s ease',
-                    transform: 'translateY(0)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.borderColor = TOKENS.primary;
-                    e.currentTarget.style.boxShadow = `0 4px 16px rgba(244,80,30,0.15)`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.borderColor = selectedServicio === s.id ? 'rgba(244,80,30,0.4)' : TOKENS.border;
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div>{s.nombre}</div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                    <span style={{ fontSize: 10, color: TOKENS.textTer }}>{efectivoDur} min</span>
-                    <span style={{ fontSize: 10, color: TOKENS.success, fontWeight: 700 }}>{efectivoPrecio}€</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+          {gruposServicio.map((grupo) => (
+            <div key={grupo.key} style={{ marginBottom: 10 }}>
+              {!(gruposServicio.length === 1 && grupo.key === '__sin_categoria__') && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  {grupo.color && <span style={{ width: 7, height: 7, borderRadius: 99, background: categoryColorHex(grupo.color), flexShrink: 0 }} />}
+                  <span style={{ fontSize: 10, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>{grupo.nombre}</span>
+                </div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {grupo.items.map((s: any) => {
+                  const ov = profOverrides.find((o: any) => o.service_id === s.id);
+                  const catalogDur = (s.duracion_activa_min || 0) + (s.duracion_espera_min || 0) + (s.duracion_activa_extra_min || 0);
+                  const efectivoDur = selectedProf && ov?.duracion != null
+                    ? (ov.duracion + (ov.duracion_espera_min ?? s.duracion_espera_min ?? 0) + (ov.duracion_activa_extra_min ?? s.duracion_activa_extra_min ?? 0))
+                    : (catalogDur || 30);
+                  const efectivoPrecio = selectedProf && ov?.precio != null ? ov.precio : s.precio;
+                  return (
+                    <button
+                      key={s.id}
+                      // Toggle: si ya esta elegido, un segundo clic lo deselecciona
+                      // (antes quedaba "pegado" y no se podia quitar el servicio elegido).
+                      onClick={() => setSelectedServicio(selectedServicio === s.id ? '' : s.id)}
+                      style={{
+                        padding: '12px',
+                        background: selectedServicio === s.id ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard,
+                        border: `1px solid ${selectedServicio === s.id ? 'rgba(244,80,30,0.4)' : TOKENS.border}`,
+                        borderRadius: 10,
+                        color: TOKENS.text,
+                        cursor: 'pointer',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        textAlign: 'left',
+                        transition: 'all 0.2s ease',
+                        transform: 'translateY(0)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.borderColor = TOKENS.primary;
+                        e.currentTarget.style.boxShadow = `0 4px 16px rgba(244,80,30,0.15)`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.borderColor = selectedServicio === s.id ? 'rgba(244,80,30,0.4)' : TOKENS.border;
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      <div>{s.nombre}</div>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                        <span style={{ fontSize: 10, color: TOKENS.textTer }}>{efectivoDur} min</span>
+                        <span style={{ fontSize: 10, color: TOKENS.success, fontWeight: 700 }}>{efectivoPrecio}€</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
           {/* Crear servicio puntual: caso extraordinario, lo más rápido posible */}
           <button
             type="button"
@@ -4375,7 +4409,7 @@ function TimeNumBox({ value, label }: { value: string; label: string }) {
   );
 }
 
-function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesionales, citasHoy, allCitas, retrasosActivo, avisarRetrasoActivo }: any) {
+function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clientes, profesionales, citasHoy, allCitas, retrasosActivo, avisarRetrasoActivo }: any) {
   const router = useRouter();
   const { triggerRefresh } = useCalendarRefresh();
   const { isMobile, isTablet } = useResponsive();
@@ -4385,6 +4419,8 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
 
   const [selectedCliente, setSelectedCliente] = useState(cliente);
   const [selectedServicio, setSelectedServicio] = useState(servicio);
+  const selectedServicioCategoria = (categorias || []).find((cc: any) => cc.id === selectedServicio?.categoria_id);
+  const selectedServicioColor = selectedServicioCategoria ? categoryColorHex(selectedServicioCategoria.color) : null;
   const [selectedProf, setSelectedProf] = useState(prof);
   const [estado, setEstado] = useState(cita.estado);
   const [qCli, setQCli] = useState('');
@@ -5168,7 +5204,10 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                 {selectedCliente?.nombre}
               </div>
               <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <span>{selectedServicio?.nombre}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  {selectedServicioColor && <span style={{ width: 7, height: 7, borderRadius: 99, background: selectedServicioColor, flexShrink: 0 }} />}
+                  {selectedServicio?.nombre}
+                </span>
                 <span style={{ width: 3, height: 3, borderRadius: 99, background: TOKENS.textTer }} />
                 <span>{selectedProf?.nombre}</span>
                 <span style={{ width: 3, height: 3, borderRadius: 99, background: TOKENS.textTer }} />
@@ -5616,7 +5655,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                 placeholder="Buscar servicio…"
                 trigger={
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: TOKENS.primarySoft, color: TOKENS.primaryHi, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: selectedServicioColor ? `${selectedServicioColor}22` : TOKENS.primarySoft, color: selectedServicioColor || TOKENS.primaryHi, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                       <IconClock />
                     </div>
                     <div style={{ minWidth: 0, flex: 1 }}>
@@ -5644,7 +5683,11 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
                     active={s.id === selectedServicio?.id}
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {(() => {
+                          const cat = (categorias || []).find((cc: any) => cc.id === s.categoria_id);
+                          return cat ? <span style={{ width: 6, height: 6, borderRadius: 99, background: categoryColorHex(cat.color), flexShrink: 0 }} /> : null;
+                        })()}
                         {s.nombre}
                       </div>
                       <div style={{ fontSize: 10, color: TOKENS.textTer }}>
@@ -6253,6 +6296,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, clientes, profesi
             pendienteCents={pendienteCents}
             senalCents={cobroSenalCents}
             subtitulo={`${selectedCliente?.nombre || 'Cliente'} · ${selectedServicio?.nombre || servicio?.nombre || 'Servicio'}`}
+            subtituloColor={selectedServicioColor ?? undefined}
             onClose={() => setShowCobro(false)}
             onSuccess={(cobroIds) => {
               setCobrada(true);

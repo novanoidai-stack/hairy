@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { CobroSheet } from '@/components/pos/CobroSheet';
+import { categoryColorHex } from '@/lib/categoryColors';
 
 // ─────────────────────────────────────────────────────────────────────────────────
 // Tokens (consistente con el resto de .web.tsx)
@@ -74,6 +75,7 @@ interface CitaPendiente {
   profesional_nombre: string | null;
   servicio_nombre: string | null;
   servicio_precio: number | null;
+  categoria_color: string | null;
   sena_pagada: number; // señal ya pagada
   total_pendiente: number; // lo que falta cobrar
 }
@@ -153,7 +155,7 @@ export default function CajaScreen() {
           profesional_id,
           profesionales (nombre),
           servicio_id,
-          servicios (nombre, precio),
+          servicios (nombre, precio, categorias_servicio (color)),
           pagos (tipo, importe_cents, estado)
         `)
         .eq('negocio_id', profile.negocio_id)
@@ -169,6 +171,8 @@ export default function CajaScreen() {
       const procesadas: CitaPendiente[] = (data || []).map((cita: any) => {
         const servicio = cita.servicios || {};
         const precioCents = Math.round((servicio.precio || 0) * 100);
+        const catRel = servicio.categorias_servicio;
+        const catToken = Array.isArray(catRel) ? catRel[0]?.color : catRel?.color;
         const pagos = cita.pagos || [];
         const sena = pagos
           .filter((p: any) => p.tipo === 'senal' && ['completado', 'pagado', 'succeeded', 'paid'].includes(p.estado))
@@ -182,6 +186,7 @@ export default function CajaScreen() {
           profesional_nombre: cita.profesionales?.nombre || null,
           servicio_nombre: servicio.nombre || null,
           servicio_precio: precioCents,
+          categoria_color: catToken ? categoryColorHex(catToken) : null,
           sena_pagada: sena,
           total_pendiente: Math.max(0, precioCents - sena),
         };
@@ -523,7 +528,10 @@ export default function CajaScreen() {
                       <Icon name="clock" size={13} />
                       {hora}
                     </span>
-                    <span>{cita.servicio_nombre || 'Servicio'}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      {cita.categoria_color && <span style={{ width: 6, height: 6, borderRadius: 99, background: cita.categoria_color, flexShrink: 0 }} />}
+                      {cita.servicio_nombre || 'Servicio'}
+                    </span>
                   </div>
                 </div>
 

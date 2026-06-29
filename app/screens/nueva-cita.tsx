@@ -16,6 +16,7 @@ import { mensajeDeError } from '@/lib/errores';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { TText, TTextInput } from '@/components/ui/TText';
 import { syncAlergiasACliente } from '@/lib/syncAlergias';
+import { categoryColorHex } from '@/lib/categoryColors';
 
 export default function NuevaCitaScreen() {
   const { c, isDark } = useTheme();
@@ -26,6 +27,7 @@ export default function NuevaCitaScreen() {
 
   const [profesionales, setProfesionales] = useState<any[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
+  const [categorias, setCategorias] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
 
   const [profSeleccionado, setProfSeleccionado] = useState<string>(params.profesionalId ?? '');
@@ -74,15 +76,17 @@ export default function NuevaCitaScreen() {
       setNegocioId(profile.negocio_id);
       setUserId(profile.id);
 
-      const [{ data: profs }, { data: servs }, { data: clts }] = await Promise.all([
+      const [{ data: profs }, { data: servs }, { data: clts }, { data: cats }] = await Promise.all([
         supabase.from('profesionales').select('*').eq('negocio_id', profile.negocio_id).eq('activo', true),
         supabase.from('servicios').select('*').eq('negocio_id', profile.negocio_id).eq('activo', true),
         supabase.from('clientes').select('*').eq('negocio_id', profile.negocio_id).order('nombre').limit(200),
+        supabase.from('categorias_servicio').select('*').eq('negocio_id', profile.negocio_id).eq('activo', true).order('orden'),
       ]);
 
       setProfesionales(profs ?? []);
       setServicios(servs ?? []);
       setClientes(clts ?? []);
+      setCategorias(cats ?? []);
       setLoading(false);
     }
     cargar();
@@ -153,6 +157,21 @@ export default function NuevaCitaScreen() {
         return ov?.activo !== false;
       })
     : servicios;
+
+  // Agrupa el selector de servicios por categoria (color de cabecera), orden = categorias_servicio.orden.
+  const gruposServicio: { key: string; nombre: string; color: string | null; items: any[] }[] = (() => {
+    const grupos = categorias
+      .map((cat) => ({
+        key: cat.id, nombre: cat.nombre, color: cat.color as string | null,
+        items: serviciosFiltrados.filter((sv) => sv.categoria_id === cat.id),
+      }))
+      .filter((g) => g.items.length > 0);
+    const sinCategoria = serviciosFiltrados.filter((sv) => !sv.categoria_id);
+    if (sinCategoria.length > 0) {
+      grupos.push({ key: '__sin_categoria__', nombre: 'Sin categoria', color: null, items: sinCategoria });
+    }
+    return grupos;
+  })();
 
   // Duration resolution: manual → professional_service_override → duraciones_profesional → service default
   const duracionActiva = duracionActivaCustom
@@ -395,31 +414,43 @@ export default function NuevaCitaScreen() {
         {/* ── Servicio ── */}
         <Section title="Servicio" required>
           <View style={s.serviceList}>
-            {serviciosFiltrados.map((sv) => {
-              const sel = servicioSeleccionado === sv.id;
-              const ov = profOverrides.find(o => o.service_id === sv.id);
-              const durTotal = (ov?.duracion ?? sv.duracion_activa_min ?? 0)
-                + (ov?.duracion_espera_min ?? sv.duracion_espera_min ?? 0)
-                + (ov?.duracion_activa_extra_min ?? sv.duracion_activa_extra_min ?? 0);
-              const precio = ov?.precio ?? sv.precio;
-              return (
-                <TouchableOpacity
-                  key={sv.id}
-                  style={[s.serviceItem, {
-                    borderColor: sel ? '#f4501e' : c.border,
-                    backgroundColor: sel ? '#f4501e22' : c.surface,
-                  }]}
-                  onPress={() => setServicioSeleccionado(sv.id)}
-                >
-                  <TText style={[s.serviceNombre, { color: sel ? '#f4501e' : c.text }]} numberOfLines={1}>
-                    {sv.nombre}
-                  </TText>
-                  <TText style={[s.serviceDuracion, { color: sel ? '#f4501e' : c.textSecondary }]}>
-                    {durTotal} min · {precio}€
-                  </TText>
-                </TouchableOpacity>
-              );
-            })}
+            {gruposServicio.map((grupo) => (
+              <View key={grupo.key} style={{ marginBottom: spacing.sm }}>
+                {!(gruposServicio.length === 1 && grupo.key === '__sin_categoria__') && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                    {grupo.color && <View style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: categoryColorHex(grupo.color) }} />}
+                    <TText style={{ fontSize: 11, fontWeight: '700', color: c.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      {grupo.nombre}
+                    </TText>
+                  </View>
+                )}
+                {grupo.items.map((sv: any) => {
+                  const sel = servicioSeleccionado === sv.id;
+                  const ov = profOverrides.find(o => o.service_id === sv.id);
+                  const durTotal = (ov?.duracion ?? sv.duracion_activa_min ?? 0)
+                    + (ov?.duracion_espera_min ?? sv.duracion_espera_min ?? 0)
+                    + (ov?.duracion_activa_extra_min ?? sv.duracion_activa_extra_min ?? 0);
+                  const precio = ov?.precio ?? sv.precio;
+                  return (
+                    <TouchableOpacity
+                      key={sv.id}
+                      style={[s.serviceItem, {
+                        borderColor: sel ? '#f4501e' : c.border,
+                        backgroundColor: sel ? '#f4501e22' : c.surface,
+                      }]}
+                      onPress={() => setServicioSeleccionado(sv.id)}
+                    >
+                      <TText style={[s.serviceNombre, { color: sel ? '#f4501e' : c.text }]} numberOfLines={1}>
+                        {sv.nombre}
+                      </TText>
+                      <TText style={[s.serviceDuracion, { color: sel ? '#f4501e' : c.textSecondary }]}>
+                        {durTotal} min · {precio}€
+                      </TText>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))}
           </View>
           {/* Botón para crear servicio puntual (caso especial) */}
           <TouchableOpacity

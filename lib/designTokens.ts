@@ -65,6 +65,14 @@ export const DESIGN_TOKENS = {
   cyanSoft: 'rgba(8,145,178,0.14)',
   rose: '#e11d6b',
 
+  // Categorías de servicio (aditivos — no reemplazan ningún token existente).
+  // "violet" de arriba NO es morado de verdad (duplica primaryHi) y sigue en uso
+  // en fichas de color/química e informes; por eso "purple" es un tono nuevo.
+  indigo: '#4f46e5',
+  purple: '#8b5cf6',
+  teal: '#0d9488',
+  slate: '#64748b',
+
   // Spacing
   spacing: {
     xs: 4,
