@@ -69,12 +69,12 @@ Deno.serve(async (req: Request) => {
   if (dlErr || !pdfBlob) return json({ sent: false, error: 'pdf_no_disponible' }, 502, req);
   const pdfB64 = toB64(new Uint8Array(await pdfBlob.arrayBuffer()));
 
-  const host = Deno.env.get('SMTP_HOST') || 'smtp.hostinger.com';
-  const port = Number(Deno.env.get('SMTP_PORT') || '465');
-  const usr = Deno.env.get('SMTP_USER');
-  const pass = Deno.env.get('SMTP_PASS');
+  const host = Deno.env.get('SMTP_HOST') || Deno.env.get('EMAIL_HOST') || 'smtp.hostinger.com';
+  const port = Number(Deno.env.get('SMTP_PORT') || Deno.env.get('EMAIL_PORT') || '465');
+  const usr = Deno.env.get('SMTP_USER') || Deno.env.get('EMAIL_USER');
+  const pass = Deno.env.get('SMTP_PASS') || Deno.env.get('EMAIL_PASS');
   if (!usr || !pass) return json({ sent: false, error: 'smtp_not_configured' }, 200, req);
-  const from = Deno.env.get('SMTP_FROM') || `Mecha <${usr}>`;
+  const from = Deno.env.get('SMTP_FROM') || Deno.env.get('EMAIL_FROM') || `Mecha <${usr}>`;
 
   let base = Deno.env.get('PUBLIC_APP_URL') || 'https://hairy-two.vercel.app';
   if (base.endsWith('/')) base = base.slice(0, -1);
