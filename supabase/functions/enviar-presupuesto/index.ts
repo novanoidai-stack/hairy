@@ -34,12 +34,12 @@ function toB64(bytes: Uint8Array): string {
 }
 const eur = (c: number) => `${((c || 0) / 100).toFixed(2)} EUR`;
 
-function emailHtml(o: { salon: string; nombre: string; numero: number | null; totalCents: number; lineas: Array<{ nombre: string; precio_cents: number; cantidad: number }>; link: string; color: string; logoUrl: string; webLink: string; telefono: string }): string {
+function emailHtml(o: { salon: string; nombre: string; numero: number | null; totalCents: number; lineas: Array<{ nombre: string; precio_cents: number; cantidad: number }>; link: string; color: string; logoUrl: string; webLink: string; telefono: string; salonEmail: string }): string {
   const filas = o.lineas.map((l) => `<tr><td style='padding:7px 0;font:13px Arial;color:#1c1814;border-bottom:1px solid #efe7dd'>${l.nombre}${l.cantidad > 1 ? ' x' + l.cantidad : ''}</td><td style='padding:7px 0;font:13px Arial;color:#1c1814;text-align:right;border-bottom:1px solid #efe7dd'>${eur((l.precio_cents || 0) * Math.max(1, l.cantidad || 1))}</td></tr>`).join('');
   const marca = o.logoUrl
     ? `<a href='${o.webLink}' target='_blank' rel='noopener'><img src='${o.logoUrl}' alt='${o.salon}' style='max-height:56px;max-width:220px;display:inline-block'/></a>`
     : `<a href='${o.webLink}' target='_blank' rel='noopener' style='font:bold 23px Arial;color:#1c1814;text-decoration:none'>${o.salon}</a>`;
-  const contacto = [o.telefono ? o.telefono : '', o.webLink ? `<a href='${o.webLink}' target='_blank' rel='noopener' style='color:#8a7d70'>${o.webLink.replace('https://','').replace('http://','')}</a>` : ''].filter((x) => x).join(' &middot; ');
+  const contacto = [o.telefono ? o.telefono : '', o.salonEmail ? `<a href='mailto:${o.salonEmail}' style='color:#8a7d70;text-decoration:none'>${o.salonEmail}</a>` : '', o.webLink ? `<a href='${o.webLink}' target='_blank' rel='noopener' style='color:#8a7d70'>${o.webLink.replace('https://','').replace('http://','')}</a>` : ''].filter((x) => x).join(' &middot; ');
   return `<div style='background:#f6f1ea;padding:24px 14px'><div style='max-width:520px;margin:0 auto'><div style='text-align:center;padding:6px 0 18px'>${marca}</div><div style='background:#fffdfb;border:1px solid rgba(40,30,24,.1);border-radius:14px;overflow:hidden'><div style='height:6px;background:${o.color}'></div><div style='padding:26px'><p style='margin:0 0 4px;font:12px Arial;letter-spacing:1px;text-transform:uppercase;color:#8a7d70'>Presupuesto P-${o.numero ?? ''}</p><h1 style='margin:0 0 14px;font:bold 22px Arial;color:#1c1814'>${o.salon}</h1><p style='margin:0 0 18px;font:14px Arial;line-height:1.6;color:#5c5249'>Hola ${o.nombre || ''}, te enviamos el presupuesto que has pedido. Tienes el detalle completo en el PDF adjunto.</p><table width='100%' cellpadding='0' cellspacing='0'>${filas}</table><table width='100%' style='margin:6px 0 20px'><tr><td style='font:bold 15px Arial;color:#1c1814'>Total</td><td style='font:bold 18px Arial;color:${o.color};text-align:right'>${eur(o.totalCents)}</td></tr></table><a href='${o.link}' style='display:inline-block;padding:12px 28px;background:${o.color};color:#fff;font:bold 15px Arial;text-decoration:none;border-radius:10px'>Ver y aceptar el presupuesto</a><p style='margin:16px 0 0;font:11px Arial;color:#8a7d70'>Presupuesto orientativo - No es una factura.</p></div></div><div style='text-align:center;padding:16px 6px 0;font:12px Arial;color:#8a7d70'><div style='font:bold 13px Arial;color:#5c5249'>${o.salon}</div>${contacto ? `<div style='margin-top:3px'>${contacto}</div>` : ''}<div style='margin-top:10px;font:11px Arial;color:#a99e90'>Enviado con <a href='${MECHA_WEB}' target='_blank' rel='noopener' style='color:#f4501e;text-decoration:none;font-weight:bold'>Mecha</a></div></div></div></div>`;
 }
 
@@ -71,6 +71,9 @@ Deno.serve(async (req: Request) => {
 
   const { data: portal } = await admin.from('negocio_portal').select('nombre_publico, color_acento, logo_url, web, telefono, slug').eq('negocio_id', pre.negocio_id).maybeSingle();
   const { data: lineas } = await admin.from('presupuesto_lineas').select('nombre, precio_cents, cantidad').eq('presupuesto_id', pre.id).order('orden');
+  // Correo profesional del salon = el del titular (owner). Sirve de Reply-To (las respuestas
+  // del cliente llegan al salon, no al buzon compartido) y se muestra en el pie del correo.
+  const { data: owner } = await admin.from('profiles').select('email').eq('negocio_id', pre.negocio_id).eq('role', 'owner').order('created_at', { ascending: true }).limit(1).maybeSingle();
 
   const { data: pdfBlob, error: dlErr } = await admin.storage.from('presupuestos').download(pre.pdf_path);
   if (dlErr || !pdfBlob) return json({ sent: false, error: 'pdf_no_disponible' }, 502, req);
@@ -90,6 +93,7 @@ Deno.serve(async (req: Request) => {
   const link = `${base}/app/presupuesto/${pre.token}`;
   const logoUrl = (portal?.logo_url || '').trim();
   const telefono = (portal?.telefono || '').trim();
+  const salonEmail = (owner?.email || '').trim().toLowerCase();
   const slug = (portal?.slug || '').trim();
   let webLink = (portal?.web || '').trim();
   if (webLink && webLink.indexOf('://') === -1) webLink = 'https://' + webLink;
@@ -103,9 +107,10 @@ Deno.serve(async (req: Request) => {
   try {
     await client.send({
       from,
+      replyTo: salonEmail || usr,
       to,
       subject: `Tu presupuesto de ${salon} (P-${pre.numero ?? ''})`.trim(),
-      html: emailHtml({ salon, nombre: (pre.contacto_nombre || '').split(' ')[0] || '', numero: pre.numero, totalCents: pre.total_cents, lineas: lineas || [], link, color, logoUrl, webLink, telefono }),
+      html: emailHtml({ salon, nombre: (pre.contacto_nombre || '').split(' ')[0] || '', numero: pre.numero, totalCents: pre.total_cents, lineas: lineas || [], link, color, logoUrl, webLink, telefono, salonEmail }),
       attachments: [{ filename: `presupuesto-P-${pre.numero ?? ''}.pdf`, content: pdfB64, encoding: 'base64', contentType: 'application/pdf' }],
     });
     await client.close();
