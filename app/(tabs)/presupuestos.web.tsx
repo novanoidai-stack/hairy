@@ -58,16 +58,18 @@ function EstadoChip({ estado }: { estado: PresupuestoEstado }) {
 
 interface Salon { nombre: string; color: string; direccion: string | null; telefono: string | null; slug: string | null; }
 interface Prof { id: string; nombre: string; }
+interface Serv { id: string; nombre: string; precio: number; duracion_activa_min: number | null; }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // EDITOR (modal)
 // ─────────────────────────────────────────────────────────────────────────────
 interface LineaDraft { concepto_id: string | null; nombre: string; precio: string; cantidad: number; guardar: boolean; }
 
-function EditorModal({ profile, salon, profesionales, conceptos, initial, onClose, onSaved, reloadConceptos }: {
+function EditorModal({ profile, salon, profesionales, servicios, conceptos, initial, onClose, onSaved, reloadConceptos }: {
   profile: { negocio_id: string; id: string };
   salon: Salon;
   profesionales: Prof[];
+  servicios: Serv[];
   conceptos: Concepto[];
   initial: Presupuesto | null;
   onClose: () => void;
@@ -88,6 +90,7 @@ function EditorModal({ profile, salon, profesionales, conceptos, initial, onClos
   );
   const [busy, setBusy] = useState<null | 'guardar' | 'pdf' | 'email'>(null);
   const [error, setError] = useState('');
+  const [servicioSelectorOpen, setServicioSelectorOpen] = useState(false);
 
   // Buscador de cliente existente
   const [clienteQuery, setClienteQuery] = useState('');
@@ -114,6 +117,16 @@ function EditorModal({ profile, salon, profesionales, conceptos, initial, onClos
   const addLinea = () => setLineas(prev => [...prev, { concepto_id: null, nombre: '', precio: '', cantidad: 1, guardar: true }]);
   const setLinea = (i: number, patch: Partial<LineaDraft>) => setLineas(prev => prev.map((l, idx) => idx === i ? { ...l, ...patch } : l));
   const delLinea = (i: number) => setLineas(prev => prev.filter((_, idx) => idx !== i));
+  const addServicio = (servicio: Serv) => {
+    setLineas(prev => [...prev, {
+      concepto_id: null,
+      nombre: servicio.nombre,
+      precio: (servicio.precio / 100).toString(),
+      cantidad: 1,
+      guardar: false
+    }]);
+    setServicioSelectorOpen(false);
+  };
 
   // Al escribir el nombre de una línea, si coincide con un concepto del catálogo, prefijar precio.
   const onLineaNombre = (i: number, nombre: string) => {
@@ -261,9 +274,34 @@ function EditorModal({ profile, salon, profesionales, conceptos, initial, onClos
             </div>
           ))}
         </div>
-        <button onClick={addLinea} className="p-btn" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: T.card, border: `1px dashed ${T.borderHi}`, borderRadius: 9, color: T.primary, fontSize: 13, fontWeight: 600, width: '100%', justifyContent: 'center', marginBottom: 14 }}>
+        <button onClick={addLinea} className="p-btn" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: T.card, border: `1px dashed ${T.borderHi}`, borderRadius: 9, color: T.primary, fontSize: 13, fontWeight: 600, width: '100%', justifyContent: 'center', marginBottom: 8 }}>
           <Icon name="plus" size={15} color={T.primary} /> Añadir concepto
         </button>
+        <button onClick={() => setServicioSelectorOpen(!servicioSelectorOpen)} className="p-btn" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: T.card, border: `1px solid ${T.border}`, borderRadius: 9, color: T.textSec, fontSize: 13, fontWeight: 600, width: '100%', justifyContent: 'center', marginBottom: 14 }}>
+          <Icon name="doc" size={15} color={T.textSec} /> Añadir desde servicios
+        </button>
+
+        {/* Selector de servicios */}
+        {servicioSelectorOpen && (
+          <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: 12, marginBottom: 14, maxHeight: 240, overflowY: 'auto' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: T.textTer, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.4 }}>Selecciona un servicio</div>
+            {servicios.length === 0 ? (
+              <div style={{ fontSize: 13, color: T.textSec, textAlign: 'center', padding: 16 }}>No hay servicios activos</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {servicios.map(s => (
+                  <div key={s.id} onClick={() => addServicio(s)} className="p-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 7, cursor: 'pointer' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: T.text }}>{s.nombre}</div>
+                      <div style={{ fontSize: 11.5, color: T.textSec }}>{s.duracion_activa_min || 0} min</div>
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: T.primary }}>{eur(s.precio)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Título / notas / validez */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: 10, marginBottom: 10 }}>
@@ -311,6 +349,7 @@ export default function PresupuestosScreen() {
   const [profile, setProfile] = useState<{ negocio_id: string; id: string } | null>(null);
   const [salon, setSalon] = useState<Salon>({ nombre: 'Salón', color: '#f4501e', direccion: null, telefono: null, slug: null });
   const [profesionales, setProfesionales] = useState<Prof[]>([]);
+  const [servicios, setServicios] = useState<Serv[]>([]);
   const [conceptos, setConceptos] = useState<Concepto[]>([]);
   const [presupuestos, setPresupuestos] = useState<Presupuesto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -330,14 +369,16 @@ export default function PresupuestosScreen() {
       if (!p?.negocio_id) { setLoading(false); return; }
       setProfile({ negocio_id: p.negocio_id, id: p.id });
 
-      const [{ data: pres }, { data: profs }, { data: portal }, concs] = await Promise.all([
+      const [{ data: pres }, { data: profs }, { data: srvs }, { data: portal }, concs] = await Promise.all([
         supabase.from('presupuestos').select('*').eq('negocio_id', p.negocio_id).order('created_at', { ascending: false }),
         supabase.from('profesionales').select('id, nombre').eq('negocio_id', p.negocio_id).eq('activo', true).order('nombre'),
+        supabase.from('servicios').select('id, nombre, precio, duracion_activa_min').eq('negocio_id', p.negocio_id).eq('activo', true).order('nombre'),
         supabase.from('negocio_portal').select('nombre_publico, color_acento, direccion, telefono, slug').eq('negocio_id', p.negocio_id).maybeSingle(),
         cargarConceptos(p.negocio_id),
       ]);
       setPresupuestos((pres || []) as Presupuesto[]);
       setProfesionales((profs || []) as Prof[]);
+      setServicios((srvs || []) as Serv[]);
       setConceptos(concs);
       if (portal) setSalon({
         nombre: portal.nombre_publico || p.nombre_negocio || 'Salón',
@@ -470,7 +511,7 @@ export default function PresupuestosScreen() {
       </div>
 
       {editor.open && profile && (
-        <EditorModal profile={profile} salon={salon} profesionales={profesionales} conceptos={conceptos}
+        <EditorModal profile={profile} salon={salon} profesionales={profesionales} servicios={servicios} conceptos={conceptos}
           initial={editor.initial} onClose={() => setEditor({ open: false, initial: null })} onSaved={onEditorSaved} reloadConceptos={reloadConceptos} />
       )}
     </div>
