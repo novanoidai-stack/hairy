@@ -46,11 +46,12 @@
     }
   }
 
-  // Traduce el codigo de error de la Edge Function a un mensaje claro en espanol.
   function signupErrorMessage(code) {
     switch (code) {
       case 'email_exists': return 'Ese correo ya tiene una cuenta. Inicia sesion.';
       case 'invalid_email': return 'El correo no parece valido. Revisalo.';
+      case 'invalid_email_domain': return 'El dominio de este correo electrónico no es válido o no existe.';
+      case 'phone_limit_reached': return 'Este número de teléfono ya ha superado el límite de 2 cuentas permitidas.';
       case 'weak_password': return 'La contrasena necesita al menos 8 caracteres.';
       case 'missing_fields': return 'Completa el nombre del salon y tu nombre.';
       case 'network': return 'No se pudo conectar. Revisa tu conexion e intentalo de nuevo.';

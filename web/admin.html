@@ -154,6 +154,11 @@
   .btn-visits:hover{border-color:var(--accent);color:var(--accent-hi)}
   .btn-visits:disabled{opacity:.55;cursor:default}
   .btn-visits svg{width:15px;height:15px}
+  .btn-delete-account{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;font-size:13px;font-weight:600;
+    color:#e23b34;background:transparent;border:1px solid rgba(226,59,52,0.35);border-radius:10px;
+    padding:12px 16px;min-height:44px;box-sizing:border-box;cursor:pointer;transition:all .18s}
+  .btn-delete-account:hover{background:rgba(226,59,52,0.08);border-color:#e23b34}
+  .btn-delete-account:disabled{opacity:.55;cursor:default}
 
   /* ---- table & AI ---- */
   .ad-table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.15)}
@@ -717,14 +722,14 @@
       ? '<span class="granted-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Acceso completo activo</span>'
       : '<button class="btn-grant" data-grant="' + esc(p.id) + '">Dar acceso completo</button>';
 
-    // Las cuentas free estan limitadas a 3 visitas de demo: el equipo puede
-    // resetearlas (darle las 3 de nuevo) o darle mas. No aplica a plan full.
     if (plan !== 'full') {
       action += '<button class="btn-visits" data-visits="' + esc(p.id) + '" data-used="' +
         (p.demo_visits_used != null ? esc(String(p.demo_visits_used)) : '0') + '">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>' +
         'Visitas demo</button>';
     }
+
+    action += '<button class="btn-delete-account" data-del-acc="' + esc(p.id) + '" data-email="' + esc(p.email) + '">Eliminar cuenta</button>';
 
     var nombreFull = (esc(p.nombre) || 'Sin nombre') + (p.apellido ? (' ' + esc(p.apellido)) : '');
 
@@ -820,6 +825,25 @@
           var rem = Math.max(0, 3 - newUsed);
           msg($('cueMsg'), 'ok', 'Visitas de demo actualizadas: ' + quien + ' tiene ahora ' + rem + (rem === 1 ? ' visita.' : ' visitas.'));
           renderCuentas();
+        });
+      });
+    });
+
+    listEl.querySelectorAll('.btn-delete-account').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-del-acc');
+        var email = btn.getAttribute('data-email') || 'este usuario';
+        if (!window.confirm('¿Seguro que quieres eliminar la cuenta de "' + email + '"?\n\nSe eliminará su perfil de la base de datos de Mecha. Si tiene salones o datos vinculados, Supabase impedirá el borrado físico si hay restricciones activas.')) return;
+        
+        btn.disabled = true;
+        api.client.from('profiles').delete().eq('id', id).then(function (res) {
+          if (res.error) {
+            alert('Error eliminando la cuenta: ' + res.error.message);
+            btn.disabled = false;
+          } else {
+            alert('Cuenta eliminada con éxito.');
+            loadCuentas();
+          }
         });
       });
     });

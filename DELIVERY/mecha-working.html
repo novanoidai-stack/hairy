@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mecha — Presentacion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800;900&family=Inter:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --accent:#f4501e;
+  --cream-bg:#f6f1ea;
+  --bg:#050505;
+  --text:#ffffff;
+  --font-display:'Bricolage Grotesque',sans-serif;
+  --font-body:'Inter',sans-serif;
+}
+body{width:100vw;height:100vh;background:var(--bg);color:var(--text);
+  font-family:var(--font-body);overflow:hidden;display:flex;align-items:center;justify-content:center}
+
+/* Start screen */
+#start{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:30px;background:#000;cursor:pointer;
+  transition:opacity 0.5s}
+#start.hidden{opacity:0;pointer-events:none}
+.start-logo{width:100px;height:100px;animation:pulse 2s infinite}
+.start-title{font-family:var(--font-display);font-size:80px;font-weight:900;
+  background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+.start-cta{font-size:14px;color:#888;text-transform:uppercase;letter-spacing:2px;
+  padding:15px 40px;border:1px solid #333;border-radius:50px;background:#111}
+
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+/* Main container */
+#main{width:100%;height:100%;position:relative;opacity:0;transition:opacity 0.5s}
+#main.playing{opacity:1}
+
+/* Scenes */
+.scene{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  flex-direction:column;gap:20px;padding:40px}
+.scene.active{display:flex;animation:fadeIn 0.5s forwards}
+
+@keyframes fadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+
+/* Scene 0: Brand */
+.s0 .logo{width:120px;height:120px;animation:logoEnter 1s ease-out}
+.s0 .brand{font-family:var(--font-display);font-size:100px;font-weight:900;line-height:1;
+  background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;animation:brandEnter 0.8s ease-out 0.3s both}
+.s0 .tagline{font-size:24px;color:#888;font-style:italic;animation:textEnter 0.6s ease-out 0.6s both}
+
+@keyframes logoEnter{from{transform:scale(0)rotate(-180deg)}to{transform:scale(1)rotate(0)}}
+@keyframes brandEnter{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes textEnter{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Scene 1: Problem */
+.s1 .problems{display:flex;gap:60px;flex-wrap:wrap;justify-content:center}
+.s1 .problem{text-align:center;animation:probEnter 0.6s ease-out both}
+.s1 .problem:nth-child(1){animation-delay:0.2s}
+.s1 .problem:nth-child(2){animation-delay:0.4s}
+.s1 .problem:nth-child(3){animation-delay:0.6s}
+.s1 .problem-icon{font-size:64px;margin-bottom:15px}
+.s1 .problem-text{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1.2}
+.s1 .problem-sub{font-size:14px;color:#888;margin-top:8px}
+.s1 .impact{position:absolute;bottom:15%;font-family:var(--font-display);font-size:36px;
+  font-weight:900;color:#ef4444;animation:impactEnter 0.8s ease-out 1s both}
+
+@keyframes probEnter{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes impactEnter{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* Scene 2: Solution */
+.s2 .text{font-family:var(--font-display);font-size:40px;font-weight:800;line-height:1.2;
+  text-align:center;max-width:800px;animation:textEnter 1s ease-out}
+.s2 .highlight{background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+
+/* Scene 3: App */
+.s3 .app-showcase{width:1100px;height:650px;background:var(--cream-bg);border-radius:20px;
+  overflow:hidden;box-shadow:0 50px 100px rgba(0,0,0,0.5);position:relative;animation:appEnter 1s ease-out}
+.s3 .app-img{width:100%;height:100%;object-fit:cover}
+.s3 .feature{position:absolute;padding:12px 24px;background:#000;color:#fff;border-radius:25px;
+  font-weight:600;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,0.3);animation:featureEnter 0.5s ease-out both}
+.s3 .feature:nth-child(2){animation-delay:0.3s;top:8%;left:8%}
+.s3 .feature:nth-child(3){animation-delay:0.6s;top:30%;right:8%}
+.s3 .feature:nth-child(4){animation-delay:0.9s;bottom:22%;left:12%}
+.s3 .feature:nth-child(5){animation-delay:1.2s;bottom:18%;right:12%}
+
+@keyframes appEnter{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes featureEnter{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* Scene 4: WhatsApp */
+.s4{flex-direction:row;gap:80px;max-width:1400px;padding:40px}
+.s4 .text{flex:1}
+.s4 .headline{font-family:var(--font-display);font-size:48px;font-weight:900;line-height:1.1;
+  margin-bottom:20px;animation:textEnter 0.8s ease-out}
+.s4 .headline span{background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s4 .sub{font-size:18px;color:#888;line-height:1.5;animation:textEnter 0.6s ease-out 0.3s both}
+.s4 .phone{width:320px;height:620px;background:#0d1117;border-radius:40px;border:3px solid #333;
+  overflow:hidden;animation:phoneEnter 1s ease-out 0.3s;position:relative}
+.s4 .phone-notch{position:absolute;top:15px;left:50%;transform:translateX(-50%);width:70px;
+  height:24px;background:#000;border-radius:15px;z-index:10}
+.s4 .chat{padding:55px 15px 15px;height:100%;display:flex;flex-direction:column;gap:10px}
+.s4 .chat-header{display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid #222;
+  margin-bottom:8px}
+.s4 .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(120deg,#f4501e,#ff8a3d);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff}
+.s4 .msg{max-width:75%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.3;
+  animation:msgEnter 0.4s ease-out both}
+.s4 .msg:nth-child(3){animation-delay:0.3s}
+.s4 .msg:nth-child(4){animation-delay:0.8s}
+.s4 .msg:nth-child(5){animation-delay:1.2s}
+.s4 .msg:nth-child(6){animation-delay:1.5s}
+.s4 .msg:nth-child(7){animation-delay:1.9s}
+.s4 .msg:nth-child(8){animation-delay:2.3s}
+.s4 .msg.them{background:#1e293b;color:#e2e8f0;border-bottom-left-radius:4px}
+.s4 .msg.me{background:linear-gradient(120deg,#f4501e,#ff8a3d);color:#fff;
+  border-bottom-right-radius:4px;align-self:flex-end;margin-left:auto}
+.s4 .msg.payment{background:linear-gradient(120deg,#635bff,#4f46e5);text-align:center;
+  padding:16px;border-radius:18px}
+.s4 .payment-amount{font-size:28px;font-weight:900;margin:8px 0}
+.s4 .msg.confirm{background:rgba(16,185,129,0.2);border:1px solid #10b981;color:#10b981;
+  text-align:center}
+
+@keyframes phoneEnter{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes msgEnter{from{transform:translateY(15px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Scene 5: Flow */
+.s5 .title{font-family:var(--font-display);font-size:48px;font-weight:900;text-align:center;
+  margin-bottom:50px;animation:textEnter 0.8s ease-out}
+.s5 .title span{background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s5 .flow{display:flex;align-items:center;gap:40px;justify-content:center;flex-wrap:wrap}
+.s5 .step{text-align:center;animation:stepEnter 0.6s ease-out both}
+.s5 .step:nth-child(1){animation-delay:0.3s}
+.s5 .step:nth-child(3){animation-delay:0.7s}
+.s5 .step:nth-child(5){animation-delay:1.1s}
+.s5 .circle{width:90px;height:90px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-weight:900;font-size:22px;color:#fff;margin-bottom:12px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.3)}
+.s5 .circle:nth-child(1){background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#78350f}
+.s5 .circle:nth-child(2){background:linear-gradient(135deg,#818cf8,#6366f1);color:#312e81}
+.s5 .circle:nth-child(3){background:linear-gradient(135deg,#34d399,#10b981);color:#064e3b}
+.s5 .arrow{font-size:36px;color:#ff8a3d;animation:arrowEnter 0.4s ease-out both}
+.s5 .arrow:nth-child(2){animation-delay:0.5s}
+.s5 .arrow:nth-child(4){animation-delay:0.9s}
+.s5 .step-name{font-weight:600;font-size:14px;margin-bottom:4px}
+.s5 .step-desc{font-size:12px;color:#888}
+.s5 .conclusion{font-size:18px;text-align:center;color:#888;margin-top:30px;
+  animation:textEnter 0.6s ease-out 1.5s both}
+
+@keyframes stepEnter{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes arrowEnter{from{transform:translateX(-20px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Scene 6: Client */
+.s6 .card{width:550px;background:#fffdfb;border-radius:20px;padding:35px;
+  box-shadow:0 50px 100px rgba(0,0,0,0.4);animation:cardEnter 1s ease-out}
+.s6 .card-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.s6 .card-avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(120deg,#f4501e,#ff8a3d);
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;color:#fff}
+.s6 .card-name{font-size:20px;font-weight:800;color:#1c1814}
+.s6 .card-meta{font-size:13px;color:#8a7d70;margin-top:4px}
+.s6 .tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.s6 .tag{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600}
+.s6 .tag.fidel{background:rgba(16,185,129,0.15);color:#0f9d6b}
+.s6 .tag.alerg{background:rgba(239,68,68,0.1);color:#dc2626}
+.s6 .tag.neut{background:rgba(138,125,112,0.1);color:#5c5249}
+.s6 .formula{background:#f6f1ea;border-radius:12px;padding:16px}
+.s6 .formula-label{font-size:10px;color:#8a7d70;text-transform:uppercase;letter-spacing:1px;
+  margin-bottom:10px;font-weight:700}
+.s6 .chips{display:flex;gap:6px;flex-wrap:wrap}
+.s6 .chip{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;
+  background:rgba(244,80,30,0.08);color:#c0260a}
+
+@keyframes cardEnter{from{transform:translateY(50px)rotateX(10deg);opacity:0}to{transform:translateY(0)rotateX(0);opacity:1}}
+
+/* Scene 7: Metrics */
+.s7{gap:30px}
+.s7 .title{font-family:var(--font-display);font-size:56px;font-weight:900;text-align:center;
+  animation:textEnter 0.8s ease-out}
+.s7 .title span{background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s7 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:25px;max-width:1100px}
+.s7 .metric{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px;padding:25px;text-align:center;animation:metricEnter 0.5s ease-out both}
+.s7 .metric:nth-child(1){animation-delay:0.2s}
+.s7 .metric:nth-child(2){animation-delay:0.4s}
+.s7 .metric:nth-child(3){animation-delay:0.6s}
+.s7 .metric:nth-child(4){animation-delay:0.8s}
+.s7 .metric-value{font-family:var(--font-display);font-size:56px;font-weight:900;line-height:1;
+  margin-bottom:10px}
+.s7 .metric:nth-child(1) .metric-value{color:#34d399}
+.s7 .metric:nth-child(2) .metric-value{color:#ff8a3d}
+.s7 .metric:nth-child(3) .metric-value{color:#ffce4a}
+.s7 .metric:nth-child(4) .metric-value{color:#ff9d2e}
+.s7 .metric-label{font-size:13px;color:#888;margin-bottom:6px;font-weight:600}
+.s7 .metric-note{font-size:11px;color:#666;line-height:1.4}
+
+@keyframes metricEnter{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Scene 8: Outro */
+.s8 .logo{width:140px;height:140px;animation:logoEnter 1.2s ease-out}
+.s8 .brand{font-family:var(--font-display);font-size:120px;font-weight:900;line-height:1;
+  background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;animation:brandEnter 1s ease-out 0.3s both}
+.s8 .tag{font-size:28px;font-style:italic;color:#fff;animation:textEnter 0.8s ease-out 0.7s both}
+.s8 .url{font-size:16px;color:#888;letter-spacing:2px;padding:12px 36px;border:1px solid #222;
+  border-radius:40px;background:#111;animation:textEnter 0.6s ease-out 1s both}
+
+/* Controls */
+#controls{position:fixed;bottom:30px;left:30px;right:30px;z-index:50;display:flex;
+  align-items:center;gap:15px;padding:15px 25px;background:rgba(0,0,0,0.8);
+  backdrop-filter:blur(10px);border-radius:15px;border:1px solid #222;opacity:0;
+  transition:opacity 0.5s}
+#controls.show{opacity:1}
+#play-btn{padding:12px 24px;background:linear-gradient(120deg,#f4501e,#ff8a3d);
+  color:#fff;border:none;border-radius:30px;font-weight:700;font-size:14px;cursor:pointer}
+#progress{flex:1;height:4px;background:#222;border-radius:4px;overflow:hidden;cursor:pointer}
+#progress-bar{height:100%;background:linear-gradient(90deg,#ff8a3d,#ffce4a);width:0%;transition:width 0.1s}
+#time{font-size:12px;color:#666;font-variant-numeric:tabular-nums;min-width:70px;text-align:right}
+
+/* Flame SVG */
+.flame{width:100%;height:100%}
+
+/* Responsive */
+@media(max-width:900px){
+  .s1 .problems{flex-direction:column;gap:30px}
+  .s4{flex-direction:column;gap:40px}
+  .s5 .flow{flex-direction:column;gap:25px}
+  .s7 .metrics{grid-template-columns:repeat(2,1fr);gap:15px}
+  .s7 .metric-value{font-size:40px}
+  .s0 .brand{font-size:60px}
+  .s8 .brand{font-size:70px}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0"><defs>
+  <linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0">
+    <stop offset="0" stop-color="#e0340e"/><stop offset="0.5" stop-color="#ff7a2e"/>
+    <stop offset="1" stop-color="#ffcf4a"/>
+  </linearGradient>
+  <symbol id="flame" viewBox="0 0 40 40">
+    <path fill="url(#flameGrad)" d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"/>
+    <path fill="#fff" opacity=".9" d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z"/>
+  </symbol>
+</defs></svg>
+
+<div id="start" onclick="start()">
+  <svg class="start-logo" viewBox="0 0 40 40"><use href="#flame"/></svg>
+  <div class="start-title">Mecha</div>
+  <div class="start-cta">Reproducir presentacion</div>
+</div>
+
+<div id="main">
+<!-- S0: Brand -->
+<section class="scene s0 active" id="s0">
+  <svg class="logo" viewBox="0 0 40 40"><use href="#flame"/></svg>
+  <div class="brand">Mecha</div>
+  <div class="tagline">El sistema operativo de tu salon</div>
+</section>
+
+<!-- S1: Problem -->
+<section class="scene s1" id="s1">
+  <div class="problems">
+    <div class="problem">
+      <div class="problem-icon">📱</div>
+      <div class="problem-text">Citas perdidas</div>
+      <div class="problem-sub">Telefonos que no suenan</div>
+    </div>
+    <div class="problem">
+      <div class="problem-icon">⏰</div>
+      <div class="problem-text">Huecos vacios</div>
+      <div class="problem-sub">Agenda con lagunas</div>
+    </div>
+    <div class="problem">
+      <div class="problem-icon">❌</div>
+      <div class="problem-text">No-shows</div>
+      <div class="problem-sub">Clientes que no aparecen</div>
+    </div>
+  </div>
+  <div class="impact">Tu dinero escapando</div>
+</section>
+
+<!-- S2: Solution -->
+<section class="scene s2" id="s2">
+  <div class="text">
+    Mecha no es otra agenda mas.<br><br>
+    Es la <span class="highlight">primera que entiende</span><br>
+    <em style="font-weight:400">una peluqueria de verdad.</em>
+  </div>
+</section>
+
+<!-- S3: App -->
+<section class="scene s3" id="s3">
+  <div class="app-showcase">
+    <img src="captures/00-demo-iframe.png" class="app-img" alt="Mecha App">
+    <div class="feature">Agenda inteligente</div>
+    <div class="feature">Fichas de cliente</div>
+    <div class="feature">Informes en vivo</div>
+    <div class="feature">Caja integrada</div>
+  </div>
+</section>
+
+<!-- S4: WhatsApp -->
+<section class="scene s4" id="s4">
+  <div class="text">
+    <div class="headline">Tu <span>IA receptora</span><br>reserva y cobra por ti</div>
+    <div class="sub">Mientras duermes, Mecha trabaja</div>
+  </div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="chat">
+      <div class="chat-header">
+        <div class="avatar">M</div>
+        <div>
+          <div style="font-weight:700;color:#fff;font-size:13px">Mecha · Studio Norte</div>
+          <div style="font-size:10px;color:#10b981">● En linea</div>
+        </div>
+      </div>
+      <div class="msg them">Hola! Teneis hueco el sabado para mechas?</div>
+      <div class="msg me">Hola Ana! Con Sofia tengo a las 11:00 o a las 16:30.</div>
+      <div class="msg them">La de las 16:30</div>
+      <div class="msg me">Reservada! Para confirmarla, dejas una senal de 20€?</div>
+      <div class="msg payment">
+        <div style="font-size:11px;opacity:0.7">Pago de senal · Stripe</div>
+        <div class="payment-amount">20,00€</div>
+        <div style="font-size:12px">Pagar senal →</div>
+      </div>
+      <div class="msg confirm">✓ Cita confirmada · Sab 16:30 · Sofia</div>
+    </div>
+  </div>
+</section>
+
+<!-- S5: Flow -->
+<section class="scene s5" id="s5">
+  <div class="title">Una cita, varios profesionales,<br><span>cero descoordinacion</span></div>
+  <div class="flow">
+    <div class="step">
+      <div class="circle">SL</div>
+      <div class="step-name">Color</div>
+      <div class="step-desc">Sofia · 40 min</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="circle">CM</div>
+      <div class="step-name">Corte</div>
+      <div class="step-desc">Carla · 25 min</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="circle">DR</div>
+      <div class="step-name">Penado</div>
+      <div class="step-desc">Diego · 20 min</div>
+    </div>
+  </div>
+  <div class="conclusion">Una sola reserva · 1 confirmacion para el cliente</div>
+</section>
+
+<!-- S6: Client -->
+<section class="scene s6" id="s6">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-avatar">AG</div>
+      <div>
+        <div class="card-name">Ana Garcia</div>
+        <div class="card-meta">Cliente desde 2023 · 14 visitas</div>
+      </div>
+    </div>
+    <div class="tags">
+      <span class="tag fidel">Fiel</span>
+      <span class="tag alerg">Alergica al amoniaco</span>
+      <span class="tag neut">Prefiere tardes</span>
+    </div>
+    <div class="formula">
+      <div class="formula-label">Formula de color</div>
+      <div class="chips">
+        <span class="chip">Base 6.0 + 7.3</span>
+        <span class="chip">30 vol</span>
+        <span class="chip">35 min reposo</span>
+        <span class="chip">Sin amoniaco</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S7: Metrics -->
+<section class="scene s7" id="s7">
+  <div class="title">Tus numeros, <span>en vivo</span></div>
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-value" id="m1">93%</div>
+      <div class="metric-label">menos no-shows</div>
+      <div class="metric-note">Recordatorio + senal</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value" id="m2">32%</div>
+      <div class="metric-label">mas ocupacion</div>
+      <div class="metric-note">Huecos aprovechados</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value" id="m3">+6h</div>
+      <div class="metric-label">ahorradas/semana</div>
+      <div class="metric-note">Reservas automaticas</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value" id="m4">24%</div>
+      <div class="metric-label">mas ingresos/silla</div>
+      <div class="metric-note">Misma jornada</div>
+    </div>
+  </div>
+</section>
+
+<!-- S8: Outro -->
+<section class="scene s8" id="s8">
+  <svg class="logo" viewBox="0 0 40 40"><use href="#flame"/></svg>
+  <div class="brand">Mecha</div>
+  <div class="tag">Enciende tu salon</div>
+  <div class="url">mecha.app</div>
+</section>
+</div>
+
+<div id="controls">
+  <button id="play-btn" onclick="restart()">Reiniciar</button>
+  <div id="progress" onclick="seek(event)"><div id="progress-bar"></div></div>
+  <div id="time">0:00 / 0:58</div>
+</div>
+
+<audio id="audio" preload="auto"><source src="mecha-voice-female.mp3" type="audio/mpeg"></audio>
+
+<script>
+const SCENES = [
+  {id:0,start:0,end:4.5},
+  {id:1,start:4.5,end:12},
+  {id:2,start:12,end:17},
+  {id:3,start:17,end:27},
+  {id:4,start:27,end:38},
+  {id:5,start:38,end:45},
+  {id:6,start:45,end:50.5},
+  {id:7,start:50.5,end:55},
+  {id:8,start:55,end:58}
+];
+
+let currentScene = -1;
+let audio = document.getElementById('audio');
+let progressBar = document.getElementById('progress-bar');
+let timeLabel = document.getElementById('time');
+let progressInterval = null;
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+function showScene(idx) {
+  if (idx === currentScene) return;
+
+  const scenes = document.querySelectorAll('.scene');
+  scenes.forEach((s, i) => {
+    s.classList.toggle('active', i === idx);
+    // Reset animations when hiding
+    if (i !== idx) {
+      s.style.display = 'none';
+    } else {
+      s.style.display = '';
+      // Trigger animation reflow
+      void s.offsetWidth;
+    }
+  });
+
+  currentScene = idx;
+
+  // Animate metrics when scene 7 shows
+  if (idx === 7) {
+    animateMetrics();
+  }
+}
+
+function animateMetrics() {
+  const metrics = [
+    {el: document.getElementById('m1'), target: 93, suffix: '%'},
+    {el: document.getElementById('m2'), target: 32, suffix: '%'},
+    {el: document.getElementById('m3'), target: 6, prefix: '+', suffix: 'h'},
+    {el: document.getElementById('m4'), target: 24, suffix: '%'}
+  ];
+
+  metrics.forEach((m, i) => {
+    setTimeout(() => {
+      let val = 0;
+      const dur = 1000;
+      const start = performance.now();
+      function step(now) {
+        const t = Math.min((now - start) / dur, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        val = Math.round(eased * m.target);
+        m.el.textContent = (m.prefix || '') + val + (m.suffix || '');
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }, 300 + i * 200);
+  });
+}
+
+function update() {
+  const time = audio.currentTime || 0;
+
+  for (let i = SCENES.length - 1; i >= 0; i--) {
+    if (time >= SCENES[i].start && currentScene !== i) {
+      showScene(i);
+      break;
+    }
+  }
+
+  const pct = (time / 58) * 100;
+  progressBar.style.width = Math.min(pct, 100) + '%';
+  timeLabel.textContent = formatTime(time) + ' / 0:58';
+}
+
+function start() {
+  document.getElementById('start').classList.add('hidden');
+  document.getElementById('main').classList.add('playing');
+  document.getElementById('controls').classList.add('show');
+
+  audio.play().catch(e => console.log('Audio error:', e));
+
+  progressInterval = setInterval(update, 50);
+
+  audio.onended = () => {
+    clearInterval(progressInterval);
+  };
+}
+
+function restart() {
+  audio.pause();
+  audio.currentTime = 0;
+  progressBar.style.width = '0%';
+  timeLabel.textContent = '0:00 / 0:58';
+  currentScene = -1;
+
+  const scenes = document.querySelectorAll('.scene');
+  scenes.forEach(s => {
+    s.classList.remove('active');
+    s.style.display = '';
+  });
+
+  showScene(0);
+
+  if (progressInterval) clearInterval(progressInterval);
+
+  audio.play().catch(e => console.log('Audio error:', e));
+  progressInterval = setInterval(update, 50);
+}
+
+function seek(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * 58;
+}
+</script>
+</body>
+</html>

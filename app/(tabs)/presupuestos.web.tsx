@@ -92,6 +92,20 @@ function EditorModal({ profile, salon, profesionales, servicios, conceptos, init
   const [error, setError] = useState('');
   const [servicioSelectorOpen, setServicioSelectorOpen] = useState(false);
 
+  const eliminarConceptoCatalogo = async (conceptoId: string, nombre: string) => {
+    if (!window.confirm(`¿Seguro que quieres eliminar el concepto "${nombre}" del catálogo general? Ya no aparecerá como opción sugerida.`)) return;
+    try {
+      const { error } = await supabase.from('presupuesto_conceptos').delete().eq('id', conceptoId);
+      if (error) throw error;
+      
+      // Limpiar de las líneas del borrador si coinciden con este concepto_id
+      setLineas(prev => prev.map(l => l.concepto_id === conceptoId ? { ...l, concepto_id: null } : l));
+      reloadConceptos();
+    } catch (err) {
+      alert('No se pudo eliminar el concepto del catálogo: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
   // Buscador de cliente existente
   const [clienteQuery, setClienteQuery] = useState('');
   const [clienteResultados, setClienteResultados] = useState<Array<{ id: string; nombre: string; telefono: string | null; email: string | null }>>([]);
@@ -270,6 +284,17 @@ function EditorModal({ profile, salon, profesionales, servicios, conceptos, init
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 12, color: T.textSec, cursor: 'pointer' }}>
                   <input type="checkbox" checked={l.guardar} onChange={e => setLinea(i, { guardar: e.target.checked })} /> Guardar este concepto para futuros presupuestos
                 </label>
+              )}
+              {l.concepto_id && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 11.5, color: T.textTer }}>
+                  <span>✓ Concepto guardado en catálogo</span>
+                  <button
+                    onClick={() => eliminarConceptoCatalogo(l.concepto_id!, l.nombre)}
+                    style={{ background: 'none', border: 'none', color: T.danger, cursor: 'pointer', padding: '0 4px', textDecoration: 'underline', fontSize: 11 }}
+                  >
+                    Eliminar del catálogo
+                  </button>
+                </div>
               )}
             </div>
           ))}

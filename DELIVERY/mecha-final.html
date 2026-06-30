@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mecha — Presentacion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;800;900&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --accent:#f4501e;--accent-light:#ff8a3d;
+  --cream-bg:#f6f1ea;--cream-text:#1c1814;
+  --bg:#050505;--text:#ffffff;
+  --font-display:'Bricolage Grotesque',sans-serif;
+  --font-body:'Inter',sans-serif;
+}
+body{width:100vw;height:100vh;background:var(--bg);color:var(--text);
+  font-family:var(--font-body);overflow:hidden}
+.container{width:100%;height:100%;position:relative}
+.scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none}
+.scene.active{pointer-events:auto}
+.scene>*{opacity:0}
+
+/* Start overlay */
+.start-overlay{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:30px;background:#000;cursor:pointer}
+.start-overlay.hidden{opacity:0;pointer-events:none;transition:opacity 0.8s}
+.start-logo{width:100px;height:100px}
+.start-title{font-family:var(--font-display);font-size:80px;font-weight:900;
+  background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+.start-cta{font-size:14px;color:#888;text-transform:uppercase;letter-spacing:2px;
+  padding:15px 40px;border:1px solid #333;border-radius:50px;background:#111}
+
+/* Controls */
+.controls{position:fixed;bottom:30px;left:30px;right:30px;z-index:100;display:flex;
+  align-items:center;gap:15px;padding:15px 25px;background:rgba(0,0,0,0.8);
+  backdrop-filter:blur(10px);border-radius:15px;border:1px solid #222;opacity:0;
+  transition:opacity 0.5s}
+.controls.show{opacity:1}
+.play-btn{padding:12px 24px;background:linear-gradient(120deg,#f4501e,#ff8a3d);
+  color:#fff;border:none;border-radius:30px;font-weight:700;font-size:14px;cursor:pointer}
+.progress{flex:1;height:4px;background:#222;border-radius:4px;overflow:hidden;cursor:pointer}
+.progress-bar{height:100%;background:linear-gradient(90deg,#ff8a3d,#ffce4a);width:0%}
+.time{font-size:12px;color:#666;font-variant-numeric:tabular-nums;min-width:70px;text-align:right}
+
+/* Scene 0: Brand */
+.s0{flex-direction:column;gap:20px}
+.s0 .logo{width:120px;height:120px}
+.s0 .brand{font-family:var(--font-display);font-size:120px;font-weight:900;line-height:1;
+  background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s0 .tagline{font-size:24px;color:#888;font-style:italic}
+
+/* Scene 1: Problem */
+.s1{text-align:center}
+.s1 .problems{display:flex;gap:60px}
+.s1 .problem{text-align:center}
+.s1 .problem-icon{font-size:64px;margin-bottom:15px}
+.s1 .problem-text{font-family:var(--font-display);font-size:32px;font-weight:700;
+  line-height:1.2;margin-bottom:8px}
+.s1 .problem-sub{font-size:14px;color:#888}
+
+/* Scene 2: Solution */
+.s2{text-align:center;max-width:800px}
+.s2 .text{font-family:var(--font-display);font-size:48px;font-weight:800;line-height:1.2}
+.s2 .highlight{background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+
+/* Scene 3: App */
+.s3 .app-showcase{width:1200px;height:700px;background:var(--cream-bg);border-radius:20px;
+  overflow:hidden;box-shadow:0 50px 100px rgba(0,0,0,0.5);position:relative}
+.s3 .app-img{width:100%;height:100%;object-fit:cover}
+.s3 .feature{position:absolute;padding:15px 30px;background:#000;color:#fff;border-radius:30px;
+  font-weight:600;font-size:16px;box-shadow:0 10px 30px rgba(0,0,0,0.3)}
+
+/* Scene 4: WhatsApp */
+.s4{gap:80px}
+.s4 .text{flex:1}
+.s4 .headline{font-family:var(--font-display);font-size:56px;font-weight:900;line-height:1.1;
+  margin-bottom:20px}
+.s4 .headline span{background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s4 .sub{font-size:20px;color:#888;line-height:1.5}
+.s4 .phone{width:350px;height:680px;background:#0d1117;border-radius:40px;border:3px solid #333;
+  overflow:hidden;position:relative}
+.s4 .phone-notch{position:absolute;top:15px;left:50%;transform:translateX(-50%);width:80px;
+  height:25px;background:#000;border-radius:15px}
+.s4 .chat{padding:60px 20px 20px;height:100%;display:flex;flex-direction:column;gap:12px}
+.s4 .chat-header{display:flex;align-items:center;gap:12px;padding:15px;border-bottom:1px solid #222;
+  margin-bottom:10px}
+.s4 .avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(120deg,#f4501e,#ff8a3d);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.s4 .msg{max-width:75%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.4}
+.s4 .msg.them{background:#1e293b;color:#e2e8f0;border-bottom-left-radius:4px}
+.s4 .msg.me{background:linear-gradient(120deg,#f4501e,#ff8a3d);color:#fff;
+  border-bottom-right-radius:4px;align-self:flex-end;margin-left:auto}
+.s4 .msg.payment{background:linear-gradient(120deg,#635bff,#4f46e5);text-align:center;padding:20px;
+  border-radius:20px}
+.s4 .payment-amount{font-size:32px;font-weight:900;margin:10px 0}
+.s4 .msg.confirm{background:rgba(16,185,129,0.2);border:1px solid #10b981;color:#10b981;
+  text-align:center}
+
+/* Scene 5: Flow */
+.s5{flex-direction:column;gap:50px}
+.s5 .title{font-family:var(--font-display);font-size:56px;font-weight:900;text-align:center}
+.s5 .title span{background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s5 .flow{display:flex;align-items:center;gap:40px}
+.s5 .step{text-align:center}
+.s5 .circle{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-weight:900;font-size:24px;color:#fff;margin-bottom:15px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.3)}
+.s5 .circle:nth-child(1){background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#78350f}
+.s5 .circle:nth-child(2){background:linear-gradient(135deg,#818cf8,#6366f1);color:#312e81}
+.s5 .circle:nth-child(3){background:linear-gradient(135deg,#34d399,#10b981);color:#064e3b}
+.s5 .arrow{font-size:40px;color:#ff8a3d}
+.s5 .step-name{font-weight:600;font-size:14px;margin-bottom:4px}
+.s5 .step-desc{font-size:12px;color:#888}
+.s5 .conclusion{font-size:20px;text-align:center;color:#888}
+
+/* Scene 6: Client */
+.s6 .card{width:600px;background:#fffdfb;border-radius:24px;padding:40px;
+  box-shadow:0 50px 100px rgba(0,0,0,0.4)}
+.s6 .card-header{display:flex;align-items:center;gap:20px;margin-bottom:25px}
+.s6 .card-avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(120deg,#f4501e,#ff8a3d);
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px;color:#fff}
+.s6 .card-name{font-size:22px;font-weight:800;color:var(--cream-text)}
+.s6 .card-meta{font-size:14px;color:#8a7d70;margin-top:4px}
+.s6 .tags{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:25px}
+.s6 .tag{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600}
+.s6 .tag.fidel{background:rgba(16,185,129,0.15);color:#0f9d6b}
+.s6 .tag.alerg{background:rgba(239,68,68,0.1);color:#dc2626}
+.s6 .tag.neut{background:rgba(138,125,112,0.1);color:#5c5249}
+.s6 .formula{background:#f6f1ea;border-radius:16px;padding:20px}
+.s6 .formula-label{font-size:11px;color:#8a7d70;text-transform:uppercase;letter-spacing:1px;
+  margin-bottom:12px;font-weight:700}
+.s6 .chips{display:flex;gap:8px;flex-wrap:wrap}
+.s6 .chip{padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;
+  background:rgba(244,80,30,0.08);color:#c0260a}
+
+/* Scene 7: Metrics */
+.s7{flex-direction:column;gap:40px}
+.s7 .title{font-family:var(--font-display);font-size:64px;font-weight:900;text-align:center}
+.s7 .title span{background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s7 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;max-width:1200px}
+.s7 .metric{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px;padding:30px;text-align:center}
+.s7 .metric-value{font-family:var(--font-display);font-size:64px;font-weight:900;line-height:1;
+  margin-bottom:10px}
+.s7 .metric:nth-child(1) .metric-value{color:#34d399}
+.s7 .metric:nth-child(2) .metric-value{color:#ff8a3d}
+.s7 .metric:nth-child(3) .metric-value{color:#ffce4a}
+.s7 .metric:nth-child(4) .metric-value{color:#ff9d2e}
+.s7 .metric-label{font-size:14px;color:#888;margin-bottom:8px;font-weight:600}
+.s7 .metric-note{font-size:12px;color:#666;line-height:1.4}
+
+/* Scene 8: Outro */
+.s8{flex-direction:column;gap:25px;text-align:center}
+.s8 .logo{width:140px;height:140px}
+.s8 .brand{font-family:var(--font-display);font-size:140px;font-weight:900;line-height:1;
+  background:linear-gradient(120deg,#ff8a3d,#ffce4a);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s8 .tag{font-size:32px;font-style:italic;color:#fff}
+.s8 .url{font-size:18px;color:#888;letter-spacing:2px;padding:15px 40px;border:1px solid #222;
+  border-radius:40px;background:#111}
+
+/* Flame SVG */
+.flame{width:100%;height:100%}
+
+/* Responsive */
+@media(max-width:900px){
+  .s1 .problems{flex-direction:column;gap:40px}
+  .s4{flex-direction:column;gap:40px}
+  .s5 .flow{flex-direction:column;gap:30px}
+  .s7 .metrics{grid-template-columns:repeat(2,1fr);gap:20px}
+  .s7 .metric-value{font-size:48px}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0"><defs>
+  <linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0">
+    <stop offset="0" stop-color="#e0340e"/><stop offset="0.5" stop-color="#ff7a2e"/>
+    <stop offset="1" stop-color="#ffcf4a"/>
+  </linearGradient>
+  <symbol id="flame" viewBox="0 0 40 40">
+    <path fill="url(#flameGrad)" d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"/>
+    <path fill="#fff" opacity=".9" d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z"/>
+  </symbol>
+</defs></svg>
+
+<div class="start-overlay" id="startOverlay">
+  <svg class="start-logo" viewBox="0 0 40 40"><use href="#flame"/></svg>
+  <div class="start-title">Mecha</div>
+  <div class="start-cta">Reproducir</div>
+</div>
+
+<div class="container">
+<!-- S0: Brand -->
+<section class="scene s0" id="s0">
+  <svg class="logo" viewBox="0 0 40 40"><use href="#flame"/></svg>
+  <div class="brand">Mecha</div>
+  <div class="tagline">El sistema operativo de tu salon</div>
+</section>
+
+<!-- S1: Problem -->
+<section class="scene s1" id="s1">
+  <div class="problems">
+    <div class="problem" id="p1">
+      <div class="problem-icon">📱</div>
+      <div class="problem-text">Citas perdidas</div>
+      <div class="problem-sub">Telefonos que no suenan</div>
+    </div>
+    <div class="problem" id="p2">
+      <div class="problem-icon">⏰</div>
+      <div class="problem-text">Huecos vacios</div>
+      <div class="problem-sub">Agua con lagunas</div>
+    </div>
+    <div class="problem" id="p3">
+      <div class="problem-icon">❌</div>
+      <div class="problem-text">No-shows</div>
+      <div class="problem-sub">Clientes que no aparecen</div>
+    </div>
+  </div>
+  <div style="position:absolute;bottom:20%;font-family:var(--font-display);font-size:40px;
+    font-weight:900;color:#ef4444" id="impact">Tu dinero escapando</div>
+</section>
+
+<!-- S2: Solution -->
+<section class="scene s2" id="s2">
+  <div class="text">
+    Mecha no es otra agenda mas.<br><br>
+    Es la <span class="highlight">primera que entiende</span><br>
+    <em style="font-weight:400">una peluqueria de verdad.</em>
+  </div>
+</section>
+
+<!-- S3: App -->
+<section class="scene s3" id="s3">
+  <div class="app-showcase" id="appShowcase">
+    <img src="captures/00-demo-iframe.png" class="app-img" alt="Mecha App">
+    <div class="feature" style="top:10%;left:10%" id="f1">Agenda inteligente</div>
+    <div class="feature" style="top:35%;right:10%" id="f2">Fichas de cliente</div>
+    <div class="feature" style="bottom:25%;left:15%" id="f3">Informes en vivo</div>
+    <div class="feature" style="bottom:20%;right:15%" id="f4">Caja integrada</div>
+  </div>
+</section>
+
+<!-- S4: WhatsApp -->
+<section class="scene s4" id="s4">
+  <div class="text">
+    <div class="headline">Tu <span>IA receptora</span><br>reserva y cobra por ti</div>
+    <div class="sub">Mientras duermes, Mecha trabaja</div>
+  </div>
+  <div class="phone" id="phone">
+    <div class="phone-notch"></div>
+    <div class="chat">
+      <div class="chat-header">
+        <div class="avatar">M</div>
+        <div>
+          <div style="font-weight:700;color:#fff">Mecha · Studio Norte</div>
+          <div style="font-size:11px;color:#10b981">● En linea</div>
+        </div>
+      </div>
+      <div class="msg them" id="m1">Hola! Teneis hueco el sabado para mechas?</div>
+      <div class="msg me" id="m2">Hola Ana! Con Sofia tengo a las 11:00 o a las 16:30. Cual te va?</div>
+      <div class="msg them" id="m3">La de las 16:30</div>
+      <div class="msg me" id="m4">Reservada! Para confirmarla, dejas una senal de 20€?</div>
+      <div class="msg payment" id="m5">
+        <div style="font-size:12px;opacity:0.7">Pago de senal · Stripe</div>
+        <div class="payment-amount">20,00€</div>
+        <div style="font-size:13px">Pagar senal →</div>
+      </div>
+      <div class="msg confirm" id="m6">✓ Cita confirmada · Sab 16:30 · Sofia</div>
+    </div>
+  </div>
+</section>
+
+<!-- S5: Flow -->
+<section class="scene s5" id="s5">
+  <div class="title">Una cita, varios profesionales,<br><span>cero descoordinacion</span></div>
+  <div class="flow" id="flow">
+    <div class="step" id="step1">
+      <div class="circle">SL</div>
+      <div class="step-name">Color</div>
+      <div class="step-desc">Sofia · 40 min</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step" id="step2">
+      <div class="circle">CM</div>
+      <div class="step-name">Corte</div>
+      <div class="step-desc">Carla · 25 min</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step" id="step3">
+      <div class="circle">DR</div>
+      <div class="step-name">Penado</div>
+      <div class="step-desc">Diego · 20 min</div>
+    </div>
+  </div>
+  <div class="conclusion" id="conclusion">Una sola reserva · 1 confirmacion para el cliente</div>
+</section>
+
+<!-- S6: Client -->
+<section class="scene s6" id="s6">
+  <div class="card" id="card">
+    <div class="card-header">
+      <div class="card-avatar">AG</div>
+      <div>
+        <div class="card-name">Ana Garcia</div>
+        <div class="card-meta">Cliente desde 2023 · 14 visitas</div>
+      </div>
+    </div>
+    <div class="tags">
+      <span class="tag fidel">Fiel</span>
+      <span class="tag alerg">Alergica al amoniaco</span>
+      <span class="tag neut">Prefiere tardes</span>
+    </div>
+    <div class="formula">
+      <div class="formula-label">Formula de color</div>
+      <div class="chips">
+        <span class="chip">Base 6.0 + 7.3</span>
+        <span class="chip">30 vol</span>
+        <span class="chip">35 min reposo</span>
+        <span class="chip">Sin amoniaco</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S7: Metrics -->
+<section class="scene s7" id="s7">
+  <div class="title">Tus numeros, <span>en vivo</span></div>
+  <div class="metrics" id="metrics">
+    <div class="metric">
+      <div class="metric-value" data-count="93" data-suffix="%">0%</div>
+      <div class="metric-label">menos no-shows</div>
+      <div class="metric-note">Recordatorio + senal</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value" data-count="32" data-suffix="%">0%</div>
+      <div class="metric-label">mas ocupacion</div>
+      <div class="metric-note">Huecos aprovechados</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value" data-count="6" data-prefix="+" data-suffix="h">0h</div>
+      <div class="metric-label">ahorradas/semana</div>
+      <div class="metric-note">Reservas automaticas</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value" data-count="24" data-suffix="%">0%</div>
+      <div class="metric-label">mas ingresos/silla</div>
+      <div class="metric-note">Misma jornada</div>
+    </div>
+  </div>
+</section>
+
+<!-- S8: Outro -->
+<section class="scene s8" id="s8">
+  <svg class="logo" viewBox="0 0 40 40"><use href="#flame"/></svg>
+  <div class="brand">Mecha</div>
+  <div class="tag" id="tag">Enciende tu salon</div>
+  <div class="url" id="url">mecha.app</div>
+</section>
+</div>
+
+<div class="controls" id="controls">
+  <button class="play-btn" id="replayBtn">Reiniciar</button>
+  <div class="progress" id="progressTrack"><div class="progress-bar" id="progressBar"></div></div>
+  <div class="time" id="timeLabel">0:00 / 0:58</div>
+</div>
+
+<script>
+// Scene timing (in seconds)
+const SCENES = [
+  {id:0,start:0,end:4.5},
+  {id:1,start:4.5,end:12},
+  {id:2,start:12,end:17},
+  {id:3,start:17,end:27},
+  {id:4,start:27,end:38},
+  {id:5,start:38,end:45},
+  {id:6,start:45,end:50.5},
+  {id:7,start:50.5,end:55},
+  {id:8,start:55,end:58}
+];
+
+let currentScene = -1;
+let audio = null;
+let timeline = null;
+let isPlaying = false;
+let progressInterval = null;
+
+const scenes = document.querySelectorAll('.scene');
+const controls = document.getElementById('controls');
+const progressBar = document.getElementById('progressBar');
+const progressTrack = document.getElementById('progressTrack');
+const timeLabel = document.getElementById('timeLabel');
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+function showScene(idx) {
+  if (idx === currentScene) return;
+
+  // Hide all scenes
+  scenes.forEach((s, i) => {
+    if (i !== idx) {
+      gsap.set(s, {opacity: 0});
+      gsap.set(s.querySelectorAll('*'), {opacity: 0});
+    }
+  });
+
+  // Show current scene
+  currentScene = idx;
+  const currentSceneEl = scenes[idx];
+  gsap.set(currentSceneEl, {opacity: 1});
+
+  playAnimations(idx);
+}
+
+function playAnimations(idx) {
+  if (typeof gsap === 'undefined') return;
+
+  if (timeline) timeline.kill();
+  const tl = gsap.timeline();
+  timeline = tl;
+
+  switch(idx) {
+    case 0:
+      const s0 = document.querySelector('#s0');
+      tl.from(s0.querySelector('.logo'), {scale:0,rotation:-180,opacity:0,duration:1.2,ease:'elastic.out(1,.3)'})
+        .from(s0.querySelector('.brand'), {scale:.5,opacity:0,duration:1,ease:'power3.out'},0.3)
+        .from(s0.querySelector('.tagline'), {y:30,opacity:0,duration:0.8},0.6);
+      break;
+
+    case 1:
+      const s1 = document.querySelector('#s1');
+      const probs = s1.querySelectorAll('.problem');
+      tl.fromTo(probs[0], {y:80,opacity:0}, {y:0,opacity:1,duration:0.6,ease:'back.out(1.5)'})
+        .fromTo(probs[1], {y:80,opacity:0}, {y:0,opacity:1,duration:0.6,ease:'back.out(1.5)'},0.2)
+        .fromTo(probs[2], {y:80,opacity:0}, {y:0,opacity:1,duration:0.6,ease:'back.out(1.5)'},0.4)
+        .fromTo(s1.querySelector('#impact'), {scale:0.3,opacity:0}, {scale:1,opacity:1,duration:0.8,ease:'back.out(2)'},0.8);
+      break;
+
+    case 2:
+      const s2 = document.querySelector('#s2');
+      tl.from(s2.querySelector('.text'), {scale:0.85,opacity:0,duration:1,ease:'power3.out'});
+      break;
+
+    case 3:
+      const s3 = document.querySelector('#s3');
+      tl.from(s3.querySelector('#appShowcase'), {scale:0.75,opacity:0,duration:1.2,ease:'power3.out'});
+      const feats = s3.querySelectorAll('.feature');
+      tl.to(feats[0], {opacity:1,duration:0.5,ease:'back.out(1.5)'},0.5)
+        .to(feats[1], {opacity:1,duration:0.5,ease:'back.out(1.5)'},1)
+        .to(feats[2], {opacity:1,duration:0.5,ease:'back.out(1.5)'},1.5)
+        .to(feats[3], {opacity:1,duration:0.5,ease:'back.out(1.5)'},2);
+      break;
+
+    case 4:
+      const s4 = document.querySelector('#s4');
+      tl.from(s4.querySelector('.headline'), {y:50,opacity:0,duration:1,ease:'power3.out'})
+        .to(s4.querySelector('.sub'), {opacity:1,duration:0.8},0.5)
+        .from(s4.querySelector('#phone'), {scale:0.65,opacity:0,duration:1,ease:'power3.out'},0.3);
+      const msgs = s4.querySelectorAll('.msg');
+      tl.to(msgs[0], {opacity:1,y:0,duration:0.5,ease:'back.out(1.4)'},0.8)
+        .to(msgs[1], {opacity:1,y:0,duration:0.5,ease:'back.out(1.4)'},1.5)
+        .to(msgs[2], {opacity:1,y:0,duration:0.5,ease:'back.out(1.4)'},2.2)
+        .to(msgs[3], {opacity:1,y:0,duration:0.5,ease:'back.out(1.4)'},2.8)
+        .to(msgs[4], {opacity:1,scale:1,duration:0.6,ease:'back.out(1.6)'},3.4)
+        .to(msgs[5], {opacity:1,duration:0.5,ease:'back.out(1.4)'},4.2);
+      break;
+
+    case 5:
+      const s5 = document.querySelector('#s5');
+      tl.from(s5.querySelector('.title'), {y:50,opacity:0,duration:1,ease:'power3.out'});
+      const steps = s5.querySelectorAll('.step');
+      tl.to(steps[0], {opacity:1,scale:1,duration:0.6,ease:'back.out(2)'},0.5)
+        .to(steps[1], {opacity:1,scale:1,duration:0.6,ease:'back.out(2)'},1.1)
+        .to(steps[2], {opacity:1,scale:1,duration:0.6,ease:'back.out(2)'},1.7)
+        .to(s5.querySelector('#conclusion'), {opacity:1,duration:0.8},2.3);
+      break;
+
+    case 6:
+      const s6 = document.querySelector('#s6');
+      tl.from(s6.querySelector('#card'), {y:70,rotationX:20,opacity:0,duration:1.2,ease:'power3.out'});
+      break;
+
+    case 7:
+      const s7 = document.querySelector('#s7');
+      tl.from(s7.querySelector('.title'), {y:40,opacity:0,duration:1,ease:'power3.out'});
+      const metrics = s7.querySelectorAll('.metric');
+      tl.to(metrics[0], {opacity:1,y:0,duration:0.5,ease:'back.out(1.5)'},0.5)
+        .to(metrics[1], {opacity:1,y:0,duration:0.5,ease:'back.out(1.5)'},0.8)
+        .to(metrics[2], {opacity:1,y:0,duration:0.5,ease:'back.out(1.5)'},1.1)
+        .to(metrics[3], {opacity:1,y:0,duration:0.5,ease:'back.out(1.5)'},1.4);
+      animateCounters();
+      break;
+
+    case 8:
+      const s8 = document.querySelector('#s8');
+      tl.from(s8.querySelector('.logo'), {scale:0,rotation:-90,opacity:0,duration:1.2,ease:'elastic.out(1,.4)'})
+        .from(s8.querySelector('.brand'), {scale:0.5,opacity:0,duration:1,ease:'power3.out'},0.4)
+        .to(s8.querySelector('#tag'), {opacity:1,duration:0.8},0.7)
+        .to(s8.querySelector('#url'), {opacity:1,duration:0.6},1);
+      break;
+  }
+}
+
+function animateCounters() {
+  document.querySelectorAll('.metric-value[data-count]').forEach((el, i) => {
+    const target = parseInt(el.dataset.count);
+    const suffix = el.dataset.suffix || '';
+    const prefix = el.dataset.prefix || '';
+    setTimeout(() => {
+      let val = 0;
+      const dur = 1200;
+      const start = performance.now();
+      function step(now) {
+        const t = Math.min((now - start) / dur, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        val = Math.round(eased * target);
+        el.textContent = prefix + val + suffix;
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }, 500 + i * 200);
+  });
+}
+
+function update(time) {
+  for (let i = SCENES.length - 1; i >= 0; i--) {
+    if (time >= SCENES[i].start) {
+      if (currentScene !== i) showScene(i);
+      break;
+    }
+  }
+  if (currentScene === -1) showScene(0);
+}
+
+function start() {
+  document.getElementById('startOverlay').classList.add('hidden');
+  controls.classList.add('show');
+  isPlaying = true;
+  currentScene = -1;
+
+  audio = new Audio('mecha-voice-female.mp3');
+  audio.play().catch(() => console.log('Audio error'));
+
+  progressInterval = setInterval(() => {
+    if (!isPlaying) return;
+    const time = audio && !audio.ended ? audio.currentTime : 0;
+    update(time);
+    const pct = (time / 58) * 100;
+    progressBar.style.width = Math.min(pct, 100) + '%';
+    timeLabel.textContent = formatTime(time) + ' / 0:58';
+    if (audio && audio.ended) {
+      isPlaying = false;
+      clearInterval(progressInterval);
+    }
+  }, 50);
+}
+
+function restart() {
+  if (audio) { audio.pause(); audio = null; }
+  clearInterval(progressInterval);
+  progressBar.style.width = '0%';
+  timeLabel.textContent = '0:00 / 0:58';
+  currentScene = -1;
+  scenes.forEach(s => s.classList.remove('active'));
+  start();
+}
+
+document.getElementById('startOverlay').addEventListener('click', start);
+document.getElementById('replayBtn').addEventListener('click', restart);
+progressTrack.addEventListener('click', (e) => {
+  if (!audio) return;
+  const rect = progressTrack.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - rect.left) / rect.width) * 58;
+});
+</script>
+</body>
+</html>

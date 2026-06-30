@@ -1269,6 +1269,18 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
     onSaved();
   };
 
+  const handleEliminar = async () => {
+    if (!window.confirm(`¿Seguro que quieres eliminar al profesional "${prof.nombre}"? Si tiene citas asociadas, el sistema impedirá el borrado físico para preservar tus datos históricos.`)) return;
+    setLoading(true);
+    const { error } = await supabase.from('profesionales').delete().eq('id', prof.id);
+    setLoading(false);
+    if (error) {
+      alert(`No se pudo eliminar al profesional: ${mensajeDeError(error, 'Puede que tenga citas asociadas.')}`);
+    } else {
+      onSaved();
+    }
+  };
+
   const inputStyle: React.CSSProperties = { width: '100%', padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' };
   const labelStyle: React.CSSProperties = { fontSize: 11, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 };
 
@@ -1360,9 +1372,18 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
-          <button onClick={onClose} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
-          <button onClick={handleGuardar} disabled={loading} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(244,80,30,0.45)', opacity: loading ? 0.6 : 1 }}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', paddingTop: 16, borderTop: `1px solid ${TOKENS.border}` }}>
+          <button
+            onClick={handleEliminar}
+            disabled={loading}
+            style={{ padding: '9px 14px', background: 'transparent', border: `1px solid rgba(239,68,68,0.35)`, color: '#ef4444', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            ✕ Eliminar profesional
+          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={onClose} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
+            <button onClick={handleGuardar} disabled={loading} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(244,80,30,0.45)', opacity: loading ? 0.6 : 1 }}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
+          </div>
         </div>
       </div>
     </div>

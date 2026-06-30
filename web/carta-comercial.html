@@ -1,0 +1,2757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mecha OS — El Cerebro Operativo que Transforma tu Salón de Belleza</title>
+  <meta name="description" content="Dossier interactivo de Mecha OS con simulaciones de IA, optimización de reposo, fichas de color en 3D y calculadora de ROI." />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500;1,6..72,600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- GSAP for advanced animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  
+  <style>
+    /* ============================================================
+       DESIGN SYSTEM & TOKENS (Mecha OS Corporate Dark Theme)
+       ============================================================ */
+    :root {
+      --accent: #f4501e;
+      --accent-hi: #ff8a3d;
+      --accent-deep: #c0260a;
+      --accent-soft: rgba(244, 80, 30, 0.12);
+      --accent-glow: rgba(244, 80, 30, 0.4);
+      --bg: #07080b;
+      --bg-card: rgba(16, 23, 41, 0.55);
+      --bg-card-hi: rgba(22, 32, 58, 0.85);
+      --border: rgba(148, 163, 184, 0.08);
+      --border-hi: rgba(148, 163, 184, 0.18);
+      --text: #f6f8ff;
+      --text-sec: #9aa6c2;
+      --text-ter: #5f6d8a;
+      
+      --display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+      --body: 'Inter', system-ui, sans-serif;
+      --serif: 'Newsreader', Georgia, serif;
+      --mono: 'Space Grotesk', sans-serif;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      
+      --r-md: 14px;
+      --r-lg: 24px;
+      --maxw: 960px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      padding-bottom: 120px;
+    }
+
+    /* Ambient Background Glows */
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: #06070a;
+    }
+    .bg-glow::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(100% 70% at 50% -10%, rgba(244, 80, 30, 0.08), transparent 75%),
+        radial-gradient(60% 60% at 90% 25%, rgba(255, 138, 61, 0.05), transparent 70%),
+        radial-gradient(70% 60% at 10% 80%, rgba(244, 80, 30, 0.04), transparent 70%);
+    }
+    
+    #canvas-embers {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .bg-noise {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      opacity: 0.015;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ============================================================
+       TYPOGRAPHY & UTILITIES
+       ============================================================ */
+    h1, h2, h3, h4 {
+      font-family: var(--display);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--text);
+    }
+
+    p {
+      color: var(--text-sec);
+      font-size: 16px;
+      margin-bottom: 1.2em;
+    }
+
+    .text-center { text-align: center; }
+    .text-serif { font-family: var(--serif); font-style: italic; }
+    .grad-txt {
+      background: linear-gradient(135deg, #ff8a3d, #ffcf4a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(244, 80, 30, 0.25);
+      color: var(--accent-hi);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ============================================================
+       FLOATING AUDIO CONTROLLER
+       ============================================================ */
+    .audio-toggle-floating {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      background: rgba(16, 23, 41, 0.85);
+      border: 1px solid var(--border-hi);
+      padding: 10px 18px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(16px);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-sec);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .audio-toggle-floating:hover {
+      border-color: var(--accent-hi);
+      transform: translateY(-2px);
+    }
+    .audio-toggle-floating svg {
+      width: 14px;
+      height: 14px;
+      color: var(--accent-hi);
+    }
+
+    /* ============================================================
+       HERO HEADER
+       ============================================================ */
+    header {
+      padding: 80px 0 40px;
+    }
+    
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    
+    .logo-mark {
+      width: 56px;
+      height: 56px;
+      filter: drop-shadow(0 0 15px var(--accent-glow));
+    }
+
+    .main-title {
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.1;
+      margin-bottom: 16px;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      font-size: clamp(16px, 2.2vw, 19px);
+      color: var(--text-sec);
+      max-width: 720px;
+      margin: 0 auto 32px;
+      line-height: 1.5;
+    }
+
+    /* ============================================================
+       SPEED TOGGLE
+       ============================================================ */
+    .toggle-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .toggle-container {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-hi);
+      padding: 4px;
+      border-radius: 999px;
+      display: flex;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-btn {
+      padding: 10px 24px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-sec);
+      cursor: pointer;
+      position: relative;
+      z-index: 2;
+      transition: color 0.3s;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-btn.active {
+      color: #0c0d12;
+    }
+
+    .toggle-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 4px;
+      width: calc(50% - 4px);
+      background: linear-gradient(135deg, var(--accent-hi), var(--accent));
+      border-radius: 999px;
+      z-index: 1;
+      transition: transform 0.4s var(--ease);
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .state-carta .toggle-slider {
+      transform: translateX(100%);
+    }
+
+    /* ============================================================
+       CONTENT LAYOUTS
+       ============================================================ */
+    .content-section {
+      display: none;
+      opacity: 0;
+    }
+
+    .content-section.active {
+      display: block;
+      animation: fadeIn 0.6s var(--ease) forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       MODULAR SECTIONS (NO WALL OF TEXT)
+       ============================================================ */
+    .presentation-panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--r-lg);
+      padding: clamp(24px, 5vw, 48px);
+      box-shadow: 
+        0 40px 100px -30px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      position: relative;
+      margin-bottom: 48px;
+    }
+
+    .presentation-header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-ter);
+    }
+
+    .feature-block {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px;
+      margin-bottom: 64px;
+      align-items: center;
+    }
+
+    @media (min-width: 768px) {
+      .feature-block {
+        grid-template-columns: 1.1fr 0.9fr;
+      }
+      .feature-block.reverse {
+        grid-template-columns: 0.9fr 1.1fr;
+      }
+      .feature-block.reverse .info-side {
+        grid-column: 2;
+      }
+      .feature-block.reverse .widget-side {
+        grid-column: 1;
+        grid-row: 1;
+      }
+    }
+
+    .info-side h3 {
+      font-size: clamp(22px, 3.5vw, 28px);
+      line-height: 1.15;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .info-side h3::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background: var(--accent);
+    }
+
+    .value-bullets {
+      list-style: none;
+      margin-top: 20px;
+    }
+
+    .value-bullet-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+      font-size: 15px;
+      color: rgba(246, 248, 255, 0.85);
+    }
+
+    .value-bullet-item svg {
+      width: 18px;
+      height: 18px;
+      color: var(--accent-hi);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .value-bullet-item strong {
+      color: #fff;
+    }
+
+    .scannable-quote {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 19px;
+      line-height: 1.6;
+      border-left: 2px solid var(--accent);
+      padding-left: 20px;
+      margin: 40px 0;
+      color: rgba(246, 248, 255, 0.9);
+    }
+
+    /* ============================================================
+       FAST READING CARDS (1 MINUTE VERSION)
+       ============================================================ */
+    .fast-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px;
+      margin-bottom: 60px;
+    }
+    
+    @media (min-width: 768px) {
+      .fast-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .span-2 {
+        grid-column: span 2;
+      }
+    }
+
+    .card {
+      background: rgba(16, 23, 41, 0.35);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 32px;
+      transition: border-color 0.3s, transform 0.3s, background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      border-color: var(--accent-glow);
+      transform: translateY(-4px);
+      background: var(--bg-card);
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(244, 80, 30, 0.15);
+      display: grid;
+      place-items: center;
+      color: var(--accent-hi);
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .card h3 {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      font-size: 14.5px;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+
+    .card-tag {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-family: var(--mono);
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 3px 8px;
+      border-radius: 999px;
+      color: var(--text-ter);
+      letter-spacing: 0.05em;
+    }
+
+    /* ============================================================
+       INTERACTIVE MOTION GRAPHIC WIDGETS
+       ============================================================ */
+    .motion-widget-container {
+      background: rgba(7, 8, 12, 0.8);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--r-md);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6);
+      width: 100%;
+    }
+    
+    /* 1. Waveform Simulator Widget */
+    .waveform-widget {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 0;
+    }
+    
+    .wave-pulsator {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      border: 2px solid var(--accent);
+      display: grid;
+      place-items: center;
+      position: relative;
+      cursor: pointer;
+      box-shadow: 0 0 30px var(--accent-glow);
+    }
+    
+    .wave-ring {
+      position: absolute;
+      inset: -2px;
+      border: 2px solid var(--accent-hi);
+      border-radius: 50%;
+      opacity: 0;
+    }
+    
+    .wave-bar-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 40px;
+      width: 100%;
+      max-width: 280px;
+      margin: 10px 0;
+    }
+    
+    .wave-bar {
+      width: 3px;
+      height: 8px;
+      background: var(--accent-hi);
+      border-radius: 99px;
+      transition: height 0.15s var(--ease), background 0.3s;
+    }
+
+    .waveform-widget.playing .wave-bar {
+      background: linear-gradient(to top, var(--accent), var(--accent-hi));
+    }
+    
+    .sim-subtitle {
+      font-size: 13px;
+      font-family: var(--serif);
+      font-style: italic;
+      color: var(--text-sec);
+      text-align: center;
+      min-height: 40px;
+      max-width: 360px;
+      line-height: 1.4;
+    }
+
+    .sim-control-btn {
+      background: var(--accent-soft);
+      border: 1px solid rgba(244, 80, 30, 0.3);
+      color: var(--accent-hi);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sim-control-btn:hover {
+      background: var(--accent);
+      color: #07080b;
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+
+    /* 2. Reposo Grid Slots Widget */
+    .reposo-widget {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .reposo-timeline {
+      display: flex;
+      flex-direction: column;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      position: relative;
+    }
+
+    .timeline-hour {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-ter);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding-bottom: 4px;
+      margin-bottom: 12px;
+    }
+
+    .timeline-row {
+      height: 56px;
+      border-radius: 6px;
+      position: relative;
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px dashed rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+
+    .timeline-block {
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.5s var(--ease);
+    }
+
+    .timeline-block.active-service {
+      left: 10px;
+      width: calc(40% - 10px);
+      background: rgba(244, 80, 30, 0.15);
+      border: 1px solid rgba(244, 80, 30, 0.4);
+      color: var(--accent-hi);
+    }
+
+    .timeline-block.reposo-gap {
+      left: 40%;
+      width: 55%;
+      background: rgba(148, 163, 184, 0.04);
+      border: 1px dashed rgba(148, 163, 184, 0.15);
+      color: var(--text-sec);
+      justify-content: center;
+    }
+
+    .timeline-block.optimized-slot {
+      left: 45%;
+      width: 45%;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      transform: translateY(120%);
+      opacity: 0;
+    }
+
+    .floating-gain {
+      position: absolute;
+      top: 50%;
+      left: 65%;
+      transform: translate(-50%, -50%);
+      font-family: var(--mono);
+      font-weight: 800;
+      color: #10b981;
+      font-size: 24px;
+      opacity: 0;
+      pointer-events: none;
+      text-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    }
+
+    /* 3. Color Card 3D Tilt Hologram */
+    .color-card-tilt-container {
+      perspective: 1000px;
+      display: flex;
+      justify-content: center;
+      padding: 10px 0;
+    }
+
+    .color-card-hologram {
+      width: 290px;
+      height: 180px;
+      background: linear-gradient(135deg, rgba(22, 32, 58, 0.8), rgba(16, 23, 41, 0.9));
+      border: 1px solid var(--border-hi);
+      border-radius: var(--r-md);
+      padding: 16px;
+      position: relative;
+      transform-style: preserve-3d;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.3s;
+    }
+
+    .holo-grid {
+      position: absolute;
+      inset: 10px;
+      border: 1px solid rgba(244, 80, 30, 0.06);
+      border-radius: 6px;
+      pointer-events: none;
+      background-image: 
+        linear-gradient(rgba(244, 80, 30, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(244, 80, 30, 0.02) 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+
+    .holo-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--accent-hi);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .holo-formula {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    
+    .holo-meta {
+      font-size: 11.5px;
+      color: var(--text-sec);
+    }
+
+    .holo-badge {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(244, 80, 30, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent-hi);
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    /* 4. Tap to Pay Widget */
+    .taptopay-widget {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 220px;
+      position: relative;
+    }
+
+    .phone-mockup {
+      width: 130px;
+      height: 200px;
+      background: #090a0f;
+      border: 3.5px solid #222a3f;
+      border-radius: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 8px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+      z-index: 5;
+    }
+
+    .phone-notch {
+      width: 44px;
+      height: 8px;
+      background: #222a3f;
+      border-radius: 99px;
+      margin-bottom: 12px;
+    }
+
+    .phone-screen {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0f121d;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .payment-value {
+      font-family: var(--mono);
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .payment-status {
+      font-size: 8.5px;
+      font-weight: 700;
+      color: var(--text-ter);
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .nfc-ring {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .credit-card-mockup {
+      width: 120px;
+      height: 76px;
+      background: linear-gradient(135deg, var(--accent-hi), var(--accent-deep));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      position: absolute;
+      top: 60px;
+      right: 15px;
+      z-index: 10;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      transform: rotate(-15deg);
+      cursor: grab;
+      transition: border-color 0.3s;
+    }
+    .credit-card-mockup:active {
+      cursor: grabbing;
+    }
+    
+    .card-chip {
+      width: 16px;
+      height: 12px;
+      background: #ffcf4a;
+      border-radius: 2px;
+      margin: 10px 0 0 10px;
+    }
+
+    /* ============================================================
+       BEFORE vs AFTER COMPARISON PANEL
+       ============================================================ */
+    .compare-section {
+      margin: 80px 0;
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    @media (min-width: 768px) {
+      .compare-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .compare-column {
+      border-radius: var(--r-lg);
+      padding: 40px;
+      position: relative;
+    }
+
+    .compare-column.before {
+      background: rgba(239, 68, 68, 0.015);
+      border: 1px solid rgba(239, 68, 68, 0.1);
+    }
+
+    .compare-column.after {
+      background: rgba(16, 23, 41, 0.5);
+      border: 1px solid var(--border-hi);
+      box-shadow: 0 25px 60px -20px rgba(244, 80, 30, 0.1);
+    }
+
+    .compare-column h3 {
+      font-size: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .compare-column.before h3 { color: #ffb07a; }
+    .compare-column.after h3 { color: var(--text); }
+
+    .compare-column.after::before {
+      content: "SUPERIORIDAD MECHA";
+      position: absolute;
+      top: -12px;
+      left: 30px;
+      background: linear-gradient(135deg, var(--accent-hi), var(--accent));
+      color: #0c0d12;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 4px;
+      letter-spacing: 0.08em;
+    }
+
+    .compare-list {
+      list-style: none;
+    }
+
+    .compare-item {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .compare-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .compare-item h4 {
+      font-size: 16px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .compare-column.before .compare-item h4 { color: #fca5a5; }
+    .compare-column.after .compare-item h4 { color: var(--text); }
+
+    .compare-item p {
+      font-size: 14px;
+      margin-bottom: 0;
+      line-height: 1.5;
+    }
+
+    .compare-icon {
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+
+    /* ============================================================
+       ROI CALCULATOR
+       ============================================================ */
+    .calculator-panel {
+      background: linear-gradient(180deg, var(--bg-card-hi), var(--bg-card));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--r-lg);
+      padding: clamp(24px, 5vw, 48px);
+      margin: 80px 0;
+      box-shadow: 
+        0 40px 100px -30px rgba(0, 0, 0, 0.7),
+        0 0 40px rgba(244, 80, 30, 0.08);
+      position: relative;
+    }
+    
+    .calc-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    @media (min-width: 768px) {
+      .calc-grid {
+        grid-template-columns: 1.2fr 1fr;
+      }
+    }
+
+    .calc-sliders {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .slider-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-sec);
+    }
+
+    .slider-value {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent-hi);
+    }
+
+    .calc-results {
+      background: rgba(12, 13, 18, 0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .result-label {
+      font-size: 13.5px;
+      color: var(--text-sec);
+    }
+
+    .result-val {
+      font-family: var(--mono);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .result-val.lost {
+      color: #ef4444;
+    }
+
+    .result-val.saved {
+      color: var(--text);
+    }
+
+    .net-savings-box {
+      background: var(--accent-soft);
+      border: 1px solid rgba(244, 80, 30, 0.25);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .net-savings-label {
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--accent-hi);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .net-savings-val {
+      font-size: clamp(32px, 4vw, 44px);
+      font-family: var(--display);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+      text-shadow: 0 0 15px rgba(244, 80, 30, 0.3);
+    }
+
+    .net-savings-annual {
+      font-size: 13px;
+      color: var(--text-sec);
+      margin-top: 4px;
+    }
+
+    /* ============================================================
+       PRICING PACKAGES
+       ============================================================ */
+    .pricing-heading {
+      margin: 80px 0 40px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px;
+      max-width: 820px;
+      margin: 0 auto 60px;
+    }
+
+    @media (min-width: 640px) {
+      .pricing-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .price-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--r-lg);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.3s, border-color 0.3s;
+      position: relative;
+    }
+
+    .price-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-glow);
+    }
+
+    .price-card.featured {
+      border: 1px solid rgba(244, 80, 30, 0.4);
+      box-shadow: 0 20px 50px -15px rgba(244, 80, 30, 0.15);
+    }
+
+    .price-card.featured::after {
+      content: "EL RECOMENDADO";
+      position: absolute;
+      top: -12px;
+      right: 30px;
+      background: linear-gradient(135deg, var(--accent-hi), var(--accent));
+      color: #0c0d12;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .price-header h3 {
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .price-desc {
+      font-size: 13.5px;
+      color: var(--text-ter);
+      line-height: 1.4;
+      margin-bottom: 24px;
+    }
+
+    .price-amount {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 24px;
+    }
+
+    .price-num {
+      font-size: 48px;
+      font-family: var(--display);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .price-period {
+      font-size: 14px;
+      color: var(--text-sec);
+    }
+
+    .price-features {
+      list-style: none;
+      margin-bottom: 32px;
+    }
+
+    .price-feature-item {
+      font-size: 14px;
+      color: var(--text-sec);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    
+    .price-feature-item:last-child {
+      border-bottom: none;
+    }
+
+    .price-feature-item svg {
+      width: 16px;
+      height: 16px;
+      color: var(--accent-hi);
+      flex-shrink: 0;
+    }
+
+    /* Buttons styling */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: var(--r-md);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-hi), var(--accent));
+      color: #0c0d12;
+      box-shadow: 0 8px 24px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(244, 80, 30, 0.6);
+      color: #000;
+    }
+
+    .btn-ghost {
+      border: 1px solid var(--border-hi);
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent-hi);
+      transform: translateY(-2px);
+    }
+
+    /* ============================================================
+       CTA & FOOTER BLOCK
+       ============================================================ */
+    .cta-panel {
+      text-align: center;
+      background: radial-gradient(circle at 50% 50%, rgba(244, 80, 30, 0.1) 0%, transparent 70%);
+      border-radius: var(--r-lg);
+      padding: 60px 40px;
+      border: 1px solid var(--border);
+      margin-top: 80px;
+    }
+
+    .cta-panel h2 {
+      font-size: clamp(28px, 4vw, 42px);
+      margin-bottom: 16px;
+    }
+
+    .cta-panel p {
+      max-width: 600px;
+      margin: 0 auto 32px;
+      font-size: 16.5px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 480px) {
+      .cta-buttons {
+        flex-direction: row;
+      }
+    }
+
+    /* ============================================================
+       ANIMATION WRAPPERS
+       ============================================================ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    /* ============================================================
+       LETTER SIGNATURE & WAX SEAL
+       ============================================================ */
+    .letter-signature {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 40px;
+      margin-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+
+    .signature-text .text-ter {
+      font-size: 14px;
+      color: var(--text-ter);
+      margin-bottom: 4px;
+    }
+
+    .signature-text .name {
+      font-family: var(--display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0;
+    }
+
+    .wax-seal {
+      width: 64px;
+      height: 64px;
+      cursor: pointer;
+      position: relative;
+      filter: drop-shadow(0 4px 12px rgba(158, 35, 7, 0.5));
+      transition: transform 0.3s;
+    }
+
+    .wax-seal:hover {
+      transform: scale(1.1);
+    }
+
+    .wax-seal svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ============================================================
+       CUSTOM RANGE SLIDER (DARK PREMIUM)
+       ============================================================ */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 99px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-hi), var(--accent));
+      box-shadow: 0 2px 8px var(--accent-glow), 0 0 0 3px rgba(244, 80, 30, 0.15);
+      cursor: grab;
+      transition: box-shadow 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      box-shadow: 0 4px 16px var(--accent-glow), 0 0 0 5px rgba(244, 80, 30, 0.2);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:active {
+      cursor: grabbing;
+      transform: scale(1.15);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-hi), var(--accent));
+      box-shadow: 0 2px 8px var(--accent-glow);
+      cursor: grab;
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 99px;
+      border: none;
+    }
+
+    /* ============================================================
+       FAST CARD BULLET LISTS
+       ============================================================ */
+    .card-bullets {
+      list-style: none;
+      margin-top: 12px;
+    }
+
+    .card-bullets li {
+      font-size: 14px;
+      color: rgba(246, 248, 255, 0.8);
+      padding: 5px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .card-bullets li::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-hi);
+      flex-shrink: 0;
+      margin-top: 7px;
+    }
+
+    .card-bullets li strong {
+      color: #fff;
+    }
+
+  </style>
+</head>
+<body class="state-carta">
+
+  <!-- Background Layer -->
+  <div class="bg-glow"></div>
+  <canvas id="canvas-embers"></canvas>
+  <div class="bg-noise"></div>
+
+  <!-- FLOATING SPEAKER CONTROLLER -->
+  <div class="audio-toggle-floating" id="soundToggle">
+    <svg fill="currentColor" viewBox="0 0 24 24" id="soundIcon" style="width:14px;height:14px">
+      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+    </svg>
+    <span id="soundLabel">EFECTOS: ON</span>
+  </div>
+
+  <div class="container">
+    
+    <!-- ============ HERO HEADER ============ -->
+    <header class="text-center">
+      <div class="logo-container reveal">
+        <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <defs>
+            <linearGradient id="mGrad" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#e0340e" />
+              <stop offset=".5" stop-color="#ff7a2e" />
+              <stop offset="1" stop-color="#ffcf4a" />
+            </linearGradient>
+          </defs>
+          <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGrad)" />
+          <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fff" opacity=".92" />
+        </svg>
+      </div>
+      
+      <span class="badge reveal">
+        <svg style="width:14px;height:14px;fill:currentColor;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+        Dossier de Impacto en Negocio
+      </span>
+      
+      <h1 class="main-title reveal">
+        Mecha OS: El Cerebro Operativo <br/>que <span class="grad-txt">transforma</span> tu Salón.
+      </h1>
+      <p class="subtitle reveal">
+        No es otra agenda estática. Es un cerebro inteligente diseñado para optimizar tu tiempo, eliminar las comisiones abusivas de cobro y automatizar tu recepción de forma humana.
+      </p>
+    </header>
+
+    <!-- ============ READING SPEED TOGGLE ============ -->
+    <div class="toggle-wrapper reveal">
+      <div class="toggle-container" id="readingToggle">
+        <div class="toggle-slider"></div>
+        <div class="toggle-btn" id="btn1Min" data-target="fast">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Resumen (1 Minuto)
+        </div>
+        <div class="toggle-btn active" id="btn5Min" data-target="carta">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 4a2 2 0 00-2-2m2 2v10a2 2 0 01-2 2M9 9h6m-6 4h6m-6 4h6"/></svg>
+          Análisis de Valor
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+         SECTION: FAST READING (1 MINUTE)
+         ============================================================ -->
+    <div class="content-section" id="fastSection">
+      <div class="fast-grid">
+        
+        <div class="card sfx-card">
+          <div class="card-tag">Tecnología IA</div>
+          <div class="card-icon">📞</div>
+          <h3>Agente de Voz & WhatsApp 24/7</h3>
+          <ul class="card-bullets">
+            <li>La IA atiende <strong>llamadas y WhatsApps simultáneos</strong> con tono humano</li>
+            <li>Conoce tus precios, consulta tu agenda y <strong>reserva citas sola</strong></li>
+            <li>Recuperas hasta <strong>400€/semana</strong> en llamadas que antes perdías</li>
+          </ul>
+        </div>
+
+        <div class="card sfx-card">
+          <div class="card-tag">Agenda Inteligente</div>
+          <div class="card-icon">⏳</div>
+          <h3>Optimización de Tiempos de Reposo</h3>
+          <ul class="card-bullets">
+            <li>Detecta los <strong>40 min de reposo</strong> de tinte o decoloración</li>
+            <li>Mete citas express (lavado, peinado, corte rápido) en ese hueco</li>
+            <li>Facturas un <strong>20% más sin alargar jornadas</strong></li>
+          </ul>
+        </div>
+
+        <div class="card sfx-card">
+          <div class="card-tag">CRM Especializado</div>
+          <div class="card-icon">🎨</div>
+          <h3>Fichas Técnicas de Color Digitales</h3>
+          <ul class="card-bullets">
+            <li>Historial de fórmulas exactas accesible en <strong>3 segundos</strong></li>
+            <li>Cualquier estilista replica el color idéntico sin depender de memoria</li>
+            <li>Fidelizas al cliente <strong>con tu salón, no con un empleado</strong></li>
+          </ul>
+        </div>
+
+        <div class="card sfx-card">
+          <div class="card-tag">Libertad Financiera</div>
+          <div class="card-icon">💳</div>
+          <h3>TPV Libre de Comisiones (BYOP)</h3>
+          <ul class="card-bullets">
+            <li>Conecta tu TPV bancario (Redsýs, Bizum) al <strong>0.4%</strong></li>
+            <li>Dejas de pagar el <strong>2.5% de comisión</strong> de Booksy/Fresha</li>
+            <li>Ahorro neto: más de <strong>500€ al mes</strong></li>
+          </ul>
+        </div>
+
+        <div class="card span-2 sfx-card">
+          <div class="card-tag">La Transformación</div>
+          <div class="card-icon">✨</div>
+          <h3>¿Qué cambia en el día a día de tu negocio?</h3>
+          <ul class="card-bullets">
+            <li>El teléfono <strong>deja de sonar</strong> en hora punta — la IA lo gestiona</li>
+            <li>Tus estilistas se centran al 100% en el cliente presencial</li>
+            <li>Los no-shows caen al <strong>1.2%</strong> gracias a pre-autorizaciones inteligentes</li>
+            <li>Tu caja crece libre de comisiones de intermediarios</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+         SECTION: VALUE PRESENTATION (NO WALL OF TEXT)
+         ============================================================ -->
+    <div class="content-section active" id="cartaSection">
+      <article class="presentation-panel">
+        
+        <div class="presentation-header">
+          <span>ÁREA: RENDIMIENTO Y OPERACIONES DEL SALÓN</span>
+          <span>MECHA OS v1.0</span>
+        </div>
+
+        <!-- INTRO GREETING -->
+        <p class="letter-greeting">
+          Si tu agenda digital actual solo sirve para que el cliente elija un hueco, estás perdiendo control y dinero. En Mecha OS diseñamos tecnología para <strong>proteger tu tiempo, multiplicar tu facturación y blindar el margen de tu salón</strong>.
+        </p>
+
+        <!-- 1. RECEPCION AUTONOMA -->
+        <div class="feature-block">
+          <div class="info-side">
+            <h3>1. Cero llamadas perdidas. Cero WhatsApps acumulados.</h3>
+            <p>
+              El teléfono sonando en hora punta interrumpe a tus estilistas y arruina la experiencia de lujo del cliente en el tocador. 
+            </p>
+            <ul class="value-bullets">
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>Qué hace:</strong> El Agente de Voz y WhatsApp de Mecha atiende llamadas y chats de forma simultánea 24/7 con tono humano y educado.</span>
+              </li>
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>Qué ganas:</strong> Recuperas hasta <strong>400€ semanales</strong> en citas de clientes nocturnos o llamadas perdidas que antes se iban a tu competencia.</span>
+              </li>
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>El impacto:</strong> Tu equipo trabaja en silencio, concentrado en el cabello y aumentando el ticket medio en el salón.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="widget-side">
+            <div class="motion-widget-container">
+              <div class="waveform-widget" id="waveWidget">
+                <div class="wave-pulsator" id="wavePlayBtn">
+                  <svg fill="currentColor" viewBox="0 0 24 24" style="width:20px;height:20px;color:#fff"><path d="M8 5v14l11-7z"/></svg>
+                  <div class="wave-ring" id="waveRing"></div>
+                </div>
+                <div class="wave-bar-container" id="waveBarContainer"></div>
+                <div class="sim-control-btn" id="waveSimTextBtn">SIMULAR RECEPCIONISTA IA</div>
+                <div class="sim-subtitle" id="waveSubtitle">Haz clic para escuchar cómo interactúa la IA con tus llamadas.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. OPTIMIZACION DE REPOSO -->
+        <div class="feature-block reverse">
+          <div class="info-side">
+            <h3>2. Factura un 20% más sin alargar tus jornadas</h3>
+            <p>
+              Durante un tinte o mechas, tu cliente pasa entre 30 y 45 minutos esperando en reposo. Las agendas tradicionales bloquean ese tiempo por completo, creando tiempos muertos improductivos.
+            </p>
+            <ul class="value-bullets">
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>Qué hace:</strong> Detecta los intervalos de reposo químico en la agenda y sugiere rellenarlos dinámicamente.</span>
+              </li>
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>Qué ganas:</strong> Metes una cita express (lavado, corte rápido o peinado) en ese hueco vacío. Facturación extra con el mismo personal.</span>
+              </li>
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>El impacto:</strong> Optimizas la ocupación por hora del estilista sin saturarlo ni hacerle hacer horas extra.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="widget-side">
+            <div class="motion-widget-container">
+              <div class="reposo-widget">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-family:var(--mono);font-size:10px;color:var(--accent-hi)">AGENDA DINÁMICA</span>
+                  <button class="sim-control-btn" id="reposoSimBtn">OPTIMIZAR TIEMPO MUERTO</button>
+                </div>
+                <div class="reposo-timeline">
+                  <div class="timeline-hour">
+                    <span>16:00</span>
+                    <span>16:30</span>
+                    <span>17:00</span>
+                  </div>
+                  <div class="timeline-row">
+                    <div class="timeline-block active-service">Tinte (Fase Activa)</div>
+                    <div class="timeline-block reposo-gap" id="reposoGapBlock">Reposo Tinte (40 min)</div>
+                    <div class="timeline-block optimized-slot" id="optimizedSlot">Corte Express</div>
+                    <div class="floating-gain" id="floatingGain">+25€</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. FICHAS TECNICAS DE COLOR -->
+        <div class="feature-block">
+          <div class="info-side">
+            <h3>3. Resultados perfectos. Clientes fieles a tu marca.</h3>
+            <p>
+              Cuando un cliente dice <em>"quiero el mismo color de la última vez"</em>, depender de la libreta del estilista o de su memoria es un riesgo crítico.
+            </p>
+            <ul class="value-bullets">
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>Qué hace:</strong> Guarda fórmulas exactas de gramos de tinte, volúmenes de oxidante, tiempos y sensibilidades capilares en 3 segundos.</span>
+              </li>
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>Qué ganas:</strong> Cualquier estilista del equipo puede atender al cliente con el mismo estándar de calidad. Garantizas un resultado idéntico.</span>
+              </li>
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>El impacto:</strong> El cliente pierde el miedo a ser atendido por un estilista diferente. Fidelizas al cliente con tu salón, no con un empleado.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="widget-side">
+            <div class="motion-widget-container">
+              <div style="text-align:center;margin-bottom:8px">
+                <span style="font-family:var(--mono);font-size:9.5px;color:var(--text-ter)">HOLOGRAMA 3D (DESLIZA EL RATÓN ENCIMA)</span>
+              </div>
+              <div class="color-card-tilt-container">
+                <div class="color-card-hologram" id="colorCardHolo">
+                  <div class="holo-grid"></div>
+                  <div class="holo-title">FÓRMULA TÉCNICA</div>
+                  <div class="holo-formula" style="margin-top:10px">Mezcla: 60g 7.1 + 30g 8.1</div>
+                  <div class="holo-formula">Volumen: 90g Ox. 20 Vol.</div>
+                  <div class="holo-meta" style="margin-top:14px">Estilista: Carlos S. · Exposición: 35m</div>
+                  <div class="holo-meta">Sensibilidad: Cuero cabelludo seco</div>
+                  <div class="holo-badge">CONFIRMADO</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. BYOP LIBERTAD FINANCIERA -->
+        <div class="feature-block reverse">
+          <div class="info-side">
+            <h3>4. Conserva tus márgenes. Trae tu propio TPV comercial.</h3>
+            <p>
+              Booksy y Fresha te obligan a usar su pasarela de pagos, cobrándote comisiones de hasta el 2.5% de tus ingresos con tarjeta. Es un impuesto oculto a tu crecimiento.
+            </p>
+            <ul class="value-bullets">
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>Qué hace (BYOP):</strong> Te permite conectar el TPV virtual de tu banco (BBVA, Santander, Sabadell) y Bizum directamente a la agenda.</span>
+              </li>
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>Qué ganas:</strong> Mantienes tu tasa bancaria del <strong>0.4%</strong> en vez de regalar un 2.5%. Ahorras más de <strong>6.000€ anuales</strong>.</span>
+              </li>
+              <li class="value-bullet-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                <span><strong>El cobro NFC:</strong> Cobras arrimando la tarjeta al móvil del estilista (Tap to Pay), sin datáfonos de hardware tradicionales.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="widget-side">
+            <div class="motion-widget-container">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-family:var(--mono);font-size:9.5px;color:var(--accent-hi)">PROCESADOR BANCARIO DIRECTO</span>
+                <button class="sim-control-btn" id="taptopaySimBtn">SIMULAR COBRO NFC</button>
+              </div>
+              <div class="taptopay-widget" id="taptopayWidget">
+                <div class="phone-mockup">
+                  <div class="phone-notch"></div>
+                  <div class="phone-screen">
+                    <div class="nfc-ring" id="nfcRing"></div>
+                    <span class="payment-value" id="paymentValue">45,00 €</span>
+                    <span class="payment-status" id="paymentStatus">ACERQUE TARJETA</span>
+                  </div>
+                </div>
+                <div class="credit-card-mockup" id="creditCard">
+                  <div class="card-chip"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="scannable-quote">
+          "No te pedimos que dejes Booksy o Fresha hoy si temes perder tu histórico. Puedes sincronizar tu cuenta actual con Mecha OS y empezar a utilizar nuestros agentes de IA y la pasarela BYOP para ahorrar y optimizar de forma inmediata, sin cambiar de software principal."
+        </p>
+
+        <div class="letter-signature">
+          <div class="signature-text">
+            <p class="text-ter">Diseñado para el crecimiento de tu salón,</p>
+            <p class="name">El Equipo de Mecha OS</p>
+          </div>
+          <div class="wax-seal" id="waxSeal">
+            <svg viewBox="0 0 100 100" fill="none">
+              <path d="M50 5C25.147 5 5 25.147 5 50s20.147 45 45 45 45-20.147 45-45S74.853 5 50 5z" fill="#9e2307" />
+              <path d="M50 8C26.8 8 8 26.8 8 50s18.8 42 42 42 42-18.8 42-42S73.2 8 50 8z" fill="#b82d0d" />
+              <circle cx="50" cy="50" r="32" fill="#d43913" />
+              <path d="M50 25c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="#fff" opacity="0.8" />
+            </svg>
+          </div>
+        </div>
+
+      </article>
+    </div>
+
+
+    <!-- ============================================================
+         SECTION: BEFORE vs AFTER GRID (Visual Summary)
+         ============================================================ -->
+    <div class="compare-section reveal">
+      <h2 class="text-center" style="font-size: 28px; margin-bottom: 40px;">¿Qué cambia en tu negocio con Mecha?</h2>
+      
+      <div class="compare-grid">
+        <!-- Before: Booksy/Fresha -->
+        <div class="compare-column before">
+          <h3>
+            <span class="compare-icon">🔴</span>
+            El Salón Tradicional
+          </h3>
+          <ul class="compare-list">
+            <li class="compare-item">
+              <h4>Comisiones del 2.5% de Tarjeta</h4>
+              <p>Booksy o Fresha actúan como intermediarios y se quedan con una parte de cada corte y tratamiento.</p>
+            </li>
+            <li class="compare-item">
+              <h4>Llamadas Perdidas en Hora Punta</h4>
+              <p>Llamadas que no se atienden por estar lavando cabezas o secando, que acaban yendo a la competencia.</p>
+            </li>
+            <li class="compare-item">
+              <h4>Fórmulas de Color en Libreta</h4>
+              <p>Fórmulas apuntadas en papeles que se pierden o se van con el estilista si este cambia de salón.</p>
+            </li>
+            <li class="compare-item">
+              <h4>Tiempos Muertos Vacíos</h4>
+              <p>La agenda bloquea periodos completos para servicios de color, perdiendo la oportunidad de atender otros servicios cortos.</p>
+            </li>
+          </ul>
+        </div>
+
+        <!-- After: Mecha -->
+        <div class="compare-column after">
+          <h3>
+            <span class="compare-icon">🟢</span>
+            El Salón Optimizado (Mecha OS)
+          </h3>
+          <ul class="compare-list">
+            <li class="compare-item">
+              <h4>TPV Directo de tu Banco (BYOP)</h4>
+              <p>Pagas la tasa de 0.4% de tu banco y a Mecha solo una cuota plana mensual de 29€ por el conector virtual.</p>
+            </li>
+            <li class="compare-item">
+              <h4>IA Conversacional en Voz y WhatsApp</h4>
+              <p>La IA coge llamadas y responde a WhatsApps 24/7 de forma educada y humana, agendando directamente.</p>
+            </li>
+            <li class="compare-item">
+              <h4>Historial de Fórmulas Centralizado</h4>
+              <p>Fichas técnicas digitales accesibles en 3 segundos por cualquier miembro del equipo para un resultado idéntico.</p>
+            </li>
+            <li class="compare-item">
+              <h4>Ocupación de Tiempos de Reposo</h4>
+              <p>El sistema detecta los periodos de espera de color del cliente y encaja citas express de lavado o peinado automáticamente.</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+         SECTION: INTERACTIVE ROI CALCULATOR
+         ============================================================ -->
+    <div class="calculator-panel reveal">
+      <div class="calc-grid">
+        
+        <div>
+          <h2 style="font-size: 26px; margin-bottom: 12px;">Calculadora de Ahorro y Margen</h2>
+          <p style="font-size: 14.5px; margin-bottom: 32px; color: var(--text-sec);">
+            Introduce los datos de facturación de tu salón para ver cómo influye la pasarela BYOP y el sistema anti no-show en tu cuenta de resultados.
+          </p>
+          
+          <div class="calc-sliders">
+            <!-- Facturación en Tarjetas Slider -->
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="slider-label">Facturación mensual con tarjeta</span>
+                <span class="slider-value" id="valFacturacion">25.000 €</span>
+              </div>
+              <input type="range" id="rangeFacturacion" min="5000" max="80000" step="1000" value="25000" class="sfx-slider" />
+            </div>
+
+            <!-- Ausencias (No-shows) Slider -->
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="slider-label">No-shows (citas fallidas) al mes</span>
+                <span class="slider-value" id="valAusencias">8 citas</span>
+              </div>
+              <input type="range" id="rangeAusencias" min="0" max="30" step="1" value="8" class="sfx-slider" />
+            </div>
+
+            <!-- Ticket Medio Slider -->
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="slider-label">Precio del ticket medio</span>
+                <span class="slider-value" id="valTicket">45 €</span>
+              </div>
+              <input type="range" id="rangeTicket" min="15" max="120" step="5" value="45" class="sfx-slider" />
+            </div>
+          </div>
+        </div>
+
+        <div class="calc-results">
+          <div>
+            <div class="result-row">
+              <span class="result-label">Comisión cobrada por Booksy/Fresha (2.3%):</span>
+              <span class="result-val lost" id="costeCompetencia">604,00 €</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Pérdida por no-shows (citas vacías):</span>
+              <span class="result-val lost" id="perdidaNoShow">360,00 €</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Coste Mecha Profesional + TPV Banco (0.4%):</span>
+              <span class="result-val saved" id="costeMecha">199,00 €</span>
+            </div>
+          </div>
+
+          <div class="net-savings-box" id="netSavingsBox">
+            <div class="net-savings-label">Ahorro Mensual Neto</div>
+            <div class="net-savings-val" id="ahorroMensual">785,00 €</div>
+            <div class="net-savings-annual" id="ahorroAnual">Equivale a 9.420 € de ahorro al año</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+         SECTION: DETAILED PRICING (REDESIGNED)
+         ============================================================ -->
+    <div class="pricing-heading text-center reveal">
+      <h2 style="font-size: 32px; margin-bottom: 12px;">Inversión Mensual, Retorno Inmediato</h2>
+      <p style="max-width: 640px; margin: 0 auto; color: var(--text-sec);">
+        Sin comisiones por cobro con tarjeta. Sin datáfonos de 149€. Sin letra pequeña. Solo una cuota plana que se paga sola con el ahorro del primer mes.
+      </p>
+    </div>
+
+    <div class="pricing-grid reveal" style="max-width: 900px;">
+      
+      <!-- Plan Starter -->
+      <div class="price-card sfx-card">
+        <div>
+          <div class="price-header">
+            <h3>Plan Starter</h3>
+            <p class="price-desc">Para barberías y salones de 1 a 3 profesionales que quieren digitalizarse y automatizar su comunicación con el cliente.</p>
+            <div class="price-amount">
+              <span class="price-num">59€</span>
+              <span class="price-period">/ mes</span>
+            </div>
+          </div>
+
+          <ul class="price-features">
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Agenda inteligente con detección de reposos
+            </li>
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              CRM de Clientes + Fichas técnicas de color
+            </li>
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Portal de reservas online + QR
+            </li>
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Motor WhatsApp automático (confirmaciones, recordatorios, reseñas)
+            </li>
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Depósitos anti no-show (Stripe Holds)
+            </li>
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Analítica de negocio + Referidos multinivel
+            </li>
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Lista de espera automática
+            </li>
+            <li class="price-feature-item" style="opacity: 0.4;">
+              <svg style="color:var(--text-ter);width:16px;height:16px" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              Asistente WhatsApp IA conversacional
+            </li>
+            <li class="price-feature-item" style="opacity: 0.4;">
+              <svg style="color:var(--text-ter);width:16px;height:16px" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              Agente de Voz telefónico IA
+            </li>
+            <li class="price-feature-item" style="opacity: 0.4;">
+              <svg style="color:var(--text-ter);width:16px;height:16px" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              Conector TPV propio (BYOP)
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; font-size: 13px; color: var(--text-sec); text-align: center;">
+            <span style="color: var(--accent-hi); font-weight: 700;">59€ =</span> menos que lo que cuesta 1 corte premium en tu salón
+          </div>
+          <button class="btn btn-ghost" onclick="window.parent.postMessage('select_plan_starter', '*')">Elegir Plan Starter</button>
+        </div>
+      </div>
+
+      <!-- Plan Profesional -->
+      <div class="price-card featured sfx-card">
+        <div>
+          <div class="price-header">
+            <h3>Plan Profesional</h3>
+            <p class="price-desc">Para salones consolidados (4+ profesionales) que facturan con volumen y quieren maximizar ahorro, atención e ingresos.</p>
+            <div class="price-amount">
+              <span class="price-num">99€</span>
+              <span class="price-period">/ mes</span>
+            </div>
+          </div>
+
+          <ul class="price-features">
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <strong>Todo lo del Plan Starter</strong>
+            </li>
+            <li class="price-feature-item" style="border-left: 2px solid var(--accent); padding-left: 10px; margin-left: 4px;">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <strong>Asistente WhatsApp IA conversacional 24/7</strong>
+            </li>
+            <li class="price-feature-item" style="border-left: 2px solid var(--accent); padding-left: 10px; margin-left: 4px;">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <strong>Agente de Voz telefónico IA</strong> <span style="font-size:11px; color:var(--accent-hi); margin-left:4px;">(120 min/mes incluidos)</span>
+            </li>
+            <li class="price-feature-item" style="border-left: 2px solid var(--accent); padding-left: 10px; margin-left: 4px;">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <strong>Conector TPV propio (BYOP)</strong> <span style="font-size:11px; color:var(--text-ter); margin-left:4px;">Redsýs / Bizum</span>
+            </li>
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Datáfono Virtual (Tap to Pay NFC + QR)
+            </li>
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Depósitos dinámicos por riesgo (VIP=0%, nuevo=20%, reincidente=hasta 100%)
+            </li>
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Calculador de retrasos en cadena
+            </li>
+            <li class="price-feature-item">
+              <svg fill="currentColor" viewBox="0 0 20 20" style="width:16px;height:16px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Onboarding concierge manual por nuestro equipo
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div style="background: var(--accent-soft); border: 1px solid rgba(244, 80, 30, 0.2); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; font-size: 13px; color: rgba(246,248,255,0.9); text-align: center; line-height: 1.5;">
+            <span style="color: var(--accent-hi); font-weight: 700; font-size: 15px;">99€ vs. los ~964€/mes</span><br/>
+            que pierdes con Booksy en comisiones + no-shows facturando 25K€
+          </div>
+          <button class="btn btn-primary" onclick="window.parent.postMessage('select_plan_profesional', '*')">Elegir Plan Profesional</button>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         CTA PANEL (ONBOARDING CONCIERGE)
+         ============================================================ -->
+    <div class="cta-panel reveal">
+      <h2>Únete al Modelo Concierge de Mecha</h2>
+      <p>
+        Operamos bajo el modelo concierge: nuestro equipo configura tu cuenta, integra tus agentes de IA personalizados a tus líneas telefónicas y WhatsApp, y conecta tu TPV bancario a mano. Plazas limitadas.
+      </p>
+      
+      <div class="cta-buttons">
+        <a href="demo.html" class="btn btn-primary sfx-card" style="flex:1">Reservar Demo Onboarding</a>
+        <a href="https://wa.me/34690792975" class="btn btn-ghost sfx-card" style="flex:1" target="_blank">
+          Probar Asistente IA WhatsApp
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ============================================================
+    // 🔊 SYNTHESIZER SFX CONTROLLER (Web Audio API)
+    // ============================================================
+    const MechaSFX = {
+      ctx: null,
+      enabled: true,
+      init() {
+        if (this.ctx) return;
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      },
+      toggle() {
+        this.enabled = !this.enabled;
+        this.playClick();
+        return this.enabled;
+      },
+      playHover() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+        
+        gain.gain.setValueAtTime(0.012, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        
+        osc.start(now);
+        osc.stop(now + 0.04);
+      },
+      playClick() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const gain1 = this.ctx.createGain();
+        const gain2 = this.ctx.createGain();
+        
+        osc1.connect(gain1); gain1.connect(this.ctx.destination);
+        osc2.connect(gain2); gain2.connect(this.ctx.destination);
+        
+        osc1.type = 'triangle';
+        osc1.frequency.setValueAtTime(180, now);
+        osc1.frequency.exponentialRampToValueAtTime(360, now + 0.12);
+        gain1.gain.setValueAtTime(0.08, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1400, now);
+        gain2.gain.setValueAtTime(0.04, now);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        
+        osc1.start(now); osc1.stop(now + 0.12);
+        osc2.start(now); osc2.stop(now + 0.06);
+      },
+      playSliderTick(freqValue) {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freqValue, now);
+        gain.gain.setValueAtTime(0.01, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+        
+        osc.start(now);
+        osc.stop(now + 0.02);
+      },
+      playSuccess() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 -> E5 -> G5 -> C6 (Success chord)
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + (idx * 0.06));
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(0.08, now + (idx * 0.06) + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.06) + 0.25);
+          
+          osc.start(now + (idx * 0.06));
+          osc.stop(now + (idx * 0.06) + 0.25);
+        });
+      },
+      playImpact() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(90, now);
+        osc.frequency.linearRampToValueAtTime(30, now + 0.4);
+        
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        
+        osc.start(now);
+        osc.stop(now + 0.4);
+      }
+    };
+
+    // Sound toggle listener
+    const soundToggle = document.getElementById('soundToggle');
+    const soundLabel = document.getElementById('soundLabel');
+    soundToggle.addEventListener('click', () => {
+      const active = MechaSFX.toggle();
+      soundLabel.textContent = active ? "EFECTOS: ON" : "EFECTOS: OFF";
+    });
+
+    // Sound hover effects
+    document.addEventListener('mouseover', (e) => {
+      if (e.target.closest('.toggle-btn') || e.target.closest('.sfx-card') || e.target.closest('.btn') || e.target.closest('#waxSeal') || e.target.closest('.sim-control-btn') || e.target.closest('.wave-pulsator') || e.target.closest('.color-card-hologram')) {
+        MechaSFX.playHover();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.toggle-btn') || e.target.closest('.btn') || e.target.closest('.sim-control-btn')) {
+        MechaSFX.playClick();
+      }
+    });
+
+    // ============================================================
+    // 🎨 CANVAS EMBERS BACKGROUND
+    // ============================================================
+    const canvas = document.getElementById('canvas-embers');
+    const ctx = canvas.getContext('2d');
+    
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+    
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = height + Math.random() * 80;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedY = -(Math.random() * 1.5 + 0.5);
+        this.speedX = Math.random() * 0.6 - 0.3;
+        this.alpha = Math.random() * 0.5 + 0.2;
+        this.decay = Math.random() * 0.002 + 0.001;
+      }
+      update(mouseX, mouseY) {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        this.alpha -= this.decay;
+
+        // Mouse repulsion
+        const dx = this.x - mouseX;
+        const dy = this.y - mouseY;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 100) {
+          const force = (100 - dist) / 100;
+          this.x += (dx / dist) * force * 3;
+          this.y += (dy / dist) * force * 1.5;
+        }
+
+        if (this.alpha <= 0 || this.y < -10) {
+          this.reset();
+        }
+      }
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = '#ff6c2f';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#e0340e';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    const particles = Array.from({ length: 48 }, () => new Particle());
+    let mouseX = -999;
+    let mouseY = -999;
+    
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function loop() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach(p => {
+        p.update(mouseX, mouseY);
+        p.draw();
+      });
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+
+    // ============================================================
+    // 🤖 WIDGET 1: WAVEFORM IA VOICE SIMULATOR
+    // ============================================================
+    const wavePlayBtn = document.getElementById('wavePlayBtn');
+    const waveSimTextBtn = document.getElementById('waveSimTextBtn');
+    const waveRing = document.getElementById('waveRing');
+    const waveBarContainer = document.getElementById('waveBarContainer');
+    const waveSubtitle = document.getElementById('waveSubtitle');
+    const waveWidget = document.getElementById('waveWidget');
+
+    // Create wave bars dynamically
+    const barCount = 36;
+    for (let i = 0; i < barCount; i++) {
+      const bar = document.createElement('div');
+      bar.classList.add('wave-bar');
+      waveBarContainer.appendChild(bar);
+    }
+    
+    const bars = document.querySelectorAll('.wave-bar');
+    let isPlayingVoice = false;
+    let voiceInterval = null;
+    let speechTimeline = [];
+    
+    const voiceCues = [
+      { text: "Llamada entrante: IA de Mecha atendiendo...", time: 0 },
+      { text: "— 'Hola, soy Mecha, la asistente virtual del salón. ¿En qué puedo ayudarte hoy?'", time: 1.5 },
+      { text: "— 'Veo que tienes un tinte agendado para el martes a las 16h...'", time: 5.5 },
+      { text: "— '¿Te viene bien adelantar el lavado para optimizar la agenda con Carlos?'", time: 9.0 },
+      { text: "— 'Perfecto, cita modificada. Te he enviado un WhatsApp de confirmación.'", time: 12.5 },
+      { text: "Llamada finalizada con éxito.", time: 16 }
+    ];
+
+    function simulateWaveMotion() {
+      bars.forEach(bar => {
+        if (isPlayingVoice) {
+          const height = Math.random() * 30 + 4;
+          bar.style.height = `${height}px`;
+        } else {
+          bar.style.height = '8px';
+        }
+      });
+    }
+
+    function playVoiceSimulation() {
+      if (isPlayingVoice) {
+        stopVoiceSimulation();
+        return;
+      }
+      
+      isPlayingVoice = true;
+      waveWidget.classList.add('playing');
+      MechaSFX.playSuccess();
+
+      // Pulse wave button ring
+      gsap.to(waveRing, {
+        scale: 1.6,
+        opacity: 0,
+        duration: 1.2,
+        repeat: -1,
+        ease: 'power1.out'
+      });
+      gsap.set(waveRing, { opacity: 0.8 });
+
+      // Audio waveform animate loop
+      voiceInterval = setInterval(simulateWaveMotion, 100);
+
+      // Play synthesized sounds to simulate speech flow
+      let speechTimer = 0;
+      speechTimeline = setInterval(() => {
+        speechTimer += 0.2;
+        if (speechTimer < 16) {
+          if (Math.random() > 0.4) {
+            MechaSFX.playSliderTick(Math.sin(speechTimer) * 150 + 350);
+          }
+        } else {
+          stopVoiceSimulation();
+        }
+
+        // Subtitles check
+        const currentCue = [...voiceCues].reverse().find(c => speechTimer >= c.time);
+        if (currentCue) {
+          waveSubtitle.textContent = currentCue.text;
+        }
+      }, 200);
+    }
+
+    function stopVoiceSimulation() {
+      isPlayingVoice = false;
+      waveWidget.classList.remove('playing');
+      clearInterval(voiceInterval);
+      clearInterval(speechTimeline);
+      gsap.killTweensOf(waveRing);
+      gsap.to(waveRing, { scale: 1, opacity: 0, duration: 0.3 });
+      simulateWaveMotion();
+      waveSubtitle.textContent = "Simulación finalizada. Haz clic de nuevo para repetir.";
+      MechaSFX.playClick();
+    }
+
+    wavePlayBtn.addEventListener('click', playVoiceSimulation);
+    waveSimTextBtn.addEventListener('click', playVoiceSimulation);
+
+
+    // ============================================================
+    // ⏳ WIDGET 2: REPOSO GRID SLOTS OPTIMIZER
+    // ============================================================
+    const reposoSimBtn = document.getElementById('reposoSimBtn');
+    const reposoGapBlock = document.getElementById('reposoGapBlock');
+    const optimizedSlot = document.getElementById('optimizedSlot');
+    const floatingGain = document.getElementById('floatingGain');
+    let isOptimized = false;
+
+    reposoSimBtn.addEventListener('click', () => {
+      if (isOptimized) {
+        isOptimized = false;
+        MechaSFX.playClick();
+        gsap.to(optimizedSlot, { y: '120%', opacity: 0, duration: 0.4, ease: 'power2.in' });
+        gsap.to(reposoGapBlock, { opacity: 1, duration: 0.4 });
+        reposoSimBtn.textContent = "OPTIMIZAR TIEMPO MUERTO";
+      } else {
+        isOptimized = true;
+        MechaSFX.playSuccess();
+        reposoSimBtn.textContent = "RESTAURAR TIEMPO MUERTO";
+
+        gsap.to(reposoGapBlock, { opacity: 0.15, duration: 0.4 });
+        gsap.to(optimizedSlot, {
+          y: '0%',
+          opacity: 1,
+          duration: 0.6,
+          ease: 'back.out(1.2)'
+        });
+
+        // Floating Gain +25€
+        gsap.set(floatingGain, { y: 15, opacity: 0, scale: 0.6 });
+        gsap.to(floatingGain, {
+          y: -35,
+          opacity: 1,
+          scale: 1,
+          duration: 0.8,
+          ease: 'power3.out',
+          onComplete: () => {
+            gsap.to(floatingGain, { opacity: 0, y: -50, duration: 0.4 });
+          }
+        });
+      }
+    });
+
+
+    // ============================================================
+    // 🎨 WIDGET 3: COLOR CARD 3D TILT
+    // ============================================================
+    const colorCardHolo = document.getElementById('colorCardHolo');
+    
+    colorCardHolo.addEventListener('mousemove', (e) => {
+      const rect = colorCardHolo.getBoundingClientRect();
+      const x = e.clientX - rect.left - (rect.width/2);
+      const y = e.clientY - rect.top - (rect.height/2);
+      
+      const tiltX = (y / (rect.height/2)) * -12;
+      const tiltY = (x / (rect.width/2)) * 12;
+      
+      gsap.to(colorCardHolo, {
+        rotateX: tiltX,
+        rotateY: tiltY,
+        transformPerspective: 600,
+        ease: 'power1.out',
+        duration: 0.2,
+        borderColor: 'rgba(244, 80, 30, 0.4)',
+        boxShadow: `${-tiltY*2}px ${tiltX*2}px 35px rgba(244, 80, 30, 0.15)`
+      });
+    });
+
+    colorCardHolo.addEventListener('mouseleave', () => {
+      gsap.to(colorCardHolo, {
+        rotateX: 0,
+        rotateY: 0,
+        duration: 0.6,
+        borderColor: 'var(--border-hi)',
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+        ease: 'power3.out'
+      });
+    });
+
+    colorCardHolo.addEventListener('click', () => {
+      MechaSFX.playClick();
+      gsap.to(colorCardHolo, {
+        scale: 1.03,
+        duration: 0.1,
+        yoyo: true,
+        repeat: 1,
+        ease: 'power2.out'
+      });
+    });
+
+
+    // ============================================================
+    // 📱 WIDGET 4: TAP TO PAY SIMULATOR
+    // ============================================================
+    const creditCard = document.getElementById('creditCard');
+    const taptopayWidget = document.getElementById('taptopayWidget');
+    const taptopaySimBtn = document.getElementById('taptopaySimBtn');
+    const nfcRing = document.getElementById('nfcRing');
+    const paymentStatus = document.getElementById('paymentStatus');
+    const paymentValue = document.getElementById('paymentValue');
+    let isTapping = false;
+
+    let startX = 0, startY = 0, currentLeft = 0, currentTop = 0;
+    
+    creditCard.addEventListener('mousedown', (e) => {
+      if (isTapping) return;
+      startX = e.clientX;
+      startY = e.clientY;
+      const rect = creditCard.getBoundingClientRect();
+      const parentRect = taptopayWidget.getBoundingClientRect();
+      currentLeft = rect.left - parentRect.left;
+      currentTop = rect.top - parentRect.top;
+      
+      document.addEventListener('mousemove', onDragCard);
+      document.addEventListener('mouseup', onStopDragCard);
+      MechaSFX.playHover();
+    });
+
+    function onDragCard(e) {
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      const newX = currentLeft + dx;
+      const newY = currentTop + dy;
+      
+      gsap.set(creditCard, { left: newX, top: newY, rotation: dx * 0.1 - 15 });
+      
+      const phoneRect = document.querySelector('.phone-mockup').getBoundingClientRect();
+      const cardRect = creditCard.getBoundingClientRect();
+      
+      const dist = Math.sqrt(Math.pow(cardRect.left - phoneRect.left, 2) + Math.pow(cardRect.top - phoneRect.top, 2));
+      if (dist < 70 && !isTapping) {
+        triggerNFCTap();
+      }
+    }
+
+    function onStopDragCard() {
+      document.removeEventListener('mousemove', onDragCard);
+      document.removeEventListener('mouseup', onStopDragCard);
+      
+      if (!isTapping) {
+        gsap.to(creditCard, {
+          left: 'auto',
+          top: 60,
+          x: 0,
+          y: 0,
+          rotation: -15,
+          duration: 0.6,
+          ease: 'power3.out'
+        });
+      }
+    }
+
+    function triggerNFCTap() {
+      isTapping = true;
+      document.removeEventListener('mousemove', onDragCard);
+      
+      gsap.to(creditCard, {
+        left: 170,
+        top: 70,
+        rotation: 0,
+        duration: 0.3,
+        ease: 'power2.out',
+        onComplete: () => {
+          MechaSFX.playSuccess();
+          
+          gsap.set(nfcRing, { scale: 0.2, opacity: 1 });
+          gsap.to(nfcRing, {
+            scale: 2.5,
+            opacity: 0,
+            duration: 0.8,
+            ease: 'power2.out'
+          });
+
+          paymentStatus.textContent = "COBRO COMPLETADO";
+          paymentStatus.style.color = "#34d399";
+          paymentValue.style.color = "#34d399";
+          
+          gsap.to(creditCard, {
+            left: 450,
+            opacity: 0,
+            delay: 1.2,
+            duration: 0.5,
+            ease: 'power2.in',
+            onComplete: () => {
+              setTimeout(() => {
+                paymentStatus.textContent = "ACERQUE TARJETA";
+                paymentStatus.style.color = "var(--text-ter)";
+                paymentValue.style.color = "#fff";
+                gsap.set(creditCard, { left: '', top: 60, x: 0, y: 0, rotation: -15, opacity: 1 });
+                isTapping = false;
+              }, 1000);
+            }
+          });
+        }
+      });
+    }
+
+    taptopaySimBtn.addEventListener('click', () => {
+      if (isTapping) return;
+      triggerNFCTap();
+    });
+
+
+    // ============================================================
+    // INTERACTIVE CALCULATOR LOGIC
+    // ============================================================
+    const rangeFacturacion = document.getElementById('rangeFacturacion');
+    const rangeAusencias = document.getElementById('rangeAusencias');
+    const rangeTicket = document.getElementById('rangeTicket');
+
+    const valFacturacion = document.getElementById('valFacturacion');
+    const valAusencias = document.getElementById('valAusencias');
+    const valTicket = document.getElementById('valTicket');
+
+    const costeCompetencia = document.getElementById('costeCompetencia');
+    const perdidaNoShow = document.getElementById('perdidaNoShow');
+    const costeMecha = document.getElementById('costeMecha');
+    const ahorroMensual = document.getElementById('ahorroMensual');
+    const ahorroAnual = document.getElementById('ahorroAnual');
+    const netSavingsBox = document.getElementById('netSavingsBox');
+
+    function formatCurrency(val) {
+      return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(val);
+    }
+
+    let prevAhorro = 785;
+    function calculateROI() {
+      const facturacion = parseFloat(rangeFacturacion.value);
+      const ausencias = parseFloat(rangeAusencias.value);
+      const ticket = parseFloat(rangeTicket.value);
+
+      valFacturacion.textContent = formatCurrency(facturacion);
+      valAusencias.textContent = `${ausencias} cita${ausencias !== 1 ? 's' : ''}`;
+      valTicket.textContent = `${ticket} €`;
+
+      const costCompetidor = (facturacion * 0.023) + 29;
+      const lostNoShow = ausencias * ticket;
+      
+      const costMechaVal = 99 + (facturacion * 0.004);
+      const noShowLossUnderMecha = lostNoShow * 0.1;
+      const netSavings = (costCompetidor + lostNoShow) - (costMechaVal + noShowLossUnderMecha);
+      const annualSavings = netSavings * 12;
+
+      costeCompetencia.textContent = formatCurrency(costCompetidor);
+      perdidaNoShow.textContent = formatCurrency(lostNoShow);
+      costeMecha.textContent = formatCurrency(costMechaVal);
+      ahorroMensual.textContent = formatCurrency(netSavings);
+      
+      if (Math.abs(netSavings - prevAhorro) > 5) {
+        MechaSFX.playSliderTick(Math.min(1000, 200 + netSavings * 0.5));
+        prevAhorro = netSavings;
+        gsap.fromTo(netSavingsBox, { scale: 0.98 }, { scale: 1, duration: 0.15, ease: 'power2.out' });
+      }
+
+      let annualTagline = `Equivale a ${formatCurrency(annualSavings)} de ahorro al año`;
+      if (annualSavings > 8000) {
+        annualTagline += `. Podrías financiar la renovación de tu mobiliario de diseño o sillones de lavado.`;
+      } else if (annualSavings > 4000) {
+        annualTagline += `. Equivale a pagar las vacaciones de verano de tu equipo o formación técnica premium.`;
+      } else if (annualSavings > 2000) {
+        annualTagline += `. Suficiente para costear todo el stock de tintes y productos químicos de 6 meses.`;
+      }
+      ahorroAnual.textContent = annualTagline;
+    }
+
+    rangeFacturacion.addEventListener('input', calculateROI);
+    rangeAusencias.addEventListener('input', calculateROI);
+    rangeTicket.addEventListener('input', calculateROI);
+
+    calculateROI();
+
+
+    // ============================================================
+    // DYNAMIC READING TOGGLE LOGIC
+    // ============================================================
+    const readingToggle = document.getElementById('readingToggle');
+    const btn1Min = document.getElementById('btn1Min');
+    const btn5Min = document.getElementById('btn5Min');
+    const fastSection = document.getElementById('fastSection');
+    const cartaSection = document.getElementById('cartaSection');
+    const body = document.body;
+
+    function setReadingSpeed(speed) {
+      if (speed === 'fast') {
+        btn1Min.classList.add('active');
+        btn5Min.classList.remove('active');
+        body.classList.remove('state-carta');
+        body.classList.add('state-fast');
+        
+        cartaSection.classList.remove('active');
+        fastSection.classList.add('active');
+      } else {
+        btn1Min.classList.remove('active');
+        btn5Min.classList.add('active');
+        body.classList.remove('state-fast');
+        body.classList.add('state-carta');
+        
+        fastSection.classList.remove('active');
+        cartaSection.classList.add('active');
+      }
+    }
+
+    btn1Min.addEventListener('click', () => setReadingSpeed('fast'));
+    btn5Min.addEventListener('click', () => setReadingSpeed('carta'));
+
+
+    // ============================================================
+    // GSAP VIEWPORT MOTION GRAPHICS ANIMATIONS
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      gsap.registerPlugin(ScrollTrigger);
+
+      gsap.to('.reveal', {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        stagger: 0.15,
+        ease: 'power4.out'
+      });
+
+      gsap.from('.fast-grid .card', {
+        opacity: 0,
+        y: 40,
+        rotationX: -10,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.fast-grid',
+          start: 'top 85%'
+        }
+      });
+
+      // Stagger revealing feature blocks in presentation
+      const blocks = document.querySelectorAll('.feature-block');
+      blocks.forEach(block => {
+        gsap.from(block, {
+          opacity: 0,
+          y: 60,
+          duration: 1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: block,
+            start: 'top 80%'
+          }
+        });
+      });
+
+      gsap.from('.compare-column.before', {
+        opacity: 0,
+        x: -50,
+        rotationY: -15,
+        transformOrigin: 'right center',
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.compare-section',
+          start: 'top 75%'
+        }
+      });
+
+      gsap.from('.compare-column.after', {
+        opacity: 0,
+        x: 50,
+        rotationY: 15,
+        transformOrigin: 'left center',
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.compare-section',
+          start: 'top 75%'
+        }
+      });
+
+      gsap.from('.price-card', {
+        opacity: 0,
+        y: 60,
+        rotationX: -10,
+        duration: 0.9,
+        stagger: 0.2,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.pricing-grid',
+          start: 'top 80%'
+        }
+      });
+
+      // Interactive wax seal easter egg
+      const waxSeal = document.getElementById('waxSeal');
+      waxSeal.addEventListener('click', () => {
+        MechaSFX.playImpact();
+        gsap.to(waxSeal, {
+          scale: 1.3,
+          rotate: '+=360',
+          duration: 0.8,
+          ease: 'back.out(1.7)',
+          onComplete: () => {
+            gsap.to(waxSeal, { scale: 1, duration: 0.3 });
+            
+            const phrase = document.createElement('div');
+            phrase.textContent = "¡Cero no-shows firmados!";
+            phrase.style.position = 'absolute';
+            phrase.style.bottom = '-40px';
+            phrase.style.left = '50%';
+            phrase.style.transform = 'translateX(-50%)';
+            phrase.style.color = 'var(--accent-hi)';
+            phrase.style.fontSize = '12px';
+            phrase.style.fontFamily = 'var(--mono)';
+            phrase.style.whiteSpace = 'nowrap';
+            phrase.style.opacity = '0';
+            waxSeal.appendChild(phrase);
+            
+            gsap.to(phrase, { opacity: 1, y: -5, duration: 0.4 });
+            gsap.to(phrase, { opacity: 0, y: -15, delay: 1.5, duration: 0.4, onComplete: () => phrase.remove() });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

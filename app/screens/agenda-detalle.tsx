@@ -45,7 +45,8 @@ export default function AgendaDetalleScreen() {
           formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas,
           profesionales(nombre, color),
           servicios(nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min),
-          clientes(id, nombre, telefono)
+          clientes(id, nombre, telefono),
+          pagos(tipo, importe_cents, estado)
         `)
         .eq('id', citaId)
         .single();
@@ -154,6 +155,21 @@ export default function AgendaDetalleScreen() {
               <Row icon="globe-outline" label="Canal" value={cita.canal} />
             </>
           )}
+          {(() => {
+            const pagos = cita.pagos || [];
+            const senal = pagos.find((p: any) => p.tipo === 'senal');
+            if (!senal) return null;
+            const pagado = ['completado', 'pagado', 'succeeded', 'paid'].includes(String(senal.estado).toLowerCase());
+            const labelStr = pagado ? 'Señal pagada' : 'Señal requerida';
+            const valStr = `${((senal.importe_cents || 0) / 100).toFixed(2)}€ (${senal.estado})`;
+            const dotCol = pagado ? '#10b981' : '#f59e0b';
+            return (
+              <>
+                <Divider />
+                <Row icon="cash-outline" label={labelStr} value={valStr} dot={dotCol} />
+              </>
+            );
+          })()}
           {cita.cancelado_por && (
             <>
               <Divider />

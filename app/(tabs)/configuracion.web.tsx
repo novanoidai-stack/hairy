@@ -1708,6 +1708,43 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
           </Btn>
         </div>
       </Section>
+
+      <Section title="Zona de peligro (RGPD)" desc="Eliminación de la cuenta y derecho al olvido. Conforme al Reglamento General de Protección de Datos (RGPD), puedes eliminar tu cuenta. Esta acción eliminará tu perfil y desactivará tu acceso de forma permanente. Si tienes datos vinculados que no pueden borrarse físicamente de inmediato, el sistema te lo indicará.">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+          <Btn
+            variant="danger"
+            size="sm"
+            icon="trash"
+            onClick={async () => {
+              if (demo) {
+                alert('Modo demo: no se pueden eliminar cuentas.');
+                return;
+              }
+              const confirmEmail = window.prompt(`Para confirmar la eliminación permanente de tu cuenta, por favor escribe tu correo electrónico (${a?.email}):`);
+              if (!confirmEmail) return;
+              if (confirmEmail.trim().toLowerCase() !== (a?.email || '').toLowerCase().trim()) {
+                alert('El correo electrónico introducido no coincide.');
+                return;
+              }
+              if (!window.confirm('¿Estás absolutamente seguro de que quieres eliminar tu cuenta? Esta acción es irreversible y perderás acceso de forma permanente.')) return;
+              
+              setSavingProfile(true);
+              const { error } = await supabase.from('profiles').delete().eq('id', userId);
+              setSavingProfile(false);
+              
+              if (error) {
+                alert('No se pudo eliminar la cuenta: ' + error.message);
+              } else {
+                alert('Tu cuenta ha sido eliminada correctamente conforme al RGPD.');
+                await supabase.auth.signOut();
+                window.location.href = '/index.html';
+              }
+            }}
+          >
+            Eliminar mi cuenta permanentemente
+          </Btn>
+        </div>
+      </Section>
     </>
   );
 }
@@ -2004,7 +2041,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
   onSaveDurProf: (serviceId: string, profId: string, field: string, value: number) => Promise<void>;
   onResetDurProf: (serviceId: string, profId: string) => Promise<void>;
 }) {
-  const { isMobile } = useResponsive();
+  const { isMobile, isTablet } = useResponsive();
   const [search, setSearch] = useState('');
   const [expandedDur, setExpandedDur] = useState<string | null>(null);
   const categoriaNombrePorId = useMemo(() => new Map(categorias.map(c => [c.id, c.nombre.toLowerCase()])), [categorias]);
@@ -2143,7 +2180,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                   <>
                     <div
                       key={s.id}
-                      style={isMobile
+                      style={(isMobile || isTablet)
                         ? { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, padding: '12px 14px', borderBottom: expandedDur === s.id ? 'none' : (i < arr.length - 1 ? `1px solid ${T.border}` : 'none'), transition: 'background 0.2s' }
                         : { display: 'grid', gridTemplateColumns: '1fr 110px 110px 110px 80px', padding: '14px 16px', alignItems: 'center', borderBottom: expandedDur === s.id ? 'none' : (i < arr.length - 1 ? `1px solid ${T.border}` : 'none'), transition: 'background 0.2s' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(244,80,30,0.04)'; }}

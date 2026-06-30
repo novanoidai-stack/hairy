@@ -68,6 +68,19 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Verificar la cabecera de autorización (requiere SUPABASE_SERVICE_ROLE_KEY)
+  const authHeader = req.headers.get('Authorization') || '';
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+  if (!serviceRoleKey || authHeader !== `Bearer ${serviceRoleKey}`) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Unauthorized'
+    }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
   try {
     // Obtener DATABASE_URL de variables de entorno
     const databaseUrl = Deno.env.get('DATABASE_URL')!

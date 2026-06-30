@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mecha — Professional Motion Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800;900&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#f4501e;--accent-hi:#ff8a3d;--accent-deep:#c0260a;
+  --violet:#ff9d2e;--cyan:#ffce4a;
+  --grad:linear-gradient(120deg,#ff8a3d,#ff9d2e 55%,#ffce4a);
+  --grad-soft:linear-gradient(120deg,#f4501e,#ff9d2e);
+  --bg:#05080c;--bg-2:#0b1020;--card:#101729;
+  --border:rgba(148,163,184,.12);
+  --text:#f6f8ff;--text-sec:#9aa6c2;--text-ter:#6b7a99;
+  --cream-bg:#f6f1ea;--cream-card:#fffdfb;
+  --serif:'Newsreader',Georgia,serif;
+  --display:'Bricolage Grotesque','Inter',system-ui,sans-serif;
+  --body:'Inter',system-ui,sans-serif;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:var(--body);color:var(--text)}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* ===== 3D STAGE ===== */
+.stage{position:fixed;inset:0;z-index:1;perspective:1500px;transform-style:preserve-3d}
+.camera{position:absolute;inset:0;transform-style:preserve-3d}
+
+.scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  transform-style:preserve-3d;opacity:0;pointer-events:none}
+.scene.active{opacity:1}
+
+/* ===== DEPTH LAYERS ===== */
+.layer{position:absolute;transform-style:preserve-3d;will-change:transform}
+.layer-bg{z-index:1}
+.layer-mid{z-index:2}
+.layer-fg{z-index:3}
+.layer-text{z-index:4}
+
+/* ===== START OVERLAY ===== */
+.start-overlay{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:32px;background:radial-gradient(ellipse at 50% 50%,rgba(244,80,30,.08),#000 70%);
+  cursor:pointer;transition:opacity .8s cubic-bezier(.16,1,.3,1)}
+.start-overlay.hidden{opacity:0;pointer-events:none}
+.start-flame{width:96px;height:96px;filter:drop-shadow(0 20px 60px rgba(244,80,30,.6));
+  animation:flameFlicker 4s ease-in-out infinite}
+.start-title{font-family:var(--display);font-weight:900;font-size:clamp(56px,10vw,120px);
+  letter-spacing:-.08em;line-height:.9;background:var(--grad);-webkit-background-clip:text;
+  background-clip:text;-webkit-text-fill-color:transparent}
+.start-cta{font-size:13px;color:var(--text-sec);letter-spacing:.12em;display:flex;align-items:center;
+  gap:12px;text-transform:uppercase;font-weight:700;padding:16px 32px;border:1px solid rgba(255,255,255,.1);
+  border-radius:999px;background:rgba(255,255,255,.02);backdrop-filter:blur(10px);
+  box-shadow:0 10px 40px rgba(244,80,30,.1);transition:all .4s ease}
+.start-cta:hover{background:rgba(244,80,30,.1);border-color:rgba(244,80,30,.3);
+  box-shadow:0 20px 60px rgba(244,80,30,.2)}
+.start-cta::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 20px var(--accent);animation:pulse 2s ease-in-out infinite}
+
+@keyframes pulse{0%,100%{opacity:.5;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes flameFlicker{0%,100%{transform:scale(1) rotate(0)}25%{transform:scale(1.04) rotate(2deg)}
+  75%{transform:scale(.97) rotate(-2deg)}}
+
+/* ===== CONTROLS ===== */
+.controls{position:fixed;bottom:0;left:0;right:0;z-index:500;display:flex;align-items:center;
+  gap:16px;padding:20px 32px;background:linear-gradient(to top,rgba(0,0,0,.9),transparent);
+  opacity:0;transition:opacity .6s cubic-bezier(.16,1,.3,1)}
+.controls.show{opacity:1}
+.play-btn{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--grad-soft);
+  color:#fff;border:none;border-radius:999px;font-family:var(--body);font-size:13px;font-weight:700;
+  cursor:pointer;box-shadow:0 8px 32px rgba(244,80,30,.4);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.play-btn:hover{transform:scale(1.05);box-shadow:0 12px 48px rgba(244,80,30,.5)}
+.progress-track{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:999px;
+  overflow:hidden;cursor:pointer;position:relative}
+.progress-track::after{content:"";position:absolute;inset:0;background:var(--grad);
+  opacity:.2;border-radius:999px}
+.progress-fill{height:100%;background:var(--grad);border-radius:999px;width:0%;
+  position:relative;box-shadow:0 0 20px var(--accent)}
+.time-label{font-size:11px;color:var(--text-ter);font-variant-numeric:tabular-nums;min-width:80px;
+  text-align:right;font-weight:600}
+
+/* ===== FLAME SVG ===== */
+.flame-svg{width:100%;height:100%}
+
+/* ===== SCENE 0: CINEMATIC INTRO ===== */
+.s0{perspective:2000px}
+.s0 .layer-bg{width:100%;height:100%;display:grid;place-items:center}
+.s0 .logo-ember{width:200px;height:200px;opacity:0}
+.s0 .brand-name{font-family:var(--display);font-weight:900;font-size:clamp(80px,15vw,180px);
+  letter-spacing:-.1em;line-height:.85;background:var(--grad);-webkit-background-clip:text;
+  background-clip:text;-webkit-text-fill-color:transparent;text-align:center;opacity:0}
+.s0 .tagline{font-family:var(--serif);font-style:italic;font-size:clamp(24px,4vw,48px);
+  color:var(--text-sec);opacity:0;text-align:center;margin-top:20px}
+
+/* ===== SCENE 1: PROBLEM - IMPACT ===== */
+.s1{flex-direction:column}
+.s1 .prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;max-width:1200px;
+  transform-style:preserve-3d;perspective:1000px}
+.s1 .prob-card{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(239,68,68,.02));
+  border:1px solid rgba(239,68,68,.15);border-radius:20px;padding:40px;text-align:center;
+  transform-style:preserve-3d;opacity:0;position:relative;overflow:hidden}
+.s1 .prob-card::before{content:"";position:absolute;inset:-50%;background:radial-gradient(circle,rgba(239,68,68,.1),transparent 70%);
+  opacity:0;transition:opacity .6s ease}
+.s1 .prob-card:hover::before{opacity:1}
+.s1 .prob-icon{font-size:48px;margin-bottom:20px;filter:drop-shadow(0 10px 30px rgba(239,68,68,.3))}
+.s1 .prob-text{font-family:var(--display);font-weight:700;font-size:18px;color:var(--text);
+  line-height:1.3}
+.s1 .prob-sub{font-size:14px;color:var(--text-sec);margin-top:8px}
+.s1 .impact-line{position:absolute;bottom:15%;left:0;right:0;text-align:center;font-family:var(--display);
+  font-weight:800;font-size:clamp(32px,5vw,64px);color:rgba(239,68,68,.4);opacity:0}
+
+/* ===== SCENE 2: SOLUTION - REVEAL ===== */
+.s2{flex-direction:column}
+.s2 .sol-reveal{position:relative;transform-style:preserve-3d}
+.s2 .sol-bg{position:absolute;inset:-100px;background:radial-gradient(ellipse at 50% 50%,rgba(244,80,30,.06),transparent 70%);
+  transform:translateZ(-100px);opacity:0}
+.s2 .sol-text{font-family:var(--display);font-weight:800;font-size:clamp(36px,6vw,80px);
+  line-height:1.1;letter-spacing:-.04em;text-align:center;max-width:1100px;opacity:0;
+  position:relative;z-index:2}
+.s2 .sol-text .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s2 .sol-text .italic{font-family:var(--serif);font-style:italic;font-weight:400;font-size:.85em}
+.s2 .glow-orb{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(244,80,30,.3),transparent 70%);
+  filter:blur(60px);opacity:0;pointer-events:none}
+
+/* ===== SCENE 3: APP SHOWCASE - CAMERA FLYOVER ===== */
+.s3{perspective:2000px}
+.s3 .app-container{width:min(1400px,95vw);aspect-ratio:16/10;transform-style:preserve-3d;
+  position:relative;transform:rotateX(5deg) rotateY(-5deg);opacity:0}
+.s3 .app-screen{position:absolute;inset:0;background:var(--cream-bg);border-radius:12px;
+  overflow:hidden;box-shadow:0 60px 120px rgba(0,0,0,.5),0 0 100px rgba(244,80,30,.1);
+  transform:translateZ(0);border:1px solid rgba(255,255,255,.05)}
+.s3 .app-screenshot{width:100%;height:100%;object-fit:cover;opacity:.9}
+.s3 .app-reflection{position:absolute;bottom:-50%;left:0;right:0;height:50%;
+  background:linear-gradient(to bottom,rgba(244,80,30,.05),transparent);
+  transform:rotateX(180deg) scaleY(-1);filter:blur(20px);opacity:0}
+.s3 .spotlight{position:absolute;width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.03),transparent 70%);opacity:0;
+  transform:translateZ(50px);filter:blur(40px);pointer-events:none}
+.s3 .feature-label{position:absolute;padding:12px 24px;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);
+  border-radius:12px;border:1px solid rgba(255,255,255,.1);color:#fff;font-size:14px;font-weight:600;
+  opacity:0;transform:translateZ(30px);white-space:nowrap}
+.s3 .fl-agenda{top:15%;left:10%}
+.s3 .fl-clientes{top:40%;right:15%}
+.s3 .fl-informes{bottom:25%;left:20%}
+.s3 .fl-caja{bottom:20%;right:25%}
+.s3 .camera-path{position:absolute;inset:-100px;border:1px dashed rgba(255,255,255,.05);
+  border-radius:50%;opacity:0;transform:rotateX(70deg)}
+
+/* ===== SCENE 4: WHATSAPP - DYNAMIC CONVERSATION ===== */
+.s4{gap:60px}
+.s4 .wa-container{display:flex;flex-direction:column;gap:24px;max-width:500px;opacity:0}
+.s4 .wa-headline{font-family:var(--display);font-weight:800;font-size:clamp(28px,4.5vw,56px);
+  line-height:1.1;letter-spacing:-.03em}
+.s4 .wa-headline .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s4 .wa-subhead{font-size:18px;color:var(--text-sec);line-height:1.5}
+.s4 .phone-wrapper{position:relative;width:320px;height:640px;transform-style:preserve-3d;
+  perspective:1000px;opacity:0}
+.s4 .phone-mockup{width:100%;height:100%;background:linear-gradient(135deg,#1a1f2e,#0d1117);
+  border-radius:48px;border:3px solid rgba(255,255,255,.08);box-shadow:
+  0 50px 100px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);
+  position:relative;overflow:hidden;transform-style:preserve-3d}
+.s4 .phone-notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:80px;
+  height:24px;background:#000;border-radius:12px;z-index:10}
+.s4 .phone-screen{display:flex;flex-direction:column;height:100%;padding-top:50px}
+.s4 .chat-header{display:flex;align-items:center;gap:12px;padding:16px 20px;
+  background:rgba(26,31,46,.8);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.05)}
+.s4 .chat-avatar{width:44px;height:44px;border-radius:50%;background:var(--grad-soft);
+  display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;
+  box-shadow:0 4px 20px rgba(244,80,30,.3)}
+.s4 .chat-info .chat-name{font-size:14px;font-weight:700;color:#fff}
+.s4 .chat-info .chat-status{font-size:11px;color:#34d399;display:flex;align-items:center;gap:6px}
+.s4 .chat-info .chat-status::before{content:"";width:8px;height:8px;border-radius:50%;background:#34d399;
+  box-shadow:0 0 10px #34d399}
+.s4 .chat-body{flex:1;padding:16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;
+  background:linear-gradient(180deg,#0d1117,#080c12)}
+.s4 .chat-time{font-size:10px;color:var(--text-ter);text-align:center;opacity:.6;margin-bottom:4px}
+.s4 .chat-msg{max-width:80%;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.4;
+  opacity:0;transform:translateY(15px) scale(.95)}
+.s4 .chat-msg.them{background:#1e293b;color:#e2e8f0;align-self:flex-start;
+  border-bottom-left-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.s4 .chat-msg.me{background:linear-gradient(135deg,#f4501e,#ff7a2e);color:#fff;
+  align-self:flex-end;border-bottom-right-radius:4px;box-shadow:0 4px 20px rgba(244,80,30,.3)}
+.s4 .chat-msg.payment{background:linear-gradient(135deg,#635bff,#4f46e5);align-self:flex-end;
+  padding:16px;text-align:center}
+.s4 .payment-amount{font-size:24px;font-weight:800;color:#fff;margin:8px 0}
+.s4 .payment-btn{font-size:12px;color:#fff;background:rgba(255,255,255,.15);padding:10px 20px;
+  border-radius:12px;display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.s4 .chat-msg.confirm{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);
+  color:#34d399;align-self:flex-end;text-align:center;font-size:12px}
+.s4 .msg-tick{font-size:8px;color:#34d399;margin-left:4px}
+
+/* ===== SCENE 5: ENCADENADOS - FLOW ANIMATION ===== */
+.s5{flex-direction:column}
+.s5 .flow-container{position:relative;width:100%;max-width:1100px;height:500px;
+  transform-style:preserve-3d;perspective:1500px;opacity:0}
+.s5 .flow-title{font-family:var(--display);font-weight:800;font-size:clamp(32px,5vw,64px);
+  text-align:center;margin-bottom:60px;opacity:0}
+.s5 .flow-title .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s5 .flow-path{position:absolute;inset:0}
+.s5 .flow-line{position:absolute;top:50%;left:10%;right:10%;height:3px;background:var(--grad);
+  opacity:0;transform-origin:left center}
+.s5 .flow-node{position:absolute;width:100px;height:100px;border-radius:50%;display:grid;place-items:center;
+  font-weight:800;font-size:20px;color:#fff;opacity:0;transform:translateZ(0);box-shadow:
+  0 10px 40px rgba(0,0,0,.3),0 0 40px currentColor}
+.s5 .flow-node:nth-child(2){left:10%;top:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#78350f}
+.s5 .flow-node:nth-child(3){left:50%;top:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#818cf8,#6366f1);color:#312e81}
+.s5 .flow-node:nth-child(4){right:10%;top:50%;transform:translate(50%,-50%);background:linear-gradient(135deg,#34d399,#10b981);color:#064e3b}
+.s5 .flow-label{position:absolute;bottom:-50px;left:50%;transform:translateX(-50%);font-size:13px;
+  font-weight:600;color:var(--text);white-space:nowrap;text-align:center;opacity:0}
+.s5 .flow-arrow{position:absolute;width:24px;height:24px;color:var(--accent-hi);opacity:0}
+.s5 .flow-arrow svg{width:100%;height:100%}
+.s5 .arrow1{left:25%;top:50%;transform:translate(-50%,-50%)}
+.s5 .arrow2{left:65%;top:50%;transform:translate(-50%,-50%)}
+.s5 .flow-conclusion{position:absolute;bottom:-100px;left:0;right:0;text-align:center;
+  font-family:var(--display);font-weight:700;font-size:20px;color:var(--text-sec);opacity:0}
+.s5 .flow-conclusion .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+
+/* ===== SCENE 6: CLIENTE - CARD REVEAL ===== */
+.s6{flex-direction:column}
+.s6 .card-stage{position:relative;width:min(600px,90vw);transform-style:preserve-3d;
+  perspective:1200px;opacity:0}
+.s6 .card-3d{background:var(--cream-card);border-radius:20px;padding:40px;
+  box-shadow:0 40px 100px rgba(0,0,0,.4),0 0 80px rgba(244,80,30,.05);
+  transform:rotateX(10deg) rotateY(-5deg);transform-style:preserve-3d;border:1px solid rgba(255,255,255,.05);
+  position:relative}
+.s6 .card-3d::before{content:"";position:absolute;inset:-2px;border-radius:22px;
+  background:var(--grad);opacity:0;transition:opacity .6s ease;z-index:-1}
+.s6 .card-header{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.s6 .card-avatar{width:64px;height:64px;border-radius:50%;background:var(--grad-soft);
+  display:grid;place-items:center;color:#fff;font-weight:800;font-size:24px;
+  box-shadow:0 8px 30px rgba(244,80,30,.3)}
+.s6 .card-name{font-size:20px;font-weight:700;color:var(--cream-text)}
+.s6 .card-meta{font-size:13px;color:var(--cream-ter);margin-top:4px}
+.s6 .card-tags{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;opacity:0;
+  transform:translateZ(20px)}
+.s6 .card-tag{padding:6px 16px;border-radius:999px;font-size:12px;font-weight:600}
+.s6 .card-tag.fiel{background:rgba(16,185,129,.12);color:#0f9d6b}
+.s6 .card-tag.alerg{background:rgba(226,59,52,.1);color:#e23b34}
+.s6 .card-tag.neut{background:rgba(138,125,112,.08);color:var(--cream-ter)}
+.s6 .card-formula{background:var(--cream-bg);border-radius:12px;padding:20px;opacity:0;
+  transform:translateZ(30px)}
+.s6 .formula-label{font-size:10px;color:var(--cream-ter);text-transform:uppercase;
+  letter-spacing:.08em;margin-bottom:12px;font-weight:700}
+.s6 .formula-chips{display:flex;gap:8px;flex-wrap:wrap}
+.s6 .formula-chip{padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;
+  background:rgba(244,80,30,.06);color:var(--accent-deep);border:1px solid rgba(244,80,30,.1)}
+
+/* ===== SCENE 7: METRICS - DATA VISUALIZATION ===== */
+.s7{flex-direction:column}
+.s7 .metrics-stage{width:100%;max-width:1200px;opacity:0}
+.s7 .metrics-title{font-family:var(--display);font-weight:800;font-size:clamp(32px,5vw,64px);
+  text-align:center;margin-bottom:50px;opacity:0}
+.s7 .metrics-title .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+.s7 .metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.s7 .metric-card{background:linear-gradient(135deg,var(--card),rgba(16,23,41,.5));
+  border:1px solid var(--border);border-radius:16px;padding:28px;display:flex;flex-direction:column;
+  gap:12px;position:relative;overflow:hidden;opacity:0;transform:translateY(30px)}
+.s7 .metric-card::before{content:"";position:absolute;inset:-50%;opacity:0;transition:opacity .6s ease}
+.s7 .metric-card.success::before{background:radial-gradient(circle,rgba(16,185,129,.05),transparent 70%)}
+.s7 .metric-card.accent::before{background:radial-gradient(circle,rgba(244,80,30,.05),transparent 70%)}
+.s7 .metric-card.cyan::before{background:radial-gradient(circle,rgba(255,206,74,.05),transparent 70%)}
+.s7 .metric-card.violet::before{background:radial-gradient(circle,rgba(255,157,46,.05),transparent 70%)}
+.s7 .metric-card:hover::before{opacity:1}
+.s7 .metric-value{font-family:var(--display);font-weight:900;font-size:clamp(36px,5vw,56px);
+  line-height:1;position:relative;z-index:1}
+.s7 .metric-card.success .metric-value{color:#34d399;text-shadow:0 0 40px rgba(16,185,129,.3)}
+.s7 .metric-card.accent .metric-value{color:#ff8a3d;text-shadow:0 0 40px rgba(244,80,30,.3)}
+.s7 .metric-card.cyan .metric-value{color:#ffce4a;text-shadow:0 0 40px rgba(255,206,74,.3)}
+.s7 .metric-card.violet .metric-value{color:#ff9d2e;text-shadow:0 0 40px rgba(255,157,46,.3)}
+.s7 .metric-label{font-size:14px;color:var(--text-sec);font-weight:600;position:relative;z-index:1}
+.s7 .metric-note{font-size:11px;color:var(--text-ter);line-height:1.4;position:relative;z-index:1}
+.s7 .metric-chart{height:40px;margin-top:8px;position:relative;opacity:.6}
+
+/* ===== SCENE 8: OUTRO - GRAND FINALE ===== */
+.s8{flex-direction:column}
+.s8 .finale-stage{text-align:center;opacity:0}
+.s8 .finale-flame{width:120px;height:120px;filter:drop-shadow(0 30px 80px rgba(244,80,30,.7));
+  margin-bottom:40px}
+.s8 .finale-title{font-family:var(--display);font-weight:900;font-size:clamp(72px,12vw,160px);
+  letter-spacing:-.1em;line-height:.85;background:var(--grad);-webkit-background-clip:text;
+  background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px}
+.s8 .finale-tag{font-family:var(--serif);font-style:italic;font-size:clamp(28px,4vw,52px);
+  color:var(--text);margin-bottom:30px;opacity:0}
+.s8 .finale-url{font-size:18px;color:var(--text-ter);letter-spacing:.08em;font-weight:600;
+  opacity:0;padding:16px 40px;border:1px solid rgba(255,255,255,.08);border-radius:999px;
+  background:rgba(255,255,255,.02);backdrop-filter:blur(10px)}
+.s8 .particle-burst{position:absolute;inset:0;pointer-events:none}
+
+/* ===== EMBER CANVAS ===== */
+#embers{position:fixed;inset:0;z-index:0;pointer-events:none}
+.bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 60% at 50% 110%,rgba(244,80,30,.06),transparent 65%),
+             radial-gradient(ellipse 60% 50% at 85% 5%,rgba(255,130,40,.03),transparent 70%)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+  .s1 .prob-grid{grid-template-columns:1fr;gap:20px}
+  .s3 .app-container{aspect-ratio:1/1}
+  .s4{flex-direction:column}
+  .s5 .flow-container{height:400px}
+  .s7 .metrics-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e0340e"/><stop offset="0.5" stop-color="#ff7a2e"/>
+      <stop offset="1" stop-color="#ffcf4a"/>
+    </linearGradient>
+    <symbol id="mecha-flame" viewBox="0 0 40 40">
+      <path fill="url(#flameGrad)" d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"/>
+      <path fill="#fff" opacity=".92" d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<canvas id="embers"></canvas>
+<div class="bg-glow"></div>
+
+<div class="start-overlay" id="startOverlay">
+  <svg class="start-flame" viewBox="0 0 40 40"><use href="#mecha-flame"/></svg>
+  <div class="start-title">Mecha</div>
+  <div class="start-cta">Reproducir presentacion</div>
+</div>
+
+<div class="stage" id="stage">
+  <div class="camera" id="camera">
+
+<!-- S0: CINEMATIC INTRO -->
+<section class="scene s0 active" data-scene="0">
+  <div class="layer layer-bg">
+    <div class="logo-ember" id="logoEmber"><svg class="flame-svg" viewBox="0 0 40 40"><use href="#mecha-flame"/></svg></div>
+  </div>
+  <div class="layer layer-text">
+    <div class="brand-name" id="brandName">Mecha</div>
+    <div class="tagline" id="tagline">El sistema operativo de tu salon</div>
+  </div>
+</section>
+
+<!-- S1: PROBLEM - IMPACT -->
+<section class="scene s1" data-scene="1">
+  <div class="prob-grid" id="probGrid">
+    <div class="prob-card" id="prob1">
+      <div class="prob-icon">📱</div>
+      <div class="prob-text">Citas perdidas</div>
+      <div class="prob-sub">Telefonos que no suenan</div>
+    </div>
+    <div class="prob-card" id="prob2">
+      <div class="prob-icon">⏰</div>
+      <div class="prob-text">Huecos vacios</div>
+      <div class="prob-sub">Agenda con lagunas</div>
+    </div>
+    <div class="prob-card" id="prob3">
+      <div class="prob-icon">❌</div>
+      <div class="prob-text">No-shows</div>
+      <div class="prob-sub">Clientes que no aparecen</div>
+    </div>
+  </div>
+  <div class="impact-line" id="impactLine">Tu dinero escapando</div>
+</section>
+
+<!-- S2: SOLUTION - REVEAL -->
+<section class="scene s2" data-scene="2">
+  <div class="layer layer-bg">
+    <div class="sol-bg" id="solBg"></div>
+    <div class="glow-orb" id="glowOrb"></div>
+  </div>
+  <div class="layer layer-text">
+    <div class="sol-text" id="solText">
+      Mecha no es otra agenda mas.<br><br>
+      Es la <span class="grad">primera que entiende</span><br>
+      <span class="italic">una peluqueria de verdad.</span>
+    </div>
+  </div>
+</section>
+
+<!-- S3: APP SHOWCASE - CAMERA FLYOVER -->
+<section class="scene s3" data-scene="3">
+  <div class="app-container" id="appContainer">
+    <div class="app-screen">
+      <img src="captures/00-demo-iframe.png" alt="Mecha App" class="app-screenshot" id="appScreenshot">
+      <div class="app-reflection" id="appReflection"></div>
+    </div>
+    <div class="spotlight" id="spotlight"></div>
+    <div class="feature-label fl-agenda" id="flAgenda">Agenda inteligente</div>
+    <div class="feature-label fl-clientes" id="flClientes">Fichas de cliente</div>
+    <div class="feature-label fl-informes" id="flInformes">Informes en vivo</div>
+    <div class="feature-label fl-caja" id="flCaja">Caja integrada</div>
+    <div class="camera-path" id="cameraPath"></div>
+  </div>
+</section>
+
+<!-- S4: WHATSAPP - DYNAMIC CONVERSATION -->
+<section class="scene s4" data-scene="4">
+  <div class="wa-container" id="waContainer">
+    <div class="wa-headline" id="waHeadline">Tu <span class="grad">IA receptora</span><br>reserva y cobra por ti</div>
+    <div class="wa-subhead" id="waSubhead">Mientras duermes, Mecha trabaja</div>
+  </div>
+  <div class="phone-wrapper" id="phoneWrapper">
+    <div class="phone-mockup" id="phoneMockup">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="chat-header">
+          <div class="chat-avatar">M</div>
+          <div class="chat-info">
+            <div class="chat-name">Mecha · Studio Norte</div>
+            <div class="chat-status">En linea</div>
+          </div>
+        </div>
+        <div class="chat-body" id="chatBody">
+          <div class="chat-time">23:47</div>
+          <div class="chat-msg them" id="chat1">Hola! Teneis hueco el sabado para mechas?</div>
+          <div class="chat-msg me" id="chat2">Hola Ana! Con Sofia tengo a las 11:00 o a las 16:30. Cual te va? <span class="msg-tick">✓✓</span></div>
+          <div class="chat-msg them" id="chat3">La de las 16:30</div>
+          <div class="chat-msg me" id="chat4">Reservada! Para confirmarla, dejas una senal de 20€? <span class="msg-tick">✓✓</span></div>
+          <div class="chat-msg payment" id="chat5">
+            <div>Pago de senal · Stripe</div>
+            <div class="payment-amount">20,00 €</div>
+            <div class="payment-btn">Pagar senal →</div>
+          </div>
+          <div class="chat-msg confirm" id="chat6">✓ Cita confirmada · Sab 16:30 · Sofia</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S5: ENCADENADOS - FLOW ANIMATION -->
+<section class="scene s5" data-scene="5">
+  <div class="flow-title" id="flowTitle">Una cita, varios profesionales<br><span class="grad">cero descoordinacion</span></div>
+  <div class="flow-container" id="flowContainer">
+    <div class="flow-path">
+      <div class="flow-line" id="flowLine"></div>
+      <div class="flow-arrow arrow1" id="arrow1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg></div>
+      <div class="flow-arrow arrow2" id="arrow2"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg></div>
+    </div>
+    <div class="flow-node" id="node1">SL</div>
+    <div class="flow-node" id="node2">CM</div>
+    <div class="flow-node" id="node3">DR</div>
+    <div class="flow-label" id="label1">Color<br>Sofia</div>
+    <div class="flow-label" id="label2">Corte<br>Carla</div>
+    <div class="flow-label" id="label3">Peinado<br>Diego</div>
+    <div class="flow-conclusion" id="flowConclusion">Una sola reserva · <span class="grad">1 confirmacion</span> para el cliente</div>
+  </div>
+</section>
+
+<!-- S6: CLIENTE - CARD REVEAL -->
+<section class="scene s6" data-scene="6">
+  <div class="card-stage" id="cardStage">
+    <div class="card-3d" id="card3d">
+      <div class="card-header">
+        <div class="card-avatar">AG</div>
+        <div>
+          <div class="card-name">Ana Garcia</div>
+          <div class="card-meta">Cliente desde 2023 · 14 visitas</div>
+        </div>
+      </div>
+      <div class="card-tags" id="cardTags">
+        <span class="card-tag fiel">Fiel</span>
+        <span class="card-tag alerg">Alergica al amoniaco</span>
+        <span class="card-tag neut">Prefiere tardes</span>
+      </div>
+      <div class="card-formula" id="cardFormula">
+        <div class="formula-label">Formula de color</div>
+        <div class="formula-chips">
+          <span class="formula-chip">Base 6.0 + 7.3</span>
+          <span class="formula-chip">30 vol</span>
+          <span class="formula-chip">35 min reposo</span>
+          <span class="formula-chip">Sin amoniaco</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S7: METRICS - DATA VISUALIZATION -->
+<section class="scene s7" data-scene="7">
+  <div class="metrics-stage" id="metricsStage">
+    <div class="metrics-title" id="metricsTitle">Tus numeros, <span class="grad">en vivo</span></div>
+    <div class="metrics-grid" id="metricsGrid">
+      <div class="metric-card success" id="metric1">
+        <div class="metric-value" data-count="93" data-suffix="%">0%</div>
+        <div class="metric-label">menos no-shows</div>
+        <div class="metric-note">Recordatorio + senal por Stripe</div>
+        <svg class="metric-chart" viewBox="0 0 100 40"><polyline points="0,35 20,30 40,25 60,15 80,8 100,3" fill="none" stroke="#34d399" stroke-width="3"/></svg>
+      </div>
+      <div class="metric-card accent" id="metric2">
+        <div class="metric-value" data-count="32" data-suffix="%">0%</div>
+        <div class="metric-label">mas ocupacion</div>
+        <div class="metric-note">Tiempos muertos aprovechados</div>
+        <svg class="metric-chart" viewBox="0 0 100 40"><polyline points="0,38 20,32 40,28 60,18 80,10 100,4" fill="none" stroke="#ff8a3d" stroke-width="3"/></svg>
+      </div>
+      <div class="metric-card cyan" id="metric3">
+        <div class="metric-value" data-count="6" data-prefix="+" data-suffix="h">0h</div>
+        <div class="metric-label">ahorradas/semana</div>
+        <div class="metric-note">Reservas automaticas</div>
+        <svg class="metric-chart" viewBox="0 0 100 40"><polyline points="0,35 20,28 40,20 60,12 80,6 100,2" fill="none" stroke="#ffce4a" stroke-width="3"/></svg>
+      </div>
+      <div class="metric-card violet" id="metric4">
+        <div class="metric-value" data-count="24" data-suffix="%">0%</div>
+        <div class="metric-label">mas ingresos/silla</div>
+        <div class="metric-note">Misma jornada, mas servicios</div>
+        <svg class="metric-chart" viewBox="0 0 100 40"><polyline points="0,38 20,30 40,25 60,15 80,8 100,3" fill="none" stroke="#ff9d2e" stroke-width="3"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S8: OUTRO - GRAND FINALE -->
+<section class="scene s8" data-scene="8">
+  <div class="finale-stage" id="finaleStage">
+    <div class="finale-flame"><svg class="flame-svg" viewBox="0 0 40 40"><use href="#mecha-flame"/></svg></div>
+    <div class="finale-title">Mecha</div>
+    <div class="finale-tag" id="finaleTag">Enciende tu salon</div>
+    <div class="finale-url" id="finaleUrl">mecha.app</div>
+  </div>
+</section>
+
+</div>
+</div>
+
+<div class="controls" id="controls">
+  <button class="play-btn" id="replayBtn">Reiniciar</button>
+  <div class="progress-track" id="progressTrack"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="time-label" id="timeLabel">0:00 / 0:54</span>
+</div>
+
+<script>
+// ============ EMBER PARTICLES ============
+(function(){
+  const cvs=document.getElementById('embers'),ctx=cvs.getContext('2d');
+  let W,H;const COLORS=[{r:255,g:218,b:80},{r:255,g:152,b:46},{r:255,g:102,b:25},{r:230,g:40,b:10}];
+  const GLOW=64;textures=COLORS.map(c=>{const o=document.createElement('canvas');o.width=GLOW;o.height=GLOW;
+    const oc=o.getContext('2d'),cx=GLOW/2,g=oc.createRadialGradient(cx,cx,0,cx,cx,cx);
+    g.addColorStop(0,`rgba(${c.r},${c.g},${c.b},1)`);g.addColorStop(.3,`rgba(${c.r},${c.g},${c.b},.6)`);
+    g.addColorStop(1,`rgba(${c.r},${c.g},${c.b},0)`);oc.fillStyle=g;oc.fillRect(0,0,GLOW,GLOW);return o});
+  const MAX=70;let embers=[];const originXs=[.12,.28,.45,.62,.78,.92];
+  function createEmber(s){const tx=originXs[Math.floor(Math.random()*originXs.length)];
+    return{x:W*tx+(Math.random()-.5)*W*.15,y:s?Math.random()*H:H+20+Math.random()*40,
+      vy:-(.3+Math.random()*1.2),vx:(Math.random()-.5)*.4,swayAmp:.3+Math.random()*1.2,
+      swayFreq:.008+Math.random()*.016,swayPhase:Math.random()*Math.PI*2,baseSize:1.5+Math.random()*3.5,
+      maxLife:250+Math.random()*400,life:s?Math.random()*400:250+Math.random()*400,
+      flickerSpeed:.06+Math.random()*.15,flickerPhase:Math.random()*Math.PI*2,
+      colorIdx:Math.floor(Math.random()*COLORS.length),glowBase:10+Math.random()*15,
+      windDrift:(Math.random()-.5)*.004,t:0}}
+  function resetEmber(p){const tx=originXs[Math.floor(Math.random()*originXs.length)];
+    p.x=W*tx+(Math.random()-.5)*W*.15;p.y=H+20+Math.random()*40;p.vy=-(.3+Math.random()*1.2);
+    p.vx=(Math.random()-.5)*.4;p.life=p.maxLife;p.t=0}
+  function resize(){const dpr=Math.min(window.devicePixelRatio||1,1.5);W=window.innerWidth;H=window.innerHeight;
+    cvs.width=W*dpr;cvs.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);embers=[];for(let i=0;i<MAX;i++)embers.push(createEmber(true))}
+  const STEP=1000/60;let acc=0;
+  function tick(){for(let i=0;i<MAX;i++){const p=embers[i];p.t++;p.life--;p.y+=p.vy;p.vy-=.001;p.vx+=p.windDrift;
+    p.x+=p.vx+Math.sin(p.t*p.swayFreq+p.swayPhase)*p.swayAmp;if(p.life<=0||p.y<-30)resetEmber(p)}}
+  function render(){ctx.clearRect(0,0,W,H);ctx.globalCompositeOperation='screen';
+    for(let i=0;i<MAX;i++){const p=embers[i];const lr=p.life/p.maxLife;const fl=Math.sin(p.t*p.flickerSpeed+p.flickerPhase);
+      let a=lr<.2?lr/.2:lr>.85?(1-lr)/.15:1;a*=(.7+.3*(fl*.5+.5))*.9;if(a<.03)continue;
+      const sz=p.baseSize*(.6+.4*(fl*.5+.5))*.5+.6*lr;const ds=sz*(p.glowBase*.55);
+      ctx.globalAlpha=Math.min(a,1);ctx.drawImage(textures[p.colorIdx],p.x-ds*.5,p.y-ds*.5,ds,ds)}
+    ctx.globalAlpha=1}
+  let lastFrame=0;const FRAME=1000/36;
+  function animate(now){requestAnimationFrame(animate);if(now-lastFrame<FRAME)return;lastFrame=now;
+    acc+=STEP;while(acc>=STEP){tick();acc-=STEP}render()}
+  window.addEventListener('resize',resize);resize();requestAnimationFrame(animate);
+})();
+
+// ============ MOTION DESIGN CONTROLLER ============
+const TOTAL=54.28;
+const SCENES=[
+  {id:0,start:0,end:3.8},
+  {id:1,start:3.8,end:10.5},
+  {id:2,start:10.5,end:15.5},
+  {id:3,start:15.5,end:25.0},
+  {id:4,start:25.0,end:35.5},
+  {id:5,start:35.5,end:43.0},
+  {id:6,start:43.0,end:48.5},
+  {id:7,start:48.5,end:52.5},
+  {id:8,start:52.5,end:54.28}
+];
+
+let currentScene=-1,isPlaying=false,audioEl=null,timeline=null;
+const stage=document.getElementById('stage'),camera=document.getElementById('camera');
+const scenes=stage.querySelectorAll('.scene');
+const startOverlay=document.getElementById('startOverlay');
+const controls=document.getElementById('controls');
+const progressFill=document.getElementById('progressFill');
+const progressTrack=document.getElementById('progressTrack');
+const timeLabel=document.getElementById('timeLabel');
+
+function formatTime(s){const m=Math.floor(s/60),sec=Math.floor(s%60);return m+':'+String(sec).padStart(2,'0')}
+
+function showScene(idx){
+  if(idx===currentScene)return;
+  scenes.forEach((s,i)=>{s.classList.toggle('active',i===idx)});
+  currentScene=idx;
+  if(timeline)timeline.kill();
+  playSceneAnimation(idx);
+}
+
+function playSceneAnimation(idx){
+  if(typeof gsap==='undefined')return;
+  const tl=gsap.timeline({defaults:{ease:'power3.out'}});
+  timeline=tl;
+
+  switch(idx){
+    case 0: // Cinematic intro
+      tl.from('#logoEmber',{scale:0,rotation:-180,duration:1.5,ease:'elastic.out(1,.4)'})
+        .from('#brandName',{scale:.5,opacity:0,filter:'blur(20px)',duration:1.2,ease:'power4.out'},'-=0.6')
+        .from('#tagline',{y:40,opacity:0,duration:1},'-=0.4');
+      break;
+
+    case 1: // Problem impact
+      tl.from('#probGrid',{scale:.8,opacity:0,duration:1,ease:'power2.out'})
+        .to('#prob1',{opacity:1,y:0,duration:.6,ease:'back.out(1.7)'},0)
+        .from('#prob1',{y:60,duration:.6,ease:'back.out(1.7)'},0)
+        .to('#prob2',{opacity:1,y:0,duration:.6,ease:'back.out(1.7)'},0.2)
+        .from('#prob2',{y:60,duration:.6,ease:'back.out(1.7)'},0.2)
+        .to('#prob3',{opacity:1,y:0,duration:.6,ease:'back.out(1.7)'},0.4)
+        .from('#prob3',{y:60,duration:.6,ease:'back.out(1.7)'},0.4)
+        .to('#impactLine',{opacity:1,scale:1,duration:.8,ease:'elastic.out(1,.5)'},0.8)
+        .from('#impactLine',{scale:.5,duration:.8},0.8);
+      break;
+
+    case 2: // Solution reveal
+      tl.set('.s2 .layer-bg',{opacity:1}).from('#solBg',{scale:0,opacity:.5,duration:1.5,ease:'power2.out'})
+        .from('#glowOrb',{scale:.5,opacity:0,duration:1.2,ease:'power2.out'},0)
+        .to('#glowOrb',{opacity:.6,scale:1.5,duration:2,ease:'sine.inOut'},0)
+        .to('#solText',{opacity:1,duration:1,ease:'power2.out'},0.5)
+        .from('#solText',{y:50,filter:'blur(15px)',duration:1},0.5);
+      break;
+
+    case 3: // App showcase with camera flyover
+      tl.from('#appContainer',{scale:.7,opacity:0,rotationX:25,rotationY:-15,duration:1.8,ease:'power3.out'})
+        .to('#appScreenshot',{scale:1.05,duration:3,ease:'sine.inOut',yoyo:true,repeat:1},0)
+        .to('#appReflection',{opacity:.3,duration:1},0.5)
+        .to('#spotlight',{opacity:.8,duration:.8,ease:'power2.out'},0.3)
+        .to('#spotlight',{x:'80%',y:'60%',duration:4,ease:'sine.inOut',yoyo:true,repeat:1},0.3)
+        .to('#cameraPath',{opacity:1,duration:1},0)
+        .to('#flAgenda',{opacity:1,scale:1,duration:.5,ease:'back.out(1.8)'},0.8)
+        .to('#flClientes',{opacity:1,scale:1,duration:.5,ease:'back.out(1.8)'},1.2)
+        .to('#flInformes',{opacity:1,scale:1,duration:.5,ease:'back.out(1.8)'},1.6)
+        .to('#flCaja',{opacity:1,scale:1,duration:.5,ease:'back.out(1.8)'},2.0);
+      break;
+
+    case 4: // WhatsApp dynamic conversation
+      tl.from('#waContainer',{opacity:1,duration:.8})
+        .from('#waHeadline',{y:40,opacity:0,duration:1,ease:'power3.out'},0)
+        .to('#waSubhead',{opacity:1,duration:.8},0.3)
+        .from('#phoneWrapper',{scale:.8,opacity:0,rotationY:-20,duration:1.2,ease:'power3.out'},0.2)
+        .to('#chat1',{opacity:1,y:0,scale:1,duration:.5,ease:'back.out(1.4)'},0.8)
+        .to('#chat2',{opacity:1,y:0,scale:1,duration:.5,ease:'back.out(1.4)'},1.3)
+        .to('#chat3',{opacity:1,y:0,scale:1,duration:.5,ease:'back.out(1.4)'},1.9)
+        .to('#chat4',{opacity:1,y:0,scale:1,duration:.5,ease:'back.out(1.4)'},2.4)
+        .to('#chat5',{opacity:1,y:0,scale:1.1,duration:.6,ease:'back.out(1.6)'},2.9)
+        .to('#chat6',{opacity:1,y:0,scale:1,duration:.5,ease:'back.out(1.4)'},3.6);
+      break;
+
+    case 5: // Encadenados flow
+      tl.from('#flowContainer',{opacity:1,duration:.8})
+        .from('#flowTitle',{y:50,opacity:0,duration:1,ease:'power3.out'},0)
+        .to('#flowLine',{opacity:1,width:'100%',duration:1.2,ease:'power2.out'},0.5)
+        .to('#node1',{opacity:1,scale:1,duration:.6,ease:'back.out(2)'},0.3)
+        .to('#arrow1',{opacity:1,duration:.4},0.7)
+        .to('#node2',{opacity:1,scale:1,duration:.6,ease:'back.out(2)'},0.9)
+        .to('#arrow2',{opacity:1,duration:.4},1.3)
+        .to('#node3',{opacity:1,scale:1,duration:.6,ease:'back.out(2)'},1.5)
+        .to('#label1,#label2,#label3',{opacity:1,duration:.5,stagger:.15},1.0)
+        .to('#flowConclusion',{opacity:1,duration:.8},2.0);
+      break;
+
+    case 6: // Cliente card reveal
+      tl.from('#cardStage',{opacity:1,duration:.8})
+        .from('#card3d',{y:80,rotationX:30,rotationY:-10,duration:1.4,ease:'power3.out'},0)
+        .to('#card3d',{y:0,rotationX:10,rotationY:-5,duration:1.4,ease:'power3.out'},0)
+        .to('#cardTags',{opacity:1,duration:.6,stagger:.15},0.8)
+        .to('#cardFormula',{opacity:1,duration:.6},1.2);
+      break;
+
+    case 7: // Metrics data visualization
+      tl.from('#metricsStage',{opacity:1,duration:.8})
+        .from('#metricsTitle',{y:40,opacity:0,duration:1,ease:'power3.out'},0)
+        .to('#metric1',{opacity:1,y:0,duration:.5,ease:'back.out(1.5)'},0.5)
+        .to('#metric2',{opacity:1,y:0,duration:.5,ease:'back.out(1.5)'},0.7)
+        .to('#metric3',{opacity:1,y:0,duration:.5,ease:'back.out(1.5)'},0.9)
+        .to('#metric4',{opacity:1,y:0,duration:.5,ease:'back.out(1.5)'},1.1);
+      setTimeout(animateCounters,800);
+      break;
+
+    case 8: // Grand finale
+      tl.from('#finaleStage',{opacity:1,duration:1})
+        .from('.finale-flame',{scale:0,rotation:-90,duration:1.5,ease:'elastic.out(1,.4)'},0)
+        .from('.finale-title',{scale:.6,opacity:0,filter:'blur(20px)',duration:1.4,ease:'power4.out'},0.3)
+        .to('#finaleTag',{opacity:1,duration:1},0.6)
+        .from('#finaleTag',{y:30,duration:1},0.6)
+        .to('#finaleUrl',{opacity:1,duration:.8},1.0)
+        .from('#finaleUrl',{y:20,duration:.8},1.0);
+      break;
+  }
+}
+
+function animateCounters(){
+  document.querySelectorAll('.metric-value[data-count]').forEach((el,i)=>{
+    const target=parseInt(el.dataset.count),suffix=el.dataset.suffix||'',prefix=el.dataset.prefix||'';
+    setTimeout(()=>{
+      let val=0;const dur=1200,start=performance.now();
+      function step(now){
+        const t=Math.min((now-start)/dur,1),eased=1-Math.pow(1-t,3);
+        val=Math.round(eased*target);el.textContent=prefix+val+suffix;
+        if(t<1)requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    },400+i*200);
+  });
+}
+
+function updateScene(time){
+  for(let i=SCENES.length-1;i>=0;i--){
+    if(time>=SCENES[i].start){
+      if(currentScene!==i)showScene(i);
+      break;
+    }
+  }
+  if(currentScene===-1)showScene(0);
+}
+
+let progressInterval=null;
+
+function startPresentation(){
+  startOverlay.classList.add('hidden');
+  controls.classList.add('show');
+  isPlaying=true;currentScene=-1;
+
+  audioEl=new Audio('mecha-narration-elevenlabs.mp3');
+  audioEl.play().catch(()=>console.log('Audio fallback'));
+
+  progressInterval=setInterval(()=>{
+    if(!isPlaying)return;
+    const time=audioEl&&!audioEl.ended?audioEl.currentTime:0;
+    updateScene(time);
+    const pct=(time/TOTAL)*100;
+    progressFill.style.width=Math.min(pct,100)+'%';
+    timeLabel.textContent=formatTime(time)+' / 0:54';
+    if(audioEl&&audioEl.ended){
+      showScene(8);progressFill.style.width='100%';timeLabel.textContent='0:54 / 0:54';
+      isPlaying=false;clearInterval(progressInterval);
+    }
+  },80);
+
+  setTimeout(()=>{
+    if(!audioEl||audioEl.readyState===0){
+      let startTime=Date.now();clearInterval(progressInterval);
+      progressInterval=setInterval(()=>{
+        const time=(Date.now()-startTime)/1000;
+        if(time>=TOTAL){showScene(8);progressFill.style.width='100%';timeLabel.textContent='0:54 / 0:54';isPlaying=false;clearInterval(progressInterval);return}
+        updateScene(time);progressFill.style.width=(time/TOTAL*100)+'%';timeLabel.textContent=formatTime(time)+' / 0:54';
+      },80);
+    }
+  },500);
+}
+
+function restartPresentation(){
+  if(audioEl){audioEl.pause();audioEl=null}
+  clearInterval(progressInterval);progressFill.style.width='0%';timeLabel.textContent='0:00 / 0:54';
+  currentScene=-1;scenes.forEach(s=>s.classList.remove('active'));startPresentation();
+}
+
+startOverlay.addEventListener('click',startPresentation);
+document.getElementById('replayBtn').addEventListener('click',restartPresentation);
+progressTrack.addEventListener('click',(e)=>{
+  if(!audioEl)return;
+  const rect=progressTrack.getBoundingClientRect();
+  audioEl.currentTime=((e.clientX-rect.left)/rect.width)*TOTAL;
+});
+document.addEventListener('keydown',(e)=>{
+  if(e.code==='Space'&&!startOverlay.classList.contains('hidden')){e.preventDefault();startPresentation()}
+  if(e.code==='KeyR'&&isPlaying){restartPresentation()}
+});
+</script>
+</body>
+</html>

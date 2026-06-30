@@ -1,17 +1,20 @@
 // Edge Function: enviar-presupuesto
 // Envia al cliente el presupuesto por correo via SMTP de Hostinger (desde el buzon
 // del salon, p.ej. contacto@mechaa.es) con el PDF adjunto y enlace a la pagina
-// publica de aceptacion. El profesional lo dispara con un click desde Mecha.
-// WhatsApp lo conecta Alexandro aparte (cola presupuestos_pendientes_envio).
+// publica de aceptacion. El correo lleva el logo del salon (clicable a su web),
+// su nombre y sale con el nombre del salon como remitente. El profesional lo
+// dispara con un click desde Mecha. WhatsApp lo conecta Alexandro aparte.
 //
 // Cuerpo (POST JSON): { presupuesto_id }
 // Secretos (Supabase -> Edge Functions -> Secrets):
 //   SMTP_HOST (def smtp.hostinger.com) SMTP_PORT (def 465) SMTP_USER SMTP_PASS
 //   SMTP_FROM (def = SMTP_USER) PUBLIC_APP_URL (def https://hairy-two.vercel.app)
+//   (acepta tambien EMAIL_HOST/PORT/USER/PASS/FROM)
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 
 const ORIGINS = ['https://hairy-two.vercel.app','https://www.novanoidai.com','http://localhost:8080','http://localhost:8081','http://localhost:3000','http://localhost:19006'];
+const MECHA_WEB = 'https://www.novanoidai.com';
 function cors(req: Request) {
   const o = req.headers.get('origin') || '';
   return {
@@ -31,9 +34,13 @@ function toB64(bytes: Uint8Array): string {
 }
 const eur = (c: number) => `${((c || 0) / 100).toFixed(2)} EUR`;
 
-function emailHtml(o: { salon: string; nombre: string; numero: number | null; totalCents: number; lineas: Array<{ nombre: string; precio_cents: number; cantidad: number }>; link: string; color: string }): string {
+function emailHtml(o: { salon: string; nombre: string; numero: number | null; totalCents: number; lineas: Array<{ nombre: string; precio_cents: number; cantidad: number }>; link: string; color: string; logoUrl: string; webLink: string; telefono: string }): string {
   const filas = o.lineas.map((l) => `<tr><td style='padding:7px 0;font:13px Arial;color:#1c1814;border-bottom:1px solid #efe7dd'>${l.nombre}${l.cantidad > 1 ? ' x' + l.cantidad : ''}</td><td style='padding:7px 0;font:13px Arial;color:#1c1814;text-align:right;border-bottom:1px solid #efe7dd'>${eur((l.precio_cents || 0) * Math.max(1, l.cantidad || 1))}</td></tr>`).join('');
-  return `<div style='background:#f6f1ea;padding:28px 14px'><div style='max-width:520px;margin:0 auto;background:#fffdfb;border:1px solid rgba(40,30,24,.1);border-radius:14px;overflow:hidden'><div style='height:6px;background:${o.color}'></div><div style='padding:26px'><p style='margin:0 0 4px;font:12px Arial;letter-spacing:1px;text-transform:uppercase;color:#8a7d70'>Presupuesto P-${o.numero ?? ''}</p><h1 style='margin:0 0 14px;font:bold 22px Arial;color:#1c1814'>${o.salon}</h1><p style='margin:0 0 18px;font:14px Arial;line-height:1.6;color:#5c5249'>Hola ${o.nombre || ''}, te enviamos el presupuesto que has pedido. Tienes el detalle completo en el PDF adjunto.</p><table width='100%' cellpadding='0' cellspacing='0'>${filas}</table><table width='100%' style='margin:6px 0 20px'><tr><td style='font:bold 15px Arial;color:#1c1814'>Total</td><td style='font:bold 18px Arial;color:${o.color};text-align:right'>${eur(o.totalCents)}</td></tr></table><a href='${o.link}' style='display:inline-block;padding:12px 28px;background:${o.color};color:#fff;font:bold 15px Arial;text-decoration:none;border-radius:10px'>Ver y aceptar el presupuesto</a><p style='margin:16px 0 0;font:11px Arial;color:#8a7d70'>Presupuesto orientativo - No es una factura - Enviado con Mecha</p></div></div></div>`;
+  const marca = o.logoUrl
+    ? `<a href='${o.webLink}' target='_blank' rel='noopener'><img src='${o.logoUrl}' alt='${o.salon}' style='max-height:56px;max-width:220px;display:inline-block'/></a>`
+    : `<a href='${o.webLink}' target='_blank' rel='noopener' style='font:bold 23px Arial;color:#1c1814;text-decoration:none'>${o.salon}</a>`;
+  const contacto = [o.telefono ? o.telefono : '', o.webLink ? `<a href='${o.webLink}' target='_blank' rel='noopener' style='color:#8a7d70'>${o.webLink.replace('https://','').replace('http://','')}</a>` : ''].filter((x) => x).join(' &middot; ');
+  return `<div style='background:#f6f1ea;padding:24px 14px'><div style='max-width:520px;margin:0 auto'><div style='text-align:center;padding:6px 0 18px'>${marca}</div><div style='background:#fffdfb;border:1px solid rgba(40,30,24,.1);border-radius:14px;overflow:hidden'><div style='height:6px;background:${o.color}'></div><div style='padding:26px'><p style='margin:0 0 4px;font:12px Arial;letter-spacing:1px;text-transform:uppercase;color:#8a7d70'>Presupuesto P-${o.numero ?? ''}</p><h1 style='margin:0 0 14px;font:bold 22px Arial;color:#1c1814'>${o.salon}</h1><p style='margin:0 0 18px;font:14px Arial;line-height:1.6;color:#5c5249'>Hola ${o.nombre || ''}, te enviamos el presupuesto que has pedido. Tienes el detalle completo en el PDF adjunto.</p><table width='100%' cellpadding='0' cellspacing='0'>${filas}</table><table width='100%' style='margin:6px 0 20px'><tr><td style='font:bold 15px Arial;color:#1c1814'>Total</td><td style='font:bold 18px Arial;color:${o.color};text-align:right'>${eur(o.totalCents)}</td></tr></table><a href='${o.link}' style='display:inline-block;padding:12px 28px;background:${o.color};color:#fff;font:bold 15px Arial;text-decoration:none;border-radius:10px'>Ver y aceptar el presupuesto</a><p style='margin:16px 0 0;font:11px Arial;color:#8a7d70'>Presupuesto orientativo - No es una factura.</p></div></div><div style='text-align:center;padding:16px 6px 0;font:12px Arial;color:#8a7d70'><div style='font:bold 13px Arial;color:#5c5249'>${o.salon}</div>${contacto ? `<div style='margin-top:3px'>${contacto}</div>` : ''}<div style='margin-top:10px;font:11px Arial;color:#a99e90'>Enviado con <a href='${MECHA_WEB}' target='_blank' rel='noopener' style='color:#f4501e;text-decoration:none;font-weight:bold'>Mecha</a></div></div></div></div>`;
 }
 
 Deno.serve(async (req: Request) => {
@@ -62,7 +69,7 @@ Deno.serve(async (req: Request) => {
   if (!to || !to.includes('@')) return json({ sent: false, error: 'sin_email' }, 400, req);
   if (!pre.pdf_path) return json({ sent: false, error: 'sin_pdf' }, 400, req);
 
-  const { data: portal } = await admin.from('negocio_portal').select('nombre_publico, color_acento').eq('negocio_id', pre.negocio_id).maybeSingle();
+  const { data: portal } = await admin.from('negocio_portal').select('nombre_publico, color_acento, logo_url, web, telefono, slug').eq('negocio_id', pre.negocio_id).maybeSingle();
   const { data: lineas } = await admin.from('presupuesto_lineas').select('nombre, precio_cents, cantidad').eq('presupuesto_id', pre.id).order('orden');
 
   const { data: pdfBlob, error: dlErr } = await admin.storage.from('presupuestos').download(pre.pdf_path);
@@ -74,7 +81,6 @@ Deno.serve(async (req: Request) => {
   const usr = Deno.env.get('SMTP_USER') || Deno.env.get('EMAIL_USER');
   const pass = Deno.env.get('SMTP_PASS') || Deno.env.get('EMAIL_PASS');
   if (!usr || !pass) return json({ sent: false, error: 'smtp_not_configured' }, 200, req);
-  const from = Deno.env.get('SMTP_FROM') || Deno.env.get('EMAIL_FROM') || `Mecha <${usr}>`;
 
   let base = Deno.env.get('PUBLIC_APP_URL') || 'https://hairy-two.vercel.app';
   if (base.endsWith('/')) base = base.slice(0, -1);
@@ -82,6 +88,16 @@ Deno.serve(async (req: Request) => {
   const rawColor = portal?.color_acento || '';
   const color = /^#?[0-9a-f]{6}$/i.test(rawColor) ? (rawColor.startsWith('#') ? rawColor : `#${rawColor}`) : '#f4501e';
   const link = `${base}/app/presupuesto/${pre.token}`;
+  const logoUrl = (portal?.logo_url || '').trim();
+  const telefono = (portal?.telefono || '').trim();
+  const slug = (portal?.slug || '').trim();
+  let webLink = (portal?.web || '').trim();
+  if (webLink && webLink.indexOf('://') === -1) webLink = 'https://' + webLink;
+  if (!webLink) webLink = slug ? `${base}/app/r/${slug}` : MECHA_WEB;
+
+  // Remitente: el correo sale con el NOMBRE DEL SALON, desde el buzon profesional.
+  const fromName = salon.replace(/[<>"]/g, '').slice(0, 60);
+  const from = `${fromName} <${usr}>`;
 
   const client = new SMTPClient({ connection: { hostname: host, port, tls: true, auth: { username: usr, password: pass } } });
   try {
@@ -89,7 +105,7 @@ Deno.serve(async (req: Request) => {
       from,
       to,
       subject: `Tu presupuesto de ${salon} (P-${pre.numero ?? ''})`.trim(),
-      html: emailHtml({ salon, nombre: (pre.contacto_nombre || '').split(' ')[0] || '', numero: pre.numero, totalCents: pre.total_cents, lineas: lineas || [], link, color }),
+      html: emailHtml({ salon, nombre: (pre.contacto_nombre || '').split(' ')[0] || '', numero: pre.numero, totalCents: pre.total_cents, lineas: lineas || [], link, color, logoUrl, webLink, telefono }),
       attachments: [{ filename: `presupuesto-P-${pre.numero ?? ''}.pdf`, content: pdfB64, encoding: 'base64', contentType: 'application/pdf' }],
     });
     await client.close();

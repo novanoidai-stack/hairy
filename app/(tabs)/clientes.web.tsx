@@ -277,6 +277,19 @@ export default function ClientesWeb() {
   // dejamos la peticion pendiente y la resolvemos en cuanto haya datos.
   const demoFichaPending = useRef(false);
 
+  const eliminarClienteDirecto = async (cli: Cliente) => {
+    if (!window.confirm(`¿Seguro que quieres eliminar al cliente "${cli.nombre}"? Si tiene citas asociadas, no se podrá eliminar.`)) return;
+    const { error } = await supabase.from('clientes').delete().eq('id', cli.id);
+    if (error) {
+      alert('No se pudo eliminar al cliente. Probablemente tiene citas asociadas.');
+    } else {
+      setSelected(null);
+      setPanelExpanded(false);
+      await cargar();
+      triggerRefresh();
+    }
+  };
+
   async function cargar() {
     const profile = await getUserProfile();
     if (!profile?.negocio_id) {
@@ -707,26 +720,43 @@ export default function ClientesWeb() {
           <div style={{ maxWidth: panelExpanded ? 1400 : 'none', margin: panelExpanded ? '0 auto' : 0, padding: panelExpanded ? '0 32px' : (isMobile ? '0 16px' : 0) }}>
             {/* Toggle expand / Back button. En movil la barra queda fija (sticky)
                 para que "Volver al listado" siga a mano aunque se baje por la ficha. */}
-            <div style={{ display: 'flex', justifyContent: isMobile ? 'space-between' : 'flex-end', alignItems: 'center', marginBottom: 12, position: isMobile ? 'sticky' : undefined, top: 0, zIndex: 5, background: isMobile ? TOKENS.bg : undefined, paddingTop: isMobile ? 8 : 0, paddingBottom: isMobile ? 8 : 0 }}>
-              {isMobile && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, position: isMobile ? 'sticky' : undefined, top: 0, zIndex: 5, background: isMobile ? TOKENS.bg : undefined, paddingTop: isMobile ? 8 : 0, paddingBottom: isMobile ? 8 : 0 }}>
+              {isMobile ? (
                 <button
                   onClick={() => { setSelected(null); setPanelExpanded(false); }}
                   style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
                 >
                   <Icon name="chevronLeft" size={16} color={TOKENS.text} />
-                  <span>Volver al listado</span>
+                  <span>Volver</span>
                 </button>
-              )}
-              {!isMobile && (
+              ) : <span />}
+
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <button
-                  className="m-btn-icon"
-                  onClick={() => setPanelExpanded((v) => !v)}
-                  title={panelExpanded ? 'Reducir ficha' : 'Expandir ficha'}
-                  style={{ width: 30, height: 30, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}
+                  onClick={() => { setEditingCliente(c); setShowClienteModal(true); }}
+                  style={{ padding: '6px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.textSec, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
                 >
-                  <Icon name={panelExpanded ? 'minimize' : 'maximize'} size={14} color={TOKENS.textSec} />
+                  <Icon name="edit" size={12} color={TOKENS.textSec} />
+                  <span>Editar</span>
                 </button>
-              )}
+                <button
+                  onClick={() => eliminarClienteDirecto(c)}
+                  style={{ padding: '6px 12px', background: 'transparent', border: `1px solid rgba(239,68,68,0.25)`, borderRadius: 8, color: TOKENS.danger, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+                >
+                  <Icon name="trash" size={12} color={TOKENS.danger} />
+                  <span>Eliminar</span>
+                </button>
+                {!isMobile && (
+                  <button
+                    className="m-btn-icon"
+                    onClick={() => setPanelExpanded((v) => !v)}
+                    title={panelExpanded ? 'Reducir ficha' : 'Expandir ficha'}
+                    style={{ width: 30, height: 30, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}
+                  >
+                    <Icon name={panelExpanded ? 'minimize' : 'maximize'} size={14} color={TOKENS.textSec} />
+                  </button>
+                )}
+              </div>
             </div>
             {/* Ficha formal del cliente */}
             {(() => {
@@ -1572,6 +1602,7 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
+  const { isMobile } = useResponsive();
   const isLocked = mode === 'edit' && ficha?.cerrada === true;
 
   const TIPOS_SERVICIO = [
@@ -1798,7 +1829,7 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
               + Anadir tono
             </button>
           </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 10 }}>
             <Field label="Oxidante (vol)">
               <select value={oxidanteVol} onChange={(e) => setOxidanteVol(e.target.value)} style={selectStyle}>
                 <option value="">--</option>
@@ -1812,7 +1843,7 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
 
         {/* Seccion: Estado del cabello */}
         <SectionLabel>Estado del cabello</SectionLabel>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 10, marginBottom: 14 }}>
           <Field label="Base natural"><Input value={baseNatural} onChange={setBaseNatural} placeholder="Ej. 5" /></Field>
           <Field label="Color previo"><Input value={colorPrevio} onChange={setColorPrevio} placeholder="Ej. 7/3" /></Field>
           <Field label="% canas"><Input value={porcCanas} onChange={setPorcCanas} placeholder="30" /></Field>
@@ -2063,6 +2094,7 @@ function HistorialTab({ cliente, citas, servicios, profesionales = [], fichasTec
 function CitaDetalleModal({ cita, cliente, servicio, profesional, ficha, onClose }: {
   cita: Cita; cliente: Cliente; servicio?: any; profesional?: any; ficha: any | null; onClose: () => void;
 }) {
+  const { isMobile } = useResponsive();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
@@ -2125,7 +2157,7 @@ function CitaDetalleModal({ cita, cliente, servicio, profesional, ficha, onClose
 
         <div style={{ padding: '20px 26px', display: 'flex', flexDirection: 'column', gap: 18 }}>
           {/* Datos clave */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12 }}>
             <DetailStat label="Profesional" value={profesional?.nombre || '—'} dot={profesional?.color} />
             <DetailStat label="Precio" value={precio > 0 ? `${precio} EUR` : '—'} tone={cita.estado === 'completada' ? TOKENS.success : TOKENS.text} />
             <DetailStat label="Cliente" value={cliente.nombre} />

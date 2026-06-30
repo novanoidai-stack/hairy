@@ -44,8 +44,9 @@
     s.textContent =
       '.cc-wrap{display:flex;flex:1 1 auto;align-items:center;gap:6px;min-width:0;}' +
       '.cc-wrap>input{flex:1 1 auto;min-width:0;}' +
-      '.cc-select{flex:0 0 auto;width:66px;box-sizing:border-box;border:1px solid rgba(0,0,0,.14);border-radius:8px;' +
-      'background:rgba(0,0,0,.02);color:inherit;font:inherit;font-size:.88em;padding:6px 2px;cursor:pointer;outline:none;}';
+      '.cc-select{flex:0 0 auto;width:66px;box-sizing:border-box;border:1px solid rgba(255,255,255,.15);border-radius:8px;' +
+      'background:#1c1613;color:#f8fafc;font:inherit;font-size:.88em;padding:6px 2px;cursor:pointer;outline:none;}' +
+      '.cc-select option{background:#1c1613;color:#f8fafc;}';
     document.head.appendChild(s);
   }
 

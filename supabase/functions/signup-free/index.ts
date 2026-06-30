@@ -67,11 +67,34 @@ Deno.serve(async (req: Request) => {
   if (!password || password.length < 8) return json({ error: 'weak_password' }, 400, req);
   if (!nombre || !salon) return json({ error: 'missing_fields' }, 400, req);
 
+  // 1) Validar dominio de correo mediante DNS MX para evitar cuentas ficticias
+  const domain = email.split('@')[1];
+  try {
+    const mx = await Deno.resolveDns(domain, "MX");
+    if (!mx || mx.length === 0) {
+      return json({ error: 'invalid_email_domain' }, 400, req);
+    }
+  } catch (_err) {
+    return json({ error: 'invalid_email_domain' }, 400, req);
+  }
+
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
   const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  // 2) Validar que el teléfono no esté duplicado en más de 2 cuentas
+  if (telefono) {
+    const { data: phoneMatch, error: phoneErr } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('phone', telefono);
+    
+    if (!phoneErr && phoneMatch && phoneMatch.length >= 2) {
+      return json({ error: 'phone_limit_reached' }, 400, req);
+    }
+  }
 
   // 1) Crear usuario YA confirmado (no se envia correo).
   const { data: created, error: cErr } = await admin.auth.admin.createUser({

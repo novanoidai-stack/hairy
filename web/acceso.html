@@ -69,6 +69,14 @@
   .field .inp svg{width:16px;height:16px;color:var(--text-ter);flex-shrink:0}
   .field input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--text);font-size:14px}
   .field input::placeholder{color:var(--text-ter)}
+  .field input:-webkit-autofill,
+  .field input:-webkit-autofill:hover, 
+  .field input:-webkit-autofill:focus, 
+  .field input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #1c1815 inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
   .field .pw-toggle{cursor:pointer}
   .field .inp{min-width:0}
   .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
