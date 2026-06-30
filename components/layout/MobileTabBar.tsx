@@ -19,18 +19,17 @@ type NavItem = {
 };
 
 // Destinos PRIMARIOS (siempre visibles en la barra). Maximo 4 + el boton "Mas".
-// Orden por frecuencia de uso real en salon: agenda y caja son el dia a dia.
 const PRIMARY: NavItem[] = [
   { name: 'index', label: 'Agenda', icon: 'calendar', route: '/(tabs)' },
   { name: 'caja', label: 'Caja', icon: 'wallet', route: '/(tabs)/caja', managerOnly: true },
+  { name: 'lista-espera', label: 'Lista de espera', icon: 'time', route: '/(tabs)/lista-espera' },
   { name: 'clientes', label: 'Clientes', icon: 'people', route: '/(tabs)/clientes', cap: 'clientes.ver' },
-  { name: 'mi-jornada', label: 'Mi jornada', icon: 'person-circle', route: '/(tabs)/mi-jornada' },
 ];
 
 // Destinos SECUNDARIOS (viven en la hoja "Mas").
 const MORE: NavItem[] = [
+  { name: 'mi-jornada', label: 'Mi jornada', icon: 'person-circle', route: '/(tabs)/mi-jornada' },
   { name: 'presupuestos', label: 'Presupuestos', icon: 'document-text', route: '/(tabs)/presupuestos' },
-  { name: 'lista-espera', label: 'Lista de espera', icon: 'time', route: '/(tabs)/lista-espera', cap: 'agenda.ver_todas' },
   { name: 'resenas', label: 'Reseñas', icon: 'star', route: '/(tabs)/resenas' },
   { name: 'equipo', label: 'Equipo', icon: 'person', route: '/(tabs)/equipo', cap: 'equipo.ver' },
   { name: 'informes', label: 'Informes', icon: 'bar-chart', route: '/(tabs)/informes', cap: 'informes.ver' },
