@@ -264,8 +264,10 @@ export default function AgendaCalendar() {
   const onboardingPending = onboardingEligible && onboarding.ready && !onboarding.coreDone && !obHidden;
   const [dropServicioOpen, setDropServicioOpen] = useState(false);
   const [dropEstadoOpen, setDropEstadoOpen] = useState(false);
-  // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral
-  const [railCollapsed, setRailCollapsed] = useState(false);
+  // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral.
+  // En tablet arranca plegado (el dia es lo principal y el espacio es justo), pero el
+  // usuario lo abre/cierra con el boton "Mostrar lateral / Pantalla completa".
+  const [railCollapsed, setRailCollapsed] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 1024);
   // Colapso de la barra de filtros (vista/servicio/estado). En movil arranca plegada:
   // ocupa demasiado alto y el dia es la vista principal; se despliega con el chip "Filtros".
   const [toolbarCollapsed, setToolbarCollapsed] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
@@ -518,8 +520,9 @@ export default function AgendaCalendar() {
 
   const visibleProfs = useMemo(() => profesionales.filter((p) => p.activo), [profesionales]);
 
-  // El rail se colapsa solo si railCollapsed=true o si estamos en movil/tablet
-  const isReallyCollapsed = railCollapsed || isMobile || isTablet;
+  // El rail se colapsa si railCollapsed=true o si estamos en movil. En tablet ya no
+  // se fuerza: lo controla railCollapsed (arranca plegado) via el boton de la cabecera.
+  const isReallyCollapsed = railCollapsed || isMobile;
 
   // En movil arrancamos mostrando UN profesional a la vez (columna a ancho completo);
   // "todos" repartiria el ancho y se ve apretado. Solo forzamos el primer profesional
@@ -827,14 +830,14 @@ export default function AgendaCalendar() {
               </>
             )}
           </div>
-          {!isMobile && !isTablet && (
+          {!isMobile && (
             <button
               onClick={() => setRailCollapsed((v) => !v)}
               title={railCollapsed ? 'Mostrar panel lateral' : 'Pantalla completa'}
-              style={{ padding: '7px 12px', background: railCollapsed ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${railCollapsed ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, color: railCollapsed ? TOKENS.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33, transition: 'all 0.15s ease' }}
+              style={{ padding: isTablet ? 7 : '7px 12px', background: railCollapsed ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${railCollapsed ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, color: railCollapsed ? TOKENS.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33, transition: 'all 0.15s ease' }}
             >
               <Icon name={railCollapsed ? 'minimize' : 'maximize'} size={15} color={railCollapsed ? TOKENS.primaryHi : TOKENS.textSec} />
-              {railCollapsed ? 'Mostrar lateral' : 'Pantalla completa'}
+              {!isTablet && (railCollapsed ? 'Mostrar lateral' : 'Pantalla completa')}
             </button>
           )}
           <button className="m-btn-secondary" onClick={handleToday} title="Ir a hoy" style={{ padding: isMobile ? 7 : '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33 }}>
@@ -1352,7 +1355,7 @@ export default function AgendaCalendar() {
                       <Icon name="chevronRight" size={17} color={TOKENS.textSec} />
                     </button>
                     {/* Boton de calendario en movil */}
-                    {(isMobile || isTablet) && (
+                    {(isMobile || (isTablet && isReallyCollapsed)) && (
                       <button
                         className="m-btn-icon"
                         onClick={() => setShowMobileCalendar(true)}
@@ -1368,13 +1371,13 @@ export default function AgendaCalendar() {
                       </button>
                     )}
                   </div>
-                  <div onClick={() => { if (isMobile || isTablet) setShowMobileCalendar(true); }} style={{ minWidth: 0, cursor: (isMobile || isTablet) ? 'pointer' : 'default' }}>
+                  <div onClick={() => { if (isMobile || (isTablet && isReallyCollapsed)) setShowMobileCalendar(true); }} style={{ minWidth: 0, cursor: (isMobile || (isTablet && isReallyCollapsed)) ? 'pointer' : 'default' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 0 }}>
                       <h2 style={{ margin: 0, fontSize: isMobile ? 17 : 21, fontWeight: 700, letterSpacing: -0.3, textTransform: 'capitalize' }}>
                         {selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'short' })}
                       </h2>
                       {selectedDateObj.toDateString() === today.toDateString() && <span style={{ fontSize: 10.5, fontWeight: 700, color: TOKENS.warning }}>HOY</span>}
-                      {(isMobile || isTablet) && <Icon name="chevronDown" size={15} color={TOKENS.textTer} />}
+                      {(isMobile || (isTablet && isReallyCollapsed)) && <Icon name="chevronDown" size={15} color={TOKENS.textTer} />}
                     </div>
                     <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 2 }}>
                       {totalCitasHoy} citas programadas · {confirmadasHoy} confirmadas
@@ -1457,8 +1460,9 @@ export default function AgendaCalendar() {
                 );
               })()}
 
-              {/* En tablet si caben varias columnas mantenemos los chips de filtro */}
-              {isTablet && (
+              {/* En tablet, con el rail plegado, los chips de profesional sustituyen a la
+                  lista del panel lateral. Con el rail abierto se ocultan (el rail ya los trae). */}
+              {isTablet && isReallyCollapsed && (
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
