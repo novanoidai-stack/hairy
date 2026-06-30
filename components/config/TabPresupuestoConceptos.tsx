@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { mensajeDeError } from '@/lib/errores';
-import { eur, parseEurToCents, type Concepto } from '@/lib/presupuestos';
+import { getUserProfile, isOwner } from '@/lib/auth';
+import { parseEurToCents, type Concepto } from '@/lib/presupuestos';
 
 // Catálogo de "conceptos de presupuesto" (nombre + precio reutilizables).
 // Se rellena solo cuando guardas un concepto nuevo desde el editor de presupuestos;
@@ -19,6 +20,11 @@ export function TabPresupuestoConceptos({ negocioId }: { negocioId: string }) {
   const [precio, setPrecio] = useState('');
   const [precios, setPrecios] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
+  // Politica de Reply-To de los presupuestos (solo el propietario la ve/edita).
+  const [replyTo, setReplyTo] = useState<'profesional' | 'salon'>('profesional');
+  const [salonEmail, setSalonEmail] = useState('');
+  const [showPolicy, setShowPolicy] = useState(false);
+  const [policyMsg, setPolicyMsg] = useState('');
 
   const cargar = useCallback(async () => {
     if (!negocioId) return;
@@ -36,6 +42,36 @@ export function TabPresupuestoConceptos({ negocioId }: { negocioId: string }) {
   }, [negocioId]);
 
   useEffect(() => { cargar(); }, [cargar]);
+
+  useEffect(() => {
+    if (!negocioId) return;
+    let cancel = false;
+    (async () => {
+      const [{ data: cfgRow }, profile] = await Promise.all([
+        supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
+        getUserProfile(),
+      ]);
+      if (cancel) return;
+      const cfg = (cfgRow?.config || {}) as Record<string, unknown>;
+      setReplyTo(String(cfg.presupuesto_reply_to || 'profesional') === 'salon' ? 'salon' : 'profesional');
+      setSalonEmail(String(cfg.email || '').trim());
+      // Solo el propietario decide la politica; se oculta para el visitante de la demo compartida.
+      const esDemo = profile?.email === 'demo.publico@mecha.app';
+      setShowPolicy(isOwner(profile) && !esDemo);
+    })();
+    return () => { cancel = true; };
+  }, [negocioId]);
+
+  const cambiarReplyTo = async (val: 'profesional' | 'salon') => {
+    setReplyTo(val); setPolicyMsg('');
+    const { data: cfgRow } = await supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle();
+    const cfg = (cfgRow?.config || {}) as Record<string, unknown>;
+    const { error: e } = await supabase.from('negocio_config').upsert(
+      { negocio_id: negocioId, config: { ...cfg, presupuesto_reply_to: val }, updated_at: new Date().toISOString() },
+      { onConflict: 'negocio_id' },
+    );
+    setPolicyMsg(e ? mensajeDeError(e) : 'Guardado');
+  };
 
   const anadir = async () => {
     setError('');
@@ -67,6 +103,37 @@ export function TabPresupuestoConceptos({ negocioId }: { negocioId: string }) {
 
   return (
     <div style={{ maxWidth: 640 }}>
+      {showPolicy && (
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: '16px 18px', marginBottom: 24 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: T.text, margin: '0 0 4px' }}>Respuestas de los presupuestos</h2>
+          <p style={{ fontSize: 13, color: T.textSec, margin: '0 0 14px' }}>
+            Cuando una clienta responde al correo de un presupuesto, ¿a quién debe llegar la respuesta?
+          </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {([
+              { v: 'profesional', t: 'Al profesional asignado', d: 'Responde el profesional del presupuesto' },
+              { v: 'salon', t: 'Al correo del salón', d: salonEmail || 'Configura el correo en Ajustes › Información' },
+            ] as const).map(opt => {
+              const active = replyTo === opt.v;
+              return (
+                <button key={opt.v} onClick={() => cambiarReplyTo(opt.v)} style={{
+                  flex: 1, minWidth: 200, textAlign: 'left', cursor: 'pointer',
+                  background: active ? T.primarySoft : T.panel,
+                  border: `1.5px solid ${active ? T.primary : T.border}`,
+                  borderRadius: 10, padding: '11px 13px',
+                }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: active ? T.primary : T.text }}>{opt.t}</div>
+                  <div style={{ fontSize: 12, color: T.textTer, marginTop: 2, wordBreak: 'break-word' }}>{opt.d}</div>
+                </button>
+              );
+            })}
+          </div>
+          {policyMsg && <div style={{ fontSize: 12, color: policyMsg === 'Guardado' ? '#0f9d6b' : T.danger, marginTop: 10 }}>{policyMsg}</div>}
+          <p style={{ fontSize: 11.5, color: T.textTer, marginTop: 12 }}>
+            El correo sale siempre con el nombre del salón. Si el profesional no tiene correo, se usa el del salón.
+          </p>
+        </div>
+      )}
       <h2 style={{ fontSize: 18, fontWeight: 700, color: T.text, margin: '0 0 4px' }}>Conceptos de presupuesto</h2>
       <p style={{ fontSize: 13.5, color: T.textSec, margin: '0 0 18px' }}>
         Importes que reutilizas en los presupuestos (p. ej. “Tratamiento de pelo · 20 €”). Se guardan solos

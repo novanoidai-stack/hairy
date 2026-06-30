@@ -61,7 +61,7 @@ Deno.serve(async (req: Request) => {
   const { data: prof } = await admin.from('profiles').select('negocio_id').eq('id', user.id).maybeSingle();
   if (!prof?.negocio_id) return json({ sent: false, error: 'sin_perfil' }, 403, req);
 
-  const { data: pre } = await admin.from('presupuestos').select('id, negocio_id, numero, estado, contacto_nombre, contacto_email, total_cents, token, pdf_path').eq('id', id).maybeSingle();
+  const { data: pre } = await admin.from('presupuestos').select('id, negocio_id, numero, estado, contacto_nombre, contacto_email, total_cents, token, pdf_path, profesional_id').eq('id', id).maybeSingle();
   if (!pre) return json({ sent: false, error: 'no_encontrado' }, 404, req);
   if (pre.negocio_id !== prof.negocio_id) return json({ sent: false, error: 'no_autorizado' }, 403, req);
 
@@ -71,9 +71,22 @@ Deno.serve(async (req: Request) => {
 
   const { data: portal } = await admin.from('negocio_portal').select('nombre_publico, color_acento, logo_url, web, telefono, slug').eq('negocio_id', pre.negocio_id).maybeSingle();
   const { data: lineas } = await admin.from('presupuesto_lineas').select('nombre, precio_cents, cantidad').eq('presupuesto_id', pre.id).order('orden');
-  // Correo profesional del salon = el del titular (owner). Sirve de Reply-To (las respuestas
-  // del cliente llegan al salon, no al buzon compartido) y se muestra en el pie del correo.
+  // Correo del titular (owner): ultimo recurso para el Reply-To si no hay otro.
   const { data: owner } = await admin.from('profiles').select('email').eq('negocio_id', pre.negocio_id).eq('role', 'owner').order('created_at', { ascending: true }).limit(1).maybeSingle();
+  // Config del negocio (JSONB): correo de contacto del salon (config.email) y la politica
+  // "presupuesto_reply_to" ('profesional' | 'salon') que decide el propietario en Ajustes.
+  const { data: cfgRow } = await admin.from('negocio_config').select('config').eq('negocio_id', pre.negocio_id).maybeSingle();
+  const cfg = (cfgRow?.config || {}) as Record<string, unknown>;
+  // Correo del profesional asignado al presupuesto (columna propia o via su perfil de acceso).
+  let profEmail = '';
+  if (pre.profesional_id) {
+    const { data: pr } = await admin.from('profesionales').select('email, profile_id').eq('id', pre.profesional_id).maybeSingle();
+    profEmail = (pr?.email || '').trim().toLowerCase();
+    if (!profEmail && pr?.profile_id) {
+      const { data: pp } = await admin.from('profiles').select('email').eq('id', pr.profile_id).maybeSingle();
+      profEmail = (pp?.email || '').trim().toLowerCase();
+    }
+  }
 
   const { data: pdfBlob, error: dlErr } = await admin.storage.from('presupuestos').download(pre.pdf_path);
   if (dlErr || !pdfBlob) return json({ sent: false, error: 'pdf_no_disponible' }, 502, req);
@@ -93,7 +106,13 @@ Deno.serve(async (req: Request) => {
   const link = `${base}/app/presupuesto/${pre.token}`;
   const logoUrl = (portal?.logo_url || '').trim();
   const telefono = (portal?.telefono || '').trim();
-  const salonEmail = (owner?.email || '').trim().toLowerCase();
+  // Reply-To y correo de contacto mostrado: segun la politica que elige el propietario.
+  // 'profesional' (def) -> el del profesional asignado; 'salon' -> el correo del salon.
+  // Cadena de respaldo en ambos casos: correo del salon -> correo del titular.
+  const ownerEmail = (owner?.email || '').trim().toLowerCase();
+  const salonContact = String(cfg.email ?? '').trim().toLowerCase() || ownerEmail;
+  const policy = String(cfg.presupuesto_reply_to ?? 'profesional');
+  const salonEmail = (policy === 'salon' ? salonContact : (profEmail || salonContact)) || ownerEmail;
   const slug = (portal?.slug || '').trim();
   let webLink = (portal?.web || '').trim();
   if (webLink && webLink.indexOf('://') === -1) webLink = 'https://' + webLink;
