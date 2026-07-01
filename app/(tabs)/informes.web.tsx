@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
+import { LiquidacionesSection } from '@/components/informes/LiquidacionesSection';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { NEGOCIO_ID_FALLBACK, CITA_STATUS, HORARIO_APERTURA, HORARIO_CIERRE } from '@/lib/constants';
@@ -1776,6 +1777,8 @@ export default function InformesScreen() {
                 </div>
               </SectionBody>
             </div>
+            {/* Liquidaciones persistentes (generar, marcar pagada, exportar) */}
+            <LiquidacionesSection negocioId={negocioId} />
           </>
         )}
       </div>

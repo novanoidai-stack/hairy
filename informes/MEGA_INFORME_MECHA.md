@@ -167,7 +167,9 @@ Mecha ya **no tiene el "agujero nº1"** que diagnosticaba el informe anterior: e
 | Configuración | **~90%** ⬆ | + sección Reserva online funcional con slug y QR |
 | **Portal de reserva pública** | **~75%** ⬆⬆ | ERA 0%. Hecho: flujo completo de 6 pasos, RPCs seguras, QR. Falta: anti-abuso, cancelar/modificar por el cliente, señal real (Stripe) |
 | Reseñas | **~70%** ⬆⬆ | ERA 0%. Captura pública + media en portal. Falta: moderación y disparo post-cita (motor) |
-| Lista de espera | **~60%** ⬆⬆ | ERA 0%. Tabla + gestión interna. Falta: matching automático de huecos y aviso WhatsApp (motor) |
+| Lista de espera | **~85%** ⬆⬆ | **HECHO**: matching automático completo (motor `procesar_lista_espera()`), outbox de avisos, citas tentativas. OFF por defecto; falta activar workflow n8n (pendiente plantillas Meta). Guía: `docs/superpowers/specs/2026-06-21-lista-espera-matching-design.md` |
+| Comisiones | **~80%** ⬆⬆ | **HECHO**: sistema de liquidaciones con persistencia (`comisiones`, RPCs cálculo/generación/consulta), UI en Informes (`LiquidacionesSection`). Modelos avanzados (tramos, por categoría) en BD. |
+| Fidelización | **~75%** ⬆⬆ | **HECHO**: sistema de recompensas persistente (`recompensas`, `recompensas_canjeadas`, `niveles_fidelizacion`, `logros`, `logros_desbloqueados`), RPCs (`obtener_recompensas_negocio`, `canjear_recompensa`, `verificar_logros_cliente`), UI en Configuración (`TabRecompensas`). |
 | **Pagos / caja** | **0%** | Sin cambios. Ni Stripe en package.json. El doc M-CJ del socio (14 págs) está 0% implementado |
 | Recordatorios / mensajería | **~15%** | UI de config lista; cero envío real. **Bloquea el valor de waitlist y reseñas** |
 | IA (voz + WhatsApp) | **~20% de base** | No es 0: las RPCs públicas son la mitad del contrato que necesita Alexandro (§7) |
@@ -344,12 +346,154 @@ El doc modular 6 define qué debe poder hacer el agente. Mapeo contra lo que exi
 
 **Con A1–A6 (≈1 semana), Alexandro conecta n8n/Retell sin pedirnos nada más.** Sin A4 y A6, su trabajo nace cojo: lo digo porque el objetivo era "que él solo tenga que conectar".
 
-### 7.3 Lista de espera v2 (el flujo completo que pediste)
-1. Cancelación de cita → trigger → busca en `lista_espera` candidatos compatibles (servicio, profesional, franja, rango de fechas) ordenados por `prioridad, created_at` → marca `avisado` + `avisado_at`. **[Carlos: función SQL de matching, 1–2 d]**
-2. Webhook (A6) → n8n → WhatsApp al cliente con enlace directo al hueco en el portal (`/r/slug?slot=...`, pre-seleccionado). **[Alexandro + Carlos el deep-link: 1 d]**
-3. Notificación in-app a recepción ("hueco del jueves ofrecido a María"). **[Carlos, 1 d]**
-4. Si el cliente no responde en X min (config), pasa al siguiente. **[n8n]**
-El modelo de datos ya soporta todo esto (estados `esperando/avisado/resuelta/cancelada` ya existen en `migrations/lista-espera.sql`).
+### 7.3 Lista de espera v2 — **HECHO** ✅ (1 jul 2026)
+
+**Estado**: Motor server-side completo, listo para activar. OFF por defecto en todos los salones (config `listaEsperaMatchingActivo: false`).
+
+**Especificación completa**: `docs/superpowers/specs/2026-06-21-lista-espera-matching-design.md`
+
+**Arquitectura implementada** (migración `lista-espera-matching.sql`):
+
+1. **Motor `procesar_lista_espera()`**: función `security definer` (solo `service_role`) que procesa:
+   - Nuevas cancelaciones → crea ofertas
+   - Ofertas vencidas → avanza al siguiente candidato
+   - Ofertas confirmadas → resuelve + avisa a los demás
+
+2. **Tablas nuevas**:
+   - `lista_espera_ofertas`: un registro por hueco liberado, con estado (`activa`/`resuelta`/`agotada`), candidato actual, ventana de expiración, bloqueo máximo, lista de `avisados`
+   - `lista_espera_avisos`: outbox para mensajes WhatsApp (`template`: `aviso_lista_espera` / `aviso_hueco_caducado`)
+
+3. **Flags en `citas`**:
+   - `es_oferta_espera`: marca citas tentativas creadas por el motor (el escaneo de cancelaciones las ignora)
+   - `lista_espera_revisada`: marca cancelaciones ya procesadas
+
+4. **RPCs**:
+   - `lista_espera_avisos_pendientes()`: drena el outbox para n8n
+   - `marcar_lista_espera_aviso_enviado(id)`: marca aviso como enviado
+   - `confirmar_cita_oferta(cita_id, telefono)`: aceptación desde el portal (anónima, gated por par cita+teléfono)
+
+**Configuración** (`negocio_config.config`):
+
+| Clave | Default | Qué hace |
+|---|---|---|
+| `listaEsperaMatchingActivo` | **false** | Toggle maestro |
+| `listaEsperaVentanaMin` | 30 | Minutos para responder |
+| `listaEsperaMaxBloqueoHoras` | 2 | Tope total de bloqueo del hueco |
+| `listaEsperaAntelacionMinHoras` | 4 | Antelación mínima para ofrecer |
+| `listaEsperaDesbloqueoDesde` | 'primer_aviso' | Desde cuándo cuenta el tope |
+| `listaEsperaOfertaPideSenal` | false | La oferta exige señal |
+| `listaEsperaAvisarCaducado` | false | Avisar a los no agraciados |
+
+**Pendiente** (Alexandro):
+- Activar workflow n8n dedicado "Mecha — Lista de espera" (Schedule 2 min → `procesar_lista_espera` → drenar avisos → enviar WhatsApp → marcar enviado)
+- Validar plantillas de Meta (`aviso_lista_espera`, `aviso_hueco_caducado`)
+
+**UI existente**: `app/(tabs)/lista-espera.web.tsx` (gestión manual de candidatos, filtros por estado, marcar avisado/resuelto).
+
+---
+
+### 7.4 Comisiones y liquidaciones — **HECHO** ✅ (1 jul 2026)
+
+**Sistema completo de liquidaciones mensuales con persistencia y modelos avanzados.**
+
+**Modelo de datos** (migraciones `comisiones-liquidaciones.sql` + `comisiones-rpcs.sql`):
+
+1. **`comisiones`**: tabla de liquidaciones por profesional y periodo
+   - `negocio_id`, `profesional_id` (uuid), `periodo_inicio/fin`
+   - `base_calculo_cents`: base sobre la que se calcula la comisión
+   - `porcentaje_aplicado`, `comision_base` ('neto'/'bruto'), `incluir_addons`, `incluir_propinas`
+   - `importe_comision_cents`: resultado
+   - `estado`: 'pendiente'/'pagada'/'anulada'
+   - `detalles`: JSONB con desglose
+   - `pagada_en`: fecha de pago
+
+2. **`comisiones_tramos`**: modelos de comisión por tramos de facturación
+   - `nivel`, `umbral_min_cents`, `umbral_max_cents`, `porcentaje`
+
+3. **`comisiones_por_categoria`**: porcentajes diferentes por categoría de servicio
+   - `categoria_id`, `porcentaje`
+
+**RPCs implementadas** (solo `authenticated`, RLS por `negocio_id`):
+
+- `calcular_comisiones_periodo(p_profesional_id, p_desde, p_hasta)`: calcula sin persistir
+  - Lee config de `negocio_config` → porcentaje defecto, base tipo, addons, propinas
+  - Aplica porcentaje individual del profesional si existe
+  - Devuelve JSON con base, porcentaje, comisión, desglose
+
+- `generar_liquidacion(p_profesional_id, p_periodo_inicio, p_periodo_fin)`: persiste
+  - Verifica que no exista ya para el periodo
+  - Inserta en `comisiones` con snapshot de config
+  - Devuelve `liquidacion_id`, importe, cálculo
+
+- `obtener_liquidaciones(p_negocio_id?, p_profesional_id?, p_estado?)`: lista
+  - Devuelve array con detalles + pagada_en
+
+- `marcar_liquidacion_pagada(p_liquidacion_id)`: marca como pagada (solo gestores)
+- `anular_liquidacion(p_liquidacion_id)`: anula (permite regenerar)
+
+**UI implementada** (`components/informes/LiquidacionesSection.tsx`):
+
+- Selector de mes (últimos 6 meses)
+- Toggle "Todas" / "Por profesional"
+- Lista de liquidaciones con estado (pendiente/pagada/anulada)
+- Modal de detalle con:
+  - Base de cálculo, porcentaje aplicado, comisión final
+  - Configuración aplicada (neto/bruto, addons, propinas)
+  - Resumen de actividad (nº cobros)
+  - Estado y fechas (creada, pagada)
+- Acciones: generar todas, marcar como pagada, exportar CSV
+
+**Configuración existente**: `app/(tabs)/configuracion.web.tsx` → "Comisiones" (porcentaje defecto, base tipo, addons, propinas) + `app/(tabs)/equipo.web.tsx` (porcentaje individual por profesional).
+
+**Pendiente**: integrar modelos de tramos y por categoría en el cálculo (RPC soporta el modelo; UI de configuración de tramos pendiente).
+
+---
+
+### 7.5 Fidelización y recompensas — **HECHO** ✅ (1 jul 2026)
+
+**Sistema de recompensas con persistencia, niveles y logros desbloqueables.**
+
+**Modelo de datos** (migración `recompensas.sql`):
+
+1. **`recompensas`**: premios canjeables por clientes
+   - `nombre`, `descripcion`, `tipo` ('descuento_pct'/'descuento_eur'/'producto'/'servicio'), `valor`
+   - `umbral_visitas`: número de visitas necesario para canjear
+   - `expira_meses`: caducidad (null = no expira)
+
+2. **`recompensas_canjeadas`**: historial de canjes
+   - `cliente_id`, `recompensa_id`, `cita_id` (asociada)
+   - `estado`: 'canjeado'/'usado'/'expirado'/'cancelado'
+
+3. **`niveles_fidelizacion`**: categorías de cliente (Nuevo, Habitual, VIP...)
+   - `nombre`, `orden`, `color`, `icono`
+   - `umbral_visitas` OR `umbral_gastado_cents` (cumple uno u otro)
+
+4. **`logros`**: badges desbloqueables
+   - `tipo`: 'primera_visita'/'visitas_multiple'/'gastado_total'/'sin_noshow'/'servicio_fav'/'antiguedad'/'custom'
+   - `condicion`: JSONB con parámetros (ej: `{"visitas": 10}`)
+
+5. **`logros_desbloqueados`**: registro de logros desbloqueados por cliente
+
+**RPCs implementadas**:
+
+- `obtener_recompensas_negocio(p_solo_activas?)`: lista recompensas del negocio
+- `canjear_recompensa(p_recompensa_id, p_cliente_id, p_cita_id?)`: registra canje
+  - Verifica umbral de visitas
+  - Inserta en `recompensas_canjeadas`
+- `obtener_nivel_cliente(p_cliente_id)`: calcula nivel según métricas
+- `verificar_logros_cliente(p_cliente_id)`: desbloquea logros automáticamente según métricas
+- `obtener_logros_desbloqueados(p_cliente_id)`: lista logros de un cliente
+
+**UI implementada** (`app/(tabs)/configuracion-recompensas.web.tsx` → "Recompensas"):
+
+- **Sección de Recompensas**: listado, búsqueda, crear/editar (nombre, tipo, valor, umbral, expiración), activar/desactivar
+- **Sección de Niveles**: listado con drag & drop de orden, color, umbrales (visitas o gastado)
+- **Sección de Logros**: listado, crear/editar (nombre, tipo, condición JSON), activar/desactivar
+
+**Integración pendiente**:
+- Mostrar nivel del cliente en su ficha (`clientes.web.tsx`)
+- Mostrar logros desbloqueados en la ficha del cliente
+- Sugerir recompensa canjeable al completar una cita
 
 ---
 
@@ -824,3 +968,66 @@ master (commit `6fcc796a8`). Spec: `docs/superpowers/specs/2026-06-26-onboarding
   avisos que hospede la tarjeta, así que sería una superficie nueva, no un port directo; el
   producto vivo es la web. Los componentes son `.web` aislados, no rompen el build nativo.
 - `npx tsc --noEmit` y `npm run build:web` en verde tras ambas tandas.
+
+---
+
+## Adenda 1 jul 2026 — Inventario v0 (Carlos + Claude)
+
+**Estado: COMPLETO (código listo, pendiente aplicar migraciones en Supabase)**
+
+MVP de inventario para peluquerías implementado según especificación de la auditoría estratégica
+(`informes/AUDITORIA_ESTRATEGICA_MECHA_2026-07-01.md`, Sesión 2 → Tarea 4).
+
+**Backend (SQL listo en `migrations/`):**
+- `inventario-v0.sql`: Schema básico (213 líneas)
+  - `productos` (catálogo: nombre, descripción, categoría, precio, IVA, stock mínimo, código barras, imagen, proveedor)
+  - `inventario` (stock actual por negocio: unidades, ubicación, última modificación)
+  - `movimientos_inventario` (historial de entradas/salidas/ajustes con contexto)
+  - Vista `productos_con_stock` (productos + stock actual + indicador `stock_bajo`)
+  - RLS multi-tenant `negocio_id` en las 3 tablas
+- `inventario-rpcs.sql`: 9 RPCs `security definer` (687 líneas)
+  - `obtener_inventario(p_solo_activos, p_categoria)` → lista productos con stock
+  - `obtener_producto(p_producto_id)` → detalle individual
+  - `crear_producto(...)` → alta en catálogo + stock inicial
+  - `actualizar_producto(...)` → editar campos
+  - `registrar_movimiento_inventario(...)` → entrada/salida/ajuste
+  - `obtener_movimientos_inventario(...)` → historial paginado
+  - `productos_stock_bajo()` → alertas
+  - `eliminar_producto(...)` → soft delete (marcar inactivo)
+  - `obtener_categorias_productos()` → categorías únicas
+
+**Frontend (UI lista en `app/(tabs)/`):**
+- `inventario.web.tsx`: Pantalla completa (1186 líneas, React Native Web)
+  - Lista de productos en grid responsive (tarjetas con stock, precio, alertas)
+  - Filtros: búsqueda por nombre/código, filtro por categoría
+  - Badge "Stock bajo" en header con contador de alertas
+  - Modal "Nuevo producto": nombre, descripción, categoría, precio, stock mínimo, unidades iniciales
+  - Modal "Ajustar stock": tipo (entrada/salida/ajuste), unidades, motivo, notas, preview stock resultante
+  - Modal "Historial": timeline de movimientos con tipo, fecha, unidades, motivo, autor
+  - Acciones por producto: ajustar stock, ver historial, eliminar (soft delete)
+  - Empty state con CTA "Crear primer producto"
+- `inventario.tsx`: Redirect nativo (placeholder)
+- Integrado en navegación:
+  - Sidebar (`components/layout/Sidebar.tsx`): icono `cube`
+  - MobileTabBar (`components/layout/MobileTabBar.tsx`): icono `cube`
+
+**Características v0 (cumple especificación):**
+- ✅ CRUD básico de productos
+- ✅ Registro de movimientos (entrada/salida/ajuste)
+- ✅ Historial de movimientos por producto
+- ✅ Alertas de stock bajo (umbral configurable por producto)
+- ✅ Búsqueda y filtrado
+- ✅ Responsive (móvil + escritorio)
+- ❌ NO incluido en v0 (para futuro): integración automática con cobros, predicción de demanda, proveedores, multi-almacén
+
+**Pendiente:**
+- Aplicar las migraciones `inventario-v0.sql` e `inventario-rpcs.sql` en Supabase (requiere acceso al proyecto; el CLI no está instalado localmente)
+- QA E2E con datos reales tras aplicar migraciones
+- Paridad nativa (diferido como el resto de la app)
+
+**Archivos clave:**
+- `migrations/inventario-v0.sql` — schema
+- `migrations/inventario-rpcs.sql` — RPCs
+- `app/(tabs)/inventario.web.tsx` — UI
+- `informes/AUDITORIA_ESTRATEGICA_MECHA_2026-07-01.md` — especificación
+- `informes/PROMPT-SESION-2-COMPLETO.md` — prompt de referencia

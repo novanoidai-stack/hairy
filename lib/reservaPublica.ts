@@ -33,6 +33,7 @@ export interface PortalNegocio {
   idioma: string;
   mostrar_precios: 'catalogo' | 'tras_seleccion' | 'nunca';
   color_acento: string;
+  analytics_config?: { enabled: boolean; measurementId: string; consentGiven: boolean };
 }
 
 export interface PortalInfo {
@@ -67,6 +68,7 @@ export interface CrearCitaArgs {
   clienteEmail?: string;
   notas?: string;
   consentimientoDatos?: boolean;
+  captchaToken?: string; // Token de reCAPTCHA v3
 }
 
 // Cabecera + servicios reservables + profesionales del salon. null si el portal no existe / esta apagado.
@@ -124,6 +126,7 @@ export async function crearCitaPublica(args: CrearCitaArgs): Promise<CrearCitaRe
     p_cliente_email: args.clienteEmail ?? null,
     p_notas: args.notas ?? null,
     p_consentimiento_datos: args.consentimientoDatos ?? true,
+    p_captcha_token: args.captchaToken ?? null, // CAPTCHA v3 token
   });
   if (error) throw error;
   return data as CrearCitaResult;
@@ -167,6 +170,7 @@ export async function crearResenaPublica(args: {
   autorNombre?: string;
   profesionalId?: string | null;
   servicioId?: string | null;
+  captchaToken?: string; // Token de reCAPTCHA v3
   mechaPuntuacion?: number | null;
   mechaComentario?: string | null;
   salonTrato?: number | null;

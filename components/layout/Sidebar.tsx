@@ -28,6 +28,7 @@ const NAV_ITEMS: { label: string; icon: string; activeIcon: string; href: string
   { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver' },
   { label: 'Reseñas', icon: 'star-outline', activeIcon: 'star', href: '/(tabs)/resenas' },
   { label: 'Equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver' },
+  { label: 'Inventario', icon: 'cube-outline', activeIcon: 'cube', href: '/(tabs)/inventario' },
   { label: 'Informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver' },
 ];
 

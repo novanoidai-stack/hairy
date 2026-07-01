@@ -33,6 +33,7 @@ const MORE: NavItem[] = [
   { name: 'bandeja', label: 'Bandeja', icon: 'mail', route: '/(tabs)/bandeja' },
   { name: 'resenas', label: 'Reseñas', icon: 'star', route: '/(tabs)/resenas' },
   { name: 'equipo', label: 'Equipo', icon: 'person', route: '/(tabs)/equipo', cap: 'equipo.ver' },
+  { name: 'inventario', label: 'Inventario', icon: 'cube', route: '/(tabs)/inventario' },
   { name: 'informes', label: 'Informes', icon: 'bar-chart', route: '/(tabs)/informes', cap: 'informes.ver' },
   { name: 'configuracion', label: 'Ajustes', icon: 'settings', route: '/(tabs)/configuracion', cap: 'config.ver' },
 ];

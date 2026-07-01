@@ -8,6 +8,7 @@ import { CATEGORY_COLOR_TOKENS, categoryColorHex, type CategoryColorToken } from
 import { TabPresupuestoConceptos } from '@/components/config/TabPresupuestoConceptos';
 import { MiPerfilProfesional } from '@/components/config/MiPerfilProfesional';
 import { TabImportarCitas } from '@/components/config/TabImportarCitas';
+import { TabRecompensas } from '@/components/config/TabRecompensas.web';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -229,6 +230,7 @@ const TABS: TabDef[] = [
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion' },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion' },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
+  { id: 'recompensas',    label: 'Recompensas',    icon: 'star',      section: 'Comunicacion' },
   { id: 'referidos',      label: 'Invita y gana',  icon: 'gift',      section: 'Cuenta' },
   { id: 'accesos',        label: 'Accesos y roles', icon: 'shield',   section: 'Cuenta' },
   { id: 'cuenta',         label: 'Cuenta',         icon: 'lock',      section: 'Cuenta' },
@@ -1109,6 +1111,7 @@ export default function ConfiguracionWeb() {
             {tab === 'notificaciones' && <TabNotificaciones config={config} setC={setC} />}
             {tab === 'politicas' && <TabPoliticas config={config} setC={setC} />}
             {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
+            {tab === 'recompensas' && <TabRecompensas negocioId={negocioId} />}
             {tab === 'referidos' && <TabReferidos />}
             {tab === 'accesos' && <TabAccesos negocioId={negocioId} currentUserId={userId} currentRole={account?.role ?? ''} />}
             {tab === 'cuenta' && <TabCuenta account={account} userId={userId} profCount={profesionales.length} />}
@@ -2948,6 +2951,9 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
   const [web, setWeb] = useState('');
   const [idioma, setIdioma] = useState('es');
   const [mostrarPrecios, setMostrarPrecios] = useState('catalogo');
+  const [captchaActivo, setCaptchaActivo] = useState(true);
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
+  const [analyticsMeasurementId, setAnalyticsMeasurementId] = useState('');
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
@@ -2967,6 +2973,10 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         setWeb(data.web || '');
         setIdioma(data.idioma || 'es');
         setMostrarPrecios(data.mostrar_precios || 'catalogo');
+        setCaptchaActivo(data.captcha_activo !== undefined ? data.captcha_activo : true);
+        const analyticsCfg = data.analytics_config as { enabled?: boolean; measurementId?: string } | null;
+        setAnalyticsEnabled(analyticsCfg?.enabled || false);
+        setAnalyticsMeasurementId(analyticsCfg?.measurementId || '');
       } else {
         setActivo(true);
         setSlug(slugifyPortal(defaultNombre || ''));
@@ -3037,6 +3047,8 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
       idioma,
       portal_activo: activo,
       mostrar_precios: mostrarPrecios,
+      captcha_activo: captchaActivo,
+      analytics_config: { enabled: analyticsEnabled, measurementId: analyticsMeasurementId.trim(), consentGiven: false },
       updated_at: new Date().toISOString(),
     }, { onConflict: 'negocio_id' });
     setSaving(false);
@@ -3052,7 +3064,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     setSlug(s);
     setSavedSlug(s);
     setMsg({ ok: true, text: 'Portal guardado correctamente.' });
-  }, [negocioId, slug, nombre, direccion, telefono, web, idioma, activo, mostrarPrecios]);
+  }, [negocioId, slug, nombre, direccion, telefono, web, idioma, activo, mostrarPrecios, captchaActivo]);
 
   if (loading) {
     return <div style={{ padding: 40, textAlign: 'center', color: T.textTertiary }}>Cargando portal...</div>;
@@ -3153,6 +3165,9 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         </FieldRow>
         <FieldRow label="Servicios visibles" hint="Cada servicio se expone o no desde Servicios (interruptor 'Reservable online').">
           <span style={{ fontSize: 13, color: T.textSecondary }}>Se gestiona por servicio en la pestana Servicios.</span>
+        </FieldRow>
+        <FieldRow label="Proteccion CAPTCHA" hint="Protege el portal contra bots automatizados. Recomendado: siempre activo.">
+          <Toggle on={captchaActivo} onChange={setCaptchaActivo} label={captchaActivo ? 'Activo' : 'Inactivo'} />
         </FieldRow>
       </Section>
 

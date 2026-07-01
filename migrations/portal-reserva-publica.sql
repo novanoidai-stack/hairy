@@ -64,7 +64,8 @@ as $$
       'telefono', np.telefono,
       'idioma', np.idioma,
       'mostrar_precios', np.mostrar_precios,
-      'color_acento', np.color_acento
+      'color_acento', np.color_acento,
+      'analytics_config', coalesce(np.analytics_config, '{"enabled": false, "measurementId": "", "consentGiven": false}'::jsonb)
     ),
     'servicios', coalesce((
       select jsonb_agg(jsonb_build_object(

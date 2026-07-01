@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
 import { PhoneInput } from '@/components/ui/PhoneInput';
+import { ConsentBanner } from '@/components/portal/ConsentBanner';
 import { makeT, localeOf, type TFn } from '@/lib/portalI18n';
 import {
   getPortalInfo, getDisponibilidad, getDiasDisponibles, crearCitaPublica, fechaISOaClave, getResenasPublicas,
@@ -10,6 +11,7 @@ import {
 import { EmbersCanvas } from '../resena/[slug].web';
 import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
 import { categoryColorHex } from '@/lib/categoryColors';
+import { initGA4, trackPageView, trackEvent, giveConsent, withdrawConsent, loadSavedConsent, AnalyticsEvents } from '@/lib/analytics';
 
 // ---------------------------------------------------------------------------
 // Tokens — marca Mecha (Basalto oscuro). El gradiente FIRE es el del
@@ -179,6 +181,8 @@ export default function PortalReservaWeb() {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
   const [resultado, setResultado] = useState<CrearCitaResult | null>(null);
+  const [captchaReady, setCaptchaReady] = useState(false);
+  const [analyticsConsent, setAnalyticsConsent] = useState(false);
 
   const skipPro = (info?.profesionales.length ?? 0) <= 1;
   const t: TFn = useMemo(() => makeT(info?.negocio?.idioma), [info?.negocio?.idioma]);
@@ -202,10 +206,57 @@ export default function PortalReservaWeb() {
     return () => { cancel = true; };
   }, [slug]);
 
+  // Inicializar Analytics cuando se carga la info del portal
+  useEffect(() => {
+    if (!info?.negocio) return;
+
+    const analyticsConfig = info.negocio.analytics_config;
+    if (analyticsConfig?.enabled && analyticsConfig.measurementId) {
+      const savedConsent = loadSavedConsent();
+      initGA4({
+        measurementId: analyticsConfig.measurementId,
+        enabled: true,
+        consentGiven: savedConsent,
+      });
+      setAnalyticsConsent(savedConsent);
+
+      // Trackear vista de portal
+      if (savedConsent) {
+        trackPageView(`/r/${slug}`, info.negocio.nombre || 'Portal');
+        AnalyticsEvents.portalView(slug, info.negocio.nombre || 'Portal');
+      }
+    }
+  }, [info, slug]);
+
   useEffect(() => {
     const timer = setTimeout(() => setSplash(false), 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Cargar reCAPTCHA v3 solo si el negocio tiene una site key configurada.
+  // Sin clave -> no se carga (ni badge ni proteccion simulada); queda listo para
+  // produccion en cuanto el salon configure su clave real de Google.
+  useEffect(() => {
+    const SITE_KEY = (info?.negocio as any)?.captcha_site_key;
+    if (typeof window === 'undefined' || !SITE_KEY) { setCaptchaReady(false); return; }
+    if ((window as any).grecaptcha) { setCaptchaReady(true); return; }
+
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${SITE_KEY}`;
+    script.async = true;
+    script.onload = () => {
+      setCaptchaReady(true);
+    };
+    script.onerror = () => {
+      console.error('Error loading reCAPTCHA');
+      setCaptchaReady(false);
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      // No remover el script para evitar recargas
+    };
+  }, [info]);
 
   // Dias con disponibilidad (de un viaje) + auto-seleccion del primero ------
   useEffect(() => {
@@ -270,6 +321,12 @@ export default function PortalReservaWeb() {
     [profId, info],
   );
 
+  // Tracking de pasos del flujo (Analytics)
+  useEffect(() => {
+    if (!analyticsConsent || !info?.negocio.analytics_config?.enabled) return;
+    AnalyticsEvents.stepView(step, slug);
+  }, [step, slug, analyticsConsent, info]);
+
   // Confirmar reserva ------------------------------------------------------
   const confirmar = useCallback(async () => {
     if (!servicio || !slotSel) return;
@@ -279,14 +336,38 @@ export default function PortalReservaWeb() {
     if (!consent) { setError(t('err_consent')); return; }
     setEnviando(true);
     try {
+      // Ejecutar reCAPTCHA v3 solo si el salon tiene clave configurada
+      let captchaToken: string | undefined;
+      const SITE_KEY = (info?.negocio as any)?.captcha_site_key;
+      if (captchaReady && SITE_KEY && (window as any).grecaptcha) {
+        try {
+          captchaToken = await (window as any).grecaptcha.execute(SITE_KEY, { action: 'submit' });
+        } catch (e) {
+          console.error('Error executing reCAPTCHA:', e);
+          // Continuar sin captcha (fallback)
+        }
+      }
+
       const r = await crearCitaPublica({
         slug, servicioId: servicio.id, profesionalId: slotSel.profesional_id, inicioISO: slotSel.slot,
         clienteNombre: nombre.trim(), clienteTelefono: telefono.trim(),
         clienteEmail: email.trim() || undefined, notas: notas.trim() || undefined,
         consentimientoDatos: consent,
+        captchaToken, // Token de reCAPTCHA
       });
       setResultado(r);
       setStep('confirmado');
+
+      // Analytics: trackear reserva completada
+      if (analyticsConsent) {
+        AnalyticsEvents.bookingCompleted(
+          r.cita_id,
+          servicio.nombre,
+          slotSel.profesional_nombre,
+          servicio.precio || 0,
+          slug
+        );
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t('err_generic');
       if (/ocupado|disponib|antelacion|horario/i.test(msg)) {
@@ -296,7 +377,7 @@ export default function PortalReservaWeb() {
     } finally {
       setEnviando(false);
     }
-  }, [servicio, slotSel, nombre, telefono, email, notas, consent, slug, t]);
+  }, [servicio, slotSel, nombre, telefono, email, notas, consent, slug, t, captchaReady]);
 
   function elegirServicio(sv: PortalServicio) {
     setServicio(sv); setError('');
@@ -762,6 +843,10 @@ export default function PortalReservaWeb() {
           </div>
         </div>
       )}
+      <ConsentBanner
+        onAccept={() => { giveConsent(); setAnalyticsConsent(true); }}
+        onReject={() => { withdrawConsent(); setAnalyticsConsent(false); }}
+      />
     </Shell>
   );
 }

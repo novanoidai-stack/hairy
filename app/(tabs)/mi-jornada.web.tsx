@@ -40,6 +40,7 @@ function Icon({ name, size = 18, color = T.text }: { name: string; size?: number
 }
 
 type Periodo = 'hoy' | 'semana' | 'mes';
+type Vista = 'personal' | 'equipo';
 type Fichaje = { tipo: string; marcado_at: string; user_id: string | null };
 
 interface CitaLista { inicio: string; cliente: string | null; servicio: string | null; es_tinte: boolean; }
@@ -60,6 +61,22 @@ interface Resumen {
   ticket_medio_cents?: number;
   comision_cents?: number;
 }
+
+interface ServicioTop { nombre: string; count: number; }
+interface EquipoProfesional {
+  id: string;
+  nombre: string;
+  horas: number;
+  citas_completadas: number;
+  servicios_top: ServicioTop[];
+  reposo_total_min: number;
+  reposo_usado_min: number;
+  ingresos_cents: number;
+  propinas_cents: number;
+  cobros_count: number;
+  comision_cents: number;
+}
+type OrdenEquipo = 'ingresos' | 'servicios' | 'horas' | 'productivo';
 
 const PERIODO_LABEL: Record<Periodo, string> = { hoy: 'hoy', semana: 'esta semana', mes: 'este mes' };
 
@@ -93,6 +110,7 @@ function fmtHoras(h: number): string {
 }
 
 const eur = (cents?: number) => `${((cents || 0) / 100).toFixed(2)}€`;
+const fmtPct = (n: number) => `${Math.round(n)}%`;
 
 export default function MiJornadaScreen() {
   const { isMobile } = useResponsive();
@@ -103,6 +121,13 @@ export default function MiJornadaScreen() {
   const [fichajesHoy, setFichajesHoy] = useState<Fichaje[]>([]);
   const [userId, setUserId] = useState('');
   const [fichando, setFichando] = useState(false);
+
+  // Vista de equipo (solo propietario/direccion): ranking de profesionales.
+  const [vista, setVista] = useState<Vista>('personal');
+  const [equipo, setEquipo] = useState<EquipoProfesional[] | null>(null);
+  const [loadingEquipo, setLoadingEquipo] = useState(false);
+  const [errorEquipo, setErrorEquipo] = useState<string | null>(null);
+  const [ordenEquipo, setOrdenEquipo] = useState<OrdenEquipo>('ingresos');
 
   const cargar = useCallback(async (per: Periodo) => {
     setLoading(true);
@@ -141,6 +166,45 @@ export default function MiJornadaScreen() {
   }, []);
 
   useEffect(() => { cargar(periodo); }, [periodo, cargar]);
+
+  const esGestor = resumen?.rol === 'owner' || resumen?.rol === 'admin';
+
+  const cargarEquipo = useCallback(async (per: Periodo) => {
+    setLoadingEquipo(true);
+    setErrorEquipo(null);
+    try {
+      const [d, h] = rangoDe(per);
+      const { data, error: rpcErr } = await supabase.rpc('equipo_jornada_ranking', {
+        p_desde: d.toISOString(),
+        p_hasta: h.toISOString(),
+      });
+      if (rpcErr) throw rpcErr;
+      setEquipo(((data as any)?.profesionales as EquipoProfesional[]) || []);
+    } catch (err) {
+      console.error('Error cargando el equipo:', err);
+      setErrorEquipo(mensajeDeError(err));
+    } finally {
+      setLoadingEquipo(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (vista === 'equipo' && esGestor) cargarEquipo(periodo);
+  }, [vista, periodo, esGestor, cargarEquipo]);
+
+  const equipoOrdenado = useMemo(() => {
+    if (!equipo) return [];
+    const arr = [...equipo];
+    if (ordenEquipo === 'ingresos') arr.sort((a, b) => b.ingresos_cents - a.ingresos_cents);
+    else if (ordenEquipo === 'servicios') arr.sort((a, b) => b.citas_completadas - a.citas_completadas);
+    else if (ordenEquipo === 'horas') arr.sort((a, b) => b.horas - a.horas);
+    else arr.sort((a, b) => {
+      const pa = a.reposo_total_min > 0 ? a.reposo_usado_min / a.reposo_total_min : -1;
+      const pb = b.reposo_total_min > 0 ? b.reposo_usado_min / b.reposo_total_min : -1;
+      return pb - pa;
+    });
+    return arr;
+  }, [equipo, ordenEquipo]);
 
   const ultimaMarca = useMemo(() => {
     const sorted = [...fichajesHoy].sort((a, b) => a.marcado_at.localeCompare(b.marcado_at));
@@ -206,11 +270,20 @@ export default function MiJornadaScreen() {
               <div style={{ fontSize: 13, color: T.textSec }}>Mi jornada{rolTxt ? ` · ${rolTxt}` : ''}</div>
             </div>
           </div>
-          <Segmented
-            value={periodo}
-            onChange={(v) => setPeriodo(v as Periodo)}
-            options={[{ value: 'hoy', label: 'Hoy' }, { value: 'semana', label: 'Semana' }, { value: 'mes', label: 'Mes' }]}
-          />
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {esGestor && (
+              <Segmented
+                value={vista}
+                onChange={(v) => setVista(v as Vista)}
+                options={[{ value: 'personal', label: 'Mi jornada' }, { value: 'equipo', label: 'Equipo' }]}
+              />
+            )}
+            <Segmented
+              value={periodo}
+              onChange={(v) => setPeriodo(v as Periodo)}
+              options={[{ value: 'hoy', label: 'Hoy' }, { value: 'semana', label: 'Semana' }, { value: 'mes', label: 'Mes' }]}
+            />
+          </div>
         </div>
 
         {error && (
@@ -219,6 +292,105 @@ export default function MiJornadaScreen() {
           </div>
         )}
 
+        {vista === 'equipo' && esGestor ? (
+          <>
+            {errorEquipo && (
+              <div style={{ padding: '12px 16px', borderRadius: 10, marginBottom: 16, background: T.dangerSoft, color: T.danger, fontSize: 14 }}>
+                {errorEquipo}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '4px 2px 10px' }}>
+              <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                Ranking del equipo · {pLabel}
+              </div>
+              <Segmented
+                value={ordenEquipo}
+                onChange={(v) => setOrdenEquipo(v as OrdenEquipo)}
+                options={[
+                  { value: 'ingresos', label: 'Dinero' },
+                  { value: 'servicios', label: 'Servicios' },
+                  { value: 'horas', label: 'Horas' },
+                  { value: 'productivo', label: 'Productivo' },
+                ]}
+              />
+            </div>
+
+            {loadingEquipo && !equipo ? (
+              <div style={{ padding: 40, textAlign: 'center', color: T.textSec }}>
+                <div style={{ width: 28, height: 28, border: '3px solid #e0e0e0', borderTopColor: T.primary, borderRadius: '50%', animation: 'mjSpin 0.8s linear infinite', margin: '0 auto 12px' }} />
+                Cargando el equipo...
+              </div>
+            ) : equipoOrdenado.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, color: T.textSec, fontSize: 14 }}>
+                <Icon name="calendar" size={36} color={T.textTer} />
+                <div style={{ marginTop: 10 }}>No hay profesionales activos con actividad {pLabel}.</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {equipoOrdenado.map((p, idx) => {
+                  const pct = p.reposo_total_min > 0 ? (p.reposo_usado_min / p.reposo_total_min) * 100 : null;
+                  const inic = p.nombre.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                  return (
+                    <div key={p.id} className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: isMobile ? 14 : 16, animationDelay: `${Math.min(idx, 10) * 0.03}s` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                        <div style={{ width: 20, textAlign: 'center', fontSize: 13, fontWeight: 700, color: T.textTer }}>{idx + 1}</div>
+                        <div style={{ width: 36, height: 36, borderRadius: 999, background: T.primary, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                          {inic}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</div>
+                          <div style={{ fontSize: 12, color: T.textSec }}>
+                            {fmtHoras(p.horas)} trabajadas · {p.citas_completadas} servicio{p.citas_completadas === 1 ? '' : 's'}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{eur(p.ingresos_cents)}</div>
+                          {p.comision_cents > 0 && <div style={{ fontSize: 11, color: T.primaryHi }}>{eur(p.comision_cents)} comisión</div>}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.4fr 1fr', gap: 12 }}>
+                        <div>
+                          <div style={{ fontSize: 10.5, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 6 }}>Servicios más realizados</div>
+                          {p.servicios_top.length === 0 ? (
+                            <div style={{ fontSize: 12, color: T.textTer }}>Sin servicios en este periodo</div>
+                          ) : (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                              {p.servicios_top.map((s, i) => (
+                                <span key={i} style={{ fontSize: 11.5, color: T.text, padding: '4px 9px', borderRadius: 999, background: T.bg, border: `1px solid ${T.border}` }}>
+                                  {s.nombre} <b style={{ color: T.textSec }}>×{s.count}</b>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10.5, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 6 }}>
+                            Tiempo de reposo (tintes/mechas)
+                          </div>
+                          {pct === null ? (
+                            <div style={{ fontSize: 12, color: T.textTer }}>Sin tiempos de reposo</div>
+                          ) : (
+                            <>
+                              <div style={{ height: 6, borderRadius: 999, background: T.bg, overflow: 'hidden', marginBottom: 4 }}>
+                                <div style={{ height: '100%', width: `${Math.min(100, pct)}%`, background: pct >= 50 ? T.success : T.warning, borderRadius: 999 }} />
+                              </div>
+                              <div style={{ fontSize: 11.5, color: T.textSec }}>
+                                <b style={{ color: T.text }}>{fmtPct(pct)}</b> productivo · {Math.round(p.reposo_usado_min)} de {Math.round(p.reposo_total_min)} min aprovechados
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        ) : (
+        <>
         {/* Aviso si la cuenta no esta vinculada a una ficha de profesional */}
         {resumen && !vinculado && (
           <div className="mj-row" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '12px 16px', borderRadius: 12, marginBottom: 16, background: T.warningSoft, border: `1px solid ${T.warning}33` }}>
@@ -313,6 +485,8 @@ export default function MiJornadaScreen() {
               </div>
             )}
           </>
+        )}
+        </>
         )}
       </div>
     </div>

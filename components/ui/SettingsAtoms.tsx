@@ -69,6 +69,9 @@ const ICON_MAP: Record<string, string> = {
   image: 'image-outline',
   gift: 'gift-outline',
   users: 'people-outline',
+  reorderFour: 'reorder-four-outline',
+  pricetag: 'pricetag-outline',
+  chevronBack: 'chevron-back',
 };
 
 export function SettingsIcon({ name, size = 16, color }: { name: string; size?: number; color?: string }) {

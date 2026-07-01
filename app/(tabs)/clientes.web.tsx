@@ -988,7 +988,11 @@ export default function ClientesWeb() {
 
                 {/* Fila 1.8: Fidelizacion */}
                 <Panel title="Fidelización" accent={TOKENS.warning}>
-                  <FidelizacionCard visitas={c.visitas || 0} />
+                  <FidelizacionCard
+                    clienteId={c.id}
+                    visitas={c.visitas || 0}
+                    negocioId={negocioId}
+                  />
                 </Panel>
 
                 {/* Fila 2: Notas + Color/Quimica (50/50) */}
@@ -3085,28 +3089,157 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
 // Storage (bucket cliente-fotos) y guarda la referencia en cliente_fotos. Asi el
 // cliente ve sus cortes anteriores, igual que en la ficha de la landing.
 // C11: tarjeta de fidelizacion (sellos). Cuenta las visitas completadas del
-// cliente; cada OBJETIVO visitas = un premio. v1 con objetivo fijo.
-function FidelizacionCard({ visitas }: { visitas: number }) {
-  const OBJETIVO = 10;
-  const completados = visitas % OBJETIVO;
-  const premios = Math.floor(visitas / OBJETIVO);
-  const faltan = OBJETIVO - completados;
+// cliente; cada OBJETIVO visitas = un premio. v2 con persistencia en BD.
+function FidelizacionCard({ clienteId, visitas, negocioId }: { clienteId: string; visitas: number; negocioId: string }) {
+  const [recompensas, setRecompensas] = useState<any[]>([]);
+  const [canjes, setCanjes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [canjeando, setCanjeando] = useState(false);
+
+  // Cargar recompensas configuradas del negocio
+  useEffect(() => {
+    let cancel = false;
+    supabase
+      .rpc('obtener_recompensas_negocio', { p_negocio_id: negocioId, p_solo_activas: true })
+      .then(({ data }) => {
+        if (cancel) return;
+        if (data?.ok) {
+          setRecompensas(data.recompensas || []);
+        }
+        setLoading(false);
+      });
+    return () => { cancel = true; };
+  }, [negocioId]);
+
+  // Cargar canjes del cliente
+  useEffect(() => {
+    if (!clienteId) return;
+    let cancel = false;
+    supabase
+      .from('recompensas_canjeadas')
+      .select('*')
+      .eq('cliente_id', clienteId)
+      .eq('negocio_id', negocioId)
+      .in('estado', ['canjeado', 'usado'])
+      .then(({ data }) => {
+        if (cancel) return;
+        setCanjes(data || []);
+      });
+    return () => { cancel = true; };
+  }, [clienteId, negocioId]);
+
+  // Función para canjear recompensa
+  const canjear = async (recompensaId: string) => {
+    if (!clienteId) return;
+    setCanjeando(true);
+    const { data, error } = await supabase.rpc('canjear_recompensa', {
+      p_recompensa_id: recompensaId,
+      p_cliente_id: clienteId
+    });
+    setCanjeando(false);
+    if (error) {
+      alert('Error al canjear: ' + error.message);
+    } else if (data?.ok) {
+      // Recargar canjes
+      supabase
+        .from('recompensas_canjeadas')
+        .select('*')
+        .eq('cliente_id', clienteId)
+        .eq('negocio_id', negocioId)
+        .in('estado', ['canjeado', 'usado'])
+        .then(({ data }) => setCanjes(data || []));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: 20, color: TOKENS.textTer }}>
+        Cargando recompensas...
+      </div>
+    );
+  }
+
+  // Si no hay recompensas configuradas, usar versión simple (bug fixeado)
+  if (recompensas.length === 0) {
+    const OBJETIVO = 10;
+    const premios = Math.floor(visitas / OBJETIVO);
+    const progreso = visitas % OBJETIVO;
+    return (
+      <div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+          {Array.from({ length: OBJETIVO }).map((_, i) => (
+            <div key={i} style={{
+              width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `1.5px solid ${i < progreso ? TOKENS.primary : TOKENS.border}`,
+              background: i < progreso ? TOKENS.primarySoft : 'transparent',
+              color: i < progreso ? TOKENS.primary : TOKENS.textTer, fontSize: 12, fontWeight: 700,
+            }}>{i + 1}</div>
+          ))}
+        </div>
+        <div style={{ fontSize: 13, color: TOKENS.textSec }}>
+          {progreso}/{OBJETIVO} sellos · {progreso === 0 ? 'Tarjeta nueva' : `faltan ${OBJETIVO - progreso} visita${OBJETIVO - progreso === 1 ? '' : 's'} para el premio`}
+          {premios > 0 && ` · ${premios} premio${premios === 1 ? '' : 's'} ya conseguido${premios === 1 ? '' : 's'}`}
+        </div>
+      </div>
+    );
+  }
+
+  // Con recompensas configuradas: mostrar la próxima disponible
+  const recompensasOrdenadas = [...recompensas].sort((a, b) => a.umbral_visitas - b.umbral_visitas);
+  const sigRecompensa = recompensasOrdenadas.find(r => visitas < r.umbral_visitas);
+  const recompensaDisponible = recompensasOrdenadas.find(r => visitas >= r.umbral_visitas && !canjes.find(c => c.recompensa_id === r.id));
+
   return (
     <div>
+      {/* Sellos visuales (círculos) */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-        {Array.from({ length: OBJETIVO }).map((_, i) => (
+        {Array.from({ length: Math.min(sigRecompensa?.umbral_visitas || 10, 12) }).map((_, i) => (
           <div key={i} style={{
             width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: `1.5px solid ${i < completados ? TOKENS.primary : TOKENS.border}`,
-            background: i < completados ? TOKENS.primarySoft : 'transparent',
-            color: i < completados ? TOKENS.primary : TOKENS.textTer, fontSize: 12, fontWeight: 700,
+            border: `1.5px solid ${i < visitas ? TOKENS.primary : TOKENS.border}`,
+            background: i < visitas ? TOKENS.primarySoft : 'transparent',
+            color: i < visitas ? TOKENS.primary : TOKENS.textTer, fontSize: 12, fontWeight: 700,
           }}>{i + 1}</div>
         ))}
       </div>
-      <div style={{ fontSize: 13, color: TOKENS.textSec }}>
-        {completados}/{OBJETIVO} sellos · {completados === 0 ? 'Tarjeta nueva' : `faltan ${faltan} visita${faltan === 1 ? '' : 's'} para el premio`}
-        {premios > 0 && ` · ${premios} premio${premios === 1 ? '' : 's'} ya conseguido${premios === 1 ? '' : 's'}`}
+
+      {/* Texto de estado */}
+      <div style={{ fontSize: 13, color: TOKENS.textSec, marginBottom: 8 }}>
+        {visitas} visita{visitas === 1 ? '' : 's'}
+        {sigRecompensa && ` · Faltan ${sigRecompensa.umbral_visitas - visitas} para "${sigRecompensa.nombre}"`}
       </div>
+
+      {/* Botón de canje si hay recompensa disponible */}
+      {recompensaDisponible && (
+        <button
+          onClick={() => canjear(recompensaDisponible.id)}
+          disabled={canjeando}
+          style={{
+            width: '100%',
+            padding: '10px 16px',
+            borderRadius: 8,
+            border: 'none',
+            background: TOKENS.primary,
+            color: 'white',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: canjeando ? 'wait' : 'pointer',
+            opacity: canjeando ? 0.7 : 1,
+          }}
+        >
+          {canjeando ? 'Canjeando...' : `Canjear "${recompensaDisponible.nombre}"`}
+        </button>
+      )}
+
+      {/* Lista de canjes realizados */}
+      {canjes.length > 0 && (
+        <div style={{ marginTop: 12, fontSize: 12, color: TOKENS.textTer }}>
+          Canjes realizados: {canjes.map(c => {
+            const rec = recompensas.find(r => r.id === c.recompensa_id);
+            return rec?.nombre;
+          }).filter(Boolean).join(', ')}
+        </div>
+      )}
     </div>
   );
 }
