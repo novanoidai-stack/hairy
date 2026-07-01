@@ -19,10 +19,15 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   try {
-    const { cita_id, success_url, cancel_url } = await req.json().catch(() => ({}));
-    if (!cita_id) return json({ error: 'cita_id requerido' }, 400);
+    const { token, success_url, cancel_url } = await req.json().catch(() => ({}));
+    if (!token) return json({ error: 'token requerido' }, 400);
 
-    const { data: pagoRaw, error: e1 } = await supabase.rpc('requerir_senal_cita', { p_cita_id: cita_id });
+    // El enlace publico ya no lleva cita_id crudo: se resuelve un token opaco.
+    const { data: citaId, error: eTok } = await supabase.rpc('resolver_enlace_pago', { p_token: token });
+    if (eTok) throw eTok;
+    if (!citaId) return json({ error: 'enlace_invalido' }, 404);
+
+    const { data: pagoRaw, error: e1 } = await supabase.rpc('requerir_senal_cita', { p_cita_id: citaId });
     if (e1) throw e1;
     const pago = Array.isArray(pagoRaw) ? pagoRaw[0] : pagoRaw;
     if (!pago || !pago.importe_cents || pago.importe_cents <= 0) {
@@ -43,7 +48,7 @@ Deno.serve(async (req) => {
       success_url: success_url ?? 'https://mecha.app/app/pago/ok',
       cancel_url: cancel_url ?? 'https://mecha.app/app/pago/cancelado',
       client_reference_id: pago.id,
-      metadata: { pago_id: pago.id, cita_id },
+      metadata: { pago_id: pago.id, cita_id: citaId },
     });
 
     await supabase.from('pagos').update({ pasarela: 'stripe', pasarela_ref: session.id }).eq('id', pago.id);

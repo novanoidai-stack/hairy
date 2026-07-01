@@ -261,7 +261,8 @@ export async function getCitaPublica(slug: string, citaId: string, telefono: str
 export interface ConfirmarOfertaResult {
   ok: boolean;
   cita_id?: string;
-  needs_payment?: boolean; // la oferta pide senal -> redirigir a /app/pago/{cita_id}
+  needs_payment?: boolean; // la oferta pide senal -> redirigir a /app/pago/{pago_token}
+  pago_token?: string;     // token opaco del enlace de pago (cuando needs_payment)
   error?: 'oferta_no_disponible' | 'telefono_no_coincide';
 }
 

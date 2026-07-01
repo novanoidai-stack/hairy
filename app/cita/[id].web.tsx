@@ -219,7 +219,8 @@ export default function GestionCitaWeb() {
     try {
       const r = await confirmarCitaOferta(citaId, tel.trim());
       if (r.needs_payment) {
-        window.location.href = `/app/pago/${citaId}`;
+        // El enlace de pago usa el token opaco, no el cita_id crudo.
+        window.location.href = `/app/pago/${r.pago_token ?? citaId}`;
         return;
       }
       if (r.ok) {

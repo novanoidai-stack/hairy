@@ -4,10 +4,11 @@ import { MechaMark } from '@/components/ui/MechaMark';
 import { supabase } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------
-// Pagina de pago de la senal (/app/pago/[ref], ref = cita_id). Es el destino del
-// boton "Pagar" de la plantilla de WhatsApp `enlace_pago_senal`. Llama a la edge
-// function crear-checkout-senal (anon) y redirige a Stripe Checkout. Tras pagar,
-// el webhook confirma la cita; Stripe devuelve a /app/pago/ok.
+// Pagina de pago de la senal (/app/pago/[ref], ref = token opaco de cita_pago_enlaces,
+// NO el cita_id). Es el destino del boton "Pagar" de la plantilla de WhatsApp
+// `enlace_pago_senal`. Llama a la edge crear-checkout-senal (anon), que resuelve el
+// token a la cita, y redirige a Stripe Checkout. Tras pagar, el webhook confirma la
+// cita; Stripe devuelve a /app/pago/ok.
 // ---------------------------------------------------------------------------
 const T = {
   card: '#ffffff', cardHi: '#fbf5ef', border: 'rgba(40,30,24,0.10)',
@@ -41,17 +42,17 @@ function Lock({ size = 16, color = T.text }: { size?: number; color?: string }) 
 
 export default function PagoSenalWeb() {
   const params = useLocalSearchParams<{ ref: string }>();
-  const citaId = String(params.ref || '');
+  const token = String(params.ref || '');
   const [busy, setBusy] = useState(false);
   const [estado, setEstado] = useState<'idle' | 'paid' | 'error'>('idle');
   const [err, setErr] = useState('');
 
   async function pagar() {
-    if (!citaId) { setErr('Enlace de pago no válido.'); setEstado('error'); return; }
+    if (!token) { setErr('Enlace de pago no válido.'); setEstado('error'); return; }
     setBusy(true); setErr('');
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mecha.app';
     const { data, error } = await supabase.functions.invoke('crear-checkout-senal', {
-      body: { cita_id: citaId, success_url: `${origin}/app/pago/ok`, cancel_url: window.location.href },
+      body: { token, success_url: `${origin}/app/pago/ok`, cancel_url: window.location.href },
     });
     if (error) {
       setErr('No se pudo iniciar el pago. Puede que esta cita ya no requiera señal o el enlace haya caducado.');

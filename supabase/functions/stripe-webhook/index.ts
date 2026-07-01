@@ -25,6 +25,12 @@ Deno.serve(async (req) => {
     return new Response('Stale event - replay detected', { status: 400 });
   }
 
+  // Idempotencia: exactly-once aunque Stripe reentregue el mismo evento (at-least-once).
+  const { error: dupErr } = await supabase
+    .from('stripe_webhook_eventos')
+    .insert({ event_id: event.id, tipo: event.type });
+  if (dupErr) return new Response('ok (dup)', { status: 200 });
+
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
     const pagoId = (session.metadata?.pago_id as string) ?? (session.client_reference_id ?? '');
