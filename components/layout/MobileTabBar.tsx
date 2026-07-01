@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
-import { getUserProfile, can, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
+import { getUserProfile, can, roleOf, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
 import { IS_DEMO_MODE } from '@/lib/supabase';
 
 const tokens = DESIGN_TOKENS;
@@ -64,6 +64,7 @@ export function MobileTabBar({ state }: TabBarProps) {
       return profile === undefined || profile === null
         || profile.role === 'owner' || profile.role === 'admin';
     }
+    if (item.name === 'configuracion' && roleOf(profile) === 'profesional') return true;
     return !item.cap || profile === undefined || profile === null || can(profile, item.cap);
   };
 

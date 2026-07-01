@@ -6,6 +6,7 @@ import { CATEGORIAS_PROFESIONAL } from '@/lib/constants';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { CATEGORY_COLOR_TOKENS, categoryColorHex, type CategoryColorToken } from '@/lib/categoryColors';
 import { TabPresupuestoConceptos } from '@/components/config/TabPresupuestoConceptos';
+import { MiPerfilProfesional } from '@/components/config/MiPerfilProfesional';
 import { TabImportarCitas } from '@/components/config/TabImportarCitas';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -370,6 +371,8 @@ export default function ConfiguracionWeb() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [soloPerfilProfesional, setSoloPerfilProfesional] = useState(false);
+  const [profesionalUserId, setProfesionalUserId] = useState('');
   const [negocioId, setNegocioId] = useState('');
   const [userId, setUserId] = useState('');
   const [account, setAccount] = useState<AccountInfo | null>(null);
@@ -418,6 +421,12 @@ export default function ConfiguracionWeb() {
     async function cargar() {
       const profile = await getUserProfile();
       if (!profile?.negocio_id) { setLoading(false); return; }
+      if (roleOf(profile) === 'profesional') {
+        setProfesionalUserId(profile.id);
+        setSoloPerfilProfesional(true);
+        setLoading(false);
+        return;
+      }
       if (!canAccessConfig(profile)) { setAccessDenied(true); setLoading(false); return; }
       const nid = profile.negocio_id;
       setNegocioId(nid);
@@ -875,6 +884,8 @@ export default function ConfiguracionWeb() {
 
   // ─── Render ────────────────────────────────────────────────────────────
   if (loading) return <PageLoader message="Cargando configuración..." />;
+
+  if (soloPerfilProfesional) return <MiPerfilProfesional userId={profesionalUserId} />;
 
   if (accessDenied) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: T.bg, color: T.textSecondary, flexDirection: 'column', gap: 8, fontFamily: 'Inter, sans-serif' }}>

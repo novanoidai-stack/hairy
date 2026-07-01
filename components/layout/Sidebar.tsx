@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
-import { getUserProfile, can, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
+import { getUserProfile, can, roleOf, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
 import { IS_DEMO_MODE } from '@/lib/supabase';
 
 const tokens = DESIGN_TOKENS;
@@ -196,7 +196,7 @@ export function Sidebar() {
 
       {/* Bottom section */}
       <View>
-        {allows('config.ver') && (
+        {(allows('config.ver') || roleOf(profile) === 'profesional') && (
         <Animated.View
           style={{
             transform: [
