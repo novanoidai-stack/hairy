@@ -779,15 +779,15 @@ export default function ClientesWeb() {
                         {desdeStr ? `Cliente desde ${desdeStr}` : 'Cliente nuevo'}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-                        <Pill color={tagColor}>
+                        <Pill color={tagColor} title="Tipo por fidelidad (automatico): VIP = +10 visitas o +500 EUR gastados; Habitual = 3+ visitas; Nuevo = el resto. Informativo.">
                           <Icon name="star" size={11} color={tagColor} />
                           <span style={{ marginLeft: 4 }}>{c.tag}</span>
                         </Pill>
-                        {c.actividad === 'Inactiva' && <Pill color={TOKENS.textTer}>Inactiva</Pill>}
-                        {c.actividad === 'Riesgo abandono' && <Pill color={TOKENS.warning}>Riesgo abandono</Pill>}
-                        {c.riesgo === 'Alto riesgo' && <Pill color={TOKENS.danger}>No-show</Pill>}
-                        {c.riesgo === 'Incidencias' && <Pill color={TOKENS.warning}>Incidencias</Pill>}
-                        {c.bloqueado && <Pill color={TOKENS.danger}>Bloqueado</Pill>}
+                        {c.actividad === 'Inactiva' && <Pill color={TOKENS.textTer} title="Sin visitas recientes. Informativo (util para campanas de recuperacion).">Inactiva</Pill>}
+                        {c.actividad === 'Riesgo abandono' && <Pill color={TOKENS.warning} title="Hace tiempo que no viene. Informativo.">Riesgo abandono</Pill>}
+                        {c.riesgo === 'Alto riesgo' && <Pill color={TOKENS.danger} title="Varios no-shows en su historial. Con el deposito dinamico activo, se le puede pedir prepago total.">No-show</Pill>}
+                        {c.riesgo === 'Incidencias' && <Pill color={TOKENS.warning} title="Algun no-show en su historial. Con el deposito dinamico activo, paga mas senal.">Incidencias</Pill>}
+                        {c.bloqueado && <Pill color={TOKENS.danger} title="No puede reservar online. Se gestiona con el boton Bloquear.">Bloqueado</Pill>}
                         <button
                           title={c.bloqueado && c.bloqueo_motivo ? `Motivo: ${c.bloqueo_motivo}` : (c.bloqueado ? 'Cliente bloqueado' : 'Impedir que reserve online')}
                           onClick={async () => {
@@ -796,25 +796,28 @@ export default function ClientesWeb() {
                             const { error } = await supabase.from('clientes').update({ bloqueado: nuevo, bloqueo_motivo: motivo }).eq('id', c.id);
                             if (!error) setClientes((prev) => prev.map((x) => (x.id === c.id ? { ...x, bloqueado: nuevo, bloqueo_motivo: motivo } : x)));
                           }}
-                          style={{ marginLeft: 4, padding: '3px 10px', borderRadius: 999, border: `1px solid ${c.bloqueado ? TOKENS.border : 'rgba(226,59,52,0.40)'}`, background: 'transparent', color: c.bloqueado ? TOKENS.textSec : TOKENS.danger, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                          style={{ marginLeft: 4, padding: '3px 10px', borderRadius: 999, border: `1px solid ${c.bloqueado ? TOKENS.border : 'rgba(226,59,52,0.40)'}`, background: 'transparent', color: c.bloqueado ? TOKENS.textSec : TOKENS.danger, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}
                         >
                           {c.bloqueado ? 'Desbloquear' : 'Bloquear'}
                         </button>
+                      </div>
+                      {/* Deposito segun tipo de cliente (senal al reservar online). Se configura en Ajustes > Politicas. */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                        <span title="Cuanto paga de senal este cliente al reservar online. 'Automatico' lo decide su historial (no-shows / citas completadas); las demas opciones lo fuerzan a mano. El comportamiento global se ajusta en Ajustes > Politicas." style={{ fontSize: 12, fontWeight: 600, color: TOKENS.textSec }}>Deposito (senal):</span>
                         <select
-                          title="Perfil de deposito para este cliente. Automatico = segun su historial de no-shows/citas."
                           value={c.deposito_perfil_override ?? ''}
                           onChange={async (e) => {
                             const v = e.target.value || null;
                             const { error } = await supabase.from('clientes').update({ deposito_perfil_override: v }).eq('id', c.id);
                             if (!error) setClientes((prev) => prev.map((x) => (x.id === c.id ? { ...x, deposito_perfil_override: v } : x)));
                           }}
-                          style={{ marginLeft: 4, padding: '3px 8px', borderRadius: 999, border: `1px solid ${TOKENS.border}`, background: 'transparent', color: TOKENS.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                          style={{ padding: '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, fontFamily: 'inherit', outline: 'none', cursor: 'pointer', transition: 'border-color 0.15s ease' }}
                         >
-                          <option value="">Deposito: auto</option>
-                          <option value="exento">Deposito: exento</option>
-                          <option value="normal">Deposito: normal</option>
-                          <option value="riesgo">Deposito: riesgo</option>
-                          <option value="alto">Deposito: prepago total</option>
+                          <option value="">Automatico (por historial)</option>
+                          <option value="exento">Exento (no paga senal)</option>
+                          <option value="normal">Normal (senal del servicio)</option>
+                          <option value="riesgo">Riesgo (senal aumentada)</option>
+                          <option value="alto">Prepago total</option>
                         </select>
                       </div>
                       {/* C6: etiquetas manuales (las reservadas de resena se gestionan abajo) */}
@@ -897,11 +900,10 @@ export default function ClientesWeb() {
             )}
 
             {/* Quick actions */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 8, marginBottom: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 8, marginBottom: 14 }}>
               {[
                 { l: 'Reservar cita', icon: 'calendar', p: true, action: () => router.push({ pathname: '/screens/nueva-cita', params: { clienteId: c.id } } as any) },
                 { l: 'Llamar', icon: 'phone', action: () => { if (c.telefono) window.location.href = `tel:${c.telefono}`; } },
-                { l: 'Editar', icon: 'edit', action: () => { setEditingCliente(c); setShowClienteModal(true); } },
                 { l: 'Ficha PDF', icon: 'download', action: () => { void exportFichaPDF(c, citas, servicios); } },
               ].map((a, i) => (
                 <button
@@ -3030,10 +3032,10 @@ function Avatar({ name, size = 38 }: any) {
   );
 }
 
-function Pill({ children, color = TOKENS.primary, style = {} }: any) {
+function Pill({ children, color = TOKENS.primary, style = {}, title }: any) {
   const bg = `${color}22`;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 999, background: bg, color, fontSize: 11, fontWeight: 600, letterSpacing: 0.2, border: `1px solid ${color}33`, ...style }}>
+    <span title={title} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 999, background: bg, color, fontSize: 11, fontWeight: 600, letterSpacing: 0.2, border: `1px solid ${color}33`, cursor: title ? 'help' : undefined, ...style }}>
       {children}
     </span>
   );

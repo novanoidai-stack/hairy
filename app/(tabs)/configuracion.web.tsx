@@ -179,6 +179,7 @@ interface ConfigState {
   listaEsperaAvisarCaducado: boolean;
   // Depositos dinamicos por perfil de riesgo del cliente
   depositoDinamicoActivo: boolean;
+  depositoModoClasificacion: 'auto' | 'manual' | 'ambos';
   depositoFactorRiesgo: number;
   depositoUmbralFiableCompletadas: number;
   depositoUmbralAltoNoShows: number;
@@ -266,7 +267,7 @@ const DEFAULT_CONFIG: ConfigState = {
   listaEsperaMatchingActivo: false, listaEsperaVentanaMin: 30, listaEsperaMaxBloqueoHoras: 2,
   listaEsperaAntelacionMinHoras: 4, listaEsperaDesbloqueoDesde: 'primer_aviso',
   listaEsperaOfertaPideSenal: false, listaEsperaAvisarCaducado: false,
-  depositoDinamicoActivo: false, depositoFactorRiesgo: 2,
+  depositoDinamicoActivo: false, depositoModoClasificacion: 'ambos', depositoFactorRiesgo: 2,
   depositoUmbralFiableCompletadas: 3, depositoUmbralAltoNoShows: 2,
   catalogoAlergias: ['Parafenilendiamina (PPD)', 'Amoniaco', 'Resorcina', 'Persulfatos', 'Fragancias', 'Niquel', 'Latex'],
   plantillasFormula: [],
@@ -2876,14 +2877,21 @@ function TabPoliticas({ config, setC }: { config: ConfigState; setC: (k: keyof C
         <FieldRow label="Activar deposito dinamico" hint="Si esta desactivado, la senal es la fija de cada servicio para todo el mundo.">
           <Toggle on={on} onChange={v => setC('depositoDinamicoActivo', v)} />
         </FieldRow>
-        <FieldRow label="Cliente fiable (exento) a partir de" hint="Citas completadas sin ningun no-show para dejar de pedirle senal.">
-          <NumberInput disabled={!on} value={config.depositoUmbralFiableCompletadas} onChange={v => setC('depositoUmbralFiableCompletadas', v)} unit="citas" min={1} max={20} width={150} />
+        <FieldRow label="Como se decide el tipo de cada cliente" hint="Automatico usa el historial (no-shows/citas); Manual solo lo que fijes en cada ficha; Ambos = automatico y puedes corregirlo por cliente.">
+          <Segmented disabled={!on} value={config.depositoModoClasificacion} onChange={v => setC('depositoModoClasificacion', v)} options={[
+            { value: 'auto', label: 'Automatico' },
+            { value: 'manual', label: 'Manual' },
+            { value: 'ambos', label: 'Ambos' },
+          ]} />
+        </FieldRow>
+        <FieldRow label="Cliente fiable (exento) a partir de" hint="Citas completadas sin ningun no-show para dejar de pedirle senal. Solo en modo Automatico o Ambos.">
+          <NumberInput disabled={!on || config.depositoModoClasificacion === 'manual'} value={config.depositoUmbralFiableCompletadas} onChange={v => setC('depositoUmbralFiableCompletadas', v)} unit="citas" min={1} max={20} width={150} />
         </FieldRow>
         <FieldRow label="Multiplicador para clientes con no-shows" hint="La senal del servicio se multiplica por este factor (tope: precio del servicio).">
           <NumberInput disabled={!on} value={config.depositoFactorRiesgo} onChange={v => setC('depositoFactorRiesgo', v)} unit="x" min={1} max={5} width={130} />
         </FieldRow>
-        <FieldRow label="Prepago total a partir de" hint="Numero de no-shows con el que se exige pagar el 100% por adelantado.">
-          <NumberInput disabled={!on} value={config.depositoUmbralAltoNoShows} onChange={v => setC('depositoUmbralAltoNoShows', v)} unit="no-shows" min={1} max={10} width={160} />
+        <FieldRow label="Prepago total a partir de" hint="Numero de no-shows con el que se exige pagar el 100% por adelantado. Solo en modo Automatico o Ambos.">
+          <NumberInput disabled={!on || config.depositoModoClasificacion === 'manual'} value={config.depositoUmbralAltoNoShows} onChange={v => setC('depositoUmbralAltoNoShows', v)} unit="no-shows" min={1} max={10} width={160} />
         </FieldRow>
       </Section>
 
