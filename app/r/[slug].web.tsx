@@ -388,7 +388,7 @@ export default function PortalReservaWeb() {
   const stepIndex = STEP_KEYS.findIndex(s => s.key === step);
 
   return (
-    <Shell t={t} negocio={info.negocio} resenas={resenas} loc={loc}>
+    <Shell t={t} negocio={info.negocio} resenas={resenas} loc={loc} slug={slug}>
       {step !== 'confirmado' && (
         <div style={{ marginBottom: 22 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', padding: '0 6px', marginBottom: 8 }}>
@@ -779,8 +779,8 @@ const primaryBtn: React.CSSProperties = {
 };
 
 
-function Shell({ children, negocio, resenas, t, loc = 'es-ES' }: {
-  children: React.ReactNode; negocio?: PortalInfo['negocio']; resenas?: ResenaResumen | null; t: TFn; loc?: string;
+function Shell({ children, negocio, resenas, t, loc = 'es-ES', slug }: {
+  children: React.ReactNode; negocio?: PortalInfo['negocio']; resenas?: ResenaResumen | null; t: TFn; loc?: string; slug?: string;
 }) {
   const dir = negocio?.direccion?.trim();
   const tel = negocio?.telefono?.trim();
@@ -844,7 +844,7 @@ function Shell({ children, negocio, resenas, t, loc = 'es-ES' }: {
         </main>
 
         {/* Datos del establecimiento — visibilidad e interconexion */}
-        {hasEst && (
+        {(hasEst || slug) && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
             {dir && (
               <a className="rp-cta" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dir)}`} target="_blank" rel="noreferrer"
@@ -862,6 +862,12 @@ function Shell({ children, negocio, resenas, t, loc = 'es-ES' }: {
               <a className="rp-cta" href={normalizeUrl(web)} target="_blank" rel="noreferrer"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
                 <Icon name="globe" size={14} color={T.primary} /> {hostOf(web)}
+              </a>
+            )}
+            {slug && (
+              <a className="rp-cta" href={`/app/contacto/${slug}`}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+                <Icon name="mail" size={14} color={T.primary} /> Contactar
               </a>
             )}
           </div>

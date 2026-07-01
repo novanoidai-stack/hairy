@@ -20,6 +20,7 @@ import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import { OnboardingCard } from '@/components/onboarding/OnboardingCard.web';
 import OnboardingPanel from '@/components/onboarding/OnboardingPanel.web';
 import type { OnboardingStepId } from '@/lib/onboarding';
+import { contarSinLeer } from '@/lib/bandeja';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -210,6 +211,7 @@ export default function AgendaCalendar() {
   const [asistenteActivo, setAsistenteActivo] = useState(false); // asistenteAgendaActivo (negocio_config)
   const [negocioId, setNegocioId] = useState(NEGOCIO_ID_FALLBACK);
   const [userProfile, setUserProfile] = useState<{ id: string; role?: string | null } | null>(null);
+  const [mensajesSinLeer, setMensajesSinLeer] = useState(0);
 
   // --- Onboarding: checklist de puesta en marcha del salon ---
   // Solo para gestores (owner/admin) en su negocio propio; nunca en la demo ni para
@@ -254,6 +256,15 @@ export default function AgendaCalendar() {
 
   // Re-comprobar el estado al volver a la agenda (p.ej. tras configurar algo).
   useFocusEffect(useCallback(() => { if (onboardingEligible) onboarding.refresh(); }, [onboardingEligible, onboarding.refresh]));
+
+  // Mensajes sin leer de la Bandeja (rechazos/cambios de presupuestos, contacto).
+  // Solo visibilidad rapida aqui: la gestion completa vive en la pestana Bandeja.
+  const refreshMensajesSinLeer = useCallback(() => {
+    if (!negocioId) return;
+    contarSinLeer(negocioId).then(setMensajesSinLeer).catch(() => {});
+  }, [negocioId]);
+  useEffect(() => { refreshMensajesSinLeer(); }, [refreshMensajesSinLeer]);
+  useFocusEffect(useCallback(() => { refreshMensajesSinLeer(); }, [refreshMensajesSinLeer]));
 
   // Reapertura del panel desde Ajustes (navega con ?onboarding=1).
   useEffect(() => {
@@ -600,7 +611,7 @@ export default function AgendaCalendar() {
     });
     return out.sort((a, b) => a.diff - b.diff);
   }, [clientes]);
-  const totalAvisos = sinConfirmar48h + cumplesProximos.length;
+  const totalAvisos = sinConfirmar48h + cumplesProximos.length + mensajesSinLeer;
 
   const servicioMap = useMemo(() => {
     const map = new Map(servicios.map((s) => [s.id, s]));
@@ -800,9 +811,21 @@ export default function AgendaCalendar() {
                           </div>
                         </>
                       )}
+                      {mensajesSinLeer > 0 && (
+                        <>
+                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: sinConfirmar48h > 0 ? 12 : 0 }}>Mensajes</div>
+                          <button
+                            onClick={() => { setShowNotif(false); router.push('/(tabs)/bandeja' as never); }}
+                            style={{ width: '100%', textAlign: 'left', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9 }}
+                          >
+                            <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 8, background: 'rgba(244,80,30,0.14)' }}><Icon name="bell" size={14} color={TOKENS.primary} /></span>
+                            <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>{mensajesSinLeer} {mensajesSinLeer === 1 ? 'mensaje nuevo' : 'mensajes nuevos'}</span>
+                          </button>
+                        </>
+                      )}
                       {cumplesProximos.length > 0 && (
                         <>
-                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: sinConfirmar48h > 0 ? 12 : 0 }}>Cumpleanos (proximos 7 dias)</div>
+                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: (sinConfirmar48h > 0 || mensajesSinLeer > 0) ? 12 : 0 }}>Cumpleanos (proximos 7 dias)</div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {cumplesProximos.slice(0, 8).map((b: any) => {
                               const fechaFmt = b.fecha.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' });

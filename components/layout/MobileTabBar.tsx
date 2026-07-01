@@ -30,6 +30,7 @@ const PRIMARY: NavItem[] = [
 const MORE: NavItem[] = [
   { name: 'mi-jornada', label: 'Mi jornada', icon: 'person-circle', route: '/(tabs)/mi-jornada' },
   { name: 'presupuestos', label: 'Presupuestos', icon: 'document-text', route: '/(tabs)/presupuestos' },
+  { name: 'bandeja', label: 'Bandeja', icon: 'mail', route: '/(tabs)/bandeja' },
   { name: 'resenas', label: 'Reseñas', icon: 'star', route: '/(tabs)/resenas' },
   { name: 'equipo', label: 'Equipo', icon: 'person', route: '/(tabs)/equipo', cap: 'equipo.ver' },
   { name: 'informes', label: 'Informes', icon: 'bar-chart', route: '/(tabs)/informes', cap: 'informes.ver' },

@@ -246,7 +246,7 @@ export default function GestionCitaWeb() {
   }), [dias]);
 
   return (
-    <Shell salon={cita?.salon}>
+    <Shell salon={cita?.salon} slug={slug}>
       {!enlaceValido && (
         <Panel>
           <H titulo="Enlace no válido" sub="Falta información en el enlace. Abre el botón desde tu mensaje de WhatsApp." />
@@ -516,7 +516,7 @@ function Panel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Shell({ children, salon }: { children: React.ReactNode; salon?: string }) {
+function Shell({ children, salon, slug }: { children: React.ReactNode; salon?: string; slug?: string }) {
   return (
     <div style={{ height: '100vh', overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', background: 'linear-gradient(180deg, #fdf6ee 0%, #f7ede1 60%, #f3e7d8 100%)', padding: '0 16px 32px', fontFamily: 'Inter, system-ui, sans-serif', position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
@@ -536,6 +536,13 @@ function Shell({ children, salon }: { children: React.ReactNode; salon?: string 
           </div>
         </header>
         {children}
+        {slug && (
+          <div style={{ textAlign: 'center', marginTop: 18 }}>
+            <a href={`/app/contacto/${slug}`} style={{ fontSize: 12.5, fontWeight: 600, color: T.textTer, textDecoration: 'none' }}>
+              ¿Dudas? Contacta con el salón
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
