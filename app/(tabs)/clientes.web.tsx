@@ -120,6 +120,7 @@ interface Cliente {
   bloqueado?: boolean;
   bloqueo_motivo?: string | null;
   etiquetas?: string[];
+  deposito_perfil_override?: string | null;
 }
 
 type Tab = 'resumen' | 'notas' | 'color' | 'historial';
@@ -301,7 +302,7 @@ export default function ClientesWeb() {
     const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }] = await Promise.all([
       supabase
         .from('clientes')
-        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas')
+        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override')
         .eq('negocio_id', profile.negocio_id)
         .order('nombre'),
       supabase
@@ -799,6 +800,22 @@ export default function ClientesWeb() {
                         >
                           {c.bloqueado ? 'Desbloquear' : 'Bloquear'}
                         </button>
+                        <select
+                          title="Perfil de deposito para este cliente. Automatico = segun su historial de no-shows/citas."
+                          value={c.deposito_perfil_override ?? ''}
+                          onChange={async (e) => {
+                            const v = e.target.value || null;
+                            const { error } = await supabase.from('clientes').update({ deposito_perfil_override: v }).eq('id', c.id);
+                            if (!error) setClientes((prev) => prev.map((x) => (x.id === c.id ? { ...x, deposito_perfil_override: v } : x)));
+                          }}
+                          style={{ marginLeft: 4, padding: '3px 8px', borderRadius: 999, border: `1px solid ${TOKENS.border}`, background: 'transparent', color: TOKENS.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          <option value="">Deposito: auto</option>
+                          <option value="exento">Deposito: exento</option>
+                          <option value="normal">Deposito: normal</option>
+                          <option value="riesgo">Deposito: riesgo</option>
+                          <option value="alto">Deposito: prepago total</option>
+                        </select>
                       </div>
                       {/* C6: etiquetas manuales (las reservadas de resena se gestionan abajo) */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>

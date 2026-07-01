@@ -177,6 +177,11 @@ interface ConfigState {
   listaEsperaDesbloqueoDesde: string;
   listaEsperaOfertaPideSenal: boolean;
   listaEsperaAvisarCaducado: boolean;
+  // Depositos dinamicos por perfil de riesgo del cliente
+  depositoDinamicoActivo: boolean;
+  depositoFactorRiesgo: number;
+  depositoUmbralFiableCompletadas: number;
+  depositoUmbralAltoNoShows: number;
   // Plantillas reutilizables (catalogos del salon)
   catalogoAlergias: string[];
   plantillasFormula: PlantillaTexto[];
@@ -221,7 +226,7 @@ const TABS: TabDef[] = [
   { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
   { id: 'importar',       label: 'Importar',       icon: 'upload',    section: 'Operativa' },
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion' },
-  { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion', soon: true },
+  { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion' },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
   { id: 'referidos',      label: 'Invita y gana',  icon: 'gift',      section: 'Cuenta' },
   { id: 'accesos',        label: 'Accesos y roles', icon: 'shield',   section: 'Cuenta' },
@@ -261,6 +266,8 @@ const DEFAULT_CONFIG: ConfigState = {
   listaEsperaMatchingActivo: false, listaEsperaVentanaMin: 30, listaEsperaMaxBloqueoHoras: 2,
   listaEsperaAntelacionMinHoras: 4, listaEsperaDesbloqueoDesde: 'primer_aviso',
   listaEsperaOfertaPideSenal: false, listaEsperaAvisarCaducado: false,
+  depositoDinamicoActivo: false, depositoFactorRiesgo: 2,
+  depositoUmbralFiableCompletadas: 3, depositoUmbralAltoNoShows: 2,
   catalogoAlergias: ['Parafenilendiamina (PPD)', 'Amoniaco', 'Resorcina', 'Persulfatos', 'Fragancias', 'Niquel', 'Latex'],
   plantillasFormula: [],
   plantillasNota: [],
@@ -1099,7 +1106,7 @@ export default function ConfiguracionWeb() {
               <TabImportarCitas negocioId={negocioId} />
             )}
             {tab === 'notificaciones' && <TabNotificaciones config={config} setC={setC} />}
-            {tab === 'politicas' && <TabPoliticas />}
+            {tab === 'politicas' && <TabPoliticas config={config} setC={setC} />}
             {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
             {tab === 'referidos' && <TabReferidos />}
             {tab === 'accesos' && <TabAccesos negocioId={negocioId} currentUserId={userId} currentRole={account?.role ?? ''} />}
@@ -2860,11 +2867,28 @@ function TabNotificaciones({ config, setC }: {
   );
 }
 
-function TabPoliticas() {
+function TabPoliticas({ config, setC }: { config: ConfigState; setC: (k: keyof ConfigState, v: any) => void }) {
+  const on = config.depositoDinamicoActivo;
   return (
     <>
-      <SoonBanner icon="shield" title="Politicas de cancelacion y depositos -- fase 4"
-        desc="Reglas que protegen el calendario frente a cancelaciones tardias y no-shows. Se activaran junto con el modulo de pagos." />
+      <Section title="Deposito segun riesgo del cliente"
+        desc="Ajusta la senal de cada servicio segun el historial del cliente: los fiables pagan menos y los que fallan (no-shows) mas. VIP/fiable = sin senal, cliente normal = la senal del servicio, con no-shows = se multiplica, muchos no-shows = prepago total. Se aplica a las reservas online; puedes forzar el perfil de un cliente concreto desde su ficha.">
+        <FieldRow label="Activar deposito dinamico" hint="Si esta desactivado, la senal es la fija de cada servicio para todo el mundo.">
+          <Toggle on={on} onChange={v => setC('depositoDinamicoActivo', v)} />
+        </FieldRow>
+        <FieldRow label="Cliente fiable (exento) a partir de" hint="Citas completadas sin ningun no-show para dejar de pedirle senal.">
+          <NumberInput disabled={!on} value={config.depositoUmbralFiableCompletadas} onChange={v => setC('depositoUmbralFiableCompletadas', v)} unit="citas" min={1} max={20} width={150} />
+        </FieldRow>
+        <FieldRow label="Multiplicador para clientes con no-shows" hint="La senal del servicio se multiplica por este factor (tope: precio del servicio).">
+          <NumberInput disabled={!on} value={config.depositoFactorRiesgo} onChange={v => setC('depositoFactorRiesgo', v)} unit="x" min={1} max={5} width={130} />
+        </FieldRow>
+        <FieldRow label="Prepago total a partir de" hint="Numero de no-shows con el que se exige pagar el 100% por adelantado.">
+          <NumberInput disabled={!on} value={config.depositoUmbralAltoNoShows} onChange={v => setC('depositoUmbralAltoNoShows', v)} unit="no-shows" min={1} max={10} width={160} />
+        </FieldRow>
+      </Section>
+
+      <SoonBanner icon="shield" title="Politicas de cancelacion -- fase 4"
+        desc="Penalizaciones por cancelacion tardia. Se activaran junto con el modulo de pagos." />
       <Section soon disabled title="Cancelacion de citas" desc="Reglas que se aplican cuando una cliente cancela su propia cita desde el portal o por mensaje.">
         <FieldRow label="Antelacion minima para cancelar sin penalizacion" hint="Si la cliente cancela con menos antelacion, se le aplica la penalizacion configurada abajo.">
           <NumberInput disabled value={24} onChange={() => {}} unit="h" max={168} />
@@ -2880,37 +2904,6 @@ function TabPoliticas() {
             ]} />
             <NumberInput disabled value={50} onChange={() => {}} unit="%" max={100} />
           </div>
-        </FieldRow>
-      </Section>
-
-      <Section soon disabled title="Depositos y senales" desc="Cuando se solicita pago anticipado para asegurar una reserva.">
-        <FieldRow label="Solicitar deposito" hint="Antes de confirmar la cita, pedir un pago parcial.">
-          <Segmented disabled value="caso" onChange={() => {}} options={[
-            { value: 'no', label: 'Nunca' },
-            { value: 'caso', label: 'Solo en servicios marcados' },
-            { value: 'todos', label: 'En todas las citas' },
-          ]} />
-        </FieldRow>
-        <FieldRow label="Importe del deposito" hint="Importe o porcentaje del servicio.">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Segmented disabled value="pct" onChange={() => {}} options={[
-              { value: 'pct', label: '%' },
-              { value: 'eur', label: 'EUR' },
-            ]} />
-            <NumberInput disabled value={25} onChange={() => {}} unit="%" max={100} />
-          </div>
-        </FieldRow>
-        <FieldRow label="Reembolso por cancelacion a tiempo" hint="Devolver el deposito si se cancela dentro del plazo permitido.">
-          <Toggle disabled on={true} onChange={() => {}} />
-        </FieldRow>
-      </Section>
-
-      <Section soon disabled title="No-shows reincidentes" desc="Como proteger la agenda de clientes que no se presentan repetidamente.">
-        <FieldRow label="Maximo de no-shows tolerados" hint="A partir de este numero, la cliente no podra reservar sin pago anticipado.">
-          <NumberInput disabled value={2} onChange={() => {}} unit="en 6 meses" min={1} max={10} width={170} />
-        </FieldRow>
-        <FieldRow label="Avisar al cliente del bloqueo" hint="Enviar un mensaje al cliente explicando la nueva restriccion.">
-          <Toggle disabled on={true} onChange={() => {}} />
         </FieldRow>
       </Section>
     </>
