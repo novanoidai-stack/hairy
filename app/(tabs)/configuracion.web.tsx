@@ -186,6 +186,7 @@ interface ConfigState {
   depositoFactorRiesgo: number;
   depositoUmbralFiableCompletadas: number;
   depositoUmbralAltoNoShows: number;
+  depositoStaffExigir: boolean;
   // Plantillas reutilizables (catalogos del salon)
   catalogoAlergias: string[];
   plantillasFormula: PlantillaTexto[];
@@ -272,7 +273,7 @@ const DEFAULT_CONFIG: ConfigState = {
   listaEsperaAntelacionMinHoras: 4, listaEsperaDesbloqueoDesde: 'primer_aviso',
   listaEsperaOfertaPideSenal: false, listaEsperaAvisarCaducado: false,
   depositoDinamicoActivo: false, depositoModoClasificacion: 'ambos', depositoFactorRiesgo: 2,
-  depositoUmbralFiableCompletadas: 3, depositoUmbralAltoNoShows: 2,
+  depositoUmbralFiableCompletadas: 3, depositoUmbralAltoNoShows: 2, depositoStaffExigir: false,
   catalogoAlergias: ['Parafenilendiamina (PPD)', 'Amoniaco', 'Resorcina', 'Persulfatos', 'Fragancias', 'Niquel', 'Latex'],
   plantillasFormula: [],
   plantillasNota: [],
@@ -2959,6 +2960,9 @@ function TabPoliticas({ config, setC }: { config: ConfigState; setC: (k: keyof C
         </FieldRow>
         <FieldRow label="Prepago total a partir de" hint="Numero de no-shows con el que se exige pagar el 100% por adelantado. Solo en modo Automatico o Ambos.">
           <NumberInput disabled={!on || config.depositoModoClasificacion === 'manual'} value={config.depositoUmbralAltoNoShows} onChange={v => setC('depositoUmbralAltoNoShows', v)} unit="no-shows" min={1} max={10} width={160} />
+        </FieldRow>
+        <FieldRow label="Pedir senal tambien en reservas del mostrador" hint="Si el staff reserva a un cliente de riesgo, se ofrece pedir la senal: la cita queda pendiente y se confirma al pagar (no se auto-cancela). Desactivado, las reservas del staff se confirman al momento como siempre.">
+          <Toggle disabled={!on} on={config.depositoStaffExigir} onChange={v => setC('depositoStaffExigir', v)} />
         </FieldRow>
       </Section>
 

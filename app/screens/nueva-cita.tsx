@@ -10,6 +10,7 @@ import { format, addMinutes as dateFnsAddMinutes } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useTheme, spacing, radius, fontSize, fontWeight } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
+import { resolverSenalStaff } from '@/lib/senalStaff';
 import { validarHorarioLaboral } from '@/lib/horarios';
 import { getUserProfile } from '@/lib/auth';
 import { mensajeDeError } from '@/lib/errores';
@@ -320,6 +321,9 @@ export default function NuevaCitaScreen() {
       }
 
       const tiempoMinNum = formulaTiempoMin.trim() ? parseInt(formulaTiempoMin.trim(), 10) : null;
+      // Deposito en reservas del staff: si el salon lo exige y el cliente debe senal,
+      // pregunta y (si acepta) deja la cita pendiente de pago de senal.
+      const senalOv = await resolverSenalStaff(negocioId, clienteSeleccionado || null, servicioSeleccionado);
       const { error } = await supabase.from('citas').insert({
         negocio_id: negocioId,
         profesional_id: profSeleccionado,
@@ -329,7 +333,8 @@ export default function NuevaCitaScreen() {
         fin: fin.toISOString(),
         fin_activa: finActiva.toISOString(),
         fin_espera: finEspera.toISOString(),
-        estado: 'confirmada',
+        estado: senalOv?.estado ?? 'confirmada',
+        ...(senalOv ? { deposito_requerido: true, deposito_importe: senalOv.deposito_importe, senal_enviada: false } : {}),
         canal: 'manual',
         creado_por: userId,
         notas: notasCita.trim() || null,

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
+import { resolverSenalStaff } from '@/lib/senalStaff';
 import { validarHorarioLaboral } from '@/lib/horarios';
 import { getUserProfile } from '@/lib/auth';
 import { TimeDrumPicker } from '@/components/ui/Pickers';
@@ -3336,6 +3337,18 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
           ...(grupoId && { grupo_id: grupoId, orden_en_grupo: ordenIdx }),
           _addons: [...selectedAddons],
         });
+      }
+
+      // Deposito en reservas del staff: solo en reserva simple (1 cita) con cliente.
+      // Si el salon lo exige y el cliente debe senal, pregunta y deja la cita pendiente de pago.
+      if (citasAGuardar.length === 1 && selectedCliente) {
+        const senalOv = await resolverSenalStaff(negocioId, selectedCliente, citasAGuardar[0].servicio_id);
+        if (senalOv) {
+          citasAGuardar[0].estado = senalOv.estado;
+          citasAGuardar[0].deposito_requerido = true;
+          citasAGuardar[0].deposito_importe = senalOv.deposito_importe;
+          citasAGuardar[0].senal_enviada = false;
+        }
       }
 
       // Validar cada cita contra DB y entre si
