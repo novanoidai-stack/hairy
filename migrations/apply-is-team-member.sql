@@ -1,11 +1,12 @@
 -- ============================================================================
--- MIGRACIÓN: Crear función is_team_member() con emails hardcoded
+-- [REEMPLAZADA — NO RE-APLICAR] MIGRACIÓN: is_team_member() con emails hardcoded
 -- ============================================================================
--- Ejecutar este SQL en el dashboard de Supabase:
--- https://supabase.com/dashboard/project/vtrggiogjrhqtwbhbgia/sql/new
---
--- Esta función incluye emails hardcoded (incluido Carlos) para garantizar
--- que el equipo pueda acceder al panel de staff independientemente de la tabla staff.
+-- Sustituida el 3 jul 2026 por security-is-team-member-solo-staff.sql (auditoría
+-- de seguridad, hallazgo A3): los emails hardcodeados eran un riesgo (una cuenta
+-- Gmail personal comprometida daba acceso de staff a toda la plataforma) y
+-- role='admin' suponía escalada de negocio→plataforma. La fuente de verdad
+-- de pertenencia al equipo es ahora ÚNICAMENTE la tabla public.staff.
+-- Se conserva solo como historial. Ejecutar este archivo revertiría el fix.
 -- ============================================================================
 
 -- 1. Crear is_team_member() con emails hardcoded

@@ -160,6 +160,12 @@ export default function MiJornadaScreen() {
   const [showObjetivoModal, setShowObjetivoModal] = useState(false);
   const [objetivoEnCurso, setObjetivoEnCurso] = useState<{ profesional_id: string; metrica: MetricaObjetivo; objetivo_valor: string; bonus_euros: string } | null>(null);
 
+  // Ausencias
+  const [ausencias, setAusencias] = useState<Array<{id: string; inicio: string; fin: string; tipo: string; motivo: string | null}>>([]);
+  const [showAusenciaModal, setShowAusenciaModal] = useState(false);
+  const [nuevaAusencia, setNuevaAusencia] = useState<{tipo: string; inicio: string; fin: string; motivo: string}>({ tipo: 'vacaciones', inicio: '', fin: '', motivo: '' });
+  const [guardandoAusencia, setGuardandoAusencia] = useState(false);
+
   const cargar = useCallback(async (per: Periodo) => {
     setLoading(true);
     setError(null);
@@ -192,6 +198,20 @@ export default function MiJornadaScreen() {
       // Mis objetivos (siempre; el RPC devuelve [] si no eres profesional).
       const { data: objRes } = await supabase.rpc('mis_objetivos_progreso');
       setMisObjetivos(((objRes as any)?.objetivos as MiObjetivo[]) || []);
+
+      // Mis ausencias (próximas y recientes)
+      const profId = (data as Resumen)?.profesional?.id;
+      if (profId) {
+        const { data: ausData } = await supabase
+          .from('bloqueos_profesional')
+          .select('id, inicio, fin, tipo, motivo')
+          .eq('profesional_id', profId)
+          .in('tipo', ['vacaciones', 'baja', 'formacion', 'ausencia'])
+          .gte('fin', new Date(Date.now() - 30 * 86400000).toISOString())
+          .order('inicio', { ascending: true })
+          .limit(20);
+        setAusencias(ausData ?? []);
+      }
     } catch (err) {
       console.error('Error cargando Mi jornada:', err);
       setError(mensajeDeError(err));
@@ -313,6 +333,41 @@ export default function MiJornadaScreen() {
       if (rpcErr) throw rpcErr;
       await cargarIntercambios();
     } catch (err) { console.error(err); }
+  };
+
+  const guardarAusencia = async () => {
+    if (!nuevaAusencia.inicio || !nuevaAusencia.fin) return;
+    setGuardandoAusencia(true);
+    try {
+      const profile = await getUserProfile();
+      if (!profile?.negocio_id || !resumen?.profesional?.id) throw new Error('No vinculado');
+      const { error: insErr } = await supabase.from('bloqueos_profesional').insert({
+        negocio_id: profile.negocio_id,
+        profesional_id: resumen.profesional.id,
+        inicio: new Date(nuevaAusencia.inicio).toISOString(),
+        fin: new Date(nuevaAusencia.fin + 'T23:59:59').toISOString(),
+        tipo: nuevaAusencia.tipo,
+        motivo: nuevaAusencia.motivo || null,
+      });
+      if (insErr) throw insErr;
+      setShowAusenciaModal(false);
+      setNuevaAusencia({ tipo: 'vacaciones', inicio: '', fin: '', motivo: '' });
+      cargar(periodo);
+    } catch (err) {
+      setError(mensajeDeError(err));
+    } finally {
+      setGuardandoAusencia(false);
+    }
+  };
+
+  const eliminarAusencia = async (id: string) => {
+    try {
+      const { error: delErr } = await supabase.from('bloqueos_profesional').delete().eq('id', id);
+      if (delErr) throw delErr;
+      setAusencias(prev => prev.filter(a => a.id !== id));
+    } catch (err) {
+      setError(mensajeDeError(err));
+    }
   };
 
   const estadoLabel = (estado: string): { label: string; color: string } => {
@@ -750,6 +805,58 @@ export default function MiJornadaScreen() {
           </>
         )}
 
+        {/* Mis ausencias */}
+        {vinculado && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon name="calendar" size={14} color={T.primaryHi} />
+                <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                  Mis ausencias
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAusenciaModal(true)}
+                className="mj-btn"
+                style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primary}`, background: T.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+              >
+                + Registrar ausencia
+              </button>
+            </div>
+            {ausencias.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px 20px', background: T.bgCard, borderRadius: 12, border: `1px dashed ${T.border}`, color: T.textSec, fontSize: 13 }}>
+                No tienes ausencias registradas. Cuando necesites vacaciones, baja médica o formación, regístralas aquí.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {ausencias.map((a) => {
+                  const TIPO_COLORS: Record<string, string> = { vacaciones: '#0f9d6b', baja: '#e23b34', formacion: '#6366f1', ausencia: '#e08a00' };
+                  const TIPO_LABELS: Record<string, string> = { vacaciones: 'Vacaciones', baja: 'Baja médica', formacion: 'Formación', ausencia: 'Ausencia' };
+                  const col = TIPO_COLORS[a.tipo] || T.textSec;
+                  const isPast = new Date(a.fin) < new Date();
+                  return (
+                    <div key={a.id} className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12, padding: '12px 14px', opacity: isPast ? 0.6 : 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: col, flexShrink: 0 }} />
+                        <span style={{ fontSize: 13, fontWeight: 700, color: T.text, flex: 1 }}>
+                          {TIPO_LABELS[a.tipo] || a.tipo}
+                        </span>
+                        <span style={{ fontSize: 12, color: T.textSec, fontVariantNumeric: 'tabular-nums' }}>
+                          {format(parseISO(a.inicio), 'd MMM', { locale: es })} — {format(parseISO(a.fin), 'd MMM yyyy', { locale: es })}
+                        </span>
+                        {!isPast && (
+                          <button onClick={() => eliminarAusencia(a.id)} className="mj-btn" title="Eliminar" style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 16, cursor: 'pointer', padding: '0 4px' }}>×</button>
+                        )}
+                      </div>
+                      {a.motivo && <div style={{ fontSize: 12, color: T.textSec, marginTop: 6, paddingLeft: 18 }}>{a.motivo}</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
         {/* Intercambio de turnos: bitacora compartida (todo el equipo la ve). */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -948,6 +1055,58 @@ export default function MiJornadaScreen() {
               </button>
               <button onClick={enviarIntercambio} className="mj-btn" style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                 Enviar solicitud
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: registrar ausencia */}
+      {showAusenciaModal && (
+        <div
+          onClick={() => setShowAusenciaModal(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(8,6,4,0.45)', zIndex: 200, display: 'grid', placeItems: 'center', padding: 16 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, padding: 20, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 12 }}>Registrar ausencia</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                Tipo
+                <select
+                  value={nuevaAusencia.tipo}
+                  onChange={(e) => setNuevaAusencia({ ...nuevaAusencia, tipo: e.target.value })}
+                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
+                >
+                  <option value="vacaciones">Vacaciones</option>
+                  <option value="baja">Baja médica</option>
+                  <option value="formacion">Formación</option>
+                  <option value="ausencia">Ausencia personal</option>
+                </select>
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                  Desde
+                  <input type="date" value={nuevaAusencia.inicio} onChange={(e) => setNuevaAusencia({ ...nuevaAusencia, inicio: e.target.value })} style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
+                </label>
+                <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                  Hasta
+                  <input type="date" value={nuevaAusencia.fin} onChange={(e) => setNuevaAusencia({ ...nuevaAusencia, fin: e.target.value })} style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
+                </label>
+              </div>
+              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                Motivo (opcional)
+                <input type="text" value={nuevaAusencia.motivo} onChange={(e) => setNuevaAusencia({ ...nuevaAusencia, motivo: e.target.value })} placeholder="Ej: Cita médica, viaje personal..." style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
+              </label>
+              <button
+                onClick={guardarAusencia}
+                disabled={guardandoAusencia || !nuevaAusencia.inicio || !nuevaAusencia.fin}
+                className="mj-btn"
+                style={{ padding: '11px 16px', borderRadius: 10, border: 'none', background: T.primary, color: '#fff', fontSize: 14, fontWeight: 700, cursor: guardandoAusencia ? 'not-allowed' : 'pointer', opacity: (!nuevaAusencia.inicio || !nuevaAusencia.fin) ? 0.5 : 1 }}
+              >
+                {guardandoAusencia ? 'Guardando...' : 'Registrar ausencia'}
               </button>
             </div>
           </div>

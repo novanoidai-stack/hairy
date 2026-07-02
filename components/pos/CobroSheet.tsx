@@ -235,6 +235,7 @@ export function CobroSheet(props: CobroSheetProps) {
               <button onClick={agregarLinea} style={{ padding: '8px 14px', background: T.bgCard, border: `1px solid ${T.borderHi}`, borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+</button>
             </div>
 
+
             <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 16, marginBottom: 8 }}>Profesional (opcional)</div>
             <select
               value={profesionalId} onChange={(e) => setProfesionalId(e.target.value)}

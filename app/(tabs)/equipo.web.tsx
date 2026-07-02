@@ -942,6 +942,97 @@ export default function EquipoWeb() {
                 ))}
               </div>
             </Section>
+
+            {/* Calendario mensual visual */}
+            <Section title="Vista mensual">
+              {(() => {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const numDays = lastDay.getDate();
+                const startDow = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Mon=0
+                const TIPO_COL: Record<string, string> = { vacaciones: '#f59e0b', baja: '#ef4444', formacion: '#c0260a', descanso: '#10b981', ausencia: '#e08a00', reunion: '#3b82f6' };
+                const dayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+                const cells: Array<{ day: number | null }> = [];
+                for (let i = 0; i < startDow; i++) cells.push({ day: null });
+                for (let d = 1; d <= numDays; d++) cells.push({ day: d });
+                while (cells.length % 7 !== 0) cells.push({ day: null });
+
+                // Map work days from horarios
+                const workDays = new Set<number>();
+                for (let d = 1; d <= numDays; d++) {
+                  const dt = new Date(year, month, d);
+                  const dow = dt.getDay(); // 0=Sun
+                  if (horarios.some(h => h.dia_semana === dow)) workDays.add(d);
+                }
+
+                // Map blockages to days
+                const blockDayMap = new Map<number, string>();
+                for (const b of bloqueos) {
+                  const bStart = new Date(b.inicio);
+                  const bEnd = new Date(b.fin);
+                  for (let d = 1; d <= numDays; d++) {
+                    const dt = new Date(year, month, d);
+                    if (dt >= new Date(bStart.getFullYear(), bStart.getMonth(), bStart.getDate()) && dt <= new Date(bEnd.getFullYear(), bEnd.getMonth(), bEnd.getDate())) {
+                      blockDayMap.set(d, b.tipo || 'otro');
+                    }
+                  }
+                }
+
+                const today = now.getDate();
+                const isCurrentMonth = now.getMonth() === month && now.getFullYear() === year;
+
+                return (
+                  <div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 2 }}>
+                      {dayLabels.map(l => (
+                        <div key={l} style={{ textAlign: 'center', fontSize: 9, fontWeight: 700, color: TOKENS.textTer, padding: '4px 0' }}>{l}</div>
+                      ))}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+                      {cells.map((c, i) => {
+                        if (c.day === null) return <div key={i} />;
+                        const isToday = isCurrentMonth && c.day === today;
+                        const blocked = blockDayMap.get(c.day);
+                        const works = workDays.has(c.day) && !blocked;
+                        const bgColor = blocked ? (TIPO_COL[blocked] || '#94a3b8') : works ? 'rgba(244,80,30,0.12)' : TOKENS.bg;
+                        const textColor = blocked ? '#fff' : works ? TOKENS.text : TOKENS.textTer;
+                        return (
+                          <div key={i} style={{
+                            textAlign: 'center', fontSize: 10.5, fontWeight: isToday ? 800 : 600,
+                            color: textColor,
+                            background: bgColor,
+                            borderRadius: 6,
+                            padding: '5px 0',
+                            outline: isToday ? `2px solid ${TOKENS.primary}` : 'none',
+                            outlineOffset: -1,
+                            position: 'relative',
+                          }}>
+                            {c.day}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 10 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
+                        <span style={{ width: 8, height: 8, borderRadius: 2, background: 'rgba(244,80,30,0.12)' }} /> Trabaja
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
+                        <span style={{ width: 8, height: 8, borderRadius: 2, background: TOKENS.bg, border: `1px solid ${TOKENS.border}` }} /> Libre
+                      </span>
+                      {Array.from(new Set(blockDayMap.values())).map(tipo => (
+                        <span key={tipo} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
+                          <span style={{ width: 8, height: 8, borderRadius: 2, background: TIPO_COL[tipo] || '#94a3b8' }} />
+                          {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </Section>
               </div>{/* fin columna derecha */}
             </div>{/* fin grid 2 columnas */}
           </div>

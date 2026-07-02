@@ -1,0 +1,38 @@
+-- ============================================================================
+-- SEGURIDAD (auditoría 3 jul 2026, hallazgo B2): teléfono = dígitos reales
+-- ============================================================================
+-- APLICADA en remoto via MCP el 3 jul 2026 en dos migraciones:
+--   b2_validar_telefono_digitos_solicitud_publica
+--   b2_validar_telefono_digitos_crear_cita_publica
+--
+-- Problema: las RPCs públicas de escritura validaban el teléfono solo por
+-- longitud bruta (length >= 6), aceptando cadenas sin un solo dígito.
+-- Solución: exigir >= 7 dígitos tras public.normalizar_telefono() (que ya
+-- usan todas las comparaciones de match, así que no cambia ningún matching).
+-- El resto de ambas funciones queda IDÉNTICO a la versión anterior.
+--
+-- Complemento en cliente (mismo commit): inputs de teléfono de reservar.html
+-- y acceso.html con filtro oninput [0-9+espacio] + maxlength=20; código postal
+-- con filtro [0-9]. El PhoneInput del portal ya emitía E.164 (libphonenumber).
+-- ============================================================================
+
+-- 1) crear_solicitud_publica: nuevo bloque de validación de dígitos
+--    (añadido tras las comprobaciones de longitud, antes del rate-limit):
+--
+--   if p_telefono is not null and btrim(p_telefono) <> ''
+--      and coalesce(length(public.normalizar_telefono(p_telefono)), 0) < 7 then
+--     raise exception 'El telefono debe contener al menos 7 digitos';
+--   end if;
+
+-- 2) crear_cita_publica: la línea
+--
+--   if coalesce(length(trim(p_cliente_telefono)), 0) < 6 then raise exception 'Indica un telefono valido.'; end if;
+--
+--    pasa a ser:
+--
+--   if coalesce(length(public.normalizar_telefono(p_cliente_telefono)), 0) < 7 then raise exception 'Indica un telefono valido.'; end if;
+--
+-- Los cuerpos completos vigentes están en el historial de migraciones remotas
+-- de Supabase (fuente de verdad según CLAUDE.md). Verificado tras aplicar:
+-- sentinelas de anti-abuso, depósito dinámico, horario, solapamiento e insert
+-- intactos (8/8 true).

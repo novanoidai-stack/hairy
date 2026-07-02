@@ -124,6 +124,15 @@ export default function CajaScreen() {
   // Cobros del día (filas crudas) para los registros descargables.
   const [cobrosHoy, setCobrosHoy] = useState<Array<any>>([]);
 
+  // --- Venta rápida de productos ---
+  type ProductoVenta = { id: string; nombre: string; precio_cents: number };
+  type CarritoItem = ProductoVenta & { cantidad: number };
+  const [showVentaProductos, setShowVentaProductos] = useState(false);
+  const [productosDisponibles, setProductosDisponibles] = useState<ProductoVenta[]>([]);
+  const [carrito, setCarrito] = useState<CarritoItem[]>([]);
+  const [ventaMetodo, setVentaMetodo] = useState<'efectivo' | 'datafono' | 'bizum'>('efectivo');
+  const [ventaEnviando, setVentaEnviando] = useState(false);
+
   // Totales de la selección
   const seleccion = useMemo(() => {
     const seleccionadas = citas.filter(c => selectedIds.has(c.id));
@@ -358,14 +367,33 @@ export default function CajaScreen() {
           </p>
         </div>
         {canSeeAll && (
-          <button
-            onClick={() => setShowWalkin(true)}
-            className="ca-btn"
-            style={{ padding: '10px 18px', background: T.card, border: `1px solid ${T.borderHi}`, color: T.text, borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
-          >
-            <Icon name="cash" size={15} color={T.primary} />
-            Cobro rápido
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              onClick={async () => {
+                setShowVentaProductos(true);
+                if (productosDisponibles.length === 0) {
+                  const profile = await getUserProfile();
+                  if (profile?.negocio_id) {
+                    const { data } = await supabase.from('productos').select('id, nombre, precio_cents').eq('negocio_id', profile.negocio_id).eq('activo', true).order('nombre');
+                    setProductosDisponibles(data ?? []);
+                  }
+                }
+              }}
+              className="ca-btn"
+              style={{ padding: '10px 18px', background: T.primary, border: 'none', color: '#fff', borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
+            >
+              <Icon name="wallet" size={15} color="#fff" />
+              Vender producto
+            </button>
+            <button
+              onClick={() => setShowWalkin(true)}
+              className="ca-btn"
+              style={{ padding: '10px 18px', background: T.card, border: `1px solid ${T.borderHi}`, color: T.text, borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
+            >
+              <Icon name="cash" size={15} color={T.primary} />
+              Cobro rápido
+            </button>
+          </div>
         )}
       </div>
 
@@ -393,43 +421,21 @@ export default function CajaScreen() {
         );
       })()}
 
-      {/* Jornada del equipo (hoy) — supervisión de gestor. El fichaje personal vive en Mi jornada. */}
-      {canSeeAll && (
+      {/* Registros descargables (CSV) — solo propietario/dirección */}
+      {canSeeAll && cobrosHoy.length > 0 && (
         <div style={{ background: T.card, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Icon name="clock" size={18} color={T.textTer} />
+            <Icon name="download" size={18} color={T.textTer} />
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Jornada del equipo</div>
-              <div style={{ fontSize: 12, color: T.textSec }}>Entradas y salidas de hoy. Tu propio fichaje está en Mi jornada.</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Exportar registros del día</div>
+              <div style={{ fontSize: 12, color: T.textSec }}>Descarga los cobros completados hoy en formato CSV.</div>
             </div>
           </div>
-          {fichajesHoy.length > 0 && (
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}` }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {fichajesHoy.slice(0, 40).map((f, i) => {
-                  const nombre = (f.user_id && staffMap[f.user_id]) || 'Miembro';
-                  const esMio = f.user_id === userId;
-                  return (
-                    <span key={i} style={{ fontSize: 11.5, color: T.textSec, padding: '4px 9px', borderRadius: 999, background: T.bg, border: `1px solid ${esMio ? T.borderHi : T.border}`, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: f.tipo === 'entrada' ? T.success : T.textTer }} />
-                      {nombre} · {f.tipo === 'entrada' ? 'Entrada' : 'Salida'} {format(parseISO(f.marcado_at), 'HH:mm', { locale: es })}{esMio ? ' · tú' : ''}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-          {(cobrosHoy.length > 0 || fichajesHoy.length > 0) && (
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: T.textTer, fontWeight: 600 }}>Registros del día:</span>
-              <button onClick={descargarCobros} disabled={cobrosHoy.length === 0} className="ca-btn" style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, border: `1px solid ${T.borderHi}`, background: T.bg, color: T.textSec, cursor: cobrosHoy.length ? 'pointer' : 'not-allowed', opacity: cobrosHoy.length ? 1 : 0.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Icon name="download" size={13} color={T.textSec} /> Cobros (CSV)
-              </button>
-              <button onClick={descargarFichajes} disabled={fichajesHoy.length === 0} className="ca-btn" style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, border: `1px solid ${T.borderHi}`, background: T.bg, color: T.textSec, cursor: fichajesHoy.length ? 'pointer' : 'not-allowed', opacity: fichajesHoy.length ? 1 : 0.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Icon name="download" size={13} color={T.textSec} /> Fichajes (CSV)
-              </button>
-            </div>
-          )}
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button onClick={descargarCobros} className="ca-btn" style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, border: `1px solid ${T.borderHi}`, background: T.bg, color: T.textSec, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="download" size={13} color={T.textSec} /> Cobros (CSV)
+            </button>
+          </div>
         </div>
       )}
 
@@ -631,6 +637,181 @@ export default function CajaScreen() {
           onClose={() => setCobroPresupuesto(null)}
           onSuccess={handleCobroPresupuestoSuccess}
         />
+      )}
+
+      {/* === PANEL VENTA RÁPIDA DE PRODUCTOS === */}
+      {canSeeAll && showVentaProductos && (
+        <div
+          onClick={() => { if (!ventaEnviando) { setShowVentaProductos(false); setCarrito([]); } }}
+          className="ca-modal-overlay"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 210, display: 'grid', placeItems: 'center', padding: 16 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="ca-modal"
+            style={{ background: T.panel, border: `1px solid ${T.borderHi}`, borderRadius: 16, width: '100%', maxWidth: 540, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 70px rgba(40,30,24,0.35)' }}
+          >
+            {/* Header */}
+            <div style={{ padding: '18px 20px 12px', borderBottom: `1px solid ${T.border}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h4 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: T.text, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Icon name="wallet" size={18} color={T.primary} /> Venta rápida
+                </h4>
+                <button onClick={() => { setShowVentaProductos(false); setCarrito([]); }} style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 20, cursor: 'pointer', padding: '0 4px' }}>×</button>
+              </div>
+              <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>Toca un producto para añadirlo. Rápido y sin complicaciones.</div>
+            </div>
+
+            {/* Product grid */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px' }}>
+              {productosDisponibles.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px 10px', color: T.textSec, fontSize: 13 }}>
+                  No hay productos en el inventario. Añádelos desde la pestaña Inventario.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+                  {productosDisponibles.map((prod) => {
+                    const enCarrito = carrito.find(c => c.id === prod.id);
+                    return (
+                      <button
+                        key={prod.id}
+                        onClick={() => {
+                          setCarrito(prev => {
+                            const idx = prev.findIndex(c => c.id === prod.id);
+                            if (idx >= 0) return prev.map((c, i) => i === idx ? { ...c, cantidad: c.cantidad + 1 } : c);
+                            return [...prev, { ...prod, cantidad: 1 }];
+                          });
+                        }}
+                        className="ca-btn"
+                        style={{
+                          position: 'relative',
+                          background: enCarrito ? T.primarySoft : T.card,
+                          border: `1px solid ${enCarrito ? T.primary : T.border}`,
+                          borderRadius: 12, padding: '14px 10px', textAlign: 'center',
+                          cursor: 'pointer', transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {enCarrito && (
+                          <span style={{
+                            position: 'absolute', top: -6, right: -6,
+                            width: 22, height: 22, borderRadius: '50%',
+                            background: T.primary, color: '#fff',
+                            fontSize: 11, fontWeight: 800,
+                            display: 'grid', placeItems: 'center',
+                            boxShadow: '0 2px 6px rgba(244,80,30,0.4)',
+                          }}>{enCarrito.cantidad}</span>
+                        )}
+                        <div style={{ fontSize: 13, fontWeight: 600, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prod.nombre}</div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: T.primary, marginTop: 4 }}>{(prod.precio_cents / 100).toFixed(2)}€</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Mini-cart + checkout */}
+            {carrito.length > 0 && (
+              <div style={{ borderTop: `1px solid ${T.border}`, padding: '14px 20px', background: T.cardHi }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                  {carrito.map((item) => (
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                      <span style={{ flex: 1, color: T.text, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.nombre}</span>
+                      <button onClick={() => setCarrito(prev => prev.map(c => c.id === item.id ? { ...c, cantidad: Math.max(1, c.cantidad - 1) } : c))} style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, width: 24, height: 24, fontSize: 14, cursor: 'pointer', color: T.text, display: 'grid', placeItems: 'center' }}>−</button>
+                      <span style={{ fontWeight: 700, color: T.text, minWidth: 20, textAlign: 'center' }}>{item.cantidad}</span>
+                      <button onClick={() => setCarrito(prev => prev.map(c => c.id === item.id ? { ...c, cantidad: c.cantidad + 1 } : c))} style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, width: 24, height: 24, fontSize: 14, cursor: 'pointer', color: T.text, display: 'grid', placeItems: 'center' }}>+</button>
+                      <span style={{ color: T.textSec, minWidth: 55, textAlign: 'right', fontWeight: 600 }}>{((item.precio_cents * item.cantidad) / 100).toFixed(2)}€</span>
+                      <button onClick={() => setCarrito(prev => prev.filter(c => c.id !== item.id))} style={{ background: 'none', border: 'none', color: T.danger, fontSize: 16, cursor: 'pointer', padding: '0 2px' }}>×</button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Total + método + cobrar */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: isMobile ? 'column' : 'row',
+                  alignItems: isMobile ? 'stretch' : 'center',
+                  justifyContent: 'space-between',
+                  gap: 12
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: isMobile ? '100%' : 'auto' }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: T.textSec, fontWeight: 600, textTransform: 'uppercase' }}>Total</div>
+                      <div style={{ fontSize: 22, fontWeight: 800, color: T.text }}>
+                        {(carrito.reduce((s, c) => s + c.precio_cents * c.cantidad, 0) / 100).toFixed(2)}€
+                      </div>
+                    </div>
+                    {isMobile && (
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {(['efectivo', 'datafono', 'bizum'] as const).map(m => (
+                          <button key={m} onClick={() => setVentaMetodo(m)} className="ca-btn" style={{
+                            padding: '6px 10px', borderRadius: 8, fontSize: 11.5, fontWeight: 600, cursor: 'pointer',
+                            background: ventaMetodo === m ? T.text : T.card,
+                            color: ventaMetodo === m ? '#fff' : T.textSec,
+                            border: `1px solid ${ventaMetodo === m ? T.text : T.border}`,
+                          }}>{m === 'efectivo' ? 'Efectivo' : m === 'datafono' ? 'Datáfono' : 'Bizum'}</button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {!isMobile && (
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {(['efectivo', 'datafono', 'bizum'] as const).map(m => (
+                        <button key={m} onClick={() => setVentaMetodo(m)} className="ca-btn" style={{
+                          padding: '7px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                          background: ventaMetodo === m ? T.text : T.card,
+                          color: ventaMetodo === m ? '#fff' : T.textSec,
+                          border: `1px solid ${ventaMetodo === m ? T.text : T.border}`,
+                        }}>{m === 'efectivo' ? 'Efectivo' : m === 'datafono' ? 'Datáfono' : 'Bizum'}</button>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    disabled={ventaEnviando}
+                    onClick={async () => {
+                      setVentaEnviando(true);
+                      try {
+                        const lineasPayload = carrito.map(c => ({
+                          nombre: c.nombre,
+                          precio_cents: c.precio_cents,
+                          cantidad: c.cantidad,
+                          ref_id: c.id,
+                        }));
+                        const { error: rpcErr } = await supabase.rpc('crear_cobro_walkin', {
+                          p_lineas: lineasPayload,
+                          p_metodo: ventaMetodo,
+                          p_propina_cents: 0,
+                          p_descuento_cents: 0,
+                        });
+                        if (rpcErr) throw rpcErr;
+                        setShowVentaProductos(false);
+                        setCarrito([]);
+                        setMensaje({ type: 'success', text: `Venta registrada · ${(carrito.reduce((s, c) => s + c.precio_cents * c.cantidad, 0) / 100).toFixed(2)}€` });
+                        setTimeout(() => setMensaje(null), 4000);
+                        cargarCitas();
+                      } catch (err: any) {
+                        setMensaje({ type: 'error', text: mensajeDeError(err, 'Error al registrar la venta.') });
+                      } finally {
+                        setVentaEnviando(false);
+                      }
+                    }}
+                    className="ca-btn"
+                    style={{
+                      padding: '11px 22px', background: T.primary, color: '#fff',
+                      border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                      cursor: ventaEnviando ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      width: isMobile ? '100%' : 'auto',
+                    }}
+                  >
+                    <Icon name="check" size={16} color="#fff" />
+                    {ventaEnviando ? 'Cobrando...' : 'Cobrar'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

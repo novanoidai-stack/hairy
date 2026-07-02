@@ -1278,6 +1278,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     overflowX: 'auto',
     paddingBottom: '4px',
     scrollbarWidth: 'none',
+    marginTop: '12px',
+    marginBottom: '12px',
   },
   categoryTab: {
     display: 'flex',
@@ -1319,6 +1321,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     gap: '16px',
     flexWrap: 'wrap',
+    marginBottom: '16px',
   },
   searchBox: {
     display: 'flex',
