@@ -311,7 +311,7 @@
         <div class="bk-row2">
           <div class="bk-field">
             <label for="fPhone">Teléfono</label>
-            <input class="bk-input" id="fPhone" type="tel" placeholder="600 000 000" autocomplete="tel" />
+            <input class="bk-input" id="fPhone" type="tel" placeholder="600 000 000" autocomplete="tel" maxlength="20" oninput="this.value=this.value.replace(/[^0-9+\s]/g,'')" />
             <span class="bk-err">Necesitamos un teléfono para la llamada.</span>
           </div>
           <div class="bk-field">
