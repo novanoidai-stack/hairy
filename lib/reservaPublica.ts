@@ -132,6 +132,51 @@ export async function crearCitaPublica(args: CrearCitaArgs): Promise<CrearCitaRe
   return data as CrearCitaResult;
 }
 
+// Reserva de grupo: cada asistente su servicio + profesional, todos misma hora de inicio.
+// Escenarios típicos: bodas, madres+hijas, grupo de amigas. Máximo 6 asistentes.
+export interface AsistenteGrupo {
+  nombre: string;
+  servicioId: string;
+  profesionalId: string;
+  notas?: string;
+}
+export interface CrearGrupoArgs {
+  slug: string;
+  inicioISO: string;
+  reservanteNombre: string;
+  reservanteTelefono: string;
+  reservanteEmail?: string;
+  asistentes: AsistenteGrupo[];
+  consentimientoDatos?: boolean;
+  captchaToken?: string;
+}
+export interface CrearGrupoResult {
+  grupo_id: string;
+  cliente_id: string;
+  total: number;
+  citas: { cita_id: string; orden: number; nombre: string }[];
+  inicio: string;
+}
+export async function crearGrupoPublico(args: CrearGrupoArgs): Promise<CrearGrupoResult> {
+  const { data, error } = await supabase.rpc('crear_cita_publica_grupo', {
+    p_slug: args.slug,
+    p_inicio: args.inicioISO,
+    p_reservante_nombre: args.reservanteNombre,
+    p_reservante_telefono: args.reservanteTelefono,
+    p_reservante_email: args.reservanteEmail ?? null,
+    p_asistentes: args.asistentes.map((a) => ({
+      nombre: a.nombre,
+      servicio_id: a.servicioId,
+      profesional_id: a.profesionalId,
+      notas: a.notas ?? null,
+    })),
+    p_consentimiento_datos: args.consentimientoDatos ?? true,
+    p_captcha_token: args.captchaToken ?? null,
+  });
+  if (error) throw error;
+  return data as CrearGrupoResult;
+}
+
 // Agrupa slots por dia local (YYYY-MM-DD en zona del navegador) para pintar el calendario.
 export function fechaISOaClave(d: Date): string {
   const y = d.getFullYear();

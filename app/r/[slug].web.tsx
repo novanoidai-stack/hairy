@@ -12,6 +12,7 @@ import { EmbersCanvas } from '../resena/[slug].web';
 import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
 import { categoryColorHex } from '@/lib/categoryColors';
 import { initGA4, trackPageView, trackEvent, giveConsent, withdrawConsent, loadSavedConsent, AnalyticsEvents } from '@/lib/analytics';
+import { PortalGrupoModal } from '@/components/portal/PortalGrupoModal.web';
 
 // ---------------------------------------------------------------------------
 // Tokens — marca Mecha (Basalto oscuro). El gradiente FIRE es el del
@@ -163,6 +164,8 @@ export default function PortalReservaWeb() {
   const [step, setStep] = useState<Step>('servicio');
   const [servicio, setServicio] = useState<PortalServicio | null>(null);
   const [categoriaFiltro, setCategoriaFiltro] = useState<string | null>(null);
+  const [showGrupoModal, setShowGrupoModal] = useState(false);
+  const [grupoOk, setGrupoOk] = useState<{ total: number; inicio: string } | null>(null);
   const [profId, setProfId] = useState<string>(ANY_PRO);
   const [fecha, setFecha] = useState<Date>(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
   const [slots, setSlots] = useState<SlotDisponible[]>([]);
@@ -549,6 +552,23 @@ export default function PortalReservaWeb() {
               </div>
             );
           })()}
+          {info.servicios.length > 0 && info.profesionales.length > 0 && (
+            <button
+              onClick={() => setShowGrupoModal(true)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                width: '100%', marginBottom: 12, padding: '12px 14px', borderRadius: 12,
+                border: `1px dashed ${T.primary}`, background: T.primarySoft, cursor: 'pointer',
+                color: T.text, textAlign: 'left',
+              }}
+            >
+              <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 700, color: T.text }}>¿Venís en grupo?</span>
+                <span style={{ fontSize: 12, color: T.textSec }}>Reservad varias personas a la misma hora (bodas, madres+hijas...).</span>
+              </span>
+              <Icon name="chevronRight" size={18} color={T.primaryHi} />
+            </button>
+          )}
           <div className="rp-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             {info.servicios.length === 0 && <Empty titulo={t('empty_servicios_t')} texto={t('empty_servicios_x')} />}
             {info.servicios.filter(sv => !categoriaFiltro || sv.categoria_id === categoriaFiltro).map((sv, i) => (
@@ -847,6 +867,36 @@ export default function PortalReservaWeb() {
         onAccept={() => { giveConsent(); setAnalyticsConsent(true); }}
         onReject={() => { withdrawConsent(); setAnalyticsConsent(false); }}
       />
+      {/* Reserva de grupo (portal). Auto-contenida — no cruza estado con el wizard individual. */}
+      {showGrupoModal && info && (
+        <PortalGrupoModal
+          slug={slug}
+          info={info}
+          onClose={() => setShowGrupoModal(false)}
+          onSuccess={(r) => { setGrupoOk(r); setShowGrupoModal(false); }}
+        />
+      )}
+      {grupoOk && (
+        <div
+          onClick={() => setGrupoOk(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(6,7,10,0.75)', zIndex: 310, display: 'grid', placeItems: 'center', padding: 16 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 24, maxWidth: 420, textAlign: 'center' }}
+          >
+            <div style={{ fontSize: 40, marginBottom: 10 }}>🎉</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: T.text, marginBottom: 6 }}>Reserva de grupo confirmada</div>
+            <div style={{ fontSize: 13.5, color: T.textSec, marginBottom: 16 }}>
+              {grupoOk.total} personas · {new Date(grupoOk.inicio).toLocaleString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Recibiréis un aviso con los detalles.
+            </div>
+            <button
+              onClick={() => setGrupoOk(null)}
+              style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+            >Cerrar</button>
+          </div>
+        </div>
+      )}
     </Shell>
   );
 }
