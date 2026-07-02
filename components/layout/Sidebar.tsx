@@ -35,6 +35,45 @@ const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: st
 
 const HOVER_DURATION = 200;
 
+const getRoleTheme = (profile: UserProfile | null | undefined) => {
+  const role = roleOf(profile);
+  switch (role) {
+    case 'propietario':
+      return {
+        accent: '#f4501e', // Naranja/Fuego de Propietario
+        accentGlow: 'rgba(244,80,30,0.08)',
+        badgeBg: 'rgba(244,80,30,0.12)',
+        badgeText: '#f4501e',
+        label: 'Propietario',
+      };
+    case 'direccion':
+      return {
+        accent: '#8b5cf6', // Violeta de Dirección
+        accentGlow: 'rgba(139,92,246,0.08)',
+        badgeBg: 'rgba(139,92,246,0.12)',
+        badgeText: '#8b5cf6',
+        label: 'Dirección',
+      };
+    case 'recepcion':
+      return {
+        accent: '#0284c7', // Azul/Cielo de Recepción
+        accentGlow: 'rgba(2,132,199,0.08)',
+        badgeBg: 'rgba(2,132,199,0.12)',
+        badgeText: '#0284c7',
+        label: 'Recepción',
+      };
+    case 'profesional':
+    default:
+      return {
+        accent: '#0d9488', // Teal de Profesional
+        accentGlow: 'rgba(13,148,136,0.08)',
+        badgeBg: 'rgba(13,148,136,0.12)',
+        badgeText: '#0d9488',
+        label: 'Profesional',
+      };
+  }
+};
+
 export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -43,6 +82,7 @@ export function Sidebar() {
 
   const [collapsed, setCollapsed] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
+  const roleTheme = getRoleTheme(profile);
 
   // Gating por rol (Modular 3, sec 7). Defensivo: mientras carga (undefined) o
   // sin sesion (null) se muestra todo; con una cuenta real se aplican las
@@ -146,9 +186,11 @@ export function Sidebar() {
             s.navItem,
             collapsed && s.navItemCollapsed,
             isActive && s.navItemActive,
+            isActive && { backgroundColor: roleTheme.accentGlow, borderColor: roleTheme.accentGlow },
             !isActive && hoveredIdx === idx && s.navItemHovered,
             isPrincipal && !collapsed && s.navItemPrincipal,
             isPrincipal && !collapsed && isActive && s.navItemPrincipalActive,
+            isPrincipal && !collapsed && isActive && { backgroundColor: roleTheme.accentGlow, borderColor: roleTheme.accentGlow },
           ]}
           onPress={() => router.push(item.href as any)}
           {...{
@@ -157,16 +199,17 @@ export function Sidebar() {
             ...webTitle(t(item.labelKey) || item.label)
           } as any}
         >
-          {isActive && !collapsed && <View style={s.navItemBar} />}
+          {isActive && !collapsed && <View style={[s.navItemBar, { backgroundColor: roleTheme.accent }]} />}
           <Ionicons
             name={(isActive ? item.activeIcon : item.icon) as any}
             size={collapsed ? 20 : 18}
-            color={isActive ? tokens.primary : tokens.textSecondary}
+            color={isActive ? roleTheme.accent : tokens.textSecondary}
           />
           {!collapsed && (
             <TText style={[
               s.navLabel,
               isActive && s.navLabelActive,
+              isActive && { color: roleTheme.accent },
               isPrincipal && s.navLabelPrincipal,
             ]}>
               {t(item.labelKey) || item.label}
@@ -189,9 +232,31 @@ export function Sidebar() {
         >
           <MechaMark size={collapsed ? 30 : 32} />
           {!collapsed && (
-            <View style={s.brandRow}>
-              <TText style={s.logoText}>Mecha</TText>
-              <View style={s.brandTag}><TText style={s.brandTagText}>OS</TText></View>
+            <View style={{ flexDirection: 'column', gap: 2 }}>
+              <View style={s.brandRow}>
+                <TText style={s.logoText}>Mecha</TText>
+                <View style={s.brandTag}><TText style={s.brandTagText}>OS</TText></View>
+              </View>
+              {profile !== undefined && profile !== null && (
+                <View style={{
+                  backgroundColor: roleTheme.badgeBg,
+                  borderRadius: 4,
+                  paddingHorizontal: 6,
+                  paddingVertical: 1.5,
+                  alignSelf: 'flex-start',
+                  marginTop: 1,
+                  borderWidth: 1,
+                  borderColor: roleTheme.accentGlow,
+                }}>
+                  <TText style={{
+                    fontSize: 9.5,
+                    fontWeight: '700',
+                    color: roleTheme.badgeText,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}>{roleTheme.label}</TText>
+                </View>
+              )}
             </View>
           )}
         </TouchableOpacity>
@@ -254,18 +319,24 @@ export function Sidebar() {
           }}
         >
           <TouchableOpacity
-            style={[s.navItem, collapsed && s.navItemCollapsed, configActive && s.navItemActive, !configActive && configHovered && s.navItemHovered]}
+            style={[
+              s.navItem,
+              collapsed && s.navItemCollapsed,
+              configActive && s.navItemActive,
+              configActive && { backgroundColor: roleTheme.accentGlow, borderColor: roleTheme.accentGlow },
+              !configActive && configHovered && s.navItemHovered
+            ]}
             onPress={() => router.push('/(tabs)/configuracion' as any)}
             {...{ onMouseEnter: () => { hoverIn(configHoverAnim); setConfigHovered(true); }, onMouseLeave: () => { hoverOut(configHoverAnim); setConfigHovered(false); }, ...webTitle(t('nav_configuracion')) } as any}
           >
-            {configActive && !collapsed && <View style={s.navItemBar} />}
+            {configActive && !collapsed && <View style={[s.navItemBar, { backgroundColor: roleTheme.accent }]} />}
             <Ionicons
               name={configActive ? 'settings' : 'settings-outline'}
               size={collapsed ? 20 : 18}
-              color={configActive ? tokens.primary : tokens.textSecondary}
+              color={configActive ? roleTheme.accent : tokens.textSecondary}
             />
             {!collapsed && (
-              <TText style={[s.navLabel, configActive && s.navLabelActive]}>
+              <TText style={[s.navLabel, configActive && s.navLabelActive, configActive && { color: roleTheme.accent }]}>
                 {t('nav_configuracion')}
               </TText>
             )}
@@ -301,7 +372,7 @@ export function Sidebar() {
               ...webTitle(accountTitle)
             } as any}
           >
-            <View style={s.accountAvatar}>
+            <View style={[s.accountAvatar, { backgroundColor: roleTheme.accent }]}>
               <TText style={s.accountInitial}>{accountInitials}</TText>
             </View>
             {!collapsed && (

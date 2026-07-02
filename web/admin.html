@@ -705,7 +705,28 @@
     });
   }
 
-  function cuentaRowHtml(p) {
+  function subcuentaRowHtml(p) {
+    var nombreFull = (esc(p.nombre) || 'Sin nombre') + (p.apellido ? (' ' + esc(p.apellido)) : '');
+    var roleLabel = p.role === 'admin' ? 'Dirección' : (p.role === 'recepcion' ? 'Recepción' : 'Profesional');
+    
+    var action = '<button class="btn-delete-account" style="padding:4px 8px; font-size:11px; margin-left: auto; background:#dc2626; color:white; border:none; border-radius:4px; cursor:pointer;" data-del-acc="' + esc(p.id) + '" data-email="' + esc(p.email) + '">Eliminar</button>';
+
+    return '<div class="sub-card-row" style="margin-top: 8px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border); border-radius: 12px; padding: 10px 14px;" data-pid="' + esc(p.id) + '">' +
+      '<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">' +
+        '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+          '<span class="plan employee" style="background:rgba(13,148,136,0.1); color:#0d9488; border:1px solid rgba(13,148,136,0.2); font-size:10.5px; padding:2px 6px; border-radius:4px; font-weight:700; text-transform:uppercase;">' + roleLabel + '</span>' +
+          '<span style="font-weight:600; font-size:13.5px; color:var(--text);">' + nombreFull + '</span>' +
+          '<span style="color:var(--text-sec); font-size:12.5px;">(' + esc(p.email) + ')</span>' +
+        '</div>' +
+        '<div style="display:flex; align-items:center; gap:8px;">' +
+          (p.phone ? '<span style="font-size:12.5px; color:var(--text-ter);">' + esc(p.phone) + '</span>' : '') +
+          action +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function cuentaRowHtml(p, subaccountsCount) {
     var plan = p.plan || 'free';
     var planClass = plan === 'full' ? 'full' : 'free';
     var isDemo = p.negocio_id === 'demo_salon_001';
@@ -731,6 +752,12 @@
 
     action += '<button class="btn-delete-account" data-del-acc="' + esc(p.id) + '" data-email="' + esc(p.email) + '">Eliminar cuenta</button>';
 
+    if (subaccountsCount > 0) {
+      action += '<button class="btn-toggle-subs" style="margin-left:8px; padding:6px 12px; font-size:12px;" data-nid="' + esc(p.negocio_id) + '" data-count="' + subaccountsCount + '">' +
+        'Ver subcuentas (' + subaccountsCount + ')' +
+        '</button>';
+    }
+
     var nombreFull = (esc(p.nombre) || 'Sin nombre') + (p.apellido ? (' ' + esc(p.apellido)) : '');
 
     return '<div class="card-row" data-pid="' + esc(p.id) + '">' +
@@ -746,19 +773,103 @@
       '</div>' +
       '<div class="r-grid">' + grid + '</div>' +
       '<div class="r-foot">' + action + '</div>' +
+      (subaccountsCount > 0 ? 
+        '<div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px;">' +
+          '<div id="subs-wrap-' + esc(p.negocio_id) + '" style="display:none; transition: all 0.25s ease;">' +
+            '<!--SUB_ACCOUNTS_HERE-->' +
+          '</div>' +
+        '</div>' : '') +
     '</div>';
   }
 
   function renderCuentas() {
     renderCuentasStats();
-    var data = cuentasFiltered();
+    
+    var q = ($('qCue').value || '').trim().toLowerCase();
+    var plan = $('fPlan').value;
+    
+    var groups = {};
+    accounts.forEach(function (p) {
+      var nid = p.negocio_id || 'no_negocio';
+      if (!groups[nid]) {
+        groups[nid] = { owner: null, workers: [], all: [] };
+      }
+      groups[nid].all.push(p);
+      
+      var isOwn = p.role === 'owner' || p.role === 'propietario';
+      if (isOwn) {
+        if (!groups[nid].owner || p.created_at < groups[nid].owner.created_at) {
+          if (groups[nid].owner) groups[nid].workers.push(groups[nid].owner);
+          groups[nid].owner = p;
+        } else {
+          groups[nid].workers.push(p);
+        }
+      } else {
+        groups[nid].workers.push(p);
+      }
+    });
+    
+    var groupList = [];
+    for (var nid in groups) {
+      var grp = groups[nid];
+      if (!grp.owner && grp.all.length > 0) {
+        grp.all.sort(function(a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+        grp.owner = grp.all[0];
+        grp.workers = grp.all.slice(1);
+      }
+      if (grp.owner) groupList.push(grp);
+    }
+    
+    groupList.sort(function (a, b) {
+      return new Date(b.owner.created_at) - new Date(a.owner.created_at);
+    });
+    
+    var filteredGroups = groupList.filter(function (g) {
+      if (plan && (g.owner.plan || 'free') !== plan) return false;
+      if (q) {
+        var matchOwner = [g.owner.nombre, g.owner.apellido, g.owner.email, g.owner.nombre_negocio, g.owner.negocio_id, g.owner.phone].join(' ').toLowerCase().indexOf(q) !== -1;
+        var matchWorker = g.workers.some(function (w) {
+          return [w.nombre, w.apellido, w.email, w.nombre_negocio, w.negocio_id, w.phone].join(' ').toLowerCase().indexOf(q) !== -1;
+        });
+        return matchOwner || matchWorker;
+      }
+      return true;
+    });
+    
     var listEl = $('listCue');
-    $('countCue').textContent = data.length + ' de ' + accounts.length + ' cuentas';
-    if (!data.length) {
+    $('countCue').textContent = filteredGroups.length + ' de ' + groupList.length + ' negocios';
+    
+    if (!filteredGroups.length) {
       listEl.innerHTML = '<div class="ad-empty">No hay cuentas que coincidan con el filtro.</div>';
       return;
     }
-    listEl.innerHTML = data.map(cuentaRowHtml).join('');
+    
+    var html = filteredGroups.map(function (g) {
+      var row = cuentaRowHtml(g.owner, g.workers.length);
+      if (g.workers.length > 0) {
+        var subsHtml = g.workers.map(subcuentaRowHtml).join('');
+        row = row.replace('<!--SUB_ACCOUNTS_HERE-->', subsHtml);
+      }
+      return row;
+    }).join('');
+    
+    listEl.innerHTML = html;
+
+    listEl.querySelectorAll('.btn-toggle-subs').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var nid = btn.getAttribute('data-nid');
+        var wrap = $('subs-wrap-' + nid);
+        if (wrap) {
+          if (wrap.style.display === 'none') {
+            wrap.style.display = 'block';
+            btn.textContent = 'Ocultar subcuentas';
+          } else {
+            wrap.style.display = 'none';
+            btn.textContent = 'Ver subcuentas (' + btn.getAttribute('data-count') + ')';
+          }
+        }
+      });
+    });
 
     listEl.querySelectorAll('.btn-grant').forEach(function (btn) {
       btn.addEventListener('click', function () {
