@@ -4,6 +4,17 @@
 **Alcance:** auditoría estática del repo + advisors de seguridad de Supabase (proyecto `vtrggiogjrhqtwbhbgia`) pasados hoy (145 avisos analizados) + revisión de edge functions, cabeceras Vercel, manejo de sesión y flujo de subida de archivos.
 **Enfoque:** ingeniería defensiva, OWASP Top 10, RGPD/LOPDGDD. Sin claims falsos (regla de la casa #5): este documento distingue siempre entre lo VERIFICADO hoy y lo pendiente.
 
+> **ACTUALIZACIÓN (2 jul, tarde) — P0 EJECUTADO Y VERIFICADO:**
+> - **H1** hecho: migración `security-round4-superficie-funciones.sql` aplicada. Superficie anon reducida de 54 a las 24 funciones públicas intencionales (verificado con `has_function_privilege` + smoke test HTTPS: `portal_info` 200 como anon). Advisors: 145 → 109 avisos (los que quedan son la whitelist pública por diseño + los de `authenticated` con chequeo de rol interno). Default privileges: las funciones nuevas ya NO nacen ejecutables por anon → **toda RPC pública nueva necesita `grant execute ... to anon` explícito**.
+> - **H3** hecho, con sorpresa: `crear_solicitud_publica` NO existía en remoto (la migración `solicitudes-rpc-rate-limiting.sql` nunca se aplicó — **el formulario de leads de la landing llevaba roto desde entonces**). Se aplicó con validación whitelist reforzada y ENTONCES se cerró el insert directo.
+> - **H4** hecho: `apply-migrations` sustituida por tombstone 410 (verificado por HTTPS) y el código retirado del repo.
+> - **H5** hecho: `search_path` fijado en el 100% de las funciones (0 sin fijar).
+> - **H7** hecho: límites server-side en los 3 buckets (`cliente-fotos`/`servicio-fotos`: 5MB imágenes; `presupuestos`: 10MB PDF).
+> - **H8** hecho: `signup-free` v10 desplegada (tope de payload 10KB, longitudes máximas, sin filtrar `cErr.message`).
+> - **H2** fase 1 hecha: CSP en Report-Only + `X-Permitted-Cross-Domain-Policies` en `vercel.json` (activa con el deploy).
+> - **Extra**: gates de rol owner/admin añadidos a `crear/actualizar/eliminar_producto` (cualquier empleado podía tocar el catálogo); tablas deny-all documentadas con `comment on table`.
+> - **Sigue pendiente**: H6 y TTL/región (toggles manuales de dashboard), H2 fase 2 (enforce), H9 (MFA), anonimización 30 días, bloque 3 documental y bloque 4.
+
 ---
 
 ## 0. Resumen ejecutivo — hallazgos verificados hoy

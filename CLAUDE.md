@@ -56,6 +56,9 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
    render con `createSignedUrls` (no `getPublicUrl`).
 4. **Seguridad:** tras CUALQUIER migración, pasar los advisors de Supabase (security).
    Nunca políticas `USING (true)` de escritura, nunca funciones tipo `exec_sql`.
+   Desde el round 4 (2 jul, `security-round4-superficie-funciones.sql`) las funciones nuevas
+   NO nacen ejecutables por `anon`: toda RPC pública nueva necesita `grant execute ... to anon`
+   explícito en su migración, y las RPCs internas sensibles chequean rol owner/admin DENTRO.
    `Documentacion/` está en `.gitignore` porque contiene client secrets de Google — no versionar.
 5. **Sin claims falsos:** nada de reseñas/ratings inventados en structured data ni cifras
    sin fuente en la landing (ya se retiraron una vez).

@@ -50,9 +50,12 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405, req);
 
+  // Tope de payload antes de parsear (anti-abuso)
+  const raw = await req.text();
+  if (raw.length > 10_000) return json({ error: 'bad_json' }, 400, req);
   let payload: Record<string, string> = {};
   try {
-    payload = await req.json();
+    payload = JSON.parse(raw);
   } catch (_e) {
     return json({ error: 'bad_json' }, 400, req);
   }
@@ -63,9 +66,11 @@ Deno.serve(async (req: Request) => {
   const salon = (payload.salon || '').trim();
   const telefono = (payload.telefono || '').trim();
 
-  if (!email || !EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400, req);
-  if (!password || password.length < 8) return json({ error: 'weak_password' }, 400, req);
+  // Validacion whitelist: formato + longitudes maximas (el cliente no es autoridad)
+  if (!email || !EMAIL_RE.test(email) || email.length > 120) return json({ error: 'invalid_email' }, 400, req);
+  if (!password || password.length < 8 || password.length > 200) return json({ error: 'weak_password' }, 400, req);
   if (!nombre || !salon) return json({ error: 'missing_fields' }, 400, req);
+  if (nombre.length > 80 || salon.length > 80 || telefono.length > 20) return json({ error: 'missing_fields' }, 400, req);
 
   // 1) Validar dominio de correo mediante DNS MX para evitar cuentas ficticias
   const domain = email.split('@')[1];
@@ -109,7 +114,9 @@ Deno.serve(async (req: Request) => {
     if (m.includes('already') || m.includes('registered') || m.includes('exists')) {
       return json({ error: 'email_exists' }, 409, req);
     }
-    return json({ error: 'create_failed', detail: cErr.message }, 400, req);
+    // No filtrar internals al cliente: el detalle queda en los logs del servidor
+    console.error('createUser failed:', cErr.message);
+    return json({ error: 'create_failed' }, 400, req);
   }
 
   const user = created.user;
