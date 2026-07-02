@@ -1116,7 +1116,11 @@ window.MECHA_CHAT = [
     if(!session||!session.user){
       acct.classList.remove('on');
       if(login) login.style.display='';
-      if(demo) demo.style.display='';
+      if(demo) {
+        var wrap = demo.closest('.btn-badge-wrapper');
+        if(wrap) wrap.style.display='';
+        else demo.style.display='';
+      }
       if(enter) enter.style.display='none';
       syncMobileEnter(false);
       syncMobileStaff(false);
@@ -1126,7 +1130,11 @@ window.MECHA_CHAT = [
     av.textContent=(email.charAt(0)||'·').toUpperCase();
     eml.textContent=email||'Tu cuenta';
     if(login) login.style.display='none';
-    if(demo) demo.style.display='none';
+    if(demo) {
+      var wrap = demo.closest('.btn-badge-wrapper');
+      if(wrap) wrap.style.display='none';
+      else demo.style.display='none';
+    }
     acct.classList.add('on');
     // El dropdown del perfil es la UNICA forma de entrar al software.
     // Nunca mostramos el boton independiente #navEnterApp.

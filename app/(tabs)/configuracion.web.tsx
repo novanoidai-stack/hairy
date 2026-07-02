@@ -1815,7 +1815,7 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
               if (!window.confirm('¿Estás absolutamente seguro de que quieres eliminar tu cuenta? Esta acción es irreversible y perderás acceso de forma permanente.')) return;
               
               setSavingProfile(true);
-              const { error } = await supabase.from('profiles').delete().eq('id', userId);
+              const { error } = await supabase.rpc('eliminar_propia_cuenta');
               setSavingProfile(false);
               
               if (error) {
