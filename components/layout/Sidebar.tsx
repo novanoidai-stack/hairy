@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, StyleSheet, Animated, Platform } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Animated, Platform, ScrollView } from 'react-native';
 import { TText } from '@/components/ui/TText';
 import { MechaMark } from '@/components/ui/MechaMark';
 import { useEffect, useRef, useState } from 'react';
@@ -119,6 +119,64 @@ export function Sidebar() {
     : '';
   const accountTitle = accountSubtitle ? `${accountName} · ${accountSubtitle}` : accountName;
 
+  const renderNavItem = (item: typeof NAV_ITEMS[0], idx: number) => {
+    const hrefSlug = item.href.split('/').pop() || '';
+    const isActive =
+      pathname === item.href ||
+      pathname.endsWith(item.label.toLowerCase()) ||
+      (item.href !== '/(tabs)' && !!hrefSlug && pathname.endsWith(hrefSlug)) ||
+      (item.href === '/(tabs)' && (pathname === '/' || pathname === '/(tabs)'));
+
+    const entryAnim = navAnimations[idx];
+    const hoverAnim = navHoverAnims[idx];
+    const combinedX = Animated.add(
+      entryAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }),
+      hoverAnim.interpolate({ inputRange: [0, 1], outputRange: [0, collapsed ? 0 : 4] })
+    );
+
+    const isPrincipal = idx < 4;
+
+    return (
+      <Animated.View
+        key={item.href}
+        style={{ opacity: entryAnim, transform: [{ translateX: combinedX }] }}
+      >
+        <TouchableOpacity
+          style={[
+            s.navItem,
+            collapsed && s.navItemCollapsed,
+            isActive && s.navItemActive,
+            !isActive && hoveredIdx === idx && s.navItemHovered,
+            isPrincipal && !collapsed && s.navItemPrincipal,
+            isPrincipal && !collapsed && isActive && s.navItemPrincipalActive,
+          ]}
+          onPress={() => router.push(item.href as any)}
+          {...{
+            onMouseEnter: () => { hoverIn(hoverAnim); setHoveredIdx(idx); },
+            onMouseLeave: () => { hoverOut(hoverAnim); setHoveredIdx(null); },
+            ...webTitle(t(item.labelKey) || item.label)
+          } as any}
+        >
+          {isActive && !collapsed && <View style={s.navItemBar} />}
+          <Ionicons
+            name={(isActive ? item.activeIcon : item.icon) as any}
+            size={collapsed ? 20 : 18}
+            color={isActive ? tokens.primary : tokens.textSecondary}
+          />
+          {!collapsed && (
+            <TText style={[
+              s.navLabel,
+              isActive && s.navLabelActive,
+              isPrincipal && s.navLabelPrincipal,
+            ]}>
+              {t(item.labelKey) || item.label}
+            </TText>
+          )}
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
   return (
     <View style={[s.sidebar, collapsed && s.sidebarCollapsed]}>
       {/* Logo + toggle */}
@@ -150,52 +208,40 @@ export function Sidebar() {
         </TouchableOpacity>
       )}
 
+      {/* Navigation Scroll Container */}
+      <ScrollView
+        style={s.navScroll}
+        contentContainerStyle={s.navScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* grupo 1: PRINCIPAL */}
+        {!collapsed && (
+          <TText style={s.navSectionLabel}>{t('nav_grp_principal')}</TText>
+        )}
+        <View style={s.navGroupContainer}>
+          {NAV_ITEMS.slice(0, 4).map((item, idx) => {
+            if (!allows(item.cap)) return null;
+            return renderNavItem(item, idx);
+          })}
+        </View>
 
-      {/* Navigation */}
-      <View style={s.navSection}>
-        {!collapsed && <TText style={s.navSectionLabel}>PRINCIPAL</TText>}
-        {NAV_ITEMS.map((item, idx) => {
-          if (!allows(item.cap)) return null;
-          const hrefSlug = item.href.split('/').pop() || '';
-          const isActive =
-            pathname === item.href ||
-            pathname.endsWith(item.label.toLowerCase()) ||
-            (item.href !== '/(tabs)' && !!hrefSlug && pathname.endsWith(hrefSlug)) ||
-            (item.href === '/(tabs)' && (pathname === '/' || pathname === '/(tabs)'));
+        {/* Separator */}
+        {!collapsed && <View style={s.navDivider} />}
 
-          const entryAnim = navAnimations[idx];
-          const hoverAnim = navHoverAnims[idx];
-          const combinedX = Animated.add(
-            entryAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }),
-            hoverAnim.interpolate({ inputRange: [0, 1], outputRange: [0, collapsed ? 0 : 4] })
-          );
-
-          return (
-            <Animated.View
-              key={item.href}
-              style={{ opacity: entryAnim, transform: [{ translateX: combinedX }] }}
-            >
-              <TouchableOpacity
-                style={[s.navItem, collapsed && s.navItemCollapsed, isActive && s.navItemActive, !isActive && hoveredIdx === idx && s.navItemHovered]}
-                onPress={() => router.push(item.href as any)}
-                {...{ onMouseEnter: () => { hoverIn(hoverAnim); setHoveredIdx(idx); }, onMouseLeave: () => { hoverOut(hoverAnim); setHoveredIdx(null); }, ...webTitle(t(item.labelKey) || item.label) } as any}
-              >
-                {isActive && !collapsed && <View style={s.navItemBar} />}
-                <Ionicons
-                  name={(isActive ? item.activeIcon : item.icon) as any}
-                  size={collapsed ? 20 : 18}
-                  color={isActive ? tokens.primary : tokens.textSecondary}
-                />
-                {!collapsed && (
-                  <TText style={[s.navLabel, isActive && s.navLabelActive]}>
-                    {t(item.labelKey) || item.label}
-                  </TText>
-                )}
-              </TouchableOpacity>
-            </Animated.View>
-          );
-        })}
-      </View>
+        {/* grupo 2: GESTIÓN */}
+        {!collapsed && (
+          <TText style={[s.navSectionLabel, { marginTop: tokens.spacing.xs }]}>
+            {t('nav_grp_gestion')}
+          </TText>
+        )}
+        <View style={s.navGroupContainer}>
+          {NAV_ITEMS.slice(4).map((item, idx) => {
+            const mainIdx = idx + 4;
+            if (!allows(item.cap)) return null;
+            return renderNavItem(item, mainIdx);
+          })}
+        </View>
+      </ScrollView>
 
       {/* Bottom section */}
       <View>
@@ -286,13 +332,7 @@ const s = StyleSheet.create({
     paddingBottom: tokens.spacing.lg,
     justifyContent: 'space-between',
     transition: 'width 0.2s ease' as any,
-    ...Platform.select({
-      web: {
-        overflowY: 'auto',
-        overflowX: 'hidden',
-      },
-      default: {},
-    }),
+    overflow: 'hidden',
   },
   sidebarCollapsed: {
     width: 76,
@@ -304,11 +344,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: tokens.spacing.md,
-    marginBottom: tokens.spacing.xxl,
+    marginBottom: tokens.spacing.lg,
   },
   logoContainerCollapsed: {
     justifyContent: 'center',
-    marginBottom: tokens.spacing.lg,
+    marginBottom: tokens.spacing.sm,
   },
   brand: {
     flexDirection: 'row',
@@ -360,10 +400,16 @@ const s = StyleSheet.create({
     backgroundColor: tokens.bgCardHi,
     borderWidth: 1,
     borderColor: tokens.border,
-    marginBottom: tokens.spacing.md,
+    marginBottom: tokens.spacing.xs,
   },
-  navSection: {
+  navScroll: {
     flex: 1,
+    marginVertical: tokens.spacing.xs,
+  },
+  navScrollContent: {
+    paddingBottom: tokens.spacing.lg,
+  },
+  navGroupContainer: {
     gap: tokens.spacing.xs,
   },
   navSectionLabel: {
@@ -373,7 +419,25 @@ const s = StyleSheet.create({
     textTransform: 'uppercase',
     paddingHorizontal: tokens.spacing.md,
     paddingVertical: tokens.spacing.sm,
-    marginBottom: tokens.spacing.md,
+    marginBottom: tokens.spacing.xs,
+  },
+  navDivider: {
+    height: 1,
+    backgroundColor: tokens.border,
+    marginVertical: tokens.spacing.md,
+    marginHorizontal: tokens.spacing.md,
+  },
+  navItemPrincipal: {
+    backgroundColor: 'rgba(251, 246, 240, 0.4)',
+    borderWidth: 1,
+    borderColor: 'rgba(40, 30, 24, 0.03)',
+  },
+  navItemPrincipalActive: {
+    backgroundColor: tokens.primarySoft,
+    borderColor: 'rgba(244,80,30,0.3)',
+  },
+  navLabelPrincipal: {
+    fontWeight: '600',
   },
   navItem: {
     flexDirection: 'row',

@@ -25,8 +25,14 @@ insert into fichajes (negocio_id, user_id, tipo, marcado_at) values
  ('demo_salon_001','0b7b8929-fdda-46f8-bd80-59da09123ba7','salida',  date_trunc('day',now()) + interval '14 hours');
 
 -- 3. Cobros walk-in de HOY atribuidos a Maria (idempotency_key como ancla idempotente)
-delete from cobros where idempotency_key in ('demo-mijornada-1','demo-mijornada-2');
+-- Upsert, NO delete+insert: desde compliance-antifraude-inmutabilidad.sql (Ley
+-- Antifraude 11/2021) cobros bloquea DELETE con un trigger, y cobrado_at/estado
+-- no estan protegidos por cobros_prevent_financial_updates -> el upsert re-fecha
+-- el cobro a "hoy" en cada re-siembra sin tocar campos financieros bloqueados.
+-- Requiere el indice unico cobros_idempotency_key_uidx (idempotency_key).
 insert into cobros (negocio_id, profesional_id, cliente_id, total_cents, propina_cents, descuento_cents, metodo, efectivo_cents, datafono_cents, online_cents, origen, estado, cobrado_at, idempotency_key)
 values
  ('demo_salon_001','aa000000-0000-0000-0000-000000000001', null, 4500, 0,   0, 'efectivo', 4500, 0,    0, 'pos','completado', date_trunc('day',now()) + interval '10 hours', 'demo-mijornada-1'),
- ('demo_salon_001','aa000000-0000-0000-0000-000000000001', null, 4300, 500, 0, 'datafono', 0,    4300, 0, 'pos','completado', date_trunc('day',now()) + interval '12 hours', 'demo-mijornada-2');
+ ('demo_salon_001','aa000000-0000-0000-0000-000000000001', null, 4300, 500, 0, 'datafono', 0,    4300, 0, 'pos','completado', date_trunc('day',now()) + interval '12 hours', 'demo-mijornada-2')
+on conflict (idempotency_key) where idempotency_key is not null
+do update set cobrado_at = excluded.cobrado_at, estado = excluded.estado;

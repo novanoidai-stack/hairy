@@ -1,11 +1,24 @@
 -- MIGRACIÓN: Cumplimiento Ley Antifraude 11/2021 (Inmutabilidad de Registros Financieros)
--- Fecha: 25 de junio de 2026
+-- Fecha: 25 de junio de 2026 (escrita) — APLICADA en remoto el 1 jul 2026 via MCP
+-- (apply_migration: compliance_antifraude_inmutabilidad + compliance_antifraude_revoke_execute).
 -- Autor: Antigravity
 --
 -- Objetivo:
 -- Garantizar que una vez que se registre un cobro en Mecha, los importes, métodos de pago,
 -- negocio_id y cita_id queden blindados contra cualquier modificación o borrado accidental/malicioso.
 -- Cualquier corrección debe hacerse mediante un cobro negativo/reembolso, no modificando o borrando.
+--
+-- NOTA (1 jul 2026): al aplicar se detecto que Postgres concede EXECUTE a
+-- PUBLIC por defecto en funciones nuevas, y PostgREST expone toda funcion de
+-- public/ como RPC -> las dos funciones SECURITY DEFINER de este archivo
+-- quedaban invocables directo via /rest/v1/rpc/... por anon/authenticated.
+-- Se revoco explicitamente (ver get_advisors -> *_security_definer_function_executable):
+--   revoke execute on function public.prevent_delete_financial_records() from public, anon, authenticated;
+--   revoke execute on function public.cobros_prevent_financial_updates() from public, anon, authenticated;
+-- Tambien se añadio un indice unico parcial en cobros.idempotency_key
+-- (cobros_idempotency_key_uidx) porque migrations/demo-mi-jornada-seed.sql
+-- hacia DELETE+INSERT para re-sembrar la demo, y el DELETE quedo bloqueado;
+-- ese script se reescribio a upsert (on conflict).
 
 -- ===============================================================================
 -- 1. BLOQUEAR CUALQUIER BORRADO (DELETE) EN COBROS Y LINEAS DE COBRO
