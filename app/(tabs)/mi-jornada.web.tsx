@@ -77,6 +77,25 @@ interface EquipoProfesional {
   comision_cents: number;
 }
 type OrdenEquipo = 'ingresos' | 'servicios' | 'horas' | 'productivo';
+type MetricaObjetivo = 'ingresos' | 'servicios' | 'horas' | 'productivo';
+
+interface MiObjetivo { id: string; metrica: MetricaObjetivo; objetivo_valor: number; bonus_cents: number | null; actual: number }
+interface ObjetivoEquipo extends MiObjetivo { profesional_id: string; profesional_nombre: string }
+interface ProfesionalMini { id: string; nombre: string }
+
+const METRICA_LABEL: Record<MetricaObjetivo, string> = {
+  ingresos: 'Dinero generado (€)',
+  servicios: 'Servicios completados',
+  horas: 'Horas trabajadas',
+  productivo: 'Reposo aprovechado (%)',
+};
+const METRICA_SUFIJO: Record<MetricaObjetivo, string> = { ingresos: '€', servicios: '', horas: 'h', productivo: '%' };
+function fmtMetrica(m: MetricaObjetivo, v: number): string {
+  if (m === 'ingresos') return `${v.toFixed(0)}€`;
+  if (m === 'horas') return `${v.toFixed(1)}h`;
+  if (m === 'productivo') return `${Math.round(v)}%`;
+  return String(Math.round(v));
+}
 
 const PERIODO_LABEL: Record<Periodo, string> = { hoy: 'hoy', semana: 'esta semana', mes: 'este mes' };
 
@@ -129,6 +148,18 @@ export default function MiJornadaScreen() {
   const [errorEquipo, setErrorEquipo] = useState<string | null>(null);
   const [ordenEquipo, setOrdenEquipo] = useState<OrdenEquipo>('ingresos');
 
+  // Intercambio de turnos: solicitudes visibles + form de nueva.
+  const [intercambios, setIntercambios] = useState<any[]>([]);
+  const [showIntercambioModal, setShowIntercambioModal] = useState(false);
+  const [nuevoIntercambio, setNuevoIntercambio] = useState<{ companero_id: string; fecha_solicitante: string; fecha_companero: string; motivo: string } | null>(null);
+
+  // Objetivos gamificados: los del profesional (vista personal) + los de todo el equipo (vista gestor).
+  const [misObjetivos, setMisObjetivos] = useState<MiObjetivo[]>([]);
+  const [objetivosEquipo, setObjetivosEquipo] = useState<ObjetivoEquipo[]>([]);
+  const [profesionalesActivos, setProfesionalesActivos] = useState<ProfesionalMini[]>([]);
+  const [showObjetivoModal, setShowObjetivoModal] = useState(false);
+  const [objetivoEnCurso, setObjetivoEnCurso] = useState<{ profesional_id: string; metrica: MetricaObjetivo; objetivo_valor: string; bonus_euros: string } | null>(null);
+
   const cargar = useCallback(async (per: Periodo) => {
     setLoading(true);
     setError(null);
@@ -157,6 +188,10 @@ export default function MiJornadaScreen() {
       });
       if (rpcErr) throw rpcErr;
       setResumen(data as Resumen);
+
+      // Mis objetivos (siempre; el RPC devuelve [] si no eres profesional).
+      const { data: objRes } = await supabase.rpc('mis_objetivos_progreso');
+      setMisObjetivos(((objRes as any)?.objetivos as MiObjetivo[]) || []);
     } catch (err) {
       console.error('Error cargando Mi jornada:', err);
       setError(mensajeDeError(err));
@@ -191,6 +226,147 @@ export default function MiJornadaScreen() {
   useEffect(() => {
     if (vista === 'equipo' && esGestor) cargarEquipo(periodo);
   }, [vista, periodo, esGestor, cargarEquipo]);
+
+  // Objetivos del equipo + lista de profesionales activos (solo gestores, vista Equipo).
+  const cargarObjetivosEquipo = useCallback(async () => {
+    try {
+      const profile = await getUserProfile();
+      if (!profile?.negocio_id) return;
+      const [{ data: objRes }, { data: profs }] = await Promise.all([
+        supabase.rpc('objetivos_negocio_progreso'),
+        supabase.from('profesionales').select('id, nombre').eq('negocio_id', profile.negocio_id).eq('activo', true).order('nombre'),
+      ]);
+      setObjetivosEquipo(((objRes as any)?.objetivos as ObjetivoEquipo[]) || []);
+      setProfesionalesActivos((profs as ProfesionalMini[]) || []);
+    } catch (err) {
+      console.error('Error cargando objetivos del equipo:', err);
+    }
+  }, []);
+  useEffect(() => {
+    if (vista === 'equipo' && esGestor) cargarObjetivosEquipo();
+  }, [vista, esGestor, cargarObjetivosEquipo]);
+
+  // Intercambio de turnos: visible siempre (todo el equipo lo ve — bitacora compartida).
+  const cargarIntercambios = useCallback(async () => {
+    try {
+      const profile = await getUserProfile();
+      if (!profile?.negocio_id) return;
+      const [{ data: intRes }, profsRes] = await Promise.all([
+        supabase.rpc('listar_intercambios_turno'),
+        profesionalesActivos.length === 0
+          ? supabase.from('profesionales').select('id, nombre').eq('negocio_id', profile.negocio_id).eq('activo', true).order('nombre')
+          : Promise.resolve({ data: profesionalesActivos as any }),
+      ]);
+      setIntercambios(((intRes as any)?.intercambios as any[]) || []);
+      if (profesionalesActivos.length === 0) setProfesionalesActivos(((profsRes as any).data as ProfesionalMini[]) || []);
+    } catch (err) {
+      console.error('Error cargando intercambios:', err);
+    }
+  }, [profesionalesActivos]);
+  useEffect(() => { cargarIntercambios(); }, [cargarIntercambios]);
+
+  const abrirNuevoIntercambio = () => {
+    const yo = resumen?.profesional.id;
+    const otro = profesionalesActivos.find((p) => p.id !== yo)?.id || '';
+    setNuevoIntercambio({ companero_id: otro, fecha_solicitante: '', fecha_companero: '', motivo: '' });
+    setShowIntercambioModal(true);
+  };
+
+  const enviarIntercambio = async () => {
+    if (!nuevoIntercambio) return;
+    if (!nuevoIntercambio.companero_id || !nuevoIntercambio.fecha_solicitante || !nuevoIntercambio.fecha_companero) return;
+    try {
+      const { error: rpcErr } = await supabase.rpc('solicitar_intercambio_turno', {
+        p_companero_id: nuevoIntercambio.companero_id,
+        p_fecha_solicitante: nuevoIntercambio.fecha_solicitante,
+        p_fecha_companero: nuevoIntercambio.fecha_companero,
+        p_motivo: nuevoIntercambio.motivo || null,
+      });
+      if (rpcErr) throw rpcErr;
+      setShowIntercambioModal(false);
+      setNuevoIntercambio(null);
+      await cargarIntercambios();
+    } catch (err) {
+      console.error('Error solicitando intercambio:', err);
+      setError(mensajeDeError(err));
+    }
+  };
+
+  const responderCompanero = async (id: string, aceptar: boolean) => {
+    try {
+      const { error: rpcErr } = await supabase.rpc('responder_intercambio_companero', { p_id: id, p_aceptar: aceptar, p_nota: null });
+      if (rpcErr) throw rpcErr;
+      await cargarIntercambios();
+    } catch (err) { console.error(err); }
+  };
+  const responderGestor = async (id: string, aprobar: boolean) => {
+    try {
+      const { error: rpcErr } = await supabase.rpc('responder_intercambio_gestor', { p_id: id, p_aprobar: aprobar, p_nota: null });
+      if (rpcErr) throw rpcErr;
+      await cargarIntercambios();
+    } catch (err) { console.error(err); }
+  };
+  const cancelarIntercambio = async (id: string) => {
+    if (!window.confirm('¿Cancelar esta solicitud?')) return;
+    try {
+      const { error: rpcErr } = await supabase.rpc('cancelar_intercambio_turno', { p_id: id });
+      if (rpcErr) throw rpcErr;
+      await cargarIntercambios();
+    } catch (err) { console.error(err); }
+  };
+
+  const estadoLabel = (estado: string): { label: string; color: string } => {
+    if (estado === 'pendiente_companero') return { label: 'Esperando al compañero', color: T.warning };
+    if (estado === 'pendiente_gestor') return { label: 'Esperando aprobación del gestor', color: T.warning };
+    if (estado === 'aprobado') return { label: 'Aprobado', color: T.success };
+    if (estado === 'rechazado') return { label: 'Rechazado', color: T.danger };
+    if (estado === 'cancelado') return { label: 'Cancelado', color: T.textTer };
+    return { label: estado, color: T.textSec };
+  };
+
+  const abrirNuevoObjetivo = () => {
+    setObjetivoEnCurso({
+      profesional_id: profesionalesActivos[0]?.id || '',
+      metrica: 'ingresos',
+      objetivo_valor: '',
+      bonus_euros: '',
+    });
+    setShowObjetivoModal(true);
+  };
+
+  const guardarObjetivo = async () => {
+    if (!objetivoEnCurso) return;
+    const valor = parseFloat(objetivoEnCurso.objetivo_valor);
+    if (!objetivoEnCurso.profesional_id || !valor || valor <= 0) return;
+    const bonusEuros = parseFloat(objetivoEnCurso.bonus_euros);
+    const bonusCents = !isNaN(bonusEuros) && bonusEuros > 0 ? Math.round(bonusEuros * 100) : null;
+    try {
+      const { error: rpcErr } = await supabase.rpc('guardar_objetivo_profesional', {
+        p_profesional_id: objetivoEnCurso.profesional_id,
+        p_metrica: objetivoEnCurso.metrica,
+        p_objetivo_valor: valor,
+        p_bonus_cents: bonusCents,
+      });
+      if (rpcErr) throw rpcErr;
+      setShowObjetivoModal(false);
+      setObjetivoEnCurso(null);
+      await cargarObjetivosEquipo();
+    } catch (err) {
+      console.error('Error guardando objetivo:', err);
+      setError(mensajeDeError(err));
+    }
+  };
+
+  const eliminarObjetivoEquipo = async (id: string) => {
+    if (!window.confirm('¿Eliminar este objetivo?')) return;
+    try {
+      const { error: rpcErr } = await supabase.rpc('eliminar_objetivo_profesional', { p_id: id });
+      if (rpcErr) throw rpcErr;
+      await cargarObjetivosEquipo();
+    } catch (err) {
+      console.error('Error eliminando objetivo:', err);
+    }
+  };
 
   const equipoOrdenado = useMemo(() => {
     if (!equipo) return [];
@@ -388,6 +564,57 @@ export default function MiJornadaScreen() {
                 })}
               </div>
             )}
+
+            {/* Objetivos gamificados del equipo (mensuales). Gestor los fija; se ven aqui + en Mi jornada de cada uno. */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon name="star" size={14} color={T.primaryHi} />
+                <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                  Objetivos del equipo · este mes
+                </div>
+              </div>
+              <button
+                onClick={abrirNuevoObjetivo}
+                disabled={profesionalesActivos.length === 0}
+                className="mj-btn"
+                style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primary}`, background: T.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: profesionalesActivos.length === 0 ? 'not-allowed' : 'pointer' }}
+              >
+                + Nuevo objetivo
+              </button>
+            </div>
+            {objetivosEquipo.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px 20px', background: T.bgCard, borderRadius: 12, border: `1px dashed ${T.border}`, color: T.textSec, fontSize: 13 }}>
+                Aún no hay objetivos. Fija uno por profesional (dinero, servicios, horas o % de reposo aprovechado) y verán su progreso en su "Mi jornada". Motiva y ayuda a retener talento.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {objetivosEquipo.map((o) => {
+                  const pct = Math.min(100, (o.actual / o.objetivo_valor) * 100);
+                  const done = pct >= 100;
+                  return (
+                    <div key={o.id} className="mj-row" style={{ background: T.bgCard, border: `1px solid ${done ? T.success : T.border}`, borderRadius: 12, padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {o.profesional_nombre} · {METRICA_LABEL[o.metrica]}
+                        </div>
+                        <div style={{ fontSize: 12, color: done ? T.success : T.textSec, fontWeight: 700 }}>
+                          {fmtMetrica(o.metrica, o.actual)} / {fmtMetrica(o.metrica, o.objetivo_valor)}
+                        </div>
+                        <button onClick={() => eliminarObjetivoEquipo(o.id)} className="mj-btn" title="Eliminar objetivo" style={{ background: 'transparent', border: 'none', color: T.textTer, fontSize: 18, cursor: 'pointer', padding: '0 6px' }}>×</button>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 999, background: T.bg, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${pct}%`, background: done ? T.success : T.primary, borderRadius: 999, transition: 'width 0.4s ease' }} />
+                      </div>
+                      {o.bonus_cents != null && o.bonus_cents > 0 && (
+                        <div style={{ fontSize: 11.5, color: done ? T.success : T.textSec, marginTop: 6 }}>
+                          Bonus: <b>{eur(o.bonus_cents)}</b>{done ? ' · conseguido' : ''}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </>
         ) : (
         <>
@@ -449,6 +676,42 @@ export default function MiJornadaScreen() {
           )}
         </div>
 
+        {/* Mis objetivos del mes (progreso). Solo si tengo objetivos activos. */}
+        {misObjetivos.length > 0 && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 2px 10px' }}>
+              <Icon name="star" size={14} color={T.primaryHi} />
+              <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                Mis objetivos · este mes
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
+              {misObjetivos.map((o) => {
+                const pct = Math.min(100, (o.actual / o.objetivo_valor) * 100);
+                const done = pct >= 100;
+                return (
+                  <div key={o.id} className="mj-row" style={{ background: T.bgCard, border: `1px solid ${done ? T.success : T.border}`, borderRadius: 12, padding: '12px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{METRICA_LABEL[o.metrica]}</div>
+                      <div style={{ fontSize: 12, color: done ? T.success : T.textSec, fontWeight: 700 }}>
+                        {fmtMetrica(o.metrica, o.actual)} / {fmtMetrica(o.metrica, o.objetivo_valor)}
+                      </div>
+                    </div>
+                    <div style={{ height: 8, borderRadius: 999, background: T.bg, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: done ? T.success : T.primary, borderRadius: 999, transition: 'width 0.4s ease' }} />
+                    </div>
+                    {o.bonus_cents != null && o.bonus_cents > 0 && (
+                      <div style={{ fontSize: 11.5, color: done ? T.success : T.textSec, marginTop: 6 }}>
+                        {done ? '¡Bonus conseguido!' : 'Bonus al alcanzarlo:'} <b>{eur(o.bonus_cents)}</b>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
         {/* Lista de citas completadas del periodo */}
         {vinculado && (
           <>
@@ -486,9 +749,210 @@ export default function MiJornadaScreen() {
             )}
           </>
         )}
+
+        {/* Intercambio de turnos: bitacora compartida (todo el equipo la ve). */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="link" size={14} color={T.primaryHi} />
+            <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+              Cambios de turno
+            </div>
+          </div>
+          {vinculado && (
+            <button
+              onClick={abrirNuevoIntercambio}
+              disabled={profesionalesActivos.length < 2}
+              className="mj-btn"
+              style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primary}`, background: T.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: profesionalesActivos.length < 2 ? 'not-allowed' : 'pointer' }}
+            >
+              + Pedir cambio
+            </button>
+          )}
+        </div>
+        {intercambios.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '24px 20px', background: T.bgCard, borderRadius: 12, border: `1px dashed ${T.border}`, color: T.textSec, fontSize: 13 }}>
+            Sin cambios de turno pendientes. Cuando pidas uno queda registrado aquí para que el compañero y el gestor lo revisen (sin WhatsApp informal).
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {intercambios.map((it) => {
+              const est = estadoLabel(it.estado);
+              const fs = format(parseISO(it.fecha_solicitante), 'EEE d MMM', { locale: es });
+              const fc = format(parseISO(it.fecha_companero), 'EEE d MMM', { locale: es });
+              return (
+                <div key={it.id} className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12, padding: '12px 14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, flex: 1, minWidth: 0 }}>
+                      {it.solicitante_nombre} ({fs}) ⇄ {it.companero_nombre} ({fc})
+                    </div>
+                    <span style={{ fontSize: 11, color: est.color, background: `${est.color}18`, padding: '3px 9px', borderRadius: 999, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      {est.label}
+                    </span>
+                  </div>
+                  {it.motivo && <div style={{ fontSize: 12, color: T.textSec, marginBottom: 8 }}>{it.motivo}</div>}
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {it.es_companero && it.estado === 'pendiente_companero' && (
+                      <>
+                        <button onClick={() => responderCompanero(it.id, true)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: T.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Acepto el cambio</button>
+                        <button onClick={() => responderCompanero(it.id, false)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rechazar</button>
+                      </>
+                    )}
+                    {it.es_gestor && it.estado === 'pendiente_gestor' && (
+                      <>
+                        <button onClick={() => responderGestor(it.id, true)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: T.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Aprobar</button>
+                        <button onClick={() => responderGestor(it.id, false)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rechazar</button>
+                      </>
+                    )}
+                    {it.es_solicitante && (it.estado === 'pendiente_companero' || it.estado === 'pendiente_gestor') && (
+                      <button onClick={() => cancelarIntercambio(it.id)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Cancelar solicitud</button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
         </>
         )}
       </div>
+
+      {/* Modal: nuevo objetivo (gestor). Formulario minimo: profesional, metrica, valor, bonus opcional. */}
+      {showObjetivoModal && objetivoEnCurso && (
+        <div
+          onClick={() => setShowObjetivoModal(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(8,6,4,0.45)', zIndex: 200, display: 'grid', placeItems: 'center', padding: 16 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, padding: 20, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 12 }}>Nuevo objetivo</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                Profesional
+                <select
+                  value={objetivoEnCurso.profesional_id}
+                  onChange={(e) => setObjetivoEnCurso({ ...objetivoEnCurso, profesional_id: e.target.value })}
+                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
+                >
+                  {profesionalesActivos.map((p) => (<option key={p.id} value={p.id}>{p.nombre}</option>))}
+                </select>
+              </label>
+              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                Métrica
+                <select
+                  value={objetivoEnCurso.metrica}
+                  onChange={(e) => setObjetivoEnCurso({ ...objetivoEnCurso, metrica: e.target.value as MetricaObjetivo })}
+                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
+                >
+                  <option value="ingresos">Dinero generado (€)</option>
+                  <option value="servicios">Servicios completados</option>
+                  <option value="horas">Horas trabajadas</option>
+                  <option value="productivo">% de reposo aprovechado</option>
+                </select>
+              </label>
+              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                Objetivo del mes ({METRICA_SUFIJO[objetivoEnCurso.metrica] || 'unidades'})
+                <input
+                  type="number" min="1" step="1"
+                  value={objetivoEnCurso.objetivo_valor}
+                  onChange={(e) => setObjetivoEnCurso({ ...objetivoEnCurso, objetivo_valor: e.target.value })}
+                  placeholder={objetivoEnCurso.metrica === 'ingresos' ? '3000' : objetivoEnCurso.metrica === 'servicios' ? '80' : objetivoEnCurso.metrica === 'horas' ? '160' : '70'}
+                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
+                />
+              </label>
+              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                Bonus al alcanzarlo (€, opcional)
+                <input
+                  type="number" min="0" step="1"
+                  value={objetivoEnCurso.bonus_euros}
+                  onChange={(e) => setObjetivoEnCurso({ ...objetivoEnCurso, bonus_euros: e.target.value })}
+                  placeholder="100"
+                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
+                />
+              </label>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
+              <button onClick={() => setShowObjetivoModal(false)} className="mj-btn" style={{ padding: '9px 16px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                Cancelar
+              </button>
+              <button onClick={guardarObjetivo} className="mj-btn" style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: pedir cambio de turno (profesional). */}
+      {showIntercambioModal && nuevoIntercambio && (
+        <div
+          onClick={() => setShowIntercambioModal(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(8,6,4,0.45)', zIndex: 200, display: 'grid', placeItems: 'center', padding: 16 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, padding: 20, width: '100%', maxWidth: 460, boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 6 }}>Pedir cambio de turno</div>
+            <div style={{ fontSize: 12.5, color: T.textSec, marginBottom: 14 }}>
+              Propones cambiar tu día por el de un compañero. Él acepta y luego lo aprueba el gestor.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                Compañero
+                <select
+                  value={nuevoIntercambio.companero_id}
+                  onChange={(e) => setNuevoIntercambio({ ...nuevoIntercambio, companero_id: e.target.value })}
+                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
+                >
+                  {profesionalesActivos.filter((p) => p.id !== resumen?.profesional.id).map((p) => (
+                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                  ))}
+                </select>
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                  Tu día
+                  <input
+                    type="date" min={format(new Date(), 'yyyy-MM-dd')}
+                    value={nuevoIntercambio.fecha_solicitante}
+                    onChange={(e) => setNuevoIntercambio({ ...nuevoIntercambio, fecha_solicitante: e.target.value })}
+                    style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
+                  />
+                </label>
+                <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                  Su día
+                  <input
+                    type="date" min={format(new Date(), 'yyyy-MM-dd')}
+                    value={nuevoIntercambio.fecha_companero}
+                    onChange={(e) => setNuevoIntercambio({ ...nuevoIntercambio, fecha_companero: e.target.value })}
+                    style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
+                  />
+                </label>
+              </div>
+              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
+                Motivo (opcional)
+                <input
+                  type="text" maxLength={200}
+                  value={nuevoIntercambio.motivo}
+                  onChange={(e) => setNuevoIntercambio({ ...nuevoIntercambio, motivo: e.target.value })}
+                  placeholder="Cita médica, viaje familiar..."
+                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
+                />
+              </label>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
+              <button onClick={() => setShowIntercambioModal(false)} className="mj-btn" style={{ padding: '9px 16px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                Cancelar
+              </button>
+              <button onClick={enviarIntercambio} className="mj-btn" style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                Enviar solicitud
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
