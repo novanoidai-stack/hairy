@@ -1030,4 +1030,83 @@ MVP de inventario para peluquerías implementado según especificación de la au
 - `migrations/inventario-rpcs.sql` — RPCs
 - `app/(tabs)/inventario.web.tsx` — UI
 - `informes/AUDITORIA_ESTRATEGICA_MECHA_2026-07-01.md` — especificación
+
+---
+
+## Adenda 1 jul 2026 — Backlog de producto: ideas emergentes vs Booksy/Fresha (Carlos + Claude)
+
+**Contexto:** sesión de ideación centrada en explotar el diferencial real de Mecha (verticalización
+peluquería + capa de IA WhatsApp/voz) en vez de copiar funciones genéricas que ya tienen
+Booksy/Fresha/Treatwell. Carlos decide reparto y alcance el 1 jul.
+
+### Reparto decidido
+
+| Feature | Dueño | Nota |
+|---|---|---|
+| Pasaporte de color con IA | **Alexandro** | Usa historial de fórmulas (`formula_producto`, `formula_tono`, `resultado_satisfactorio`) para que el agente sugiera la fórmula antes de la cita. Reduce el riesgo de mal tinte (miedo #1 al cambiar de peluquero); ata a la clienta al salón porque su historial vive ahí, no en la cabeza del profesional. |
+| Recompra de producto por WhatsApp | **Alexandro** | Cruza "vendió producto para casa hace X semanas" con el ciclo típico de agotamiento → el agente WhatsApp ya existente dispara un mensaje de recompra con enlace de pago (Stripe señal ya integrado). Cierra el círculo Inventario→Portal→Pagos desplegado hoy (ver adenda Inventario v0 arriba). |
+| Alerta de fuga de clientas | **Carlos** | Cruza niveles de fidelización + frecuencia histórica ("María no viene desde hace 47 días, su media es 32") → aviso al salón o WhatsApp automático con oferta. Se apoya en fidelización/recompensas ya desplegado (§ arriba). |
+| Objetivos/bonus gamificados por profesional | **Carlos** | Visible en "Mi jornada", ligado al ranking de equipo ya construido (commit `2898baa47`). Ayuda a retención de talento. |
+| Intercambio de turnos entre compañeros | **Carlos** | Con aprobación del gestor; hoy esa fricción operativa se resuelve por WhatsApp informal fuera del sistema. |
+| Reserva de grupo (varias personas, 1 cita) | **Carlos** | Portal público — típico en bodas/eventos, ausente en Booksy/Fresha para peluquerías pequeñas. |
+| **Multi-idioma (software + landing)** | **Carlos** | Alcance nuevo añadido el 1 jul. Cubre tanto la app de gestión (Expo/react-native-web) como la landing pública (HTML estático) — hoy todo 100% en español, lo que limita vender fuera de España o a turistas. Prioridad en los idiomas más comunes, con arquitectura preparada para ampliar a más adelante (no hardcodear a un nº fijo de idiomas). |
+| Comparativa de coste vs Booksy/Fresha | **Carlos** | Landing/venta — dato concreto que cierra ventas: ellos cobran comisión por reserva, Mecha no. |
+| Gancho viral con referidos multinivel | **Carlos** | El árbol de referidos multinivel ya existe (15 jun, `admin.html` migrado); usarlo como gancho: "trae otro salón, gana meses gratis". |
+
+### Descartado / diferido (no entra en esta tanda)
+
+- **Tarjetas regalo (gift cards):** aplazadas — motivo dado: el cobro vía Stripe no está lo bastante
+  montado para este flujo todavía. *Nota: hoy Stripe ya cubre la señal P1 online (`crear-checkout-senal`
+  / `stripe-webhook`, §8), pero no existe un catálogo de venta de productos/gift cards — revisar cuándo
+  se retoma este punto.*
+- **Marketplace:** se mantiene fuera por disciplina del dossier — ya estaba en "No hacer aún" (junto con
+  contabilidad y precios dinámicos, ver cabecera del CLAUDE.md). La versión "light y ya cableada" que sí
+  se hace es la recompra de producto por WhatsApp de arriba: mismo beneficio (venta de producto) sin la
+  complejidad de un marketplace multi-salón real.
+
+### Próximo paso
+
+El bloque de Carlos son 6 features + un roll-out de internacionalización completo (software + landing) —
+alcance grande para una sola tanda. Pendiente secuenciar en sesiones de trabajo, con el mismo patrón que
+la Sesión 1 / Sesión 2 del 1 jul (`informes/PROMPT-SESION-1.md`, `informes/PROMPT-SESION-2-COMPLETO.md`).
 - `informes/PROMPT-SESION-2-COMPLETO.md` — prompt de referencia
+
+> **Nota comparativa/referidos (2 jul):** al empezar a ejecutar el bloque se comprobó que dos ítems ya
+> estaban construidos: la **comparativa de coste vs Booksy/Fresha** vive en `web/index.html` (sección
+> "vs") + `web/carta-comercial.html` (dossier con calculadora de ROI), y el **gancho viral de referidos**
+> está completo (árbol multinivel real con % de descuento decreciente — no "meses gratis" —, modal viral
+> en `web/demo.html` y pestaña "Invita y gana" en Configuración del software). Ambos quedan como HECHO.
+
+---
+
+## Adenda 2 jul 2026 — Alerta de fuga de clientas (Carlos + Claude) — HECHO ✅
+
+Primer ítem construido del backlog de arriba. Detecta clientas que se retrasan respecto a su patrón
+habitual de visitas, lo pone delante del dueño, y deja el motor/outbox preparados (OFF) para que
+Alexandro conecte el WhatsApp automático más adelante — mismo molde que lista de espera.
+
+**Diseño:** `docs/superpowers/specs/2026-07-02-alerta-fuga-clientas-design.md` ·
+**Plan:** `docs/superpowers/plans/2026-07-02-alerta-fuga-clientas.md`
+
+**Backend (`migrations/alerta-fuga-clientas.sql`, aplicado y verificado en Supabase):**
+- Rellena las columnas ya existentes pero muertas `clientes.total_visitas` / `ultima_visita` /
+  `frecuencia_dias` (existían en el schema y se mostraban en la ficha, pero nada las escribía).
+- `procesar_alertas_fuga()` (`service_role`, cron-pull ~1-2/día): recalcula agregados (media de los
+  huecos entre las últimas 6 citas completadas, mínimo 3 visitas), detecta riesgo
+  (`dias_desde_ultima > frecuencia * 1.4`, sin cita futura, no bloqueada) y gestiona el outbox
+  `fuga_clientas_avisos` (inserta nuevas, descarta las que ya volvieron). Todo gateado por
+  `negocio_config.config.fugaClientasActivo` (default **false**); el recálculo de agregados corre siempre.
+- Adjunta como oferta la recompensa activa de mayor umbral que la clienta ya cumple, si hay.
+- `clientes_en_riesgo_fuga()` (`authenticated`, gateada por `auth.uid()`): lectura para el frontend.
+- Verificado E2E con datos sintéticos en transacción revertida: clienta con ritmo de 30 días y 60 sin
+  volver → flagged correctamente. Advisors de seguridad sin fallos nuevos.
+
+**Frontend:**
+- **Clientes** (`app/(tabs)/clientes.web.tsx`): nuevo chip/filtro "Fuga" con contador; en la fila, píldora
+  "Fuga · Nd" con tooltip (días de retraso, media, oferta sugerida). Deep-link `?filtro=fuga`.
+- **Avisos de agenda** (`components/agenda/AgendaCalendar.web.tsx`): tarjeta "N clientas en riesgo de
+  fuga" en el panel de la campana, solo para gestores en su negocio propio (nunca demo), que enlaza al
+  filtro de Clientes.
+
+**Pendiente (Alexandro):** workflow n8n que llame a `procesar_alertas_fuga()` a diario, drene
+`fuga_clientas_avisos` y envíe el WhatsApp con la oferta. Plantilla Meta nueva a validar.

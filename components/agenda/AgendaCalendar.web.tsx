@@ -212,6 +212,7 @@ export default function AgendaCalendar() {
   const [negocioId, setNegocioId] = useState(NEGOCIO_ID_FALLBACK);
   const [userProfile, setUserProfile] = useState<{ id: string; role?: string | null } | null>(null);
   const [mensajesSinLeer, setMensajesSinLeer] = useState(0);
+  const [clientesFugaCount, setClientesFugaCount] = useState(0);
 
   // --- Onboarding: checklist de puesta en marcha del salon ---
   // Solo para gestores (owner/admin) en su negocio propio; nunca en la demo ni para
@@ -265,6 +266,16 @@ export default function AgendaCalendar() {
   }, [negocioId]);
   useEffect(() => { refreshMensajesSinLeer(); }, [refreshMensajesSinLeer]);
   useFocusEffect(useCallback(() => { refreshMensajesSinLeer(); }, [refreshMensajesSinLeer]));
+
+  // Clientas en riesgo de fuga (solo gestores, nunca en la demo): mismo gate que onboarding.
+  const refreshClientesFuga = useCallback(() => {
+    if (!onboardingEligible) { setClientesFugaCount(0); return; }
+    supabase.rpc('clientes_en_riesgo_fuga').then(({ data, error }) => {
+      if (!error) setClientesFugaCount((data ?? []).length);
+    });
+  }, [onboardingEligible]);
+  useEffect(() => { refreshClientesFuga(); }, [refreshClientesFuga]);
+  useFocusEffect(useCallback(() => { refreshClientesFuga(); }, [refreshClientesFuga]));
 
   // Reapertura del panel desde Ajustes (navega con ?onboarding=1).
   useEffect(() => {
@@ -611,7 +622,7 @@ export default function AgendaCalendar() {
     });
     return out.sort((a, b) => a.diff - b.diff);
   }, [clientes]);
-  const totalAvisos = sinConfirmar48h + cumplesProximos.length + mensajesSinLeer;
+  const totalAvisos = sinConfirmar48h + cumplesProximos.length + mensajesSinLeer + clientesFugaCount;
 
   const servicioMap = useMemo(() => {
     const map = new Map(servicios.map((s) => [s.id, s]));
@@ -823,9 +834,21 @@ export default function AgendaCalendar() {
                           </button>
                         </>
                       )}
+                      {clientesFugaCount > 0 && (
+                        <>
+                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: (sinConfirmar48h > 0 || mensajesSinLeer > 0) ? 12 : 0 }}>Clientas</div>
+                          <button
+                            onClick={() => { setShowNotif(false); router.push('/(tabs)/clientes?filtro=fuga' as never); }}
+                            style={{ width: '100%', textAlign: 'left', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9 }}
+                          >
+                            <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 8, background: 'rgba(8,145,178,0.14)' }}><Icon name="alert" size={14} color="#0891b2" /></span>
+                            <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>{clientesFugaCount} {clientesFugaCount === 1 ? 'clienta en riesgo de fuga' : 'clientas en riesgo de fuga'}</span>
+                          </button>
+                        </>
+                      )}
                       {cumplesProximos.length > 0 && (
                         <>
-                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: (sinConfirmar48h > 0 || mensajesSinLeer > 0) ? 12 : 0 }}>Cumpleanos (proximos 7 dias)</div>
+                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: (sinConfirmar48h > 0 || mensajesSinLeer > 0 || clientesFugaCount > 0) ? 12 : 0 }}>Cumpleanos (proximos 7 dias)</div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {cumplesProximos.slice(0, 8).map((b: any) => {
                               const fechaFmt = b.fecha.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' });

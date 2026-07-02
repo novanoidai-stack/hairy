@@ -121,6 +121,10 @@ interface Cliente {
   bloqueo_motivo?: string | null;
   etiquetas?: string[];
   deposito_perfil_override?: string | null;
+  frecuencia_dias?: number | null;
+  enRiesgoFuga?: boolean;
+  diasFugaRetraso?: number;
+  recompensaFugaNombre?: string;
 }
 
 type Tab = 'resumen' | 'notas' | 'color' | 'historial';
@@ -253,7 +257,7 @@ function computeAlerts(cl: Cliente): Alert[] {
 
 export default function ClientesWeb() {
   const { isMobile, isTablet } = useResponsive();
-  const params = useLocalSearchParams<{ clienteId?: string }>();
+  const params = useLocalSearchParams<{ clienteId?: string; filtro?: string }>();
   const router = useRouter();
   const { refreshTrigger, triggerRefresh } = useCalendarRefresh();
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -299,7 +303,7 @@ export default function ClientesWeb() {
     }
     setNegocioId(profile.negocio_id);
 
-    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }] = await Promise.all([
+    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }, { data: fugaData }] = await Promise.all([
       supabase
         .from('clientes')
         .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override')
@@ -327,7 +331,14 @@ export default function ClientesWeb() {
         .select('config')
         .eq('negocio_id', profile.negocio_id)
         .maybeSingle(),
+      supabase.rpc('clientes_en_riesgo_fuga'),
     ]);
+
+    // Riesgo de fuga: mapa cliente_id -> datos del RPC (dias de retraso, recompensa sugerida)
+    const fugaPorCliente = new Map<string, { dias: number; recompensa?: string }>();
+    (fugaData ?? []).forEach((f: any) => {
+      fugaPorCliente.set(f.cliente_id, { dias: f.dias_desde_ultima_visita, recompensa: f.recompensa_nombre ?? undefined });
+    });
 
     const cfg: any = (cfgRow?.config && typeof cfgRow.config === 'object') ? cfgRow.config : {};
     setCatalogoAlergias(Array.isArray(cfg.catalogoAlergias) ? cfg.catalogoAlergias : []);
@@ -364,7 +375,9 @@ export default function ClientesWeb() {
       const topProf = Object.entries(profCount).sort((a, b) => b[1] - a[1])[0];
       const profHabitual = topProf ? ((profData ?? []).find((p: any) => p.id === topProf[0])?.nombre ?? undefined) : undefined;
 
-      return { ...cl, visitas, gastado, ultimaVisita, primeraVisita, ultimaVisitaStr, fav, favCount, tag, actividad, riesgo, noshows_count: noshows, diasInactiva, profHabitual } as Cliente;
+      const fuga = fugaPorCliente.get(cl.id);
+
+      return { ...cl, visitas, gastado, ultimaVisita, primeraVisita, ultimaVisitaStr, fav, favCount, tag, actividad, riesgo, noshows_count: noshows, diasInactiva, profHabitual, enRiesgoFuga: !!fuga, diasFugaRetraso: fuga?.dias, recompensaFugaNombre: fuga?.recompensa } as Cliente;
     });
 
     setClientes(enrichedClients);
@@ -400,6 +413,11 @@ export default function ClientesWeb() {
   // Recarga al montar y cada vez que algo dispara el refresh global
   // (p.ej. al guardar/editar una cita en la agenda)
   useEffect(() => { cargar(); }, [refreshTrigger]);
+
+  // Deep-link desde el aviso de "clientas en riesgo de fuga" en la agenda.
+  useEffect(() => {
+    if (params?.filtro === 'fuga') setActiveTagFilter('Fuga');
+  }, [params?.filtro]);
 
   // Si cambia el clienteId del URL, sincronizar la seleccion
   useEffect(() => {
@@ -464,6 +482,7 @@ export default function ClientesWeb() {
     if (activeTagFilter !== 'Todos') {
       if (activeTagFilter === 'Inactivas') list = list.filter((cl) => cl.actividad === 'Inactiva');
       else if (activeTagFilter === 'Riesgo') list = list.filter((cl) => cl.riesgo === 'Alto riesgo' || cl.riesgo === 'Incidencias');
+      else if (activeTagFilter === 'Fuga') list = list.filter((cl) => cl.enRiesgoFuga);
       else list = list.filter((cl) => cl.tag === activeTagFilter);
     }
     return list;
@@ -478,6 +497,7 @@ export default function ClientesWeb() {
     Nuevo: clientes.filter((x) => x.tag === 'Nuevo').length,
     Inactivas: clientes.filter((x) => x.actividad === 'Inactiva').length,
     Riesgo: clientes.filter((x) => x.riesgo === 'Alto riesgo' || x.riesgo === 'Incidencias').length,
+    Fuga: clientes.filter((x) => x.enRiesgoFuga).length,
   };
 
   return (
@@ -578,8 +598,8 @@ export default function ClientesWeb() {
 
           {/* Tag chips */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            {(['Todos', 'VIP', 'Habitual', 'Nuevo', 'Inactivas', 'Riesgo'] as const).map((t) => {
-              const color = t === 'VIP' ? TOKENS.warning : t === 'Habitual' ? TOKENS.primary : t === 'Nuevo' ? TOKENS.success : t === 'Inactivas' ? TOKENS.textTer : t === 'Riesgo' ? TOKENS.danger : TOKENS.primary;
+            {(['Todos', 'VIP', 'Habitual', 'Nuevo', 'Inactivas', 'Riesgo', 'Fuga'] as const).map((t) => {
+              const color = t === 'VIP' ? TOKENS.warning : t === 'Habitual' ? TOKENS.primary : t === 'Nuevo' ? TOKENS.success : t === 'Inactivas' ? TOKENS.textTer : t === 'Riesgo' ? TOKENS.danger : t === 'Fuga' ? TOKENS.cyan : TOKENS.primary;
               const active = activeTagFilter === t;
               return (
                 <button
@@ -649,6 +669,16 @@ export default function ClientesWeb() {
                         {!isMobile && cl.actividad === 'Inactiva' && <Pill color={TOKENS.textTer}>Inactiva</Pill>}
                         {!isMobile && cl.actividad === 'Riesgo abandono' && <Pill color={TOKENS.warning}>Riesgo</Pill>}
                         {!isMobile && cl.riesgo === 'Alto riesgo' && <Pill color={TOKENS.danger}>No-show</Pill>}
+                        {!isMobile && cl.enRiesgoFuga && (
+                          <Pill
+                            color={TOKENS.cyan}
+                            title={cl.recompensaFugaNombre
+                              ? `Sin volver hace ${cl.diasFugaRetraso} dias (su media es ${cl.frecuencia_dias}). Oferta sugerida: ${cl.recompensaFugaNombre}`
+                              : `Sin volver hace ${cl.diasFugaRetraso} dias (su media es ${cl.frecuencia_dias})`}
+                          >
+                            Fuga · {cl.diasFugaRetraso}d
+                          </Pill>
+                        )}
                         {/* Alergias Pill */}
                         {(() => {
                           const alergiasTexto = (cl.alergias ?? '').trim();
