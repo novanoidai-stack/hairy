@@ -9,6 +9,8 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const ALLOWED_ORIGINS = [
+  'https://www.mechaa.es',
+  'https://mechaa.es',
   'https://hairy-two.vercel.app',
   'https://www.novanoidai.com',
   'http://localhost:8080',

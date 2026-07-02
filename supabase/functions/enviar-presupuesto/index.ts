@@ -8,12 +8,12 @@
 // Cuerpo (POST JSON): { presupuesto_id }
 // Secretos (Supabase -> Edge Functions -> Secrets):
 //   SMTP_HOST (def smtp.hostinger.com) SMTP_PORT (def 465) SMTP_USER SMTP_PASS
-//   SMTP_FROM (def = SMTP_USER) PUBLIC_APP_URL (def https://hairy-two.vercel.app)
+//   SMTP_FROM (def = SMTP_USER) PUBLIC_APP_URL (def https://www.mechaa.es)
 //   (acepta tambien EMAIL_HOST/PORT/USER/PASS/FROM)
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 
-const ORIGINS = ['https://hairy-two.vercel.app','https://www.novanoidai.com','http://localhost:8080','http://localhost:8081','http://localhost:3000','http://localhost:19006'];
+const ORIGINS = ['https://www.mechaa.es','https://mechaa.es','https://hairy-two.vercel.app','https://www.novanoidai.com','http://localhost:8080','http://localhost:8081','http://localhost:3000','http://localhost:19006'];
 const MECHA_WEB = 'https://www.novanoidai.com';
 function cors(req: Request) {
   const o = req.headers.get('origin') || '';
@@ -98,7 +98,7 @@ Deno.serve(async (req: Request) => {
   const pass = Deno.env.get('SMTP_PASS') || Deno.env.get('EMAIL_PASS');
   if (!usr || !pass) return json({ sent: false, error: 'smtp_not_configured' }, 200, req);
 
-  let base = Deno.env.get('PUBLIC_APP_URL') || 'https://hairy-two.vercel.app';
+  let base = Deno.env.get('PUBLIC_APP_URL') || 'https://www.mechaa.es';
   if (base.endsWith('/')) base = base.slice(0, -1);
   const salon = portal?.nombre_publico || 'tu salon';
   const rawColor = portal?.color_acento || '';

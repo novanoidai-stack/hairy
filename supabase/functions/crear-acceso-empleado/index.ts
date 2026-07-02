@@ -10,6 +10,8 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const ALLOWED_ORIGINS = [
+  'https://www.mechaa.es',
+  'https://mechaa.es',
   'https://hairy-two.vercel.app',
   'https://www.novanoidai.com',
   'http://localhost:8080',
@@ -90,7 +92,7 @@ Deno.serve(async (req: Request) => {
   // 2) Invitar al usuario por email (evita enviar password por la red y almacena metadatos).
   const { data: created, error: cErr } = await admin.auth.admin.inviteUserByEmail(email, {
     data: { nombre },
-    redirectTo: 'https://hairy-two.vercel.app/acceso.html',
+    redirectTo: 'https://www.mechaa.es/acceso.html',
   });
 
   if (cErr) {

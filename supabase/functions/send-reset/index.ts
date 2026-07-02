@@ -16,7 +16,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 
-const ORIGINS = ['https://hairy-two.vercel.app','https://www.novanoidai.com','http://localhost:8080','http://localhost:8081','http://localhost:3000','http://localhost:19006'];
+const ORIGINS = ['https://www.mechaa.es','https://mechaa.es','https://hairy-two.vercel.app','https://www.novanoidai.com','http://localhost:8080','http://localhost:8081','http://localhost:3000','http://localhost:19006'];
 function cors(req: Request) {
   const o = req.headers.get('origin') || '';
   return {
@@ -30,7 +30,7 @@ function json(body: unknown, status = 200, req?: Request) {
   return new Response(JSON.stringify(body), { status, headers: { ...(req ? cors(req) : {}), 'Content-Type': 'application/json' } });
 }
 
-const DEFAULT_REDIRECT = 'https://hairy-two.vercel.app/restablecer.html';
+const DEFAULT_REDIRECT = 'https://www.mechaa.es/restablecer.html';
 
 function resetEmailHtml(link: string): string {
   return `<div style='background:#f6f1ea;padding:28px 14px'><div style='max-width:480px;margin:0 auto;background:#fffdfb;border:1px solid rgba(40,30,24,.1);border-radius:14px;overflow:hidden'><div style='height:6px;background:#f4501e'></div><div style='padding:28px'><p style='margin:0 0 10px;font:bold 20px Arial;color:#1c1814'>Mecha</p><h1 style='margin:0 0 12px;font:bold 21px Arial;color:#1c1814'>Restablece tu contrasena</h1><p style='margin:0 0 22px;font:14px Arial;line-height:1.6;color:#5c5249'>Hemos recibido una solicitud para restablecer la contrasena de tu cuenta de Mecha. Pulsa el boton para crear una nueva. El enlace caduca en 1 hora.</p><a href='${link}' style='display:inline-block;padding:13px 28px;background:#f4501e;color:#fff;font:bold 15px Arial;text-decoration:none;border-radius:11px'>Crear nueva contrasena</a><p style='margin:22px 0 6px;font:12px Arial;color:#8a7d70'>Si el boton no funciona, copia y pega este enlace en tu navegador:</p><p style='margin:0 0 18px;font:12px Arial;word-break:break-all'><a href='${link}' style='color:#c0260a'>${link}</a></p><p style='margin:0;font:12px Arial;color:#8a7d70'>Si no fuiste tu, ignora este correo: tu contrasena no cambiara.</p></div></div></div>`;
