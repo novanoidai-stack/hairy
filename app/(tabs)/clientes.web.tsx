@@ -2795,6 +2795,32 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
     onDeleted();
   };
 
+  // Derecho de supresion RGPD: la RPC anonimiza la PII en BD (conserva citas y
+  // cobros por obligacion fiscal) y devuelve las rutas de los archivos con
+  // datos personales (fotos, PDFs de presupuestos) para borrarlos del bucket.
+  const handleAnonimizar = async () => {
+    if (!cliente) return;
+    setLoading(true);
+    setError('');
+    type AnonimizarResp = { ok: boolean; error?: string; fotos_paths?: string[]; pdf_paths?: string[] };
+    const { data, error } = await supabase.rpc('anonimizar_cliente', { p_cliente_id: cliente.id });
+    const resp = (data ?? null) as AnonimizarResp | null;
+    if (error || !resp?.ok) {
+      setLoading(false);
+      setError(error ? mensajeDeError(error, 'No se pudo anonimizar la clienta.') : (resp?.error || 'No se pudo anonimizar la clienta.'));
+      setShowConfirmDelete(false);
+      return;
+    }
+    if (resp.fotos_paths && resp.fotos_paths.length > 0) {
+      await supabase.storage.from('cliente-fotos').remove(resp.fotos_paths);
+    }
+    if (resp.pdf_paths && resp.pdf_paths.length > 0) {
+      await supabase.storage.from('presupuestos').remove(resp.pdf_paths);
+    }
+    setLoading(false);
+    onDeleted();
+  };
+
   return (
     <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 100, padding: isMobile ? 12 : 24 }}>
       <div className="m-modal-enter" style={{ width: isMobile ? '100%' : 460, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22, boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,80,30,0.15)' }}>
@@ -2880,11 +2906,18 @@ function ClienteModal({ cliente, negocioId, onClose, onSaved, onDeleted }: {
           <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.85)', display: 'grid', placeItems: 'center', zIndex: 200, padding: 24 }}>
             <div className="m-modal-enter" style={{ width: 360, maxWidth: '100%', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 14, padding: 18 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: TOKENS.text, marginBottom: 6 }}>Eliminar cliente</div>
-              <div style={{ fontSize: 12, color: TOKENS.textSec, marginBottom: 14, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 12, color: TOKENS.textSec, marginBottom: 10, lineHeight: 1.5 }}>
                 Vas a eliminar a {cliente?.nombre}. Si tiene citas asociadas no se podra eliminar.
               </div>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <div style={{ fontSize: 12, color: TOKENS.textSec, marginBottom: 14, lineHeight: 1.5 }}>
+                Alternativa (RGPD): <strong style={{ color: TOKENS.text }}>Anonimizar</strong> borra sus datos personales y fotos,
+                pero conserva el historial de citas y cobros. Solo disponible para gestores.
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                 <button className="m-btn-secondary" onClick={() => setShowConfirmDelete(false)} style={{ padding: '8px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>Cancelar</button>
+                <button className="m-btn-secondary" onClick={handleAnonimizar} disabled={loading} style={{ padding: '8px 12px', background: TOKENS.bgCard, border: `1px solid rgba(239,68,68,0.35)`, color: TOKENS.danger, borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+                  {loading ? '...' : 'Anonimizar (RGPD)'}
+                </button>
                 <button className="m-btn-primary" onClick={handleDelete} disabled={loading} style={{ padding: '8px 12px', background: TOKENS.danger, border: 'none', color: '#fff', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
                   {loading ? '...' : 'Eliminar'}
                 </button>

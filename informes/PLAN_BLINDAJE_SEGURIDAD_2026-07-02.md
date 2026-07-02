@@ -13,7 +13,14 @@
 > - **H8** hecho: `signup-free` v10 desplegada (tope de payload 10KB, longitudes máximas, sin filtrar `cErr.message`).
 > - **H2** fase 1 hecha: CSP en Report-Only + `X-Permitted-Cross-Domain-Policies` en `vercel.json` (activa con el deploy).
 > - **Extra**: gates de rol owner/admin añadidos a `crear/actualizar/eliminar_producto` (cualquier empleado podía tocar el catálogo); tablas deny-all documentadas con `comment on table`.
-> - **Sigue pendiente**: H6 y TTL/región (toggles manuales de dashboard), H2 fase 2 (enforce), H9 (MFA), anonimización 30 días, bloque 3 documental y bloque 4.
+> - **Sigue pendiente**: H6 y TTL/región (toggles manuales de dashboard), H2 fase 2 (enforce), H9 (MFA), bloque 3 documental (RAT/DPAs) y bloque 4.
+>
+> **ACTUALIZACIÓN (2 jul, más tarde) — P1 de servidor EJECUTADO:**
+> - **Anonimización RGPD (§3.3) hecho:** RPC `anonimizar_cliente(uuid)` (owner/admin) que borra la PII de la clienta en `clientes`, `cliente_fotos`, `conversaciones_ia`, `consentimientos_cliente`, `lista_espera`, `resenas` (autor+IP) y `presupuestos` (contacto+PDF), conservando citas y cobros por obligación fiscal; devuelve las rutas de storage y la UI (`clientes.web.tsx`, modal de confirmación) borra los ficheros físicos. **Con esto la promesa de 30 días de `privacidad.html` ya tiene mecanismo real.** Verificado en la demo por DOM (botón "Anonimizar (RGPD)" visible, sin errores de consola) + typecheck limpio.
+> - **Portabilidad (§3.3) hecho:** RPC `exportar_datos_negocio()` (owner/admin) → dump JSON de clientas+citas. Falta solo el botón en Ajustes (UI, trivial).
+> - **Retención (§3.4) hecho:** cron `mecha_retencion_diaria` (pg_cron, 04:45 UTC): purga `conversaciones_ia`>12m y `solicitudes`>24m, y anonimiza `ip_origen`>90d en `solicitudes`/`resenas`. Cobros y fichajes NO se tocan (retenciones legales).
+> - **Test de regresión RLS (§2.3f) hecho:** `migrations/tests/rls-asserts.sql` — adopta la identidad de `demo.publico` (authenticated) y verifica 0 filas ajenas en clientes/citas/cobros/fichajes/presupuestos. Pasa (RLS OK).
+> - **Bug encontrado y corregido (round 4b):** el `alter default privileges ... in schema public` del round 4 NO cerraba el default global integrado de PostgreSQL (los defaults por-esquema se SUMAN a los globales), así que `anonimizar_cliente`/`exportar_datos_negocio` nacieron ejecutables por anon. Corregido con revoke explícito + `alter default privileges for role postgres revoke execute ... from public` (global). Verificado: función nueva de prueba nace anon=false, authenticated=true.
 
 ---
 
