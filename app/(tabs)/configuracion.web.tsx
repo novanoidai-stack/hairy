@@ -1646,6 +1646,31 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
     } catch { /* clipboard no disponible */ }
   };
 
+  // Portabilidad RGPD (art. 20): descarga un JSON con clientas y citas del
+  // negocio. La RPC exportar_datos_negocio valida en servidor el rol owner/admin.
+  const [exportando, setExportando] = useState(false);
+  const [exportErr, setExportErr] = useState('');
+  const exportarDatos = async () => {
+    if (demo) { setExportErr('En la demo compartida no se exportan datos.'); return; }
+    setExportErr('');
+    setExportando(true);
+    type ExportResp = { ok: boolean; error?: string };
+    const { data, error } = await supabase.rpc('exportar_datos_negocio');
+    setExportando(false);
+    const resp = (data ?? null) as ExportResp | null;
+    if (error || !resp?.ok) {
+      setExportErr(resp?.error || 'No se pudo generar la exportacion.');
+      return;
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `mecha-export-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <>
       <Section title="Tus datos" desc="Tu nombre y telefono. Se guardan en tu cuenta y se reflejan en todo el sistema: el mismo dato vale para el software y para la web.">
@@ -1757,6 +1782,15 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
             }}
           >
             Gestionar plan
+          </Btn>
+        </div>
+      </Section>
+
+      <Section title="Exportar tus datos (RGPD)" desc="Portabilidad de datos (art. 20 RGPD): descarga un archivo JSON con todas las clientas y citas de tu salon. Tus datos salen contigo cuando quieras. Solo disponible para gestores.">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end', marginTop: 4, flexWrap: 'wrap' }}>
+          {exportErr ? <span style={{ fontSize: 12, color: T.danger, fontWeight: 600 }}>{exportErr}</span> : null}
+          <Btn variant="ghost" size="sm" onClick={exportarDatos} disabled={demo || exportando}>
+            {exportando ? 'Preparando...' : 'Descargar mis datos (JSON)'}
           </Btn>
         </div>
       </Section>
