@@ -6,12 +6,14 @@ import { useRouter } from 'expo-router';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { getUserProfile, can, roleOf, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
 import { IS_DEMO_MODE } from '@/lib/supabase';
+import { useAppLang } from '@/lib/hooks/useAppLang';
 
 const tokens = DESIGN_TOKENS;
 
 type NavItem = {
   name: string;        // nombre de la ruta en el Tabs navigator (= nombre de archivo)
-  label: string;
+  label: string;       // label resuelto en runtime via i18n
+  labelKey: string;    // clave i18n
   icon: string;        // Ionicons (se le anade "-outline" cuando esta inactivo)
   route: string;       // ruta expo-router para router.navigate
   cap?: Capability;    // capacidad requerida (gating por rol)
@@ -20,22 +22,22 @@ type NavItem = {
 
 // Destinos PRIMARIOS (siempre visibles en la barra). Maximo 4 + el boton "Mas".
 const PRIMARY: NavItem[] = [
-  { name: 'index', label: 'Agenda', icon: 'calendar', route: '/(tabs)' },
-  { name: 'caja', label: 'Caja', icon: 'wallet', route: '/(tabs)/caja', managerOnly: true },
-  { name: 'lista-espera', label: 'Lista de espera', icon: 'time', route: '/(tabs)/lista-espera' },
-  { name: 'clientes', label: 'Clientes', icon: 'people', route: '/(tabs)/clientes', cap: 'clientes.ver' },
+  { name: 'index', label: 'Agenda', labelKey: 'nav_agenda', icon: 'calendar', route: '/(tabs)' },
+  { name: 'caja', label: 'Caja', labelKey: 'nav_caja', icon: 'wallet', route: '/(tabs)/caja', managerOnly: true },
+  { name: 'lista-espera', label: 'Lista de espera', labelKey: 'nav_lista_espera', icon: 'time', route: '/(tabs)/lista-espera' },
+  { name: 'clientes', label: 'Clientes', labelKey: 'nav_clientes', icon: 'people', route: '/(tabs)/clientes', cap: 'clientes.ver' },
 ];
 
 // Destinos SECUNDARIOS (viven en la hoja "Mas").
 const MORE: NavItem[] = [
-  { name: 'mi-jornada', label: 'Mi jornada', icon: 'person-circle', route: '/(tabs)/mi-jornada' },
-  { name: 'presupuestos', label: 'Presupuestos', icon: 'document-text', route: '/(tabs)/presupuestos' },
-  { name: 'bandeja', label: 'Bandeja', icon: 'mail', route: '/(tabs)/bandeja' },
-  { name: 'resenas', label: 'Reseñas', icon: 'star', route: '/(tabs)/resenas' },
-  { name: 'equipo', label: 'Equipo', icon: 'person', route: '/(tabs)/equipo', cap: 'equipo.ver' },
-  { name: 'inventario', label: 'Inventario', icon: 'cube', route: '/(tabs)/inventario' },
-  { name: 'informes', label: 'Informes', icon: 'bar-chart', route: '/(tabs)/informes', cap: 'informes.ver' },
-  { name: 'configuracion', label: 'Ajustes', icon: 'settings', route: '/(tabs)/configuracion', cap: 'config.ver' },
+  { name: 'mi-jornada', label: 'Mi jornada', labelKey: 'nav_mi_jornada', icon: 'person-circle', route: '/(tabs)/mi-jornada' },
+  { name: 'presupuestos', label: 'Presupuestos', labelKey: 'nav_presupuestos', icon: 'document-text', route: '/(tabs)/presupuestos' },
+  { name: 'bandeja', label: 'Bandeja', labelKey: 'nav_bandeja', icon: 'mail', route: '/(tabs)/bandeja' },
+  { name: 'resenas', label: 'Reseñas', labelKey: 'nav_resenas', icon: 'star', route: '/(tabs)/resenas' },
+  { name: 'equipo', label: 'Equipo', labelKey: 'nav_equipo', icon: 'person', route: '/(tabs)/equipo', cap: 'equipo.ver' },
+  { name: 'inventario', label: 'Inventario', labelKey: 'nav_inventario', icon: 'cube', route: '/(tabs)/inventario' },
+  { name: 'informes', label: 'Informes', labelKey: 'nav_informes', icon: 'bar-chart', route: '/(tabs)/informes', cap: 'informes.ver' },
+  { name: 'configuracion', label: 'Ajustes', labelKey: 'nav_configuracion', icon: 'settings', route: '/(tabs)/configuracion', cap: 'config.ver' },
 ];
 
 // Padding inferior respetando la zona segura del notch en web; valor fijo en nativo.
@@ -52,6 +54,7 @@ type TabBarProps = {
 
 export function MobileTabBar({ state }: TabBarProps) {
   const router = useRouter();
+  const { t } = useAppLang();
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -111,10 +114,10 @@ export function MobileTabBar({ state }: TabBarProps) {
         style={s.tab}
         onPress={() => go(item)}
         activeOpacity={0.7}
-        {...({ accessibilityRole: 'button', accessibilityLabel: item.label } as any)}
+        {...({ accessibilityRole: 'button', accessibilityLabel: t(item.labelKey) || item.label } as any)}
       >
         <Ionicons name={(active ? item.icon : `${item.icon}-outline`) as any} size={23} color={color} />
-        <TText style={[s.tabLabel, { color }]} numberOfLines={1}>{item.label}</TText>
+        <TText style={[s.tabLabel, { color }]} numberOfLines={1}>{t(item.labelKey) || item.label}</TText>
       </TouchableOpacity>
     );
   };
@@ -136,7 +139,7 @@ export function MobileTabBar({ state }: TabBarProps) {
             color={moreActive || moreOpen ? tokens.primary : tokens.textTertiary}
           />
           <TText style={[s.tabLabel, { color: moreActive || moreOpen ? tokens.primary : tokens.textTertiary }]} numberOfLines={1}>
-            Más
+            {t('nav_mas')}
           </TText>
         </TouchableOpacity>
       </View>
@@ -176,7 +179,7 @@ export function MobileTabBar({ state }: TabBarProps) {
                       color={active ? tokens.primary : tokens.textSecondary}
                     />
                   </View>
-                  <TText style={[s.rowLabel, active && s.rowLabelActive]} numberOfLines={1}>{item.label}</TText>
+                  <TText style={[s.rowLabel, active && s.rowLabelActive]} numberOfLines={1}>{t(item.labelKey) || item.label}</TText>
                   <Ionicons name="chevron-forward" size={18} color={tokens.textTertiary} />
                 </TouchableOpacity>
               );

@@ -23,6 +23,8 @@ import {
 } from '@/components/ui/SettingsAtoms';
 import { mensajeDeError } from '@/lib/errores';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
+import { useAppLang } from '@/lib/hooks/useAppLang';
+import { APP_LANGS, type AppLang } from '@/lib/appI18n';
 
 const T = DESIGN_TOKENS;
 
@@ -1582,6 +1584,7 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
 function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null; userId: string; profCount: number }) {
   const a = account;
   const demo = IS_DEMO_MODE;
+  const { lang, setLang } = useAppLang();
   const roleLabel = a?.role ? (ROLE_LABEL[a.role] ?? a.role) : '--';
   const memberSince = a?.creadoEn
     ? new Date(a.creadoEn).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -1693,6 +1696,33 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
         </div>
         <FieldRow label="Miembro desde" hint="Fecha en la que se creo esta cuenta.">
           <ReadValue>{memberSince}</ReadValue>
+        </FieldRow>
+      </Section>
+
+      <Section title="Idioma de la aplicación" desc="Idioma de la interfaz del software. Los mensajes automáticos a clientes (WhatsApp, recordatorios) usan el idioma del portal del salón.">
+        <FieldRow label="Idioma" hint="Cambio inmediato; se guarda en este navegador.">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {APP_LANGS.map((l) => {
+              const activo = lang === l.code;
+              return (
+                <button
+                  key={l.code}
+                  onClick={() => setLang(l.code as AppLang)}
+                  style={{
+                    padding: '7px 12px', borderRadius: 999,
+                    border: `1px solid ${activo ? T.primary : T.border}`,
+                    background: activo ? T.primarySoft : T.bg,
+                    color: activo ? T.primary : T.text,
+                    fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                  }}
+                >
+                  <b style={{ fontSize: 10, color: T.primary, letterSpacing: 0.4 }}>{l.code.toUpperCase()}</b>
+                  <span>{l.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </FieldRow>
       </Section>
 

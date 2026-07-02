@@ -1110,3 +1110,44 @@ Alexandro conecte el WhatsApp automático más adelante — mismo molde que list
 
 **Pendiente (Alexandro):** workflow n8n que llame a `procesar_alertas_fuga()` a diario, drene
 `fuga_clientas_avisos` y envíe el WhatsApp con la oferta. Plantilla Meta nueva a validar.
+
+---
+
+## Adenda 2 jul 2026 (2ª tanda) — Backlog de Carlos: 4 features + i18n — HECHO ✅
+
+Continuación autónoma del backlog. Todo aplicado en Supabase y desplegado a `master`. Lo que toca
+WhatsApp/n8n queda abierto para Alexandro (mismo criterio de reparto).
+
+**1. Objetivos / bonus gamificados por profesional** (`migrations/objetivos-profesional.sql`,
+`app/(tabs)/mi-jornada.web.tsx`). El gestor fija objetivos mensuales por profesional (dinero, servicios,
+horas o % de reposo aprovechado) con bonus opcional, desde la vista **Equipo** de Mi jornada. El
+profesional ve su progreso con barras en su vista personal. Mismas métricas que `equipo_jornada_ranking`
+(helper `objetivo_valor_actual`), mismo gate de dinero. RPCs: `guardar_objetivo_profesional`,
+`eliminar_objetivo_profesional`, `objetivos_negocio_progreso`, `mis_objetivos_progreso`.
+
+**2. Intercambio de turnos entre compañeros** (`migrations/turnos-intercambio.sql`, sección en
+`mi-jornada.web.tsx`). Flujo pedir → acepta compañero → aprueba gestor (rechazable/cancelable en cada
+paso), como bitácora compartida que sustituye el WhatsApp informal. Tabla `turnos_intercambio` + RPCs
+`solicitar/responder_companero/responder_gestor/cancelar/listar`. NO reasigna citas automáticamente
+(los horarios son plantilla semanal; el cambio se coordina con la operativa real).
+
+**3. Reserva de grupo en el portal** (`migrations/reserva-grupo.sql`, `components/portal/PortalGrupoModal`,
+`app/r/[slug].web.tsx`, `lib/reservaPublica.ts`). Chip "¿Venís en grupo?" en el paso de servicio →
+modal con N asistentes (máx 6), cada uno su servicio y profesional, todos a la misma hora. Usa las
+columnas `citas.grupo_id`/`orden_en_grupo` ya existentes; interseca disponibilidad para ofrecer solo
+horas comunes. RPC `crear_cita_publica_grupo` (anon, sin depósito online en v0 → nace `confirmada`,
+mismo anti-abuso que `crear_cita_publica`).
+
+**4. Multi-idioma (software + landing)** — MVP con arquitectura extensible, 7 idiomas (es/en/fr/de/it/pt/ca):
+- **Landing** (`web/assets/landing-i18n.js` + `data-i18n` en `web/index.html`): switcher en la nav,
+  detección por navegador + persistencia en localStorage. Traducidos nav + CTAs principales; ampliar =
+  añadir claves al diccionario. Verificado en preview (nav es→en al pulsar).
+- **Software** (`lib/appI18n.ts` + `lib/hooks/useAppLang.ts`): misma API que `portalI18n` (`makeAppT`),
+  mini-store global sin Context. Selector en Configuración → Cuenta. Traducidos nav (Sidebar +
+  MobileTabBar) y textos comunes; el resto del software sigue en español y se amplía sin tocar
+  componentes. Los mensajes automáticos a clientas siguen usando el idioma del portal del salón.
+
+**Nota:** comparativa vs Booksy/Fresha y gancho de referidos del backlog ya existían (ver nota arriba),
+así que quedan cubiertos los 6 items de Carlos + el roll-out de i18n. Pendientes del backlog global:
+gift cards (diferido, falta catálogo de venta Stripe) y los items de Alexandro (pasaporte de color IA,
+recompra por WhatsApp). tsc y build:web en verde.

@@ -328,20 +328,20 @@
       <span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">OS</span></span>
     </a>
     <div class="nav-links">
-      <a href="#asistente">Asistente IA</a>
-      <a href="#diferenciales">Agenda</a>
-      <a href="#fichas">Fichas</a>
-      <a href="#comparativa">Comparativa</a>
-      <a href="especificaciones.html">Especificaciones</a>
+      <a href="#asistente" data-i18n="nav_asistente">Asistente IA</a>
+      <a href="#diferenciales" data-i18n="nav_agenda">Agenda</a>
+      <a href="#fichas" data-i18n="nav_fichas">Fichas</a>
+      <a href="#comparativa" data-i18n="nav_comparativa">Comparativa</a>
+      <a href="especificaciones.html" data-i18n="nav_specs">Especificaciones</a>
     </div>
     <div class="nav-cta">
-      <a href="acceso.html" class="login" id="navLogin">Iniciar sesión</a>
-      <a href="#" class="btn btn-primary" id="navEnterApp" style="display:none">Entrar al software
+      <a href="acceso.html" class="login" id="navLogin" data-i18n="nav_login">Iniciar sesión</a>
+      <a href="#" class="btn btn-primary" id="navEnterApp" style="display:none" data-i18n="nav_enter">Entrar al software
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
       </a>
       <div class="btn-badge-wrapper">
         <span class="btn-badge">1 Mes Gratis</span>
-        <a href="demo.html" class="btn btn-primary" id="navDemo">Ver demo gratis</a>
+        <a href="demo.html" class="btn btn-primary" id="navDemo"><span data-i18n="nav_demo">Ver demo gratis</span></a>
       </div>
       <div class="acct" id="acct">
         <button class="acct-btn" id="acctBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Tu cuenta">
@@ -1682,6 +1682,9 @@ window.MECHA_CHAT = [
   requestAnimationFrame(animate);
 })();
 </script>
+
+<!-- Multi-idioma (MVP): switcher en la nav + traduccion de nav + CTAs principales. -->
+<script src="/assets/landing-i18n.js" defer></script>
 
 </body>
 </html>

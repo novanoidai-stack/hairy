@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { getUserProfile, can, roleOf, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
 import { IS_DEMO_MODE } from '@/lib/supabase';
+import { useAppLang } from '@/lib/hooks/useAppLang';
 
 const tokens = DESIGN_TOKENS;
 
@@ -18,18 +19,18 @@ const WORDMARK_FONT = Platform.select({
   default: undefined,
 }) as string | undefined;
 
-const NAV_ITEMS: { label: string; icon: string; activeIcon: string; href: string; cap?: Capability }[] = [
-  { label: 'Agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
-  { label: 'Mi jornada', icon: 'person-circle-outline', activeIcon: 'person-circle', href: '/(tabs)/mi-jornada' },
-  { label: 'Caja', icon: 'wallet-outline', activeIcon: 'wallet', href: '/(tabs)/caja', cap: 'config.ver' },
-  { label: 'Presupuestos', icon: 'document-text-outline', activeIcon: 'document-text', href: '/(tabs)/presupuestos' },
-  { label: 'Bandeja', icon: 'mail-outline', activeIcon: 'mail', href: '/(tabs)/bandeja' },
-  { label: 'Lista de espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas' },
-  { label: 'Clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver' },
-  { label: 'Reseñas', icon: 'star-outline', activeIcon: 'star', href: '/(tabs)/resenas' },
-  { label: 'Equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver' },
-  { label: 'Inventario', icon: 'cube-outline', activeIcon: 'cube', href: '/(tabs)/inventario' },
-  { label: 'Informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver' },
+const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: string; href: string; cap?: Capability }[] = [
+  { label: 'Agenda', labelKey: 'nav_agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
+  { label: 'Mi jornada', labelKey: 'nav_mi_jornada', icon: 'person-circle-outline', activeIcon: 'person-circle', href: '/(tabs)/mi-jornada' },
+  { label: 'Caja', labelKey: 'nav_caja', icon: 'wallet-outline', activeIcon: 'wallet', href: '/(tabs)/caja', cap: 'config.ver' },
+  { label: 'Presupuestos', labelKey: 'nav_presupuestos', icon: 'document-text-outline', activeIcon: 'document-text', href: '/(tabs)/presupuestos' },
+  { label: 'Bandeja', labelKey: 'nav_bandeja', icon: 'mail-outline', activeIcon: 'mail', href: '/(tabs)/bandeja' },
+  { label: 'Lista de espera', labelKey: 'nav_lista_espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas' },
+  { label: 'Clientes', labelKey: 'nav_clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver' },
+  { label: 'Reseñas', labelKey: 'nav_resenas', icon: 'star-outline', activeIcon: 'star', href: '/(tabs)/resenas' },
+  { label: 'Equipo', labelKey: 'nav_equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver' },
+  { label: 'Inventario', labelKey: 'nav_inventario', icon: 'cube-outline', activeIcon: 'cube', href: '/(tabs)/inventario' },
+  { label: 'Informes', labelKey: 'nav_informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver' },
 ];
 
 const HOVER_DURATION = 200;
@@ -37,6 +38,7 @@ const HOVER_DURATION = 200;
 export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useAppLang();
   const configActive = pathname.includes('configuracion');
 
   const [collapsed, setCollapsed] = useState(false);
@@ -176,7 +178,7 @@ export function Sidebar() {
               <TouchableOpacity
                 style={[s.navItem, collapsed && s.navItemCollapsed, isActive && s.navItemActive, !isActive && hoveredIdx === idx && s.navItemHovered]}
                 onPress={() => router.push(item.href as any)}
-                {...{ onMouseEnter: () => { hoverIn(hoverAnim); setHoveredIdx(idx); }, onMouseLeave: () => { hoverOut(hoverAnim); setHoveredIdx(null); }, ...webTitle(item.label) } as any}
+                {...{ onMouseEnter: () => { hoverIn(hoverAnim); setHoveredIdx(idx); }, onMouseLeave: () => { hoverOut(hoverAnim); setHoveredIdx(null); }, ...webTitle(t(item.labelKey) || item.label) } as any}
               >
                 {isActive && !collapsed && <View style={s.navItemBar} />}
                 <Ionicons
@@ -186,7 +188,7 @@ export function Sidebar() {
                 />
                 {!collapsed && (
                   <TText style={[s.navLabel, isActive && s.navLabelActive]}>
-                    {item.label}
+                    {t(item.labelKey) || item.label}
                   </TText>
                 )}
               </TouchableOpacity>
@@ -208,7 +210,7 @@ export function Sidebar() {
           <TouchableOpacity
             style={[s.navItem, collapsed && s.navItemCollapsed, configActive && s.navItemActive, !configActive && configHovered && s.navItemHovered]}
             onPress={() => router.push('/(tabs)/configuracion' as any)}
-            {...{ onMouseEnter: () => { hoverIn(configHoverAnim); setConfigHovered(true); }, onMouseLeave: () => { hoverOut(configHoverAnim); setConfigHovered(false); }, ...webTitle('Configuración') } as any}
+            {...{ onMouseEnter: () => { hoverIn(configHoverAnim); setConfigHovered(true); }, onMouseLeave: () => { hoverOut(configHoverAnim); setConfigHovered(false); }, ...webTitle(t('nav_configuracion')) } as any}
           >
             {configActive && !collapsed && <View style={s.navItemBar} />}
             <Ionicons
@@ -218,7 +220,7 @@ export function Sidebar() {
             />
             {!collapsed && (
               <TText style={[s.navLabel, configActive && s.navLabelActive]}>
-                Configuración
+                {t('nav_configuracion')}
               </TText>
             )}
           </TouchableOpacity>
