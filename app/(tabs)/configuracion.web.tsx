@@ -187,6 +187,7 @@ interface ConfigState {
   depositoUmbralFiableCompletadas: number;
   depositoUmbralAltoNoShows: number;
   depositoStaffExigir: boolean;
+  depositoVipExento: boolean;
   // Plantillas reutilizables (catalogos del salon)
   catalogoAlergias: string[];
   plantillasFormula: PlantillaTexto[];
@@ -274,6 +275,7 @@ const DEFAULT_CONFIG: ConfigState = {
   listaEsperaOfertaPideSenal: false, listaEsperaAvisarCaducado: false,
   depositoDinamicoActivo: false, depositoModoClasificacion: 'ambos', depositoFactorRiesgo: 2,
   depositoUmbralFiableCompletadas: 3, depositoUmbralAltoNoShows: 2, depositoStaffExigir: false,
+  depositoVipExento: true,
   catalogoAlergias: ['Parafenilendiamina (PPD)', 'Amoniaco', 'Resorcina', 'Persulfatos', 'Fragancias', 'Niquel', 'Latex'],
   plantillasFormula: [],
   plantillasNota: [],
@@ -2954,6 +2956,9 @@ function TabPoliticas({ config, setC }: { config: ConfigState; setC: (k: keyof C
         </FieldRow>
         <FieldRow label="Cliente fiable (exento) a partir de" hint="Citas completadas sin ningun no-show para dejar de pedirle senal. Solo en modo Automatico o Ambos.">
           <NumberInput disabled={!on || config.depositoModoClasificacion === 'manual'} value={config.depositoUmbralFiableCompletadas} onChange={v => setC('depositoUmbralFiableCompletadas', v)} unit="citas" min={1} max={20} width={150} />
+        </FieldRow>
+        <FieldRow label="Los clientes VIP no pagan senal" hint="Un cliente VIP (mas de 10 citas o mas de 500 EUR gastados) queda exento automaticamente, aunque tenga algun no-show. Solo en modo Automatico o Ambos.">
+          <Toggle disabled={!on || config.depositoModoClasificacion === 'manual'} on={config.depositoVipExento} onChange={v => setC('depositoVipExento', v)} />
         </FieldRow>
         <FieldRow label="Multiplicador para clientes con no-shows" hint="La senal del servicio se multiplica por este factor (tope: precio del servicio).">
           <NumberInput disabled={!on} value={config.depositoFactorRiesgo} onChange={v => setC('depositoFactorRiesgo', v)} unit="x" min={1} max={5} width={130} />

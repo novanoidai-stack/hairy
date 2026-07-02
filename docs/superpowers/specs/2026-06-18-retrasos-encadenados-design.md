@@ -1,6 +1,10 @@
 # Retrasos encadenados (IA de agenda) — diseño v1
 
-> **Estado:** diseño aprobado (18 jun 2026). Pendiente de implementar.
+> **Estado:** v1 IMPLEMENTADO y VERIFICADO (26 jun 2026). Motor `lib/retrasos.ts` (11/11 escenarios:
+> absorción de huecos, corte de cascada, disparador por profesional, deltas de fin_activa/fin_espera),
+> apply path en la agenda y motor de notificaciones (`aviso_retraso`) cableados de punta a punta.
+> **Pendiente:** el aviso E2E espera la plantilla Meta `aviso_retraso` (externo). Disparador de
+> **redimensionar** la cita (#2) DIFERIDO. **Detección automática** y **cascada cross-profesional** = v2.
 > **Autor:** Alexandro (+ Claude). Área: IA de agenda (diferencial vertical nº1 del MEGA §1.1).
 > **Reparto:** lógica/backend = Alexandro; UI de la agenda + toggle de Configuración = Carlos
 > (en esta tanda los hace Alexandro por encargo del usuario, en piezas aisladas para no pisar a Carlos).

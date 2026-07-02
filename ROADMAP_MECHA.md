@@ -76,9 +76,15 @@
 
 ## 1. Agenda inteligente (IA operativa) — el diferencial vertical
 
-- **1.1 Calculador de retrasos encadenados** 🔴 [A+C]
-  Detecta cuando una cita se alarga y **calcula el efecto dominó** sobre las siguientes (impacto),
-  **propone solución** (recolocar, avisar) y **notifica**. Liga con 5.3 (notificaciones) y con el motor de mensajería.
+- **1.1 Calculador de retrasos encadenados** 🟢 **v1 HECHO Y VERIFICADO (26 jun)** [A]
+  Motor de cascada (`lib/retrasos.ts`): **calcula el efecto dominó** sobre las siguientes, **absorbe huecos**
+  y **corta la cascada** cuando un hueco se come el retraso; modal de **propuesta** (recoloca + avisar);
+  dos disparadores cableados ("Marcar retraso +X" por cita y "vengo con X de retraso" por profesional);
+  aplicar marca `retraso_aviso_pendiente` y el motor manda `aviso_retraso`. Verificado: motor puro 11/11 +
+  cableado backend (`notificaciones_pendientes` emite `retraso` gateado por `notifRetrasoActiva`).
+  ⏳ **El aviso E2E** espera la plantilla Meta `aviso_retraso` (externo); la recolocación va sin ella.
+  🔜 **Diferido/v2:** disparador de **redimensionar** la cita · **detección automática** (sin pulsar) ·
+  cascada **cross-profesional**. NO confundir con el **reordenador** proactivo (1.2), que es otra feature.
 - **1.2 IA en la agenda** 🔴 [A+C]
   - Anti-solapamientos (aviso/bloqueo inteligente al colocar citas).
   - **Reordenador** que propone una mejor agenda con **preview** y **explica el porqué**.
@@ -285,8 +291,8 @@ login Google + wallpaper/splash · cuenta editable y soporte en config.
 - Seguridad endurecida; demo compartida; móvil de landing y software.
 
 **Lo que FALTA de cara a la app (visible para el usuario):** página de pago de señal `/app/pago/...` + badge
-"señal pagada" (Fase 1) · IA en la agenda (reordenador con preview, anti-solape inteligente, chatbot — 1.2) ·
-retrasos encadenados con aviso (1.1) · analítica de crecimiento/focos (2.1-2.3) · cerrar cuenta RGPD (5.1) ·
+"señal pagada" (Fase 1) · IA en la agenda (reordenador con preview, anti-solape inteligente — 1.2; el
+chatbot/copiloto y los retrasos encadenados 1.1 YA están) · analítica de crecimiento/focos (2.1-2.3) · cerrar cuenta RGPD (5.1) ·
 modo invitado (3.3) · inventario (6.1) · caja diaria (6.2, con fiscalista). Todo lo demás core ya está en la app.
 
 > Mantener vivo: al cerrar un punto, marcar estado o moverlo al apéndice.
