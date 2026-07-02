@@ -32,6 +32,9 @@ OAuth de terceros → es de Alexandro. El resto → Carlos. (Detalle en §6 del 
   `acceso.html` (login/signup), `reservar.html` (llamada comercial), `admin.html` (panel staff),
   legales. El build de la app (`expo export -p web`) va a `web/app/` (gitignored; Vercel lo genera).
 - **Deploy:** Vercel (`vercel.json`); el dominio sirve `web/` y reescribe `/app/*` a la SPA.
+  **Dominio canónico: `https://www.mechaa.es`** (apex redirige a www; `hairy-two.vercel.app`
+  hace 308 al canónico desde el 2 jul). Las allowlists CORS de las edge functions y el
+  Site URL de Supabase Auth deben incluir mechaa.es — no volver a hornear hairy-two.
 - **Migraciones:** archivos en `migrations/` + aplicadas en remoto (las últimas vía MCP de
   Supabase; el historial remoto manda). Edge functions en `supabase/functions/`.
 
