@@ -8,6 +8,10 @@ import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { useAppLang } from '@/lib/hooks/useAppLang';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualInventario } from '@/lib/manuals/inventario';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 // ────────────────────────────────────────────────────────────────────────────────
 // ICONOS SVG PREMIUM
@@ -94,6 +98,8 @@ export default function InventarioScreen() {
   const { isMobile } = useResponsive();
   const router = useRouter();
   const { t } = useAppLang();
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('inventario');
 
   // ────────────────────────────────────────────────────────────────────────────────
   // ESTADO
@@ -717,13 +723,37 @@ export default function InventarioScreen() {
             <Icon name="package" size={28} color="#fff" />
           </div>
           <div>
-            <h1 style={styles.headerTitle}>{t('inv_titulo')}</h1>
+            <h1 style={{ ...styles.headerTitle, display: 'flex', alignItems: 'center', gap: 10 }}>
+              {t('inv_titulo')}
+              <button
+                onClick={() => setShowManualPanel(true)}
+                title="Manual de esta pagina"
+                style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: '#fff', border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
+            </h1>
             <p style={{ fontSize: '13px', color: TOKENS.textSec, margin: '2px 0 0 0' }}>
               {t('inv_subtitulo')}
             </p>
           </div>
         </div>
       </div>
+
+      {!paginaManual.loading && !paginaManual.visto && (
+        <div style={{ marginBottom: 16 }}>
+          <AvisoPrimeraVisita
+            content={manualInventario}
+            isMobile={isMobile}
+            onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+            onCerrar={paginaManual.marcarVisto}
+          />
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div style={styles.kpiGrid}>
@@ -1110,6 +1140,13 @@ export default function InventarioScreen() {
       <ModalNuevoProducto />
       <ModalMovimiento />
       <ModalHistorial />
+      {showManualPanel && (
+        <ManualPanel
+          content={manualInventario}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
+        />
+      )}
     </div>
   );
 }
