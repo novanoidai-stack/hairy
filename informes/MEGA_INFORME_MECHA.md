@@ -1172,3 +1172,39 @@ Contenido en dos fuentes hermanas sin build compartido: `lib/loadingTips.ts` (ap
 Verificado: `tsc --noEmit` y `build:web` limpios; tip visible y sin overflow a 375px en `acceso.html` y
 `demo.html`; `clientes.web.tsx` carga sin errores de consola dentro del iframe de la demo. Desplegado a
 `master` (commit `f3002ff77`).
+
+---
+
+## Adenda 3 jul 2026 — Asistente de onboarding cinematográfico con IA (Carlos + Claude) — HECHO
+
+Sustituye (complementa) el checklist manual de Avisos: la primera vez que un gestor entra a su negocio
+propio ya operativo-elegible, un asistente a pantalla completa (sin aspecto de chat, "fotogramas" que se
+suceden) le va guiando por lenguaje natural para crear servicios, equipo, horario del salón, datos del
+negocio, reserva online y notificaciones — con IA que interpreta la respuesta libre via function-calling
+forzado (no orquesta el flujo, solo redacta/interpreta por tema; el cliente controla la secuencia y
+ejecuta las escrituras reales). Spec: `docs/superpowers/specs/2026-07-03-onboarding-ia-cinematico-design.md`.
+Plan: `docs/superpowers/plans/2026-07-03-onboarding-ia-cinematico.md`.
+
+- **Edge Function `onboarding-agent`** (desplegada, `verify_jwt: true`): proxy sin acceso a datos de
+  negocio, solo verifica owner/admin y llama a OpenRouter (mismo patrón que `agenda-asistente`).
+- **`lib/onboardingAgent.ts`**: orden fijo de temas, fallbacks estáticos (funciona SIEMPRE aunque la IA
+  falle/tarde: campos simples deterministas, presets de horario sin IA, botones sí/no sin IA para
+  reserva online/notificaciones), y `ejecutarAccion` que escribe con `supabase-js` bajo el mismo RLS que
+  ya usan Ajustes/Equipo — sin RPCs ni migraciones nuevas.
+- **`components/onboarding/OnboardingAgentOverlay.web.tsx`** (+ stub nativo): overlay cinematográfico
+  montado en `app/_layout.tsx`. Solo dos acciones piden confirmación explícita (invitar por email,
+  activar reserva online); el resto se ejecuta sin fricción. Disparo automático una sola vez
+  (`localStorage`, clave `mecha-onboarding-agent:<negocio_id>`); si se salta o cierra a medias, el
+  checklist manual de Avisos sigue recogiendo lo pendiente sin cambios.
+
+**Pendiente (manual, usuario):**
+1. Rotar la clave de OpenRouter usada para pruebas (compartida en el chat de la sesión de brainstorming,
+   nunca commiteada al repo) antes de tráfico real de producción, desde el dashboard de OpenRouter.
+2. Confirmar el secreto `OPENROUTER_API_KEY` en Supabase Dashboard → Edge Functions → Secrets del
+   proyecto `vtrggiogjrhqtwbhbgia` (no hay CLI/MCP disponible en este entorno para hacerlo en automático).
+3. Verificación manual end-to-end en navegador con una cuenta de negocio propio recién operativo-elegible
+   (creación de servicios/equipo/horario reales, incluida la confirmación de invitación por email) — no
+   ejecutada por el agente para no crear datos ni enviar emails reales sin supervisión directa.
+
+Advisors de seguridad de Supabase revisados: sin hallazgos nuevos (la función no toca tablas ni RLS).
+`tsc --noEmit` y `build:web` en verde en las 5 tareas de código del plan.
