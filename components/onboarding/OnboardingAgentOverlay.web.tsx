@@ -4,7 +4,7 @@
 // interaccion centrado. La IA solo redacta/interpreta; el ORDEN y la
 // EJECUCION las controla este componente (ver lib/onboardingAgent.ts).
 import { useEffect, useRef, useState } from 'react';
-import { useSegments } from 'expo-router';
+import { useSegments, useLocalSearchParams } from 'expo-router';
 import { Platform } from 'react-native';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
@@ -24,6 +24,13 @@ const FLAG_PREFIX = 'mecha-onboarding-agent:';
 export function OnboardingAgentOverlay() {
   const { isMobile } = useResponsive();
   const segments = useSegments();
+  // Previsualizacion manual (?onboarding_ia=1): fuerza el fotograma de
+  // bienvenida sin tocar el flag de localStorage ni exigir coreDone===false.
+  // Util para ensenar el asistente a un gestor cuyo negocio ya esta operativo
+  // (mismo espiritu que ?onboarding=1 ya usado para reabrir el panel estatico
+  // en AgendaCalendar.web.tsx). No persiste nada: solo abre esta vez.
+  const params = useLocalSearchParams<{ onboarding_ia?: string }>();
+  const forzarPreview = params?.onboarding_ia === '1';
   // Mismo criterio exacto que app/_layout.tsx (isPublicRoute): estas rutas son
   // anonimas/publicas (portal de reserva, resenas, cita, pago, presupuesto,
   // contacto) y deben verse igual sin importar la sesion que tenga el
@@ -85,12 +92,13 @@ export function OnboardingAgentOverlay() {
   useEffect(() => {
     if (isPublicRoute) return;
     if (!elegible || !negocioId || !status.ready || fase !== 'cerrado') return;
+    if (forzarPreview) { setFase('bienvenida'); return; } // preview manual: ignora coreDone y el flag, no persiste nada
     if (status.coreDone) return;
     const key = `${FLAG_PREFIX}${negocioId}`;
     if (typeof window === 'undefined' || window.localStorage.getItem(key)) return;
     window.localStorage.setItem(key, JSON.stringify({ shown: true }));
     setFase('bienvenida');
-  }, [elegible, negocioId, status.ready, status.coreDone, fase, isPublicRoute]);
+  }, [elegible, negocioId, status.ready, status.coreDone, fase, isPublicRoute, forzarPreview]);
 
   if (Platform.OS !== 'web' || fase === 'cerrado' || isPublicRoute) return null;
 
