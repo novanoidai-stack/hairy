@@ -12,6 +12,10 @@ import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA } from '@/lib/constants
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import * as XLSX from 'xlsx';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualClientes } from '@/lib/manuals/clientes';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -258,6 +262,8 @@ function computeAlerts(cl: Cliente): Alert[] {
 
 function ClientesWeb() {
   const { isMobile, isTablet } = useResponsive();
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('clientes');
   const params = useLocalSearchParams<{ clienteId?: string; filtro?: string }>();
   const router = useRouter();
   const { refreshTrigger, triggerRefresh } = useCalendarRefresh();
@@ -512,7 +518,20 @@ function ClientesWeb() {
       {/* Topbar */}
       <div className="m-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? '12px 16px' : '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4 }}>Clientes</h1>
+          <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4, display: 'flex', alignItems: 'center', gap: 10 }}>
+            Clientes
+            <button
+              onClick={() => setShowManualPanel(true)}
+              title="Manual de esta pagina"
+              style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
+          </h1>
           <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: TOKENS.textSec }}>{clientes.length} clientes activos</p>
         </div>
         <div style={{ display: 'flex', gap: isMobile ? 8 : 12, alignItems: 'center' }}>
@@ -583,6 +602,17 @@ function ClientesWeb() {
           </button>
         </div>
       </div>
+
+      {!paginaManual.loading && !paginaManual.visto && (
+        <div style={{ padding: isMobile ? '12px 12px 0' : '16px 24px 0' }}>
+          <AvisoPrimeraVisita
+            content={manualClientes}
+            isMobile={isMobile}
+            onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+            onCerrar={paginaManual.marcarVisto}
+          />
+        </div>
+      )}
 
       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (!c ? '1fr 0px' : (panelExpanded ? '0fr 1fr' : '1fr 420px')), overflow: 'hidden', transition: 'grid-template-columns 0.35s cubic-bezier(0.16,1,0.3,1)' }}>
         {/* List */}
@@ -1065,6 +1095,13 @@ function ClientesWeb() {
           onClose={() => { setShowClienteModal(false); setEditingCliente(null); }}
           onSaved={async () => { setShowClienteModal(false); setEditingCliente(null); await cargar(); triggerRefresh(); }}
           onDeleted={async () => { setShowClienteModal(false); setEditingCliente(null); setSelected(null); await cargar(); triggerRefresh(); }}
+        />
+      )}
+      {showManualPanel && (
+        <ManualPanel
+          content={manualClientes}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
         />
       )}
     </div>
