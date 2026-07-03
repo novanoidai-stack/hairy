@@ -97,6 +97,7 @@
   @keyframes dmSpin{to{transform:rotate(360deg)}}
   .dm-localnote h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em;margin-bottom:7px}
   .dm-localnote p{font-size:13.5px;color:var(--text-sec);line-height:1.55}
+  .dm-localnote .tip{font-size:12.5px;color:var(--text-ter);line-height:1.5;margin-top:14px}
 
   /* ============================================================
      MECHA — Tour guiado (v3: limpio, sobrio, "software real")
@@ -724,6 +725,7 @@
         <div class="sp"></div>
         <h3>Abriendo tu vista previa de Mecha</h3>
         <p>Cargando el software para que lo recorras por dentro: agenda, fichas de cliente e informes…</p>
+        <p class="tip" id="localTip"></p>
       </div>
     </div>
     <iframe class="dm-appframe" id="appFrame" title="Mecha — software real e interactivo" referrerpolicy="same-origin" style="display:none"></iframe>
@@ -874,6 +876,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
+<script src="assets/loading-tips.js"></script>
 <script src="assets/auth.js"></script>
 <script>
 (function(){
@@ -1124,7 +1127,15 @@
       return;
     }
     frame.style.display='block';
-    frame.addEventListener('load',function(){ localnote.style.display='none'; });
+    var tipEl=localnote.querySelector('#localTip'), tips=window.MechaLoadingTips, localStuckTimer=null;
+    if(tipEl && tips){
+      tipEl.textContent=tips.pick();
+      localStuckTimer=setTimeout(function(){ tipEl.textContent=tips.STUCK_MESSAGE; }, tips.STUCK_TIMEOUT_MS);
+    }
+    frame.addEventListener('load',function(){
+      if(localStuckTimer) clearTimeout(localStuckTimer);
+      localnote.style.display='none';
+    });
     // ?demo=1: dentro del iframe la app usa una sesion AISLADA con la cuenta de
     // demo compartida (ver lib/supabase.ts). Todo el mundo ve la MISMA demo,
     // este o no logueado fuera, y su sesion personal no se toca.

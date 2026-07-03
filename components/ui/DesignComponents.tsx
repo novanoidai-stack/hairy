@@ -1,7 +1,9 @@
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import { TText } from '@/components/ui/TText';
 import { Ionicons } from '@expo/vector-icons';
 import { DESIGN_TOKENS, STATUS_META } from '@/lib/designTokens';
+import { pickLoadingTip, LOADER_STUCK_MESSAGE, LOADER_STUCK_TIMEOUT_MS } from '@/lib/loadingTips';
 
 const tokens = DESIGN_TOKENS;
 
@@ -324,7 +326,16 @@ const s = StyleSheet.create({
 
 // ── Loader web (Spinner premium minimalista - estilo Mecha)
 // Solo usar en archivos .web.tsx
-export function PageLoader({ message = 'Cargando...' }: { message?: string }) {
+export function PageLoader({ message = 'Cargando...', showTip = true }: { message?: string; showTip?: boolean }) {
+  const tip = useMemo(() => pickLoadingTip(), []);
+  const [footer, setFooter] = useState(tip);
+
+  useEffect(() => {
+    if (!showTip) return;
+    const timer = setTimeout(() => setFooter(LOADER_STUCK_MESSAGE), LOADER_STUCK_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [showTip, tip]);
+
   return (
     <div style={{
       display: 'flex',
@@ -378,6 +389,11 @@ export function PageLoader({ message = 'Cargando...' }: { message?: string }) {
       {message && (
         <p style={{ margin: 0, fontSize: 14, color: tokens.textSecondary, textAlign: 'center' }}>
           {message}
+        </p>
+      )}
+      {showTip && (
+        <p style={{ margin: '8px 0 0', fontSize: 13, color: tokens.textTertiary, textAlign: 'center', maxWidth: 320, lineHeight: 1.4 }}>
+          {footer}
         </p>
       )}
     </div>

@@ -295,6 +295,13 @@
     margin-bottom: 24px;
     line-height: 1.5;
   }
+  .load-tip {
+    font-size: 13px;
+    color: var(--text-ter);
+    margin: 8px 0 0;
+    max-width: 320px;
+    line-height: 1.4;
+  }
 
   .mecha-loader-container {
     position: relative;
@@ -543,6 +550,7 @@
             </svg>
           </div>
           <h2 class="load-h" id="loadStatus">Iniciando sistema...</h2>
+          <p class="load-tip" id="loadTip"></p>
         </div>
       </div>
     </div>
@@ -550,6 +558,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
+<script src="assets/loading-tips.js"></script>
 <script src="assets/auth.js"></script>
 <script src="assets/phone-e164.js"></script>
 <script>
@@ -589,6 +598,7 @@
     // post-login que pudiera haber quedado activo (el loader arranca con 'on' para evitar
     // el flash del formulario durante el callback de SSO).
     if (loadTimer) { clearInterval(loadTimer); loadTimer = null; }
+    clearLoadTip();
     ['paneChooser', 'paneFree', 'paneComplete', 'paneLoading'].forEach(function (p) {
       var el = document.getElementById(p);
       if (el) el.classList.remove('on');
@@ -625,6 +635,22 @@
 
   var loadTimer = null;
   var currentProgress = 0;
+  var loadStuckTimer = null;
+
+  function setLoadTip() {
+    var tipEl = document.getElementById('loadTip');
+    var tips = window.MechaLoadingTips;
+    if (!tipEl || !tips) return;
+    if (loadStuckTimer) clearTimeout(loadStuckTimer);
+    tipEl.textContent = tips.pick();
+    loadStuckTimer = setTimeout(function () {
+      tipEl.textContent = tips.STUCK_MESSAGE;
+    }, tips.STUCK_TIMEOUT_MS);
+  }
+
+  function clearLoadTip() {
+    if (loadStuckTimer) { clearTimeout(loadStuckTimer); loadStuckTimer = null; }
+  }
 
   function setProgress(pct) {
     currentProgress = pct;
@@ -639,6 +665,7 @@
     showStage('paneLoading');
     var statusEl = document.getElementById('loadStatus');
     if (statusEl && statusText) statusEl.textContent = statusText;
+    setLoadTip();
     setProgress(0);
     if (loadTimer) clearInterval(loadTimer);
 
@@ -657,6 +684,7 @@
 
   function endLoading(callback) {
     if (loadTimer) clearInterval(loadTimer);
+    clearLoadTip();
     setProgress(100);
     setTimeout(function () {
       if (callback) callback();
