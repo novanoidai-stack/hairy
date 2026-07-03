@@ -8,12 +8,12 @@ export const manualEquipo: ManualContent = {
     {
       titulo: 'Añadir un profesional',
       texto: 'Botón "Añadir profesional": nombre, rol y datos de contacto. Cada profesional activo aparece luego en la Agenda con su propia columna.',
-      captura: '/app/manuals/equipo/tarjetas.png',
+      captura: '/manuals/equipo/tarjetas.png',
     },
     {
       titulo: 'Horario base',
       texto: 'Define qué días y en qué franjas horarias trabaja cada persona. La Agenda y la reserva online solo ofrecen huecos dentro de ese horario.',
-      captura: '/app/manuals/equipo/horarios.png',
+      captura: '/manuals/equipo/horarios.png',
     },
     {
       titulo: 'Bloqueos puntuales',

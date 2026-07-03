@@ -3,7 +3,7 @@
 // que sustituyen al anterior, uno por tema, con un unico bloque de
 // interaccion centrado. La IA solo redacta/interpreta; el ORDEN y la
 // EJECUCION las controla este componente (ver lib/onboardingAgent.ts).
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useSegments, useGlobalSearchParams } from 'expo-router';
 import { Platform } from 'react-native';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
@@ -11,6 +11,8 @@ import { getUserProfile } from '@/lib/auth';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
+import { MechaMark } from '@/components/ui/MechaMark';
+import { pickLoadingTip } from '@/lib/loadingTips';
 import {
   TEMA_ORDEN, TEMA_FALLBACK, TEMA_TITULO_SECCION, TEMA_DESTINO_MANUAL, HORARIO_PRESETS, TEMA_CAMPOS_SIMPLES,
   pedirPregunta, interpretarRespuesta, ejecutarAccion,
@@ -111,53 +113,87 @@ export function OnboardingAgentOverlay() {
   if (fase === 'cerrando') return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#ffffff' }} className="m-overlay-enter">
-      {fase === 'bienvenida' && <FotogramaBienvenida isMobile={isMobile} onEmpezar={() => avanzarATema(0)} onSaltar={cerrar} />}
-      {(fase === 'pregunta' || fase === 'ejecutando') && (
-        <FotogramaPregunta
-          key={`pregunta-${temaIdx}`}
-          isMobile={isMobile}
-          seccion={TEMA_TITULO_SECCION[TEMA_ORDEN[temaIdx]]}
-          destinoManual={TEMA_DESTINO_MANUAL[TEMA_ORDEN[temaIdx]]}
-          progreso={(temaIdx + 1) / TEMA_ORDEN.length}
-          pregunta={pregunta}
-          cargando={cargandoPregunta}
-          ejecutando={fase === 'ejecutando'}
-          modoInput={TEMA_FALLBACK[TEMA_ORDEN[temaIdx]].modoInput}
-          valor={respuesta}
-          onCambiar={setRespuesta}
-          onEnviar={() => enviarRespuesta()}
-          onSaltar={() => avanzarATema(temaIdx + 1)}
-          onCerrar={cerrar}
-          onBoton={(activar) => responderDirecto(TEMA_ORDEN[temaIdx] === 'reserva_online' ? 'activar_reserva_online' : 'activar_notificaciones', { activar })}
-          presets={TEMA_ORDEN[temaIdx] === 'horario_salon' ? HORARIO_PRESETS : undefined}
-          onPreset={(dias) => responderDirecto('fijar_horario_salon', { dias })}
-          fallbackActivo={fallbackActivo}
-          camposSimplesDef={TEMA_CAMPOS_SIMPLES[TEMA_ORDEN[temaIdx]]}
-          camposSimples={camposSimples}
-          onCambiarCampoSimple={(key, v) => setCamposSimples((prev) => ({ ...prev, [key]: v }))}
-          onEnviarCamposSimples={() => enviarCamposSimples()}
-          errorTexto={errorTexto}
-        />
-      )}
-      {fase === 'confirmar_riesgo' && accionPendiente && (
-        <FotogramaConfirmarRiesgo
-          isMobile={isMobile}
-          accion={accionPendiente}
-          onConfirmar={() => ejecutarYMostrarRecibo(accionPendiente)}
-          onCancelar={() => avanzarATema(temaIdx + 1)}
-        />
-      )}
-      {fase === 'recibo' && recibo && (
-        <FotogramaRecibo
-          isMobile={isMobile}
-          recibo={recibo}
-          esUltimoTema={temaIdx >= TEMA_ORDEN.length - 1}
-          permiteAnadirOtro={TEMA_ORDEN[temaIdx] === 'servicios' || TEMA_ORDEN[temaIdx] === 'equipo'}
-          onAnadirOtro={() => { setRespuesta(''); void cargarPregunta(temaIdx); }}
-          onContinuar={() => continuarDesdeRecibo()}
-        />
-      )}
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: 99999,
+      background: 'linear-gradient(180deg, #fdf6ee 0%, #f7ede1 60%, #f3e7d8 100%)',
+      overflowY: 'auto',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: isMobile ? '16px' : '32px',
+      fontFamily: 'Inter, system-ui, sans-serif'
+    }} className="m-overlay-enter">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes obFloat1 { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(30px,-45px) scale(1.08) } }
+        @keyframes obFloat2 { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(-30px,30px) scale(1.1) } }
+        @keyframes obSpinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes obPulse { 0%, 100% { transform: scale(0.88); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 0.95; } }
+        .ob-blob1 { animation: obFloat1 20s ease-in-out infinite alternate; filter: blur(70px); }
+        .ob-blob2 { animation: obFloat2 26s ease-in-out infinite alternate; filter: blur(80px); }
+        .ob-spinner-ring { transform-box: fill-box; transform-origin: center; animation: obSpinner 1s linear infinite; }
+        .ob-spinner-core { transform-box: fill-box; transform-origin: center; animation: obPulse 2.2s ease-in-out infinite; }
+      ` }} />
+
+      {/* Blobs cinemáticos en el fondo */}
+      <div className="ob-blob1" aria-hidden style={{ position: 'absolute', top: '8%', left: '8%', width: 280, height: 280, borderRadius: '50%', background: 'rgba(255,196,150,0.35)', pointerEvents: 'none', zIndex: 0 }} />
+      <div className="ob-blob2" aria-hidden style={{ position: 'absolute', bottom: '10%', right: '6%', width: 320, height: 320, borderRadius: '50%', background: 'rgba(255,222,170,0.3)', pointerEvents: 'none', zIndex: 0 }} />
+      <div aria-hidden style={{ position: 'absolute', bottom: -50, right: -50, opacity: 0.03, pointerEvents: 'none', zIndex: 0 }}>
+        <MechaMark size={320} />
+      </div>
+
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+        {fase === 'bienvenida' && <FotogramaBienvenida isMobile={isMobile} onEmpezar={() => avanzarATema(0)} onSaltar={cerrar} />}
+        {(fase === 'pregunta' || fase === 'ejecutando') && (
+          <FotogramaPregunta
+            key={`pregunta-${temaIdx}`}
+            isMobile={isMobile}
+            seccion={TEMA_TITULO_SECCION[TEMA_ORDEN[temaIdx]]}
+            destinoManual={TEMA_DESTINO_MANUAL[TEMA_ORDEN[temaIdx]]}
+            progreso={(temaIdx + 1) / TEMA_ORDEN.length}
+            pregunta={pregunta}
+            cargando={cargandoPregunta}
+            ejecutando={fase === 'ejecutando'}
+            modoInput={TEMA_FALLBACK[TEMA_ORDEN[temaIdx]].modoInput}
+            valor={respuesta}
+            onCambiar={setRespuesta}
+            onEnviar={() => enviarRespuesta()}
+            onSaltar={() => avanzarATema(temaIdx + 1)}
+            onCerrar={cerrar}
+            onBoton={(activar) => responderDirecto(TEMA_ORDEN[temaIdx] === 'reserva_online' ? 'activar_reserva_online' : 'activar_notificaciones', { activar })}
+            presets={TEMA_ORDEN[temaIdx] === 'horario_salon' ? HORARIO_PRESETS : undefined}
+            onPreset={(dias) => responderDirecto('fijar_horario_salon', { dias })}
+            fallbackActivo={fallbackActivo}
+            camposSimplesDef={TEMA_CAMPOS_SIMPLES[TEMA_ORDEN[temaIdx]]}
+            camposSimples={camposSimples}
+            onCambiarCampoSimple={(key, v) => setCamposSimples((prev) => ({ ...prev, [key]: v }))}
+            onEnviarCamposSimples={() => enviarCamposSimples()}
+            errorTexto={errorTexto}
+            temaId={TEMA_ORDEN[temaIdx]}
+          />
+        )}
+        {fase === 'confirmar_riesgo' && accionPendiente && (
+          <FotogramaConfirmarRiesgo
+            isMobile={isMobile}
+            accion={accionPendiente}
+            onConfirmar={() => ejecutarYMostrarRecibo(accionPendiente)}
+            onCancelar={() => avanzarATema(temaIdx + 1)}
+          />
+        )}
+        {fase === 'recibo' && recibo && (
+          <FotogramaRecibo
+            isMobile={isMobile}
+            recibo={recibo}
+            esUltimoTema={temaIdx >= TEMA_ORDEN.length - 1}
+            permiteAnadirOtro={TEMA_ORDEN[temaIdx] === 'servicios' || TEMA_ORDEN[temaIdx] === 'equipo'}
+            onAnadirOtro={() => { setRespuesta(''); void cargarPregunta(temaIdx); }}
+            onContinuar={() => continuarDesdeRecibo()}
+            temaId={TEMA_ORDEN[temaIdx]}
+          />
+        )}
+      </div>
     </div>
   );
 
@@ -274,25 +310,74 @@ export function OnboardingAgentOverlay() {
       const nuevoId = ctxRef.current.profesionalesCreados[ctxRef.current.profesionalesCreados.length - 1]?.id;
       setInvitacionPendiente({ profesionalId: nuevoId, nombre: accion.args.nombre, email: accion.args.email });
     }
+    if (accion.tipo === 'crear_profesionales' && resultado.ok) {
+      const invitable = accion.args?.profesionales?.find((p: any) => p.quiere_invitar === true);
+      if (invitable) {
+        const nuevoId = ctxRef.current.profesionalesCreados.find(p => p.nombre === invitable.nombre)?.id;
+        if (nuevoId) {
+          setInvitacionPendiente({ profesionalId: nuevoId, nombre: invitable.nombre, email: invitable.email });
+        }
+      }
+    }
     setRecibo(resultado);
     setFase('recibo');
     status.refresh();
   }
 }
 
+function OnboardingLoader({ message = 'Cargando...' }: { message?: string }) {
+  const tip = useMemo(() => pickLoadingTip(), []);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 0', gap: 16 }}>
+      <svg viewBox="0 0 80 80" width="60" height="60" style={{ overflow: 'visible' }}>
+        <defs>
+          <linearGradient id="obSpinnerGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={T.primary} />
+            <stop offset="100%" stopColor="rgba(244,80,30,0.15)" />
+          </linearGradient>
+        </defs>
+        <circle className="ob-spinner-ring" cx="40" cy="40" r="32" stroke="url(#obSpinnerGrad)" strokeWidth="4" strokeLinecap="round" strokeDasharray="140 60" fill="none" />
+        <circle className="ob-spinner-core" cx="40" cy="40" r="16" fill={T.primary} style={{ filter: 'drop-shadow(0 0 10px rgba(244,80,30,0.4))' }} />
+      </svg>
+      <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginTop: 8 }}>{message}</div>
+      <div style={{ fontSize: 13, color: T.textSecondary, textAlign: 'center', maxWidth: 300, lineHeight: 1.45, background: 'rgba(244,80,30,0.06)', padding: '10px 14px', borderRadius: 12, border: '1px solid rgba(244,80,30,0.08)' }}>
+        <span style={{ fontWeight: 600, color: T.primary, display: 'block', marginBottom: 2, fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase' }}>Tip de Mecha</span>
+        {tip}
+      </div>
+    </div>
+  );
+}
+
 function FotogramaBienvenida({ isMobile, onEmpezar, onSaltar }: { isMobile: boolean; onEmpezar: () => void; onSaltar: () => void }) {
   return (
-    <div className="m-rise" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 26, padding: isMobile ? 24 : 32, textAlign: 'center' }}>
-      <div style={{ width: 56, height: 56, borderRadius: 18, background: 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)' }} />
-      <div style={{ fontFamily: "'Bricolage Grotesque','Inter',sans-serif", fontSize: isMobile ? 26 : 32, fontWeight: 800, color: T.text, lineHeight: 1.25, maxWidth: 480 }}>
-        Vamos a poner en marcha tu salon
+    <div className="m-rise" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 26,
+      padding: isMobile ? '32px 20px' : '48px 36px',
+      textAlign: 'center',
+      background: 'rgba(255, 253, 251, 0.82)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      border: '1px solid rgba(40, 30, 24, 0.08)',
+      borderRadius: 24,
+      boxShadow: '0 24px 60px rgba(40, 30, 24, 0.06)',
+      maxWidth: 480,
+      width: isMobile ? 'calc(100% - 32px)' : '420px',
+    }}>
+      <div className="gc-flame" style={{ display: 'inline-flex', marginBottom: 6 }}>
+        <MechaMark size={56} />
       </div>
-      <div style={{ fontSize: 14, color: T.textSecondary, maxWidth: 420 }}>
+      <div style={{ fontFamily: "'Bricolage Grotesque','Inter',sans-serif", fontSize: isMobile ? 24 : 28, fontWeight: 800, color: T.text, lineHeight: 1.25, maxWidth: 360 }}>
+        Vamos a poner en marcha tu salón
+      </div>
+      <div style={{ fontSize: 13.5, color: T.textSecondary, maxWidth: 340, lineHeight: 1.5 }}>
         Te voy a hacer unas pocas preguntas y voy dejando todo configurado de verdad, a tu ritmo. Puedes saltar cualquier paso.
       </div>
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={onEmpezar} className="m-btn-primary" style={{ padding: '12px 24px', background: T.primary, border: 'none', borderRadius: 12, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Empezar</button>
-        <button onClick={onSaltar} style={{ padding: '12px 20px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 12, color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Prefiero hacerlo yo, manual</button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', marginTop: 12 }}>
+        <button onClick={onEmpezar} className="m-btn-primary" style={{ padding: '13px 24px', background: T.primary, border: 'none', borderRadius: 12, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 8px 20px rgba(244,80,30,0.2)' }}>Empezar</button>
+        <button onClick={onSaltar} className="m-btn-secondary" style={{ padding: '12px 20px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 12, color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Prefiero hacerlo yo, manual</button>
       </div>
     </div>
   );
@@ -301,6 +386,7 @@ function FotogramaBienvenida({ isMobile, onEmpezar, onSaltar }: { isMobile: bool
 function FotogramaPregunta({
   isMobile, seccion, destinoManual, progreso, pregunta, cargando, ejecutando, modoInput, valor, onCambiar, onEnviar, onSaltar, onCerrar,
   onBoton, presets, onPreset, fallbackActivo, camposSimplesDef, camposSimples, onCambiarCampoSimple, onEnviarCamposSimples, errorTexto,
+  temaId,
 }: {
   isMobile: boolean; seccion: string; destinoManual: string; progreso: number;
   pregunta: { titulo: string; subtitulo?: string; placeholder_ejemplo?: string };
@@ -312,28 +398,46 @@ function FotogramaPregunta({
   camposSimplesDef?: { key: string; label: string; tipo: 'texto' | 'numero' }[];
   camposSimples: Record<string, string>; onCambiarCampoSimple: (key: string, v: string) => void; onEnviarCamposSimples: () => void;
   errorTexto: string;
+  temaId: TemaId;
 }) {
   const mostrarCamposSimples = fallbackActivo && !!camposSimplesDef;
   return (
-    <div className="m-rise" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 22, padding: isMobile ? 20 : 32, position: 'relative' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'rgba(40,30,24,0.06)' }}>
+    <div className="m-rise" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 22,
+      padding: isMobile ? '32px 20px 24px' : '40px 32px 32px',
+      position: 'relative',
+      background: 'rgba(255, 253, 251, 0.82)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      border: '1px solid rgba(40, 30, 24, 0.08)',
+      borderRadius: 24,
+      boxShadow: '0 24px 60px rgba(40, 30, 24, 0.06)',
+      maxWidth: 480,
+      width: isMobile ? 'calc(100% - 32px)' : '420px',
+    }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'rgba(40,30,24,0.06)', borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
         <div style={{ width: `${Math.round(progreso * 100)}%`, height: '100%', background: T.primary, transition: 'width 0.4s cubic-bezier(0.16,1,0.3,1)' }} />
       </div>
-      <button onClick={onCerrar} style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', color: T.textTertiary, fontSize: 13, cursor: 'pointer' }}>Cerrar</button>
-      <div style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700 }}>{seccion}</div>
+      <button onClick={onCerrar} className="m-btn-icon" style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(40,30,24,0.05)', border: 'none', borderRadius: 999, width: 28, height: 28, display: 'grid', placeItems: 'center', color: T.textSecondary, fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>×</button>
+      <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700 }}>{seccion}</div>
       {cargando ? (
         <>
-          <div style={{ fontSize: 15, color: T.textSecondary }}>Un momento...</div>
-          <button onClick={onSaltar} style={{ padding: '10px 16px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
+          <OnboardingLoader message="Preparando la pregunta..." />
+          <button onClick={onSaltar} className="m-btn-secondary" style={{ padding: '10px 16px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', marginTop: 12 }}>
             Saltar este paso
           </button>
         </>
+      ) : ejecutando ? (
+        <OnboardingLoader message="Procesando tu respuesta con IA..." />
       ) : mostrarCamposSimples ? (
         <>
-          <div style={{ fontFamily: 'Inter,sans-serif', fontSize: isMobile ? 19 : 22, fontWeight: 600, color: T.text, textAlign: 'center', maxWidth: 420 }}>
-            No he entendido bien la respuesta. Rellenalo asi, campo a campo:
+          <div style={{ fontFamily: 'Inter,sans-serif', fontSize: isMobile ? 18 : 20, fontWeight: 700, color: T.text, textAlign: 'center', maxWidth: 360, lineHeight: 1.3 }}>
+            No he entendido bien la respuesta. Rellénalo así, campo a campo:
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: isMobile ? '100%' : 280 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', margin: '10px 0' }}>
             {camposSimplesDef!.map((c) => (
               <input
                 key={c.key}
@@ -343,86 +447,91 @@ function FotogramaPregunta({
                 placeholder={c.label}
                 type={c.tipo === 'numero' ? 'number' : 'text'}
                 disabled={ejecutando}
-                style={{ width: '100%', border: `1px solid ${T.border}`, borderRadius: 8, padding: '9px 12px', fontSize: 13, background: T.bgCard, outline: 'none' }}
+                style={{ width: '100%', border: `1px solid ${T.border}`, borderRadius: 10, padding: '11px 14px', fontSize: 14, background: T.bgCard, outline: 'none' }}
               />
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={onEnviarCamposSimples} disabled={ejecutando} className="m-btn-primary" style={{ padding: '10px 20px', background: T.primary, border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-              {ejecutando ? 'Guardando...' : 'Guardar'}
+          <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+            <button onClick={onEnviarCamposSimples} disabled={ejecutando} className="m-btn-primary" style={{ flex: 1, padding: '12px 20px', background: T.primary, border: 'none', borderRadius: 12, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>
+              Guardar
             </button>
-            <button onClick={onSaltar} disabled={ejecutando} style={{ padding: '10px 16px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
-              Saltar este paso
+            <button onClick={onSaltar} disabled={ejecutando} className="m-btn-secondary" style={{ padding: '12px 16px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 12, color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              Saltar
             </button>
           </div>
         </>
       ) : (
         <>
-          <div style={{ fontFamily: 'Inter,sans-serif', fontSize: isMobile ? 21 : 26, lineHeight: 1.3, fontWeight: 600, color: T.text, textAlign: 'center', maxWidth: 460, letterSpacing: -0.5 }}>
+          <div style={{ fontFamily: 'Inter,sans-serif', fontSize: isMobile ? 20 : 24, lineHeight: 1.3, fontWeight: 800, color: T.text, textAlign: 'center', maxWidth: 400, letterSpacing: -0.5 }}>
             {pregunta.titulo}
           </div>
           {modoInput === 'texto' && (
-            <div style={{ width: isMobile ? '100%' : 320 }}>
+            <div style={{ width: '100%', margin: '8px 0' }}>
               <input
                 className="m-input"
                 value={valor}
                 onChange={(e) => onCambiar(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !ejecutando) onEnviar(); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !ejecutando && valor.trim()) onEnviar(); }}
                 placeholder={pregunta.placeholder_ejemplo || ''}
                 disabled={ejecutando}
-                style={{ width: '100%', textAlign: 'center', border: 'none', borderBottom: '2px solid rgba(40,30,24,0.15)', borderRadius: 0, padding: '10px 4px', fontSize: 15, background: 'transparent', outline: 'none' }}
+                style={{ width: '100%', textAlign: 'center', border: 'none', borderBottom: '2px solid rgba(40,30,24,0.15)', borderRadius: 0, padding: '12px 4px', fontSize: 16, background: 'transparent', outline: 'none', fontWeight: 600, color: T.text }}
               />
+              <div style={{ fontSize: 12, color: T.textTertiary, marginTop: 10, fontStyle: 'italic', textAlign: 'center' }}>
+                ✍️ Escribe con total libertad (ej. {temaId === 'servicios' ? '"Corte a 18€ en 30 min"' : temaId === 'equipo' ? '"ana, pepe, popa"' : '"lunes a viernes de 9 a 20"'}), ¡la IA te entenderá!
+              </div>
+              {temaId === 'servicios' && (
+                <div style={{ fontSize: 12.5, color: T.primaryHi, background: T.primarySoft, borderRadius: 10, padding: '8px 12px', marginTop: 14, textAlign: 'center', lineHeight: 1.4 }}>
+                  💡 <b>Solo necesitas añadir un servicio para empezar.</b> Podrás añadir el resto del catálogo cómodamente en Ajustes.
+                </div>
+              )}
             </div>
           )}
           {modoInput === 'texto' && presets && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 420 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 400, margin: '6px 0' }}>
               {presets.map((p) => (
-                <button key={p.label} onClick={() => onPreset(p.dias)} disabled={ejecutando} className="m-chip" style={{ padding: '7px 12px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 999, color: T.textSecondary, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>
+                <button key={p.label} onClick={() => onPreset(p.dias)} disabled={ejecutando} className="m-chip" style={{ padding: '8px 14px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 999, color: T.textSecondary, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                   {p.label}
                 </button>
               ))}
             </div>
           )}
           {errorTexto && (
-            <div style={{ fontSize: 11.5, color: T.danger, textAlign: 'center', maxWidth: 380 }}>{errorTexto}</div>
+            <div style={{ fontSize: 12, color: T.danger, textAlign: 'center', maxWidth: 360, background: T.dangerSoft, padding: '8px 12px', borderRadius: 10, border: `1px solid ${T.danger}22` }}>{errorTexto}</div>
           )}
           {modoInput === 'foto' && <SubidaFotoInline disabled={ejecutando} />}
           {modoInput === 'botones' && (
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => onBoton(true)} disabled={ejecutando} className="m-btn-primary" style={{ padding: '11px 22px', background: T.primary, border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Si, activar</button>
-              <button onClick={() => onBoton(false)} disabled={ejecutando} style={{ padding: '11px 18px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Ahora no</button>
+            <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 8 }}>
+              <button onClick={() => onBoton(true)} disabled={ejecutando} className="m-btn-primary" style={{ flex: 1, padding: '12px 22px', background: T.primary, border: 'none', borderRadius: 12, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>Sí, activar</button>
+              <button onClick={() => onBoton(false)} disabled={ejecutando} className="m-btn-secondary" style={{ flex: 1, padding: '12px 18px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 12, color: T.textSecondary, fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>Ahora no</button>
             </div>
           )}
           {pregunta.subtitulo && (
-            <div style={{ fontSize: 11.5, color: T.textSecondary, background: T.primarySoft, borderRadius: 999, padding: '8px 14px', maxWidth: 380, textAlign: 'center' }}>
+            <div style={{ fontSize: 12.5, color: T.textSecondary, background: 'rgba(40,30,24,0.04)', borderRadius: 12, padding: '10px 14px', maxWidth: 380, textAlign: 'center', lineHeight: 1.45 }}>
               {pregunta.subtitulo}
             </div>
           )}
           {modoInput === 'texto' && (
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={onEnviar} disabled={ejecutando || !valor.trim()} className="m-btn-primary" style={{ padding: '10px 20px', background: T.primary, border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: ejecutando ? 'not-allowed' : 'pointer', opacity: ejecutando ? 0.6 : 1 }}>
-                {ejecutando ? 'Guardando...' : 'Continuar'}
+            <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 12 }}>
+              <button onClick={onEnviar} disabled={ejecutando || !valor.trim()} className="m-btn-primary" style={{ flex: 1, padding: '12px 20px', background: T.primary, border: 'none', borderRadius: 12, color: '#fff', fontSize: 14, fontWeight: 700, cursor: ejecutando ? 'not-allowed' : 'pointer', opacity: ejecutando || !valor.trim() ? 0.6 : 1 }}>
+                Continuar
               </button>
-              <button onClick={onSaltar} disabled={ejecutando} style={{ padding: '10px 16px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
-                Saltar este paso
+              <button onClick={onSaltar} disabled={ejecutando} className="m-btn-secondary" style={{ padding: '12px 16px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 12, color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                Saltar paso
               </button>
             </div>
           )}
           {modoInput !== 'texto' && (
-            <button onClick={onSaltar} disabled={ejecutando} style={{ padding: '10px 16px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
+            <button onClick={onSaltar} disabled={ejecutando} className="m-btn-secondary" style={{ width: '100%', padding: '12px 16px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 12, color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 8 }}>
               Saltar este paso
             </button>
           )}
-          <div style={{ fontSize: 11, color: T.textTertiary }}>{destinoManual}</div>
+          <div style={{ fontSize: 11, color: T.textTertiary, marginTop: 12 }}>{destinoManual}</div>
         </>
       )}
     </div>
   );
 }
 
-// Placeholder minimo de subida de foto: el tema fotos_servicios es opcional y
-// no bloquea el nucleo (spec, decision 2). Sube directo al bucket publico
-// servicio-fotos, igual que hace hoy Ajustes > Servicios.
 function SubidaFotoInline({ disabled }: { disabled: boolean }) {
   const [subiendo, setSubiendo] = useState(false);
   const [subida, setSubida] = useState(false);
@@ -460,10 +569,6 @@ function SubidaFotoInline({ disabled }: { disabled: boolean }) {
 function FotogramaConfirmarRiesgo({ isMobile, accion, onConfirmar, onCancelar }: {
   isMobile: boolean; accion: { tipo: string; args: Record<string, any> }; onConfirmar: () => void; onCancelar: () => void;
 }) {
-  // Guarda local anti-doble-clic: onConfirmar dispara ejecutarYMostrarRecibo
-  // (async) y fase tarda un tick en pasar a 'ejecutando'. Sin esto, un
-  // doble-clic antes de ese tick podria disparar la accion dos veces; grave
-  // en invitar_profesional_email, que envia un email real sin idempotencia.
   const [confirmando, setConfirmando] = useState(false);
   const esInvitacion = accion.tipo === 'invitar_profesional_email';
   const titulo = esInvitacion ? `Invitar a ${accion.args.profesional_nombre} por email` : 'Activar la reserva online publica';
@@ -478,34 +583,71 @@ function FotogramaConfirmarRiesgo({ isMobile, accion, onConfirmar, onCancelar }:
     onCancelar();
   };
   return (
-    <div className="m-rise" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18, padding: isMobile ? 20 : 32, textAlign: 'center' }}>
-      <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: T.text, maxWidth: 400 }}>{titulo}</div>
-      <div style={{ fontSize: 13, color: T.textSecondary, maxWidth: 360 }}>{detalle}</div>
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={handleConfirmar} disabled={confirmando} className="m-btn-primary" style={{ padding: '11px 22px', background: T.primary, border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: confirmando ? 'not-allowed' : 'pointer', opacity: confirmando ? 0.6 : 1 }}>
-          {confirmando ? 'Un momento...' : 'Si, adelante'}
+    <div className="m-rise" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 18,
+      padding: isMobile ? '32px 20px' : '40px 32px',
+      textAlign: 'center',
+      background: 'rgba(255, 253, 251, 0.82)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      border: '1px solid rgba(40, 30, 24, 0.08)',
+      borderRadius: 24,
+      boxShadow: '0 24px 60px rgba(40, 30, 24, 0.06)',
+      maxWidth: 480,
+      width: isMobile ? 'calc(100% - 32px)' : '420px',
+    }}>
+      <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: T.text, maxWidth: 360, lineHeight: 1.3 }}>{titulo}</div>
+      <div style={{ fontSize: 13.5, color: T.textSecondary, maxWidth: 320, lineHeight: 1.5 }}>{detalle}</div>
+      <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 12 }}>
+        <button onClick={handleConfirmar} disabled={confirmando} className="m-btn-primary" style={{ flex: 1, padding: '12px 22px', background: T.primary, border: 'none', borderRadius: 12, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: confirmando ? 'not-allowed' : 'pointer' }}>
+          {confirmando ? 'Un momento...' : 'Sí, adelante'}
         </button>
-        <button onClick={handleCancelar} disabled={confirmando} style={{ padding: '11px 18px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: confirmando ? 'not-allowed' : 'pointer' }}>Ahora no</button>
+        <button onClick={handleCancelar} disabled={confirmando} className="m-btn-secondary" style={{ flex: 1, padding: '12px 18px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 12, color: T.textSecondary, fontSize: 13.5, fontWeight: 600, cursor: confirmando ? 'not-allowed' : 'pointer' }}>Ahora no</button>
       </div>
     </div>
   );
 }
 
-function FotogramaRecibo({ isMobile, recibo, esUltimoTema, permiteAnadirOtro, onAnadirOtro, onContinuar }: {
+function FotogramaRecibo({ isMobile, recibo, esUltimoTema, permiteAnadirOtro, onAnadirOtro, onContinuar, temaId }: {
   isMobile: boolean; recibo: { ok: boolean; resumen: string }; esUltimoTema: boolean; permiteAnadirOtro: boolean;
-  onAnadirOtro: () => void; onContinuar: () => void;
+  onAnadirOtro: () => void; onContinuar: () => void; temaId: TemaId;
 }) {
   return (
-    <div className="m-rise" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: isMobile ? 20 : 32, textAlign: 'center' }}>
-      <div style={{ width: 44, height: 44, borderRadius: 14, background: recibo.ok ? T.successSoft : T.dangerSoft, display: 'grid', placeItems: 'center', fontSize: 20, color: recibo.ok ? T.success : T.danger }}>
+    <div className="m-rise" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 16,
+      padding: isMobile ? '32px 20px' : '40px 32px',
+      textAlign: 'center',
+      background: 'rgba(255, 253, 251, 0.82)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      border: '1px solid rgba(40, 30, 24, 0.08)',
+      borderRadius: 24,
+      boxShadow: '0 24px 60px rgba(40, 30, 24, 0.06)',
+      maxWidth: 480,
+      width: isMobile ? 'calc(100% - 32px)' : '420px',
+    }}>
+      <div style={{ width: 48, height: 48, borderRadius: 16, background: recibo.ok ? T.successSoft : T.dangerSoft, display: 'grid', placeItems: 'center', fontSize: 22, color: recibo.ok ? T.success : T.danger, fontWeight: 'bold' }}>
         {recibo.ok ? '✓' : '!'}
       </div>
-      <div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 700, color: T.text, maxWidth: 420 }}>{recibo.resumen}</div>
-      <div style={{ display: 'flex', gap: 10 }}>
+      <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: T.text, maxWidth: 360, lineHeight: 1.4 }}>{recibo.resumen}</div>
+      {permiteAnadirOtro && recibo.ok && (
+        <div style={{ fontSize: 12.5, color: T.textSecondary, background: 'rgba(40,30,24,0.04)', borderRadius: 10, padding: '8px 12px', maxWidth: 340, lineHeight: 1.45, margin: '4px 0 10px' }}>
+          💡 {temaId === 'servicios' 
+            ? 'Con un solo servicio es suficiente para empezar a operar. Puedes añadir más ahora o continuar y configurarlos luego.' 
+            : 'Con dar de alta a una persona es suficiente. Puedes añadir más compañeros ahora o configurarlos luego.'}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 8 }}>
         {permiteAnadirOtro && recibo.ok && (
-          <button onClick={onAnadirOtro} style={{ padding: '11px 18px', background: T.primarySoft, border: `1px solid ${T.primaryGlow}`, borderRadius: 10, color: T.primaryHi, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ Anadir otro</button>
+          <button onClick={onAnadirOtro} style={{ flex: 1, padding: '12px 18px', background: T.primarySoft, border: `1px solid ${T.primary}`, borderRadius: 12, color: T.primaryHi, fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>+ Añadir otro</button>
         )}
-        <button onClick={onContinuar} className="m-btn-primary" style={{ padding: '11px 20px', background: T.primary, border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+        <button onClick={onContinuar} className="m-btn-primary" style={{ flex: 1, padding: '12px 20px', background: T.primary, border: 'none', borderRadius: 12, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>
           {esUltimoTema ? 'Terminar' : 'Continuar'}
         </button>
       </div>

@@ -12,6 +12,7 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualCaja } from '@/lib/manuals/caja';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { AvisosBell } from '@/components/avisos/AvisosBell';
 
 // ─────────────────────────────────────────────────────────────────────────────────
 // Tokens (consistente con el resto de .web.tsx)
@@ -368,51 +369,54 @@ function CajaScreen() {
           <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
             <Icon name="wallet" size={isMobile ? 22 : 28} color={T.primary} />
             Caja
-            <button
-              onClick={() => setShowManualPanel(true)}
-              title="Manual de esta pagina"
-              style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: T.card, border: `1px solid ${T.borderHi}`, color: T.textSec, cursor: 'pointer', flexShrink: 0 }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-            </button>
           </h1>
           <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>
             Cobra las citas completadas, controla el arqueo del día y la jornada del equipo.
           </p>
         </div>
-        {canSeeAll && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button
-              onClick={async () => {
-                setShowVentaProductos(true);
-                if (productosDisponibles.length === 0) {
-                  const profile = await getUserProfile();
-                  if (profile?.negocio_id) {
-                    const { data } = await supabase.from('productos').select('id, nombre, precio_cents').eq('negocio_id', profile.negocio_id).eq('activo', true).order('nombre');
-                    setProductosDisponibles(data ?? []);
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, zIndex: 100, flexWrap: 'wrap' }}>
+          {canSeeAll && (
+            <>
+              <button
+                onClick={async () => {
+                  setShowVentaProductos(true);
+                  if (productosDisponibles.length === 0) {
+                    const profile = await getUserProfile();
+                    if (profile?.negocio_id) {
+                      const { data } = await supabase.from('productos').select('id, nombre, precio_cents').eq('negocio_id', profile.negocio_id).eq('activo', true).order('nombre');
+                      setProductosDisponibles(data ?? []);
+                    }
                   }
-                }
-              }}
-              className="ca-btn"
-              style={{ padding: '10px 18px', background: T.primary, border: 'none', color: '#fff', borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
-            >
-              <Icon name="wallet" size={15} color="#fff" />
-              Vender producto
-            </button>
-            <button
-              onClick={() => setShowWalkin(true)}
-              className="ca-btn"
-              style={{ padding: '10px 18px', background: T.card, border: `1px solid ${T.borderHi}`, color: T.text, borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
-            >
-              <Icon name="cash" size={15} color={T.primary} />
-              Cobro rápido
-            </button>
-          </div>
-        )}
+                }}
+                className="ca-btn"
+                style={{ padding: '10px 18px', background: T.primary, border: 'none', color: '#fff', borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
+              >
+                <Icon name="wallet" size={15} color="#fff" />
+                Vender producto
+              </button>
+              <button
+                onClick={() => setShowWalkin(true)}
+                className="ca-btn"
+                style={{ padding: '10px 18px', background: T.card, border: `1px solid ${T.borderHi}`, color: T.text, borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
+              >
+                <Icon name="cash" size={15} color={T.primary} />
+                Cobro rápido
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => setShowManualPanel(true)}
+            title="Manual de esta pagina"
+            style={{ display: 'grid', placeItems: 'center', width: 32, height: 32, borderRadius: 8, background: T.card, border: `1px solid ${T.borderHi}`, color: T.textSec, cursor: 'pointer', flexShrink: 0 }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </button>
+          <AvisosBell mode="header" />
+        </div>
       </div>
 
       {!paginaManual.loading && !paginaManual.visto && (

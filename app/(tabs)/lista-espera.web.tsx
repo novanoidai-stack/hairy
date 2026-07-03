@@ -13,6 +13,7 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualListaEspera } from '@/lib/manuals/lista-espera';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { AvisosBell } from '@/components/avisos/AvisosBell';
 
 // ---------------------------------------------------------------------------
 // Tokens (consistentes con el resto de .web.tsx)
@@ -192,6 +193,7 @@ function ListaEsperaScreen() {
                   <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
               </button>
+              <AvisosBell mode="header" />
             </h1>
             <p style={{ fontSize: 14, color: T.textTer, margin: '4px 0 0' }}>
               Apunta a quien quiere un hueco lleno y avísale cuando se libere uno.

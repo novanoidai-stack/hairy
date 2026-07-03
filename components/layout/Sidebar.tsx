@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
+import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { getUserProfile, can, roleOf, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
 import { IS_DEMO_MODE } from '@/lib/supabase';
 import { useAppLang } from '@/lib/hooks/useAppLang';
@@ -261,16 +262,25 @@ export function Sidebar() {
           )}
         </TouchableOpacity>
         {!collapsed && (
-          <TouchableOpacity style={s.collapseBtn} onPress={toggleCollapsed} {...({ title: 'Contraer menú' } as any)}>
-            <Ionicons name="chevron-back" size={16} color={tokens.textTertiary} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            {/* Campana global de avisos: visible en todas las paginas, no solo la agenda */}
+            <AvisosBell collapsed={false} />
+            <TouchableOpacity style={s.collapseBtn} onPress={toggleCollapsed} {...({ title: 'Contraer menú' } as any)}>
+              <Ionicons name="chevron-back" size={16} color={tokens.textTertiary} />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
       {collapsed && (
-        <TouchableOpacity style={s.collapseBtnFull} onPress={toggleCollapsed} {...({ title: 'Expandir menú' } as any)}>
-          <Ionicons name="chevron-forward" size={16} color={tokens.textTertiary} />
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity style={s.collapseBtnFull} onPress={toggleCollapsed} {...({ title: 'Expandir menú' } as any)}>
+            <Ionicons name="chevron-forward" size={16} color={tokens.textTertiary} />
+          </TouchableOpacity>
+          <View style={{ marginBottom: tokens.spacing.xs }}>
+            <AvisosBell collapsed />
+          </View>
+        </>
       )}
 
       {/* Navigation Scroll Container */}

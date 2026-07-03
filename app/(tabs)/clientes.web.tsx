@@ -16,6 +16,7 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualClientes } from '@/lib/manuals/clientes';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { AvisosBell } from '@/components/avisos/AvisosBell';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -531,6 +532,7 @@ function ClientesWeb() {
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
             </button>
+            <AvisosBell mode="header" />
           </h1>
           <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: TOKENS.textSec }}>{clientes.length} clientes activos</p>
         </div>

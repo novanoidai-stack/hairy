@@ -12,6 +12,7 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualInventario } from '@/lib/manuals/inventario';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { AvisosBell } from '@/components/avisos/AvisosBell';
 
 // ────────────────────────────────────────────────────────────────────────────────
 // ICONOS SVG PREMIUM
@@ -709,10 +710,16 @@ export default function InventarioScreen() {
         }
         .btn-action-premium {
           transition: all 0.15s;
-        }
         .btn-action-premium:hover {
           background-color: rgba(40, 30, 24, 0.05) !important;
           transform: scale(1.05);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}} />
 
@@ -723,24 +730,27 @@ export default function InventarioScreen() {
             <Icon name="package" size={28} color="#fff" />
           </div>
           <div>
-            <h1 style={{ ...styles.headerTitle, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h1 style={styles.headerTitle}>
               {t('inv_titulo')}
-              <button
-                onClick={() => setShowManualPanel(true)}
-                title="Manual de esta pagina"
-                style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: '#fff', border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-              </button>
             </h1>
             <p style={{ fontSize: '13px', color: TOKENS.textSec, margin: '2px 0 0 0' }}>
               {t('inv_subtitulo')}
             </p>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, zIndex: 100 }}>
+          <button
+            onClick={() => setShowManualPanel(true)}
+            title="Manual de esta pagina"
+            style={{ display: 'grid', placeItems: 'center', width: 32, height: 32, borderRadius: 8, background: '#fff', border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </button>
+          <AvisosBell mode="header" />
         </div>
       </div>
 
@@ -851,7 +861,7 @@ export default function InventarioScreen() {
       )}
 
       {/* Category Tabs */}
-      <div style={styles.categoryTabs}>
+      <div style={styles.categoryTabs} className="no-scrollbar">
         {categorias.map((cat) => {
           const isSelected = filtroCategoria === cat;
           return (
@@ -1330,6 +1340,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     scrollbarWidth: 'none',
     marginTop: '12px',
     marginBottom: '12px',
+    // El contenedor de la pagina es flex-column: con overflowX el min-height
+    // automatico pasa a 0 y la fila de pildoras se aplastaba al hacer scroll.
+    flexShrink: 0,
+    minHeight: '40px',
+    alignItems: 'center',
   },
   categoryTab: {
     display: 'flex',

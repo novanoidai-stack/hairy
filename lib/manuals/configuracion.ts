@@ -8,7 +8,7 @@ export const manualConfiguracion: ManualContent = {
     {
       titulo: 'Cómo se organiza',
       texto: 'El menú de la izquierda agrupa los ajustes por bloques (General, Horarios, Servicios, Notificaciones, Reserva online, Cuenta...). Elige uno para ver y editar sus opciones.',
-      captura: '/app/manuals/configuracion/menu.png',
+      captura: '/manuals/configuracion/menu.png',
     },
     {
       titulo: 'Guardar cambios',
@@ -17,7 +17,7 @@ export const manualConfiguracion: ManualContent = {
     {
       titulo: 'Datos del negocio y horarios',
       texto: 'En "General" están el nombre, dirección y contacto del salón. En "Horarios" defines los días y franjas en que el salón abre, que acotan lo que ofrece la reserva online.',
-      captura: '/app/manuals/configuracion/general.png',
+      captura: '/manuals/configuracion/general.png',
     },
     {
       titulo: 'Servicios y precios',

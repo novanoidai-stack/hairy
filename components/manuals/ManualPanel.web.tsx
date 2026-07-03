@@ -11,6 +11,14 @@ const PANEL_ANIM = `
   @keyframes mpFade { from { opacity: 0; } to { opacity: 1; } }
   @keyframes mpPop { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
   @keyframes mpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes pulseHighlight {
+    0% { border-color: rgba(244, 80, 30, 0.4); box-shadow: 0 0 0 0 rgba(244, 80, 30, 0.4); }
+    70% { border-color: rgba(244, 80, 30, 1); box-shadow: 0 0 0 6px rgba(244, 80, 30, 0.4); }
+    100% { border-color: rgba(244, 80, 30, 0.4); box-shadow: 0 0 0 0 rgba(244, 80, 30, 0); }
+  }
+  .pulse-highlight {
+    animation: pulseHighlight 2s infinite;
+  }
   @media (prefers-reduced-motion: reduce) {
     .mp-backdrop, .mp-card { animation: none !important; }
   }
@@ -24,6 +32,16 @@ export function ManualPanel({ content, isMobile, onClose }: Props) {
   const cardStyle: React.CSSProperties = isMobile
     ? { position: 'fixed', inset: 0, background: T.bg, display: 'flex', flexDirection: 'column', animation: 'mpSheet 0.3s cubic-bezier(0.16,1,0.3,1)' }
     : { position: 'relative', width: 'min(560px, 94vw)', maxHeight: '88vh', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, boxShadow: '0 30px 80px rgba(20,12,6,0.35)', display: 'flex', flexDirection: 'column', animation: 'mpPop 0.32s cubic-bezier(0.16,1,0.3,1)' };
+
+  const getCapturaUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http') || path.startsWith('/app/')) return path;
+    const hasAppPrefix = typeof window !== 'undefined' && window.location.pathname.startsWith('/app');
+    if (hasAppPrefix) {
+      return `/app${path}`;
+    }
+    return path;
+  };
 
   return (
     <>
@@ -54,9 +72,40 @@ export function ManualPanel({ content, isMobile, onClose }: Props) {
             {content.secciones.map((s, i) => (
               <div key={i}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 6 }}>{s.titulo}</div>
-                <div style={{ fontSize: 13, color: T.textSec, lineHeight: 1.5, marginBottom: s.captura ? 10 : 0 }}>{s.texto}</div>
+                <div style={{ fontSize: 13, color: T.textSec, lineHeight: 1.5, marginBottom: s.captura ? 12 : 0 }}>{s.texto}</div>
                 {s.captura && (
-                  <img src={s.captura} alt={s.titulo} style={{ width: '100%', borderRadius: 10, border: `1px solid ${T.border}`, display: 'block' }} />
+                  <div style={{ display: 'flex', justifyContent: 'center', backgroundColor: T.bgCardHi, padding: 12, borderRadius: 10, border: `1px solid ${T.border}` }}>
+                    <div style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
+                      <img
+                        src={getCapturaUrl(s.captura)}
+                        alt={s.titulo}
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '320px',
+                          height: 'auto',
+                          borderRadius: 6,
+                          objectFit: 'contain',
+                          display: 'block',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                        }}
+                      />
+                      {s.highlight && (
+                        <div
+                          className="pulse-highlight"
+                          style={{
+                            position: 'absolute',
+                            top: s.highlight.top,
+                            left: s.highlight.left,
+                            width: s.highlight.width,
+                            height: s.highlight.height,
+                            border: `3px solid ${T.primary}`,
+                            borderRadius: '4px',
+                            pointerEvents: 'none',
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             ))}

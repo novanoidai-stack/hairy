@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
+import { AvisosSheet } from '@/components/avisos/AvisosSheet';
+import { useAvisos } from '@/lib/hooks/useAvisos';
 import { getUserProfile, can, roleOf, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
 import { IS_DEMO_MODE } from '@/lib/supabase';
 import { useAppLang } from '@/lib/hooks/useAppLang';
@@ -57,6 +59,9 @@ export function MobileTabBar({ state }: TabBarProps) {
   const { t } = useAppLang();
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const [moreOpen, setMoreOpen] = useState(false);
+  // Avisos globales: accesibles desde cualquier pagina via la hoja "Mas".
+  const [avisosOpen, setAvisosOpen] = useState(false);
+  const avisos = useAvisos();
 
   // Gating por rol (mismo criterio que el Sidebar de escritorio). Defensivo:
   // mientras carga (undefined) o sin sesion (null) se muestra todo.
@@ -133,11 +138,16 @@ export function MobileTabBar({ state }: TabBarProps) {
           activeOpacity={0.7}
           {...({ accessibilityRole: 'button', accessibilityLabel: 'Más opciones' } as any)}
         >
-          <Ionicons
-            name={(moreActive || moreOpen ? 'menu' : 'menu-outline') as any}
-            size={23}
-            color={moreActive || moreOpen ? tokens.primary : tokens.textTertiary}
-          />
+          <View>
+            <Ionicons
+              name={(moreActive || moreOpen ? 'menu' : 'menu-outline') as any}
+              size={23}
+              color={moreActive || moreOpen ? tokens.primary : tokens.textTertiary}
+            />
+            {avisos.total > 0 && (
+              <View style={{ position: 'absolute', top: -1, right: -3, width: 7, height: 7, borderRadius: 999, backgroundColor: avisos.sinConfirmar.length > 0 ? tokens.danger : '#fb923c' }} />
+            )}
+          </View>
           <TText style={[s.tabLabel, { color: moreActive || moreOpen ? tokens.primary : tokens.textTertiary }]} numberOfLines={1}>
             {t('nav_mas')}
           </TText>
@@ -163,6 +173,25 @@ export function MobileTabBar({ state }: TabBarProps) {
               <TText style={s.accountName} numberOfLines={1}>{accountName}</TText>
               {accountSubtitle ? <TText style={s.accountRole} numberOfLines={1}>{accountSubtitle}</TText> : null}
             </View>
+          </TouchableOpacity>
+
+          {/* Avisos globales con badge; abre la hoja de avisos con navegacion a resolver */}
+          <TouchableOpacity
+            style={s.row}
+            onPress={() => { setMoreOpen(false); avisos.refresh(); setAvisosOpen(true); }}
+            activeOpacity={0.7}
+            {...({ accessibilityRole: 'button', accessibilityLabel: 'Avisos' } as any)}
+          >
+            <View style={s.rowIcon}>
+              <Ionicons name="notifications-outline" size={20} color={tokens.textSecondary} />
+            </View>
+            <TText style={s.rowLabel} numberOfLines={1}>Avisos</TText>
+            {avisos.total > 0 && (
+              <View style={{ borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: avisos.sinConfirmar.length > 0 ? tokens.dangerSoft : 'rgba(251,146,60,0.14)' }}>
+                <TText style={{ fontSize: 11, fontWeight: '700', color: avisos.sinConfirmar.length > 0 ? tokens.danger : '#fb923c' }}>{avisos.total}</TText>
+              </View>
+            )}
+            <Ionicons name="chevron-forward" size={18} color={tokens.textTertiary} />
           </TouchableOpacity>
 
           <TText style={s.sheetLabel}>SECCIONES</TText>
@@ -199,6 +228,8 @@ export function MobileTabBar({ state }: TabBarProps) {
           )}
         </View>
       </Modal>
+
+      <AvisosSheet visible={avisosOpen} onClose={() => setAvisosOpen(false)} avisos={avisos} />
     </>
   );
 }

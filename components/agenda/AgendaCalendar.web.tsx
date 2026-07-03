@@ -292,7 +292,7 @@ export default function AgendaCalendar() {
   // --- Onboarding: checklist de puesta en marcha del salon ---
   // Solo para gestores (owner/admin) en su negocio propio; nunca en la demo ni para
   // prospectos free (que viven en demo_salon_001).
-  const obParams = useLocalSearchParams<{ onboarding?: string }>();
+  const obParams = useLocalSearchParams<{ onboarding?: string; cita?: string }>();
   const esGestor = userProfile?.role === 'owner' || userProfile?.role === 'admin';
   const onboardingEligible = !!userProfile && esGestor && !IS_DEMO_MODE && negocioId !== 'demo_salon_001';
   const onboarding = useOnboardingStatus(onboardingEligible ? negocioId : null, onboardingEligible);
@@ -356,6 +356,23 @@ export default function AgendaCalendar() {
   useEffect(() => {
     if (obParams?.onboarding === '1' && onboardingEligible) setShowOnboardingPanel(true);
   }, [obParams?.onboarding, onboardingEligible]);
+
+  // Deep-link ?cita=<id> (desde la campana de avisos global): situa el calendario
+  // en el dia de la cita y abre su ficha para gestionarla (confirmar/cancelar).
+  const citaParamConsumida = useRef<string | null>(null);
+  useEffect(() => {
+    const citaId = obParams?.cita as string | undefined;
+    if (!citaId || citas.length === 0 || citaParamConsumida.current === citaId) return;
+    const pick = citas.find((c: any) => c.id === citaId);
+    if (!pick) return;
+    citaParamConsumida.current = citaId;
+    const d = new Date(pick.inicio);
+    setSelectedDate(d.getDate());
+    setCurrentMonth(new Date(d.getFullYear(), d.getMonth()));
+    setView('day');
+    setSelectedCitaEdit(pick);
+    setShowEditCita(true);
+  }, [obParams?.cita, citas]);
 
   // La tarjeta aparece mientras el nucleo no este completo y no se haya ocultado.
   const onboardingPending = onboardingEligible && onboarding.ready && !onboarding.coreDone && !obHidden;
@@ -908,7 +925,8 @@ export default function AgendaCalendar() {
                               return (
                                 <button
                                   key={c.id}
-                                  onClick={() => { const d = new Date(c.inicio); setSelectedDate(d.getDate()); setCurrentMonth(new Date(d.getFullYear(), d.getMonth())); setShowNotif(false); }}
+                                  onClick={() => { const d = new Date(c.inicio); setSelectedDate(d.getDate()); setCurrentMonth(new Date(d.getFullYear(), d.getMonth())); setView('day'); setShowNotif(false); setSelectedCitaEdit(c); setShowEditCita(true); }}
+                                  title="Abrir la cita para gestionarla"
                                   style={{ textAlign: 'left', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2 }}
                                 >
                                   <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>{cli?.nombre || 'Cliente'}</span>
@@ -953,7 +971,8 @@ export default function AgendaCalendar() {
                               return (
                                 <button
                                   key={b.id}
-                                  onClick={() => { setSelectedDate(b.fecha.getDate()); setCurrentMonth(new Date(b.fecha.getFullYear(), b.fecha.getMonth())); setShowNotif(false); }}
+                                  onClick={() => { setShowNotif(false); router.push(`/(tabs)/clientes?clienteId=${b.id}` as never); }}
+                                  title="Ver la ficha de la clienta"
                                   style={{ textAlign: 'left', background: TOKENS.bgCard, border: `1px solid rgba(251,146,60,0.30)`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9 }}
                                 >
                                   <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 8, background: 'rgba(251,146,60,0.14)' }}><Icon name="cake" size={14} color="#fb923c" /></span>
@@ -1777,10 +1796,16 @@ export default function AgendaCalendar() {
       {showClienteHistorial && <ClienteHistorialModal cliente={showClienteHistorial} onClose={() => setShowClienteHistorial(null)} citas={citas} servicioMap={servicioMap} profesionalMap={profesionalMap} />}
       {showEditCita && selectedCitaEdit && (
         <DetalleCitaModal
-          onClose={() => setShowEditCita(false)}
+          onClose={() => {
+            setShowEditCita(false);
+            router.replace('/(tabs)/');
+            citaParamConsumida.current = null;
+          }}
           onSaved={(updatedFields: any) => {
             setCitas(prev => prev.map(c => c.id === selectedCitaEdit.id ? { ...c, ...updatedFields } : c));
             setShowEditCita(false);
+            router.replace('/(tabs)/');
+            citaParamConsumida.current = null;
           }}
           cita={selectedCitaEdit}
           retrasosActivo={recolocarRetraso}

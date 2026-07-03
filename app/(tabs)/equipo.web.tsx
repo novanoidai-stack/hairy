@@ -10,6 +10,7 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualEquipo } from '@/lib/manuals/equipo';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { AvisosBell } from '@/components/avisos/AvisosBell';
 
 
 // Iconos SVG simples
@@ -389,6 +390,7 @@ export default function EquipoWeb() {
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
             </button>
+            <AvisosBell mode="header" />
           </h1>
           <p style={{ margin: 0, marginTop: 4, fontSize: isMobile ? 12 : 13, color: TOKENS.textSec }}>
             {isMobile ? 'Profesionales y disponibilidad' : '5 profesionales · 4 activos · gestiona disponibilidad y bloqueos'}

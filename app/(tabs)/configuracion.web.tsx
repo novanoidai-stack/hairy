@@ -20,6 +20,7 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualConfiguracion } from '@/lib/manuals/configuracion';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { AvisosBell } from '@/components/avisos/AvisosBell';
 import {
   Section, FieldRow, FieldStack, Toggle, NumberInput, STextInput, SSelect,
   Segmented, TimeInput, Badge, SoonBadge, SoonBanner, StatBox,
@@ -966,6 +967,7 @@ export default function ConfiguracionWeb() {
                   <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
               </button>
+              <AvisosBell mode="header" />
             </h1>
           </div>
         </div>

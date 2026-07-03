@@ -8,12 +8,12 @@ export const manualAgenda: ManualContent = {
     {
       titulo: 'Crear una cita',
       texto: 'Pulsa "Nueva cita" arriba a la derecha, o haz clic directamente sobre un hueco vacío de la rejilla para prellenar la hora y el profesional. Elige servicio, profesional y cliente para confirmarla.',
-      captura: '/app/manuals/agenda/nueva-cita.png',
+      captura: '/manuals/agenda/nueva-cita.png',
     },
     {
       titulo: 'Cambiar de vista',
       texto: 'Los botones "Día", "Semana" y "Mes" arriba a la izquierda cambian el rango de la agenda que se muestra. La vista de día es la que usarás la mayor parte del tiempo.',
-      captura: '/app/manuals/agenda/vistas.png',
+      captura: '/manuals/agenda/vistas.png',
     },
     {
       titulo: 'Editar, cobrar o cancelar una cita',
@@ -22,12 +22,12 @@ export const manualAgenda: ManualContent = {
     {
       titulo: 'El panel de Avisos',
       texto: 'El icono de campana, arriba a la derecha, agrupa citas sin confirmar en las próximas 48h, el progreso de puesta en marcha del salón y otros avisos operativos del día.',
-      captura: '/app/manuals/agenda/avisos.png',
+      captura: '/manuals/agenda/avisos.png',
     },
     {
       titulo: 'Lista de espera',
       texto: 'El botón "Lista de espera" de la barra de filtros abre la gestión de clientes que quieren hueco antes de su próxima cita disponible.',
-      captura: '/app/manuals/agenda/lista-espera.png',
+      captura: '/manuals/agenda/lista-espera.png',
     },
   ],
 };

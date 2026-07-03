@@ -11,6 +11,7 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualResenas } from '@/lib/manuals/resenas';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { AvisosBell } from '@/components/avisos/AvisosBell';
 
 const TOKENS = {
   bg: '#f6f1ea',
@@ -296,6 +297,7 @@ function ResenasScreen() {
                   <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
               </button>
+              <AvisosBell mode="header" />
             </h1>
             <p style={{ margin: 0, fontSize: isMobile ? 14 : 15, color: TOKENS.textSec, maxWidth: 560 }}>
               Qué piensan tus clientes de su experiencia en el salón y reservando con Mecha. Filtra, mide cada detalle y detecta qué mejorar.

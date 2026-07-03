@@ -326,10 +326,29 @@
         <option value="free">Free</option>
         <option value="full">Full</option>
       </select>
+      <select class="ad-sel" id="fRole">
+        <option value="">Todos los roles</option>
+        <option value="owner">Propietario</option>
+        <option value="admin">Dirección</option>
+        <option value="recepcion">Recepción</option>
+        <option value="employee">Profesional</option>
+      </select>
       <button class="ad-refresh" id="refreshCueBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
         Actualizar
       </button>
+    </div>
+
+    <!-- SECCIÓN: BORRADO DE CORREOS HUÉRFANOS -->
+    <div style="background: rgba(239, 68, 68, 0.04); border: 1px dashed rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 14px; margin-top: 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h4 style="margin: 0 0 4px 0; color: #ef4444; font-size: 13px; font-weight: 700;">Forzar eliminación por Email (Desbloquear correo / Huérfanos)</h4>
+        <p style="margin: 0; color: var(--text-sec); font-size: 11px; max-width: 500px; line-height: 1.4;">Si un usuario fue eliminado de profiles pero sigue bloqueado en auth.users, ingrésalo aquí para eliminar su registro auth y liberar el correo.</p>
+      </div>
+      <div style="display: flex; gap: 8px; flex-grow: 1; justify-content: flex-end; min-width: 280px; align-items: center;">
+        <input type="email" id="delEmailInput" placeholder="correo@ejemplo.com" style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 6px 10px; font-size: 12.5px; flex-grow: 1; max-width: 250px; outline: none; height: 32px; box-sizing: border-box;" />
+        <button id="btnDelEmail" style="background: #dc2626; color: white; border: none; border-radius: 6px; padding: 0 12px; font-size: 12px; font-weight: 600; cursor: pointer; height: 32px; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">Eliminar correo</button>
+      </div>
     </div>
 
     <div class="ad-count" id="countCue"></div>
@@ -705,16 +724,32 @@
     });
   }
 
+  function getRoleBadgeHtml(role) {
+    var roleLabel = 'Profesional';
+    var style = 'background:rgba(13,148,136,0.1); color:#0d9488; border:1px solid rgba(13,148,136,0.2);'; // employee (teal)
+    
+    if (role === 'owner') {
+      roleLabel = 'Propietario';
+      style = 'background:rgba(168,85,247,0.1); color:#a855f7; border:1px solid rgba(168,85,247,0.2);'; // purple
+    } else if (role === 'admin') {
+      roleLabel = 'Dirección';
+      style = 'background:rgba(59,130,246,0.1); color:#3b82f6; border:1px solid rgba(59,130,246,0.2);'; // blue
+    } else if (role === 'recepcion') {
+      roleLabel = 'Recepción';
+      style = 'background:rgba(245,158,11,0.1); color:#f59e0b; border:1px solid rgba(245,158,11,0.2);'; // amber
+    }
+    
+    return '<span class="plan" style="' + style + ' font-size:10.5px; padding:2px 6px; border-radius:4px; font-weight:700; text-transform:uppercase; margin-left:6px; letter-spacing:.03em;">' + roleLabel + '</span>';
+  }
+
   function subcuentaRowHtml(p) {
     var nombreFull = (esc(p.nombre) || 'Sin nombre') + (p.apellido ? (' ' + esc(p.apellido)) : '');
-    var roleLabel = p.role === 'admin' ? 'Dirección' : (p.role === 'recepcion' ? 'Recepción' : 'Profesional');
-    
     var action = '<button class="btn-delete-account" style="padding:4px 8px; font-size:11px; margin-left: auto; background:#dc2626; color:white; border:none; border-radius:4px; cursor:pointer;" data-del-acc="' + esc(p.id) + '" data-email="' + esc(p.email) + '">Eliminar</button>';
 
     return '<div class="sub-card-row" style="margin-top: 8px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border); border-radius: 12px; padding: 10px 14px;" data-pid="' + esc(p.id) + '">' +
       '<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">' +
         '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
-          '<span class="plan employee" style="background:rgba(13,148,136,0.1); color:#0d9488; border:1px solid rgba(13,148,136,0.2); font-size:10.5px; padding:2px 6px; border-radius:4px; font-weight:700; text-transform:uppercase;">' + roleLabel + '</span>' +
+          getRoleBadgeHtml(p.role) +
           '<span style="font-weight:600; font-size:13.5px; color:var(--text);">' + nombreFull + '</span>' +
           '<span style="color:var(--text-sec); font-size:12.5px;">(' + esc(p.email) + ')</span>' +
         '</div>' +
@@ -765,6 +800,7 @@
         '<div class="r-id">' +
           (isStaffAccount(p) ? '<span class="plan staff">equipo</span>' : '') +
           '<span class="plan ' + planClass + '">' + (plan === 'full' ? 'con acceso' : esc(plan)) + '</span>' +
+          getRoleBadgeHtml(p.role) +
           (isDemo ? '<span class="plan demo">en demo</span>' : '') +
           '<span class="r-name">' + nombreFull + '</span>' +
           (p.nombre_negocio ? '<span class="r-salon">· ' + esc(p.nombre_negocio) + '</span>' : '') +
@@ -787,6 +823,7 @@
     
     var q = ($('qCue').value || '').trim().toLowerCase();
     var plan = $('fPlan').value;
+    var role = $('fRole').value;
     
     var groups = {};
     accounts.forEach(function (p) {
@@ -826,6 +863,13 @@
     
     var filteredGroups = groupList.filter(function (g) {
       if (plan && (g.owner.plan || 'free') !== plan) return false;
+      if (role) {
+        var matchOwnerRole = (g.owner.role || 'employee') === role || (role === 'employee' && !g.owner.role);
+        var matchWorkerRole = g.workers.some(function (w) {
+          return (w.role || 'employee') === role || (role === 'employee' && !w.role);
+        });
+        if (!matchOwnerRole && !matchWorkerRole) return false;
+      }
       if (q) {
         var matchOwner = [g.owner.nombre, g.owner.apellido, g.owner.email, g.owner.nombre_negocio, g.owner.negocio_id, g.owner.phone].join(' ').toLowerCase().indexOf(q) !== -1;
         var matchWorker = g.workers.some(function (w) {
@@ -845,9 +889,16 @@
     }
     
     var html = filteredGroups.map(function (g) {
-      var row = cuentaRowHtml(g.owner, g.workers.length);
-      if (g.workers.length > 0) {
-        var subsHtml = g.workers.map(subcuentaRowHtml).join('');
+      var workersToShow = g.workers;
+      if (role) {
+        workersToShow = g.workers.filter(function (w) {
+          return (w.role || 'employee') === role || (role === 'employee' && !w.role);
+        });
+      }
+      
+      var row = cuentaRowHtml(g.owner, workersToShow.length);
+      if (workersToShow.length > 0) {
+        var subsHtml = workersToShow.map(subcuentaRowHtml).join('');
         row = row.replace('<!--SUB_ACCOUNTS_HERE-->', subsHtml);
       }
       return row;
@@ -947,7 +998,7 @@
         if (!window.confirm('¿Seguro que quieres eliminar la cuenta de "' + email + '"?\n\nSe eliminará su perfil de la base de datos de Mecha. Si tiene salones o datos vinculados, Supabase impedirá el borrado físico si hay restricciones activas.')) return;
         
         btn.disabled = true;
-        api.client.from('profiles').delete().eq('id', id).then(function (res) {
+        api.client.rpc('staff_delete_account', { target_user_id: id }).then(function (res) {
           if (res.error) {
             alert('Error eliminando la cuenta: ' + res.error.message);
             btn.disabled = false;
@@ -960,13 +1011,42 @@
     });
   }
 
-  ['qCue', 'fPlan'].forEach(function (id) {
+  ['qCue', 'fPlan', 'fRole'].forEach(function (id) {
     var el = $(id);
     if (el) el.addEventListener('input', renderCuentas);
     if (el) el.addEventListener('change', renderCuentas);
   });
   var rbc = $('refreshCueBtn');
   if (rbc) rbc.addEventListener('click', loadCuentas);
+
+  var btnDelEmail = $('btnDelEmail');
+  var delEmailInput = $('delEmailInput');
+  if (btnDelEmail && delEmailInput) {
+    btnDelEmail.addEventListener('click', function () {
+      var email = delEmailInput.value.trim().toLowerCase();
+      if (!email) {
+        alert('Por favor, introduce un correo electrónico válido.');
+        return;
+      }
+      if (!window.confirm('¿Seguro que quieres forzar la eliminación completa del correo "' + email + '"?\n\nEsto borrará tanto el perfil como el usuario de auth (liberando el correo para que pueda registrarse de nuevo).')) return;
+      
+      btnDelEmail.disabled = true;
+      var originalText = btnDelEmail.textContent;
+      btnDelEmail.textContent = 'Eliminando...';
+      
+      api.client.rpc('staff_delete_account_by_email', { target_email: email }).then(function (res) {
+        btnDelEmail.disabled = false;
+        btnDelEmail.textContent = originalText;
+        if (res.error) {
+          alert('Error al eliminar la cuenta por correo: ' + res.error.message);
+        } else {
+          alert('Cuenta eliminada con éxito y correo liberado.');
+          delEmailInput.value = '';
+          loadCuentas();
+        }
+      });
+    });
+  }
 
   // ---------- REFERIDOS (red multinivel) ----------
   // Modelo nuevo (migrations/referidos-arbol-multinivel.sql): cada profile tiene

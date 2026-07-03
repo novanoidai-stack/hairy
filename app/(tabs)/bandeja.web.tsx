@@ -15,6 +15,7 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualBandeja } from '@/lib/manuals/bandeja';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { AvisosBell } from '@/components/avisos/AvisosBell';
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
@@ -240,6 +241,7 @@ function BandejaScreen() {
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
             </button>
+            <AvisosBell mode="header" />
           </h1>
           <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>Mensajes de clientes: rechazos y cambios de presupuestos, y contactos desde tu página pública.</p>
         </div>

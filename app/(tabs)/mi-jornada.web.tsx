@@ -12,6 +12,7 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualMiJornada } from '@/lib/manuals/mi-jornada';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { AvisosBell } from '@/components/avisos/AvisosBell';
 
 const T = DESIGN_TOKENS;
 
@@ -548,6 +549,7 @@ function MiJornadaScreen() {
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
             </button>
+            <AvisosBell mode="header" />
             {esGestor && (
               <Segmented
                 value={vista}

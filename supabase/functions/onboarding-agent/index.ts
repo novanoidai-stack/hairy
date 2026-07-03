@@ -49,30 +49,50 @@ const TEMA_TOOLS: Record<TemaId, { name: string; description: string; parameters
     },
   },
   servicios: {
-    name: 'crear_servicio',
-    description: 'Extrae nombre, precio (euros) y duracion (minutos) de un servicio de peluqueria de la respuesta libre.',
+    name: 'crear_servicios',
+    description: 'Extrae una lista de uno o varios servicios de peluqueria (nombre, precio en euros y duracion en minutos) de la respuesta libre.',
     parameters: {
       type: 'object',
       properties: {
-        nombre: { type: 'string' },
-        precio: { type: 'number' },
-        duracion_min: { type: 'number' },
+        servicios: {
+          type: 'array',
+          description: 'Lista de servicios a crear. Debe contener al menos un elemento.',
+          items: {
+            type: 'object',
+            properties: {
+              nombre: { type: 'string' },
+              precio: { type: 'number' },
+              duracion_min: { type: 'number' },
+            },
+            required: ['nombre', 'precio', 'duracion_min'],
+          },
+        },
       },
-      required: ['nombre', 'precio', 'duracion_min'],
+      required: ['servicios'],
     },
   },
   equipo: {
-    name: 'crear_profesional',
-    description: 'Extrae nombre y categoria de un profesional del equipo, y si el propietario quiere invitarle ya por email.',
+    name: 'crear_profesionales',
+    description: 'Extrae una lista de uno o varios profesionales de la respuesta libre (nombre, categoria opcional, y si quiere invitarles por email).',
     parameters: {
       type: 'object',
       properties: {
-        nombre: { type: 'string' },
-        categoria: { type: 'string', enum: ['auxiliar', 'oficial', 'oficial_mayor', 'estilista_senior', 'direccion'] },
-        quiere_invitar: { type: 'boolean', description: 'true si el propietario dio o pidio dar de alta un email de acceso para esta persona' },
-        email: { type: 'string', description: 'Email si quiere_invitar es true; cadena vacia si no.' },
+        profesionales: {
+          type: 'array',
+          description: 'Lista de profesionales a crear. Debe contener al menos un elemento.',
+          items: {
+            type: 'object',
+            properties: {
+              nombre: { type: 'string' },
+              categoria: { type: 'string', enum: ['auxiliar', 'oficial', 'oficial_mayor', 'estilista_senior', 'direccion'] },
+              quiere_invitar: { type: 'boolean', description: 'true si el propietario dio o pidio dar de alta un email de acceso para esta persona' },
+              email: { type: 'string', description: 'Email si quiere_invitar es true; cadena vacia si no.' },
+            },
+            required: ['nombre', 'categoria', 'quiere_invitar', 'email'],
+          },
+        },
       },
-      required: ['nombre', 'categoria', 'quiere_invitar', 'email'],
+      required: ['profesionales'],
     },
   },
   horario_salon: {
@@ -142,7 +162,7 @@ function buildSystemPrompt(modo: string, tema: TemaId, estado: Record<string, bo
   const base = [
     'Eres el asistente de puesta en marcha del software de gestion de peluquerias Mecha.',
     REGLAS_TONO,
-    `Codigo postal del negocio: ${perfil.codigoPostal || 'desconocido'}. Nombre del negocio: ${perfil.nombreNegocio || 'desconocido'}.`,
+    `Codigo postal del negocio: ${perfil.codigoPostal || 'no especificado'}. Nombre del negocio: ${perfil.nombreNegocio || 'no especificado (si es "no especificado" o no lo sabes, usa "tu salon" o "tu negocio" al formular preguntas; NUNCA inventes nombres de salones ni utilices la palabra "Unknown" o "desconocido")'}.`,
     `Temas ya completados antes de esta sesion: ${Object.entries(estado).filter(([, v]) => v).map(([k]) => k).join(', ') || 'ninguno'}. Pendientes: ${pendientes}.`,
     `Tema actual: ${tema}.`,
   ];

@@ -8,7 +8,7 @@ export const manualListaEspera: ManualContent = {
     {
       titulo: 'Añadir a alguien',
       texto: 'Pulsa "Añadir a la lista": busca al cliente por nombre o teléfono (o escribe uno nuevo), y opcionalmente indica servicio, profesional preferido y franja horaria.',
-      captura: '/app/manuals/lista-espera/lista.png',
+      captura: '/manuals/lista-espera/lista.png',
     },
     {
       titulo: 'Avisar cuando hay hueco',

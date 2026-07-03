@@ -8,7 +8,7 @@ export const manualMiJornada: ManualContent = {
     {
       titulo: 'Fichar entrada y salida',
       texto: 'El botón grande de arriba cambia entre "Fichar entrada" y "Fichar salida" según tu estado. Cada fichaje queda registrado con su hora exacta.',
-      captura: '/app/manuals/mi-jornada/fichar.png',
+      captura: '/manuals/mi-jornada/fichar.png',
     },
     {
       titulo: 'Cambiar de periodo y vista',
@@ -17,7 +17,7 @@ export const manualMiJornada: ManualContent = {
     {
       titulo: 'Objetivos y comisión',
       texto: 'La tarjeta "Comisión estimada" calcula lo que llevas ganado sobre servicios en el periodo. Los objetivos gamificados marcan metas personales o de equipo con una bonificación al cumplirlas.',
-      captura: '/app/manuals/mi-jornada/actividad.png',
+      captura: '/manuals/mi-jornada/actividad.png',
     },
     {
       titulo: 'Intercambio de turnos',
@@ -26,7 +26,7 @@ export const manualMiJornada: ManualContent = {
     {
       titulo: 'Registrar una ausencia',
       texto: 'Indica el rango de fechas y un motivo opcional (vacaciones, baja, cita médica...) para dejar constancia de que no vas a fichar esos días.',
-      captura: '/app/manuals/mi-jornada/ausencia.png',
+      captura: '/manuals/mi-jornada/ausencia.png',
     },
   ],
 };

@@ -217,6 +217,30 @@ export async function ejecutarAccion(
         return { ok: true, resumen: `${nombre} · ${precio.toFixed(2)} € · ${duracion_min} min` };
       }
 
+      case 'crear_servicios': {
+        const servicios = Array.isArray(args.servicios) ? args.servicios : [];
+        if (servicios.length === 0) return { ok: false, resumen: 'No he encontrado ningún servicio válido.' };
+        let creados = [];
+        for (const s of servicios) {
+          const nombre = String(s.nombre ?? '').trim();
+          const precio = Number(s.precio);
+          const duracion_min = Number(s.duracion_min);
+          if (nombre && precio > 0 && duracion_min > 0) {
+            const { error } = await supabase.from('servicios').insert({
+              negocio_id: ctx.negocioId,
+              nombre,
+              precio,
+              duracion_activa_min: duracion_min,
+              activo: true,
+            });
+            if (error) throw error;
+            creados.push(`${nombre} (${precio.toFixed(2)} €)`);
+          }
+        }
+        if (creados.length === 0) return { ok: false, resumen: 'No se pudo crear ningún servicio.' };
+        return { ok: true, resumen: `Servicios creados: ${creados.join(', ')}` };
+      }
+
       case 'crear_profesional': {
         const nombre = String(args.nombre ?? '').trim();
         const categoriasValidas = ['auxiliar', 'oficial', 'oficial_mayor', 'estilista_senior', 'direccion'];
@@ -232,6 +256,30 @@ export async function ejecutarAccion(
         if (error) throw error;
         ctx.profesionalesCreados.push({ id: inserted.id, nombre });
         return { ok: true, resumen: `${nombre} · ${categoria.replace('_', ' ')}` };
+      }
+
+      case 'crear_profesionales': {
+        const profesionales = Array.isArray(args.profesionales) ? args.profesionales : [];
+        if (profesionales.length === 0) return { ok: false, resumen: 'No he encontrado profesionales en la respuesta.' };
+        let creados = [];
+        const categoriasValidas = ['auxiliar', 'oficial', 'oficial_mayor', 'estilista_senior', 'direccion'];
+        for (const p of profesionales) {
+          const nombre = String(p.nombre ?? '').trim();
+          const categoria = categoriasValidas.includes(p.categoria) ? p.categoria : 'oficial';
+          if (!nombre) continue;
+          const { data: inserted, error } = await supabase.from('profesionales').insert({
+            negocio_id: ctx.negocioId,
+            nombre,
+            categoria,
+            color: '#f4501e',
+            activo: true,
+          }).select('id').single();
+          if (error) throw error;
+          ctx.profesionalesCreados.push({ id: inserted.id, nombre });
+          creados.push(nombre);
+        }
+        if (creados.length === 0) return { ok: false, resumen: 'No se pudo dar de alta a ningún profesional.' };
+        return { ok: true, resumen: `Profesionales creados: ${creados.join(', ')}` };
       }
 
       // Invitar por email es la parte RIESGOSA de crear_profesional: la UI la
