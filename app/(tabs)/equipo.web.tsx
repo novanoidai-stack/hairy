@@ -6,6 +6,10 @@ import { getUserProfile, can } from '@/lib/auth';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualEquipo } from '@/lib/manuals/equipo';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 
 // Iconos SVG simples
@@ -133,6 +137,8 @@ function fmtRecurrencia(json: string | null): string | null {
 
 export default function EquipoWeb() {
   const { isMobile, isTablet } = useResponsive();
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('equipo');
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -370,7 +376,20 @@ export default function EquipoWeb() {
       {/* Topbar */}
       <div className="equipo-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? '12px 16px' : '20px 32px', borderBottom: `1px solid ${TOKENS.border}` }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4 }}>Equipo</h1>
+          <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4, display: 'flex', alignItems: 'center', gap: 10 }}>
+            Equipo
+            <button
+              onClick={() => setShowManualPanel(true)}
+              title="Manual de esta pagina"
+              style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
+          </h1>
           <p style={{ margin: 0, marginTop: 4, fontSize: isMobile ? 12 : 13, color: TOKENS.textSec }}>
             {isMobile ? 'Profesionales y disponibilidad' : '5 profesionales · 4 activos · gestiona disponibilidad y bloqueos'}
           </p>
@@ -391,6 +410,17 @@ export default function EquipoWeb() {
           </button>
         </div>
       </div>
+
+      {!paginaManual.loading && !paginaManual.visto && (
+        <div style={{ padding: isMobile ? '12px 12px 0' : '16px 24px 0' }}>
+          <AvisoPrimeraVisita
+            content={manualEquipo}
+            isMobile={isMobile}
+            onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+            onCerrar={paginaManual.marcarVisto}
+          />
+        </div>
+      )}
 
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         {/* Cards grid — visible cuando no hay miembro seleccionado */}
@@ -1041,6 +1071,13 @@ export default function EquipoWeb() {
       {showNewProf && <NewProfModal onClose={() => setShowNewProf(false)} negocioId={negocioId} onCreated={() => { setShowNewProf(false); location.reload(); }} />}
       {editingProf && <EditProfModal prof={editingProf} negocioId={negocioId} onClose={() => setEditingProf(null)} onSaved={() => { setEditingProf(null); location.reload(); }} />}
       {showNewBloqueo && <NewBloqueoModal profesionales={profesionales} selectedId={selected} negocioId={negocioId} onClose={() => setShowNewBloqueo(false)} onCreated={() => { setShowNewBloqueo(false); location.reload(); }} />}
+      {showManualPanel && (
+        <ManualPanel
+          content={manualEquipo}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
+        />
+      )}
       {editBloqueo && <EditBloqueoModal bloqueo={editBloqueo} onClose={() => setEditBloqueo(null)} onSaved={() => { setEditBloqueo(null); cargarPanelDerecho(); }} />}
       </div>
     </div>
