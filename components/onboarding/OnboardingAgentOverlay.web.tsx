@@ -4,7 +4,7 @@
 // interaccion centrado. La IA solo redacta/interpreta; el ORDEN y la
 // EJECUCION las controla este componente (ver lib/onboardingAgent.ts).
 import { useEffect, useRef, useState } from 'react';
-import { useSegments, useLocalSearchParams } from 'expo-router';
+import { useSegments, useGlobalSearchParams } from 'expo-router';
 import { Platform } from 'react-native';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
@@ -26,10 +26,14 @@ export function OnboardingAgentOverlay() {
   const segments = useSegments();
   // Previsualizacion manual (?onboarding_ia=1): fuerza el fotograma de
   // bienvenida sin tocar el flag de localStorage ni exigir coreDone===false.
-  // Util para ensenar el asistente a un gestor cuyo negocio ya esta operativo
-  // (mismo espiritu que ?onboarding=1 ya usado para reabrir el panel estatico
-  // en AgendaCalendar.web.tsx). No persiste nada: solo abre esta vez.
-  const params = useLocalSearchParams<{ onboarding_ia?: string }>();
+  // Util para ensenar el asistente a un gestor cuyo negocio ya esta operativo.
+  // OJO: este componente se monta en app/_layout.tsx, POR ENCIMA del <Stack>
+  // (fuera de cualquier ruta concreta) -- useLocalSearchParams no ve nada ahi
+  // (solo resuelve parametros de la ruta activa que lo llama desde dentro,
+  // como hace AgendaCalendar.web.tsx con ?onboarding=1). useGlobalSearchParams
+  // si lee la URL real sin depender de en que punto del arbol se invoque.
+  // No persiste nada: solo abre esta vez.
+  const params = useGlobalSearchParams<{ onboarding_ia?: string }>();
   const forzarPreview = params?.onboarding_ia === '1';
   // Mismo criterio exacto que app/_layout.tsx (isPublicRoute): estas rutas son
   // anonimas/publicas (portal de reserva, resenas, cita, pago, presupuesto,
