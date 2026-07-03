@@ -11,6 +11,10 @@ import {
   type Conversacion, type MensajeConversacion, TIPO_META,
   cargarConversaciones, cargarMensajes, marcarLeida, marcarEstado, responderConversacion,
 } from '@/lib/bandeja';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualBandeja } from '@/lib/manuals/bandeja';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
@@ -172,6 +176,8 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
 // ─────────────────────────────────────────────────────────────────────────────
 function BandejaScreen() {
   const { isMobile } = useResponsive();
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('bandeja');
   const [negocioId, setNegocioId] = useState<string | null>(null);
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -223,9 +229,31 @@ function BandejaScreen() {
           <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 10 }}>
             <Icon name="mail" size={isMobile ? 22 : 26} color={T.primary} /> Bandeja
             {sinLeer > 0 && <span style={{ fontSize: 12.5, fontWeight: 700, color: '#fff', background: T.primary, borderRadius: 999, padding: '2px 9px' }}>{sinLeer}</span>}
+            <button
+              onClick={() => setShowManualPanel(true)}
+              title="Manual de esta pagina"
+              style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: T.card, border: `1px solid ${T.borderHi}`, color: T.textSec, cursor: 'pointer', flexShrink: 0 }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
           </h1>
           <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>Mensajes de clientes: rechazos y cambios de presupuestos, y contactos desde tu página pública.</p>
         </div>
+
+        {!paginaManual.loading && !paginaManual.visto && (
+          <div style={{ marginBottom: isMobile ? 14 : 20 }}>
+            <AvisoPrimeraVisita
+              content={manualBandeja}
+              isMobile={isMobile}
+              onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+              onCerrar={paginaManual.marcarVisto}
+            />
+          </div>
+        )}
 
         {mensaje ? <div style={{ padding: '11px 15px', borderRadius: 10, marginBottom: 14, background: T.dangerSoft, color: T.danger, fontSize: 13.5 }}>{mensaje}</div> : null}
 
@@ -272,6 +300,13 @@ function BandejaScreen() {
       {abierta && (
         <DetalleModal conv={abierta} onClose={cerrarDetalle}
           onEstadoCambiado={(estado) => { onEstadoCambiado(abierta.id, estado); setAbierta((prev) => prev ? { ...prev, estado } : prev); }} />
+      )}
+      {showManualPanel && (
+        <ManualPanel
+          content={manualBandeja}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
+        />
       )}
     </div>
   );
