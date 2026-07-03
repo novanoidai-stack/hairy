@@ -955,19 +955,17 @@ export default function ConfiguracionWeb() {
             )}
             <h1 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 700, letterSpacing: -0.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentTab ? currentTab.label : 'Ajustes'}</span>
-              {!currentTab && (
-                <button
-                  onClick={() => setShowManualPanel(true)}
-                  title="Manual de esta pagina"
-                  style={{ display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 7, background: T.bgCard, border: `1px solid ${T.border}`, color: T.textSecondary, cursor: 'pointer', flexShrink: 0 }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                </button>
-              )}
+              <button
+                onClick={() => setShowManualPanel(true)}
+                title="Manual de esta pagina"
+                style={{ display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 7, background: T.bgCard, border: `1px solid ${T.border}`, color: T.textSecondary, cursor: 'pointer', flexShrink: 0 }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
             </h1>
           </div>
         </div>
