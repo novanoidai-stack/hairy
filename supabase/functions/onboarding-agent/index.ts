@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
     const texto = typeof body?.texto === 'string' ? body.texto : '';
 
     const tool = modo === 'enriquecer_pregunta' ? ENUNCIAR_TOOL : TEMA_TOOLS[tema];
-    const messages: any[] = [
+    const messages: { role: 'system' | 'user'; content: string }[] = [
       { role: 'system', content: buildSystemPrompt(modo, tema, estado, perfil) },
     ];
     if (modo === 'interpretar_respuesta') messages.push({ role: 'user', content: texto });
