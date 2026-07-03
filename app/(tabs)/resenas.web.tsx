@@ -7,6 +7,10 @@ import { useResponsive } from '@/lib/hooks/useResponsive';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { PageLoader } from '@/components/ui/DesignComponents';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualResenas } from '@/lib/manuals/resenas';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 const TOKENS = {
   bg: '#f6f1ea',
@@ -160,6 +164,8 @@ function avgOf(list: Resena[], key: MetricKey): { avg: number; count: number } {
 
 function ResenasScreen() {
   const { isMobile } = useResponsive();
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('resenas');
   const [loading, setLoading] = useState(true);
   const [resenas, setResenas] = useState<Resena[]>([]);
   const [, setNegocioId] = useState('');
@@ -277,7 +283,20 @@ function ResenasScreen() {
         {/* CABECERA */}
         <header style={{ marginBottom: 28, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16, alignItems: isMobile ? 'stretch' : 'flex-end', justifyContent: 'space-between' }}>
           <div>
-            <h1 style={{ fontSize: isMobile ? 26 : 32, fontWeight: 800, color: TOKENS.text, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Reseñas de clientes</h1>
+            <h1 style={{ fontSize: isMobile ? 26 : 32, fontWeight: 800, color: TOKENS.text, margin: '0 0 8px 0', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              Reseñas de clientes
+              <button
+                onClick={() => setShowManualPanel(true)}
+                title="Manual de esta pagina"
+                style={{ display: 'grid', placeItems: 'center', width: 30, height: 30, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
+            </h1>
             <p style={{ margin: 0, fontSize: isMobile ? 14 : 15, color: TOKENS.textSec, maxWidth: 560 }}>
               Qué piensan tus clientes de su experiencia en el salón y reservando con Mecha. Filtra, mide cada detalle y detecta qué mejorar.
             </p>
@@ -296,6 +315,17 @@ function ResenasScreen() {
             </div>
           </div>
         </header>
+
+        {!paginaManual.loading && !paginaManual.visto && (
+          <div style={{ marginBottom: 20 }}>
+            <AvisoPrimeraVisita
+              content={manualResenas}
+              isMobile={isMobile}
+              onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+              onCerrar={paginaManual.marcarVisto}
+            />
+          </div>
+        )}
 
         {resenas.length === 0 ? (
           <div style={{ padding: 60, textAlign: 'center', background: TOKENS.bgPanel, border: `1px dashed ${TOKENS.borderHi}`, borderRadius: 16 }}>
@@ -566,6 +596,13 @@ function ResenasScreen() {
           </>
         )}
       </div>
+      {showManualPanel && (
+        <ManualPanel
+          content={manualResenas}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
+        />
+      )}
     </div>
   );
 }
