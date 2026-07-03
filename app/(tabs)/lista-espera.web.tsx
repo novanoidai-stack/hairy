@@ -8,6 +8,11 @@ import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
 import { SSelect, STextInput } from '@/components/ui/SettingsAtoms';
 import { PhoneInput } from '@/components/ui/PhoneInput';
+import { useResponsive } from '@/lib/hooks/useResponsive';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualListaEspera } from '@/lib/manuals/lista-espera';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 // ---------------------------------------------------------------------------
 // Tokens (consistentes con el resto de .web.tsx)
@@ -89,6 +94,9 @@ type FiltroEstado = 'activas' | 'esperando' | 'avisado' | 'todas';
 const FRANJA_LABEL: Record<string, string> = { manana: 'Mañana', tarde: 'Tarde', cualquiera: 'Cualquier hora' };
 
 function ListaEsperaScreen() {
+  const { isMobile } = useResponsive();
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('lista-espera');
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [negocioId, setNegocioId] = useState('');
@@ -171,7 +179,20 @@ function ListaEsperaScreen() {
         {/* Cabecera */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 22, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: T.text, letterSpacing: -0.5, margin: 0 }}>Lista de espera</h1>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: T.text, letterSpacing: -0.5, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+              Lista de espera
+              <button
+                onClick={() => setShowManualPanel(true)}
+                title="Manual de esta pagina"
+                style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: T.card, border: `1px solid ${T.borderHi}`, color: T.textSec, cursor: 'pointer', flexShrink: 0 }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
+            </h1>
             <p style={{ fontSize: 14, color: T.textTer, margin: '4px 0 0' }}>
               Apunta a quien quiere un hueco lleno y avísale cuando se libere uno.
             </p>
@@ -180,6 +201,17 @@ function ListaEsperaScreen() {
             <Icon name="plus" size={16} color="#fff" /> Añadir a la lista
           </button>
         </div>
+
+        {!paginaManual.loading && !paginaManual.visto && (
+          <div style={{ marginBottom: 16 }}>
+            <AvisoPrimeraVisita
+              content={manualListaEspera}
+              isMobile={isMobile}
+              onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+              onCerrar={paginaManual.marcarVisto}
+            />
+          </div>
+        )}
 
         {/* Filtros */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -268,6 +300,13 @@ function ListaEsperaScreen() {
           clientes={clientes}
           onClose={() => setShowAdd(false)}
           onSaved={() => { setShowAdd(false); cargar(); }}
+        />
+      )}
+      {showManualPanel && (
+        <ManualPanel
+          content={manualListaEspera}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
         />
       )}
     </div>
