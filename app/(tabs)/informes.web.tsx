@@ -12,6 +12,10 @@ import {
   eachDayOfInterval, getDay,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualInformes } from '@/lib/manuals/informes';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 // ---------------------------------------------------------------------------
 // SVG Icons
@@ -319,6 +323,8 @@ function descargarCSV(filename: string, headers: string[], rows: string[][]) {
 // ---------------------------------------------------------------------------
 function InformesScreen() {
   const { isMobile, isTablet } = useResponsive();
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('informes');
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [periodo, setPeriodo] = useState<Periodo>('mes');
@@ -1144,7 +1150,20 @@ function InformesScreen() {
         flexWrap: 'wrap', gap: isMobile ? 10 : 12,
       }}>
         <div>
-          <h1 style={{ fontSize: isMobile ? 19 : 22, fontWeight: 700, color: TOKENS.text, margin: 0 }}>Informes</h1>
+          <h1 style={{ fontSize: isMobile ? 19 : 22, fontWeight: 700, color: TOKENS.text, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+            Informes
+            <button
+              onClick={() => setShowManualPanel(true)}
+              title="Manual de esta pagina"
+              style={{ display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 7, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
+          </h1>
           <div style={{ fontSize: 12, color: TOKENS.textTer, marginTop: 2 }}>{periodoLabel}</div>
         </div>
         {/* flexWrap: en movil el selector de periodo y los botones CSV/PDF no
@@ -1208,6 +1227,16 @@ function InformesScreen() {
 
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '14px 14px 96px' : '20px 28px 40px' }}>
+        {!paginaManual.loading && !paginaManual.visto && (
+          <div style={{ marginBottom: 16 }}>
+            <AvisoPrimeraVisita
+              content={manualInformes}
+              isMobile={isMobile}
+              onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+              onCerrar={paginaManual.marcarVisto}
+            />
+          </div>
+        )}
         {accessDenied ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, gap: 8, flexDirection: 'column' }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: TOKENS.text }}>Acceso restringido</div>
@@ -1783,6 +1812,13 @@ function InformesScreen() {
           </>
         )}
       </div>
+      {showManualPanel && (
+        <ManualPanel
+          content={manualInformes}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
+        />
+      )}
     </div>
   );
 }
