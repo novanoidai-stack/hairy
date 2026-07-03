@@ -15,6 +15,8 @@ export interface UserProfile {
   avatar_url?: string;
   created_at: string;
   updated_at: string;
+  privacy_accepted_at?: string | null;
+  privacy_policy_version?: string | null;
 }
 
 export async function getUser() {

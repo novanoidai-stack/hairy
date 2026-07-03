@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 // @ts-ignore
 import { createPortal } from 'react-dom';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
@@ -255,7 +256,7 @@ function computeAlerts(cl: Cliente): Alert[] {
   return alerts;
 }
 
-export default function ClientesWeb() {
+function ClientesWeb() {
   const { isMobile, isTablet } = useResponsive();
   const params = useLocalSearchParams<{ clienteId?: string; filtro?: string }>();
   const router = useRouter();
@@ -3593,3 +3594,5 @@ function Section({ title, children }: any) {
     </div>
   );
 }
+
+export default withClientDataGate(ClientesWeb, 'Clientes');

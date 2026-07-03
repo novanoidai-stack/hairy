@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, roleLabel } from '@/lib/auth';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { format, parseISO, startOfDay, addDays, startOfWeek, addWeeks, startOfMonth, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
@@ -131,7 +132,7 @@ function fmtHoras(h: number): string {
 const eur = (cents?: number) => `${((cents || 0) / 100).toFixed(2)}€`;
 const fmtPct = (n: number) => `${Math.round(n)}%`;
 
-export default function MiJornadaScreen() {
+function MiJornadaScreen() {
   const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1115,3 +1116,5 @@ export default function MiJornadaScreen() {
     </div>
   );
 }
+
+export default withClientDataGate(MiJornadaScreen, 'Mi jornada');

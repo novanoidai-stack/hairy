@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { format, parseISO } from 'date-fns';
@@ -157,7 +158,7 @@ function avgOf(list: Resena[], key: MetricKey): { avg: number; count: number } {
   return { avg: Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10, count: vals.length };
 }
 
-export default function ResenasScreen() {
+function ResenasScreen() {
   const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [resenas, setResenas] = useState<Resena[]>([]);
@@ -600,3 +601,5 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
     </button>
   );
 }
+
+export default withClientDataGate(ResenasScreen, 'Reseñas');

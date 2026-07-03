@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { LiquidacionesSection } from '@/components/informes/LiquidacionesSection';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -316,7 +317,7 @@ function descargarCSV(filename: string, headers: string[], rows: string[][]) {
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
-export default function InformesScreen() {
+function InformesScreen() {
   const { isMobile, isTablet } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -1785,3 +1786,5 @@ export default function InformesScreen() {
     </div>
   );
 }
+
+export default withClientDataGate(InformesScreen, 'Informes');

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { format, parseISO, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
@@ -100,7 +101,7 @@ function downloadCSV(filename: string, rows: (string | number)[][]) {
 // ─────────────────────────────────────────────────────────────────────────────────
 // COMPONENTE PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────────
-export default function CajaScreen() {
+function CajaScreen() {
   const { isMobile } = useResponsive();
   const [citas, setCitas] = useState<CitaPendiente[]>([]);
   const [loading, setLoading] = useState(true);
@@ -816,3 +817,5 @@ export default function CajaScreen() {
     </div>
   );
 }
+
+export default withClientDataGate(CajaScreen, 'Caja');

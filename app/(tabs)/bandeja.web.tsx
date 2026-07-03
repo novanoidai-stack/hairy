@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { getUserProfile } from '@/lib/auth';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { eur } from '@/lib/presupuestos';
@@ -169,7 +170,7 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
 // ─────────────────────────────────────────────────────────────────────────────
 // LISTA
 // ─────────────────────────────────────────────────────────────────────────────
-export default function BandejaScreen() {
+function BandejaScreen() {
   const { isMobile } = useResponsive();
   const [negocioId, setNegocioId] = useState<string | null>(null);
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
@@ -275,3 +276,5 @@ export default function BandejaScreen() {
     </div>
   );
 }
+
+export default withClientDataGate(BandejaScreen, 'Bandeja de mensajes');

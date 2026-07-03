@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import {
   View, ScrollView, TouchableOpacity, StyleSheet, TextInput,
   Modal, Alert, Platform, FlatList,
@@ -111,7 +112,7 @@ const CANALES: Record<string, string> = {
   telefono: 'Telefono',
 };
 
-export default function ClientesScreen() {
+function ClientesScreen() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -982,3 +983,5 @@ const s = StyleSheet.create({
   modalBtns: { flexDirection: 'row', gap: tokens.spacing.md, marginTop: tokens.spacing.md },
   hint: { fontSize: tokens.fontSize.xs, fontStyle: 'italic', marginBottom: tokens.spacing.sm },
 });
+
+export default withClientDataGate(ClientesScreen, 'Clientes');

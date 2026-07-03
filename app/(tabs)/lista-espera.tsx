@@ -1,8 +1,9 @@
 import { View } from 'react-native';
 import { TText } from '@/components/ui/TText';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 
 // Lista de espera: v1 es web. En nativo, placeholder (web-first).
-export default function ListaEsperaNative() {
+function ListaEsperaNative() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f6f1ea', padding: 24 }}>
       <TText style={{ fontSize: 16, fontWeight: '700', color: '#1c1814', marginBottom: 6 }}>Lista de espera</TText>
@@ -12,3 +13,5 @@ export default function ListaEsperaNative() {
     </View>
   );
 }
+
+export default withClientDataGate(ListaEsperaNative, 'Lista de espera');

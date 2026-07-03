@@ -1,6 +1,7 @@
 import { View, Text } from 'react-native';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 
-export default function MiJornadaScreen() {
+function MiJornadaScreen() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f6f1ea', padding: 20 }}>
       <Text style={{ fontSize: 16, color: '#1c1814', textAlign: 'center', fontWeight: 'bold', marginBottom: 8 }}>
@@ -12,3 +13,5 @@ export default function MiJornadaScreen() {
     </View>
   );
 }
+
+export default withClientDataGate(MiJornadaScreen, 'Mi jornada');

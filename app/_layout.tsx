@@ -11,6 +11,8 @@ import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { MotionStyles } from '@/lib/motion';
 import { ThemeProvider } from '@/lib/themeContext';
 import { CalendarProvider } from '@/lib/calendarContext';
+import { PrivacyConsentProvider } from '@/lib/privacyConsentContext';
+import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
 import { useTheme } from '@/lib/theme';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
@@ -59,6 +61,7 @@ function ThemedRoot({ children }: { children: React.ReactNode }) {
       <MotionStyles />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <OfflineBanner />
+      <PrivacyConsentModal />
       {children}
     </GestureHandlerRootView>
   );
@@ -196,6 +199,7 @@ export default function RootLayout() {
   }
 
   return (
+    <PrivacyConsentProvider>
     <CalendarProvider>
     <ThemeProvider>
     <SafeAreaProvider>
@@ -213,5 +217,6 @@ export default function RootLayout() {
     </SafeAreaProvider>
     </ThemeProvider>
     </CalendarProvider>
+    </PrivacyConsentProvider>
   );
 }

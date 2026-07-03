@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { format, parseISO } from 'date-fns';
@@ -369,7 +370,7 @@ function EditorModal({ profile, salon, profesionales, servicios, conceptos, init
 // ─────────────────────────────────────────────────────────────────────────────
 // PANTALLA PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────
-export default function PresupuestosScreen() {
+function PresupuestosScreen() {
   const { isMobile } = useResponsive();
   const [profile, setProfile] = useState<{ negocio_id: string; id: string } | null>(null);
   const [salon, setSalon] = useState<Salon>({ nombre: 'Salón', color: '#f4501e', direccion: null, telefono: null, slug: null });
@@ -542,3 +543,5 @@ export default function PresupuestosScreen() {
     </div>
   );
 }
+
+export default withClientDataGate(PresupuestosScreen, 'Presupuestos');

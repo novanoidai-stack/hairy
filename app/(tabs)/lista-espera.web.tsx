@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, can } from '@/lib/auth';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -87,7 +88,7 @@ type FiltroEstado = 'activas' | 'esperando' | 'avisado' | 'todas';
 
 const FRANJA_LABEL: Record<string, string> = { manana: 'Mañana', tarde: 'Tarde', cualquiera: 'Cualquier hora' };
 
-export default function ListaEsperaScreen() {
+function ListaEsperaScreen() {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [negocioId, setNegocioId] = useState('');
@@ -426,3 +427,5 @@ function AddModal({ negocioId, servicios, profesionales, clientes, onClose, onSa
     </div>
   );
 }
+
+export default withClientDataGate(ListaEsperaScreen, 'Lista de espera');

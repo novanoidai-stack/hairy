@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { Topbar, Card, StatCard, Loading } from '@/components/ui/DesignComponents';
 import { TText } from '@/components/ui/TText';
+import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 
 interface Stats {
   totalCitas: number;
@@ -20,7 +21,7 @@ interface Stats {
 
 const tokens = DESIGN_TOKENS;
 
-export default function InformesScreen() {
+function InformesScreen() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -221,3 +222,5 @@ const s = StyleSheet.create({
     maxWidth: '80%',
   },
 });
+
+export default withClientDataGate(InformesScreen, 'Informes');
