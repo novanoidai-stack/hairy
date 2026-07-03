@@ -113,6 +113,7 @@
         "npm:expo-system-ui@~6.0.9",
         "npm:expo@~56.0.12",
         "npm:gsap@^3.15.0",
+        "npm:jspdf@^4.2.1",
         "npm:libphonenumber-js@^1.13.7",
         "npm:lucide-react-native@^1.20.0",
         "npm:lucide@^1.20.0",
@@ -121,18 +122,17 @@
         "npm:react-dom@~19.2.7",
         "npm:react-native-calendars@^1.1305.0",
         "npm:react-native-gesture-handler@2.28",
-        "npm:react-native-reanimated@~4.1.7",
+        "npm:react-native-reanimated@4.5",
         "npm:react-native-safe-area-context@5.6",
         "npm:react-native-screens@4.16",
         "npm:react-native-svg@15.12.1",
         "npm:react-native-url-polyfill@2",
         "npm:react-native-web@0.21",
-        "npm:react-native-worklets@~0.8.1",
+        "npm:react-native-worklets@0.10",
         "npm:react-native@0.86",
         "npm:react@~19.2.7",
         "npm:three@0.184",
-        "npm:typescript@~5.8.3",
-        "npm:xlsx@~0.18.5"
+        "npm:typescript@~5.8.3"
       ]
     }
   }

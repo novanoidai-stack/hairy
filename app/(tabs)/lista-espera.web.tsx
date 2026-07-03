@@ -173,7 +173,7 @@ function ListaEsperaScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, padding: '28px 32px', fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto' }}>
+    <div style={{ minHeight: '100vh', background: T.bg, padding: isMobile ? '16px 12px' : '28px 32px', fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
       <div style={{ maxWidth: 980, margin: '0 auto' }}>
         {/* Cabecera */}
@@ -241,6 +241,88 @@ function ListaEsperaScreen() {
             {visibles.map(item => {
               const prof = item.profesional_id ? profMap.get(item.profesional_id) : null;
               const resueltaOCancelada = item.estado === 'resuelta' || item.estado === 'cancelada';
+              
+              if (isMobile) {
+                return (
+                  <div key={item.id} className="le-row" style={{
+                    display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px',
+                    background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, opacity: resueltaOCancelada ? 0.6 : 1,
+                  }}>
+                    {/* Cabecera de la tarjeta: Avatar + Nombre + Estado */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: T.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon name="user" size={16} color={T.primary} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 14.5, fontWeight: 700, color: T.text }}>{item.nombre || 'Sin nombre'}</span>
+                          <EstadoBadge estado={item.estado} />
+                        </div>
+                        {item.telefono && (
+                          <div style={{ fontSize: 12, color: T.textSec, marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Icon name="phone" size={12} color={T.textTer} />
+                            <span>{item.telefono}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Caja de Detalles */}
+                    <div style={{ background: T.panel, borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: T.textSec, display: 'flex', flexDirection: 'column', gap: 5, border: `1px solid ${T.border}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: T.textTer }}>Servicio:</span>
+                        <span style={{ fontWeight: 600, color: T.text }}>
+                          {item.servicio_id && srvMap.get(item.servicio_id) ? srvMap.get(item.servicio_id) : 'Cualquier servicio'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: T.textTer }}>Profesional:</span>
+                        <span style={{ fontWeight: 600, color: T.text }}>
+                          {prof ? prof.nombre : 'Cualquier profesional'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: T.textTer }}>Preferencia:</span>
+                        <span style={{ fontWeight: 600, color: T.text }}>
+                          {FRANJA_LABEL[item.franja] || 'Cualquier hora'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {item.nota && (
+                      <div style={{ fontSize: 12, color: T.textSec, background: 'rgba(244,80,30,0.03)', borderLeft: `3px solid ${T.primary}`, padding: '6px 10px', borderRadius: '0 8px 8px 0', fontStyle: 'italic' }}>
+                        {item.nota}
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: T.textTer, borderTop: `1px solid ${T.border}`, paddingTop: 10, marginTop: 2 }}>
+                      <span>Apuntado {format(parseISO(item.created_at), "d MMM 'a las' HH:mm", { locale: es })}</span>
+                    </div>
+
+                    {!resueltaOCancelada && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                        {item.telefono && (
+                          <button className="le-btn" title="Abrir WhatsApp" onClick={() => abrirWhatsApp(item.telefono)} style={{ ...iconBtn(T.success), flex: 1, minWidth: 40 }}>
+                            <Icon name="phone" size={15} color={T.success} />
+                          </button>
+                        )}
+                        {item.estado === 'esperando' && (
+                          <button className="le-btn" onClick={() => marcarAvisado(item)} style={{ ...pillBtn(T.warning, T.warningSoft), flex: 2, justifyContent: 'center' }}>
+                            <Icon name="bell" size={14} color={T.warning} /> Avisar
+                          </button>
+                        )}
+                        <button className="le-btn" onClick={() => marcarResuelta(item)} style={{ ...pillBtn(T.success, T.successSoft), flex: 2, justifyContent: 'center' }}>
+                          <Icon name="check" size={14} color={T.success} /> Resuelta
+                        </button>
+                        <button className="le-btn" title="Quitar" onClick={() => quitar(item)} style={{ ...iconBtn(T.danger), flex: 1, minWidth: 40 }}>
+                          <Icon name="x" size={15} color={T.danger} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               return (
                 <div key={item.id} className="le-row" style={{
                   display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',

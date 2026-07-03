@@ -1488,6 +1488,7 @@ const ACCESO_ALTA_ERROR: Record<string, string> = {
 };
 
 function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: string; currentUserId: string; currentRole: string }) {
+  const { isMobile } = useResponsive();
   const [cuentas, setCuentas] = useState<CuentaMiembro[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -1588,6 +1589,43 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
             const esYo = c.id === currentUserId;
             const esOwnerTarget = c.role === 'owner';
             const bloqueado = esYo || (!isOwner && esOwnerTarget);
+            
+            if (isMobile) {
+              return (
+                <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 14px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12 }}>
+                  {/* Fila superior: Avatar + Info */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 999, background: 'rgba(244,80,30,0.12)', color: T.primaryHi, display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                      {(c.nombre || c.email || '?').trim().charAt(0).toUpperCase()}
+                    </div>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: T.text, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>{`${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || 'Sin nombre'}</span>
+                        {esYo && <Badge tone="neutral">Tu cuenta</Badge>}
+                      </div>
+                      <div style={{ fontSize: 11, color: T.textTertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.email}</div>
+                    </div>
+                  </div>
+
+                  {msg && msg.id === c.id && (
+                    <div style={{ fontSize: 11, color: msg.ok ? T.success : T.danger, paddingLeft: 46 }}>{msg.text}</div>
+                  )}
+
+                  {/* Fila inferior: Etiqueta y Selector */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: `1px solid ${T.border}`, paddingTop: 8, marginTop: 2 }}>
+                    <span style={{ fontSize: 12, color: T.textTertiary }}>Rol de acceso:</span>
+                    <SSelect
+                      width="60%"
+                      value={c.role}
+                      disabled={bloqueado || savingId === c.id}
+                      onChange={v => cambiarRol(c.id, v)}
+                      options={optionsFor(c.role)}
+                    />
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 999, background: 'rgba(244,80,30,0.12)', color: T.primaryHi, display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
@@ -1880,6 +1918,7 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
 // ===========================================================================
 
 function TabSoporte({ account }: { account: AccountInfo | null }) {
+  const { isMobile } = useResponsive();
   const a = account;
 
   const buildMailto = (asunto: string, extra?: string) => {
@@ -1933,7 +1972,7 @@ function TabSoporte({ account }: { account: AccountInfo | null }) {
 
       {/* Motivos de contacto */}
       <Section title="Cuentanos en que podemos ayudarte" desc="Elige un tema y te abrimos un correo ya preparado en tu aplicacion de email. Solo tienes que escribir y enviar.">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, paddingTop: 4 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, paddingTop: 4 }}>
           {TEMAS.map(t => (
             <button
               key={t.asunto}

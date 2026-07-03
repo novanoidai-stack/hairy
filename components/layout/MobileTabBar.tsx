@@ -90,13 +90,13 @@ export function MobileTabBar({ state }: TabBarProps) {
   };
 
   const fullName = [profile?.nombre, profile?.apellido].filter(Boolean).join(' ').trim();
-  const accountName = fullName || 'Mi cuenta';
+  const accountName = fullName || profile?.email || 'Mi cuenta';
   const salonName = (profile?.nombre_negocio || '').trim();
   const roleText = profile ? roleLabel(profile) : '';
   const accountSubtitle = [salonName, roleText].filter(Boolean).join(' · ');
   const accountInitials = fullName
     ? fullName.split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2)
-    : '';
+    : (profile?.email ? profile.email.charAt(0).toUpperCase() : 'M');
 
   const exitToWeb = () => {
     setMoreOpen(false);
@@ -150,7 +150,12 @@ export function MobileTabBar({ state }: TabBarProps) {
           <View style={s.grabber} />
 
           {/* Cuenta */}
-          <View style={s.accountRow}>
+          <TouchableOpacity
+            style={s.accountRow}
+            onPress={() => { setMoreOpen(false); router.push('/(tabs)/configuracion?tab=cuenta'); }}
+            activeOpacity={0.7}
+            {...({ accessibilityRole: 'button', accessibilityLabel: 'Configuración de mi cuenta' } as any)}
+          >
             <View style={s.accountAvatar}>
               <TText style={s.accountInitial}>{accountInitials || ''}</TText>
             </View>
@@ -158,7 +163,7 @@ export function MobileTabBar({ state }: TabBarProps) {
               <TText style={s.accountName} numberOfLines={1}>{accountName}</TText>
               {accountSubtitle ? <TText style={s.accountRole} numberOfLines={1}>{accountSubtitle}</TText> : null}
             </View>
-          </View>
+          </TouchableOpacity>
 
           <TText style={s.sheetLabel}>SECCIONES</TText>
 

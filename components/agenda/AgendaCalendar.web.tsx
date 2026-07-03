@@ -217,7 +217,75 @@ export default function AgendaCalendar() {
   const [completarManual, setCompletarManual] = useState(false); // completarManual (negocio_config); false = autocompletar + sin boton
   const [asistenteActivo, setAsistenteActivo] = useState(false); // asistenteAgendaActivo (negocio_config)
   const [negocioId, setNegocioId] = useState(NEGOCIO_ID_FALLBACK);
-  const [userProfile, setUserProfile] = useState<{ id: string; role?: string | null } | null>(null);
+  const [userProfile, setUserProfile] = useState<any | null>(null);
+  const [dayViewType, setDayViewType] = useState<'grid' | 'list'>('grid');
+
+  const roleTheme = useMemo(() => {
+    const role = userProfile?.role;
+    switch (role) {
+      case 'admin':
+        return {
+          primary: '#4f46e5',
+          primaryHi: '#3730a3',
+          primaryGlow: 'rgba(79,70,229,0.3)',
+          primarySoft: 'rgba(79,70,229,0.1)',
+          bgHeader: 'linear-gradient(180deg, #f5f3ff 0%, #ede9fe 100%)',
+          bgCard: '#ffffff',
+          borderHeader: 'rgba(79,70,229,0.22)',
+          badgeColor: '#4f46e5',
+          badgeBg: 'rgba(79,70,229,0.12)',
+        };
+      case 'recepcion':
+        return {
+          primary: '#0d9488',
+          primaryHi: '#115e59',
+          primaryGlow: 'rgba(13,148,136,0.3)',
+          primarySoft: 'rgba(13,148,136,0.1)',
+          bgHeader: 'linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 100%)',
+          bgCard: '#ffffff',
+          borderHeader: 'rgba(13,148,136,0.22)',
+          badgeColor: '#0d9488',
+          badgeBg: 'rgba(13,148,136,0.12)',
+        };
+      case 'employee':
+        return {
+          primary: '#d97706',
+          primaryHi: '#92400e',
+          primaryGlow: 'rgba(217,119,6,0.3)',
+          primarySoft: 'rgba(217,119,6,0.1)',
+          bgHeader: 'linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%)',
+          bgCard: '#ffffff',
+          borderHeader: 'rgba(217,119,6,0.22)',
+          badgeColor: '#d97706',
+          badgeBg: 'rgba(217,119,6,0.12)',
+        };
+      case 'owner':
+      default:
+        return {
+          primary: '#f4501e',
+          primaryHi: '#c0260a',
+          primaryGlow: 'rgba(244,80,30,0.3)',
+          primarySoft: 'rgba(244,80,30,0.1)',
+          bgHeader: 'linear-gradient(180deg, #fff5ef 0%, #fdede4 100%)',
+          bgCard: '#ffffff',
+          borderHeader: 'rgba(244,80,30,0.22)',
+          badgeColor: '#f4501e',
+          badgeBg: 'rgba(244,80,30,0.12)',
+        };
+    }
+  }, [userProfile?.role]);
+
+  const roleLabelText = (role?: string | null) => {
+    if (!role) return '';
+    switch (role) {
+      case 'owner': return 'Propietario';
+      case 'admin': return 'Dirección';
+      case 'recepcion': return 'Recepción';
+      case 'employee': return 'Profesional';
+      default: return role;
+    }
+  };
+
   const [mensajesSinLeer, setMensajesSinLeer] = useState(0);
   const [clientesFugaCount, setClientesFugaCount] = useState(0);
 
@@ -338,7 +406,7 @@ export default function AgendaCalendar() {
         setCompletarManual(cfg.completarManual === true);
         setAsistenteActivo(cfg.asistenteAgendaActivo === true);
         setNegocioId(negocioId);
-        setUserProfile(profile ? { id: profile.id, role: (profile as any).role ?? null } : null);
+        setUserProfile(profile || null);
 
         if (profResult.error) console.error('Prof error:', profResult.error);
         if (citaResult.error) console.error('Cita error:', citaResult.error);
@@ -721,7 +789,8 @@ export default function AgendaCalendar() {
 
   const handleToday = () => {
     setSelectedDate(today.getDate());
-    setCurrentMonth(today);
+    setCurrentMonth(new Date(today.getFullYear(), today.getMonth()));
+    setView('day');
   };
 
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: TOKENS.bg, color: TOKENS.text }}>Cargando...</div>;
@@ -729,15 +798,22 @@ export default function AgendaCalendar() {
   const monthName = currentMonth.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
       <style>{ANIMATIONS}</style>
       {/* Topbar — en movil: fila compacta (titulo + campana + acciones), sin la
           fecha larga (ya se ve en la cabecera del dia) y sin pills informativas
           (su contenido vive en el panel de avisos). Antes la campana y los
           botones se montaban encima del titulo. */}
-      <div className="m-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: isMobile ? 8 : 12, padding: isMobile ? '10px 14px' : '11px 28px', borderBottom: `1px solid ${TOKENS.border}` }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, minWidth: 0 }}>
-          <h1 style={{ margin: 0, fontSize: 19, fontWeight: 700, letterSpacing: -0.3, flexShrink: 0 }}>Agenda</h1>
+      <div className="m-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: isMobile ? 8 : 12, padding: isMobile ? '10px 14px' : '11px 28px', borderBottom: `1px solid ${roleTheme.borderHeader}`, position: 'relative', zIndex: 60 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h1 style={{ margin: 0, fontSize: 19, fontWeight: 700, letterSpacing: -0.3, flexShrink: 0 }}>Agenda</h1>
+            {userProfile?.role && (
+              <span style={{ fontSize: 10, fontWeight: 700, color: roleTheme.badgeColor, background: roleTheme.badgeBg, padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+                {roleLabelText(userProfile.role)}
+              </span>
+            )}
+          </div>
           {!isMobile && (
             <p style={{ margin: 0, fontSize: 12.5, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).charAt(0).toUpperCase() + selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).slice(1)} · {totalCitasHoy} citas · {confirmadasHoy} confirmadas
@@ -764,26 +840,28 @@ export default function AgendaCalendar() {
               {sinConfirmar48h} sin confirmar
             </div>
           )}
-          <button
-            onClick={() => setShowManualPanel(true)}
-            title="Manual de esta pagina"
-            className="m-btn-icon"
-            style={{ padding: 7, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 9, color: TOKENS.textSec, cursor: 'pointer', width: 33, height: 33, display: 'grid', placeItems: 'center' }}
-          >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-          </button>
+          {!isMobile && (
+            <button
+              onClick={() => setShowManualPanel(true)}
+              title="Manual de esta pagina"
+              className="m-btn-icon"
+              style={{ padding: 7, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 9, color: TOKENS.textSec, cursor: 'pointer', width: 33, height: 33, display: 'grid', placeItems: 'center' }}
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
+          )}
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => setShowNotif((v) => !v)}
               title="Avisos"
               className="m-btn-icon"
-              style={{ padding: 7, background: showNotif ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${showNotif ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, borderRadius: 9, color: TOKENS.textSec, position: 'relative', cursor: 'pointer', width: 33, height: 33, display: 'grid', placeItems: 'center' }}
+              style={{ padding: 7, background: showNotif ? roleTheme.primarySoft : TOKENS.bgCard, border: `1px solid ${showNotif ? roleTheme.primary + '40' : TOKENS.border}`, borderRadius: 9, color: TOKENS.textSec, position: 'relative', cursor: 'pointer', width: 33, height: 33, display: 'grid', placeItems: 'center' }}
             >
-              <Icon name="bell" size={18} color={showNotif ? TOKENS.primaryHi : TOKENS.textSec} />
+              <Icon name="bell" size={18} color={showNotif ? roleTheme.primaryHi : TOKENS.textSec} />
               {(totalAvisos > 0 || onboardingPending) && <span style={{ position: 'absolute', top: 5, right: 5, width: 7, height: 7, background: sinConfirmar48h > 0 ? TOKENS.danger : (onboardingPending && totalAvisos === 0 ? TOKENS.primary : '#fb923c'), borderRadius: 999, boxShadow: `0 0 0 2px ${TOKENS.bg}`, animation: 'pulse 2s infinite' }} />}
             </button>
             {showNotif && (
@@ -899,13 +977,13 @@ export default function AgendaCalendar() {
             <button
               onClick={() => setRailCollapsed((v) => !v)}
               title={railCollapsed ? 'Mostrar panel lateral' : 'Pantalla completa'}
-              style={{ padding: isTablet ? 7 : '7px 12px', background: railCollapsed ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${railCollapsed ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, color: railCollapsed ? TOKENS.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33, transition: 'all 0.15s ease' }}
+              style={{ padding: isTablet ? 7 : '7px 12px', background: railCollapsed ? roleTheme.primarySoft : TOKENS.bgCard, border: `1px solid ${railCollapsed ? roleTheme.primary + '40' : TOKENS.border}`, color: railCollapsed ? roleTheme.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33, transition: 'all 0.15s ease' }}
             >
-              <Icon name={railCollapsed ? 'minimize' : 'maximize'} size={15} color={railCollapsed ? TOKENS.primaryHi : TOKENS.textSec} />
+              <Icon name={railCollapsed ? 'minimize' : 'maximize'} size={15} color={railCollapsed ? roleTheme.primaryHi : TOKENS.textSec} />
               {!isTablet && (railCollapsed ? 'Mostrar lateral' : 'Pantalla completa')}
             </button>
           )}
-          <button className="m-btn-secondary" onClick={handleToday} title="Ir a hoy" style={{ padding: isMobile ? 7 : '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33 }}>
+          <button className="m-btn-secondary" onClick={handleToday} title="Ir a hoy" style={{ padding: isMobile ? '7px 8px' : '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33 }}>
             <Icon name="calendar" size={15} color={TOKENS.text} />
             {!isMobile && 'Hoy'}
           </button>
@@ -913,14 +991,14 @@ export default function AgendaCalendar() {
             onClick={() => setShowCierreSalon(true)}
             title="Cerrar salon"
             aria-label="Cerrar salon"
-            style={{ padding: isMobile ? 7 : '7px 12px', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444', borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s ease', whiteSpace: 'nowrap', minHeight: 33 }}
+            style={{ padding: isMobile ? '7px 8px' : '7px 12px', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444', borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s ease', whiteSpace: 'nowrap', minHeight: 33 }}
             onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.20)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.10)'; }}
           >
             <Icon name="x" size={15} color="#ef4444" />
             {!isMobile && 'Cerrar salon'}
           </button>
-          <button className="m-btn-primary" onClick={() => { setNewCitaPrefill(null); setShowNewCita(true); }} style={{ padding: '7px 13px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, boxShadow: `0 6px 20px ${TOKENS.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33 }}>
+          <button className="m-btn-primary" onClick={() => { setNewCitaPrefill(null); setShowNewCita(true); }} style={{ padding: isMobile ? '7px 10px' : '7px 13px', background: `linear-gradient(180deg, ${roleTheme.primary === '#f4501e' ? '#ff7a2e' : roleTheme.primary} 0%, ${roleTheme.primaryHi} 100%)`, color: '#fff', border: 'none', borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, boxShadow: `0 6px 20px ${roleTheme.primaryGlow}, inset 0 1px 0 rgba(255,255,255,0.18)`, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33 }}>
             <Icon name="plus" size={15} color="#fff" />
             {isMobile ? 'Cita' : 'Nueva cita'}
           </button>
@@ -938,7 +1016,7 @@ export default function AgendaCalendar() {
 
       {/* 8.3+8.4: Barra de filtros y buscador */}
       {!toolbarCollapsed && (
-      <div className="m-fade-in" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 32px', borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(148,163,184,0.02)', position: 'relative', zIndex: 50, flexWrap: 'wrap' }}>
+      <div className="m-fade-in" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: isMobile ? '8px 12px' : '8px 32px', borderBottom: `1px solid ${TOKENS.border}`, background: 'rgba(148,163,184,0.02)', position: 'relative', zIndex: 50, flexWrap: 'wrap' }}>
         {/* View switcher (8.5) */}
         <div style={{ display: 'flex', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: 'hidden' }}>
           {(['day', 'week', 'month'] as const).map((v) => (
@@ -949,15 +1027,15 @@ export default function AgendaCalendar() {
                 padding: '7px 16px',
                 fontSize: 12,
                 fontWeight: view === v ? 700 : 500,
-                background: view === v ? 'rgba(244,80,30,0.15)' : 'transparent',
-                color: view === v ? TOKENS.primaryHi : TOKENS.textSec,
+                background: view === v ? roleTheme.primarySoft : 'transparent',
+                color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
                 border: 'none',
                 cursor: 'pointer',
                 borderRight: v !== 'month' ? `1px solid ${TOKENS.border}` : 'none',
                 transition: 'all 0.2s ease',
                 position: 'relative',
               }}
-              onMouseEnter={(e) => { if (view !== v) e.currentTarget.style.background = 'rgba(244,80,30,0.06)'; }}
+              onMouseEnter={(e) => { if (view !== v) e.currentTarget.style.background = roleTheme.primarySoft; }}
               onMouseLeave={(e) => { if (view !== v) e.currentTarget.style.background = 'transparent'; }}
             >
               {v === 'day' ? 'Dia' : v === 'week' ? 'Semana' : 'Mes'}
@@ -1338,7 +1416,7 @@ export default function AgendaCalendar() {
                 {cells.map((d, i) => {
                   if (!d)
                     return <div key={i} style={{ height: 34 }} />;
-                  const isSel = d === selectedDate && currentMonth.getMonth() === today.getMonth();
+                  const isSel = d === selectedDate;
                   const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
                   const cnt = counts[d] || 0;
                   return (
@@ -1415,7 +1493,7 @@ export default function AgendaCalendar() {
         )}
 
         {/* Main content area */}
-        <div style={{ overflowY: 'auto', padding: isMobile ? '16px 16px' : (isReallyCollapsed ? '20px 28px' : 24) }}>
+        <div style={{ overflowY: 'auto', padding: isMobile ? '12px 12px 90px' : (isReallyCollapsed ? '20px 28px' : 24) }}>
           {view === 'day' && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12 }}>
@@ -1445,28 +1523,52 @@ export default function AgendaCalendar() {
                       </button>
                     )}
                   </div>
-                  <div onClick={() => { if (isMobile || (isTablet && isReallyCollapsed)) setShowMobileCalendar(true); }} style={{ minWidth: 0, cursor: (isMobile || (isTablet && isReallyCollapsed)) ? 'pointer' : 'default' }}>
+                  <div style={{ minWidth: 0, cursor: 'default' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 0 }}>
-                      <h2 style={{ margin: 0, fontSize: isMobile ? 17 : 21, fontWeight: 700, letterSpacing: -0.3, textTransform: 'capitalize' }}>
+                      <h2 style={{ margin: 0, fontSize: isMobile ? 16 : 21, fontWeight: 700, letterSpacing: -0.3, textTransform: 'capitalize' }}>
                         {selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'short' })}
                       </h2>
-                      {selectedDateObj.toDateString() === today.toDateString() && <span style={{ fontSize: 10.5, fontWeight: 700, color: TOKENS.warning }}>HOY</span>}
-                      {(isMobile || (isTablet && isReallyCollapsed)) && <Icon name="chevronDown" size={15} color={TOKENS.textTer} />}
+                      {selectedDateObj.toDateString() === today.toDateString() && <span style={{ fontSize: 10, fontWeight: 700, color: TOKENS.warning }}>HOY</span>}
                     </div>
-                    <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 2 }}>
-                      {totalCitasHoy} citas programadas · {confirmadasHoy} confirmadas
+                    <div style={{ fontSize: 11.5, color: TOKENS.textSec, marginTop: 2 }}>
+                      {totalCitasHoy} citas · {confirmadasHoy} confirmadas
                     </div>
                   </div>
                 </div>
                 {/* Toggle de la barra de filtros (vista/servicio/estado/buscador).
                     Tambien en movil/tablet: alli la barra arranca plegada porque ocupa
                     mucho alto, y este chip la despliega/recoge. */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                  {isMobile && (
+                    <button
+                      onClick={() => setDayViewType(t => t === 'grid' ? 'list' : 'grid')}
+                      title={dayViewType === 'grid' ? 'Ver vista lista (Booksy)' : 'Ver vista rejilla'}
+                      style={{
+                        display: 'grid', placeItems: 'center', width: 33, height: 33,
+                        background: dayViewType === 'list' ? roleTheme.primarySoft : TOKENS.bgCard,
+                        border: `1px solid ${dayViewType === 'list' ? roleTheme.primary + '40' : TOKENS.border}`,
+                        color: dayViewType === 'list' ? roleTheme.primaryHi : TOKENS.textSec,
+                        borderRadius: 9, cursor: 'pointer'
+                      }}
+                    >
+                      {dayViewType === 'grid' ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                      )}
+                    </button>
+                  )}
                   <button
                     onClick={() => setToolbarCollapsed(v => !v)}
                     title={toolbarCollapsed ? 'Mostrar filtros' : 'Ocultar filtros'}
                     aria-label={toolbarCollapsed ? 'Mostrar filtros' : 'Ocultar filtros'}
-                    style={{ display: 'flex', alignItems: 'center', gap: 7, padding: isMobile ? '7px 11px' : '7px 12px', background: toolbarCollapsed ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard, border: `1px solid ${toolbarCollapsed ? 'rgba(244,80,30,0.30)' : TOKENS.border}`, color: toolbarCollapsed ? TOKENS.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, flexShrink: 0, minHeight: 33 }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 7, padding: isMobile ? '7px 11px' : '7px 12px', background: toolbarCollapsed ? roleTheme.primarySoft : TOKENS.bgCard, border: `1px solid ${toolbarCollapsed ? roleTheme.primary + '40' : TOKENS.border}`, color: toolbarCollapsed ? roleTheme.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, flexShrink: 0, minHeight: 33 }}
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
@@ -1596,7 +1698,23 @@ export default function AgendaCalendar() {
                 </div>
               )}
 
-              <DayTimeline citas={filtered} profesionales={timelineProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={isReallyCollapsed} completarManual={completarManual} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} />
+              {dayViewType === 'list' && isMobile ? (
+                <DayListView
+                  citas={filtered}
+                  profesionales={timelineProfs}
+                  servicios={servicios}
+                  clientes={clientes}
+                  servicioMap={servicioMap}
+                  clienteMap={clienteMap}
+                  profesionalMap={profesionalMap}
+                  onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }}
+                  onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }}
+                  selectedDateObj={selectedDateObj}
+                  theme={roleTheme}
+                />
+              ) : (
+                <DayTimeline citas={filtered} profesionales={timelineProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={isReallyCollapsed} completarManual={completarManual} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} theme={roleTheme} />
+              )}
             </>
           )}
           {view === 'week' && (
@@ -1682,7 +1800,7 @@ export default function AgendaCalendar() {
         const count = citasConfirmadasHoy.length;
         return (
           <div onClick={() => setShowCierreSalon(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'grid', placeItems: 'center', zIndex: 9999, animation: 'fadeIn 0.2s ease' }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ width: 440, background: TOKENS.bgPanel, border: `1px solid rgba(239,68,68,0.30)`, borderRadius: 16, padding: 28, animation: 'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: isMobile ? '90%' : 440, maxWidth: 440, background: TOKENS.bgPanel, border: `1px solid rgba(239,68,68,0.30)`, borderRadius: 16, padding: isMobile ? 18 : 28, animation: 'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
               <h3 style={{ margin: 0, marginBottom: 6, fontSize: 18, fontWeight: 700, color: '#ef4444' }}>
                 Cerrar salon hoy
               </h3>
@@ -1774,7 +1892,7 @@ export default function AgendaCalendar() {
 
         return (
           <div onClick={() => setShowClientaTarde(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'grid', placeItems: 'center', zIndex: 9999, animation: 'fadeIn 0.2s ease' }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ width: 420, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 16, padding: 28, animation: 'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: isMobile ? '90%' : 420, maxWidth: 420, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 16, padding: isMobile ? 18 : 28, animation: 'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
               <h3 style={{ margin: 0, marginBottom: 6, fontSize: 18, fontWeight: 700, color: TOKENS.text }}>
                 Cliente no ha llegado
               </h3>
@@ -1976,7 +2094,7 @@ export default function AgendaCalendar() {
                 {cells.map((d, i) => {
                   if (!d)
                     return <div key={i} style={{ height: 34 }} />;
-                  const isSel = d === selectedDate && currentMonth.getMonth() === today.getMonth();
+                  const isSel = d === selectedDate;
                   const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
                   const cnt = counts[d] || 0;
                   return (
@@ -2267,7 +2385,7 @@ const BLOQUEO_LABELS: Record<string, string> = {
   descanso:   'Descanso',
 };
 
-function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial, vivid = false, completarManual = false, onCreateSlot }: any) {
+function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial, vivid = false, completarManual = false, onCreateSlot, theme }: any) {
   const { isMobile, isTablet } = useResponsive();
   const HOURS = [];
   for (let h = HORARIO_APERTURA.horas; h < HORARIO_CIERRE.horas; h++) HOURS.push(h);
@@ -2544,7 +2662,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
           );
         })()}
         {HOURS.map((h, idx) => (
-          <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(192,38,10,0.09)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(244,80,30,0.045)' }}>
+          <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(192,38,10,0.16)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(244,80,30,0.045)' }}>
             <div style={{ padding: '8px 8px', fontSize: 11.5, fontWeight: 600, color: TOKENS.textSec, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
               {h}:00
             </div>
@@ -2552,24 +2670,45 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
               // Cada hora se parte en dos medias horas (:00 y :30). Cada mitad se
               // resalta sola al pasar el raton y muestra su hora exacta, asi el
               // clic crea la cita justo en la media hora elegida.
-              <div key={`${h}-${p.id}`} style={{ borderLeft: `1px solid rgba(40,30,24,0.07)`, display: 'flex', flexDirection: 'column' }}>
+              <div key={`${h}-${p.id}`} style={{ borderLeft: `1px solid rgba(40,30,24,0.14)`, display: 'flex', flexDirection: 'column' }}>
                 {[0, 30].map((minute) => {
                   const horaSlot = `${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
                   return (
                     <div
                       key={minute}
                       onClick={() => { if (onCreateSlot) onCreateSlot({ hora: horaSlot, profId: p.id }); }}
+                      onTouchStart={(e) => {
+                        const touch = e.touches[0];
+                        e.currentTarget.dataset.startX = String(touch.clientX);
+                        e.currentTarget.dataset.startY = String(touch.clientY);
+                        e.currentTarget.dataset.startTime = String(Date.now());
+                      }}
+                      onTouchEnd={(e) => {
+                        const startX = parseFloat(e.currentTarget.dataset.startX || '0');
+                        const startY = parseFloat(e.currentTarget.dataset.startY || '0');
+                        const startTime = parseFloat(e.currentTarget.dataset.startTime || '0');
+                        const touch = e.changedTouches[0];
+                        if (touch) {
+                          const diffX = Math.abs(touch.clientX - startX);
+                          const diffY = Math.abs(touch.clientY - startY);
+                          const diffTime = Date.now() - startTime;
+                          if (diffX < 10 && diffY < 10 && diffTime < 300) {
+                            e.preventDefault();
+                            if (onCreateSlot) onCreateSlot({ hora: horaSlot, profId: p.id });
+                          }
+                        }
+                      }}
                       title={`Crear cita a las ${horaSlot}`}
                       style={{
                         flex: 1,
-                        borderTop: minute === 30 ? `1px dashed rgba(40,30,24,0.08)` : 'none',
+                        borderTop: minute === 30 ? `1px dashed rgba(40,30,24,0.13)` : 'none',
                         cursor: onCreateSlot ? 'pointer' : 'default',
                         transition: 'background-color 0.12s ease',
                         display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 7px',
                       }}
                       onMouseEnter={(e) => {
                         if (!onCreateSlot) return;
-                        e.currentTarget.style.backgroundColor = 'rgba(244,80,30,0.09)';
+                        e.currentTarget.style.backgroundColor = theme?.primarySoft ? theme.primarySoft : 'rgba(244,80,30,0.09)';
                         const lbl = e.currentTarget.querySelector('span') as HTMLElement | null;
                         if (lbl) lbl.style.opacity = '1';
                       }}
@@ -2579,7 +2718,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         if (lbl) lbl.style.opacity = '0';
                       }}
                     >
-                      <span style={{ fontSize: 10, fontWeight: 700, color: '#e0340e', opacity: 0, transition: 'opacity 0.12s ease', pointerEvents: 'none' }}>{horaSlot}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: theme?.primary ? theme.primary : '#e0340e', opacity: 0, transition: 'opacity 0.12s ease', pointerEvents: 'none' }}>{horaSlot}</span>
                     </div>
                   );
                 })}
@@ -2884,6 +3023,191 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
         </div>
       )}
     </>
+  );
+}
+
+function CitaEstadoBadge({ estado }: { estado: string }) {
+  const map: Record<string, { label: string; color: string; soft: string }> = {
+    confirmada:    { label: 'Confirmada',    color: TOKENS.success, soft: 'rgba(15,157,107,0.12)' },
+    completada:    { label: 'Completada',    color: '#22c55e',      soft: 'rgba(34,197,94,0.12)' },
+    cancelada:     { label: 'Cancelada',     color: TOKENS.danger,   soft: 'rgba(226,59,52,0.12)' },
+    no_presentada: { label: 'No presentada',  color: '#f59e0b',      soft: 'rgba(245,158,11,0.15)' },
+  };
+  const m = map[estado] || { label: estado, color: TOKENS.textTer, soft: TOKENS.border };
+  return (
+    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4, color: m.color, background: m.soft, padding: '2px 6px', borderRadius: 6 }}>
+      {m.label}
+    </span>
+  );
+}
+
+function DayListView({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, onEditCita, onCreateSlot, selectedDateObj, theme }: any) {
+  const sortedCitas = useMemo(() => {
+    return [...citas].sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+  }, [citas]);
+
+  const timelineItems = useMemo(() => {
+    const items: any[] = [];
+    const START_H = HORARIO_APERTURA.horas;
+    const CLOSE_H = HORARIO_CIERRE.horas;
+    
+    const dayStart = new Date(selectedDateObj);
+    dayStart.setHours(START_H, 0, 0, 0);
+    const dayEnd = new Date(selectedDateObj);
+    dayEnd.setHours(CLOSE_H, 0, 0, 0);
+    
+    let lastTime = dayStart.getTime();
+    
+    sortedCitas.forEach((cita) => {
+      const citaStart = new Date(cita.inicio).getTime();
+      const citaEnd = new Date(cita.fin).getTime();
+      
+      if (citaStart - lastTime >= 15 * 60 * 1000) {
+        items.push({
+          type: 'gap',
+          start: new Date(lastTime),
+          end: new Date(citaStart),
+        });
+      }
+      
+      items.push({
+        type: 'cita',
+        cita,
+        start: new Date(citaStart),
+        end: new Date(citaEnd),
+      });
+      
+      lastTime = Math.max(lastTime, citaEnd);
+    });
+    
+    if (dayEnd.getTime() - lastTime >= 15 * 60 * 1000) {
+      items.push({
+        type: 'gap',
+        start: new Date(lastTime),
+        end: new Date(dayEnd.getTime()),
+      });
+    }
+    
+    return items;
+  }, [sortedCitas, selectedDateObj]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, animation: 'fadeIn 0.25s ease' }}>
+      {timelineItems.length === 0 ? (
+        <div style={{ padding: '40px 20px', textAlign: 'center', background: '#fff', border: `1px solid ${TOKENS.border}`, borderRadius: 16, color: TOKENS.textTer }}>
+          Sin citas programadas para hoy
+        </div>
+      ) : (
+        timelineItems.map((item, idx) => {
+          if (item.type === 'gap') {
+            const durationMin = Math.round((item.end.getTime() - item.start.getTime()) / (60 * 1000));
+            const startStr = item.start.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const endStr = item.end.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const defaultProfId = profesionales[0]?.id || '';
+            
+            return (
+              <button
+                key={`gap-${idx}`}
+                onClick={() => onCreateSlot({ hora: startStr, profId: defaultProfId })}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 16px',
+                  background: 'rgba(244,80,30,0.02)',
+                  border: `1.5px dashed ${theme.primary}33`,
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  color: theme.primary,
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = theme.primarySoft; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(244,80,30,0.02)'; }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>
+                    Hueco libre ({startStr} - {endStr})
+                  </span>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.3, opacity: 0.8 }}>
+                  {durationMin} min
+                </span>
+              </button>
+            );
+          } else {
+            const { cita } = item;
+            const startStr = item.start.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const durationMin = Math.round((item.end.getTime() - item.start.getTime()) / (60 * 1000));
+            const cli = clienteMap?.get(cita.cliente_id);
+            const srv = servicioMap?.get(cita.servicio_id);
+            const prof = profesionalMap?.get(cita.profesional_id);
+            const profColor = prof?.color || TOKENS.primary;
+            const cancelada = cita.estado === 'cancelada';
+            
+            return (
+              <div
+                key={cita.id}
+                onClick={() => onEditCita(cita)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '14px 16px',
+                  background: '#ffffff',
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 14,
+                  boxShadow: '0 2px 8px rgba(40,30,24,0.04)',
+                  cursor: 'pointer',
+                  opacity: cancelada ? 0.6 : 1,
+                  transition: 'transform 0.15s ease, border-color 0.15s ease',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.primary; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; }}
+              >
+                <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, background: profColor }} />
+                
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 50, flexShrink: 0 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>{startStr}</span>
+                  <span style={{ fontSize: 10.5, color: TOKENS.textTer, marginTop: 2 }}>{durationMin} min</span>
+                </div>
+                
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {cli?.nombre ?? 'Cliente'}
+                    </span>
+                    <CitaEstadoBadge estado={cita.estado} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 11.5 }}>
+                    <span style={{ color: TOKENS.textSec, background: TOKENS.bg, padding: '2px 6px', borderRadius: 6, fontWeight: 600 }}>
+                      {srv ?? 'Servicio'}
+                    </span>
+                    {prof && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: TOKENS.textTer }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: profColor }} />
+                        {prof.nombre.split(' ')[0]}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                <span style={{ display: 'grid', placeItems: 'center', color: TOKENS.textTer }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
+              </div>
+            );
+          }
+        })
+      )}
+    </div>
   );
 }
 
