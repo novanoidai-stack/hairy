@@ -4,6 +4,7 @@
 // interaccion centrado. La IA solo redacta/interpreta; el ORDEN y la
 // EJECUCION las controla este componente (ver lib/onboardingAgent.ts).
 import { useEffect, useRef, useState } from 'react';
+import { useSegments } from 'expo-router';
 import { Platform } from 'react-native';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
@@ -22,6 +23,13 @@ const FLAG_PREFIX = 'mecha-onboarding-agent:';
 
 export function OnboardingAgentOverlay() {
   const { isMobile } = useResponsive();
+  const segments = useSegments();
+  // Mismo criterio exacto que app/_layout.tsx (isPublicRoute): estas rutas son
+  // anonimas/publicas (portal de reserva, resenas, cita, pago, presupuesto,
+  // contacto) y deben verse igual sin importar la sesion que tenga el
+  // navegador. El asistente de onboarding es solo para el software autenticado
+  // (tabs), nunca debe superponerse a una pagina publica.
+  const isPublicRoute = ['r', 'resena', 'cita', 'pago', 'presupuesto', 'contacto'].includes(String(segments[0]));
   const [negocioId, setNegocioId] = useState<string | null>(null);
   const [elegible, setElegible] = useState(false);
   const [fase, setFase] = useState<Fase>('cerrado');
@@ -75,15 +83,16 @@ export function OnboardingAgentOverlay() {
   // Disparo automatico, una sola vez: en cuanto sabemos que esta elegible, el
   // nucleo no esta completo, y no se ha mostrado antes en este navegador.
   useEffect(() => {
+    if (isPublicRoute) return;
     if (!elegible || !negocioId || !status.ready || fase !== 'cerrado') return;
     if (status.coreDone) return;
     const key = `${FLAG_PREFIX}${negocioId}`;
     if (typeof window === 'undefined' || window.localStorage.getItem(key)) return;
     window.localStorage.setItem(key, JSON.stringify({ shown: true }));
     setFase('bienvenida');
-  }, [elegible, negocioId, status.ready, status.coreDone, fase]);
+  }, [elegible, negocioId, status.ready, status.coreDone, fase, isPublicRoute]);
 
-  if (Platform.OS !== 'web' || fase === 'cerrado') return null;
+  if (Platform.OS !== 'web' || fase === 'cerrado' || isPublicRoute) return null;
 
   const cerrar = () => setFase('cerrando');
 
