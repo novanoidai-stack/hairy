@@ -24,7 +24,7 @@ type NavItem = {
 const PRIMARY: NavItem[] = [
   { name: 'index', label: 'Agenda', labelKey: 'nav_agenda', icon: 'calendar', route: '/(tabs)' },
   { name: 'caja', label: 'Caja', labelKey: 'nav_caja', icon: 'wallet', route: '/(tabs)/caja', managerOnly: true },
-  { name: 'lista-espera', label: 'Lista de espera', labelKey: 'nav_lista_espera', icon: 'time', route: '/(tabs)/lista-espera' },
+  { name: 'lista-espera', label: 'Espera', labelKey: 'nav_lista_espera_corta', icon: 'time', route: '/(tabs)/lista-espera' },
   { name: 'clientes', label: 'Clientes', labelKey: 'nav_clientes', icon: 'people', route: '/(tabs)/clientes', cap: 'clientes.ver' },
 ];
 

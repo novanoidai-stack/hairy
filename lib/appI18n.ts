@@ -9,6 +9,8 @@
 // La preferencia se guarda en localStorage (web) o AsyncStorage (nativo). El
 // hook useAppLang lo expone. Selector visible en Configuracion > Cuenta.
 
+import { IS_DEMO_MODE } from '@/lib/supabase';
+
 export type AppLang = 'es' | 'en' | 'fr' | 'de' | 'it' | 'pt' | 'ca';
 export const APP_LANGS: { code: AppLang; label: string }[] = [
   { code: 'es', label: 'Español' },
@@ -35,6 +37,7 @@ const es: Dict = {
   nav_configuracion: 'Configuración',
   nav_mas: 'Más',
   nav_lista_espera: 'Lista de espera',
+  nav_lista_espera_corta: 'Espera',
   nav_presupuestos: 'Presupuestos',
   nav_resenas: 'Reseñas',
   nav_grp_principal: 'Principal',
@@ -92,7 +95,7 @@ const en: Dict = {
   nav_agenda: 'Schedule', nav_clientes: 'Clients', nav_equipo: 'Team',
   nav_informes: 'Reports', nav_caja: 'Cashier', nav_mi_jornada: 'My day',
   nav_bandeja: 'Inbox', nav_inventario: 'Inventory', nav_configuracion: 'Settings',
-  nav_mas: 'More', nav_lista_espera: 'Waitlist', nav_presupuestos: 'Estimates',
+  nav_mas: 'More', nav_lista_espera: 'Waitlist', nav_lista_espera_corta: 'Waitlist', nav_presupuestos: 'Estimates',
   nav_resenas: 'Reviews',
   nav_grp_principal: 'Core', nav_grp_gestion: 'Management',
   guardar: 'Save', cancelar: 'Cancel', eliminar: 'Delete', editar: 'Edit',
@@ -138,7 +141,7 @@ const fr: Dict = {
   nav_agenda: 'Agenda', nav_clientes: 'Clients', nav_equipo: 'Équipe',
   nav_informes: 'Rapports', nav_caja: 'Caisse', nav_mi_jornada: 'Ma journée',
   nav_bandeja: 'Boîte', nav_inventario: 'Stock', nav_configuracion: 'Réglages',
-  nav_mas: 'Plus', nav_lista_espera: 'Liste d\'attente', nav_presupuestos: 'Devis',
+  nav_mas: 'Plus', nav_lista_espera: 'Liste d\'attente', nav_lista_espera_corta: 'Attente', nav_presupuestos: 'Devis',
   nav_resenas: 'Avis',
   nav_grp_principal: 'Principal', nav_grp_gestion: 'Gestion',
   guardar: 'Enregistrer', cancelar: 'Annuler', eliminar: 'Supprimer', editar: 'Modifier',
@@ -184,7 +187,7 @@ const de: Dict = {
   nav_agenda: 'Kalender', nav_clientes: 'Kunden', nav_equipo: 'Team',
   nav_informes: 'Berichte', nav_caja: 'Kasse', nav_mi_jornada: 'Mein Tag',
   nav_bandeja: 'Posteingang', nav_inventario: 'Bestand', nav_configuracion: 'Einstellungen',
-  nav_mas: 'Mehr', nav_lista_espera: 'Warteliste', nav_presupuestos: 'Angebote',
+  nav_mas: 'Mehr', nav_lista_espera: 'Warteliste', nav_lista_espera_corta: 'Warteliste', nav_presupuestos: 'Angebote',
   nav_resenas: 'Bewertungen',
   nav_grp_principal: 'Hauptmenü', nav_grp_gestion: 'Verwaltung',
   guardar: 'Speichern', cancelar: 'Abbrechen', eliminar: 'Löschen', editar: 'Bearbeiten',
@@ -230,7 +233,7 @@ const it: Dict = {
   nav_agenda: 'Agenda', nav_clientes: 'Clienti', nav_equipo: 'Team',
   nav_informes: 'Report', nav_caja: 'Cassa', nav_mi_jornada: 'La mia giornata',
   nav_bandeja: 'Posta', nav_inventario: 'Magazzino', nav_configuracion: 'Impostazioni',
-  nav_mas: 'Altro', nav_lista_espera: 'Lista d\'attesa', nav_presupuestos: 'Preventivi',
+  nav_mas: 'Altro', nav_lista_espera: 'Lista d\'attesa', nav_lista_espera_corta: 'Attesa', nav_presupuestos: 'Preventivi',
   nav_resenas: 'Recensioni',
   nav_grp_principal: 'Principale', nav_grp_gestion: 'Gestione',
   guardar: 'Salva', cancelar: 'Annulla', eliminar: 'Elimina', editar: 'Modifica',
@@ -276,7 +279,7 @@ const pt: Dict = {
   nav_agenda: 'Agenda', nav_clientes: 'Clientes', nav_equipo: 'Equipa',
   nav_informes: 'Relatórios', nav_caja: 'Caixa', nav_mi_jornada: 'A minha jornada',
   nav_bandeja: 'Caixa de entrada', nav_inventario: 'Inventário', nav_configuracion: 'Definições',
-  nav_mas: 'Mais', nav_lista_espera: 'Lista de espera', nav_presupuestos: 'Orçamentos',
+  nav_mas: 'Mais', nav_lista_espera: 'Lista de espera', nav_lista_espera_corta: 'Espera', nav_presupuestos: 'Orçamentos',
   nav_resenas: 'Avaliações',
   nav_grp_principal: 'Principal', nav_grp_gestion: 'Gestão',
   guardar: 'Guardar', cancelar: 'Cancelar', eliminar: 'Eliminar', editar: 'Editar',
@@ -322,7 +325,7 @@ const ca: Dict = {
   nav_agenda: 'Agenda', nav_clientes: 'Clients', nav_equipo: 'Equip',
   nav_informes: 'Informes', nav_caja: 'Caixa', nav_mi_jornada: 'La meva jornada',
   nav_bandeja: 'Safata', nav_inventario: 'Inventari', nav_configuracion: 'Configuració',
-  nav_mas: 'Més', nav_lista_espera: 'Llista d\'espera', nav_presupuestos: 'Pressupostos',
+  nav_mas: 'Més', nav_lista_espera: 'Llista d\'espera', nav_lista_espera_corta: 'Espera', nav_presupuestos: 'Pressupostos',
   nav_resenas: 'Ressenyes',
   nav_grp_principal: 'Principal', nav_grp_gestion: 'Gestió',
   guardar: 'Desa', cancelar: 'Cancel·la', eliminar: 'Elimina', editar: 'Edita',
@@ -378,6 +381,10 @@ const STORAGE_KEY = 'mecha_app_lang';
 
 export function readSavedLang(): AppLang {
   try {
+    // La demo publica compartida siempre se ve en español, sin importar el
+    // idioma del navegador del visitante: es una única demo consistente para
+    // todo el mundo (ver IS_DEMO_MODE en lib/supabase.ts).
+    if (IS_DEMO_MODE) return 'es';
     if (typeof window !== 'undefined' && window.localStorage) {
       const v = window.localStorage.getItem(STORAGE_KEY);
       if (v && (DICTS as any)[v]) return v as AppLang;
