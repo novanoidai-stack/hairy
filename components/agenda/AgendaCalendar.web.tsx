@@ -22,6 +22,10 @@ import { OnboardingCard } from '@/components/onboarding/OnboardingCard.web';
 import OnboardingPanel from '@/components/onboarding/OnboardingPanel.web';
 import type { OnboardingStepId } from '@/lib/onboarding';
 import { contarSinLeer } from '@/lib/bandeja';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualAgenda } from '@/lib/manuals/agenda';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -180,6 +184,8 @@ export default function AgendaCalendar() {
   // Prellenado al crear cita desde un clic en un hueco de la rejilla (hora + profesional)
   const [newCitaPrefill, setNewCitaPrefill] = useState<{ hora?: string; profId?: string } | null>(null);
   const [showNotif, setShowNotif] = useState(false);
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('agenda');
   // Demo guiada: enfoque tipo spotlight sobre una zona (p.ej. el panel de avisos).
   const [demoFocus, setDemoFocus] = useState<string | null>(null);
   const notifPanelRef = useRef<HTMLElement | null>(null);
@@ -758,6 +764,18 @@ export default function AgendaCalendar() {
               {sinConfirmar48h} sin confirmar
             </div>
           )}
+          <button
+            onClick={() => setShowManualPanel(true)}
+            title="Manual de esta pagina"
+            className="m-btn-icon"
+            style={{ padding: 7, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 9, color: TOKENS.textSec, cursor: 'pointer', width: 33, height: 33, display: 'grid', placeItems: 'center' }}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </button>
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => setShowNotif((v) => !v)}
@@ -908,6 +926,15 @@ export default function AgendaCalendar() {
           </button>
         </div>
       </div>
+
+      {!paginaManual.loading && !paginaManual.visto && (
+        <AvisoPrimeraVisita
+          content={manualAgenda}
+          isMobile={isMobile}
+          onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+          onCerrar={paginaManual.marcarVisto}
+        />
+      )}
 
       {/* 8.3+8.4: Barra de filtros y buscador */}
       {!toolbarCollapsed && (
@@ -1607,6 +1634,13 @@ export default function AgendaCalendar() {
       </div>
 
       {showNewCita && <NewCitaModal onClose={() => { setShowNewCita(false); setNewCitaPrefill(null); }} onSaved={(nuevaCita: any) => { if (nuevaCita) setCitas(prev => [...prev, nuevaCita]); setShowNewCita(false); setNewCitaPrefill(null); }} selectedDate={selectedDateObj} prefillHora={newCitaPrefill?.hora} prefillProf={newCitaPrefill?.profId} />}
+      {showManualPanel && (
+        <ManualPanel
+          content={manualAgenda}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
+        />
+      )}
       {/* Demo guiada: spotlight sobre el panel de avisos (no la campana ni "Cerrar salon") */}
       <DemoSpotlight targetRef={notifPanelRef} active={demoFocus === 'avisos'} label="Avisos" padding={8} radius={16} />
       {showOnboardingPanel && (
