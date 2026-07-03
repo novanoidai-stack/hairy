@@ -136,6 +136,33 @@ function fmtHoras(h: number): string {
 const eur = (cents?: number) => `${((cents || 0) / 100).toFixed(2)}€`;
 const fmtPct = (n: number) => `${Math.round(n)}%`;
 
+function MetricRow({ icon, label, value, sub, color = T.primary }: { icon: string; label: string; value: string; sub?: string; color?: string }) {
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '12px 16px',
+      background: T.bgCard,
+      borderBottom: `1px solid ${T.border}`,
+      gap: 12
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+        <div style={{ width: 34, height: 34, borderRadius: 8, background: `${color}15`, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+          <Icon name={icon} size={16} color={color} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</div>
+          {sub && <div style={{ fontSize: 11, color: T.textSec, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>}
+        </div>
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 function MiJornadaScreen() {
   const { isMobile } = useResponsive();
   const [showManualPanel, setShowManualPanel] = useState(false);
@@ -147,6 +174,7 @@ function MiJornadaScreen() {
   const [fichajesHoy, setFichajesHoy] = useState<Fichaje[]>([]);
   const [userId, setUserId] = useState('');
   const [fichando, setFichando] = useState(false);
+  const [subTab, setSubTab] = useState<'citas' | 'numeros' | 'ausencias'>('citas');
 
   // Vista de equipo (solo propietario/direccion): ranking de profesionales.
   const [vista, setVista] = useState<Vista>('personal');
@@ -491,7 +519,7 @@ function MiJornadaScreen() {
   const verComision = resumen?.puede_ver_comision;
 
   return (
-    <div style={{ background: T.bg, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div style={{ background: T.bg, height: '100%', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <style>{ANIM}</style>
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: isMobile ? '16px 14px 96px' : '20px' }}>
 
@@ -740,28 +768,110 @@ function MiJornadaScreen() {
           )}
         </div>
 
-        {/* Metricas del periodo */}
-        <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4, margin: '4px 2px 10px' }}>
-          Tu actividad · {pLabel}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${isMobile ? 140 : 160}px, 1fr))`, gap: 12, marginBottom: 18 }}>
-          <StatBox label="Citas completadas" value={String(resumen?.citas_completadas ?? 0)} sub={pLabel} accent={T.primary} />
-          <StatBox label="Tintes / color" value={String(resumen?.tintes ?? 0)} sub="de tus citas" />
-          <StatBox label="Horas trabajadas" value={fmtHoras(resumen?.horas ?? 0)} sub={pLabel} />
-          {verImportes && (
-            <>
-              <StatBox label="Cobrado" value={eur(resumen?.total_cents)} sub={`${resumen?.cobros_count ?? 0} cobro${(resumen?.cobros_count ?? 0) === 1 ? '' : 's'}`} accent={T.text} />
-              <StatBox label="Propinas" value={eur(resumen?.propinas_cents)} sub="incluidas en cobros" accent={T.success} />
-              <StatBox label="Ticket medio" value={eur(resumen?.ticket_medio_cents)} sub="por cobro" />
-            </>
-          )}
-          {verComision && (
-            <StatBox label="Comisión estimada" value={eur(resumen?.comision_cents)} sub="sobre servicios" accent={T.primaryHi} />
-          )}
-        </div>
+        {/* Selector de SubTabs en Móvil */}
+        {isMobile && (
+          <div style={{ display: 'flex', background: T.bgCard, borderRadius: 10, padding: 4, marginBottom: 16, border: `1px solid ${T.border}` }}>
+            <button
+              onClick={() => setSubTab('citas')}
+              style={{
+                flex: 1,
+                padding: '8px 4px',
+                borderRadius: 8,
+                border: 'none',
+                background: subTab === 'citas' ? T.primary : 'transparent',
+                color: subTab === 'citas' ? '#fff' : T.textSec,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                textAlign: 'center',
+                transition: 'all 0.2s'
+              }}
+            >
+              Citas
+            </button>
+            <button
+              onClick={() => setSubTab('numeros')}
+              style={{
+                flex: 1,
+                padding: '8px 4px',
+                borderRadius: 8,
+                border: 'none',
+                background: subTab === 'numeros' ? T.primary : 'transparent',
+                color: subTab === 'numeros' ? '#fff' : T.textSec,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                textAlign: 'center',
+                transition: 'all 0.2s'
+              }}
+            >
+              Mis números
+            </button>
+            <button
+              onClick={() => setSubTab('ausencias')}
+              style={{
+                flex: 1,
+                padding: '8px 4px',
+                borderRadius: 8,
+                border: 'none',
+                background: subTab === 'ausencias' ? T.primary : 'transparent',
+                color: subTab === 'ausencias' ? '#fff' : T.textSec,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                textAlign: 'center',
+                transition: 'all 0.2s'
+              }}
+            >
+              Ausencias
+            </button>
+          </div>
+        )}
 
-        {/* Mis objetivos del mes (progreso). Solo si tengo objetivos activos. */}
-        {misObjetivos.length > 0 && (
+        {/* Metricas del periodo */}
+        {(!isMobile || subTab === 'numeros') && (
+          <>
+            <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4, margin: '4px 2px 10px' }}>
+              Tu actividad · {pLabel}
+            </div>
+            {isMobile ? (
+              <div style={{ background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, overflow: 'hidden', marginBottom: 18 }}>
+                <MetricRow icon="scissors" label="Citas completadas" value={String(resumen?.citas_completadas ?? 0)} sub={pLabel} color={T.primary} />
+                <MetricRow icon="drop" label="Tintes / color" value={String(resumen?.tintes ?? 0)} sub="de tus citas" color="#6366f1" />
+                <MetricRow icon="clock" label="Horas trabajadas" value={fmtHoras(resumen?.horas ?? 0)} sub={pLabel} color="#e08a00" />
+                {verImportes && (
+                  <>
+                    <MetricRow icon="cash" label="Cobrado" value={eur(resumen?.total_cents)} sub={`${resumen?.cobros_count ?? 0} cobro${(resumen?.cobros_count ?? 0) === 1 ? '' : 's'}`} color={T.success} />
+                    <MetricRow icon="star" label="Propinas" value={eur(resumen?.propinas_cents)} sub="incluidas en cobros" color="#d97706" />
+                    <MetricRow icon="info" label="Ticket medio" value={eur(resumen?.ticket_medio_cents)} sub="por cobro" color="#0891b2" />
+                  </>
+                )}
+                {verComision && (
+                  <MetricRow icon="check" label="Comisión estimada" value={eur(resumen?.comision_cents)} sub="sobre servicios" color={T.primaryHi} />
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(140px, 1fr))`, gap: 12, marginBottom: 18 }}>
+                <StatBox label="Citas completadas" value={String(resumen?.citas_completadas ?? 0)} sub={pLabel} accent={T.primary} />
+                <StatBox label="Tintes / color" value={String(resumen?.tintes ?? 0)} sub="de tus citas" />
+                <StatBox label="Horas trabajadas" value={fmtHoras(resumen?.horas ?? 0)} sub={pLabel} />
+                {verImportes && (
+                  <>
+                    <StatBox label="Cobrado" value={eur(resumen?.total_cents)} sub={`${resumen?.cobros_count ?? 0} cobro${(resumen?.cobros_count ?? 0) === 1 ? '' : 's'}`} accent={T.text} />
+                    <StatBox label="Propinas" value={eur(resumen?.propinas_cents)} sub="incluidas en cobros" accent={T.success} />
+                    <StatBox label="Ticket medio" value={eur(resumen?.ticket_medio_cents)} sub="por cobro" />
+                  </>
+                )}
+                {verComision && (
+                  <StatBox label="Comisión estimada" value={eur(resumen?.comision_cents)} sub="sobre servicios" accent={T.primaryHi} />
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Mis objetivos del mes (progreso) */}
+        {(!isMobile || subTab === 'numeros') && misObjetivos.length > 0 && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 2px 10px' }}>
               <Icon name="star" size={14} color={T.primaryHi} />
@@ -786,7 +896,7 @@ function MiJornadaScreen() {
                     </div>
                     {o.bonus_cents != null && o.bonus_cents > 0 && (
                       <div style={{ fontSize: 11.5, color: done ? T.success : T.textSec, marginTop: 6 }}>
-                        {done ? '¡Bonus conseguido!' : 'Bonus al alcanzarlo:'} <b>{eur(o.bonus_cents)}</b>
+                        Bonus: <b>{eur(o.bonus_cents)}</b>{done ? ' · conseguido' : ''}
                       </div>
                     )}
                   </div>
@@ -797,7 +907,7 @@ function MiJornadaScreen() {
         )}
 
         {/* Lista de citas completadas del periodo */}
-        {vinculado && (
+        {(!isMobile || subTab === 'citas') && vinculado && (
           <>
             <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4, margin: '4px 2px 10px' }}>
               Citas completadas · {pLabel}
@@ -835,7 +945,7 @@ function MiJornadaScreen() {
         )}
 
         {/* Mis ausencias */}
-        {vinculado && (
+        {(!isMobile || subTab === 'ausencias') && vinculado && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -886,67 +996,71 @@ function MiJornadaScreen() {
           </>
         )}
 
-        {/* Intercambio de turnos: bitacora compartida (todo el equipo la ve). */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Icon name="link" size={14} color={T.primaryHi} />
-            <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
-              Cambios de turno
-            </div>
-          </div>
-          {vinculado && (
-            <button
-              onClick={abrirNuevoIntercambio}
-              disabled={profesionalesActivos.length < 2}
-              className="mj-btn"
-              style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primary}`, background: T.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: profesionalesActivos.length < 2 ? 'not-allowed' : 'pointer' }}
-            >
-              + Pedir cambio
-            </button>
-          )}
-        </div>
-        {intercambios.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '24px 20px', background: T.bgCard, borderRadius: 12, border: `1px dashed ${T.border}`, color: T.textSec, fontSize: 13 }}>
-            Sin cambios de turno pendientes. Cuando pidas uno queda registrado aquí para que el compañero y el gestor lo revisen (sin WhatsApp informal).
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {intercambios.map((it) => {
-              const est = estadoLabel(it.estado);
-              const fs = format(parseISO(it.fecha_solicitante), 'EEE d MMM', { locale: es });
-              const fc = format(parseISO(it.fecha_companero), 'EEE d MMM', { locale: es });
-              return (
-                <div key={it.id} className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12, padding: '12px 14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, flex: 1, minWidth: 0 }}>
-                      {it.solicitante_nombre} ({fs}) ⇄ {it.companero_nombre} ({fc})
-                    </div>
-                    <span style={{ fontSize: 11, color: est.color, background: `${est.color}18`, padding: '3px 9px', borderRadius: 999, fontWeight: 700, whiteSpace: 'nowrap' }}>
-                      {est.label}
-                    </span>
-                  </div>
-                  {it.motivo && <div style={{ fontSize: 12, color: T.textSec, marginBottom: 8 }}>{it.motivo}</div>}
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {it.es_companero && it.estado === 'pendiente_companero' && (
-                      <>
-                        <button onClick={() => responderCompanero(it.id, true)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: T.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Acepto el cambio</button>
-                        <button onClick={() => responderCompanero(it.id, false)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rechazar</button>
-                      </>
-                    )}
-                    {it.es_gestor && it.estado === 'pendiente_gestor' && (
-                      <>
-                        <button onClick={() => responderGestor(it.id, true)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: T.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Aprobar</button>
-                        <button onClick={() => responderGestor(it.id, false)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rechazar</button>
-                      </>
-                    )}
-                    {it.es_solicitante && (it.estado === 'pendiente_companero' || it.estado === 'pendiente_gestor') && (
-                      <button onClick={() => cancelarIntercambio(it.id)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Cancelar solicitud</button>
-                    )}
-                  </div>
+        {/* Intercambio de turnos */}
+        {(!isMobile || subTab === 'ausencias') && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon name="link" size={14} color={T.primaryHi} />
+                <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                  Cambios de turno
                 </div>
-              );
-            })}
-          </div>
+              </div>
+              {vinculado && (
+                <button
+                  onClick={abrirNuevoIntercambio}
+                  disabled={profesionalesActivos.length < 2}
+                  className="mj-btn"
+                  style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primary}`, background: T.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: profesionalesActivos.length < 2 ? 'not-allowed' : 'pointer' }}
+                >
+                  + Pedir cambio
+                </button>
+              )}
+            </div>
+            {intercambios.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px 20px', background: T.bgCard, borderRadius: 12, border: `1px dashed ${T.border}`, color: T.textSec, fontSize: 13 }}>
+                Sin cambios de turno pendientes. Cuando pidas uno queda registrado aquí para que el compañero y el gestor lo revisen.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {intercambios.map((it) => {
+                  const est = estadoLabel(it.estado);
+                  const fs = format(parseISO(it.fecha_solicitante), 'EEE d MMM', { locale: es });
+                  const fc = format(parseISO(it.fecha_companero), 'EEE d MMM', { locale: es });
+                  return (
+                    <div key={it.id} className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12, padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, flex: 1, minWidth: 0 }}>
+                          {it.solicitante_nombre} ({fs}) ⇄ {it.companero_nombre} ({fc})
+                        </div>
+                        <span style={{ fontSize: 11, color: est.color, background: `${est.color}18`, padding: '3px 9px', borderRadius: 999, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          {est.label}
+                        </span>
+                      </div>
+                      {it.motivo && <div style={{ fontSize: 12, color: T.textSec, marginBottom: 8 }}>{it.motivo}</div>}
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        {it.es_companero && it.estado === 'pendiente_companero' && (
+                          <>
+                            <button onClick={() => responderCompanero(it.id, true)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: T.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Acepto el cambio</button>
+                            <button onClick={() => responderCompanero(it.id, false)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rechazar</button>
+                          </>
+                        )}
+                        {it.es_gestor && it.estado === 'pendiente_gestor' && (
+                          <>
+                            <button onClick={() => responderGestor(it.id, true)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: T.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Aprobar</button>
+                            <button onClick={() => responderGestor(it.id, false)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rechazar</button>
+                          </>
+                        )}
+                        {it.es_solicitante && (it.estado === 'pendiente_companero' || it.estado === 'pendiente_gestor') && (
+                          <button onClick={() => cancelarIntercambio(it.id)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Cancelar solicitud</button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
         </>
         )}

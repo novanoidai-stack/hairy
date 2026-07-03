@@ -276,7 +276,7 @@ function ResenasScreen() {
   }
 
   return (
-    <div style={{ height: '100vh', overflowY: 'auto', background: TOKENS.bg, padding: PAD, fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ height: '100%', flex: 1, overflowY: 'auto', background: TOKENS.bg, padding: isMobile ? '16px 14px 96px' : PAD, fontFamily: 'Inter, system-ui, sans-serif' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIMATIONS }} />
 
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
@@ -340,26 +340,45 @@ function ResenasScreen() {
         ) : (
           <>
             {/* STATS POR SUBCATEGORIA */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
-              {stats.map((s, i) => {
-                const isMecha = s.group === 'mecha';
-                const accent = isMecha ? TOKENS.gold : TOKENS.primary;
-                return (
-                  <div key={s.key} className="stat-card" style={{ animationDelay: `${i * 0.04}s`, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 9 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: accent, flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, fontWeight: 700, color: TOKENS.textSec, lineHeight: 1.2 }}>{s.label}</span>
+            {isMobile ? (
+              <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: '16px 20px', marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: TOKENS.textSec }}>Valoración por categorías</div>
+                {stats.map((s) => {
+                  const isMecha = s.group === 'mecha';
+                  const accent = isMecha ? TOKENS.gold : TOKENS.primary;
+                  return (
+                    <div key={s.key} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.textSec }}>{s.label}</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: TOKENS.text }}>{s.avg || '–'} <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer }}>/5</span></span>
+                      </div>
+                      <BarMeter value={s.avg} color={accent} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                      <span style={{ fontSize: 26, fontWeight: 800, color: s.count ? TOKENS.text : TOKENS.textTer, lineHeight: 1 }}>{s.avg || '–'}</span>
-                      {s.count > 0 && <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.textTer }}>/5</span>}
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
+                {stats.map((s, i) => {
+                  const isMecha = s.group === 'mecha';
+                  const accent = isMecha ? TOKENS.gold : TOKENS.primary;
+                  return (
+                    <div key={s.key} className="stat-card" style={{ animationDelay: `${i * 0.04}s`, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 9 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: accent, flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, fontWeight: 700, color: TOKENS.textSec, lineHeight: 1.2 }}>{s.label}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                        <span style={{ fontSize: 26, fontWeight: 800, color: s.count ? TOKENS.text : TOKENS.textTer, lineHeight: 1 }}>{s.avg || '–'}</span>
+                        {s.count > 0 && <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.textTer }}>/5</span>}
+                      </div>
+                      <BarMeter value={s.avg} color={accent} />
+                      <span style={{ fontSize: 11.5, color: TOKENS.textTer, fontWeight: 600 }}>{s.count} {s.count === 1 ? 'respuesta' : 'respuestas'}</span>
                     </div>
-                    <BarMeter value={s.avg} color={accent} />
-                    <span style={{ fontSize: 11.5, color: TOKENS.textTer, fontWeight: 600 }}>{s.count} {s.count === 1 ? 'respuesta' : 'respuestas'}</span>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* ANALISIS DE SENTIMIENTO */}
             {hasSentiment && (

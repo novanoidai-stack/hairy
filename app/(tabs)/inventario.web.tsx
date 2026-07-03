@@ -675,7 +675,7 @@ export default function InventarioScreen() {
   }
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, padding: isMobile ? '12px 12px 96px' : '24px', height: '100%', overflowY: 'auto', minHeight: undefined }}>
       {/* Inyectamos estilos CSS personalizados para efectos avanzados */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes pulseAlert {
@@ -756,59 +756,71 @@ export default function InventarioScreen() {
       )}
 
       {/* KPI Cards */}
-      <div style={styles.kpiGrid}>
-        <div style={{ ...styles.kpiCard, borderLeft: '4px solid #0891b2' }}>
+      <div style={{ ...styles.kpiGrid, gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(240px, 1fr))', gap: isMobile ? 8 : 16 }}>
+        <div style={{ ...styles.kpiCard, borderLeft: '4px solid #0891b2', padding: isMobile ? 12 : 20, minHeight: isMobile ? 70 : 'auto' }}>
           <div style={styles.kpiContent}>
-            <span style={styles.kpiLabel}>{t('inv_total_refs')}</span>
-            <span style={styles.kpiValue}>{productos.length}</span>
-            <span style={styles.kpiSubtext}>Productos cargados</span>
+            <span style={{ ...styles.kpiLabel, fontSize: isMobile ? 9 : 11 }}>{t('inv_total_refs')}</span>
+            <span style={{ ...styles.kpiValue, fontSize: isMobile ? 16 : 22 }}>{productos.length}</span>
+            {!isMobile && <span style={styles.kpiSubtext}>Productos cargados</span>}
           </div>
-          <div style={{ ...styles.kpiIconWrapper, backgroundColor: 'rgba(8, 145, 178, 0.1)' }}>
-            <Icon name="package" size={24} color="#0891b2" />
-          </div>
+          {!isMobile && (
+            <div style={{ ...styles.kpiIconWrapper, backgroundColor: 'rgba(8, 145, 178, 0.1)' }}>
+              <Icon name="package" size={24} color="#0891b2" />
+            </div>
+          )}
         </div>
 
         <div style={{
           ...styles.kpiCard,
           borderLeft: `4px solid ${alertasCount > 0 ? TOKENS.danger : TOKENS.success}`,
+          padding: isMobile ? 12 : 20,
+          minHeight: isMobile ? 70 : 'auto'
         }} className={alertasCount > 0 ? 'pulse-alert-card' : ''}>
           <div style={styles.kpiContent}>
-            <span style={styles.kpiLabel}>{t('inv_bajo_min')}</span>
-            <span style={{ ...styles.kpiValue, color: alertasCount > 0 ? TOKENS.danger : TOKENS.success }}>
+            <span style={{ ...styles.kpiLabel, fontSize: isMobile ? 9 : 11 }}>{t('inv_bajo_min')}</span>
+            <span style={{ ...styles.kpiValue, fontSize: isMobile ? 16 : 22, color: alertasCount > 0 ? TOKENS.danger : TOKENS.success }}>
               {alertasCount}
             </span>
-            <span style={styles.kpiSubtext}>
-              {alertasCount > 0 ? 'Necesitan reposición' : 'Nivel de stock óptimo'}
-            </span>
+            {!isMobile && (
+              <span style={styles.kpiSubtext}>
+                {alertasCount > 0 ? 'Necesitan reposición' : 'Nivel de stock óptimo'}
+              </span>
+            )}
           </div>
-          <div style={{
-            ...styles.kpiIconWrapper,
-            backgroundColor: alertasCount > 0 ? TOKENS.dangerSoft : TOKENS.successSoft
-          }}>
-            <Icon name="alert" size={24} color={alertasCount > 0 ? TOKENS.danger : TOKENS.success} />
-          </div>
+          {!isMobile && (
+            <div style={{
+              ...styles.kpiIconWrapper,
+              backgroundColor: alertasCount > 0 ? TOKENS.dangerSoft : TOKENS.successSoft
+            }}>
+              <Icon name="alert" size={24} color={alertasCount > 0 ? TOKENS.danger : TOKENS.success} />
+            </div>
+          )}
         </div>
 
-        <div style={{ ...styles.kpiCard, borderLeft: `4px solid ${TOKENS.success}` }}>
+        <div style={{ ...styles.kpiCard, borderLeft: `4px solid ${TOKENS.success}`, padding: isMobile ? 12 : 20, minHeight: isMobile ? 70 : 'auto' }}>
           <div style={styles.kpiContent}>
-            <span style={styles.kpiLabel}>{t('inv_valor')}</span>
-            <span style={styles.kpiValue}>{valorTotalInventario.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</span>
-            <span style={styles.kpiSubtext}>Valoración a PVP</span>
+            <span style={{ ...styles.kpiLabel, fontSize: isMobile ? 9 : 11 }}>{t('inv_valor')}</span>
+            <span style={{ ...styles.kpiValue, fontSize: isMobile ? 16 : 22 }}>{valorTotalInventario.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</span>
+            {!isMobile && <span style={styles.kpiSubtext}>Valoración a PVP</span>}
           </div>
-          <div style={{ ...styles.kpiIconWrapper, backgroundColor: 'rgba(15, 157, 107, 0.1)' }}>
-            <Icon name="history" size={24} color={TOKENS.success} />
-          </div>
+          {!isMobile && (
+            <div style={{ ...styles.kpiIconWrapper, backgroundColor: 'rgba(15, 157, 107, 0.1)' }}>
+              <Icon name="history" size={24} color={TOKENS.success} />
+            </div>
+          )}
         </div>
 
-        <div style={{ ...styles.kpiCard, borderLeft: '4px solid #8b5cf6' }}>
+        <div style={{ ...styles.kpiCard, borderLeft: '4px solid #8b5cf6', padding: isMobile ? 12 : 20, minHeight: isMobile ? 70 : 'auto' }}>
           <div style={styles.kpiContent}>
-            <span style={styles.kpiLabel}>{t('inv_categorias')}</span>
-            <span style={styles.kpiValue}>{categorias.length - 1}</span>
-            <span style={styles.kpiSubtext}>Grupos de productos</span>
+            <span style={{ ...styles.kpiLabel, fontSize: isMobile ? 9 : 11 }}>{t('inv_categorias')}</span>
+            <span style={{ ...styles.kpiValue, fontSize: isMobile ? 16 : 22 }}>{categorias.length - 1}</span>
+            {!isMobile && <span style={styles.kpiSubtext}>Grupos de productos</span>}
           </div>
-          <div style={{ ...styles.kpiIconWrapper, backgroundColor: 'rgba(139, 92, 246, 0.1)' }}>
-            <Icon name="category" size={24} color="#8b5cf6" />
-          </div>
+          {!isMobile && (
+            <div style={{ ...styles.kpiIconWrapper, backgroundColor: 'rgba(139, 92, 246, 0.1)' }}>
+              <Icon name="category" size={24} color="#8b5cf6" />
+            </div>
+          )}
         </div>
       </div>
 
@@ -945,13 +957,14 @@ export default function InventarioScreen() {
           </div>
         ) : viewMode === 'grid' ? (
           /* GRID VIEW */
-          <div style={styles.productosGrid}>
+          <div style={{ ...styles.productosGrid, gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: isMobile ? 12 : 20 }}>
             {productosFiltrados.map((producto) => (
               <div
                 key={producto.id}
                 style={{
                   ...styles.productoCard,
                   ...(producto.stock_bajo ? styles.productoCardAlert : {}),
+                  padding: isMobile ? 14 : 20,
                 }}
                 className="card-premium"
               >
