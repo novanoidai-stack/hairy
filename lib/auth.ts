@@ -17,6 +17,7 @@ export interface UserProfile {
   updated_at: string;
   privacy_accepted_at?: string | null;
   privacy_policy_version?: string | null;
+  paginas_manual_vistas?: Record<string, string>;
 }
 
 export async function getUser() {
