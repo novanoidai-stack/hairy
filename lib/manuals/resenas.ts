@@ -8,6 +8,7 @@ export const manualResenas: ManualContent = {
     {
       titulo: 'De dónde salen',
       texto: 'Las reseñas las deja el cliente desde el portal público tras su cita (o desde el enlace que le llega por WhatsApp). Aparecen aquí automáticamente, sin nada que hacer.',
+      captura: '/app/manuals/resenas/lista.png',
     },
     {
       titulo: 'Dos puntuaciones distintas',
@@ -16,6 +17,7 @@ export const manualResenas: ManualContent = {
     {
       titulo: 'Filtrar por periodo y valoración',
       texto: 'Puedes acotar a los últimos 7, 30 o 90 días, por número de llamas (puntuación) o solo las que tienen comentario escrito.',
+      captura: '/app/manuals/resenas/filtros.png',
     },
     {
       titulo: 'Ocultar una reseña',

@@ -8,6 +8,7 @@ export const manualPresupuestos: ManualContent = {
     {
       titulo: 'Crear un presupuesto',
       texto: 'Pulsa "Nuevo presupuesto" arriba a la derecha. Añade conceptos (servicios o líneas libres) con su precio; el total se calcula solo.',
+      captura: '/app/manuals/presupuestos/lista.png',
     },
     {
       titulo: 'Enviarlo a la clienta',
