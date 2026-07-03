@@ -12,6 +12,10 @@ import {
   cargarConceptos, guardarConcepto, guardarPresupuesto, subirPresupuestoPdf, enviarPresupuestoPorCorreo,
 } from '@/lib/presupuestos';
 import { generarPresupuestoPdf, descargarBlob } from '@/lib/presupuestoPdf';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualPresupuestos } from '@/lib/manuals/presupuestos';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
@@ -372,6 +376,8 @@ function EditorModal({ profile, salon, profesionales, servicios, conceptos, init
 // ─────────────────────────────────────────────────────────────────────────────
 function PresupuestosScreen() {
   const { isMobile } = useResponsive();
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('presupuestos');
   const [profile, setProfile] = useState<{ negocio_id: string; id: string } | null>(null);
   const [salon, setSalon] = useState<Salon>({ nombre: 'Salón', color: '#f4501e', direccion: null, telefono: null, slug: null });
   const [profesionales, setProfesionales] = useState<Prof[]>([]);
@@ -480,6 +486,17 @@ function PresupuestosScreen() {
           <div>
             <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 10 }}>
               <Icon name="doc" size={isMobile ? 22 : 26} color={T.primary} /> Presupuestos
+              <button
+                onClick={() => setShowManualPanel(true)}
+                title="Manual de esta pagina"
+                style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: T.card, border: `1px solid ${T.borderHi}`, color: T.textSec, cursor: 'pointer', flexShrink: 0 }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
             </h1>
             <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>Crea un presupuesto, envíalo en PDF por correo y cóbralo en Caja cuando la clienta acepte.</p>
           </div>
@@ -487,6 +504,17 @@ function PresupuestosScreen() {
             <Icon name="plus" size={16} color="#fff" /> Nuevo presupuesto
           </button>
         </div>
+
+        {!paginaManual.loading && !paginaManual.visto && (
+          <div style={{ marginBottom: isMobile ? 14 : 20 }}>
+            <AvisoPrimeraVisita
+              content={manualPresupuestos}
+              isMobile={isMobile}
+              onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+              onCerrar={paginaManual.marcarVisto}
+            />
+          </div>
+        )}
 
         {mensaje && <div style={{ padding: '11px 15px', borderRadius: 10, marginBottom: 14, background: mensaje.type === 'success' ? T.successSoft : T.dangerSoft, color: mensaje.type === 'success' ? T.success : T.danger, fontSize: 13.5 }}>{mensaje.text}</div>}
 
@@ -539,6 +567,13 @@ function PresupuestosScreen() {
       {editor.open && profile && (
         <EditorModal profile={profile} salon={salon} profesionales={profesionales} servicios={servicios} conceptos={conceptos}
           initial={editor.initial} onClose={() => setEditor({ open: false, initial: null })} onSaved={onEditorSaved} reloadConceptos={reloadConceptos} />
+      )}
+      {showManualPanel && (
+        <ManualPanel
+          content={manualPresupuestos}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
+        />
       )}
     </div>
   );
