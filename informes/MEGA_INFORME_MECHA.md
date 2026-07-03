@@ -1151,3 +1151,24 @@ mismo anti-abuso que `crear_cita_publica`).
 así que quedan cubiertos los 6 items de Carlos + el roll-out de i18n. Pendientes del backlog global:
 gift cards (diferido, falta catálogo de venta Stripe) y los items de Alexandro (pasaporte de color IA,
 recompra por WhatsApp). tsc y build:web en verde.
+
+---
+
+## Adenda 3 jul 2026 — Tips de producto en pantallas de carga (Carlos + Claude) — HECHO ✅
+
+Idea surgida en el brainstorm del onboarding cinematográfico con IA (spec aparte, mismo día); esta
+pieza es independiente. Spec completo en
+`docs/superpowers/specs/2026-07-03-loading-tips-design.md`.
+
+Bajo el spinner de las pantallas de carga se muestra ahora un consejo real de uso de Mecha (pool de 19
+tips, uno fijo por carga, sin repetir el último mostrado), en las tres superficies con loader
+propio: `PageLoader` de la app de gestión (`components/ui/DesignComponents.tsx`, llega gratis a las 6
+pantallas que ya lo usan: clientes, reseñas, portal de reseña, inventario, configuración, mi perfil),
+el login (`web/acceso.html`) y el arranque de la demo pública (`web/demo.html`). Si un loader lleva más
+de 7s sin resolver, el tip se sustituye por un aviso de conexión en vez de seguir "vendiendo" producto.
+Contenido en dos fuentes hermanas sin build compartido: `lib/loadingTips.ts` (app) y
+`web/assets/loading-tips.js` (web estática) — mantener ambas en sync a mano si se edita la lista.
+
+Verificado: `tsc --noEmit` y `build:web` limpios; tip visible y sin overflow a 375px en `acceso.html` y
+`demo.html`; `clientes.web.tsx` carga sin errores de consola dentro del iframe de la demo. Desplegado a
+`master` (commit `f3002ff77`).
