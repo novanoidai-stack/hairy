@@ -1198,13 +1198,13 @@ Plan: `docs/superpowers/plans/2026-07-03-onboarding-ia-cinematico.md`.
   checklist manual de Avisos sigue recogiendo lo pendiente sin cambios.
 
 **Pendiente (manual, usuario):**
-1. Rotar la clave de OpenRouter usada para pruebas (compartida en el chat de la sesión de brainstorming,
-   nunca commiteada al repo) antes de tráfico real de producción, desde el dashboard de OpenRouter.
-2. Confirmar el secreto `OPENROUTER_API_KEY` en Supabase Dashboard → Edge Functions → Secrets del
-   proyecto `vtrggiogjrhqtwbhbgia` (no hay CLI/MCP disponible en este entorno para hacerlo en automático).
+1. ~~Rotar la clave de OpenRouter usada para pruebas~~ — HECHO (3 jul, confirmado por Carlos).
+2. ~~Confirmar el secreto `OPENROUTER_API_KEY` en Supabase Dashboard~~ — HECHO (3 jul, clave nueva ya
+   puesta en Edge Functions → Secrets del proyecto `vtrggiogjrhqtwbhbgia`).
 3. Verificación manual end-to-end en navegador con una cuenta de negocio propio recién operativo-elegible
    (creación de servicios/equipo/horario reales, incluida la confirmación de invitación por email) — no
-   ejecutada por el agente para no crear datos ni enviar emails reales sin supervisión directa.
+   ejecutada por el agente para no crear datos ni enviar emails reales sin supervisión directa. **Único
+   pendiente real que queda.**
 
 Advisors de seguridad de Supabase revisados: sin hallazgos nuevos (la función no toca tablas ni RLS).
 `tsc --noEmit` y `build:web` en verde en las 5 tareas de código del plan.
