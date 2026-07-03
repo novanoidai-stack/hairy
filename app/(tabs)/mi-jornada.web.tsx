@@ -8,6 +8,10 @@ import { mensajeDeError } from '@/lib/errores';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { Segmented, StatBox } from '@/components/ui/SettingsAtoms';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualMiJornada } from '@/lib/manuals/mi-jornada';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 const T = DESIGN_TOKENS;
 
@@ -134,6 +138,8 @@ const fmtPct = (n: number) => `${Math.round(n)}%`;
 
 function MiJornadaScreen() {
   const { isMobile } = useResponsive();
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('mi-jornada');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [periodo, setPeriodo] = useState<Periodo>('hoy');
@@ -502,7 +508,18 @@ function MiJornadaScreen() {
               <div style={{ fontSize: 13, color: T.textSec }}>Mi jornada{rolTxt ? ` · ${rolTxt}` : ''}</div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              onClick={() => setShowManualPanel(true)}
+              title="Manual de esta pagina"
+              style={{ display: 'grid', placeItems: 'center', width: 33, height: 33, borderRadius: 9, background: T.bgCard, border: `1px solid ${T.border}`, color: T.textSec, cursor: 'pointer', flexShrink: 0 }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
             {esGestor && (
               <Segmented
                 value={vista}
@@ -517,6 +534,17 @@ function MiJornadaScreen() {
             />
           </div>
         </div>
+
+        {!paginaManual.loading && !paginaManual.visto && (
+          <div style={{ marginBottom: isMobile ? 16 : 20 }}>
+            <AvisoPrimeraVisita
+              content={manualMiJornada}
+              isMobile={isMobile}
+              onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+              onCerrar={paginaManual.marcarVisto}
+            />
+          </div>
+        )}
 
         {error && (
           <div style={{ padding: '12px 16px', borderRadius: 10, marginBottom: 16, background: T.dangerSoft, color: T.danger, fontSize: 14 }}>
@@ -1112,6 +1140,13 @@ function MiJornadaScreen() {
             </div>
           </div>
         </div>
+      )}
+      {showManualPanel && (
+        <ManualPanel
+          content={manualMiJornada}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
+        />
       )}
     </div>
   );
