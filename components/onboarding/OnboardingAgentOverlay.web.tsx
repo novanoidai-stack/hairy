@@ -301,7 +301,12 @@ function FotogramaPregunta({
       <button onClick={onCerrar} style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', color: T.textTertiary, fontSize: 13, cursor: 'pointer' }}>Cerrar</button>
       <div style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700 }}>{seccion}</div>
       {cargando ? (
-        <div style={{ fontSize: 15, color: T.textSecondary }}>Un momento...</div>
+        <>
+          <div style={{ fontSize: 15, color: T.textSecondary }}>Un momento...</div>
+          <button onClick={onSaltar} style={{ padding: '10px 16px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
+            Saltar este paso
+          </button>
+        </>
       ) : mostrarCamposSimples ? (
         <>
           <div style={{ fontFamily: 'Inter,sans-serif', fontSize: isMobile ? 19 : 22, fontWeight: 600, color: T.text, textAlign: 'center', maxWidth: 420 }}>
@@ -434,16 +439,32 @@ function SubidaFotoInline({ disabled }: { disabled: boolean }) {
 function FotogramaConfirmarRiesgo({ isMobile, accion, onConfirmar, onCancelar }: {
   isMobile: boolean; accion: { tipo: string; args: Record<string, any> }; onConfirmar: () => void; onCancelar: () => void;
 }) {
+  // Guarda local anti-doble-clic: onConfirmar dispara ejecutarYMostrarRecibo
+  // (async) y fase tarda un tick en pasar a 'ejecutando'. Sin esto, un
+  // doble-clic antes de ese tick podria disparar la accion dos veces; grave
+  // en invitar_profesional_email, que envia un email real sin idempotencia.
+  const [confirmando, setConfirmando] = useState(false);
   const esInvitacion = accion.tipo === 'invitar_profesional_email';
   const titulo = esInvitacion ? `Invitar a ${accion.args.profesional_nombre} por email` : 'Activar la reserva online publica';
   const detalle = esInvitacion ? `Se enviara un correo real a ${accion.args.email}.` : 'Tu salon sera visible y reservable publicamente ahora mismo.';
+  const handleConfirmar = () => {
+    if (confirmando) return;
+    setConfirmando(true);
+    onConfirmar();
+  };
+  const handleCancelar = () => {
+    if (confirmando) return;
+    onCancelar();
+  };
   return (
     <div className="m-rise" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18, padding: isMobile ? 20 : 32, textAlign: 'center' }}>
       <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: T.text, maxWidth: 400 }}>{titulo}</div>
       <div style={{ fontSize: 13, color: T.textSecondary, maxWidth: 360 }}>{detalle}</div>
       <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={onConfirmar} className="m-btn-primary" style={{ padding: '11px 22px', background: T.primary, border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Si, adelante</button>
-        <button onClick={onCancelar} style={{ padding: '11px 18px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Ahora no</button>
+        <button onClick={handleConfirmar} disabled={confirmando} className="m-btn-primary" style={{ padding: '11px 22px', background: T.primary, border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: confirmando ? 'not-allowed' : 'pointer', opacity: confirmando ? 0.6 : 1 }}>
+          {confirmando ? 'Un momento...' : 'Si, adelante'}
+        </button>
+        <button onClick={handleCancelar} disabled={confirmando} style={{ padding: '11px 18px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: confirmando ? 'not-allowed' : 'pointer' }}>Ahora no</button>
       </div>
     </div>
   );
