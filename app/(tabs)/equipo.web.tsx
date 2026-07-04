@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, can } from '@/lib/auth';
@@ -137,6 +137,7 @@ function fmtRecurrencia(json: string | null): string | null {
 }
 
 export default function EquipoWeb() {
+  const router = useRouter();
   const { isMobile, isTablet } = useResponsive();
   const [showManualPanel, setShowManualPanel] = useState(false);
   const paginaManual = usePaginaManualVista('equipo');
@@ -399,6 +400,8 @@ export default function EquipoWeb() {
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             className="m-btn-secondary"
+            onClick={() => router.push('/(tabs)/configuracion?tab=horarios' as never)}
+            title="Horario general del salon (Configuracion -> Horarios): acota lo que ofrecen la Agenda y la reserva online"
             style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="calendar" size={16} color={TOKENS.text} />
             {isMobile ? 'Horarios' : 'Horarios base'}

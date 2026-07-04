@@ -13,8 +13,13 @@ export const manualEquipo: ManualContent = {
     },
     {
       titulo: 'Horario base',
-      texto: 'Define qué días y en qué franjas horarias trabaja cada persona. La Agenda y la reserva online solo ofrecen huecos dentro de ese horario.',
+      texto: 'El botón "Horarios base" abre el horario general de apertura del salón (Configuración → Horarios): acota lo que ofrecen la Agenda y la reserva online para todo el equipo.',
       captura: '/manuals/equipo/horarios.png',
+      highlight: { top: '27%', left: '33%', width: '64%', height: '70%' },
+    },
+    {
+      titulo: 'El horario de cada persona',
+      texto: 'Abre la tarjeta de un profesional (clic sobre ella) para definir sus días y franjas concretas dentro del horario del salón; la Agenda y la reserva solo le ofrecen huecos ahí.',
     },
     {
       titulo: 'Bloqueos puntuales',

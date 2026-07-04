@@ -15,9 +15,10 @@ export const manualMiJornada: ManualContent = {
       texto: 'Los botones "Hoy", "Semana" y "Mes" cambian el rango de las estadísticas. Si eres propietario o dirección, el selector "Equipo" muestra el ranking de todo el personal en vez de solo el tuyo.',
     },
     {
-      titulo: 'Objetivos y comisión',
-      texto: 'La tarjeta "Comisión estimada" calcula lo que llevas ganado sobre servicios en el periodo. Los objetivos gamificados marcan metas personales o de equipo con una bonificación al cumplirlas.',
+      titulo: 'Tu actividad y comisión',
+      texto: 'La fila "Tu actividad" resume citas completadas, horas, cobrado y ticket medio del periodo. Si tienes un % de comisión asignado (Equipo → tu ficha), aquí aparece también "Comisión estimada"; y si el negocio activa objetivos, se muestran con su bonificación al cumplirlos.',
       captura: '/manuals/mi-jornada/actividad.png',
+      highlight: { top: '31%', left: '20%', width: '78%', height: '27%' },
     },
     {
       titulo: 'Intercambio de turnos',
