@@ -163,6 +163,67 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
   return <div style={{ display: 'inline-flex', color }} dangerouslySetInnerHTML={{ __html: icons[name] || '' }} />;
 };
 
+const CATEGORY_ICONS: Record<string, (color: string, size?: number) => React.ReactNode> = {
+  general: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  ),
+  scissors: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="6" cy="6" r="3" />
+      <circle cx="6" cy="18" r="3" />
+      <line x1="9.8" y1="8.2" x2="21" y2="19" />
+      <line x1="9.8" y1="15.8" x2="21" y2="5" />
+    </svg>
+  ),
+  brush: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m18 11-8-8H6v4l8 8Z" />
+      <path d="m6 7 1-1" />
+      <path d="m9 10 1-1" />
+      <path d="m14 15 4 4a2 2 0 0 0 2.8-2.8l-4-4Z" />
+    </svg>
+  ),
+  droplet: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-11-7-11S5 10.7 5 15a7 7 0 0 0 7 7z" />
+    </svg>
+  ),
+  sparkles: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+    </svg>
+  ),
+  razor: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7h18M6 7V3h12v4M12 7v14M9 21h6" />
+      <path d="M9 11h6M9 15h6" />
+    </svg>
+  ),
+  spa: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 12c2 0 4-1 5-3a6 6 0 0 0-10 0c1 2 3 3 5 3Z" />
+      <path d="M12 12c-2 0-4 1-5 3a6 6 0 0 0 10 0c-1-2-3-3-5-3Z" />
+      <path d="M12 2a15 15 0 0 0-3 10 15 15 0 0 0 3 10 15 15 0 0 0 3-10A15 15 0 0 0 12 2Z" />
+    </svg>
+  ),
+  star: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  ),
+};
+
+function getCategoryIcon(icono: string, color: string, size = 14) {
+  const iconFn = CATEGORY_ICONS[icono || 'general'];
+  if (iconFn) return iconFn(color, size);
+  return CATEGORY_ICONS.general(color, size);
+}
+
 export default function AgendaCalendar() {
   const { refreshTrigger, triggerRefresh } = useCalendarRefresh();
   const { isMobile, isTablet } = useResponsive();
@@ -202,6 +263,10 @@ export default function AgendaCalendar() {
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   const [citaAddonsMap, setCitaAddonsMap] = useState<Record<string, any[]>>({});
   const [citasVencidas, setCitasVencidas] = useState<Cita[]>([]);
+  const [hideCitasVencidas, setHideCitasVencidas] = useState(false);
+  useEffect(() => {
+    setHideCitasVencidas(false);
+  }, [citasVencidas.length]);
   const [showRetrasoProf, setShowRetrasoProf] = useState<string | null>(null);
   const [showClientaTarde, setShowClientaTarde] = useState<Cita | null>(null);
   const [showCierreSalon, setShowCierreSalon] = useState(false);
@@ -415,7 +480,7 @@ export default function AgendaCalendar() {
           supabase.from('bloqueos_profesional').select('*').eq('negocio_id', negocioId),
           supabase.from('cita_addons').select('cita_id, service_addons(nombre)'),
           supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
-          supabase.from('categorias_servicio').select('id, nombre, color, orden').eq('negocio_id', negocioId).eq('activo', true).order('orden'),
+          supabase.from('categorias_servicio').select('id, nombre, color, orden, icono').eq('negocio_id', negocioId).eq('activo', true).order('orden'),
         ]);
         const cfg = ((cfgResult as any)?.data?.config ?? {}) as any;
         setRecolocarRetraso(cfg.recolocarRetraso !== false);
@@ -1312,7 +1377,7 @@ export default function AgendaCalendar() {
       )}
 
       {/* AlertBar: citas vencidas */}
-      {citasVencidas.length > 0 && (
+      {citasVencidas.length > 0 && !hideCitasVencidas && (
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -1364,6 +1429,30 @@ export default function AgendaCalendar() {
           {citasVencidas.length > 5 && (
             <span style={{ fontSize: 11, color: TOKENS.textTer, whiteSpace: 'nowrap' }}>+{citasVencidas.length - 5} mas</span>
           )}
+          <button
+            onClick={() => setHideCitasVencidas(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#ef4444',
+              opacity: 0.6,
+              padding: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'opacity 0.15s ease',
+              marginLeft: 8,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.6'; }}
+            title="Ocultar aviso"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
       )}
 
@@ -1732,7 +1821,7 @@ export default function AgendaCalendar() {
                   theme={roleTheme}
                 />
               ) : (
-                <DayTimeline citas={filtered} profesionales={timelineProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={isReallyCollapsed} completarManual={completarManual} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} theme={roleTheme} />
+                <DayTimeline citas={filtered} profesionales={timelineProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={isReallyCollapsed} completarManual={completarManual} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} theme={roleTheme} categorias={categorias} />
               )}
             </>
           )}
@@ -1750,6 +1839,7 @@ export default function AgendaCalendar() {
               selectedProf={selectedProf}
               onSelectDay={(d: Date) => { setSelectedDate(d.getDate()); setCurrentMonth(new Date(d.getFullYear(), d.getMonth())); setView('day'); }}
               onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }}
+              categorias={categorias}
             />
           )}
           {view === 'month' && (
@@ -1885,6 +1975,14 @@ export default function AgendaCalendar() {
           await supabase.from('citas').update({ estado: 'no_presentada' }).eq('id', c.id);
           setCitas((prev) => prev.map((x) => x.id === c.id ? { ...x, estado: 'no_presentada' } : x));
           setShowClientaTarde(null);
+          triggerRefresh();
+        }
+
+        async function marcarCompletada() {
+          await supabase.from('citas').update({ estado: CITA_STATUS.COMPLETADA }).eq('id', c.id);
+          setCitas((prev) => prev.map((x) => x.id === c.id ? { ...x, estado: CITA_STATUS.COMPLETADA } : x));
+          setShowClientaTarde(null);
+          triggerRefresh();
         }
 
         async function esperarMas(minutos: number) {
@@ -1963,6 +2061,28 @@ export default function AgendaCalendar() {
                   ))}
                 </div>
               </div>
+
+              <button
+                onClick={marcarCompletada}
+                style={{
+                  width: '100%',
+                  padding: '12px 0',
+                  background: 'linear-gradient(180deg, #10b981, #059669)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 10,
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  marginBottom: 12,
+                  boxShadow: '0 4px 12px rgba(16,185,129,0.25)',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 6px 16px rgba(16,185,129,0.35)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(16,185,129,0.25)'; }}
+              >
+                Marcar como completada (Cliente asistió)
+              </button>
 
               <div style={{ display: 'flex', gap: 10 }}>
                 <button
@@ -2410,7 +2530,7 @@ const BLOQUEO_LABELS: Record<string, string> = {
   descanso:   'Descanso',
 };
 
-function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial, vivid = false, completarManual = false, onCreateSlot, theme }: any) {
+function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial, vivid = false, completarManual = false, onCreateSlot, theme, categorias = [] }: any) {
   const { isMobile, isTablet } = useResponsive();
   const HOURS = [];
   for (let h = HORARIO_APERTURA.horas; h < HORARIO_CIERRE.horas; h++) HOURS.push(h);
@@ -2905,6 +3025,11 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         const nombreCliente = clienteMap?.get(cita.cliente_id)?.nombre || '-';
                         const nombreServicio = servicioMap?.get(cita.servicio_id)?.nombre || '';
                         const timeStr = `${start.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })}`;
+                        const srv = servicioMap?.get(cita.servicio_id);
+                        const cat = srv ? (categorias || []).find((c: any) => c.id === srv.categoria_id) : null;
+                        const catColor = cat ? categoryColorHex(cat.color) : null;
+                        const catIcon = cat?.icono ? getCategoryIcon(cat.icono, catColor || profColor, 12) : null;
+                        const catName = cat?.nombre || '';
 
                         const esCompletada = cita.estado === CITA_STATUS.COMPLETADA;
                         const esNoShow = cita.estado === CITA_STATUS.NO_PRESENTADA;
@@ -2960,8 +3085,9 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         if (narrow) {
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', height: '100%' }}>
-                              <span style={{ fontSize: 10, fontWeight: 600, color: TOKENS.textTer, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                              <span style={{ fontSize: 10, fontWeight: 600, color: TOKENS.textTer, flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
                                 {timeStr}
+                                {catIcon && <span style={{ display: 'inline-flex', opacity: 0.8 }} title={catName}>{catIcon}</span>}
                               </span>
                               <span style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancelada ? 'line-through' : 'none' }}>
                                 {nombreCliente}{nombreServicio ? ` · ${nombreServicio}` : ''}{addonsStr ? ` ${addonsStr}` : ''}
@@ -2975,7 +3101,10 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         return (
                           <>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                              <span style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600 }}>{timeStr}</span>
+                              <span style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                {timeStr}
+                                {catIcon && <span style={{ display: 'inline-flex', opacity: 0.8 }} title={catName}>{catIcon}</span>}
+                              </span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                 {chainBadge}
                                 {icon}
@@ -3408,7 +3537,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
         supabase.from('citas').select('id, inicio, fin, fin_activa, fin_espera, profesional_id, grupo_id, orden_en_grupo').eq('negocio_id', negocioId).gte('inicio', `${todayStr}T00:00:00`).lt('inicio', `${tomorrowStr}T00:00:00`).eq('estado', CITA_STATUS.CONFIRMADA),
         supabase.from('duraciones_profesional').select('profesional_id, servicio_id, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min'),
         supabase.from('professional_service_overrides').select('professional_id, service_id, duracion, duracion_espera_min, duracion_activa_extra_min, precio, activo'),
-        supabase.from('categorias_servicio').select('id, nombre, color, orden').eq('negocio_id', negocioId).eq('activo', true).order('orden'),
+        supabase.from('categorias_servicio').select('id, nombre, color, orden, icono').eq('negocio_id', negocioId).eq('activo', true).order('orden'),
       ]);
 
       if (srvsErr) console.error('Servicios error:', srvsErr);
@@ -5651,7 +5780,13 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
               </div>
               <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  {selectedServicioColor && <span style={{ width: 7, height: 7, borderRadius: 99, background: selectedServicioColor, flexShrink: 0 }} />}
+                  {selectedServicioCategoria?.icono ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', color: selectedServicioColor || TOKENS.primary, marginRight: 2 }} title={selectedServicioCategoria.nombre}>
+                      {getCategoryIcon(selectedServicioCategoria.icono, selectedServicioColor || TOKENS.primary, 14)}
+                    </span>
+                  ) : (
+                    selectedServicioColor && <span style={{ width: 7, height: 7, borderRadius: 99, background: selectedServicioColor, flexShrink: 0 }} />
+                  )}
                   {selectedServicio?.nombre}
                 </span>
                 <span style={{ width: 3, height: 3, borderRadius: 99, background: TOKENS.textTer }} />
@@ -7371,7 +7506,7 @@ function Pill({ children, color, soft }: any) {
 // =============================================
 // 8.5: WeekView
 // =============================================
-function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, selectedDateObj, filterServicio, filterEstado, selectedProf, onSelectDay, onEditCita }: any) {
+function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, selectedDateObj, filterServicio, filterEstado, selectedProf, onSelectDay, onEditCita, categorias = [] }: any) {
   // En movil la rejilla de 7 columnas (~45px cada una a 375px) era ilegible:
   // numeros recortados y citas truncadas a una letra. Pasamos a lista vertical.
   const { isMobile } = useResponsive();
@@ -7455,60 +7590,85 @@ function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clie
               </button>
 
               {/* Cuerpo: lista de citas con profesional diferenciado.
-                  En movil sin altura minima: un dia vacio es una linea, no un
-                  bloque de 220px. */}
-              <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: 7, minHeight: isMobile ? 0 : 220, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  En movil sin altura minima, en desktop con altura fija y scroll interno. */}
+              <div style={{
+                background: TOKENS.bgCard,
+                border: `1px solid ${TOKENS.border}`,
+                borderRadius: 12,
+                padding: 6,
+                height: isMobile ? 'auto' : 460,
+                maxHeight: isMobile ? 320 : 460,
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 5,
+                scrollbarWidth: 'thin',
+              }}>
                 {dayCitas.length === 0 ? (
-                  <div style={{ flex: 1, display: 'grid', placeItems: 'center', fontSize: 11, color: TOKENS.textTer, padding: isMobile ? '6px 0' : 0 }}>Sin citas</div>
+                  <div style={{ flex: 1, display: 'grid', placeItems: 'center', fontSize: 11, color: TOKENS.textTer, padding: '24px 0' }}>Sin citas</div>
                 ) : (
-                  <>
-                    {dayCitas.slice(0, 7).map((c: any) => {
-                      const cli = clientes.find((cl: any) => cl.id === c.cliente_id);
-                      const prof = profesionales.find((p: any) => p.id === c.profesional_id);
-                      const hora = new Date(c.inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                      const profColor = prof?.color || TOKENS.primary;
-                      const done = c.estado === 'completada';
-                      const cancel = c.estado === 'cancelada';
-                      const noShow = c.estado === 'no_presentada';
-                      return (
-                        <button
-                          key={c.id}
-                          onClick={(e) => { e.stopPropagation(); onEditCita(c); }}
-                          style={{
-                            textAlign: 'left', width: '100%', cursor: 'pointer',
-                            padding: '5px 7px', borderRadius: 8,
-                            background: done ? 'rgba(15,157,107,0.08)' : cancel ? 'rgba(226,59,52,0.07)' : noShow ? 'rgba(224,138,0,0.08)' : TOKENS.bgCardHi,
-                            border: `1px solid ${TOKENS.border}`,
-                            borderLeft: `3px solid ${cancel ? TOKENS.danger : profColor}`,
-                            opacity: cancel ? 0.7 : 1,
-                            transition: 'background 0.12s ease',
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,80,30,0.06)'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = done ? 'rgba(15,157,107,0.08)' : cancel ? 'rgba(226,59,52,0.07)' : noShow ? 'rgba(224,138,0,0.08)' : TOKENS.bgCardHi; }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  dayCitas.map((c: any) => {
+                    const cli = clientes.find((cl: any) => cl.id === c.cliente_id);
+                    const prof = profesionales.find((p: any) => p.id === c.profesional_id);
+                    const srv = servicioMap?.get(c.servicio_id);
+                    const srvName = srv?.nombre || '';
+                    const cat = srv ? (categorias || []).find((catObj: any) => catObj.id === srv.categoria_id) : null;
+                    const catColor = cat ? categoryColorHex(cat.color) : null;
+                    const catIcon = cat?.icono ? getCategoryIcon(cat.icono, catColor || TOKENS.textSec, 11) : null;
+                    const catName = cat?.nombre || '';
+                    
+                    const hora = new Date(c.inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                    const profColor = prof?.color || TOKENS.primary;
+                    const done = c.estado === 'completada';
+                    const cancel = c.estado === 'cancelada';
+                    const noShow = c.estado === 'no_presentada';
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={(e) => { e.stopPropagation(); onEditCita(c); }}
+                        style={{
+                          textAlign: 'left', width: '100%', cursor: 'pointer',
+                          padding: '6px 8px', borderRadius: 8,
+                          background: done ? 'rgba(15,157,107,0.05)' : cancel ? 'rgba(226,59,52,0.04)' : noShow ? 'rgba(224,138,0,0.05)' : TOKENS.bgCardHi,
+                          border: `1px solid ${TOKENS.border}`,
+                          borderLeft: `3.5px solid ${cancel ? TOKENS.danger : profColor}`,
+                          opacity: cancel ? 0.6 : 1,
+                          transition: 'all 0.12s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 3,
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.background = 'rgba(244,80,30,0.05)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.background = done ? 'rgba(15,157,107,0.05)' : cancel ? 'rgba(226,59,52,0.04)' : noShow ? 'rgba(224,138,0,0.05)' : TOKENS.bgCardHi; }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <span style={{ fontSize: 10.5, fontWeight: 700, color: TOKENS.textSec }}>{hora}</span>
-                            {done && <span style={{ width: 6, height: 6, borderRadius: 999, background: TOKENS.success, flexShrink: 0 }} />}
-                            <span style={{ flex: 1 }} />
+                            {catIcon && <span style={{ display: 'inline-flex', opacity: 0.8 }} title={catName}>{catIcon}</span>}
                           </div>
-                          <div style={{ fontSize: 11.5, fontWeight: 600, color: TOKENS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancel ? 'line-through' : 'none', marginTop: 1 }}>
-                            {cli?.nombre || 'Sin cliente'}
+                          {done && <span style={{ width: 6, height: 6, borderRadius: 999, background: TOKENS.success, flexShrink: 0 }} />}
+                        </div>
+                        
+                        <div style={{ fontSize: 11.5, fontWeight: 650, color: TOKENS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancel ? 'line-through' : 'none' }}>
+                          {cli?.nombre || 'Sin cliente'}
+                        </div>
+                        
+                        {prof && (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 4 }}>
+                            <span style={{ fontSize: 9.5, color: TOKENS.textTer, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                              <span style={{ width: 5, height: 5, borderRadius: 999, background: profColor, flexShrink: 0 }} />
+                              {prof.nombre.split(' ')[0]}
+                            </span>
+                            {srvName && (
+                              <span style={{ fontSize: 9, color: TOKENS.textTer, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%', textAlign: 'right' }} title={srvName}>
+                                {srvName}
+                              </span>
+                            )}
                           </div>
-                          {prof && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-                              <span style={{ width: 6, height: 6, borderRadius: 999, background: profColor, flexShrink: 0 }} />
-                              <span style={{ fontSize: 10, color: TOKENS.textTer, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prof.nombre.split(' ')[0]}</span>
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                    {dayCitas.length > 7 && (
-                      <button onClick={() => onSelectDay(d)} style={{ fontSize: 10, fontWeight: 600, color: TOKENS.primaryHi, textAlign: 'center', background: 'transparent', border: 'none', cursor: 'pointer', padding: 3 }}>
-                        +{dayCitas.length - 7} más
+                        )}
                       </button>
-                    )}
-                  </>
+                    );
+                  })
                 )}
               </div>
             </div>

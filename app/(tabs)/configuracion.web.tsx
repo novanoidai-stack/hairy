@@ -59,6 +59,7 @@ interface CategoriaServicio {
   color: CategoryColorToken | string;
   orden: number;
   activo?: boolean;
+  icono?: string;
 }
 
 interface Servicio {
@@ -764,13 +765,13 @@ export default function ConfiguracionWeb() {
     }
   };
 
-  const handleSaveCategoria = async (categoria: { id?: string; nombre: string; color: string; orden?: number }): Promise<CategoriaServicio | null> => {
+  const handleSaveCategoria = async (categoria: { id?: string; nombre: string; color: string; orden?: number; icono?: string }): Promise<CategoriaServicio | null> => {
     if (!negocioId) return null;
     try {
       if (categoria.id) {
         const { data, error } = await supabase
           .from('categorias_servicio')
-          .update({ nombre: categoria.nombre, color: categoria.color })
+          .update({ nombre: categoria.nombre, color: categoria.color, icono: categoria.icono })
           .eq('id', categoria.id)
           .select()
           .single();
@@ -781,7 +782,7 @@ export default function ConfiguracionWeb() {
       const orden = categoria.orden ?? categorias.length;
       const { data, error } = await supabase
         .from('categorias_servicio')
-        .insert({ negocio_id: negocioId, nombre: categoria.nombre, color: categoria.color, orden })
+        .insert({ negocio_id: negocioId, nombre: categoria.nombre, color: categoria.color, orden, icono: categoria.icono || 'general' })
         .select()
         .single();
       if (error) throw error;
@@ -4057,11 +4058,66 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
 // CategoriasModal — CRUD de categorias de servicio (solo propietario)
 // ---------------------------------------------------------------------------
 
+const CONFIG_CATEGORY_ICONS: Record<string, (color: string, size?: number) => React.ReactNode> = {
+  general: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  ),
+  scissors: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="6" cy="6" r="3" />
+      <circle cx="6" cy="18" r="3" />
+      <line x1="9.8" y1="8.2" x2="21" y2="19" />
+      <line x1="9.8" y1="15.8" x2="21" y2="5" />
+    </svg>
+  ),
+  brush: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m18 11-8-8H6v4l8 8Z" />
+      <path d="m6 7 1-1" />
+      <path d="m9 10 1-1" />
+      <path d="m14 15 4 4a2 2 0 0 0 2.8-2.8l-4-4Z" />
+    </svg>
+  ),
+  droplet: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-11-7-11S5 10.7 5 15a7 7 0 0 0 7 7z" />
+    </svg>
+  ),
+  sparkles: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+    </svg>
+  ),
+  razor: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7h18M6 7V3h12v4M12 7v14M9 21h6" />
+      <path d="M9 11h6M9 15h6" />
+    </svg>
+  ),
+  spa: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 12c2 0 4-1 5-3a6 6 0 0 0-10 0c1 2 3 3 5 3Z" />
+      <path d="M12 12c-2 0-4 1-5 3a6 6 0 0 0 10 0c-1-2-3-3-5-3Z" />
+      <path d="M12 2a15 15 0 0 0-3 10 15 15 0 0 0 3 10 15 15 0 0 0 3-10A15 15 0 0 0 12 2Z" />
+    </svg>
+  ),
+  star: (color, size = 14) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  ),
+};
+
 function CategoriasModal({ categorias, services, onClose, onSave, onDelete, onReorder }: {
   categorias: CategoriaServicio[];
   services: Servicio[];
   onClose: () => void;
-  onSave: (input: { id?: string; nombre: string; color: string }) => Promise<CategoriaServicio | null>;
+  onSave: (input: { id?: string; nombre: string; color: string; icono?: string }) => Promise<CategoriaServicio | null>;
   onDelete: (id: string) => Promise<void>;
   onReorder: (orderedIds: string[]) => Promise<void>;
 }) {
@@ -4069,18 +4125,21 @@ function CategoriasModal({ categorias, services, onClose, onSave, onDelete, onRe
   const [creando, setCreando] = useState(false);
   const [nombre, setNombre] = useState('');
   const [color, setColor] = useState<CategoryColorToken>('primary');
+  const [icono, setIcono] = useState<string>('general');
 
   function startEdit(cat: CategoriaServicio) {
     setEditingId(cat.id);
     setCreando(false);
     setNombre(cat.nombre);
     setColor((cat.color as CategoryColorToken) || 'primary');
+    setIcono(cat.icono || 'general');
   }
   function startCreate() {
     setEditingId(null);
     setCreando(true);
     setNombre('');
     setColor('primary');
+    setIcono('general');
   }
   function cancelarForm() {
     setEditingId(null);
@@ -4088,7 +4147,7 @@ function CategoriasModal({ categorias, services, onClose, onSave, onDelete, onRe
   }
   async function guardar() {
     if (!nombre.trim()) return;
-    await onSave({ id: editingId ?? undefined, nombre: nombre.trim(), color });
+    await onSave({ id: editingId ?? undefined, nombre: nombre.trim(), color, icono });
     cancelarForm();
   }
   function mover(idx: number, dir: -1 | 1) {
@@ -4111,43 +4170,92 @@ function CategoriasModal({ categorias, services, onClose, onSave, onDelete, onRe
         </div>
         <div style={{ overflowY: 'auto', flex: 1, padding: '18px 22px 22px' }}>
           <div style={{ fontSize: 12, color: T.textSecondary, marginBottom: 14, lineHeight: 1.5 }}>
-            Agrupan tus servicios con un color para que se vean organizados al crear una cita,
+            Agrupan tus servicios con un color e icono para que se vean organizados al crear una cita,
             en el catalogo y en la reserva online.
           </div>
           {categorias.length === 0 && (
             <div style={{ fontSize: 12, color: T.textSecondary, marginBottom: 12 }}>Aun no hay categorias. Crea la primera.</div>
           )}
-          {categorias.map((cat, idx) => {
-            const hex = categoryColorHex(cat.color);
-            const count = services.filter(s => s.categoria_id === cat.id).length;
-            return (
-              <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 4px', borderBottom: idx < categorias.length - 1 ? `1px solid ${T.border}` : 'none' }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <button onClick={() => mover(idx, -1)} disabled={idx === 0}
-                    style={{ background: 'none', border: 'none', color: idx === 0 ? T.textMuted : T.textTertiary, cursor: idx === 0 ? 'default' : 'pointer', padding: 0, lineHeight: 1, fontSize: 12 }}>^</button>
-                  <button onClick={() => mover(idx, 1)} disabled={idx === categorias.length - 1}
-                    style={{ background: 'none', border: 'none', color: idx === categorias.length - 1 ? T.textMuted : T.textTertiary, cursor: idx === categorias.length - 1 ? 'default' : 'pointer', padding: 0, lineHeight: 1, fontSize: 12 }}>v</button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 14 }}>
+            {categorias.map((cat, idx) => {
+              const hex = categoryColorHex(cat.color);
+              const count = services.filter(s => s.categoria_id === cat.id).length;
+              return (
+                <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderBottom: idx < categorias.length - 1 ? `1px solid ${T.border}` : 'none' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <button onClick={() => mover(idx, -1)} disabled={idx === 0}
+                      style={{ background: 'none', border: 'none', color: idx === 0 ? T.textMuted : T.textTertiary, cursor: idx === 0 ? 'default' : 'pointer', padding: 0, lineHeight: 1, fontSize: 12 }}>^</button>
+                    <button onClick={() => mover(idx, 1)} disabled={idx === categorias.length - 1}
+                      style={{ background: 'none', border: 'none', color: idx === categorias.length - 1 ? T.textMuted : T.textTertiary, cursor: idx === categorias.length - 1 ? 'default' : 'pointer', padding: 0, lineHeight: 1, fontSize: 12 }}>v</button>
+                  </div>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: hex + '20', display: 'grid', placeItems: 'center', color: hex, flexShrink: 0 }}>
+                    {CONFIG_CATEGORY_ICONS[cat.icono || 'general']?.(hex, 16) || CONFIG_CATEGORY_ICONS.general(hex, 16)}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{cat.nombre}</div>
+                    <div style={{ fontSize: 10, color: T.textTertiary }}>{count} servicio{count === 1 ? '' : 's'}</div>
+                  </div>
+                  <IconBtn icon="edit" size={28} onClick={() => startEdit(cat)} title="Editar" />
+                  <IconBtn icon="trash" size={28} tone="danger" onClick={() => onDelete(cat.id)} title="Eliminar" />
                 </div>
-                <span style={{ width: 14, height: 14, borderRadius: 999, background: hex, flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{cat.nombre}</div>
-                  <div style={{ fontSize: 10, color: T.textTertiary }}>{count} servicio{count === 1 ? '' : 's'}</div>
-                </div>
-                <IconBtn icon="edit" size={28} onClick={() => startEdit(cat)} title="Editar" />
-                <IconBtn icon="trash" size={28} tone="danger" onClick={() => onDelete(cat.id)} title="Eliminar" />
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
 
           {(creando || editingId) ? (
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 14, padding: 10, borderRadius: 10, background: T.bg }}>
-              <STextInput value={nombre} onChange={setNombre} placeholder="Nombre (ej. Mechas)" width={160} />
-              {CATEGORY_COLOR_TOKENS.map(token => (
-                <button key={token} onClick={() => setColor(token)} title={token}
-                  style={{ width: 22, height: 22, borderRadius: 999, background: categoryColorHex(token), border: color === token ? `2px solid ${T.text}` : '2px solid transparent', cursor: 'pointer', padding: 0 }} />
-              ))}
-              <Btn variant="primary" size="sm" onClick={guardar}>{editingId ? 'Guardar' : 'Crear'}</Btn>
-              <Btn variant="ghost" size="sm" onClick={cancelarForm}>Cancelar</Btn>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14, padding: 12, borderRadius: 12, background: T.bg, border: `1px solid ${T.border}` }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{editingId ? 'Editar Categoría' : 'Nueva Categoría'}</div>
+              
+              <STextInput value={nombre} onChange={setNombre} placeholder="Nombre (ej. Mechas)" width="100%" />
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
+                <div style={{ fontSize: 10, letterSpacing: 0.5, color: T.textTertiary, textTransform: 'uppercase', fontWeight: 600 }}>Color de la categoría</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {CATEGORY_COLOR_TOKENS.map(token => (
+                    <button key={token} type="button" onClick={() => setColor(token)} title={token}
+                      style={{ width: 22, height: 22, borderRadius: 999, background: categoryColorHex(token), border: color === token ? `2px solid ${T.text}` : '2px solid transparent', cursor: 'pointer', padding: 0 }} />
+                  ))}
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', marginBottom: 4 }}>
+                <div style={{ fontSize: 10, letterSpacing: 0.5, color: T.textTertiary, textTransform: 'uppercase', fontWeight: 600 }}>Icono de la categoría</div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {Object.keys(CONFIG_CATEGORY_ICONS).map(iconToken => {
+                    const iconFn = CONFIG_CATEGORY_ICONS[iconToken];
+                    const active = icono === iconToken;
+                    const hex = categoryColorHex(color);
+                    return (
+                      <button
+                        key={iconToken}
+                        type="button"
+                        onClick={() => setIcono(iconToken)}
+                        title={iconToken === 'general' ? 'General' : iconToken === 'scissors' ? 'Corte' : iconToken === 'brush' ? 'Color' : iconToken === 'droplet' ? 'Lavado' : iconToken === 'sparkles' ? 'Uñas' : iconToken === 'razor' ? 'Barba' : iconToken === 'spa' ? 'Masaje' : 'Especial'}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 8,
+                          background: active ? hex + '20' : T.bgCard,
+                          border: active ? `2px solid ${hex}` : `1px solid ${T.border}`,
+                          cursor: 'pointer',
+                          display: 'grid',
+                          placeItems: 'center',
+                          color: active ? hex : T.textSecondary,
+                          transition: 'all 0.15s ease',
+                          padding: 0,
+                        }}
+                      >
+                        {iconFn(active ? hex : T.textSecondary, 16)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
+                <Btn variant="ghost" size="sm" onClick={cancelarForm}>Cancelar</Btn>
+                <Btn variant="primary" size="sm" onClick={guardar}>{editingId ? 'Guardar' : 'Crear'}</Btn>
+              </div>
             </div>
           ) : (
             <Btn variant="soft" size="md" icon="plus" onClick={startCreate}>Nueva categoria</Btn>
