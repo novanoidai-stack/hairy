@@ -18,6 +18,7 @@ export const manualResenas: ManualContent = {
       titulo: 'Filtrar por periodo y valoración',
       texto: 'Puedes acotar a los últimos 7, 30 o 90 días, por número de llamas (puntuación) o solo las que tienen comentario escrito.',
       captura: '/manuals/resenas/filtros.png',
+      highlight: { top: '28%', left: '23%', width: '68%', height: '8%' },
     },
     {
       titulo: 'Ocultar una reseña',

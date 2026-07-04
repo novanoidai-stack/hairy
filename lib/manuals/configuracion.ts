@@ -18,6 +18,7 @@ export const manualConfiguracion: ManualContent = {
       titulo: 'Datos del negocio y horarios',
       texto: 'En "General" están el nombre, dirección y contacto del salón. En "Horarios" defines los días y franjas en que el salón abre, que acotan lo que ofrece la reserva online.',
       captura: '/manuals/configuracion/general.png',
+      highlight: { top: '33%', left: '33%', width: '65%', height: '44%' },
     },
     {
       titulo: 'Servicios y precios',

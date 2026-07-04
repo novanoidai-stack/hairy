@@ -9,6 +9,7 @@ export const manualInventario: ManualContent = {
       titulo: 'Añadir un producto',
       texto: 'Da de alta cada producto con su nombre, categoría y stock inicial. A partir de ahí, el sistema lleva la cuenta sola.',
       captura: '/manuals/inventario/kpis.png',
+      highlight: { top: '63%', left: '71%', width: '14%', height: '6%' },
     },
     {
       titulo: 'Registrar un movimiento',

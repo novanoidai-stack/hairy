@@ -9,6 +9,7 @@ export const manualBandeja: ManualContent = {
       titulo: 'Abrir una conversación',
       texto: 'Haz clic en cualquier fila para ver el hilo completo. Un punto de color marca los mensajes que aún no has leído.',
       captura: '/manuals/bandeja/lista.png',
+      highlight: { top: '29%', left: '17%', width: '81%', height: '32%' },
     },
     {
       titulo: 'Responder',

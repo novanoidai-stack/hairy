@@ -14,6 +14,7 @@ export const manualAgenda: ManualContent = {
       titulo: 'Cambiar de vista',
       texto: 'Los botones "Día", "Semana" y "Mes" arriba a la izquierda cambian el rango de la agenda que se muestra. La vista de día es la que usarás la mayor parte del tiempo.',
       captura: '/manuals/agenda/vistas.png',
+      highlight: { top: '16%', left: '20%', width: '19%', height: '6%' },
     },
     {
       titulo: 'Editar, cobrar o cancelar una cita',
@@ -23,6 +24,7 @@ export const manualAgenda: ManualContent = {
       titulo: 'El panel de Avisos',
       texto: 'El icono de campana, arriba a la derecha, agrupa citas sin confirmar en las próximas 48h, el progreso de puesta en marcha del salón y otros avisos operativos del día.',
       captura: '/manuals/agenda/avisos.png',
+      highlight: { top: '9%', left: '55%', width: '4%', height: '5%' },
     },
     {
       titulo: 'Lista de espera',

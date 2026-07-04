@@ -9,6 +9,7 @@ export const manualEquipo: ManualContent = {
       titulo: 'Añadir un profesional',
       texto: 'Botón "Añadir profesional": nombre, rol y datos de contacto. Cada profesional activo aparece luego en la Agenda con su propia columna.',
       captura: '/manuals/equipo/tarjetas.png',
+      highlight: { top: '11%', left: '84%', width: '15%', height: '7%' },
     },
     {
       titulo: 'Horario base',

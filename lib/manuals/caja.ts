@@ -14,11 +14,13 @@ export const manualCaja: ManualContent = {
       titulo: 'Cobro rápido y venta de producto',
       texto: 'Los botones "Cobro rápido" y "Vender producto", arriba a la derecha, sirven para cobros que no vienen de una cita: un cliente sin reserva o la venta de un producto suelto.',
       captura: '/manuals/caja/cobro-rapido.png',
+      highlight: { top: '10%', left: '74%', width: '25%', height: '6%' },
     },
     {
       titulo: 'Arqueo del día',
       texto: 'Las tarjetas resumen (efectivo, datáfono, propinas) muestran lo cobrado hoy en tiempo real. Solo las ve el propietario o dirección del salón.',
       captura: '/manuals/caja/arqueo.png',
+      highlight: { top: '21%', left: '36%', width: '47%', height: '13%' },
     },
     {
       titulo: 'Registros descargables',

@@ -1798,13 +1798,13 @@ export default function AgendaCalendar() {
         <DetalleCitaModal
           onClose={() => {
             setShowEditCita(false);
-            router.replace('/(tabs)/');
+            router.replace('/(tabs)/' as never);
             citaParamConsumida.current = null;
           }}
           onSaved={(updatedFields: any) => {
             setCitas(prev => prev.map(c => c.id === selectedCitaEdit.id ? { ...c, ...updatedFields } : c));
             setShowEditCita(false);
-            router.replace('/(tabs)/');
+            router.replace('/(tabs)/' as never);
             citaParamConsumida.current = null;
           }}
           cita={selectedCitaEdit}

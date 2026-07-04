@@ -9,6 +9,7 @@ export const manualInformes: ManualContent = {
       titulo: 'Elegir el periodo',
       texto: 'El selector de arriba cambia el rango del informe (semana, mes...). Todo lo demás en la pantalla se recalcula sobre ese periodo.',
       captura: '/manuals/informes/kpis.png',
+      highlight: { top: '11%', left: '57%', width: '40%', height: '5%' },
     },
     {
       titulo: 'Ocupación e ingresos',
