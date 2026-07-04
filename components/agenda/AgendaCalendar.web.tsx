@@ -2887,8 +2887,8 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
             const citaBg = vivid ? `linear-gradient(180deg, ${profColor}40, ${profColor}28)` : `linear-gradient(180deg, ${profColor}28, ${profColor}18)`;
             const citaBorder = vivid ? `${profColor}88` : `${profColor}55`;
             const citaBorderHover = vivid ? `${profColor}cc` : `${profColor}99`;
-            const citaShadow = vivid ? `0 8px 10px ${profColor}38` : `0 8px 8px ${profColor}25`;
-            const citaShadowHover = vivid ? `0 12px 16px ${profColor}55` : `0 12px 12px ${profColor}45`;
+            const citaShadow = `0 3px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04), 0 0 0 1px ${profColor}15`;
+            const citaShadowHover = `0 10px 15px -3px rgba(0,0,0,0.12), 0 4px 6px -2px rgba(0,0,0,0.05), 0 0 0 1px ${profColor}25`;
             const profCitas = citasWithLanes.filter((c: any) => c.profesional_id === prof.id);
             return (
               <div key={prof.id} style={{ position: 'relative', pointerEvents: 'none' }}>
@@ -2971,12 +2971,12 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         borderLeft: cancelada ? '3px solid #66666660' : `3px solid ${profColor}`,
                         borderTop: isChained && !cancelada ? `2px solid #e0340e` : undefined,
                         borderRadius: 8,
-                        padding: height <= CITA_CARD_DETAILS_MIN_HEIGHT ? '3px 6px' : '6px 8px',
+                        padding: height < 50 ? '3px 6px' : '4px 8px',
                         overflow: 'hidden',
                         cursor: isDragging ? 'grabbing' : 'grab',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 2,
+                        gap: height < 60 ? 1 : 2,
                         boxShadow: cancelada ? 'none' : citaShadow,
                         transition: drag?.cita.id === cita.id ? 'none' : 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                         transform: 'scale(1)',
@@ -3021,10 +3021,13 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         </div>
                       )}
                       {(() => {
-                        const narrow = height <= CITA_CARD_DETAILS_MIN_HEIGHT;
+                        const narrow = height < 50;
                         const nombreCliente = clienteMap?.get(cita.cliente_id)?.nombre || '-';
                         const nombreServicio = servicioMap?.get(cita.servicio_id)?.nombre || '';
                         const timeStr = `${start.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })}`;
+                        const timeStrCompact = totalLanes > 1 || height <= 32
+                          ? start.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })
+                          : timeStr;
                         const srv = servicioMap?.get(cita.servicio_id);
                         const cat = srv ? (categorias || []).find((c: any) => c.id === srv.categoria_id) : null;
                         const catColor = cat ? categoryColorHex(cat.color) : null;
@@ -3086,7 +3089,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', height: '100%' }}>
                               <span style={{ fontSize: 10, fontWeight: 600, color: TOKENS.textTer, flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                {timeStr}
+                                {timeStrCompact}
                                 {catIcon && <span style={{ display: 'inline-flex', opacity: 0.8 }} title={catName}>{catIcon}</span>}
                               </span>
                               <span style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancelada ? 'line-through' : 'none' }}>
