@@ -11,7 +11,7 @@ import { getUserProfile } from '@/lib/auth';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
-import { MechaMark } from '@/components/ui/MechaMark';
+
 import { pickLoadingTip } from '@/lib/loadingTips';
 import {
   TEMA_ORDEN, TEMA_FALLBACK, TEMA_TITULO_SECCION, TEMA_DESTINO_MANUAL, HORARIO_PRESETS, TEMA_CAMPOS_SIMPLES,
@@ -72,7 +72,7 @@ export function OnboardingAgentOverlay() {
   // Contexto de ejecucion persistido durante toda la sesion del asistente
   // (profesionales creados para aplicar el horario, datos de negocio para
   // reutilizar en la activacion del portal).
-  const ctxRef = useRef({ negocioId: '', profesionalesCreados: [] as { id: string; nombre: string }[], datosNegocioSesion: undefined as { nombre: string; direccion: string; telefono: string } | undefined });
+  const ctxRef = useRef({ negocioId: '', profesionalesCreados: [] as { id: string; nombre: string }[], serviciosCreados: [] as string[], datosNegocioSesion: undefined as { nombre: string; direccion: string; telefono: string } | undefined });
 
   const status = useOnboardingStatus(elegible ? negocioId : null, elegible);
 
@@ -112,6 +112,20 @@ export function OnboardingAgentOverlay() {
 
   if (fase === 'cerrando') return null;
 
+  // Mood de Chispa según la fase actual
+  const chispaMood: 'wave' | 'think' | 'happy' | 'confused' =
+    fase === 'bienvenida' ? 'wave' :
+    fase === 'ejecutando' || cargandoPregunta ? 'think' :
+    fase === 'recibo' && recibo?.ok ? 'happy' :
+    fase === 'recibo' && !recibo?.ok ? 'confused' : 'wave';
+
+  // Handler para editar desde recibo
+  const handleEditar = () => {
+    setFallbackActivo(true);
+    setCamposSimples({});
+    setFase('pregunta');
+  };
+
   return (
     <div style={{
       position: 'fixed',
@@ -123,7 +137,7 @@ export function OnboardingAgentOverlay() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: isMobile ? '16px' : '32px',
+      padding: isMobile ? '24px 16px' : '40px 32px',
       fontFamily: 'Inter, system-ui, sans-serif'
     }} className="m-overlay-enter">
       <style dangerouslySetInnerHTML={{ __html: `
@@ -131,20 +145,30 @@ export function OnboardingAgentOverlay() {
         @keyframes obFloat2 { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(-30px,30px) scale(1.1) } }
         @keyframes obSpinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes obPulse { 0%, 100% { transform: scale(0.88); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 0.95; } }
+        @keyframes chispaFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes chispaBlink { 0%,92%,100% { transform: scaleY(1); } 96% { transform: scaleY(0.05); } }
+        @keyframes chispaWave { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(15deg); } 75% { transform: rotate(-10deg); } }
         .ob-blob1 { animation: obFloat1 20s ease-in-out infinite alternate; filter: blur(70px); }
         .ob-blob2 { animation: obFloat2 26s ease-in-out infinite alternate; filter: blur(80px); }
         .ob-spinner-ring { transform-box: fill-box; transform-origin: center; animation: obSpinner 1s linear infinite; }
         .ob-spinner-core { transform-box: fill-box; transform-origin: center; animation: obPulse 2.2s ease-in-out infinite; }
+        .chispa-body { animation: chispaFloat 3s ease-in-out infinite; }
+        .chispa-eye { animation: chispaBlink 4s ease-in-out infinite; transform-origin: center; }
+        .chispa-arm { animation: chispaWave 2.5s ease-in-out infinite; transform-origin: 50% 100%; }
       ` }} />
 
-      {/* Blobs cinemáticos en el fondo */}
+      {/* Blobs cinemáticos */}
       <div className="ob-blob1" aria-hidden style={{ position: 'absolute', top: '8%', left: '8%', width: 280, height: 280, borderRadius: '50%', background: 'rgba(255,196,150,0.35)', pointerEvents: 'none', zIndex: 0 }} />
       <div className="ob-blob2" aria-hidden style={{ position: 'absolute', bottom: '10%', right: '6%', width: 320, height: 320, borderRadius: '50%', background: 'rgba(255,222,170,0.3)', pointerEvents: 'none', zIndex: 0 }} />
-      <div aria-hidden style={{ position: 'absolute', bottom: -50, right: -50, opacity: 0.03, pointerEvents: 'none', zIndex: 0 }}>
-        <MechaMark size={320} />
-      </div>
 
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+      {/* Botón para saltar/cerrar — siempre visible */}
+      <button onClick={cerrar} style={{ position: 'absolute', top: isMobile ? 16 : 24, right: isMobile ? 16 : 24, background: 'rgba(40,30,24,0.06)', border: 'none', borderRadius: 999, width: 36, height: 36, display: 'grid', placeItems: 'center', color: T.textSecondary, fontSize: 16, cursor: 'pointer', fontWeight: 700, zIndex: 10 }}>×</button>
+
+      {/* Contenido espacial libre */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 420, width: '100%', position: 'relative', zIndex: 1, textAlign: 'center' }}>
+        {/* Chispa está siempre presente */}
+        <Chispa mood={chispaMood} />
+
         {fase === 'bienvenida' && <FotogramaBienvenida isMobile={isMobile} onEmpezar={() => avanzarATema(0)} onSaltar={cerrar} />}
         {(fase === 'pregunta' || fase === 'ejecutando') && (
           <FotogramaPregunta
@@ -152,7 +176,6 @@ export function OnboardingAgentOverlay() {
             isMobile={isMobile}
             seccion={TEMA_TITULO_SECCION[TEMA_ORDEN[temaIdx]]}
             destinoManual={TEMA_DESTINO_MANUAL[TEMA_ORDEN[temaIdx]]}
-            progreso={(temaIdx + 1) / TEMA_ORDEN.length}
             pregunta={pregunta}
             cargando={cargandoPregunta}
             ejecutando={fase === 'ejecutando'}
@@ -161,7 +184,6 @@ export function OnboardingAgentOverlay() {
             onCambiar={setRespuesta}
             onEnviar={() => enviarRespuesta()}
             onSaltar={() => avanzarATema(temaIdx + 1)}
-            onCerrar={cerrar}
             onBoton={(activar) => responderDirecto(TEMA_ORDEN[temaIdx] === 'reserva_online' ? 'activar_reserva_online' : 'activar_notificaciones', { activar })}
             presets={TEMA_ORDEN[temaIdx] === 'horario_salon' ? HORARIO_PRESETS : undefined}
             onPreset={(dias) => responderDirecto('fijar_horario_salon', { dias })}
@@ -190,6 +212,7 @@ export function OnboardingAgentOverlay() {
             permiteAnadirOtro={TEMA_ORDEN[temaIdx] === 'servicios' || TEMA_ORDEN[temaIdx] === 'equipo'}
             onAnadirOtro={() => { setRespuesta(''); void cargarPregunta(temaIdx); }}
             onContinuar={() => continuarDesdeRecibo()}
+            onEditar={handleEditar}
             temaId={TEMA_ORDEN[temaIdx]}
           />
         )}
@@ -354,21 +377,12 @@ function FotogramaBienvenida({ isMobile, onEmpezar, onSaltar }: { isMobile: bool
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: 26,
-      padding: isMobile ? '32px 20px' : '48px 36px',
+      gap: 18,
+      padding: isMobile ? '16px 0' : '20px 0',
       textAlign: 'center',
-      background: 'rgba(255, 253, 251, 0.82)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      border: '1px solid rgba(40, 30, 24, 0.08)',
-      borderRadius: 24,
-      boxShadow: '0 24px 60px rgba(40, 30, 24, 0.06)',
-      maxWidth: 480,
-      width: isMobile ? 'calc(100% - 32px)' : '420px',
+      maxWidth: 400,
+      width: '100%',
     }}>
-      <div className="gc-flame" style={{ display: 'inline-flex', marginBottom: 6 }}>
-        <MechaMark size={56} />
-      </div>
       <div style={{ fontFamily: "'Bricolage Grotesque','Inter',sans-serif", fontSize: isMobile ? 24 : 28, fontWeight: 800, color: T.text, lineHeight: 1.25, maxWidth: 360 }}>
         Vamos a poner en marcha tu salón
       </div>
@@ -384,14 +398,14 @@ function FotogramaBienvenida({ isMobile, onEmpezar, onSaltar }: { isMobile: bool
 }
 
 function FotogramaPregunta({
-  isMobile, seccion, destinoManual, progreso, pregunta, cargando, ejecutando, modoInput, valor, onCambiar, onEnviar, onSaltar, onCerrar,
+  isMobile, seccion, destinoManual, pregunta, cargando, ejecutando, modoInput, valor, onCambiar, onEnviar, onSaltar,
   onBoton, presets, onPreset, fallbackActivo, camposSimplesDef, camposSimples, onCambiarCampoSimple, onEnviarCamposSimples, errorTexto,
   temaId,
 }: {
-  isMobile: boolean; seccion: string; destinoManual: string; progreso: number;
+  isMobile: boolean; seccion: string; destinoManual: string;
   pregunta: { titulo: string; subtitulo?: string; placeholder_ejemplo?: string };
   cargando: boolean; ejecutando: boolean; modoInput: 'texto' | 'foto' | 'botones';
-  valor: string; onCambiar: (v: string) => void; onEnviar: () => void; onSaltar: () => void; onCerrar: () => void;
+  valor: string; onCambiar: (v: string) => void; onEnviar: () => void; onSaltar: () => void;
   onBoton: (activar: boolean) => void;
   presets?: { label: string; dias: any[] }[]; onPreset: (dias: any[]) => void;
   fallbackActivo: boolean;
@@ -406,22 +420,11 @@ function FotogramaPregunta({
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: 22,
-      padding: isMobile ? '32px 20px 24px' : '40px 32px 32px',
-      position: 'relative',
-      background: 'rgba(255, 253, 251, 0.82)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      border: '1px solid rgba(40, 30, 24, 0.08)',
-      borderRadius: 24,
-      boxShadow: '0 24px 60px rgba(40, 30, 24, 0.06)',
-      maxWidth: 480,
-      width: isMobile ? 'calc(100% - 32px)' : '420px',
+      gap: 18,
+      padding: isMobile ? '12px 0' : '16px 0',
+      maxWidth: 400,
+      width: '100%',
     }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'rgba(40,30,24,0.06)', borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
-        <div style={{ width: `${Math.round(progreso * 100)}%`, height: '100%', background: T.primary, transition: 'width 0.4s cubic-bezier(0.16,1,0.3,1)' }} />
-      </div>
-      <button onClick={onCerrar} className="m-btn-icon" style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(40,30,24,0.05)', border: 'none', borderRadius: 999, width: 28, height: 28, display: 'grid', placeItems: 'center', color: T.textSecondary, fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>×</button>
       <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700 }}>{seccion}</div>
       {cargando ? (
         <>
@@ -435,7 +438,7 @@ function FotogramaPregunta({
       ) : mostrarCamposSimples ? (
         <>
           <div style={{ fontFamily: 'Inter,sans-serif', fontSize: isMobile ? 18 : 20, fontWeight: 700, color: T.text, textAlign: 'center', maxWidth: 360, lineHeight: 1.3 }}>
-            No he entendido bien la respuesta. Rellénalo así, campo a campo:
+            Complétalo campo a campo:
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', margin: '10px 0' }}>
             {camposSimplesDef!.map((c) => (
@@ -447,7 +450,7 @@ function FotogramaPregunta({
                 placeholder={c.label}
                 type={c.tipo === 'numero' ? 'number' : 'text'}
                 disabled={ejecutando}
-                style={{ width: '100%', border: `1px solid ${T.border}`, borderRadius: 10, padding: '11px 14px', fontSize: 14, background: T.bgCard, outline: 'none' }}
+                style={{ width: '100%', border: `1px solid ${T.border}`, borderRadius: 10, padding: '11px 14px', fontSize: 14, background: 'rgba(255,253,251,0.7)', outline: 'none' }}
               />
             ))}
           </div>
@@ -489,7 +492,7 @@ function FotogramaPregunta({
           {modoInput === 'texto' && presets && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 400, margin: '6px 0' }}>
               {presets.map((p) => (
-                <button key={p.label} onClick={() => onPreset(p.dias)} disabled={ejecutando} className="m-chip" style={{ padding: '8px 14px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 999, color: T.textSecondary, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                <button key={p.label} onClick={() => onPreset(p.dias)} disabled={ejecutando} className="m-chip" style={{ padding: '8px 14px', background: 'rgba(255,253,251,0.7)', border: `1px solid ${T.border}`, borderRadius: 999, color: T.textSecondary, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                   {p.label}
                 </button>
               ))}
@@ -588,16 +591,10 @@ function FotogramaConfirmarRiesgo({ isMobile, accion, onConfirmar, onCancelar }:
       flexDirection: 'column',
       alignItems: 'center',
       gap: 18,
-      padding: isMobile ? '32px 20px' : '40px 32px',
+      padding: isMobile ? '16px 0' : '20px 0',
       textAlign: 'center',
-      background: 'rgba(255, 253, 251, 0.82)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      border: '1px solid rgba(40, 30, 24, 0.08)',
-      borderRadius: 24,
-      boxShadow: '0 24px 60px rgba(40, 30, 24, 0.06)',
-      maxWidth: 480,
-      width: isMobile ? 'calc(100% - 32px)' : '420px',
+      maxWidth: 400,
+      width: '100%',
     }}>
       <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: T.text, maxWidth: 360, lineHeight: 1.3 }}>{titulo}</div>
       <div style={{ fontSize: 13.5, color: T.textSecondary, maxWidth: 320, lineHeight: 1.5 }}>{detalle}</div>
@@ -611,9 +608,9 @@ function FotogramaConfirmarRiesgo({ isMobile, accion, onConfirmar, onCancelar }:
   );
 }
 
-function FotogramaRecibo({ isMobile, recibo, esUltimoTema, permiteAnadirOtro, onAnadirOtro, onContinuar, temaId }: {
+function FotogramaRecibo({ isMobile, recibo, esUltimoTema, permiteAnadirOtro, onAnadirOtro, onContinuar, onEditar, temaId }: {
   isMobile: boolean; recibo: { ok: boolean; resumen: string }; esUltimoTema: boolean; permiteAnadirOtro: boolean;
-  onAnadirOtro: () => void; onContinuar: () => void; temaId: TemaId;
+  onAnadirOtro: () => void; onContinuar: () => void; onEditar: () => void; temaId: TemaId;
 }) {
   return (
     <div className="m-rise" style={{
@@ -621,16 +618,10 @@ function FotogramaRecibo({ isMobile, recibo, esUltimoTema, permiteAnadirOtro, on
       flexDirection: 'column',
       alignItems: 'center',
       gap: 16,
-      padding: isMobile ? '32px 20px' : '40px 32px',
+      padding: isMobile ? '16px 0' : '20px 0',
       textAlign: 'center',
-      background: 'rgba(255, 253, 251, 0.82)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      border: '1px solid rgba(40, 30, 24, 0.08)',
-      borderRadius: 24,
-      boxShadow: '0 24px 60px rgba(40, 30, 24, 0.06)',
-      maxWidth: 480,
-      width: isMobile ? 'calc(100% - 32px)' : '420px',
+      maxWidth: 400,
+      width: '100%',
     }}>
       <div style={{ width: 48, height: 48, borderRadius: 16, background: recibo.ok ? T.successSoft : T.dangerSoft, display: 'grid', placeItems: 'center', fontSize: 22, color: recibo.ok ? T.success : T.danger, fontWeight: 'bold' }}>
         {recibo.ok ? '✓' : '!'}
@@ -651,6 +642,114 @@ function FotogramaRecibo({ isMobile, recibo, esUltimoTema, permiteAnadirOtro, on
           {esUltimoTema ? 'Terminar' : 'Continuar'}
         </button>
       </div>
+      {/* Botón para editar/corregir los datos */}
+      <button onClick={onEditar} style={{ background: 'none', border: 'none', color: T.textTertiary, fontSize: 12, cursor: 'pointer', textDecoration: 'underline', marginTop: 4 }}>
+        ✏️ Editar este paso
+      </button>
+    </div>
+  );
+}
+
+/** Chispa — mascota animada de Mecha basada en el logo de llama.
+ * Reacciona según el mood: wave (saluda), think (piensa), happy (celebra), confused (error). */
+function Chispa({ mood }: { mood: 'wave' | 'think' | 'happy' | 'confused' }) {
+  // Colores según mood
+  const flameColor = mood === 'confused' ? '#e8644a' : mood === 'happy' ? '#ff8c42' : '#f4501e';
+  const eyeExpr = mood === 'happy' ? 'U' : mood === 'confused' ? '?' : null; // null = use SVG circles
+  const mouthPath = mood === 'happy' ? 'M 28 52 Q 36 60 44 52' :
+                     mood === 'confused' ? 'M 30 54 Q 36 50 42 54' :
+                     mood === 'think' ? 'M 30 52 L 42 52' :
+                     'M 28 52 Q 36 58 44 52'; // wave = smile
+
+  return (
+    <div className="chispa-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, userSelect: 'none' }}>
+      <svg viewBox="0 0 72 80" width="80" height="88" style={{ overflow: 'visible', filter: 'drop-shadow(0 4px 12px rgba(244,80,30,0.25))' }}>
+        {/* Glow exterior */}
+        <defs>
+          <radialGradient id="chispaGlow" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stopColor={flameColor} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={flameColor} stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="chispaFlame" x1="0.5" y1="0" x2="0.5" y2="1">
+            <stop offset="0%" stopColor="#ffcf4a" />
+            <stop offset="40%" stopColor="#ff8c42" />
+            <stop offset="100%" stopColor={flameColor} />
+          </linearGradient>
+        </defs>
+        <ellipse cx="36" cy="44" rx="38" ry="38" fill="url(#chispaGlow)" />
+
+        {/* Cuerpo de llama — forma orgánica */}
+        <path d="
+          M 36 4
+          C 46 12, 58 24, 58 40
+          C 58 56, 48 68, 36 68
+          C 24 68, 14 56, 14 40
+          C 14 24, 26 12, 36 4
+          Z
+        " fill="url(#chispaFlame)" stroke="rgba(40,30,24,0.08)" strokeWidth="1" />
+
+        {/* Llama interior (core más claro) */}
+        <path d="
+          M 36 20
+          C 42 28, 48 34, 48 44
+          C 48 54, 42 60, 36 60
+          C 30 60, 24 54, 24 44
+          C 24 34, 30 28, 36 20
+          Z
+        " fill="rgba(255,220,130,0.5)" />
+
+        {/* Ojos */}
+        {eyeExpr === 'U' ? (
+          <>
+            <path d="M 27 38 Q 29 42 31 38" stroke="#3d2a1e" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+            <path d="M 41 38 Q 43 42 45 38" stroke="#3d2a1e" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+          </>
+        ) : eyeExpr === '?' ? (
+          <>
+            <circle className="chispa-eye" cx="29" cy="38" r="3.2" fill="#3d2a1e" />
+            <circle cx="43" cy="38" r="3.2" fill="#3d2a1e" />
+            <circle cx="43" cy="38" r="1.2" fill="#fff" style={{ transform: 'translate(-1px, -1px)' }} />
+            <circle cx="29" cy="38" r="1.2" fill="#fff" style={{ transform: 'translate(-1px, -1px)' }} />
+          </>
+        ) : (
+          <>
+            <circle className="chispa-eye" cx="29" cy="38" r="3" fill="#3d2a1e" />
+            <circle className="chispa-eye" cx="43" cy="38" r="3" fill="#3d2a1e" />
+            {/* Reflejos */}
+            <circle cx="30.5" cy="36.5" r="1" fill="rgba(255,255,255,0.8)" />
+            <circle cx="44.5" cy="36.5" r="1" fill="rgba(255,255,255,0.8)" />
+          </>
+        )}
+
+        {/* Boca */}
+        <path d={mouthPath} stroke="#3d2a1e" strokeWidth="2" fill="none" strokeLinecap="round" />
+
+        {/* Brazo derecho (saluda si mood = wave) */}
+        {mood === 'wave' && (
+          <g className="chispa-arm">
+            <path d="M 54 44 C 60 40, 64 34, 62 28" stroke={flameColor} strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <circle cx="62" cy="27" r="3" fill="#ffcf4a" />
+          </g>
+        )}
+
+        {/* Signo de pensamiento */}
+        {mood === 'think' && (
+          <>
+            <circle cx="58" cy="18" r="2.5" fill="rgba(40,30,24,0.12)" />
+            <circle cx="62" cy="12" r="3.5" fill="rgba(40,30,24,0.1)" />
+            <circle cx="64" cy="5" r="4.5" fill="rgba(40,30,24,0.08)" />
+          </>
+        )}
+
+        {/* Estrellitas de felicidad */}
+        {mood === 'happy' && (
+          <>
+            <text x="8" y="20" fontSize="10" style={{ animation: 'obPulse 1.5s ease-in-out infinite' }}>✨</text>
+            <text x="56" y="16" fontSize="8" style={{ animation: 'obPulse 1.8s ease-in-out infinite 0.3s' }}>⭐</text>
+          </>
+        )}
+      </svg>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: T.textTertiary, marginTop: -2 }}>Chispa</div>
     </div>
   );
 }

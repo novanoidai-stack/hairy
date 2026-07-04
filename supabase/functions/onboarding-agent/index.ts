@@ -157,11 +157,21 @@ const ENUNCIAR_TOOL = {
 const REGLAS_PRECIO = 'Si el tema es "servicios" y hay codigo postal, puedes anadir en "subtitulo" una estimacion de precio de mercado ORIENTATIVA para ese tipo de servicio en esa zona, SIEMPRE con la coletilla "(estimacion de la IA, no un dato verificado)" al final. Nunca la des como cifra oficial. Si no tienes codigo postal, omite el subtitulo de precio.';
 const REGLAS_TONO = 'Espanol, sin emojis, tono cercano pero profesional, frases cortas. No inventes datos de mercado fuera de la regla de precio de arriba.';
 
+const REGLAS_EXTRACCION = [
+  'REGLAS IMPORTANTES DE EXTRACCION Y PREGUNTAS:',
+  '1. Si el tema es "reserva_online" o "notificaciones" (que se responden mediante botones SI/NO), la pregunta (titulo) que redactes usando enunciar_pregunta DEBE ser binaria (ej. "¿Quieres activar la reserva online para tu web?" o "¿Quieres activar los recordatorios de citas por WhatsApp?"). NUNCA uses preguntas abiertas como "¿Como quieres...?" o "¿Cuando...?".',
+  '2. Si el usuario proporciona una lista de servicios pero NO especifica sus precios o duraciones, NO inventes precios orientativos ni duraciones ficticias. En su lugar, llama a la tool enunciar_pregunta para preguntarle amigablemente los detalles (precio y duracion en minutos) de los servicios que ha mencionado.',
+  '3. Si el usuario da de alta datos del negocio pero falta el telefono, NO inventes ningun numero ni uses placeholders como "Unknown" o "<UNKNOWN>" en la tool completar_datos_negocio. En su lugar, llama a la tool enunciar_pregunta para solicitarle amigablemente el telefono.',
+  '4. Si falta algun dato indispensable y es imposible de estimar (como el precio o telefono) pero aun asi decides llamar a la tool del tema, pon 0 para numeros o cadena vacia "" para textos. El sistema del cliente detectara este valor vacio y abrira el formulario manual para corregirlo.',
+  '5. Si el usuario enumera profesionales pero no especifica si quiere invitarlos o sus emails, llama a crear_profesionales con quiere_invitar: false y email: "" (esto esta bien, no hace falta repreguntar por emails).'
+].join('\n');
+
 function buildSystemPrompt(modo: string, tema: TemaId, estado: Record<string, boolean>, perfil: { codigoPostal?: string; nombreNegocio?: string }): string {
   const pendientes = Object.entries(estado).filter(([, v]) => !v).map(([k]) => k).join(', ') || 'ninguno';
   const base = [
     'Eres el asistente de puesta en marcha del software de gestion de peluquerias Mecha.',
     REGLAS_TONO,
+    REGLAS_EXTRACCION,
     `Codigo postal del negocio: ${perfil.codigoPostal || 'no especificado'}. Nombre del negocio: ${perfil.nombreNegocio || 'no especificado (si es "no especificado" o no lo sabes, usa "tu salon" o "tu negocio" al formular preguntas; NUNCA inventes nombres de salones ni utilices la palabra "Unknown" o "desconocido")'}.`,
     `Temas ya completados antes de esta sesion: ${Object.entries(estado).filter(([, v]) => v).map(([k]) => k).join(', ') || 'ninguno'}. Pendientes: ${pendientes}.`,
     `Tema actual: ${tema}.`,
@@ -169,7 +179,7 @@ function buildSystemPrompt(modo: string, tema: TemaId, estado: Record<string, bo
   if (modo === 'enriquecer_pregunta') {
     base.push(REGLAS_PRECIO, 'Llama SIEMPRE a la tool enunciar_pregunta con la pregunta de este tema.');
   } else {
-    base.push('El propietario ha respondido en lenguaje natural. Llama SIEMPRE a la tool del tema actual con los datos que puedas extraer. Si falta un dato imprescindible, pon tu mejor estimacion razonable a partir del texto (nunca inventes un email; si no dio email, quiere_invitar=false y email="").');
+    base.push('El propietario ha respondido en lenguaje natural. Llama SIEMPRE a la tool del tema actual con los datos que puedas extraer siguiendo las REGLAS DE EXTRACCION.');
   }
   return base.join('\n');
 }

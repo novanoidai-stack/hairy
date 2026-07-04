@@ -174,6 +174,7 @@ export async function interpretarRespuesta(
 interface ContextoEjecucion {
   negocioId: string;
   profesionalesCreados: { id: string; nombre: string }[];
+  serviciosCreados: string[];
   datosNegocioSesion?: { nombre: string; direccion: string; telefono: string };
 }
 
@@ -218,6 +219,11 @@ export async function ejecutarAccion(
       }
 
       case 'crear_servicios': {
+        // Borrar servicios creados previamente en esta sesión para permitir edición limpia
+        if (ctx.serviciosCreados && ctx.serviciosCreados.length > 0) {
+          await supabase.from('servicios').delete().in('id', ctx.serviciosCreados);
+          ctx.serviciosCreados = [];
+        }
         const servicios = Array.isArray(args.servicios) ? args.servicios : [];
         if (servicios.length === 0) return { ok: false, resumen: 'No he encontrado ningún servicio válido.' };
         let creados = [];
@@ -226,14 +232,18 @@ export async function ejecutarAccion(
           const precio = Number(s.precio);
           const duracion_min = Number(s.duracion_min);
           if (nombre && precio > 0 && duracion_min > 0) {
-            const { error } = await supabase.from('servicios').insert({
+            const { data: inserted, error } = await supabase.from('servicios').insert({
               negocio_id: ctx.negocioId,
               nombre,
               precio,
               duracion_activa_min: duracion_min,
               activo: true,
-            });
+            }).select('id').single();
             if (error) throw error;
+            if (inserted) {
+              if (!ctx.serviciosCreados) ctx.serviciosCreados = [];
+              ctx.serviciosCreados.push(inserted.id);
+            }
             creados.push(`${nombre} (${precio.toFixed(2)} €)`);
           }
         }
@@ -259,6 +269,12 @@ export async function ejecutarAccion(
       }
 
       case 'crear_profesionales': {
+        // Borrar profesionales creados previamente en esta sesión para permitir edición limpia
+        if (ctx.profesionalesCreados && ctx.profesionalesCreados.length > 0) {
+          const ids = ctx.profesionalesCreados.map(p => p.id);
+          await supabase.from('profesionales').delete().in('id', ids);
+          ctx.profesionalesCreados = [];
+        }
         const profesionales = Array.isArray(args.profesionales) ? args.profesionales : [];
         if (profesionales.length === 0) return { ok: false, resumen: 'No he encontrado profesionales en la respuesta.' };
         let creados = [];
@@ -319,17 +335,28 @@ export async function ejecutarAccion(
         const { error } = await supabase.from('negocio_horarios').upsert(rows, { onConflict: 'negocio_id,dia_semana' });
         if (error) throw error;
         // Aplica el mismo horario a cada profesional creado en ESTA sesion
-        // (decision de diseno del spec: no se pregunta dos veces). Un unico
-        // turno por dia abierto; quien quiera turnos partidos lo ajusta luego
-        // en Equipo, igual que hoy.
         const abiertos = rows.filter((r) => r.abierto && r.apertura && r.cierre);
         if (ctx.profesionalesCreados.length > 0 && abiertos.length > 0) {
           const horarioRows = ctx.profesionalesCreados.flatMap((p) =>
             abiertos.map((d) => ({ profesional_id: p.id, dia_semana: d.dia_semana, turno: 1, hora_inicio: d.apertura, hora_fin: d.cierre })),
           );
+          // Borrar horarios de profesionales previos de esta sesión para soportar edición
+          const profIds = ctx.profesionalesCreados.map(p => p.id);
+          await supabase.from('horarios_profesional').delete().in('profesional_id', profIds);
           await supabase.from('horarios_profesional').insert(horarioRows);
         }
-        return { ok: true, resumen: `${abiertos.length} dia(s) abierto(s) a la semana` };
+        
+        // Crear un resumen descriptivo del horario guardado
+        const nombresDias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+        const soloAbiertos = rows.filter(r => r.abierto);
+        if (soloAbiertos.length === 0) return { ok: true, resumen: 'Horario: Cerrado todos los días' };
+        
+        // Formato agrupado corto
+        const resumenAbiertos = soloAbiertos.map(r => {
+          const diaCorto = nombresDias[r.dia_semana].slice(0, 3);
+          return `${diaCorto} (${r.apertura}-${r.cierre})`;
+        }).join(', ');
+        return { ok: true, resumen: `Horario establecido: ${resumenAbiertos}` };
       }
 
       case 'activar_reserva_online': {
@@ -343,6 +370,7 @@ export async function ejecutarAccion(
         }
         const d = ctx.datosNegocioSesion!;
         const slug = slugifyNombre(d.nombre);
+        // Quitar la columna captcha_activo que no existe en negocio_portal!
         const { error } = await supabase.from('negocio_portal').upsert({
           negocio_id: ctx.negocioId,
           slug,
@@ -352,10 +380,19 @@ export async function ejecutarAccion(
           portal_activo: true,
           idioma: 'es',
           mostrar_precios: 'catalogo',
-          captcha_activo: true,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'negocio_id' });
         if (error) throw error;
+
+        // Fusión segura de config para no borrar datos del negocio!
+        const { data: cfgRow } = await supabase.from('negocio_config').select('config').eq('negocio_id', ctx.negocioId).maybeSingle();
+        const config = { ...(cfgRow?.config ?? {}), reserva_online_activa: true };
+        const { error: cfgErr } = await supabase.from('negocio_config').upsert(
+          { negocio_id: ctx.negocioId, config, updated_at: new Date().toISOString() },
+          { onConflict: 'negocio_id' },
+        );
+        if (cfgErr) throw cfgErr;
+
         return { ok: true, resumen: `Reserva online activada: /r/${slug}` };
       }
 
