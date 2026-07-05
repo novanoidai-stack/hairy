@@ -12,8 +12,8 @@ import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
 import { categoryColorHex } from '@/lib/categoryColors';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
-import { proponerRetrasoPorCita, construirUpdatesRetraso, type PropuestaRetraso } from '@/lib/retrasos';
-import RetrasoPropuestaModal from './RetrasoPropuestaModal';
+import { proponerRetrasoPorCita, construirUpdatesRetraso, calcularEstrategiasRetraso, mejorAlternativaSlot, duracionRealAprendida, type EstrategiaRetraso, type CitaRetraso, type CitaHistorial } from '@/lib/retrasos';
+import RetrasoEstrategiasModal from './RetrasoEstrategiasModal';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { CobroSheet } from '@/components/pos/CobroSheet';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
@@ -2541,6 +2541,9 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
   const [drag, setDrag] = useState<any>(null);
   const [dropSlot, setDropSlot] = useState<any>(null);
   const [dragError, setDragError] = useState<string | null>(null);
+  // Anti-solape inteligente: al soltar en conflicto, propone el hueco valido mas cercano.
+  const [dragAlt, setDragAlt] = useState<{ profNombre: string; horaTxt: string; payload: any; citaOrig: any } | null>(null);
+  const [aplicandoAlt, setAplicandoAlt] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<any>(null);
   const dropRef = useRef<any>(null);
@@ -2638,8 +2641,34 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
       const c1 = isTimeSlotOccupied(nuevoInicio, nuevoFinActiva, currentCitas, targetProf.id, cita.id);
       const c2 = activo2Ms > 0 && isTimeSlotOccupied(nuevoFinEspera, nuevoFin, currentCitas, targetProf.id, cita.id);
       if (c1 || c2) {
-        setDragError('Conflicto: la fase activa se solapa con otra cita activa');
-        setTimeout(() => setDragError(null), 2500);
+        // Anti-solape inteligente (Sesion 4): en vez de solo bloquear, busca el hueco valido
+        // mas cercano en esa columna (respeta activa-sobre-reposo) y lo propone.
+        const citaRet: CitaRetraso = {
+          id: cita.id, inicio: nuevoInicio.toISOString(), fin: nuevoFin.toISOString(),
+          fin_activa: nuevoFinActiva.toISOString(), fin_espera: nuevoFinEspera.toISOString(),
+        };
+        const destino: CitaRetraso[] = currentCitas
+          .filter((c: any) => c.profesional_id === targetProf.id && c.id !== cita.id
+            && (c.estado === 'confirmada' || c.estado === 'pendiente' || c.estado === 'completada'))
+          .map((c: any) => ({ id: c.id, inicio: c.inicio, fin: c.fin, fin_activa: c.fin_activa, fin_espera: c.fin_espera }));
+        const apertura = new Date(dateObj); apertura.setHours(HORARIO_APERTURA.horas, HORARIO_APERTURA.minutos, 0, 0);
+        const cierre = new Date(dateObj); cierre.setHours(HORARIO_CIERRE.horas, HORARIO_CIERRE.minutos, 0, 0);
+        const altIso = mejorAlternativaSlot(citaRet, nuevoInicio.getTime(), destino, { aperturaMs: apertura.getTime(), cierreMs: cierre.getTime() });
+        if (altIso) {
+          const altIni = new Date(altIso);
+          const altFinActiva = new Date(altIni.getTime() + activaMs);
+          const altFinEspera = new Date(altFinActiva.getTime() + esperaMs);
+          const altFin = new Date(altIni.getTime() + durMs);
+          setDragAlt({
+            profNombre: targetProf.nombre,
+            horaTxt: altIni.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            payload: { inicio: altIni.toISOString(), fin: altFin.toISOString(), fin_activa: altFinActiva.toISOString(), fin_espera: altFinEspera.toISOString(), profesional_id: targetProf.id },
+            citaOrig: cita,
+          });
+        } else {
+          setDragError('Conflicto: la fase activa se solapa con otra cita activa');
+          setTimeout(() => setDragError(null), 2500);
+        }
         return;
       }
 
@@ -3169,6 +3198,55 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
           {dragError}
         </div>
       )}
+
+      {/* Anti-solape inteligente: propuesta del hueco valido mas cercano al soltar en conflicto */}
+      {dragAlt && (
+        <div onClick={() => !aplicandoAlt && setDragAlt(null)} style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(8,6,4,0.42)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 380, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 24px 60px rgba(40,30,24,0.22)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
+              <span style={{ display: 'inline-flex', width: 30, height: 30, borderRadius: 8, background: TOKENS.warningSoft, alignItems: 'center', justifyContent: 'center' }}
+                dangerouslySetInnerHTML={{ __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${TOKENS.warning}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>` }} />
+              <div style={{ fontSize: 15.5, fontWeight: 800, color: TOKENS.text }}>Ahi no cabe</div>
+            </div>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: TOKENS.textSec, lineHeight: 1.5 }}>
+              Esa hora se solapa con otra cita activa. El hueco valido mas cercano en {dragAlt.profNombre?.split(' ')[0]} es las <b style={{ color: TOKENS.primaryHi }}>{dragAlt.horaTxt}</b>. ¿La muevo ahi?
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setDragAlt(null)} disabled={aplicandoAlt} style={{ flex: 1, padding: '12px', borderRadius: 12, border: `1.5px solid ${TOKENS.border}`, background: TOKENS.bgCard, color: TOKENS.textSec, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                Cancelar
+              </button>
+              <button
+                disabled={aplicandoAlt}
+                onClick={async () => {
+                  const alt = dragAlt;
+                  setAplicandoAlt(true);
+                  try {
+                    const { error } = await supabase.from('citas').update(alt.payload).eq('id', alt.citaOrig.id);
+                    if (!error) {
+                      onCitaUpdated?.({ id: alt.citaOrig.id, ...alt.payload });
+                      const profile = await getUserProfile();
+                      const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
+                      const cambios = [
+                        { campo: 'inicio', anterior: alt.citaOrig.inicio, nuevo: alt.payload.inicio },
+                        { campo: 'fin', anterior: alt.citaOrig.fin, nuevo: alt.payload.fin },
+                      ];
+                      if (alt.payload.profesional_id !== alt.citaOrig.profesional_id) {
+                        cambios.push({ campo: 'profesional_id', anterior: alt.citaOrig.profesional_id, nuevo: alt.payload.profesional_id });
+                      }
+                      registrarHistorial(alt.citaOrig.id, nId, cambios, 'Reagendado (anti-solape sugerido)');
+                    }
+                    setDragAlt(null);
+                  } finally {
+                    setAplicandoAlt(false);
+                  }
+                }}
+                style={{ flex: 1.6, padding: '12px', borderRadius: 12, border: 'none', background: TOKENS.fireGradient, color: '#fff', fontSize: 14, fontWeight: 800, cursor: aplicandoAlt ? 'default' : 'pointer', opacity: aplicandoAlt ? 0.7 : 1 }}>
+                {aplicandoAlt ? 'Moviendo…' : `Mover a las ${dragAlt.horaTxt}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -3381,7 +3459,37 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
   const [duracionActivaCustom, setDuracionActivaCustom] = useState<number | null>(null);
   const [duracionEsperaCustom, setDuracionEsperaCustom] = useState<number | null>(null);
   const [duracionActivaExtraCustom, setDuracionActivaExtraCustom] = useState<number | null>(null);
+  // Duracion real aprendida por clienta+servicio (Sesion 4): sugerencia derivada del
+  // historial, no imposicion. Se rellena al elegir clienta y servicio.
+  const [durSugerida, setDurSugerida] = useState<import('@/lib/retrasos').DuracionAprendida | null>(null);
+  const [durSugAplicada, setDurSugAplicada] = useState(false);
   const [profOverrides, setProfOverrides] = useState<any[]>([]);
+  // Al elegir clienta + servicio, aprende su duracion real del historial y la sugiere.
+  useEffect(() => {
+    let cancel = false;
+    setDurSugerida(null);
+    setDurSugAplicada(false);
+    if (!selectedCliente || !selectedServicio) return;
+    const srv = servicios.find((s: any) => s.id === selectedServicio);
+    if (!srv) return;
+    const catTotal = (srv.duracion_activa_min || 0) + (srv.duracion_espera_min || 0) + (srv.duracion_activa_extra_min || 0);
+    (async () => {
+      let q = supabase
+        .from('citas')
+        .select('inicio, fin, estado, servicio_id')
+        .eq('cliente_id', selectedCliente)
+        .eq('servicio_id', selectedServicio)
+        .in('estado', ['completada', 'confirmada'])
+        .order('inicio', { ascending: false })
+        .limit(20);
+      if (negocioId) q = q.eq('negocio_id', negocioId);
+      const { data } = await q;
+      if (cancel) return;
+      const hist: CitaHistorial[] = (data || []).map((c: any) => ({ servicio_id: c.servicio_id, inicio: c.inicio, fin: c.fin, estado: c.estado }));
+      setDurSugerida(duracionRealAprendida(hist, selectedServicio, catTotal || 30));
+    })();
+    return () => { cancel = true; };
+  }, [selectedCliente, selectedServicio, servicios, negocioId]);
   const [errMsg, setErrMsg] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [bloqueosProfHoy, setBloqueosProfHoy] = useState<any[]>([]);
@@ -4412,6 +4520,33 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
           </div>
         )}
 
+        {/* Duracion real aprendida (Sesion 4): sugerencia visible, no imposicion */}
+        {durSugerida && !durSugAplicada && (
+          <div style={{ marginBottom: 14, padding: '11px 13px', background: 'rgba(244,80,30,0.06)', border: `1px solid rgba(244,80,30,0.28)`, borderRadius: 11, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ display: 'inline-flex', width: 26, height: 26, borderRadius: 7, background: 'rgba(244,80,30,0.12)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+              dangerouslySetInnerHTML={{ __html: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${TOKENS.primaryHi}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>` }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>
+                Con esta clienta suele durar ~{durSugerida.minutos} min
+              </div>
+              <div style={{ fontSize: 10.5, color: TOKENS.textTer, marginTop: 1 }}>
+                {durSugerida.difMin > 0 ? `${durSugerida.difMin} min mas` : `${-durSugerida.difMin} min menos`} que el catalogo ({durSugerida.catalogoMin} min) · {durSugerida.muestras} citas
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const nuevaActiva = Math.max(15, durSugerida.minutos - duracionEspera - duracionActivaExtra);
+                setDuracionActivaCustom(nuevaActiva);
+                setDurSugAplicada(true);
+              }}
+              style={{ flexShrink: 0, padding: '7px 12px', background: TOKENS.fireGradient, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+            >
+              Usar {durSugerida.minutos} min
+            </button>
+          </div>
+        )}
+
         {/* FormField Profesional */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Profesional</div>
@@ -5006,9 +5141,9 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
   // Lista de espera: candidatos compatibles con el hueco liberado al cancelar
   const [candidatosHueco, setCandidatosHueco] = useState<any[] | null>(null);
   const [asignandoCand, setAsignandoCand] = useState<string | null>(null);
-  // --- Retrasos encadenados (IA de agenda) ---
+  // --- Retrasos encadenados con estrategias (IA de agenda, Sesion 4) ---
   const [retrasoPickerOpen, setRetrasoPickerOpen] = useState(false);
-  const [propRetraso, setPropRetraso] = useState<PropuestaRetraso | null>(null);
+  const [estrategiasRetraso, setEstrategiasRetraso] = useState<EstrategiaRetraso[] | null>(null);
   const [retrasoMin, setRetrasoMin] = useState(0);
   const [aplicandoRetraso, setAplicandoRetraso] = useState(false);
   // --- Cobro (POS-0/1): motor compartido con Caja, ver components/pos/CobroSheet. ---
@@ -5026,32 +5161,38 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
         servicio: servicios.find((x: any) => x.id === c.servicio_id)?.nombre ?? null,
       }));
   }
+  // Cierre del dia en ms (para que las estrategias puedan reubicar hasta el final).
+  function cierreDelDiaMs(): number {
+    const d = new Date(cita.inicio);
+    d.setHours(HORARIO_CIERRE.horas, HORARIO_CIERRE.minutos, 0, 0);
+    return d.getTime();
+  }
   function abrirRetraso(min: number) {
     setRetrasoMin(min);
-    setPropRetraso(proponerRetrasoPorCita(citasDelProfParaCascada(), cita.id, min));
+    setEstrategiasRetraso(
+      calcularEstrategiasRetraso(citasDelProfParaCascada() as CitaRetraso[], cita.id, min, { cierreMs: cierreDelDiaMs() })
+    );
     setRetrasoPickerOpen(false);
   }
-  async function aplicarRetraso(avisarClientes: boolean) {
-    if (!propRetraso) return;
+  // Aplica la estrategia elegida: desplaza las citas segun sus updates y, si se pidio
+  // avisar, marca retraso_aviso_pendiente en los afectados con telefono (el motor n8n
+  // cron-pull manda la plantilla aviso_retraso, gateado por notifRetrasoActiva del salon).
+  async function aplicarRetraso(estrategia: EstrategiaRetraso, avisarClientes: boolean) {
     setAplicandoRetraso(true);
     try {
-      const updates = construirUpdatesRetraso(propRetraso, citasDelProfParaCascada());
-      // Citas movidas a las que se enviara el aviso de retraso: las que tienen telefono
-      // (cliente real). El motor las recoge por el flag retraso_aviso_pendiente y manda la
-      // plantilla aviso_retraso (gateado tambien por notifRetrasoActiva del salon).
       const avisar = new Set<string>(
         avisarClientes
-          ? propRetraso.items
-              .filter((it: any) => it.telefono && String(it.telefono).trim().length >= 6)
-              .map((it: any) => it.cita_id)
+          ? estrategia.avisos
+              .filter((a) => a.telefono && String(a.telefono).trim().length >= 6)
+              .map((a) => a.cita_id)
           : []
       );
-      for (const u of updates) {
+      for (const u of estrategia.updates) {
         const { id, ...campos } = u;
         if (avisar.has(id)) (campos as any).retraso_aviso_pendiente = true;
         await supabase.from('citas').update(campos).eq('id', id);
       }
-      setPropRetraso(null);
+      setEstrategiasRetraso(null);
       onSaved?.();
       triggerRefresh?.();
       onClose?.();
@@ -6882,16 +7023,16 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
         );
       })()}
 
-      {/* Modal cancelacion CU-AG-05 */}
-      {propRetraso && (
-        <RetrasoPropuestaModal
-          propuesta={propRetraso}
+      {/* Estrategias de retraso (Sesion 4): Chispa ofrece 2-3 formas de resolverlo */}
+      {estrategiasRetraso && (
+        <RetrasoEstrategiasModal
+          estrategias={estrategiasRetraso}
           minutos={retrasoMin}
           profesionalNombre={prof?.nombre}
           avisarDisponible={avisarRetrasoActivo}
           enviando={aplicandoRetraso}
           onConfirmar={aplicarRetraso}
-          onCancelar={() => setPropRetraso(null)}
+          onCancelar={() => setEstrategiasRetraso(null)}
         />
       )}
       {showCancelModal && (

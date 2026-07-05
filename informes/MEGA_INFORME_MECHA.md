@@ -1318,3 +1318,40 @@ negocio (PR-12: propone->confirma; el LLM nunca ejecuta; RLS + `can()` + multi-t
   `deno check`/`deno test` limpios; advisors sin regresiones (solo el WARN esperado de RPC
   security-definer ejecutable por authenticated, con guardas internas). Edge desplegado
   (`agenda-asistente`, CLI). El envio real WhatsApp de `enviar_mensaje_bandeja` queda abierto para Alexandro.
+
+## Adenda — Capa IA "Chispa" Sesion 4: Retraso con alternativas + duracion real + anti-solape — HECHA (6 jul)
+
+La resolucion de retrasos deja de ser "solo empujar en cascada": Chispa ofrece 2-3 ESTRATEGIAS
+comparadas y el profesional elige. Todo el calculo es PURO y testeado (`lib/retrasos.ts` +
+`lib/retrasos.test.ts`, 9 tests deno verdes), respetando las fases activa/reposo (solo el solape
+activa-activa es real; activa-sobre-reposo es valido = tiempo muerto productivo).
+
+- **Motor de estrategias:** `calcularEstrategiasRetraso(citas, citaId, min, opts)` -> array de
+  `EstrategiaRetraso` aplicables, ordenadas por menor disrupcion (menos citas movidas, luego menor
+  retraso de cierre), con la primera marcada `recomendada`. Cada una lleva su propuesta comparable
+  (`citasMovidas`, `retrasoCierreMin`, `updates` puros con las 4 marcas coherentes, `avisos`):
+  (a) **cascada** (envuelve el motor existente); (b) **aprovechar_reposo** (encaja la primera cita
+  afectada en el reposo de otra, via modelo de fases en ms + chequeo de solape solo activa-activa);
+  (c) **mover_hueco** (hueco valido mas cercano del dia; se deduplica si coincide con el reposo);
+  (d) **pedir_retraso_siguiente** (cascada enmarcada como aviso proactivo al cliente). Un test dedicado
+  garantiza que NINGUNA estrategia propone un solape activa-activa.
+- **Duracion real aprendida:** `duracionRealAprendida(historial, servicioId, catalogoMin)` = mediana
+  del historial de esa clienta+servicio, snap a slot; devuelve null sin muestras o si la diferencia con
+  el catalogo es despreciable. En `NewCitaModal` aparece como chip "Con esta clienta suele durar ~X min ·
+  usar" (sugerencia, no imposicion; ajusta `duracionActivaCustom`).
+- **Anti-solape inteligente al arrastrar:** `mejorAlternativaSlot(...)` (hueco valido mas cercano,
+  busqueda bidireccional). En el drag&drop de `AgendaCalendar.web.tsx`, al soltar en conflicto, en vez
+  de solo el toast de error se propone el hueco mas cercano ("Ahi no cabe -> ¿mover a HH:MM?") y se
+  aplica con auditoria en `citas_historial`.
+- **UI:** nuevo `components/agenda/RetrasoEstrategiasModal.web.tsx` (+ stub nativo `.tsx` para el split
+  del expo-router) que pinta las estrategias como tarjetas propone->confirma (lenguaje de bloques de
+  Chispa: radio, chips "Mueve N citas"/"Cierra +Xm"/"Avisa a N", badge Recomendada). Reemplaza al modal
+  de solo cascada en `DetalleCitaModal`. El flujo "profesional llega tarde" se queda en cascada.
+- **Verificado en vivo** (`/demo.html?share=1`, escenario sembrado en `demo_salon_001` y luego BORRADO):
+  tinte 10:00-11:00 (reposo 10:20-10:50) + Barba 11:00 + Corte 11:15 -> retraso +15 -> modal con 3
+  estrategias -> aplicada **reposo** (Barba a 10:45-11:00 dentro del reposo desplazado, tinte +15 con las
+  4 marcas coherentes, Corte intacto, aviso solo en la Barba) y **cascada** en prueba separada (tinte
+  10:15, Barba 11:15-11:30, Corte 11:30-11:55), ambas sin solapes activa-activa (comprobado en BD).
+  `tsc --noEmit` + `build:web` + `deno test` limpios (se anadio `**/*.test.ts` al exclude de tsconfig).
+  NOTA: marcar un retraso en la demo SI escribe (no es el path simulado de Chispa). El aviso WhatsApp real
+  `aviso_retraso` sigue dependiendo de la plantilla Meta (Alexandro).

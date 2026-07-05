@@ -17,6 +17,7 @@
     "dist/**/*",
     "supabase/**/*",
     "ui-references/**/*",
+    "**/*.test.ts",
     "node_modules"
   ]
 }

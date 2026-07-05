@@ -196,7 +196,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 1 | Nucleo generativo + Chispa unificada + encendido demo + higiene repo | Opus 4.8 | alto | — | **HECHA (5 jul)** |
 | 2 | Seguridad: RBAC + consentimiento + regla de salud | Opus 4.8 | maximo | 1 | **HECHA (5 jul)** |
 | 3 | Capa de accion universal + confirmar citas pendientes + fallas 2-4 | Opus 4.8 | alto | 1,2 | **HECHA (5 jul)** |
-| 4 | Retraso con alternativas + duracion real aprendida + anti-solape | Opus 4.8 | alto | 1,3 | pendiente |
+| 4 | Retraso con alternativas + duracion real aprendida + anti-solape | Opus 4.8 | alto | 1,3 | **HECHA (6 jul)** |
 | 5 | Voz: micro (STT + fallback) + TTS ElevenLabs + A/B | Sonnet 5 | alto | 1 | pendiente |
 | 6 | Omnisciencia/analitica (briefing, informes, caja, metas, alertas) | Sonnet 5 | medio-alto | 1,2 | **PARCIAL (5 jul)** — ver registro abajo: solo briefing proactivo, falta la analitica |
 | 7 | Q&A profundo de cliente + riesgo no-show + fuga | Opus 4.8 | medio | 1,2 | pendiente |
@@ -266,6 +266,43 @@ simulada (guardrail: 0 escrituras reales); "sube el precio del Corte caballero a
 `deno check`/`deno test` (12+2 tests) limpios; advisors sin regresiones nuevas (solo el WARN esperado
 de RPC security-definer ejecutable por authenticated, con guardas internas). Edge desplegado
 (`agenda-asistente`). Mensajeria real WhatsApp de `enviar_mensaje_bandeja` queda abierta para Alexandro.
+
+**Registro Sesion 4 (6 jul, HECHA):** el motor puro `lib/retrasos.ts` pasa de "solo cascada" a
+ofrecer ESTRATEGIAS comparables. Nuevas funciones puras (todas en `lib/retrasos.ts`, 9 tests deno en
+`lib/retrasos.test.ts`, verdes): `calcularEstrategiasRetraso(citas, citaId, min, opts)` devuelve el
+array de estrategias APLICABLES ordenadas por menor disrupcion (menos citas movidas, luego menor
+retraso de cierre), con la primera marcada `recomendada`. Cada `EstrategiaRetraso` lleva su propuesta
+comparable (`citasMovidas`, `retrasoCierreMin`, `updates` puros, `avisos`): (a) **cascada** (envuelve
+el motor existente), (b) **aprovechar_reposo** — encaja la primera cita afectada en el reposo de otra
+(tiempo muerto productivo) usando un modelo de fases en ms donde solo cuenta el solape activa-activa
+(activa-sobre-reposo es valido), (c) **mover_hueco** — la saca al hueco valido mas cercano del dia (se
+deduplica si coincide con el reposo), (d) **pedir_retraso_siguiente** — cascada enmarcada como aviso
+proactivo a los clientes. Regla dura respetada: las 4 marcas (`inicio/fin/fin_activa/fin_espera`) se
+mueven coherentes y ninguna estrategia propone un solape activa-activa (test dedicado). Ademas:
+`duracionRealAprendida(historial, servicioId, catalogoMin)` (mediana del historial clienta+servicio,
+snap a slot, null si pocas muestras o diferencia despreciable) y `mejorAlternativaSlot(...)` (hueco
+valido mas cercano, busqueda bidireccional) para el anti-solape al arrastrar.
+UI (Carlos): nuevo `components/agenda/RetrasoEstrategiasModal.web.tsx` (+ stub nativo `.tsx`) que pinta
+las 2-3 estrategias como tarjetas propone->confirma (lenguaje de bloques de Chispa: radio, chips
+"Mueve N citas"/"Cierra +Xm"/"Avisa a N", badge Recomendada) y deja elegir; reemplaza al modal de solo
+cascada en `DetalleCitaModal` (el `RetrasoPropuestaModal` viejo queda sin uso). Anti-solape inteligente
+en el drag&drop de `AgendaCalendar.web.tsx`: al soltar en conflicto, en vez de solo el toast de error,
+propone el hueco valido mas cercano ("Ahi no cabe -> ¿mover a HH:MM?") y lo aplica con auditoria.
+Duracion real aprendida: en `NewCitaModal`, al elegir clienta+servicio se consulta su historial y, si
+difiere del catalogo, aparece un chip "Con esta clienta suele durar ~X min · usar" (sugerencia, no
+imposicion; ajusta `duracionActivaCustom`). El flujo "profesional llega tarde" se deja en cascada (sin
+cambios). `npx tsc --noEmit` limpio (se anadio `**/*.test.ts` al exclude de tsconfig: son tests deno) +
+`npm run build:web` OK + `deno test lib/retrasos.test.ts` 9/9.
+**Verificado en vivo** (`/demo.html?share=1`, tenant `demo_salon_001`, escenario sembrado y luego
+BORRADO): tinte Color raiz 10:00-11:00 (reposo 10:20-10:50) con Barba 11:00 y Corte 11:15 detras ->
+"Marcar retraso" +15 -> el modal ofrece 3 estrategias (reposo recomendada: mueve 1 cita, cierra a su
+hora; cascada: mueve 2, +15m; pedir venir mas tarde: avisa a 2). Aplicada la de **reposo**: en BD la
+Barba queda 10:45-11:00 (dentro del reposo desplazado 10:35-11:05, sin solape activa-activa), el tinte
++15 coherente en las 4 marcas, el Corte intacto, `retraso_aviso_pendiente=true` solo en la Barba.
+Aplicada la **cascada** (prueba separada): tinte 10:15, Barba 11:15-11:30, Corte 11:30-11:55, sin
+solapes. Ambas coherentes. NOTA: marcar un retraso en la demo SI escribe (no es el path simulado de
+Chispa); si se ensucia, re-sembrar. Aviso WhatsApp real de `aviso_retraso` sigue dependiendo de la
+plantilla Meta (Alexandro).
 
 **Registro Sesion 6 (5 jul, PARCIAL — hecho por Alexandro, auditado 5 jul):** entrego SOLO la
 sub-pieza "briefing proactivo / centro de sugerencias" (fila 0 del catalogo), no la sesion completa.
