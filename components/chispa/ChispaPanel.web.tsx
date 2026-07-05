@@ -8,6 +8,7 @@ import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRen
 import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import BriefingAgenda from '@/components/agenda/BriefingAgenda';
 
 // Chispa — panel conversacional de la capa de IA (web). Drawer lateral que se
 // abre desde una pestana fija en el borde derecho. Renderiza RESPUESTAS por
@@ -69,7 +70,7 @@ const BIENVENIDA: Mensaje = {
   accionEstado: null,
 };
 
-export default function ChispaPanel({ negocioId: _negocioId, profile, onAgendaChanged }: ChispaPanelProps) {
+export default function ChispaPanel({ negocioId, profile, onAgendaChanged }: ChispaPanelProps) {
   const { isMobile } = useResponsive();
   const [abierto, setAbierto] = useState(false);
   const [mensajes, setMensajes] = useState<Mensaje[]>([BIENVENIDA]);
@@ -272,6 +273,7 @@ export default function ChispaPanel({ negocioId: _negocioId, profile, onAgendaCh
 
             {/* Lista de mensajes */}
             <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <BriefingAgenda negocioId={negocioId} profile={profile} onClose={() => setAbierto(false)} />
               {mensajes.map((msg, i) => {
                 if (msg.role === 'user') {
                   return (
