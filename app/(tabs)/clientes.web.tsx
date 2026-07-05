@@ -127,6 +127,7 @@ interface Cliente {
   bloqueo_motivo?: string | null;
   etiquetas?: string[];
   deposito_perfil_override?: string | null;
+  consiente_ia?: boolean;
   frecuencia_dias?: number | null;
   enRiesgoFuga?: boolean;
   diasFugaRetraso?: number;
@@ -314,7 +315,7 @@ function ClientesWeb() {
     const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }, { data: fugaData }] = await Promise.all([
       supabase
         .from('clientes')
-        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override')
+        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override, consiente_ia')
         .eq('negocio_id', profile.negocio_id)
         .order('nombre'),
       supabase
@@ -3357,6 +3358,17 @@ function ConsentimientosSection({ cliente, negocioId }: { cliente: Cliente; nego
   ];
   const [estado, setEstado] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
+  // Consentimiento especifico de la capa de IA (Chispa). Vive en la columna
+  // clientes.consiente_ia, que es la que consulta el edge del asistente. Si es
+  // false, la IA trata a este cliente como inexistente (no aparece en sus
+  // respuestas). Los datos de salud (alergias) NUNCA viajan a la IA, con
+  // independencia de este flag.
+  const [consienteIA, setConsienteIA] = useState<boolean>(cliente.consiente_ia !== false);
+  const toggleIA = async () => {
+    const nuevo = !consienteIA;
+    setConsienteIA(nuevo);
+    await supabase.from('clientes').update({ consiente_ia: nuevo }).eq('id', cliente.id);
+  };
 
   useEffect(() => {
     let cancel = false;
@@ -3391,6 +3403,23 @@ function ConsentimientosSection({ cliente, negocioId }: { cliente: Cliente; nego
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* Consentimiento de la capa de IA (Chispa): controla si el asistente
+          puede ver/usar los datos operativos de este cliente. */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '9px 0', borderBottom: `1px solid ${TOKENS.border}` }}>
+        <div style={{ minWidth: 0 }}>
+          <span style={{ fontSize: 13, color: TOKENS.text }}>Asistente de IA (Chispa)</span>
+          <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2 }}>
+            Si lo desactivas, el asistente de IA no vera ni usara los datos de este cliente. Los datos de salud (alergias) nunca se envian a la IA.
+          </div>
+        </div>
+        <button
+          onClick={toggleIA}
+          aria-label="Consentimiento del asistente de IA"
+          style={{ width: 42, height: 24, borderRadius: 12, border: 'none', background: consienteIA ? TOKENS.success : 'rgba(40,30,24,0.15)', cursor: 'pointer', position: 'relative', flexShrink: 0, transition: 'background 0.18s ease' }}
+        >
+          <span style={{ position: 'absolute', top: 3, left: consienteIA ? 21 : 3, width: 18, height: 18, borderRadius: 9, background: '#fff', transition: 'left 0.18s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
+        </button>
+      </div>
       {TIPOS.map((t) => (
         <div key={t.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '9px 0', borderBottom: `1px solid ${TOKENS.border}` }}>
           <span style={{ fontSize: 13, color: TOKENS.text }}>{t.label}</span>

@@ -1242,3 +1242,37 @@ Plan: `docs/superpowers/plans/2026-07-03-onboarding-ia-cinematico.md`.
 
 Advisors de seguridad de Supabase revisados: sin hallazgos nuevos (la función no toca tablas ni RLS).
 `tsc --noEmit` y `build:web` en verde en las 5 tareas de código del plan.
+
+---
+
+## Adenda — Capa IA "Chispa" Sesion 2: Seguridad (RBAC + consentimiento + regla de salud) — HECHA (5 jul)
+
+Endurecimiento de seguridad del edge `agenda-asistente` (correctness-critical, "no fugas"). Se apoya
+sobre la Sesion 1 (bloques + Chispa global, en curso en paralelo) pero es independiente de su UI.
+
+- **RBAC de tools:** el set de tools que se DECLARA al LLM se filtra por rol canonico derivado del JWT
+  (`profiles.role` -> `roleOf`/`can`, espejo de `lib/permissions.ts` en
+  `supabase/functions/agenda-asistente/permisos.ts`). Un Profesional no ve `resumen_informes` (nueva
+  tool de informes, gateada por `informes.ver`) ni `cambiar_config` (solo propietario); las escrituras
+  solo se declaran con scope != none. Fail-closed: tool desconocida nunca se declara. Test:
+  `permisos.test.ts`.
+- **Consentimiento por cliente:** columna `clientes.consiente_ia` (migracion
+  `migrations/ia-consentimiento-clientes.sql`, aplicada via MCP; opt-out, default true, base
+  legal contrato para datos operativos; **pendiente externo: visto bueno DPO/abogado**). Si es false,
+  el cliente es invisible para la IA (filtro `.eq('consiente_ia', true)` en `buscar_cliente`,
+  resolucion de `crear_cita`, y filtro por nombre de `listar_citas`; en `listar_citas` se anula el
+  `cliente_id` de los no consintientes). Toggle en la ficha de clienta (Consentimientos).
+- **Regla dura de salud:** lista BLANCA de campos (`whitelist.ts`, `proyectarClienteIA`): al LLM solo
+  viajan `id, nombre, telefono, total_visitas, ultima_visita, primera_visita, ticket_medio,
+  frecuencia_dias`. `alergias`, `sensibilidades_cuero` y `notas` NUNCA. Segunda red fail-closed:
+  `assertSinCamposProhibidos` sobre cada resultado de tool antes de serializar. Test `whitelist.test.ts`
+  falla si un campo de salud entra al payload.
+- **Auditoria:** cada conversacion se registra en `conversaciones_ia` (RPC `registrar_conversacion_ia`),
+  incluida la ruta de agotamiento de pasos.
+- **Verificado:** (a) RBAC Profesional sin informes -> deterministico en `permisos.test.ts`;
+  (b) clienta con `consiente_ia=false` no aparece — probado a nivel de datos (query vacia) y E2E en vivo
+  contra el edge desplegado (Ana Ruiz oculta, control CARLOS visible); (c) sin campos de salud en el
+  payload — `whitelist.test.ts` + reproduccion del resultado real de `buscar_cliente` con salud
+  centinela plantada (cero fugas) + comportamiento en vivo (Chispa redirige a la ficha, no revela
+  alergias). Edge redesplegado (CLI, byte-perfect). Advisors de seguridad: sin hallazgos nuevos.
+  `tsc --noEmit` y `build:web` en verde.

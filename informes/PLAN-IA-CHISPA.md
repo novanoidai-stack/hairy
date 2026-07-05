@@ -194,7 +194,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | # | Sesion | Modelo | Esfuerzo | Depende | Estado |
 |---|--------|--------|----------|---------|--------|
 | 1 | Nucleo generativo + Chispa unificada + encendido demo + higiene repo | Opus 4.8 | alto | — | **HECHA (5 jul)** |
-| 2 | Seguridad: RBAC + consentimiento + regla de salud | Opus 4.8 | maximo | 1 | pendiente |
+| 2 | Seguridad: RBAC + consentimiento + regla de salud | Opus 4.8 | maximo | 1 | **HECHA (5 jul)** |
 | 3 | Capa de accion universal + confirmar citas pendientes + fallas 2-4 | Opus 4.8 | alto | 1,2 | pendiente |
 | 4 | Retraso con alternativas + duracion real aprendida + anti-solape | Opus 4.8 | alto | 1,3 | pendiente |
 | 5 | Voz: micro (STT + fallback) + TTS ElevenLabs + A/B | Sonnet 5 | alto | 1 | pendiente |
