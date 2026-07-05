@@ -13,6 +13,7 @@ import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 
 import { pickLoadingTip } from '@/lib/loadingTips';
+import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
 import {
   TEMA_ORDEN, TEMA_FALLBACK, TEMA_TITULO_SECCION, TEMA_DESTINO_MANUAL, HORARIO_PRESETS, TEMA_CAMPOS_SIMPLES,
   pedirPregunta, interpretarRespuesta, ejecutarAccion,
@@ -145,16 +146,10 @@ export function OnboardingAgentOverlay() {
         @keyframes obFloat2 { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(-30px,30px) scale(1.1) } }
         @keyframes obSpinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes obPulse { 0%, 100% { transform: scale(0.88); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 0.95; } }
-        @keyframes chispaFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        @keyframes chispaBlink { 0%,92%,100% { transform: scaleY(1); } 96% { transform: scaleY(0.05); } }
-        @keyframes chispaWave { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(15deg); } 75% { transform: rotate(-10deg); } }
         .ob-blob1 { animation: obFloat1 20s ease-in-out infinite alternate; filter: blur(70px); }
         .ob-blob2 { animation: obFloat2 26s ease-in-out infinite alternate; filter: blur(80px); }
         .ob-spinner-ring { transform-box: fill-box; transform-origin: center; animation: obSpinner 1s linear infinite; }
         .ob-spinner-core { transform-box: fill-box; transform-origin: center; animation: obPulse 2.2s ease-in-out infinite; }
-        .chispa-body { animation: chispaFloat 3s ease-in-out infinite; }
-        .chispa-eye { animation: chispaBlink 4s ease-in-out infinite; transform-origin: center; }
-        .chispa-arm { animation: chispaWave 2.5s ease-in-out infinite; transform-origin: 50% 100%; }
       ` }} />
 
       {/* Blobs cinemáticos */}
@@ -166,8 +161,8 @@ export function OnboardingAgentOverlay() {
 
       {/* Contenido espacial libre */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 420, width: '100%', position: 'relative', zIndex: 1, textAlign: 'center' }}>
-        {/* Chispa está siempre presente */}
-        <Chispa mood={chispaMood} />
+        {/* Chispa está siempre presente (persona unica compartida con Chispa transversal) */}
+        <ChispaMascota mood={chispaMood} />
 
         {fase === 'bienvenida' && <FotogramaBienvenida isMobile={isMobile} onEmpezar={() => avanzarATema(0)} onSaltar={cerrar} />}
         {(fase === 'pregunta' || fase === 'ejecutando') && (
@@ -646,110 +641,6 @@ function FotogramaRecibo({ isMobile, recibo, esUltimoTema, permiteAnadirOtro, on
       <button onClick={onEditar} style={{ background: 'none', border: 'none', color: T.textTertiary, fontSize: 12, cursor: 'pointer', textDecoration: 'underline', marginTop: 4 }}>
         ✏️ Editar este paso
       </button>
-    </div>
-  );
-}
-
-/** Chispa — mascota animada de Mecha basada en el logo de llama.
- * Reacciona según el mood: wave (saluda), think (piensa), happy (celebra), confused (error). */
-function Chispa({ mood }: { mood: 'wave' | 'think' | 'happy' | 'confused' }) {
-  // Colores según mood
-  const flameColor = mood === 'confused' ? '#e8644a' : mood === 'happy' ? '#ff8c42' : '#f4501e';
-  const eyeExpr = mood === 'happy' ? 'U' : mood === 'confused' ? '?' : null; // null = use SVG circles
-  const mouthPath = mood === 'happy' ? 'M 28 52 Q 36 60 44 52' :
-                     mood === 'confused' ? 'M 30 54 Q 36 50 42 54' :
-                     mood === 'think' ? 'M 30 52 L 42 52' :
-                     'M 28 52 Q 36 58 44 52'; // wave = smile
-
-  return (
-    <div className="chispa-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, userSelect: 'none' }}>
-      <svg viewBox="0 0 72 80" width="80" height="88" style={{ overflow: 'visible', filter: 'drop-shadow(0 4px 12px rgba(244,80,30,0.25))' }}>
-        {/* Glow exterior */}
-        <defs>
-          <radialGradient id="chispaGlow" cx="50%" cy="45%" r="55%">
-            <stop offset="0%" stopColor={flameColor} stopOpacity="0.35" />
-            <stop offset="100%" stopColor={flameColor} stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="chispaFlame" x1="0.5" y1="0" x2="0.5" y2="1">
-            <stop offset="0%" stopColor="#ffcf4a" />
-            <stop offset="40%" stopColor="#ff8c42" />
-            <stop offset="100%" stopColor={flameColor} />
-          </linearGradient>
-        </defs>
-        <ellipse cx="36" cy="44" rx="38" ry="38" fill="url(#chispaGlow)" />
-
-        {/* Cuerpo de llama — forma orgánica */}
-        <path d="
-          M 36 4
-          C 46 12, 58 24, 58 40
-          C 58 56, 48 68, 36 68
-          C 24 68, 14 56, 14 40
-          C 14 24, 26 12, 36 4
-          Z
-        " fill="url(#chispaFlame)" stroke="rgba(40,30,24,0.08)" strokeWidth="1" />
-
-        {/* Llama interior (core más claro) */}
-        <path d="
-          M 36 20
-          C 42 28, 48 34, 48 44
-          C 48 54, 42 60, 36 60
-          C 30 60, 24 54, 24 44
-          C 24 34, 30 28, 36 20
-          Z
-        " fill="rgba(255,220,130,0.5)" />
-
-        {/* Ojos */}
-        {eyeExpr === 'U' ? (
-          <>
-            <path d="M 27 38 Q 29 42 31 38" stroke="#3d2a1e" strokeWidth="2.2" fill="none" strokeLinecap="round" />
-            <path d="M 41 38 Q 43 42 45 38" stroke="#3d2a1e" strokeWidth="2.2" fill="none" strokeLinecap="round" />
-          </>
-        ) : eyeExpr === '?' ? (
-          <>
-            <circle className="chispa-eye" cx="29" cy="38" r="3.2" fill="#3d2a1e" />
-            <circle cx="43" cy="38" r="3.2" fill="#3d2a1e" />
-            <circle cx="43" cy="38" r="1.2" fill="#fff" style={{ transform: 'translate(-1px, -1px)' }} />
-            <circle cx="29" cy="38" r="1.2" fill="#fff" style={{ transform: 'translate(-1px, -1px)' }} />
-          </>
-        ) : (
-          <>
-            <circle className="chispa-eye" cx="29" cy="38" r="3" fill="#3d2a1e" />
-            <circle className="chispa-eye" cx="43" cy="38" r="3" fill="#3d2a1e" />
-            {/* Reflejos */}
-            <circle cx="30.5" cy="36.5" r="1" fill="rgba(255,255,255,0.8)" />
-            <circle cx="44.5" cy="36.5" r="1" fill="rgba(255,255,255,0.8)" />
-          </>
-        )}
-
-        {/* Boca */}
-        <path d={mouthPath} stroke="#3d2a1e" strokeWidth="2" fill="none" strokeLinecap="round" />
-
-        {/* Brazo derecho (saluda si mood = wave) */}
-        {mood === 'wave' && (
-          <g className="chispa-arm">
-            <path d="M 54 44 C 60 40, 64 34, 62 28" stroke={flameColor} strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <circle cx="62" cy="27" r="3" fill="#ffcf4a" />
-          </g>
-        )}
-
-        {/* Signo de pensamiento */}
-        {mood === 'think' && (
-          <>
-            <circle cx="58" cy="18" r="2.5" fill="rgba(40,30,24,0.12)" />
-            <circle cx="62" cy="12" r="3.5" fill="rgba(40,30,24,0.1)" />
-            <circle cx="64" cy="5" r="4.5" fill="rgba(40,30,24,0.08)" />
-          </>
-        )}
-
-        {/* Estrellitas de felicidad */}
-        {mood === 'happy' && (
-          <>
-            <text x="8" y="20" fontSize="10" style={{ animation: 'obPulse 1.5s ease-in-out infinite' }}>✨</text>
-            <text x="56" y="16" fontSize="8" style={{ animation: 'obPulse 1.8s ease-in-out infinite 0.3s' }}>⭐</text>
-          </>
-        )}
-      </svg>
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: T.textTertiary, marginTop: -2 }}>Chispa</div>
     </div>
   );
 }

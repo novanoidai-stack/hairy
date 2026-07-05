@@ -37,6 +37,40 @@
 
 ---
 
+## Adenda — Capa IA "Chispa" Sesion 1 (5 jul 2026, Carlos + Claude)
+
+Nucleo generativo de la capa de IA transversal (plan `informes/PLAN-IA-CHISPA.md`, Sesion 1 HECHA):
+
+- **Protocolo de bloques tipados.** El edge `agenda-asistente` pasa de `{ texto, accion_propuesta }` a
+  `{ bloques: Bloque[] }` con tipos `texto | accion | enlace` (union extensible para grafica/listas
+  futuras) en `lib/chispaBloques.ts`. Mantiene `texto`/`accion_propuesta` planos en la respuesta para
+  no romper clientes ya desplegados durante el rebuild de Vercel (cutover sin ventana rota).
+- **Renderer unico** `components/chispa/BloqueRenderer.web.tsx`: `enlace` = chip que navega con
+  `router.push` validado contra una allowlist de rutas (`CHISPA_RUTAS`, el LLM elige clave, el edge
+  valida); `accion` = tarjeta propone->confirma (PR-12, el LLM nunca ejecuta); `texto` = burbuja.
+- **Persona unificada "Chispa".** Mascota compartida `components/chispa/ChispaMascota.web.tsx` (la usan
+  onboarding y el asistente); el asistente de agenda se renombra a Chispa (se identifica como IA, tokens
+  fuego, sin emojis). Burbuja/pestana **global** via `components/chispa/ChispaLauncher` montada en
+  `app/_layout.tsx` (gateada por `asistenteAgendaActivo`, fuera de rutas publicas/login), disponible en
+  TODA la app y no solo en Agenda (PR02). Se quito el montaje local de `AgendaCalendar.web.tsx`; el
+  refresco de la agenda tras una accion va por `useCalendarRefresh`.
+- **Demo encendida con guardrails.** `asistenteAgendaActivo=true` en `demo_salon_001`. En modo demo el
+  confirm es **simulado** (no se ejecuta ninguna escritura real: se ve el flujo entero sin ensuciar el
+  tenant compartido) + rate-limit de 15 mensajes por sesion. Verificado en `/demo.html?share=1`: Chispa
+  responde texto + enlace que navega a Clientes + accion confirmable, y confirmar en demo deja 0 citas
+  nuevas en BD. Re-siembra: si la demo se ensucia por otras interacciones, re-sembrar `demo_salon_001`.
+- **Higiene de repo.** `dist/` ignorado; copia vieja `project/uploads/Hairy/` eliminada (+ exclude en
+  `tsconfig`); worktree obsoleto `condescending-murdock-9b0f9d` podado tras **capturar su fix RLS no
+  mergeado** (`categorias-servicio` demo_block a RESTRICTIVE; la BD de produccion ya lo tenia aplicado,
+  solo faltaba el archivo en `master`); refs de `filter-branch` y una entrada de stash basura limpiadas.
+- **Multi-sesion.** La Sesion 2 (RBAC de tools + consentimiento `consiente_ia` + regla dura de salud)
+  corrio en paralelo y su codigo ya convive en el edge (`permisos.ts`, `whitelist.ts`, `resumen_informes`,
+  filtrado por consentimiento). Su verificacion formal (gating de informes, exclusion por consentimiento,
+  auditoria del payload al LLM) y los advisors quedan como cierre de la Sesion 2. `npm run build:web` y
+  `npx tsc --noEmit` limpios.
+
+---
+
 ## Adenda — Tanda 24 jun 2026 (Carlos + Claude)
 
 > **En árbol de trabajo, SIN commitear** (rama `master`, pendiente OK de Carlos). Verificado

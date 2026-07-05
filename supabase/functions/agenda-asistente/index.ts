@@ -5,6 +5,9 @@
 
 import OpenAI from 'npm:openai@4';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+// Seguridad de la capa IA (Sesion 2): RBAC de tools + regla dura de salud.
+import { can, roleOf, toolPermitida } from './permisos.ts';
+import { assertSinCamposProhibidos, proyectarClienteIA } from './whitelist.ts';
 
 // ---------------------------------------------------------------------------
 // CORS + helper
@@ -66,6 +69,32 @@ type AccionPropuesta =
     };
 
 // ---------------------------------------------------------------------------
+// Bloques tipados (deben coincidir con lib/chispaBloques.ts en el cliente).
+// El union se deja extensible: grafica/listas llegan en sesiones posteriores.
+// ---------------------------------------------------------------------------
+type Bloque =
+  | { tipo: 'texto'; texto: string }
+  | { tipo: 'enlace'; ruta: string; label: string; descripcion?: string }
+  | { tipo: 'accion'; accion: AccionPropuesta };
+
+// Allowlist de rutas para bloques 'enlace' (espejo de CHISPA_RUTAS del cliente).
+// El LLM elige una CLAVE; el edge valida y adjunta la ruta/label real.
+const RUTAS: Record<string, { ruta: string; label: string }> = {
+  agenda: { ruta: '/(tabs)', label: 'Ir a la agenda' },
+  clientes: { ruta: '/(tabs)/clientes', label: 'Ver clientes' },
+  caja: { ruta: '/(tabs)/caja', label: 'Ir a Caja' },
+  informes: { ruta: '/(tabs)/informes', label: 'Ver informes' },
+  equipo: { ruta: '/(tabs)/equipo', label: 'Ir a Equipo' },
+  configuracion: { ruta: '/(tabs)/configuracion', label: 'Abrir Configuracion' },
+  'lista-espera': { ruta: '/(tabs)/lista-espera', label: 'Ver lista de espera' },
+  presupuestos: { ruta: '/(tabs)/presupuestos', label: 'Ver presupuestos' },
+  resenas: { ruta: '/(tabs)/resenas', label: 'Ver resenas' },
+  bandeja: { ruta: '/(tabs)/bandeja', label: 'Abrir bandeja' },
+  inventario: { ruta: '/(tabs)/inventario', label: 'Ver inventario' },
+  'mi-jornada': { ruta: '/(tabs)/mi-jornada', label: 'Ver Mi Jornada' },
+};
+
+// ---------------------------------------------------------------------------
 // Definicion de tools
 // ---------------------------------------------------------------------------
 const TOOLS = [
@@ -109,6 +138,18 @@ const TOOLS = [
         profesional: { type: 'string', description: 'Nombre parcial del profesional (opcional)' },
       },
       required: ['fecha'],
+    },
+  },
+  {
+    name: 'resumen_informes',
+    description: 'Resumen agregado de informes del salon en un rango de fechas: numero de citas por estado e ingresos cobrados (aproximado). Solo disponible para direccion/propietario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        desde: { type: 'string', description: 'YYYY-MM-DD (inclusivo)' },
+        hasta: { type: 'string', description: 'YYYY-MM-DD (inclusivo, default = desde)' },
+      },
+      required: ['desde'],
     },
   },
   // --- ESCRITURA (el LLM las invoca; la funcion NO las ejecuta) ---
@@ -184,6 +225,22 @@ const TOOLS = [
         valor: { type: 'string', description: 'Nuevo valor: activar/desactivar, un numero, una hora HH:MM, o una opcion del enum' },
       },
       required: ['clave', 'valor'],
+    },
+  },
+  // --- NAVEGACION (no escribe nada; anade un chip que lleva a otra pantalla) ---
+  {
+    name: 'sugerir_enlace',
+    description: 'Anade un chip de navegacion a otra pantalla del software cuando sea util (p.ej. tras hablar de clientes, ofrecer ir a Clientes). No modifica nada. Usa una CLAVE de destino exacta de la lista.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        destino: {
+          type: 'string',
+          description: 'Clave del destino: ' + Object.keys(RUTAS).join(', '),
+        },
+        descripcion: { type: 'string', description: 'Texto breve opcional que acompana al chip' },
+      },
+      required: ['destino'],
     },
   },
 ];
@@ -295,7 +352,7 @@ function coerceConfigValor(meta: ConfigMeta, valorRaw: string): { ok: true; valo
   return { ok: true, valor: `${m[1].padStart(2, '0')}:${m[2]}` };
 }
 
-function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'): string {
+function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puedeInformes: boolean): string {
   const scopeMsg =
     scope === 'none'
       ? 'Este usuario SOLO puede consultar la agenda. Si pide operar (crear/mover/cancelar/bloquear), explica amablemente que no tiene permiso.'
@@ -304,13 +361,17 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'): stri
       : 'Este usuario puede consultar y operar la agenda de cualquier profesional del salon.';
 
   return [
-    'Eres el asistente del software de gestion del salon (Mecha): gestionas la agenda Y guias al usuario sobre como usar y configurar el software. Operas en espanol, con tono breve y profesional.',
+    'Eres Chispa, la asistente de IA del software de gestion del salon (Mecha): gestionas la agenda Y guias al usuario sobre como usar y configurar el software. Operas en espanol, con tono breve, calido y profesional. Si te preguntan que eres, di con naturalidad que eres una IA que ayuda con la gestion del salon.',
     `Hoy es ${hoyISO} (zona Europe/Madrid). Resuelve referencias relativas ("manana", "las 5", "el lunes") a fecha/hora concreta en hora LOCAL de Madrid, en formato YYYY-MM-DDTHH:mm SIN sufijo de zona (no pongas Z ni offset).`,
     'No uses emojis en tus respuestas.',
     'GUIA DE CONFIGURACION: si el usuario pregunta como o donde configurar/personalizar algo, o que se puede ajustar de una funcion, responde con el MAPA DE CONFIGURACION del final: da la RUTA exacta (Configuracion > Pestana > Seccion) y enumera que se puede ajustar ahi. Cinete ESTRICTAMENTE al mapa: no inventes ajustes, opciones, valores de ejemplo ni rutas que no esten escritos en el (por ejemplo, no anadas "cada 15/30 min" ni "SMS/email" si el mapa no lo dice). Si te preguntan por algo que no esta en el mapa, dilo con franqueza en vez de suponer.',
     'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar un ajuste (por ejemplo "activa los recordatorios" o "pon la antelacion minima en 4h"), usa la tool cambiar_config con la CLAVE exacta de la lista AJUSTES EDITABLES del final. Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad).',
     'Para proponer operaciones usa las tools de escritura (crear_cita, reagendar_cita, cancelar_cita, bloquear_hueco, liberar_hueco).',
+    puedeInformes
+      ? 'Para datos agregados de informes o facturacion (numero de citas por estado, ingresos cobrados en un rango) usa la tool resumen_informes.'
+      : 'NO tienes acceso a informes ni a la facturacion agregada del salon con el rol de este usuario. Si te preguntan por ingresos totales, facturacion, cuanto se ha ganado, estadisticas o informes del negocio, explica con naturalidad que no tienes acceso a esos datos con su rol y que lo consulten con direccion o el propietario. NUNCA inventes cifras.',
+    'Cuando sea util, usa sugerir_enlace para ofrecer un chip que lleve a la pantalla relevante (p.ej. tras hablar de una clienta, ofrecer ir a Clientes). Es opcional y no modifica nada; no abuses (a lo sumo uno o dos por respuesta).',
     'ANTES de proponer una escritura: resuelve nombres a entidades reales con buscar_cliente e info_catalogo.',
     'Si hay ambiguedad (varios clientes con ese nombre, servicio no encontrado), PREGUNTA al usuario en vez de proponer con datos inciertos.',
     'Las propuestas de escritura NO se ejecutan automaticamente: el sistema mostrara una tarjeta de confirmacion al usuario.',
@@ -386,16 +447,32 @@ async function runAgente(
   scope: 'all' | 'self' | 'none',
   _effort: string,
   mensajes: { role: 'user' | 'assistant'; content: string }[],
-): Promise<{ texto: string; accion_propuesta?: AccionPropuesta }> {
+): Promise<{ bloques: Bloque[]; texto: string; accion_propuesta?: AccionPropuesta }> {
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }); // YYYY-MM-DD
+
+  // RBAC (Sesion 2): rol canonico derivado del JWT (via profiles). Determina que
+  // tools se DECLARAN al LLM. Lo que un rol no puede hacer, ni se declara.
+  const rolCanon = roleOf(role);
+  const puedeInformes = can(rolCanon, 'informes.ver');
 
   // OpenAI-compatible (OpenRouter): el system va como primer mensaje.
   const messages: any[] = [
-    { role: 'system', content: buildSystemPrompt(hoy, scope) },
+    { role: 'system', content: buildSystemPrompt(hoy, scope, puedeInformes) },
     ...mensajes.map((m) => ({ role: m.role, content: m.content })),
   ];
 
-  const tools = TOOLS.map((t) => ({ type: 'function' as const, function: t }));
+  // Solo se exponen al LLM las tools permitidas para este rol/scope (fail-closed).
+  const tools = TOOLS
+    .filter((t) => toolPermitida(t.name, rolCanon, scope))
+    .map((t) => ({ type: 'function' as const, function: t }));
+
+  // Serializa el resultado de una tool de lectura hacia el LLM aplicando la
+  // regla dura de salud: si algun campo prohibido se colara, falla cerrado.
+  const serializarLectura = async (name: string, input: Record<string, string>): Promise<string> => {
+    const r = await ejecutarLectura({ name, input }, negocioId, scope, userId);
+    assertSinCamposProhibidos(r);
+    return JSON.stringify(r);
+  };
 
   const parseArgs = (tc: { function: { arguments: string } }): Record<string, string> => {
     try {
@@ -405,7 +482,43 @@ async function runAgente(
     }
   };
 
+  // Enlaces sugeridos durante el razonamiento; se adjuntan a la respuesta final.
+  const enlaces: Bloque[] = [];
+  const verto = new Set<string>(); // evita enlaces duplicados por ruta
+  // Procesa una tool de navegacion: valida el destino y acumula un bloque enlace.
+  // Devuelve el texto de respuesta que se reinyecta al LLM.
+  const procesarEnlace = (inp: Record<string, string>): string => {
+    const meta = RUTAS[(inp.destino ?? '').trim()];
+    if (!meta) return `Destino no valido. Usa uno de: ${Object.keys(RUTAS).join(', ')}.`;
+    if (!verto.has(meta.ruta)) {
+      verto.add(meta.ruta);
+      enlaces.push({ tipo: 'enlace', ruta: meta.ruta, label: meta.label, descripcion: inp.descripcion });
+    }
+    return 'Enlace anadido a la respuesta.';
+  };
+
+  // Ensambla la respuesta final: texto (si hay) + enlaces + accion (si hay).
+  // Ademas de bloques, devuelve texto/accion_propuesta de forma plana para
+  // compatibilidad con clientes ya desplegados (que aun no leen bloques);
+  // asi el cambio del edge no rompe la web en produccion durante el rebuild.
+  const finalizar = (texto: string, accion?: AccionPropuesta): { bloques: Bloque[]; texto: string; accion_propuesta?: AccionPropuesta } => {
+    const bloques: Bloque[] = [];
+    if (texto && texto.trim()) bloques.push({ tipo: 'texto', texto });
+    bloques.push(...enlaces);
+    if (accion) bloques.push({ tipo: 'accion', accion });
+    if (bloques.length === 0) bloques.push({ tipo: 'texto', texto: 'Hecho.' });
+    const out: { bloques: Bloque[]; texto: string; accion_propuesta?: AccionPropuesta } = { bloques, texto: texto || '' };
+    if (accion) out.accion_propuesta = accion;
+    return out;
+  };
+
   for (let i = 0; i < 6; i++) {
+    // Log temporal para auditar el payload REAL enviado al LLM (regla dura de
+    // salud). Solo se activa con el secret CHISPA_DEBUG_PAYLOAD=1; en produccion
+    // no imprime nada. Sirve para la verificacion (c) de la Sesion 2.
+    if (Deno.env.get('CHISPA_DEBUG_PAYLOAD') === '1') {
+      console.log('[CHISPA_DEBUG_PAYLOAD]', JSON.stringify(messages));
+    }
     const resp = await openai.chat.completions.create({
       model: MODEL,
       max_tokens: 1024,
@@ -415,15 +528,15 @@ async function runAgente(
     });
 
     const msg = resp.choices[0]?.message;
-    if (!msg) return { texto: 'No he recibido respuesta del modelo.' };
+    if (!msg) return finalizar('No he recibido respuesta del modelo.');
     messages.push(msg);
 
     const toolCalls = msg.tool_calls ?? [];
 
-    // Sin tool calls: respuesta final de texto
+    // Sin tool calls: respuesta final de texto (+ enlaces acumulados)
     if (toolCalls.length === 0) {
       await registrarConv(negocioId, userId, messages);
-      return { texto: msg.content ?? '' };
+      return finalizar(msg.content ?? '');
     }
 
     // ¿Hay alguna tool de escritura (agenda o config)?
@@ -434,11 +547,11 @@ async function runAgente(
       // Permisos: config solo propietario; agenda gateada por scope.
       if (esConfig && role !== 'owner') {
         await registrarConv(negocioId, userId, messages);
-        return { texto: 'Solo el propietario puede cambiar la configuracion del salon. Puedo indicarte donde esta el ajuste para que lo cambies tu.' };
+        return finalizar('Solo el propietario puede cambiar la configuracion del salon. Puedo indicarte donde esta el ajuste para que lo cambies tu.');
       }
       if (!esConfig && scope === 'none') {
         await registrarConv(negocioId, userId, messages);
-        return { texto: 'No tienes permiso para modificar la agenda; solo puedo consultarla por ti.' };
+        return finalizar('No tienes permiso para modificar la agenda; solo puedo consultarla por ti.');
       }
 
       const propuesta = esConfig
@@ -452,10 +565,7 @@ async function runAgente(
 
       if (!('error' in propuesta)) {
         await registrarConv(negocioId, userId, messages);
-        return {
-          texto: msg.content || 'Revisa la accion propuesta y confirma:',
-          accion_propuesta: propuesta,
-        };
+        return finalizar(msg.content || 'Revisa la accion propuesta y confirma:', propuesta);
       }
 
       // OpenAI exige responder a TODAS las tool calls del turno antes de continuar.
@@ -465,24 +575,28 @@ async function runAgente(
           content = propuesta.error;
         } else if (ESCRITURA.has(tc.function.name) || tc.function.name === 'cambiar_config') {
           content = 'Procesa una sola operacion a la vez.';
+        } else if (tc.function.name === 'sugerir_enlace') {
+          content = procesarEnlace(parseArgs(tc));
         } else {
-          content = JSON.stringify(
-            await ejecutarLectura({ name: tc.function.name, input: parseArgs(tc) }, negocioId, scope, userId),
-          );
+          content = await serializarLectura(tc.function.name, parseArgs(tc));
         }
         messages.push({ role: 'tool', tool_call_id: tc.id, content });
       }
       continue;
     }
 
-    // Solo lecturas: ejecutar y reinyectar resultados
+    // Solo lecturas y/o enlaces: ejecutar y reinyectar resultados
     for (const tc of toolCalls) {
-      const r = await ejecutarLectura({ name: tc.function.name, input: parseArgs(tc) }, negocioId, scope, userId);
-      messages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(r) });
+      const content =
+        tc.function.name === 'sugerir_enlace'
+          ? procesarEnlace(parseArgs(tc))
+          : await serializarLectura(tc.function.name, parseArgs(tc));
+      messages.push({ role: 'tool', tool_call_id: tc.id, content });
     }
   }
 
-  return { texto: 'No he podido completar la peticion en el numero de pasos permitido. ¿Puedes reformularla?' };
+  await registrarConv(negocioId, userId, messages);
+  return finalizar('No he podido completar la peticion en el numero de pasos permitido. ¿Puedes reformularla?');
 }
 
 // ---------------------------------------------------------------------------
@@ -513,13 +627,17 @@ async function ejecutarLectura(
     }
 
     case 'buscar_cliente': {
+      // Consentimiento IA: los clientes con consiente_ia=false son INVISIBLES
+      // para la IA (como si no existieran). Lista blanca de campos (regla dura de
+      // salud): solo operativos, nunca alergias/notas/sensibilidades.
       const { data } = await svc
         .from('clientes')
-        .select('id, nombre, telefono')
+        .select('id, nombre, telefono, total_visitas, ultima_visita, primera_visita, ticket_medio, frecuencia_dias')
         .eq('negocio_id', negocioId)
+        .eq('consiente_ia', true)
         .or(`nombre.ilike.%${inp.texto}%,telefono.ilike.%${inp.texto}%`)
         .limit(8);
-      return data;
+      return (data ?? []).map((row) => proyectarClienteIA(row as Record<string, unknown>));
     }
 
     case 'listar_citas': {
@@ -558,13 +676,36 @@ async function ejecutarLectura(
       }
 
       if (inp.cliente) {
+        // El filtro por nombre solo casa clientes que consienten IA.
         const { data: clientes } = await svc
           .from('clientes')
           .select('id')
           .eq('negocio_id', negocioId)
+          .eq('consiente_ia', true)
           .ilike('nombre', `%${inp.cliente}%`);
         const ids = new Set((clientes ?? []).map((c: { id: string }) => c.id));
         resultado = resultado.filter((c: { cliente_id: string | null }) => c.cliente_id && ids.has(c.cliente_id));
+      }
+
+      // Consentimiento IA: se ocultan las identidades de clientes que NO
+      // consienten. La cita permanece (para razonar sobre ocupacion/huecos)
+      // pero sin su cliente_id, para no revelar quien es.
+      const idsEnCitas = [
+        ...new Set(resultado.map((c: { cliente_id: string | null }) => c.cliente_id).filter(Boolean)),
+      ] as string[];
+      if (idsEnCitas.length > 0) {
+        const { data: noConsienten } = await svc
+          .from('clientes')
+          .select('id')
+          .eq('negocio_id', negocioId)
+          .eq('consiente_ia', false)
+          .in('id', idsEnCitas);
+        const ocultar = new Set((noConsienten ?? []).map((c: { id: string }) => c.id));
+        if (ocultar.size > 0) {
+          resultado = resultado.map((c) =>
+            c.cliente_id && ocultar.has(c.cliente_id) ? { ...c, cliente_id: null } : c
+          );
+        }
       }
 
       return resultado;
@@ -612,6 +753,43 @@ async function ejecutarLectura(
       }
 
       return { citas, bloqueos };
+    }
+
+    case 'resumen_informes': {
+      // Solo llega aqui si el rol tiene informes.ver (gating en toolPermitida).
+      // Datos AGREGADOS del negocio: nada de PII de clientes ni salud.
+      const desde = inp.desde;
+      const hasta = inp.hasta ?? inp.desde;
+      const [{ data: citas }, { data: cobros }] = await Promise.all([
+        svc
+          .from('citas')
+          .select('estado')
+          .eq('negocio_id', negocioId)
+          .gte('inicio', `${desde}T00:00:00`)
+          .lte('inicio', `${hasta}T23:59:59`),
+        svc
+          .from('cobros')
+          .select('total_cents')
+          .eq('negocio_id', negocioId)
+          .gte('cobrado_at', `${desde}T00:00:00`)
+          .lte('cobrado_at', `${hasta}T23:59:59`),
+      ]);
+      const porEstado: Record<string, number> = {};
+      for (const c of (citas ?? []) as { estado: string | null }[]) {
+        const e = c.estado || 'sin_estado';
+        porEstado[e] = (porEstado[e] ?? 0) + 1;
+      }
+      const totalCents = ((cobros ?? []) as { total_cents: number | null }[]).reduce(
+        (s, r) => s + (r.total_cents ?? 0),
+        0,
+      );
+      return {
+        rango: { desde, hasta },
+        citas_total: (citas ?? []).length,
+        citas_por_estado: porEstado,
+        ingresos_cobrados_eur: Math.round(totalCents) / 100,
+        nota: 'Ingresos aproximados: suma de cobros con fecha de cobro dentro del rango.',
+      };
     }
 
     default:
@@ -727,10 +905,13 @@ async function construirPropuesta(
       let clienteId: string | null = null;
       let clienteNombre: string | null = null;
       if (inp.cliente) {
+        // Consentimiento IA: un cliente con consiente_ia=false es invisible para
+        // la IA, asi que no se puede citar por asistente (se cita a mano).
         const { data: clientes } = await svc
           .from('clientes')
           .select('id, nombre')
           .eq('negocio_id', negocioId)
+          .eq('consiente_ia', true)
           .or(`nombre.ilike.%${inp.cliente}%,telefono.ilike.%${inp.cliente}%`)
           .limit(5);
 

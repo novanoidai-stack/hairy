@@ -2,6 +2,8 @@
 # Solo se ignora la salida del build de Expo (web/app), generada en Vercel.
 web/app/
 web/.next/
+# Salida de `expo export` (build local); no versionar.
+dist/
 node_modules/
 .expo/
 .env

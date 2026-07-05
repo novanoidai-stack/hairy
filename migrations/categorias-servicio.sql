@@ -33,14 +33,20 @@ create policy "Users can delete categorias in own negocio"
   on categorias_servicio for delete
   using (negocio_id = (select profiles.negocio_id from profiles where profiles.id = auth.uid()));
 
+-- RESTRICTIVE (se combinan con AND): bloquean al visitante de la demo compartida
+-- aunque las policies de negocio de arriba permitan la escritura. Permissive las
+-- combinaria con OR y NO bloquearia nada. Mismo patron que clientes/servicios.
 create policy "demo_block_insert" on categorias_servicio
-  for insert with check (not is_shared_demo_visitor());
+  as restrictive for insert to authenticated
+  with check (not is_shared_demo_visitor());
 
 create policy "demo_block_update" on categorias_servicio
-  for update using (not is_shared_demo_visitor()) with check (not is_shared_demo_visitor());
+  as restrictive for update to authenticated
+  using (not is_shared_demo_visitor()) with check (not is_shared_demo_visitor());
 
 create policy "demo_block_delete" on categorias_servicio
-  for delete using (not is_shared_demo_visitor());
+  as restrictive for delete to authenticated
+  using (not is_shared_demo_visitor());
 
 create index if not exists categorias_servicio_negocio_idx on categorias_servicio(negocio_id);
 

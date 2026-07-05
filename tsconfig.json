@@ -13,7 +13,8 @@
     "expo-env.d.ts"
   ],
   "exclude": [
-    "project/uploads/**/*",
+    "project/**/*",
+    "dist/**/*",
     "supabase/**/*",
     "ui-references/**/*",
     "node_modules"
