@@ -599,6 +599,15 @@ async function runAgente(
   return finalizar('No he podido completar la peticion en el numero de pasos permitido. ¿Puedes reformularla?');
 }
 
+// Sanitiza el texto libre (proveniente del LLM) que se interpola en un filtro
+// PostgREST .or(): elimina los caracteres con significado en la sintaxis del
+// filtro (coma, parentesis, comodin, escape) para cerrar la inyeccion de
+// condiciones. El aislamiento multi-tenant y el consentimiento van en .eq()
+// aparte (no evadibles por aqui); esto es defensa en profundidad.
+function sanitizarFiltro(s: string): string {
+  return String(s ?? '').replace(/[(),%\\]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 // ---------------------------------------------------------------------------
 // Ejecutar tools de LECTURA
 // ---------------------------------------------------------------------------
@@ -635,7 +644,7 @@ async function ejecutarLectura(
         .select('id, nombre, telefono, total_visitas, ultima_visita, primera_visita, ticket_medio, frecuencia_dias')
         .eq('negocio_id', negocioId)
         .eq('consiente_ia', true)
-        .or(`nombre.ilike.%${inp.texto}%,telefono.ilike.%${inp.texto}%`)
+        .or(`nombre.ilike.%${sanitizarFiltro(inp.texto)}%,telefono.ilike.%${sanitizarFiltro(inp.texto)}%`)
         .limit(8);
       return (data ?? []).map((row) => proyectarClienteIA(row as Record<string, unknown>));
     }
@@ -912,7 +921,7 @@ async function construirPropuesta(
           .select('id, nombre')
           .eq('negocio_id', negocioId)
           .eq('consiente_ia', true)
-          .or(`nombre.ilike.%${inp.cliente}%,telefono.ilike.%${inp.cliente}%`)
+          .or(`nombre.ilike.%${sanitizarFiltro(inp.cliente)}%,telefono.ilike.%${sanitizarFiltro(inp.cliente)}%`)
           .limit(5);
 
         if (!clientes || clientes.length === 0)
