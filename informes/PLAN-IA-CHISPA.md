@@ -197,7 +197,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 2 | Seguridad: RBAC + consentimiento + regla de salud | Opus 4.8 | maximo | 1 | **HECHA (5 jul)** |
 | 3 | Capa de accion universal + confirmar citas pendientes + fallas 2-4 | Opus 4.8 | alto | 1,2 | **HECHA (5 jul)** |
 | 4 | Retraso con alternativas + duracion real aprendida + anti-solape | Opus 4.8 | alto | 1,3 | **HECHA (6 jul)** |
-| 5 | Voz: micro (STT + fallback) + TTS ElevenLabs + A/B | Sonnet 5 | alto | 1 | pendiente |
+| 5 | Voz: micro (STT + fallback) + TTS ElevenLabs + A/B | Sonnet 5 | alto | 1 | **HECHA (6 jul)** |
 | 6 | Omnisciencia/analitica (briefing, informes, caja, metas, alertas) | Sonnet 5 | medio-alto | 1,2 | **PARCIAL (5 jul)** — ver registro abajo: solo briefing proactivo, falta la analitica |
 | 7 | Q&A profundo de cliente + riesgo no-show + fuga | Opus 4.8 | medio | 1,2 | pendiente |
 | 8 | Lista de espera: matching + aviso + priorizacion | Opus 4.8 (SQL) / Sonnet 5 (UI) | medio | 1,3 | pendiente |
@@ -303,6 +303,35 @@ Aplicada la **cascada** (prueba separada): tinte 10:15, Barba 11:15-11:30, Corte
 solapes. Ambas coherentes. NOTA: marcar un retraso en la demo SI escribe (no es el path simulado de
 Chispa); si se ensucia, re-sembrar. Aviso WhatsApp real de `aviso_retraso` sigue dependiendo de la
 plantilla Meta (Alexandro).
+
+**Registro Sesion 5 (6 jul, HECHA):** entrada y salida de voz para Chispa, todo en un unico hook
+`lib/hooks/useChispaVoz.web.ts` (maquina de estados `inactivo|escuchando|transcribiendo|hablando`)
+conectado a `ChispaPanel.web.tsx`; el contrato de bloques de las Sesiones 1-4 no cambia. **Entrada:**
+boton de microfono junto al input; usa `SpeechRecognition`/`webkitSpeechRecognition` nativo (es-ES) si
+el navegador lo soporta, y si no (Safari/iPad — cierra la falla de coherencia #6) graba con
+`MediaRecorder` y transcribe server-side con el edge nuevo **`chispa-stt`** (ElevenLabs Scribe). El
+texto reconocido se envia solo (manos libres); PR-12 intacta, nada se ejecuta sin la tarjeta Confirmar.
+**Salida:** toggle "altavoz" en la cabecera; con el activo, cada respuesta (solo los bloques `texto`)
+se reproduce via el edge nuevo **`chispa-tts`** (ElevenLabs TTS, voz `EXAVITQu4vr4xnSDxMaL`, modelo
+`eleven_multilingual_v2`), con cache en memoria por texto exacto y boton de stop. **Degradacion:** si
+`ELEVENLABS_API_KEY` no esta en Supabase secrets el edge responde 501 y el hook apaga el motor IA para
+el resto de la sesion cayendo a `speechSynthesis`; cualquier OTRO fallo (probado en vivo: cuota de
+creditos agotada, 502) degrada solo esa respuesta puntual sin dejar a Chispa muda, reintentando
+ElevenLabs en el siguiente turno. **A/B:** `?vozab=1` en la URL muestra un selector ElevenLabs vs
+navegador (no visible para clientas, solo para decidir internamente el plan de pago). Eleccion de STT
+documentada en el propio archivo del edge: ElevenLabs Scribe en vez de Whisper/OpenRouter para
+reutilizar el MISMO secret que el TTS. Ambos edges exigen usuario autenticado (`verify_jwt` + `getUser`)
+y acotan coste (`chispa-tts` recorta a 700 caracteres, `chispa-stt` limita a 8MB). Accesibilidad: nunca
+escucha sin el gesto del boton; estado siempre visible bajo el input.
+**Verificado en vivo:** el prerrequisito externo YA estaba cumplido (key rotada en Supabase secrets);
+un fetch autenticado a `chispa-tts` devolvio audio/mpeg real (200, 34KB). En `/demo.html?share=1`,
+activar el altavoz + preguntar por los servicios disparo el POST a `chispa-tts` (502 por cuota de
+ElevenLabs agotada en ese momento) y el panel degrado sin error de consola; el microfono uso
+`webkitSpeechRecognition` nativo y volvio a inactivo tras fallar por falta de acceso real al microfono
+del entorno de prueba, sin crashear; el selector A/B aparecio con `?vozab=1`. `npx tsc --noEmit` +
+`npm run build:web` limpios, sin `any`. **Nota de higiene (no corregida aqui, ver MEGA_INFORME):**
+`scripts/elevenlabs-voice.py` y `scripts/generate-mecha-voice.py` tienen una key de ElevenLabs antigua
+hardcodeada en texto plano, versionada en git; pendiente purgarla.
 
 **Registro Sesion 6 (5 jul, PARCIAL — hecho por Alexandro, auditado 5 jul):** entrego SOLO la
 sub-pieza "briefing proactivo / centro de sugerencias" (fila 0 del catalogo), no la sesion completa.

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 // @ts-ignore react-dom no tiene @types instalado en este proyecto; createPortal existe en runtime.
 import { createPortal } from 'react-dom';
+import { useGlobalSearchParams } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { ejecutarAccion, type AccionPropuesta } from '@/lib/agendaOps';
 import { normalizarRespuesta, type Bloque } from '@/lib/chispaBloques';
@@ -8,6 +9,7 @@ import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRen
 import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
 import BriefingAgenda from '@/components/agenda/BriefingAgenda';
 
 // Chispa — panel conversacional de la capa de IA (web). Drawer lateral que se
@@ -15,6 +17,8 @@ import BriefingAgenda from '@/components/agenda/BriefingAgenda';
 // BLOQUES TIPADOS (texto / enlace / accion) mediante BloqueRenderer.
 // PR-12: el LLM propone; el profesional confirma. En la demo compartida los
 // cambios NO se aplican de verdad (guardrail) y hay limite de mensajes.
+// Voz (Sesion 5): microfono (Web Speech + fallback STT server-side) y lectura
+// en voz alta de las respuestas (ElevenLabs con fallback a speechSynthesis).
 
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
 const DEMO_LIMITE_MSGS = 15; // rate-limit por sesion en la demo compartida
@@ -61,6 +65,34 @@ function IconoEnviar({ size = 16, color = '#fff' }: { size?: number; color?: str
   );
 }
 
+function IconoMicro({ size = 16, color = T.textSecondary }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="9" y="2" width="6" height="12" rx="3" stroke={color} strokeWidth="1.8" />
+      <path d="M5 11a7 7 0 0 0 14 0M12 18v4" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconoAltavoz({ size = 15, color = T.textSecondary, activo = false }: { size?: number; color?: string; activo?: boolean }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M4 9v6h4l5 4V5L8 9H4z" stroke={color} strokeWidth="1.8" strokeLinejoin="round" />
+      {activo
+        ? <path d="M17 8a5 5 0 0 1 0 8M19.5 5.5a8.5 8.5 0 0 1 0 13" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        : <path d="M16 9l5 6M21 9l-5 6" stroke={color} strokeWidth="1.8" strokeLinecap="round" />}
+    </svg>
+  );
+}
+
+function IconoStop({ size = 12, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="5" y="5" width="14" height="14" rx="2" fill={color} />
+    </svg>
+  );
+}
+
 const BIENVENIDA: Mensaje = {
   role: 'assistant',
   bloques: [{
@@ -79,6 +111,15 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged }: Chi
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const stylesInjected = useRef(false);
+
+  // Voz (Sesion 5): microfono + lectura en voz alta. Todo vive en el hook;
+  // aqui solo se conecta a los puntos donde se anaden mensajes.
+  const voz = useChispaVoz();
+  // Modo comparacion A/B (solo dev/decision, no para clientas): ?vozab=1 en la
+  // URL muestra el selector de motor de voz para decidir si compensa el plan
+  // de pago de ElevenLabs frente al speechSynthesis gratis del navegador.
+  const { vozab } = useGlobalSearchParams<{ vozab?: string }>();
+  const mostrarSelectorVoz = vozab === '1';
 
   // Rate-limit de la demo: contador por sesion (persistente entre recargas del iframe).
   const demoCount = useRef<number>(0);
@@ -136,10 +177,18 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged }: Chi
 
   function pushAssistantTexto(t: string) {
     setMensajes((m) => [...m, { role: 'assistant', bloques: [{ tipo: 'texto', texto: t }], accionEstado: null }]);
+    if (voz.vozActiva) void voz.hablar(t);
   }
 
-  async function enviarMensaje() {
-    const t = texto.trim();
+  // Concatena los bloques 'texto' de una respuesta (enlaces y tarjetas de
+  // accion no se leen en voz alta: se ven, no se narran).
+  function textoDeBloques(bloques: Bloque[]): string {
+    return bloques.filter((b): b is Extract<Bloque, { tipo: 'texto' }> => b.tipo === 'texto')
+      .map((b) => b.texto).join(' ').trim();
+  }
+
+  async function enviarMensaje(textoOverride?: string) {
+    const t = (textoOverride ?? texto).trim();
     if (!t || bloqueado) return;
 
     // Guardrail demo: limite de mensajes por sesion (protege el coste del LLM en
@@ -177,9 +226,31 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged }: Chi
       const bloques = normalizarRespuesta(data);
       const tieneAccion = bloques.some((b) => b.tipo === 'accion');
       setMensajes((m) => [...m, { role: 'assistant', bloques, accionEstado: tieneAccion ? 'pendiente' : null }]);
+      if (voz.vozActiva) {
+        const paraHablar = textoDeBloques(bloques);
+        if (paraHablar) void voz.hablar(paraHablar);
+      }
     } finally {
       setCargando(false);
     }
+  }
+
+  // Click en el boton de microfono: toggle. Si ya esta escuchando/transcribiendo,
+  // el mismo boton corta. Si esta hablando, primero corta la voz (no tiene
+  // sentido escuchar mientras Chispa habla). El texto reconocido se manda solo
+  // (flujo manos libres); PR-12 sigue protegiendo cualquier escritura real con
+  // la tarjeta de confirmacion, asi que un fallo de transcripcion no ejecuta nada.
+  function manejarClicMicro() {
+    if (voz.estado === 'escuchando' || voz.estado === 'transcribiendo') {
+      voz.detenerEscucha();
+      return;
+    }
+    if (bloqueado) return;
+    if (voz.estado === 'hablando') voz.detenerHabla();
+    void voz.iniciarEscucha((textoReconocido) => {
+      setTexto(textoReconocido);
+      void enviarMensaje(textoReconocido);
+    });
   }
 
   function setAccionEstado(msgIndex: number, estado: AccionEstado) {
@@ -265,11 +336,48 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged }: Chi
                 <div style={{ fontSize: 14, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>Chispa</div>
                 <div style={{ fontSize: 11, color: T.textTertiary, marginTop: 1 }}>IA · asistente del salon</div>
               </div>
+              {voz.estado === 'hablando' && (
+                <button onClick={voz.detenerHabla} aria-label="Detener la voz de Chispa"
+                  style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: FIRE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <IconoStop size={11} color="#fff" />
+                </button>
+              )}
+              <button
+                onClick={() => voz.setVozActiva(!voz.vozActiva)}
+                aria-label={voz.vozActiva ? 'Desactivar que Chispa hable' : 'Activar que Chispa hable'}
+                aria-pressed={voz.vozActiva}
+                title={voz.vozActiva ? 'Chispa lee sus respuestas en voz alta' : 'Chispa solo escribe'}
+                style={{
+                  width: 30, height: 30, borderRadius: 8,
+                  border: `1px solid ${voz.vozActiva ? T.primary : T.border}`,
+                  background: voz.vozActiva ? T.primarySoft : T.bgCard,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                <IconoAltavoz size={15} color={voz.vozActiva ? T.primaryHi : T.textSecondary} activo={voz.vozActiva} />
+              </button>
               <button onClick={() => setAbierto(false)} aria-label="Cerrar Chispa"
                 style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <IconoCerrar size={15} color={T.textSecondary} />
               </button>
             </div>
+
+            {/* Selector de motor de voz (A/B): solo con ?vozab=1 en la URL, para
+                decidir internamente si compensa un plan de pago de ElevenLabs. */}
+            {mostrarSelectorVoz && (
+              <div style={{ display: 'flex', gap: 6, padding: '8px 16px', borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
+                {(['elevenlabs', 'navegador'] as const).map((m) => (
+                  <button key={m} onClick={() => voz.setMotorVoz(m)}
+                    style={{
+                      flex: 1, padding: '6px 0', borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                      border: `1.5px solid ${voz.motorVoz === m ? T.primary : T.border}`,
+                      background: voz.motorVoz === m ? T.primarySoft : 'transparent',
+                      color: voz.motorVoz === m ? T.primaryHi : T.textTertiary,
+                    }}>
+                    {m === 'elevenlabs' ? 'Voz IA (ElevenLabs)' : 'Voz del navegador'}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Lista de mensajes */}
             <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -334,11 +442,39 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged }: Chi
                   aria-label="Mensaje para Chispa"
                   style={{ flex: 1, border: 'none', background: 'transparent', color: T.text, fontSize: 13.5, fontFamily: 'Inter, system-ui, sans-serif', outline: 'none', lineHeight: 1.4, cursor: hayAccionPendiente ? 'not-allowed' : 'text' }}
                 />
-                <button onClick={enviarMensaje} disabled={!texto.trim() || bloqueado} aria-label="Enviar mensaje"
+                <button
+                  onClick={manejarClicMicro}
+                  disabled={bloqueado && voz.estado === 'inactivo'}
+                  aria-label={voz.estado === 'escuchando' ? 'Detener escucha' : voz.estado === 'transcribiendo' ? 'Transcribiendo' : 'Hablar a Chispa'}
+                  aria-pressed={voz.estado === 'escuchando'}
+                  style={{
+                    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                    border: `1.5px solid ${voz.estado === 'escuchando' ? T.danger : T.border}`,
+                    background: voz.estado === 'escuchando' ? T.dangerSoft : T.bgPanel,
+                    cursor: bloqueado && voz.estado === 'inactivo' ? 'default' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    opacity: voz.estado === 'transcribiendo' ? 0.6 : 1,
+                    transition: 'border-color 0.15s ease, background 0.15s ease',
+                  }}>
+                  <IconoMicro size={16} color={voz.estado === 'escuchando' ? T.danger : T.textSecondary} />
+                </button>
+                <button onClick={() => enviarMensaje()} disabled={!texto.trim() || bloqueado} aria-label="Enviar mensaje"
                   style={{ width: 34, height: 34, borderRadius: 10, border: 'none', background: !texto.trim() || bloqueado ? T.bgCardHi : FIRE, cursor: !texto.trim() || bloqueado ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s ease' }}>
                   <IconoEnviar size={16} color={!texto.trim() || bloqueado ? T.textMuted : '#fff'} />
                 </button>
               </div>
+              {/* Estado de voz visible (accesibilidad: nunca escuchar/hablar en
+                  silencio sin que se note) + errores no bloqueantes */}
+              {(voz.estado !== 'inactivo' || voz.errorVoz) && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, paddingLeft: 4 }}>
+                  {voz.estado !== 'inactivo' && (
+                    <span style={{ width: 6, height: 6, borderRadius: 999, background: voz.errorVoz ? T.textMuted : T.primary, animation: voz.errorVoz ? 'none' : 'chispaDot 1s ease-in-out infinite' }} />
+                  )}
+                  <span style={{ fontSize: 11.5, color: voz.errorVoz ? T.warning : T.textTertiary }}>
+                    {voz.errorVoz ?? (voz.estado === 'escuchando' ? 'Escuchando…' : voz.estado === 'transcribiendo' ? 'Transcribiendo…' : voz.estado === 'hablando' ? 'Chispa esta hablando…' : '')}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </>

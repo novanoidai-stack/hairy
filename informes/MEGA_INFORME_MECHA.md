@@ -1355,3 +1355,50 @@ activa-activa es real; activa-sobre-reposo es valido = tiempo muerto productivo)
   `tsc --noEmit` + `build:web` + `deno test` limpios (se anadio `**/*.test.ts` al exclude de tsconfig).
   NOTA: marcar un retraso en la demo SI escribe (no es el path simulado de Chispa). El aviso WhatsApp real
   `aviso_retraso` sigue dependiendo de la plantilla Meta (Alexandro).
+
+## Adenda — Capa IA "Chispa" Sesion 5: Voz (STT + TTS ElevenLabs + A/B) — HECHA (6 jul)
+
+Chispa gana entrada por microfono y salida hablada. Todo vive en `lib/hooks/useChispaVoz.web.ts`
+(un unico hook con maquina de estados `inactivo | escuchando | transcribiendo | hablando`) conectado
+a `components/chispa/ChispaPanel.web.tsx`; ningun cambio en el contrato de bloques de las Sesiones 1-4.
+
+- **Microfono:** boton junto al input. Si el navegador soporta `SpeechRecognition`/
+  `webkitSpeechRecognition` (Chrome/Edge), se usa directamente en `es-ES`. Si no (Safari/iPad —
+  falla de coherencia #6 del plan), graba con `MediaRecorder` y manda el audio al edge
+  **`chispa-stt`**, que lo transcribe con ElevenLabs Speech-to-Text (Scribe). El texto reconocido se
+  manda solo (flujo manos libres); PR-12 sigue intacta: nada se ejecuta sin la tarjeta Confirmar.
+- **Voz de salida:** toggle "altavoz" en la cabecera del panel. Activo, cada respuesta de Chispa (solo
+  los bloques `texto`, no las tarjetas de accion ni los chips de enlace) se reproduce via el edge
+  **`chispa-tts`** (ElevenLabs TTS, voz femenina `EXAVITQu4vr4xnSDxMaL`, modelo
+  `eleven_multilingual_v2`). Cache en memoria por texto exacto (una pestana no paga dos veces el mismo
+  audio). Boton de stop visible mientras habla.
+- **Degradacion sin key / sin cuota / sin red:** si `ELEVENLABS_API_KEY` no esta en Supabase secrets,
+  el edge responde 501 y el hook apaga el motor IA para el resto de la sesion, cayendo a
+  `speechSynthesis` del navegador. Si ElevenLabs falla por CUALQUIER otro motivo (probado en vivo:
+  cuota de creditos agotada, 502 `quota_exceeded`), esa respuesta puntual tambien degrada a
+  `speechSynthesis` sin romper la conversacion ni dejar a Chispa muda; el intento siguiente reintenta
+  ElevenLabs (la cuota es mensual, no es un fallo permanente).
+- **A/B ElevenLabs vs navegador:** con `?vozab=1` en la URL aparece un selector de motor bajo la
+  cabecera (no visible para clientas normales) para que el equipo decida si compensa el plan de pago.
+- **Eleccion de proveedor STT documentada en el propio archivo** (`supabase/functions/chispa-stt/index.ts`):
+  ElevenLabs Scribe en vez de Whisper via OpenRouter, para reutilizar el MISMO secret que el TTS (un
+  unico proveedor que rotar/vigilar) y porque OpenRouter no expone de forma fiable un endpoint de
+  transcripcion equivalente para todos sus modelos.
+- **Accesibilidad:** Chispa nunca escucha sola (el boton de microfono es el unico gatillo); estado
+  visible siempre (texto "Escuchando…"/"Transcribiendo…"/"Chispa esta hablando…" bajo el input, con
+  color de error si algo falla, auto-oculto a los 5s).
+- **Seguridad:** ambas edge functions (`chispa-tts`, `chispa-stt`) exigen usuario autenticado
+  (`verify_jwt: true` + `getUser()`) — evita que se usen como proxy gratuito de ElevenLabs desde
+  fuera de Mecha. `chispa-tts` recorta a 700 caracteres (control de coste); `chispa-stt` limita a 8MB.
+- **Verificado en vivo** (`/demo.html?share=1`): con la key YA rotada y puesta en Supabase secrets
+  (prerrequisito externo cumplido), un fetch autenticado real a `chispa-tts` devolvio audio/mpeg (200,
+  34KB); en la app, activar el altavoz + preguntar "¿que servicios ofreceis?" disparo el POST a
+  `chispa-tts` (502 por cuota de ElevenLabs agotada en ese momento) y el panel degrado sin error de
+  consola; el boton de microfono uso `webkitSpeechRecognition` nativo y volvio a estado inactivo tras
+  fallar por falta de acceso real a microfono en el entorno de prueba, sin crashear. El selector A/B
+  aparece y funciona con `?vozab=1`. `npx tsc --noEmit` y `npm run build:web` limpios (sin `any`).
+- **Nota de higiene detectada (no corregida en esta sesion, fuera de alcance):** `scripts/elevenlabs-voice.py`
+  y `scripts/generate-mecha-voice.py` tienen una API key de ElevenLabs **hardcodeada en texto plano**
+  (la version antigua, antes de rotar). Aunque ya no se usa en produccion, sigue versionada en el
+  historial de git. Pendiente: purgar esos scripts o al menos la key literal, y confirmar que la key
+  activa en Supabase secrets es la ROTADA (no la que aparece en esos archivos).
