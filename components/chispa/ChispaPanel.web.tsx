@@ -65,7 +65,7 @@ const BIENVENIDA: Mensaje = {
   role: 'assistant',
   bloques: [{
     tipo: 'texto',
-    texto: 'Hola, soy Chispa, la IA del salon. Puedo crear, reagendar o cancelar citas, consultarte huecos y citas, y llevarte a la pantalla que necesites. ¿Que hacemos?',
+    texto: 'Hola, soy Chispa, la IA del salon. Puedo gestionar tu agenda (crear, reagendar, cancelar o confirmar citas en bloque), cambiar precios de servicios, preparar presupuestos y ajustes, y llevarte a la pantalla que necesites. Te propongo y tu confirmas. ¿Que hacemos?',
   }],
   accionEstado: null,
 };

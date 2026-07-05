@@ -195,10 +195,10 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 |---|--------|--------|----------|---------|--------|
 | 1 | Nucleo generativo + Chispa unificada + encendido demo + higiene repo | Opus 4.8 | alto | — | **HECHA (5 jul)** |
 | 2 | Seguridad: RBAC + consentimiento + regla de salud | Opus 4.8 | maximo | 1 | **HECHA (5 jul)** |
-| 3 | Capa de accion universal + confirmar citas pendientes + fallas 2-4 | Opus 4.8 | alto | 1,2 | pendiente |
+| 3 | Capa de accion universal + confirmar citas pendientes + fallas 2-4 | Opus 4.8 | alto | 1,2 | **HECHA (5 jul)** |
 | 4 | Retraso con alternativas + duracion real aprendida + anti-solape | Opus 4.8 | alto | 1,3 | pendiente |
 | 5 | Voz: micro (STT + fallback) + TTS ElevenLabs + A/B | Sonnet 5 | alto | 1 | pendiente |
-| 6 | Omnisciencia/analitica (briefing, informes, caja, metas, alertas) | Sonnet 5 | medio-alto | 1,2 | pendiente |
+| 6 | Omnisciencia/analitica (briefing, informes, caja, metas, alertas) | Sonnet 5 | medio-alto | 1,2 | **PARCIAL (5 jul)** — ver registro abajo: solo briefing proactivo, falta la analitica |
 | 7 | Q&A profundo de cliente + riesgo no-show + fuga | Opus 4.8 | medio | 1,2 | pendiente |
 | 8 | Lista de espera: matching + aviso + priorizacion | Opus 4.8 (SQL) / Sonnet 5 (UI) | medio | 1,3 | pendiente |
 | 9 | Superficies por pagina (resenas, bandeja, presupuestos, inventario, equipo, mi jornada, upsell, recompra) | Sonnet 5 | medio | 1,2,3 | pendiente |
@@ -230,6 +230,63 @@ convive ya en el edge (`permisos.ts`/`whitelist.ts`/`resumen_informes`/consiente
 formal y advisors siguen siendo tarea de la Sesion 2 (no marcada HECHA aqui). Re-siembra demo: si se
 ensucia, re-sembrar el tenant `demo_salon_001` (las escrituras de Chispa en demo son simuladas, no
 tocan datos, pero otras interacciones de la demo si).
+
+**Registro Sesion 3 (5 jul, HECHA):** ejecutor GENERAL `lib/chispaOps.ts` (evoluciona
+`lib/agendaOps.ts`, que ahora solo re-exporta) con las acciones nuevas ademas de las existentes:
+`confirmar_citas` (batch pendientes->confirmadas, resetea `confirmacion_enviada` para que el motor
+de avisos mande la confirmacion), `editar_servicio` (precio/nombre/duracion/activo del catalogo),
+`editar_horario` (fija el turno de un profesional un dia, reemplazo por turno unico),
+`crear_presupuesto` (reutiliza el backend de Presupuestos, borrador) y `enviar_mensaje_bandeja`
+(guarda el borrador en el hilo de la Bandeja; el envio real WhatsApp queda **stubbed** para Alexandro:
+NO dispara ningun envio). Todas con validacion server-side de args en el edge (`agenda-asistente`:
+tools declaradas + `construirPropuesta`) y tarjeta accion propone->confirma. RBAC ampliado
+(`permisos.ts`: caps `presupuestos.crear`/`bandeja.escribir` en recepcion+, `servicios.editar`/
+`horarios.editar` en direccion+, `config.cambiar` solo propietario; `confirmar_citas` sigue el scope
+de agenda; `esEscritura()` enruta; 8 tests deno verdes). Tool + accion batch "confirmame las citas de
+manana" con la lista de citas afectadas renderizada en la tarjeta (`BloqueRenderer` pinta el array
+`citas` de la accion `confirmar_citas`).
+**Fallas de coherencia cerradas:** (#2 auditoria) `citas_historial` estaba **rota y vacia** (0 filas):
+sus policies exigian `negocio_id = auth.uid()` con la columna en uuid + FK a `profiles(id)`, pero el
+flujo manual (y la IA) insertan el `negocio_id` de negocio (text) -> el insert fallaba en RLS de forma
+silenciosa y el historial de la ficha salia siempre vacio. Reparado en migracion
+`chispa-acciones-historial-config.sql`: se dropea el FK, la columna pasa a text y las policies se
+rescopan al negocio del usuario via `profiles` (SELECT+INSERT business-scoped, insert bloqueado en demo).
+Ahora el ejecutor deja rastro (motivo "... por Chispa (IA)") en crear/reagendar/cancelar/confirmar, y
+el flujo MANUAL tambien empieza a grabar (bug latente cerrado de paso). Verificado con RLS real: un
+owner inserta y lee su auditoria (antes 0). (#3 aviso al reagendar) el ejecutor de `reagendar_cita`
+resetea `confirmacion_enviada`/`recordatorio_enviado` para que el motor n8n (cron-pull sobre
+`confirmacion_enviada=false`) reenvie la confirmacion con la nueva fecha (igual que
+`modificar_cita_publica` del portal). (#4 cambiar_config atomico) RPC `set_negocio_config_key`
+(security definer, solo owner, no demo) que mezcla una sola clave con `||` en un unico UPDATE bajo lock
+de fila; el ejecutor la llama en vez del read-merge-write que pisaba sesiones concurrentes.
+Verificado en `/demo.html?share=1`: "confirmame las citas pendientes del 26 de mayo" -> tarjeta
+"Confirmar 2 citas del 2026-05-26" con la lista (hora · servicio · cliente) -> Confirmar -> demo
+simulada (guardrail: 0 escrituras reales); "sube el precio del Corte caballero a 15" -> tarjeta
+"precio 18€ -> 15€" -> demo simulada (catalogo intacto). `npm run build:web` + `npx tsc --noEmit` +
+`deno check`/`deno test` (12+2 tests) limpios; advisors sin regresiones nuevas (solo el WARN esperado
+de RPC security-definer ejecutable por authenticated, con guardas internas). Edge desplegado
+(`agenda-asistente`). Mensajeria real WhatsApp de `enviar_mensaje_bandeja` queda abierta para Alexandro.
+
+**Registro Sesion 6 (5 jul, PARCIAL — hecho por Alexandro, auditado 5 jul):** entrego SOLO la
+sub-pieza "briefing proactivo / centro de sugerencias" (fila 0 del catalogo), no la sesion completa.
+Construido: RPC deterministas `agenda_briefing`/`agenda_briefing_operativa` (senales_sin_pagar +
+bandeja_sin_responder, scoped por rol/negocio) + reuso de `clientes_en_riesgo_fuga` + hook
+`useOnboardingStatus` -> `lib/briefing.ts` (fusion+rankeo) -> `components/agenda/BriefingAgenda.web.tsx`
+montado dentro de `ChispaPanel.web.tsx`. Ademas RPC `marcar_cita_no_show` (enabler nuevo: antes
+ninguna accion marcaba una cita como no-show; hoy existe en prod pero **sin ningun boton que la
+llame** — ver Sesion 7). Su propio doc (`docs/superpowers/specs/2026-07-04-copiloto-fase3-briefing-
+proactivo-design.md`) documenta el recorte explicito: `citas_en_riesgo` eliminado (no hay estado
+no_show real, se solapa con senales_sin_pagar), `huecos_rellenables` aplazado a v1.1, "analitica
+conversacional/insights" declarada FUERA de alcance ("fase posterior") — es decir, la parte que en
+este plan es el grueso de la Sesion 6.
+**Gap detectado en la auditoria (no en su spec, en su codigo):** su propio diseno (§7) especifica un
+toggle `briefingProactivoActivo` en Configuracion (default ON, para poder apagarlo) — **no existe en
+ningun archivo del repo**, solo en el markdown. Hoy el briefing esta siempre activo sin forma de
+desactivarlo. Pendiente para quien cierre la Sesion 6.
+**LO QUE FALTA de la Sesion 6** (no reconstruir el briefing, ya esta hecho): tools de lectura agregada
+(`resumen_caja`, `resumen_informes`, `ocupacion`, `metas_progreso`, `citas_hoy`), bloques nuevos del
+protocolo `'grafica'`/`'comparativa'`, informe narrado, metas, prediccion, comparativas, alertas de
+caida de reservas, hueco muerto cronico -> promo, y anadir el toggle que falta.
 
 **Guia de modelo:** Opus 4.8 donde equivocarse es caro (arquitectura, seguridad/RGPD, dominio agenda,
 SQL, dinero, parsing de migracion); Sonnet 5 en integraciones acotadas, lectura/analitica y
@@ -436,30 +493,41 @@ CIERRE: commit + push a master; MEGA_INFORME + marca Sesion 5 HECHA en el plan.
 
 ```
 Trabajas en Mecha (repo Hairy). Lee ENTERO informes/PLAN-IA-CHISPA.md y ejecuta la SESION 6.
-Requiere Sesiones 1 y 2 (bloques + RBAC). Carga hairy-domain-data. SOLO LECTURA: esta sesion no
-anade escrituras nuevas.
+Requiere Sesiones 1 y 2 (bloques + RBAC). Carga hairy-domain-data.
 
-CONSTRUYE:
+YA EXISTE — NO RECONSTRUIR (auditado 5 jul, hecho por Alexandro, PARCIAL): el "briefing proactivo"
+(senales_sin_pagar + bandeja_sin_responder + clientes_a_recuperar + pasos de setup) via RPC
+agenda_briefing/agenda_briefing_operativa + lib/briefing.ts + components/agenda/BriefingAgenda.web.tsx,
+montado dentro de ChispaPanel.web.tsx. Lee su spec completa en docs/superpowers/specs/2026-07-04-
+copiloto-fase3-briefing-proactivo-design.md antes de tocar nada de esto. Su propio diseno declaro
+"analitica conversacional/insights" FUERA de alcance ("fase posterior") — ESO es lo que construyes tu
+ahora. No dupliques el briefing; amplialo solo si hace falta integrarlo con lo nuevo.
+
+GAP a cerrar primero (detectado en auditoria, no estaba en su alcance original): su spec (§7) exige un
+toggle `briefingProactivoActivo` en Configuracion (default ON) para poder apagar el briefing por
+salon — NO existe en ningun archivo, solo en el markdown. Anadelo en app/(tabs)/configuracion.web.tsx
+(mismo patron que asistenteAgendaActivo) y gatea BriefingAgenda con el.
+
+CONSTRUYE (esto SI es nuevo):
 1) Tools de lectura agregada en el edge (todas gateadas por rol via el RBAC de la Sesion 2):
    resumen_caja(rango), resumen_informes(rango), ocupacion(rango), metas_progreso(), citas_hoy().
    Reutiliza las queries/RPCs que ya usan caja.web.tsx e informes.web.tsx (no dupliques logica: si
    hay que extraer, extrae a lib/ compartido).
 2) Bloques nuevos del protocolo: 'grafica' y 'comparativa' (reusa los componentes de graficas de
    informes.web.tsx). "Resumeme el mes" -> texto + grafica + enlace a Informes.
-3) BRIEFING DEL DIA: al abrir Chispa (una vez al dia por usuario), resumen proactivo: citas de hoy,
-   ingresos previstos, huecos, avisos (lista de espera, stock si existe). Respeta rol: el Profesional
-   ve SU dia, no la facturacion global.
-4) Alertas proactivas: caida de reservas de la semana proxima vs media -> aviso con acciones
+3) Alertas proactivas: caida de reservas de la semana proxima vs media -> aviso con acciones
    sugeridas; deteccion de "hueco muerto cronico" (patron semanal vacio) -> sugerir promo (la accion
-   de crear promo puede ser solo un enlace si no existe el mecanismo).
+   de crear promo puede ser solo un enlace si no existe el mecanismo). Si tiene sentido, estas
+   alertas se pueden sumar como senales mas al briefing ya existente (misma forma BriefingSignal de
+   lib/briefing.ts) en vez de crear una superficie paralela.
 NOTA HONESTA: gastos hoy = comisiones + coste inventario; NO presentar P&L completo (el modulo de
 gastos llega en la Sesion 14). Nada de predicciones infladas: si los datos son pocos, dilo.
 
-VERIFICA en demo: "cuanto llevo esta semana" -> cifra correcta contrastada con la pantalla de Caja;
-"resumeme el mes" -> bloques con grafica; briefing aparece al abrir; con rol Profesional no hay datos
-globales.
+VERIFICA en demo: el toggle apaga/enciende el briefing existente; "cuanto llevo esta semana" -> cifra
+correcta contrastada con la pantalla de Caja; "resumeme el mes" -> bloques con grafica; con rol
+Profesional no hay datos globales.
 
-CIERRE: commit + push a master; MEGA_INFORME + marca Sesion 6 HECHA en el plan.
+CIERRE: commit + push a master; MEGA_INFORME + marca Sesion 6 HECHA (reemplazando el PARCIAL) en el plan.
 ```
 
 ## Prompt Sesion 7 — Q&A de cliente + riesgo no-show (Opus 4.8, esfuerzo medio)
@@ -468,17 +536,27 @@ CIERRE: commit + push a master; MEGA_INFORME + marca Sesion 6 HECHA en el plan.
 Trabajas en Mecha (repo Hairy). Lee ENTERO informes/PLAN-IA-CHISPA.md y ejecuta la SESION 7.
 Requiere Sesiones 1 y 2. Carga hairy-domain-data. OJO: aqui se toca la regla dura de salud.
 
+YA EXISTE (5 jul, de la Sesion 6 parcial de Alexandro): RPC `marcar_cita_no_show(p_cita_id)` en prod
+(security definer, revocada a anon/public, exige rol owner/admin/recepcion/direccion, solo citas
+pasadas en estado confirmada/completada). Auditado: **no la llama ninguna UI todavia** — es un
+enabler puro. Tu tarea incluye ANADIR el disparador (boton "no se presento" en la cita pasada, agenda
+o ficha de clienta) que la invoca; sin eso el resto de esta sesion (riesgo de no-show) no tiene datos
+reales que contar (hoy 0 citas se han marcado nunca como no_show).
+
 CONSTRUYE:
-1) Tool ficha_cliente(nombre|telefono|id) en el edge: devuelve SOLO lista blanca de campos (ultimas
+1) Wire-up de marcar_cita_no_show: boton en la cita (una vez pasada su hora, estado confirmada/
+   completada) "no se presento" -> llama la RPC -> refresca. Sin esto, saltate a 2 con un aviso claro
+   de que el score de riesgo estara vacio hasta que se empiece a marcar.
+2) Tool ficha_cliente(nombre|telefono|id) en el edge: devuelve SOLO lista blanca de campos (ultimas
    citas, servicios, gasto acumulado, frecuencia, etiquetas no sensibles). Si la clienta tiene notas
    de salud, la tool devuelve un booleano tiene_notas_salud=true SIN contenido; Chispa responde "hay
    notas en su ficha, miralas alli" con bloque 'enlace' a la ficha. consiente_ia=false -> la tool
    responde como si no existiera.
-2) Riesgo de no-show: score derivado del historial (no-shows previos, cancelaciones tardias,
-   antiguedad). Indicador discreto en ficha y en la cita (sin estigmatizar: tono neutro, solo visible
-   para staff). Chispa lo usa para el aviso de "no-show inminente" (cita de riesgo sin confirmar
-   manana -> sugerir recordatorio).
-3) Alerta de fuga + recuperacion: la UI de fuga ya existe (cd7d810cc); conectala a Chispa: bloque
+3) Riesgo de no-show: score derivado del historial (no-shows marcados con la RPC de arriba,
+   cancelaciones tardias, antiguedad). Indicador discreto en ficha y en la cita (sin estigmatizar:
+   tono neutro, solo visible para staff). Chispa lo usa para el aviso de "no-show inminente" (cita de
+   riesgo sin confirmar manana -> sugerir recordatorio).
+4) Alerta de fuga + recuperacion: la UI de fuga ya existe (cd7d810cc); conectala a Chispa: bloque
    accion "enviar propuesta de vuelta" (el envio real = Alexandro, deja el registro/borrador).
 
 VERIFICA en demo: "cuentame de [clienta demo]" -> historial/gasto SIN ningun dato de salud (revisa el

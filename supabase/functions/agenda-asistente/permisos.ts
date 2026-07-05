@@ -31,11 +31,17 @@ export type Capability =
   | 'agenda.ver_todas'
   | 'clientes.ver'
   | 'informes.ver'
+  | 'presupuestos.crear' // crear_presupuesto
+  | 'bandeja.escribir' // enviar_mensaje_bandeja (registro; envio real = Alexandro)
+  | 'servicios.editar' // editar_servicio (catalogo)
+  | 'horarios.editar' // editar_horario (turnos de equipo)
   | 'config.cambiar'; // cambiar_config: solo propietario (como en el edge actual)
 
 const PROFESIONAL: Capability[] = ['agenda.ver_propia', 'clientes.ver'];
-const RECEPCION: Capability[] = [...PROFESIONAL, 'agenda.ver_todas'];
-const DIRECCION: Capability[] = [...RECEPCION, 'informes.ver'];
+// Recepcion opera la agenda de todos y la comunicacion (presupuestos/bandeja).
+const RECEPCION: Capability[] = [...PROFESIONAL, 'agenda.ver_todas', 'presupuestos.crear', 'bandeja.escribir'];
+// Direccion suma la vision de negocio y la gestion del catalogo/turnos.
+const DIRECCION: Capability[] = [...RECEPCION, 'informes.ver', 'servicios.editar', 'horarios.editar'];
 const PROPIETARIO: Capability[] = [...DIRECCION, 'config.cambiar'];
 
 const ROLE_CAPS: Record<Role, ReadonlySet<Capability>> = {
@@ -49,6 +55,12 @@ export function can(role: Role, cap: Capability): boolean {
   return ROLE_CAPS[role].has(cap);
 }
 
+// ¿Esta tool es una ESCRITURA (agenda, gestion o config)? El edge la usa para
+// enrutar la construccion de propuestas (propone->confirma) en vez de ejecutar.
+export function esEscritura(name: string): boolean {
+  return name === 'cambiar_config' || name in ESCRITURA_GESTION || ESCRITURA_AGENDA.has(name);
+}
+
 // Alcance de escritura del asistente (identico a asistenteWriteScope de la lib).
 export type WriteScope = 'all' | 'self' | 'none';
 
@@ -59,7 +71,18 @@ const ESCRITURA_AGENDA = new Set([
   'cancelar_cita',
   'bloquear_hueco',
   'liberar_hueco',
+  // Batch de confirmacion: opera sobre citas -> mismo gating de agenda (scope).
+  'confirmar_citas',
 ]);
+
+// Tools de escritura de GESTION (Sesion 3): cada una requiere su capacidad
+// concreta (independiente del scope de agenda).
+const ESCRITURA_GESTION: Record<string, Capability> = {
+  editar_servicio: 'servicios.editar',
+  editar_horario: 'horarios.editar',
+  crear_presupuesto: 'presupuestos.crear',
+  enviar_mensaje_bandeja: 'bandeja.escribir',
+};
 
 // Capacidad requerida por cada tool de LECTURA/NAVEGACION. null = cualquier rol.
 const LECTURA_CAP: Record<string, Capability | null> = {
@@ -75,6 +98,7 @@ const LECTURA_CAP: Record<string, Capability | null> = {
 // Fail-closed: una tool desconocida NUNCA se declara.
 export function toolPermitida(name: string, role: Role, scope: WriteScope): boolean {
   if (name === 'cambiar_config') return can(role, 'config.cambiar');
+  if (name in ESCRITURA_GESTION) return can(role, ESCRITURA_GESTION[name]);
   if (ESCRITURA_AGENDA.has(name)) {
     if (scope === 'none') return false;
     // El scope 'self'/'all' ya exige agenda operable; ademas la RLS del usuario

@@ -42,6 +42,13 @@ function tieneSolapa(accion: unknown): boolean {
   return !!accion && typeof accion === 'object' && 'solapa' in accion && (accion as { solapa?: boolean }).solapa === true;
 }
 
+// Lista de citas afectadas por una accion batch (confirmar_citas). Vacia si no aplica.
+function citasAfectadas(accion: unknown): { id: string; label: string }[] {
+  if (!accion || typeof accion !== 'object' || !('citas' in accion)) return [];
+  const c = (accion as { citas?: unknown }).citas;
+  return Array.isArray(c) ? (c as { id: string; label: string }[]) : [];
+}
+
 export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar, onCancelar }: BloqueRendererProps) {
   const router = useRouter();
 
@@ -89,11 +96,23 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
     const accion = bloque.accion;
     const resuelta = accionEstado === 'aplicada' || accionEstado === 'cancelada';
     const aplicando = accionEstado === 'aplicando';
+    const citas = citasAfectadas(accion);
     return (
       <div style={{ background: T.bgCard, border: `1.5px solid ${T.borderHi}`, borderRadius: 14, padding: '12px 14px' }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: T.text, lineHeight: 1.45, marginBottom: 6 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: T.text, lineHeight: 1.45, marginBottom: citas.length > 0 ? 8 : 6 }}>
           {accion.resumen}
         </div>
+        {/* Batch (confirmar_citas): lista de citas afectadas */}
+        {citas.length > 0 && !resuelta && (
+          <ul style={{ listStyle: 'none', margin: '0 0 10px', padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {citas.map((c) => (
+              <li key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: T.textSecondary, lineHeight: 1.4 }}>
+                <span style={{ width: 5, height: 5, borderRadius: 999, background: T.primary, flexShrink: 0 }} />
+                <span>{c.label}</span>
+              </li>
+            ))}
+          </ul>
+        )}
         {tieneSolapa(accion) && !resuelta && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', background: T.warningSoft, borderRadius: 8, marginBottom: 10 }}>
             <IconoAdvertencia size={14} color={T.warning} />

@@ -1276,3 +1276,45 @@ sobre la Sesion 1 (bloques + Chispa global, en curso en paralelo) pero es indepe
   centinela plantada (cero fugas) + comportamiento en vivo (Chispa redirige a la ficha, no revela
   alergias). Edge redesplegado (CLI, byte-perfect). Advisors de seguridad: sin hallazgos nuevos.
   `tsc --noEmit` y `build:web` en verde.
+
+## Adenda — Capa IA "Chispa" Sesion 3: Capa de accion universal + fallas de coherencia — HECHA (5 jul)
+
+Chispa pasa de proponer solo operaciones de agenda a un **ejecutor GENERAL** de acciones sobre el
+negocio (PR-12: propone->confirma; el LLM nunca ejecuta; RLS + `can()` + multi-tenant en toda escritura).
+
+- **Ejecutor general `lib/chispaOps.ts`** (evoluciona `lib/agendaOps.ts`, que ahora solo re-exporta).
+  Acciones nuevas ademas de las de agenda: `confirmar_citas` (batch de pendientes->confirmadas),
+  `editar_servicio` (precio/nombre/duracion/activo del catalogo), `editar_horario` (turno de un
+  profesional un dia, reemplazo por turno unico), `crear_presupuesto` (reutiliza el backend de
+  Presupuestos, deja borrador) y `enviar_mensaje_bandeja` (**stub**: guarda el borrador en el hilo de
+  la Bandeja; el envio real por WhatsApp queda para Alexandro, NO se dispara ningun envio).
+- **Tool + accion batch "confirmame las citas de manana":** el edge resuelve la fecha, lista las
+  pendientes de ese dia (scoped por rol) y devuelve una tarjeta con la **lista de citas afectadas**
+  (hora · servicio · cliente, respetando consentimiento). Al confirmar, pasan a `confirmada` y se
+  resetea `confirmacion_enviada` para que el motor de avisos mande la confirmacion.
+- **RBAC ampliado (`permisos.ts`):** caps nuevas `presupuestos.crear`/`bandeja.escribir` (recepcion+),
+  `servicios.editar`/`horarios.editar` (direccion+), `config.cambiar` (solo propietario);
+  `confirmar_citas` sigue el scope de agenda; `esEscritura()` enruta la construccion de propuestas.
+  8 tests deno verdes (se anadieron los de gestion).
+- **Falla #2 (auditoria en `citas_historial`):** la tabla estaba **rota y vacia** — sus policies exigian
+  `negocio_id = auth.uid()` (columna uuid + FK a `profiles(id)`), pero el flujo manual y la IA insertan
+  el `negocio_id` de negocio (text); el insert fallaba en RLS en silencio y el historial de la ficha
+  salia siempre vacio (bug latente). Migracion `chispa-acciones-historial-config.sql`: se dropea el FK,
+  la columna pasa a **text** y las policies se rescopan al negocio del usuario via `profiles`
+  (SELECT+INSERT business-scoped, insert bloqueado en demo). Ahora el ejecutor deja rastro
+  (`motivo` "... por Chispa (IA)") en crear/reagendar/cancelar/confirmar y el flujo **manual** tambien
+  empieza a grabar. Verificado con RLS real: un owner inserta y lee su auditoria (antes 0 filas).
+- **Falla #3 (aviso al reagendar via IA):** el ejecutor de `reagendar_cita` resetea
+  `confirmacion_enviada`/`recordatorio_enviado`, de modo que el motor n8n (cron-pull sobre
+  `confirmacion_enviada=false and inicio>now()`) reenvia la confirmacion con la nueva fecha (misma
+  disciplina que `modificar_cita_publica` del portal).
+- **Falla #4 (cambiar_config atomico):** RPC `set_negocio_config_key` (security definer, solo owner, no
+  demo) que mezcla una sola clave con `||` en un unico UPDATE bajo lock de fila. El ejecutor la llama en
+  vez del read-merge-write que pisaba cambios de sesiones concurrentes.
+- **Verificado en `/demo.html?share=1`:** "confirmame las citas pendientes del 26 de mayo" -> tarjeta
+  "Confirmar 2 citas del 2026-05-26" con la lista -> Confirmar -> demo simulada (guardrail: 0 escrituras
+  reales, comprobado en BD); "sube el precio del Corte caballero a 15" -> tarjeta "precio 18€ -> 15€"
+  -> demo simulada (catalogo intacto). Sin errores de consola. `build:web` + `tsc --noEmit` +
+  `deno check`/`deno test` limpios; advisors sin regresiones (solo el WARN esperado de RPC
+  security-definer ejecutable por authenticated, con guardas internas). Edge desplegado
+  (`agenda-asistente`, CLI). El envio real WhatsApp de `enviar_mensaje_bandeja` queda abierto para Alexandro.

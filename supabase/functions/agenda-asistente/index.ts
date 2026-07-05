@@ -6,7 +6,7 @@
 import OpenAI from 'npm:openai@4';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 // Seguridad de la capa IA (Sesion 2): RBAC de tools + regla dura de salud.
-import { can, roleOf, toolPermitida } from './permisos.ts';
+import { can, roleOf, toolPermitida, esEscritura } from './permisos.ts';
 import { assertSinCamposProhibidos, proyectarClienteIA } from './whitelist.ts';
 
 // ---------------------------------------------------------------------------
@@ -66,6 +66,30 @@ type AccionPropuesta =
       negocio_id: string; clave: string; label: string;
       valor: boolean | number | string; valor_actual: boolean | number | string | null;
       resumen: string;
+    }
+  // --- Acciones de gestion (Sesion 3) ---
+  | { tipo: 'confirmar_citas'; negocio_id: string; citas: { id: string; label: string }[]; resumen: string }
+  | {
+      tipo: 'editar_servicio';
+      negocio_id: string; servicio_id: string; servicio_nombre: string;
+      cambios: { precio?: number; nombre?: string; duracion_activa_min?: number; activo?: boolean };
+      resumen: string;
+    }
+  | {
+      tipo: 'editar_horario';
+      negocio_id: string; profesional_id: string; profesional_nombre: string;
+      dia_semana: number; hora_inicio: string; hora_fin: string; resumen: string;
+    }
+  | {
+      tipo: 'crear_presupuesto';
+      negocio_id: string; cliente_id: string | null; cliente_nombre: string | null;
+      titulo: string | null; lineas: { nombre: string; precio_cents: number; cantidad: number }[];
+      total_cents: number; resumen: string;
+    }
+  | {
+      tipo: 'enviar_mensaje_bandeja';
+      negocio_id: string; conversacion_id: string; contacto_nombre: string | null;
+      cuerpo: string; resumen: string;
     };
 
 // ---------------------------------------------------------------------------
@@ -227,6 +251,85 @@ const TOOLS = [
       required: ['clave', 'valor'],
     },
   },
+  // --- GESTION (Sesion 3): la funcion NO ejecuta; devuelve accion_propuesta ---
+  {
+    name: 'confirmar_citas',
+    description: 'Propone confirmar EN BLOQUE las citas pendientes de un dia (p.ej. "confirmame las citas de manana"). Pasa la fecha ya resuelta a YYYY-MM-DD.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        fecha: { type: 'string', description: 'Dia a confirmar en YYYY-MM-DD (resuelve "manana", "el lunes"...)' },
+        profesional: { type: 'string', description: 'Opcional: limitar a un profesional (nombre parcial)' },
+      },
+      required: ['fecha'],
+    },
+  },
+  {
+    name: 'editar_servicio',
+    description: 'Propone cambiar datos de un servicio del catalogo: precio (en euros), nombre, duracion activa (min) o activarlo/desactivarlo. Indica solo lo que cambia.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        servicio: { type: 'string', description: 'Nombre del servicio a editar' },
+        precio: { type: 'string', description: 'Nuevo precio en euros (ej. "15" o "15.50")' },
+        nombre: { type: 'string', description: 'Nuevo nombre del servicio' },
+        duracion_activa_min: { type: 'string', description: 'Nueva duracion activa en minutos' },
+        activo: { type: 'string', description: 'activar o desactivar' },
+      },
+      required: ['servicio'],
+    },
+  },
+  {
+    name: 'editar_horario',
+    description: 'Propone fijar el turno de un profesional en un dia de la semana (reemplaza lo que hubiera ese dia por un unico turno inicio-fin). Para turnos partidos, avisa de que se hara en la pantalla Equipo.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        profesional: { type: 'string', description: 'Nombre del profesional' },
+        dia: { type: 'string', description: 'Dia de la semana: lunes..domingo' },
+        hora_inicio: { type: 'string', description: 'Hora de entrada HH:MM' },
+        hora_fin: { type: 'string', description: 'Hora de salida HH:MM' },
+      },
+      required: ['profesional', 'dia', 'hora_inicio', 'hora_fin'],
+    },
+  },
+  {
+    name: 'crear_presupuesto',
+    description: 'Propone crear un presupuesto (borrador) a partir de una descripcion. Usa los precios REALES del catalogo (info_catalogo); no inventes precios. Si un concepto no esta en el catalogo, pide el precio.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        cliente: { type: 'string', description: 'Nombre o telefono del cliente (opcional)' },
+        titulo: { type: 'string', description: 'Titulo del presupuesto (opcional)' },
+        lineas: {
+          type: 'array',
+          description: 'Lineas del presupuesto',
+          items: {
+            type: 'object',
+            properties: {
+              concepto: { type: 'string', description: 'Nombre del concepto/servicio' },
+              precio: { type: 'string', description: 'Precio unitario en euros (si no se da, se toma del catalogo por nombre)' },
+              cantidad: { type: 'string', description: 'Cantidad (default 1)' },
+            },
+            required: ['concepto'],
+          },
+        },
+      },
+      required: ['lineas'],
+    },
+  },
+  {
+    name: 'enviar_mensaje_bandeja',
+    description: 'Propone GUARDAR un mensaje del salon en el hilo de la Bandeja de un cliente (registro). OJO: no envia el WhatsApp real (eso lo gestiona el equipo); solo deja el borrador registrado. Requiere que ya exista un hilo con ese cliente en la Bandeja.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        cliente: { type: 'string', description: 'Nombre o telefono del cliente' },
+        cuerpo: { type: 'string', description: 'Texto del mensaje' },
+      },
+      required: ['cliente', 'cuerpo'],
+    },
+  },
   // --- NAVEGACION (no escribe nada; anade un chip que lleva a otra pantalla) ---
   {
     name: 'sugerir_enlace',
@@ -245,7 +348,8 @@ const TOOLS = [
   },
 ];
 
-const ESCRITURA = new Set(['crear_cita', 'reagendar_cita', 'cancelar_cita', 'bloquear_hueco', 'liberar_hueco']);
+// La deteccion de tools de escritura vive en permisos.ts (esEscritura): cubre
+// agenda + gestion (Sesion 3) + config. Aqui no se duplica el set.
 
 // ---------------------------------------------------------------------------
 // System prompt
@@ -352,6 +456,34 @@ function coerceConfigValor(meta: ConfigMeta, valorRaw: string): { ok: true; valo
   return { ok: true, valor: `${m[1].padStart(2, '0')}:${m[2]}` };
 }
 
+// Convierte un dia de la semana en lenguaje natural a numero (0=domingo..6=sabado,
+// convencion Postgres extract(dow)). Devuelve null si no lo reconoce.
+function parseDiaSemana(raw: string): number | null {
+  const v = String(raw ?? '').trim().toLowerCase();
+  if (/^[0-6]$/.test(v)) return Number(v);
+  const map: Record<string, number> = {
+    domingo: 0, dom: 0,
+    lunes: 1, lun: 1,
+    martes: 2, mar: 2,
+    miercoles: 3, 'miércoles': 3, mie: 3, 'mié': 3,
+    jueves: 4, jue: 4,
+    viernes: 5, vie: 5,
+    sabado: 6, 'sábado': 6, sab: 6, 'sáb': 6,
+  };
+  return v in map ? map[v] : null;
+}
+
+// Normaliza "9", "9:00", "09:5" a HH:MM valido, o null.
+function normalizaHora(raw: string): string | null {
+  const v = String(raw ?? '').trim();
+  const m = v.match(/^(\d{1,2})(?::(\d{1,2}))?$/);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = m[2] != null ? Number(m[2]) : 0;
+  if (h < 0 || h > 23 || min < 0 || min > 59) return null;
+  return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+}
+
 function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puedeInformes: boolean): string {
   const scopeMsg =
     scope === 'none'
@@ -367,7 +499,9 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     'GUIA DE CONFIGURACION: si el usuario pregunta como o donde configurar/personalizar algo, o que se puede ajustar de una funcion, responde con el MAPA DE CONFIGURACION del final: da la RUTA exacta (Configuracion > Pestana > Seccion) y enumera que se puede ajustar ahi. Cinete ESTRICTAMENTE al mapa: no inventes ajustes, opciones, valores de ejemplo ni rutas que no esten escritos en el (por ejemplo, no anadas "cada 15/30 min" ni "SMS/email" si el mapa no lo dice). Si te preguntan por algo que no esta en el mapa, dilo con franqueza en vez de suponer.',
     'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar un ajuste (por ejemplo "activa los recordatorios" o "pon la antelacion minima en 4h"), usa la tool cambiar_config con la CLAVE exacta de la lista AJUSTES EDITABLES del final. Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad).',
-    'Para proponer operaciones usa las tools de escritura (crear_cita, reagendar_cita, cancelar_cita, bloquear_hueco, liberar_hueco).',
+    'Para proponer operaciones de agenda usa las tools de escritura (crear_cita, reagendar_cita, cancelar_cita, bloquear_hueco, liberar_hueco).',
+    'Tambien puedes proponer acciones de GESTION cuando tengas la tool disponible: confirmar_citas (confirmar en bloque las citas pendientes de un dia, p.ej. "confirmame las citas de manana"), editar_servicio (cambiar precio/nombre/duracion/activar de un servicio del catalogo), editar_horario (fijar el turno de un profesional un dia), crear_presupuesto (borrador con precios REALES del catalogo, nunca inventes precios) y enviar_mensaje_bandeja (guardar un borrador en el hilo de la Bandeja del cliente; NO envia el WhatsApp real, eso lo hace el equipo). Si una tool no esta disponible para el rol de este usuario, no la menciones como algo que puedas hacer: guia a la pantalla correspondiente.',
+    'Todas estas acciones son PROPUESTAS: se muestran en una tarjeta y el usuario confirma; tu nunca las aplicas.',
     puedeInformes
       ? 'Para datos agregados de informes o facturacion (numero de citas por estado, ingresos cobrados en un rango) usa la tool resumen_informes.'
       : 'NO tienes acceso a informes ni a la facturacion agregada del salon con el rol de este usuario. Si te preguntan por ingresos totales, facturacion, cuanto se ha ganado, estadisticas o informes del negocio, explica con naturalidad que no tienes acceso a esos datos con su rol y que lo consulten con direccion o el propietario. NUNCA inventes cifras.',
@@ -539,25 +673,26 @@ async function runAgente(
       return finalizar(msg.content ?? '');
     }
 
-    // ¿Hay alguna tool de escritura (agenda o config)?
-    const writeCall = toolCalls.find((tc) => ESCRITURA.has(tc.function.name) || tc.function.name === 'cambiar_config');
+    // ¿Hay alguna tool de escritura (agenda, gestion o config)?
+    const writeCall = toolCalls.find((tc) => esEscritura(tc.function.name));
     if (writeCall) {
-      const esConfig = writeCall.function.name === 'cambiar_config';
+      const name = writeCall.function.name;
 
-      // Permisos: config solo propietario; agenda gateada por scope.
-      if (esConfig && role !== 'owner') {
+      // Defensa en profundidad: aunque las tools ya se filtran por rol al
+      // declararlas, revalidamos que esta escritura esta permitida (rol+scope).
+      if (!toolPermitida(name, rolCanon, scope)) {
         await registrarConv(negocioId, userId, messages);
-        return finalizar('Solo el propietario puede cambiar la configuracion del salon. Puedo indicarte donde esta el ajuste para que lo cambies tu.');
-      }
-      if (!esConfig && scope === 'none') {
-        await registrarConv(negocioId, userId, messages);
-        return finalizar('No tienes permiso para modificar la agenda; solo puedo consultarla por ti.');
+        return finalizar(
+          name === 'cambiar_config'
+            ? 'Solo el propietario puede cambiar la configuracion del salon. Puedo indicarte donde esta el ajuste para que lo cambies tu.'
+            : 'No tienes permiso para esa accion con tu rol. Puedo darte la informacion, pero no aplicarla.',
+        );
       }
 
-      const propuesta = esConfig
+      const propuesta = name === 'cambiar_config'
         ? await construirPropuestaConfig(parseArgs(writeCall), negocioId)
         : await construirPropuesta(
-            { name: writeCall.function.name, input: parseArgs(writeCall) },
+            { name, input: parseArgs(writeCall) },
             negocioId,
             scope as 'all' | 'self',
             userId,
@@ -573,7 +708,7 @@ async function runAgente(
         let content: string;
         if (tc.id === writeCall.id) {
           content = propuesta.error;
-        } else if (ESCRITURA.has(tc.function.name) || tc.function.name === 'cambiar_config') {
+        } else if (esEscritura(tc.function.name)) {
           content = 'Procesa una sola operacion a la vez.';
         } else if (tc.function.name === 'sugerir_enlace') {
           content = procesarEnlace(parseArgs(tc));
@@ -1144,6 +1279,215 @@ async function construirPropuesta(
         tipo: 'liberar_hueco',
         bloqueo_id: inp.bloqueo_id,
         resumen: `Liberar bloqueo ${inp.bloqueo_id}`,
+      };
+    }
+
+    // --- GESTION (Sesion 3) ---
+    case 'confirmar_citas': {
+      const fecha = (inp.fecha ?? '').trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return { error: 'Necesito la fecha del dia a confirmar (YYYY-MM-DD).' };
+
+      let profId: string | null = null;
+      if (scope === 'self') {
+        profId = await resolverProfesionalDelUsuario(negocioId, userId);
+      } else if (inp.profesional) {
+        const { data: profes } = await svc
+          .from('profesionales').select('id, nombre')
+          .eq('negocio_id', negocioId).ilike('nombre', `%${inp.profesional}%`);
+        if (!profes || profes.length === 0) return { error: `Profesional "${inp.profesional}" no encontrado.` };
+        if (profes.length > 1) return { error: `Varios profesionales coinciden: ${profes.map((p: { nombre: string }) => p.nombre).join(', ')}. ¿Cual?` };
+        profId = profes[0].id;
+      }
+
+      let q = svc
+        .from('citas').select('id, inicio, servicio_id, cliente_id')
+        .eq('negocio_id', negocioId).eq('estado', 'pendiente')
+        .gte('inicio', `${fecha}T00:00:00`).lte('inicio', `${fecha}T23:59:59`)
+        .order('inicio');
+      if (profId) q = q.eq('profesional_id', profId);
+      const { data: citas } = await q;
+      if (!citas || citas.length === 0) return { error: `No hay citas pendientes por confirmar el ${fecha}.` };
+
+      const servIds = [...new Set(citas.map((c: { servicio_id: string | null }) => c.servicio_id).filter(Boolean))] as string[];
+      const cliIds = [...new Set(citas.map((c: { cliente_id: string | null }) => c.cliente_id).filter(Boolean))] as string[];
+      const [servRes, cliRes] = await Promise.all([
+        servIds.length ? svc.from('servicios').select('id, nombre').in('id', servIds) : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
+        // Nombres solo de clientes que consienten IA (regla de consentimiento).
+        cliIds.length ? svc.from('clientes').select('id, nombre').eq('negocio_id', negocioId).eq('consiente_ia', true).in('id', cliIds) : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
+      ]);
+      const servMap = new Map((servRes.data ?? []).map((s: { id: string; nombre: string }) => [s.id, s.nombre]));
+      const cliMap = new Map((cliRes.data ?? []).map((c: { id: string; nombre: string }) => [c.id, c.nombre]));
+
+      const lista = citas.map((c: { id: string; inicio: string; servicio_id: string | null; cliente_id: string | null }) => {
+        const hora = new Date(c.inicio).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+        const serv = (c.servicio_id && servMap.get(c.servicio_id)) || 'Servicio';
+        const cli = c.cliente_id ? cliMap.get(c.cliente_id) : null;
+        return { id: c.id, label: `${hora} · ${serv}${cli ? ` · ${cli}` : ''}` };
+      });
+
+      return {
+        tipo: 'confirmar_citas',
+        negocio_id: negocioId,
+        citas: lista,
+        resumen: `Confirmar ${lista.length} cita${lista.length === 1 ? '' : 's'} del ${fecha}`,
+      };
+    }
+
+    case 'editar_servicio': {
+      const { data: servicios } = await svc
+        .from('servicios').select('id, nombre, precio, duracion_activa_min, activo')
+        .eq('negocio_id', negocioId).ilike('nombre', `%${inp.servicio}%`);
+      if (!servicios || servicios.length === 0) return { error: `Servicio "${inp.servicio}" no encontrado.` };
+      if (servicios.length > 1) return { error: `Varios servicios coinciden con "${inp.servicio}": ${servicios.map((s: { nombre: string }) => s.nombre).join(', ')}. ¿Cual?` };
+      const s = servicios[0];
+
+      const cambios: { precio?: number; nombre?: string; duracion_activa_min?: number; activo?: boolean } = {};
+      const partes: string[] = [];
+      if (inp.precio != null && String(inp.precio).trim() !== '') {
+        const n = Number(String(inp.precio).replace(',', '.').replace(/[^0-9.]/g, ''));
+        if (isNaN(n) || n < 0) return { error: `Precio no valido: "${inp.precio}".` };
+        cambios.precio = n; partes.push(`precio ${s.precio ?? '-'}€ -> ${n}€`);
+      }
+      if (inp.nombre != null && String(inp.nombre).trim() !== '') {
+        cambios.nombre = String(inp.nombre).trim(); partes.push(`nombre "${s.nombre}" -> "${cambios.nombre}"`);
+      }
+      if (inp.duracion_activa_min != null && String(inp.duracion_activa_min).trim() !== '') {
+        const d = parseInt(String(inp.duracion_activa_min).replace(/[^0-9]/g, ''), 10);
+        if (isNaN(d) || d <= 0) return { error: `Duracion no valida: "${inp.duracion_activa_min}".` };
+        cambios.duracion_activa_min = d; partes.push(`duracion ${s.duracion_activa_min ?? '-'}min -> ${d}min`);
+      }
+      if (inp.activo != null && String(inp.activo).trim() !== '') {
+        const v = String(inp.activo).trim().toLowerCase();
+        const activar = ['activar', 'activado', 'activa', 'si', 'sí', 'true', 'on', '1'].includes(v);
+        const desactivar = ['desactivar', 'desactivado', 'desactiva', 'no', 'false', 'off', '0'].includes(v);
+        if (!activar && !desactivar) return { error: 'Para "activo" indica activar o desactivar.' };
+        cambios.activo = activar; partes.push(activar ? 'activar' : 'desactivar');
+      }
+      if (Object.keys(cambios).length === 0) return { error: 'Dime que cambiar del servicio (precio, nombre, duracion o activar/desactivar).' };
+
+      return {
+        tipo: 'editar_servicio',
+        negocio_id: negocioId,
+        servicio_id: s.id,
+        servicio_nombre: s.nombre,
+        cambios,
+        resumen: `${s.nombre}: ${partes.join(', ')}`,
+      };
+    }
+
+    case 'editar_horario': {
+      const { data: profes } = await svc
+        .from('profesionales').select('id, nombre')
+        .eq('negocio_id', negocioId).eq('activo', true).ilike('nombre', `%${inp.profesional}%`);
+      if (!profes || profes.length === 0) return { error: `Profesional "${inp.profesional}" no encontrado.` };
+      if (profes.length > 1) return { error: `Varios profesionales coinciden: ${profes.map((p: { nombre: string }) => p.nombre).join(', ')}. ¿Cual?` };
+      const prof = profes[0];
+
+      const dia = parseDiaSemana(inp.dia);
+      if (dia == null) return { error: `No reconozco el dia "${inp.dia}". Usa lunes..domingo.` };
+      const hi = normalizaHora(inp.hora_inicio);
+      const hf = normalizaHora(inp.hora_fin);
+      if (!hi || !hf) return { error: 'Indica horas validas en formato HH:MM.' };
+      if (hi >= hf) return { error: 'La hora de entrada debe ser anterior a la de salida.' };
+
+      const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+      return {
+        tipo: 'editar_horario',
+        negocio_id: negocioId,
+        profesional_id: prof.id,
+        profesional_nombre: prof.nombre,
+        dia_semana: dia,
+        hora_inicio: hi,
+        hora_fin: hf,
+        resumen: `${prof.nombre}, ${dias[dia]}: ${hi}-${hf} (reemplaza el turno de ese dia)`,
+      };
+    }
+
+    case 'crear_presupuesto': {
+      const anyInp = inp as unknown as { lineas?: unknown; cliente?: string; titulo?: string };
+      const lineasRaw = Array.isArray(anyInp.lineas) ? anyInp.lineas as Record<string, unknown>[] : [];
+      if (lineasRaw.length === 0) return { error: 'Dime las lineas del presupuesto (concepto y, si no esta en el catalogo, precio).' };
+
+      // Catalogo para resolver precios por nombre (no inventar precios).
+      const { data: servs } = await svc.from('servicios').select('nombre, precio').eq('negocio_id', negocioId);
+      const catalogo = new Map((servs ?? []).map((s: { nombre: string; precio: number | null }) => [String(s.nombre).toLowerCase(), Number(s.precio) || 0]));
+
+      const lineas: { nombre: string; precio_cents: number; cantidad: number }[] = [];
+      for (const l of lineasRaw) {
+        const nombre = String((l.concepto ?? l.nombre ?? '')).trim();
+        if (!nombre) continue;
+        let euros: number | null = null;
+        if (l.precio != null && String(l.precio).trim() !== '') {
+          const n = Number(String(l.precio).replace(',', '.').replace(/[^0-9.]/g, ''));
+          if (!isNaN(n)) euros = n;
+        }
+        if (euros == null) {
+          const cat = catalogo.get(nombre.toLowerCase());
+          if (cat != null) euros = cat;
+        }
+        if (euros == null) return { error: `No tengo precio para "${nombre}" y no esta en el catalogo. Dime su precio.` };
+        const cantidad = Math.max(1, parseInt(String(l.cantidad ?? '1').replace(/[^0-9]/g, ''), 10) || 1);
+        lineas.push({ nombre, precio_cents: Math.round(euros * 100), cantidad });
+      }
+      if (lineas.length === 0) return { error: 'No pude construir ninguna linea valida del presupuesto.' };
+
+      let clienteId: string | null = null;
+      let clienteNombre: string | null = null;
+      if (anyInp.cliente) {
+        const { data: clientes } = await svc
+          .from('clientes').select('id, nombre')
+          .eq('negocio_id', negocioId).eq('consiente_ia', true)
+          .or(`nombre.ilike.%${sanitizarFiltro(String(anyInp.cliente))}%,telefono.ilike.%${sanitizarFiltro(String(anyInp.cliente))}%`)
+          .limit(5);
+        if (clientes && clientes.length === 1) { clienteId = clientes[0].id; clienteNombre = clientes[0].nombre; }
+        else if (clientes && clientes.length > 1) return { error: `Varios clientes coinciden con "${anyInp.cliente}". ¿Cual?` };
+        else clienteNombre = String(anyInp.cliente); // sin ficha: presupuesto a contacto libre
+      }
+
+      const total = lineas.reduce((sum, l) => sum + l.precio_cents * l.cantidad, 0);
+      const titulo = anyInp.titulo ? String(anyInp.titulo) : null;
+      const resumen = `Presupuesto${clienteNombre ? ` para ${clienteNombre}` : ''}: ${lineas.map((l) => `${l.cantidad}× ${l.nombre}`).join(', ')} — ${(total / 100).toFixed(2)}€`;
+      return {
+        tipo: 'crear_presupuesto',
+        negocio_id: negocioId,
+        cliente_id: clienteId,
+        cliente_nombre: clienteNombre,
+        titulo,
+        lineas,
+        total_cents: total,
+        resumen,
+      };
+    }
+
+    case 'enviar_mensaje_bandeja': {
+      const cuerpo = String(inp.cuerpo ?? '').trim();
+      if (!cuerpo) return { error: 'Dime que mensaje quieres registrar en la Bandeja.' };
+
+      const { data: clientes } = await svc
+        .from('clientes').select('id, nombre')
+        .eq('negocio_id', negocioId).eq('consiente_ia', true)
+        .or(`nombre.ilike.%${sanitizarFiltro(inp.cliente)}%,telefono.ilike.%${sanitizarFiltro(inp.cliente)}%`)
+        .limit(5);
+      if (!clientes || clientes.length === 0) return { error: `Cliente "${inp.cliente}" no encontrado (o sin consentimiento de IA).` };
+      if (clientes.length > 1) return { error: `Varios clientes coinciden con "${inp.cliente}". ¿Cual?` };
+      const cli = clientes[0];
+
+      const { data: convs } = await svc
+        .from('conversaciones').select('id, contacto_nombre')
+        .eq('negocio_id', negocioId).eq('cliente_id', cli.id)
+        .order('ultimo_mensaje_at', { ascending: false }).limit(1);
+      if (!convs || convs.length === 0) {
+        return { error: `No hay un hilo abierto con ${cli.nombre} en la Bandeja. Abrelo desde la Bandeja y vuelve a pedirmelo.` };
+      }
+      const conv = convs[0];
+
+      return {
+        tipo: 'enviar_mensaje_bandeja',
+        negocio_id: negocioId,
+        conversacion_id: conv.id,
+        contacto_nombre: conv.contacto_nombre ?? cli.nombre,
+        cuerpo,
+        resumen: `Guardar en Bandeja para ${cli.nombre}: "${cuerpo.length > 60 ? cuerpo.slice(0, 57) + '...' : cuerpo}"`,
       };
     }
 
