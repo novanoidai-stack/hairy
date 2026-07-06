@@ -180,6 +180,7 @@ export default function PortalReservaWeb() {
   const [email, setEmail] = useState('');
   const [notas, setNotas] = useState('');
   const [consent, setConsent] = useState(false);
+  const [consentIa, setConsentIa] = useState(false);
 
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -356,6 +357,7 @@ export default function PortalReservaWeb() {
         clienteNombre: nombre.trim(), clienteTelefono: telefono.trim(),
         clienteEmail: email.trim() || undefined, notas: notas.trim() || undefined,
         consentimientoDatos: consent,
+        consienteIa: consentIa,
         captchaToken, // Token de reCAPTCHA
       });
       setResultado(r);
@@ -397,7 +399,7 @@ export default function PortalReservaWeb() {
 
   function reiniciar() {
     setServicio(null); setProfId(ANY_PRO); setSlotSel(null); setDiasDisp(new Set());
-    setNombre(''); setTelefono(''); setEmail(''); setNotas(''); setConsent(false);
+    setNombre(''); setTelefono(''); setEmail(''); setNotas(''); setConsent(false); setConsentIa(false);
     setResultado(null); setError(''); setStep('servicio');
   }
 
@@ -785,6 +787,30 @@ export default function PortalReservaWeb() {
                 {t('consent').split('{priv}')[1]}
               </span>
               <span style={{ display: 'block', color: T.textTer, marginTop: 3, fontSize: 11.5 }}>{t('consent_note')}</span>
+            </span>
+          </label>
+
+          {/* Consentimiento de IA (opt-in) */}
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 16, cursor: 'pointer' }}>
+            <span
+              onClick={() => setConsentIa(c => !c)}
+              className="rp-check"
+              style={{
+                flexShrink: 0, marginTop: 1, width: 22, height: 22, borderRadius: 7,
+                border: `2px solid ${consentIa ? T.primary : T.borderHi}`,
+                background: consentIa ? T.primary : T.card,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              {consentIa && <Icon name="check" size={14} color="#fff" />}
+            </span>
+            <span style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.45 }}>
+              <span onClick={() => setConsentIa(c => !c)}>
+                Quiero usar funciones de Inteligencia Artificial (Chispa) para gestionar mis reservas y sugerencias, aceptando que mi nombre e historial de citas sea procesado por IA.
+              </span>
+              <span style={{ display: 'block', color: T.textTer, marginTop: 3, fontSize: 11.5 }}>
+                Opcional. Los datos médicos, de salud o alergias nunca se comparten.
+              </span>
             </span>
           </label>
 

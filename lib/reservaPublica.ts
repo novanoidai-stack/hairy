@@ -68,6 +68,7 @@ export interface CrearCitaArgs {
   clienteEmail?: string;
   notas?: string;
   consentimientoDatos?: boolean;
+  consienteIa?: boolean;
   captchaToken?: string; // Token de reCAPTCHA v3
 }
 
@@ -126,6 +127,7 @@ export async function crearCitaPublica(args: CrearCitaArgs): Promise<CrearCitaRe
     p_cliente_email: args.clienteEmail ?? null,
     p_notas: args.notas ?? null,
     p_consentimiento_datos: args.consentimientoDatos ?? true,
+    p_consiente_ia: args.consienteIa ?? false,
     p_captcha_token: args.captchaToken ?? null, // CAPTCHA v3 token
   });
   if (error) throw error;
@@ -277,6 +279,8 @@ export interface CitaPublica {
   ok: boolean;
   motivo?: 'portal' | 'no_encontrada';
   cita_id: string;
+  cliente_id?: string;
+  consiente_ia?: boolean;
   estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada' | 'no_show';
   servicio_id: string | null;
   servicio: string;
@@ -378,4 +382,18 @@ export async function modificarCitaPublica(args: {
   });
   if (error) throw error;
   return data as ModificarCitaResult;
+}
+
+// Actualiza el consentimiento de IA de un cliente
+export async function actualizarConsentimientoIa(args: {
+  clienteId: string;
+  consentimiento: boolean;
+  origen: 'portal' | 'autogestion' | 'staff';
+}): Promise<void> {
+  const { error } = await supabase.rpc('actualizar_consentimiento_ia', {
+    p_cliente_id: args.clienteId,
+    p_consentimiento: args.consentimiento,
+    p_origen: args.origen,
+  });
+  if (error) throw error;
 }

@@ -4,7 +4,7 @@ import { MechaMark } from '@/components/ui/MechaMark';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import {
   getCitaPublica, cancelarCitaPublica, modificarCitaPublica, confirmarCitaOferta,
-  getDiasDisponibles, getDisponibilidad,
+  getDiasDisponibles, getDisponibilidad, actualizarConsentimientoIa,
   type CitaPublica, type SlotDisponible,
 } from '@/lib/reservaPublica';
 import { categoryColorHex } from '@/lib/categoryColors';
@@ -246,6 +246,25 @@ export default function GestionCitaWeb() {
     };
   }), [dias]);
 
+  const handleToggleIA = async () => {
+    if (!cita || !cita.cliente_id) return;
+    const nuevo = !cita.consiente_ia;
+    // Optimistic update
+    setCita({ ...cita, consiente_ia: nuevo });
+    try {
+      await actualizarConsentimientoIa({
+        clienteId: cita.cliente_id,
+        consentimiento: nuevo,
+        origen: 'autogestion'
+      });
+    } catch (e) {
+      // Revert on error
+      setCita({ ...cita, consiente_ia: !nuevo });
+      setErr('No se pudo guardar la preferencia de IA.');
+    }
+  };
+
+
   return (
     <Shell salon={cita?.salon} slug={slug}>
       {!enlaceValido && (
@@ -305,6 +324,23 @@ export default function GestionCitaWeb() {
             ) : (
               <div style={{ marginTop: 16, fontSize: 13.5, color: T.textTer, textAlign: 'center' }}>
                 Esta cita ya no se puede modificar online. Si necesitas algo, contacta con el salón.
+              </div>
+            )}
+
+            {/* Ajustes de Inteligencia Artificial */}
+            {cita.cliente_id && (
+              <div style={{ marginTop: 24, padding: '16px', borderRadius: 16, border: `1px solid ${T.border}`, background: T.cardHi }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Asistente IA (Chispa)</div>
+                  <button onClick={handleToggleIA} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <div style={{ width: 44, height: 24, borderRadius: 12, background: cita.consiente_ia ? T.success : '#dcd3ca', position: 'relative', transition: 'background 0.2s' }}>
+                      <div style={{ width: 20, height: 20, borderRadius: 10, background: '#fff', position: 'absolute', top: 2, left: cita.consiente_ia ? 22 : 2, transition: 'left 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                    </div>
+                  </button>
+                </div>
+                <div style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.4 }}>
+                  Autorizo el uso de IA para sugerencias y confirmaciones. Mis datos médicos/alergias <b>nunca</b> se compartirán.
+                </div>
               </div>
             )}
           </div>
