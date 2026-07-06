@@ -477,6 +477,22 @@ aplicada en remoto 2026-07-06, advisors OK sin regresiones nuevas):
 - **Caja / Cobro:** Inyección de Upsell IA. Cuando el profesional selecciona 1 cita a cobrar, se envía el contexto (cliente y servicio) y el catálogo de productos disponibles a `useChispaSugerencia`, sugiriendo un producto de forma cortísima y comercial junto al botón de "Cobrar" (ej. "Ofrécele mascarilla X").
 - Todos estos componentes usan el flujo universal de proponer (`useChispaSugerencia`) y renderizar bloques (`BloqueRenderer` con callback `chispaOps.ejecutarAccion` para confirmar). No hubo modificaciones en base de datos. Compilación y types (`npx tsc --noEmit` y `npm run build:web`) verificados y sin errores. Envíos reales a WhatsApp (`Alexandro`) pendientes.
 
+**Sesión 9-B: Superficies Restantes (Presupuestos, Inventario, Equipo) [HECHO]**
+**Objetivo**: Integrar los componentes de IA en las demás vistas del negocio.
+
+**Pasos:**
+1. **Presupuestos:** 
+   - Parseador NL a líneas de catálogo usando `useChispaSugerencia` y `crear_presupuesto_nl`.
+   - Bloque de alerta "N días sin respuesta".
+2. **Inventario:** 
+   - Añadir sugerencia de predicción de rotura de stock.
+3. **Equipo:**
+   - Resumen cualitativo de rendimiento por profesional (citas, facturación, descansos).
+4. **Clientes:**
+   - Detección de "Oportunidad de Recompra" (clientes con ciclo de visita vencido).
+5. **Cierre de hito:** 
+   - Build limpio y consolidación del informe maestro.
+
 **Guia de modelo:** Opus 4.8 donde equivocarse es caro (arquitectura, seguridad/RGPD, dominio agenda,
 SQL, dinero, parsing de migracion); Sonnet 5 en integraciones acotadas, lectura/analitica y
 superficies repetitivas; Haiku 4.5 solo para retoques mecanicos. Esfuerzo alto solo en Opus criticas

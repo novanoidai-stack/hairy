@@ -134,6 +134,8 @@ interface Cliente {
   diasFugaRetraso?: number;
   recompensaFugaNombre?: string;
   riesgoNoShow?: RiesgoNoShow | null;
+  tocaRecompra?: boolean;
+  diasRecompra?: number;
 }
 
 type Tab = 'resumen' | 'notas' | 'color' | 'historial';
@@ -344,6 +346,7 @@ function ClientesWeb() {
         .maybeSingle(),
       supabase.rpc('clientes_en_riesgo_fuga'),
       supabase.rpc('clientes_riesgo_no_show'),
+      supabase.rpc('rpc_clientes_toca_recompra', { p_negocio_id: profile.negocio_id }),
     ]);
 
     // Riesgo de fuga: mapa cliente_id -> datos del RPC (dias de retraso, recompensa sugerida)
@@ -357,6 +360,11 @@ function ClientesWeb() {
     const riesgoPorCliente = new Map<string, RiesgoNoShow>();
     (riesgoNoShowData ?? []).forEach((r: any) => {
       riesgoPorCliente.set(r.cliente_id, { nivel: r.nivel, score: r.score, no_shows: r.no_shows, cancelaciones_tardias: r.cancelaciones_tardias });
+    });
+
+    const recompraPorCliente = new Map<string, { dias: number }>();
+    ((arguments[2] as any)?.data ?? []).forEach((r: any) => {
+      recompraPorCliente.set(r.id, { dias: r.dias_desde_ultima_visita });
     });
 
     const cfg: any = (cfgRow?.config && typeof cfgRow.config === 'object') ? cfgRow.config : {};
@@ -396,8 +404,9 @@ function ClientesWeb() {
 
       const fuga = fugaPorCliente.get(cl.id);
       const riesgoNoShow = riesgoPorCliente.get(cl.id) ?? null;
+      const recompra = recompraPorCliente.get(cl.id);
 
-      return { ...cl, visitas, gastado, ultimaVisita, primeraVisita, ultimaVisitaStr, fav, favCount, tag, actividad, riesgo, riesgoNoShow, noshows_count: noshows, diasInactiva, profHabitual, enRiesgoFuga: !!fuga, diasFugaRetraso: fuga?.dias, recompensaFugaNombre: fuga?.recompensa } as Cliente;
+      return { ...cl, visitas, gastado, ultimaVisita, primeraVisita, ultimaVisitaStr, fav, favCount, tag, actividad, riesgo, riesgoNoShow, noshows_count: noshows, diasInactiva, profHabitual, enRiesgoFuga: !!fuga, diasFugaRetraso: fuga?.dias, recompensaFugaNombre: fuga?.recompensa, tocaRecompra: !!recompra, diasRecompra: recompra?.dias } as Cliente;
     });
 
     setClientes(enrichedClients);
@@ -503,6 +512,7 @@ function ClientesWeb() {
       if (activeTagFilter === 'Inactivas') list = list.filter((cl) => cl.actividad === 'Inactiva');
       else if (activeTagFilter === 'Riesgo') list = list.filter((cl) => cl.riesgo === 'Alto riesgo' || cl.riesgo === 'Incidencias');
       else if (activeTagFilter === 'Fuga') list = list.filter((cl) => cl.enRiesgoFuga);
+      else if (activeTagFilter === 'Recompra') list = list.filter((cl) => cl.tocaRecompra);
       else list = list.filter((cl) => cl.tag === activeTagFilter);
     }
     return list;
@@ -518,6 +528,7 @@ function ClientesWeb() {
     Inactivas: clientes.filter((x) => x.actividad === 'Inactiva').length,
     Riesgo: clientes.filter((x) => x.riesgo === 'Alto riesgo' || x.riesgo === 'Incidencias').length,
     Fuga: clientes.filter((x) => x.enRiesgoFuga).length,
+    Recompra: clientes.filter((x) => x.tocaRecompra).length,
   };
 
   return (
@@ -642,9 +653,9 @@ function ClientesWeb() {
           </div>
 
           {/* Tag chips */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            {(['Todos', 'VIP', 'Habitual', 'Nuevo', 'Inactivas', 'Riesgo', 'Fuga'] as const).map((t) => {
-              const color = t === 'VIP' ? TOKENS.warning : t === 'Habitual' ? TOKENS.primary : t === 'Nuevo' ? TOKENS.success : t === 'Inactivas' ? TOKENS.textTer : t === 'Riesgo' ? TOKENS.danger : t === 'Fuga' ? TOKENS.cyan : TOKENS.primary;
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {(['Todos', 'VIP', 'Habitual', 'Nuevo', 'Inactivas', 'Riesgo', 'Fuga', 'Recompra'] as const).map((t) => {
+              const color = t === 'VIP' ? TOKENS.warning : t === 'Habitual' ? TOKENS.primary : t === 'Nuevo' ? TOKENS.success : t === 'Inactivas' ? TOKENS.textTer : t === 'Riesgo' ? TOKENS.danger : t === 'Fuga' ? TOKENS.cyan : t === 'Recompra' ? '#8b5cf6' : TOKENS.primary;
               const active = activeTagFilter === t;
               return (
                 <button
@@ -663,6 +674,7 @@ function ClientesWeb() {
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: 'pointer',
+                    whiteSpace: 'nowrap'
                   }}
                 >
                   <span>{t}</span>
@@ -723,6 +735,9 @@ function ClientesWeb() {
                           >
                             Fuga · {cl.diasFugaRetraso}d
                           </Pill>
+                        )}
+                        {!isMobile && cl.tocaRecompra && (
+                          <Pill color="#8b5cf6">Recompra</Pill>
                         )}
                         {/* Alergias Pill */}
                         {(() => {
@@ -863,6 +878,7 @@ function ClientesWeb() {
                         {/* Riesgo de no-show (Sesion 7): score neutro derivado del historial
                             (ausencias, cancelaciones tardias, antiguedad). Solo medio/alto. */}
                         <RiesgoNoShowIndicator riesgo={c.riesgoNoShow} />
+                        {c.tocaRecompra && <Pill color="#8b5cf6" title="Ciclo habitual superado. Es probable que necesite agendar de nuevo.">Oportunidad Recompra</Pill>}
                         {c.bloqueado && <Pill color={TOKENS.danger} title="No puede reservar online. Se gestiona con el boton Bloquear.">Bloqueado</Pill>}
                         <button
                           title={c.bloqueado && c.bloqueo_motivo ? `Motivo: ${c.bloqueo_motivo}` : (c.bloqueado ? 'Cliente bloqueado' : 'Impedir que reserve online')}

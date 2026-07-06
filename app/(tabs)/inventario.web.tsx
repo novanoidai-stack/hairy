@@ -13,6 +13,9 @@ import { manualInventario } from '@/lib/manuals/inventario';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
+import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
+import * as chispaOps from '@/lib/chispaOps';
 
 // ────────────────────────────────────────────────────────────────────────────────
 // ICONOS SVG PREMIUM
@@ -136,6 +139,36 @@ export default function InventarioScreen() {
     motivo: '',
     notas: '',
   });
+
+  // --- INYECCIÓN IA: INVENTARIO ---
+  const { generar: generarPrediccion, cargando: chispaLoading, bloques: chispaBloques, limpiar: limpiarPrediccion } = useChispaSugerencia();
+  const [profileData, setProfileData] = useState<{ id: string; negocio_id: string } | null>(null);
+
+  useEffect(() => {
+    getUserProfile().then(p => {
+      if (p) setProfileData({ id: p.id, negocio_id: p.negocio_id });
+    });
+  }, []);
+
+  const handlePrediccionStock = () => {
+    const criticos = productos.filter(p => p.stock_bajo);
+    if (criticos.length === 0) return;
+    const desc = criticos.map(c => `${c.nombre} (Stock: ${c.stock_actual}, Mín: ${c.stock_minimo})`).join(', ');
+    generarPrediccion(`Analiza estos productos con stock crítico en mi salón de belleza: ${desc}. Basado en un consumo típico, sugiere un pedido de reposición razonable en formato de lista (usa bloques de texto) y proporciona un bloque de acción para "Generar pedido sugerido" para estos productos (asumiendo que será un borrador).`);
+  };
+
+  const procesarAccionChispa = async (accion: any) => {
+    if (!profileData?.id) return;
+    const res = await chispaOps.ejecutarAccion(accion, profileData.id);
+    if (res.ok) {
+      alert('Pedido generado. ' + res.mensaje);
+      limpiarPrediccion();
+      cargarInventario();
+    } else {
+      alert('Error: ' + res.error);
+    }
+  };
+  // --------------------------------
 
   // ────────────────────────────────────────────────────────────────────────────────
   // CARGAR DATOS
@@ -836,27 +869,62 @@ export default function InventarioScreen() {
 
       {/* Alert Banner */}
       {alertasCount > 0 && (
-        <div style={styles.alertBanner}>
-          <div style={styles.alertBannerLeft}>
-            <div style={styles.alertBannerIcon}>
-              <Icon name="alert" size={20} color={TOKENS.danger} />
+        <div style={{...styles.alertBanner, flexDirection: 'column', alignItems: 'stretch', gap: 16}}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+            <div style={styles.alertBannerLeft}>
+              <div style={styles.alertBannerIcon}>
+                <Icon name="alert" size={20} color={TOKENS.danger} />
+              </div>
+              <div style={styles.alertBannerText}>
+                <h4 style={styles.alertBannerTitle}>{t('inv_critico_title')}</h4>
+                <p style={styles.alertBannerDesc}>
+                  {t('inv_critico_desc').replace('{count}', alertasCount.toString())}
+                </p>
+              </div>
             </div>
-            <div style={styles.alertBannerText}>
-              <h4 style={styles.alertBannerTitle}>{t('inv_critico_title')}</h4>
-              <p style={styles.alertBannerDesc}>
-                {t('inv_critico_desc').replace('{count}', alertasCount.toString())}
-              </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button 
+                style={{
+                  ...styles.alertBannerBtn,
+                  ...(soloStockBajo ? styles.alertBannerBtnActive : {})
+                }}
+                onClick={() => setSoloStockBajo(!soloStockBajo)}
+              >
+                {soloStockBajo ? t('inv_mostrar_todos') : t('inv_ver_criticos')}
+              </button>
+              <button 
+                style={{
+                  ...styles.alertBannerBtn,
+                  background: '#1A1A1A',
+                  color: '#FFF',
+                  borderColor: '#1A1A1A',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+                onClick={handlePrediccionStock}
+                disabled={chispaLoading}
+              >
+                {chispaLoading ? <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : <Icon name="sparkles" size={14} color="#FFF" />}
+                {chispaLoading ? 'Analizando...' : 'Predicción de Pedido'}
+              </button>
             </div>
           </div>
-          <button 
-            style={{
-              ...styles.alertBannerBtn,
-              ...(soloStockBajo ? styles.alertBannerBtnActive : {})
-            }}
-            onClick={() => setSoloStockBajo(!soloStockBajo)}
-          >
-            {soloStockBajo ? t('inv_mostrar_todos') : t('inv_ver_criticos')}
-          </button>
+          
+          {chispaBloques.length > 0 && (
+            <div style={{ background: '#FFFBE6', border: '1px solid #FFE58F', borderRadius: 12, padding: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Icon name="sparkles" size={16} color="#FA8C16" />
+                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#D46B08' }}>Sugerencia de Reposición</h4>
+              </div>
+              {chispaBloques.map((b, i) => (
+                <BloqueRenderer key={i} bloque={b} onAction={procesarAccionChispa} isMobile={isMobile} />
+              ))}
+              <div style={{ textAlign: 'right', marginTop: 10 }}>
+                <button onClick={limpiarPrediccion} style={{ background: 'none', border: 'none', color: TOKENS.textTer, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Ocultar sugerencia</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

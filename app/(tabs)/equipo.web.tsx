@@ -11,7 +11,10 @@ import { manualEquipo } from '@/lib/manuals/equipo';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
-
+import { roleOf } from '@/lib/permissions';
+import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
+import * as chispaOps from '@/lib/chispaOps';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -163,12 +166,51 @@ export default function EquipoWeb() {
   const [menuCardId, setMenuCardId] = useState<string | null>(null);
   const [editingProf, setEditingProf] = useState<Profesional | null>(null);
 
+  // --- INYECCIÓN IA: EQUIPO ---
+  const { generar: generarResumen, cargando: chispaLoading, bloques: chispaBloques, limpiar: limpiarResumen } = useChispaSugerencia();
+  const [profileData, setProfileData] = useState<{ id: string; negocio_id: string } | null>(null);
+
+  useEffect(() => {
+    getUserProfile().then(p => {
+      if (p) setProfileData({ id: p.id, negocio_id: p.negocio_id });
+    });
+  }, []);
+
+  useEffect(() => {
+    limpiarResumen();
+  }, [selected]);
+
+  const profSel = profesionales.find((p) => p.id === selected);
+
+  const handleAnalizarProfesional = () => {
+    if (!profSel) return;
+    const desc = `Analiza el rendimiento del mes de ${profSel.nombre}: 
+    - ${profSel.citas} citas
+    - Ocupación: ${profSel.ocupacion}%
+    - Ingresos: ${profSel.ingresos}€
+    - Ticket Medio: ${profSel.ticketMedio}€
+    - Comisiones: ${profSel.comisionesDevengadas}€
+    
+    Dame un resumen NL de su rendimiento, comisiones, e identifica si hay sobrecarga (>85% ocupación) o demasiados huecos (<40% ocupación) con acciones sugeridas para solucionarlo. Usa bloques de texto.`;
+    generarResumen(desc);
+  };
+
+  const procesarAccionChispa = async (accion: any) => {
+    if (!profileData?.id) return;
+    const res = await chispaOps.ejecutarAccion(accion, profileData.id);
+    if (res.ok) {
+      alert('Acción ejecutada: ' + res.mensaje);
+    } else {
+      alert('Error: ' + res.error);
+    }
+  };
+  // --------------------------------
+
   useEffect(() => {
     async function cargar() {
       const profile = await getUserProfile();
-      // Gating de rol: solo recepcion/direccion/propietario gestionan equipo
-      // (Modular 3). Defensivo: sin perfil real no se bloquea (demo/fallback).
-      if (profile && !can(profile, 'equipo.ver')) { setAccessDenied(true); setLoading(false); return; }
+      const isProf = profile ? roleOf(profile) === 'profesional' : false;
+      if (profile && !can(profile, 'equipo.ver') && !isProf) { setAccessDenied(true); setLoading(false); return; }
       const negocioId = profile?.negocio_id ?? NEGOCIO_ID_FALLBACK;
       setNegocioId(negocioId);
 
@@ -216,7 +258,12 @@ export default function EquipoWeb() {
         return { ...p, citas, dayPcts, ocupacion, ingresos, ticketMedio, comisionesDevengadas, clientesUnicos, exp: '' };
       });
 
-      setProfesionales(enriched);
+      const myProfs = isProf ? enriched.filter(p => p.profile_id === profile?.id) : enriched;
+
+      setProfesionales(myProfs);
+      if (isProf && myProfs.length > 0) {
+        setSelected(myProfs[0].id);
+      }
       // No auto-abrir: el grid de miembros queda a pantalla completa hasta que se pulse uno.
       setLoading(false);
     }
@@ -288,8 +335,6 @@ export default function EquipoWeb() {
       </div>
     </div>
   );
-
-  const profSel = profesionales.find((p) => p.id === selected);
 
   const DIAS_SEMANA_FULL = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
@@ -398,21 +443,25 @@ export default function EquipoWeb() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            className="m-btn-secondary"
-            onClick={() => router.push('/(tabs)/configuracion?tab=horarios' as never)}
-            title="Horario general del salon (Configuracion -> Horarios): acota lo que ofrecen la Agenda y la reserva online"
-            style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Icon name="calendar" size={16} color={TOKENS.text} />
-            {isMobile ? 'Horarios' : 'Horarios base'}
-          </button>
-          <button
-            className="m-btn-primary"
-            onClick={() => setShowNewProf(true)}
-            style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px rgba(244,80,30,0.45)`, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Icon name="plus" size={16} color="#fff" />
-            {isMobile ? 'Añadir' : 'Añadir profesional'}
-          </button>
+          {!profileData || can({ role: roleOf(profileData) as any } as any, 'config.ver') ? (
+            <button
+              className="m-btn-secondary"
+              onClick={() => router.push('/(tabs)/configuracion?tab=horarios' as never)}
+              title="Horario general del salon (Configuracion -> Horarios)"
+              style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="calendar" size={16} color={TOKENS.text} />
+              {isMobile ? 'Horarios' : 'Horarios base'}
+            </button>
+          ) : null}
+          {!profileData || can({ role: roleOf(profileData) as any } as any, 'equipo.gestionar') ? (
+            <button
+              className="m-btn-primary"
+              onClick={() => setShowNewProf(true)}
+              style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px rgba(244,80,30,0.45)`, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="plus" size={16} color="#fff" />
+              {isMobile ? 'Añadir' : 'Añadir profesional'}
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -653,19 +702,23 @@ export default function EquipoWeb() {
               </div>
 
               <div style={{ display: 'flex', gap: 10, width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end' }}>
-                <button
-                  onClick={() => setEditingProf(profSel)}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.borderColor = TOKENS.borderHi; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.border; }}
-                  style={{ flex: isMobile ? 1 : 'none', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: 7, padding: '9px 15px', background: 'transparent', border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s ease, border-color 0.15s ease' }}>
-                  <Icon name="edit" size={15} color={TOKENS.textSec} />
-                  Editar
-                </button>
-                <button
-                  onClick={() => toggleActivo(profSel)}
-                  style={{ flex: isMobile ? 1 : 'none', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: 7, padding: '9px 15px', background: profSel.activo ? 'rgba(226,59,52,0.08)' : 'rgba(15,157,107,0.10)', border: `1px solid ${profSel.activo ? 'rgba(226,59,52,0.22)' : 'rgba(15,157,107,0.25)'}`, borderRadius: 10, color: profSel.activo ? '#e23b34' : TOKENS.success, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                  {profSel.activo ? 'Desactivar' : 'Activar'}
-                </button>
+                {!profileData || can({ role: roleOf(profileData) as any } as any, 'equipo.gestionar') ? (
+                  <>
+                    <button
+                      onClick={() => setEditingProf(profSel)}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.borderColor = TOKENS.borderHi; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.border; }}
+                      style={{ flex: isMobile ? 1 : 'none', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: 7, padding: '9px 15px', background: 'transparent', border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s ease, border-color 0.15s ease' }}>
+                      <Icon name="edit" size={15} color={TOKENS.textSec} />
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => toggleActivo(profSel)}
+                      style={{ flex: isMobile ? 1 : 'none', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: 7, padding: '9px 15px', background: profSel.activo ? 'rgba(226,59,52,0.08)' : 'rgba(15,157,107,0.10)', border: `1px solid ${profSel.activo ? 'rgba(226,59,52,0.22)' : 'rgba(15,157,107,0.25)'}`, borderRadius: 10, color: profSel.activo ? '#e23b34' : TOKENS.success, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                      {profSel.activo ? 'Desactivar' : 'Activar'}
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
 
@@ -715,6 +768,36 @@ export default function EquipoWeb() {
 
             {/* Metricas del mes */}
             <Section title="Métricas del mes">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                <button 
+                  style={{
+                    background: '#1A1A1A', color: '#FFF', border: 'none', padding: '6px 12px',
+                    borderRadius: 8, fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+                    cursor: 'pointer'
+                  }}
+                  onClick={handleAnalizarProfesional}
+                  disabled={chispaLoading}
+                >
+                  {chispaLoading ? <div style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : <Icon name="sparkles" size={12} color="#FFF" />}
+                  {chispaLoading ? 'Analizando...' : 'Analizar Rendimiento'}
+                </button>
+              </div>
+
+              {chispaBloques.length > 0 && (
+                <div style={{ background: '#FFFBE6', border: '1px solid #FFE58F', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <Icon name="sparkles" size={16} color="#FA8C16" />
+                    <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#D46B08' }}>Resumen Inteligente de Chispa</h4>
+                  </div>
+                  {chispaBloques.map((b, i) => (
+                    <BloqueRenderer key={i} bloque={b} onAction={procesarAccionChispa} isMobile={isMobile} />
+                  ))}
+                  <div style={{ textAlign: 'right', marginTop: 10 }}>
+                    <button onClick={limpiarResumen} style={{ background: 'none', border: 'none', color: TOKENS.textTer, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Ocultar resumen</button>
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 8 }}>
                 <MetricCard label="Citas" value={String(profSel.citas ?? 0)} color={TOKENS.primary} />
                 <MetricCard label="Ingresos" value={`${profSel.ingresos ?? 0}€`} color={TOKENS.success} />

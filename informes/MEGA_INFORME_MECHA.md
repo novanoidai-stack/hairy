@@ -48,6 +48,17 @@ Se han completado las inyecciones de IA en las superficies (Reseñas, Bandeja, M
 
 ---
 
+## Adenda — Capa IA Superficies (Sesión 9-B) (6 jul 2026, Carlos + Claude)
+
+Se han completado las inyecciones de IA restantes de las superficies (Presupuestos, Inventario, Equipo y Clientes) según el plan de Chispa:
+- **Presupuestos:** "Crear presupuesto desde descripción", toma texto libre y lo parsea a líneas y precios del catálogo real del salón. Sugerencia de upsell/paquete y alerta de seguimiento tras N días sin respuesta.
+- **Inventario:** IA evalúa el stock y predice la fecha de agotamiento para sugerir reposición temprana basándose en el historial de uso.
+- **Equipo:** Resumen cualitativo de IA de "Rendimiento y Saturación" usando datos de citas, descansos e ingresos, presentado directamente en la ficha del profesional.
+- **Clientes (Recompra Predictiva):** Nuevo RPC `rpc_clientes_toca_recompra` detecta clientes que han superado su ciclo habitual sin reservar, mostrándolos en un filtro especial en el CRM con badge de "Oportunidad Recompra".
+- **Estado general:** `npx tsc --noEmit` + `npm run build:web` limpios. Verificados sin errores TS.
+
+---
+
 ## Adenda — Capa IA "Chispa" Sesion 1 (5 jul 2026, Carlos + Claude)
 
 Nucleo generativo de la capa de IA transversal (plan `informes/PLAN-IA-CHISPA.md`, Sesion 1 HECHA):

@@ -17,6 +17,9 @@ import { manualPresupuestos } from '@/lib/manuals/presupuestos';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
+import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
+import * as chispaOps from '@/lib/chispaOps';
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
@@ -97,6 +100,20 @@ function EditorModal({ profile, salon, profesionales, servicios, conceptos, init
   const [busy, setBusy] = useState<null | 'guardar' | 'pdf' | 'email'>(null);
   const [error, setError] = useState('');
   const [servicioSelectorOpen, setServicioSelectorOpen] = useState(false);
+
+  // IA para sugerencias de upsell
+  const { generar: generarUpsell, bloques: chispaBloques } = useChispaSugerencia();
+  useEffect(() => {
+    if (lineas.length > 0 && !initial) { // Solo auto-sugerir en presupuestos nuevos
+      const timeoutId = setTimeout(() => {
+        const nombres = lineas.filter(l => l.nombre.trim() !== '').map(l => l.nombre).join(', ');
+        if (nombres) {
+          generarUpsell(`Sugiéreme un único servicio complementario (upsell) para añadir a este presupuesto que contiene: ${nombres}. Devuelve solo el nombre del servicio recomendado y su precio estimado o justificación muy breve en un bloque de texto.`);
+        }
+      }, 1500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [lineas, initial, generarUpsell]);
 
   const eliminarConceptoCatalogo = async (conceptoId: string, nombre: string) => {
     if (!window.confirm(`¿Seguro que quieres eliminar el concepto "${nombre}" del catálogo general? Ya no aparecerá como opción sugerida.`)) return;
@@ -344,6 +361,19 @@ function EditorModal({ profile, salon, profesionales, servicios, conceptos, init
         </div>
         <textarea value={notas} onChange={e => setNotas(e.target.value)} placeholder="Notas (opcional)" rows={2} style={{ ...inputBase, marginBottom: 14, resize: 'vertical', fontFamily: 'inherit' }} />
 
+        {/* Sugerencia Upsell (IA) */}
+        {chispaBloques.length > 0 && (
+          <div style={{ marginTop: 20, marginBottom: 10, background: '#FFF7E6', border: '1px solid #FFD591', borderRadius: 12, padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Icon name="sparkles" size={16} color="#FA8C16" />
+              <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#D46B08' }}>Sugerencia de Upsell</h4>
+            </div>
+            {chispaBloques.map((b, i) => (
+              <BloqueRenderer key={i} bloque={b} onAction={async () => {}} isMobile={isMobile} />
+            ))}
+          </div>
+        )}
+
         {/* Total */}
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '12px 0', borderTop: `1px solid ${T.border}`, marginBottom: 14 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Total</span>
@@ -436,6 +466,31 @@ function PresupuestosScreen() {
     }
   };
 
+  // --- INYECCIÓN IA: PRESUPUESTOS ---
+  const { generar: generarSugerencia, cargando: chispaLoading, bloques: chispaBloques, limpiar: limpiarSugerencia } = useChispaSugerencia();
+  const [nlInput, setNlInput] = useState('');
+
+  const handleNlSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!nlInput.trim()) return;
+    const cat = conceptos.map(c => `${c.nombre} (${eur(c.precio_cents)})`).join(', ');
+    generarSugerencia(`Crea un presupuesto con esta descripción: "${nlInput}". Utiliza este catálogo como referencia para los precios: ${cat}`);
+    setNlInput('');
+  };
+
+  const procesarAccionChispa = async (accion: any) => {
+    if (!profile?.id) return;
+    const res = await chispaOps.ejecutarAccion(accion, profile.id);
+    if (res.ok) {
+      flash('success', res.mensaje);
+      limpiarSugerencia();
+      cargar();
+    } else {
+      flash('error', res.error);
+    }
+  };
+  // ----------------------------------
+
   const openEditor = async (p: Presupuesto | null) => {
     if (p) {
       const { data: lineas } = await supabase.from('presupuesto_lineas').select('*').eq('presupuesto_id', p.id).order('orden');
@@ -520,6 +575,40 @@ function PresupuestosScreen() {
 
         {mensaje && <div style={{ padding: '11px 15px', borderRadius: 10, marginBottom: 14, background: mensaje.type === 'success' ? T.successSoft : T.dangerSoft, color: mensaje.type === 'success' ? T.success : T.danger, fontSize: 13.5 }}>{mensaje.text}</div>}
 
+        {/* Creador Inteligente (IA) */}
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: isMobile ? 14 : 20, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <Icon name="sparkles" size={18} color="#FF6B00" />
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: T.text }}>Crear presupuesto rápido</h3>
+          </div>
+          <form onSubmit={handleNlSubmit} style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
+            <input 
+              value={nlInput} 
+              onChange={e => setNlInput(e.target.value)} 
+              placeholder="Ej: Presupuesto para María, balayage y corte de puntas..." 
+              style={{ flex: 1, padding: '12px 16px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 14, color: T.text }} 
+            />
+            <button 
+              type="submit" 
+              disabled={!nlInput.trim() || chispaLoading} 
+              className="p-btn" 
+              style={{ padding: '12px 20px', background: !nlInput.trim() || chispaLoading ? T.borderHi : T.primary, color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: !nlInput.trim() || chispaLoading ? 'not-allowed' : 'pointer' }}
+            >
+              {chispaLoading ? <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : 'Crear'}
+            </button>
+          </form>
+          {chispaBloques.length > 0 && (
+            <div style={{ marginTop: 16, borderTop: `1px solid ${T.border}`, paddingTop: 16 }}>
+              {chispaBloques.map((b, i) => (
+                <BloqueRenderer key={i} bloque={b} onAction={procesarAccionChispa} isMobile={isMobile} />
+              ))}
+              <div style={{ textAlign: 'right', marginTop: 10 }}>
+                <button onClick={limpiarSugerencia} style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Ocultar sugerencia</button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Filtros + búsqueda */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
           {FILTROS.map(([k, lbl]) => {
@@ -541,27 +630,38 @@ function PresupuestosScreen() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {filtrados.map((p, idx) => (
-              <div key={p.id} className="p-row" style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: isMobile ? 14 : '14px 18px', animationDelay: `${idx * 0.02}s`, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 10 : 16, alignItems: isMobile ? 'stretch' : 'center' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: T.textTer }}>P-{p.numero}</span>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: T.text }}>{p.contacto_nombre || 'Sin nombre'}</span>
-                    <EstadoChip estado={p.estado} />
+            {filtrados.map((p, idx) => {
+              const d = new Date(p.created_at);
+              const dias = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+              const tocaSeguimiento = p.estado === 'enviado' && dias >= 3;
+
+              return (
+                <div key={p.id} className="p-row" style={{ background: T.card, border: `1px solid ${tocaSeguimiento ? '#FFB020' : T.border}`, borderRadius: 12, padding: isMobile ? 14 : '14px 18px', animationDelay: `${idx * 0.02}s`, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 10 : 16, alignItems: isMobile ? 'stretch' : 'center', position: 'relative' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: T.textTer }}>P-{p.numero}</span>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: T.text }}>{p.contacto_nombre || 'Sin nombre'}</span>
+                      <EstadoChip estado={p.estado} />
+                    </div>
+                    <div style={{ fontSize: 12.5, color: T.textSec }}>
+                      {p.titulo ? `${p.titulo} · ` : ''}{format(parseISO(p.created_at), "d MMM yyyy", { locale: es })}
+                      {p.enviado_email_at ? ' · enviado por correo' : ''}
+                    </div>
+                    {tocaSeguimiento && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, color: '#D48806', fontSize: 13, fontWeight: 600, background: '#FFFBE6', padding: '6px 10px', borderRadius: 6, width: 'fit-content' }}>
+                        <Icon name="sparkles" size={14} color="#D48806" /> Hace {dias} días sin respuesta. Sugerencia: Enviar recordatorio.
+                      </div>
+                    )}
                   </div>
-                  <div style={{ fontSize: 12.5, color: T.textSec }}>
-                    {p.titulo ? `${p.titulo} · ` : ''}{format(parseISO(p.created_at), "d MMM yyyy", { locale: es })}
-                    {p.enviado_email_at ? ' · enviado por correo' : ''}
+                  <div style={{ fontSize: 17, fontWeight: 800, color: T.text, whiteSpace: 'nowrap', textAlign: isMobile ? 'left' : 'right' }}>{eur(p.total_cents)}</div>
+                  <div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
+                    <button onClick={() => openEditor(p)} className="p-btn" title="Editar" style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 8, padding: 8 }}><Icon name="edit" size={15} color={T.textSec} /></button>
+                    <button onClick={() => copiarEnlace(p)} className="p-btn" title="Copiar enlace" style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 8, padding: 8 }}><Icon name="link" size={15} color={T.textSec} /></button>
+                    <button onClick={() => eliminar(p)} className="p-btn" title="Eliminar" style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 8, padding: 8 }}><Icon name="trash" size={15} color={T.danger} /></button>
                   </div>
                 </div>
-                <div style={{ fontSize: 17, fontWeight: 800, color: T.text, whiteSpace: 'nowrap', textAlign: isMobile ? 'left' : 'right' }}>{eur(p.total_cents)}</div>
-                <div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
-                  <button onClick={() => openEditor(p)} className="p-btn" title="Editar" style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 8, padding: 8 }}><Icon name="edit" size={15} color={T.textSec} /></button>
-                  <button onClick={() => copiarEnlace(p)} className="p-btn" title="Copiar enlace" style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 8, padding: 8 }}><Icon name="link" size={15} color={T.textSec} /></button>
-                  <button onClick={() => eliminar(p)} className="p-btn" title="Eliminar" style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 8, padding: 8 }}><Icon name="trash" size={15} color={T.danger} /></button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
