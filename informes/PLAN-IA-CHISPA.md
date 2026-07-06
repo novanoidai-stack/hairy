@@ -200,7 +200,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 5 | Voz: micro (STT + fallback) + TTS ElevenLabs + A/B | Sonnet 5 | alto | 1 | **HECHA (6 jul)** |
 | 6 | Omnisciencia/analitica (briefing, informes, caja, metas, alertas) | Sonnet 5 | medio-alto | 1,2 | **HECHA (6 jul)** — briefing (Alexandro) + analitica conversacional (ver registro abajo) |
 | 7 | Q&A profundo de cliente + riesgo no-show + fuga | Opus 4.8 | medio | 1,2 | **HECHA (6 jul)** |
-| 8 | Lista de espera: matching + aviso + priorizacion | Opus 4.8 (SQL) / Sonnet 5 (UI) | medio | 1,3 | pendiente |
+| 8 | Lista de espera: matching + aviso + priorizacion | Opus 4.8 (SQL) / Sonnet 5 (UI) | medio | 1,3 | **HECHA (6 jul, S8-A SQL)** — S8-B (UI/edge) pendiente |
 | 9 | Superficies por pagina (resenas, bandeja, presupuestos, inventario, equipo, mi jornada, upsell, recompra) | Sonnet 5 | medio | 1,2,3 | pendiente |
 | 10 | Consentimiento cliente-facing + cierre legal | Opus 4.8 | medio | 2 | pendiente |
 | 11 | Ventas: migracion magica Booksy/Fresha + catalogo desde foto + facturas->stock + Chispa landing | Opus 4.8 | alto | 1 | pendiente |
@@ -440,6 +440,24 @@ solo el WARN esperado de security-definer ejecutable por authenticated con guard
   --noEmit` + `npm run build:web` limpios (sin `any`); `deno check` + `deno test` (13 permisos + 6 whitelist) verdes.
   Demo re-verificada intacta (0 no_show, 0 noshows>0, 0 consent-false, 0 fuga_avisos). Envio real de la propuesta
   de vuelta y plantilla WhatsApp del recordatorio de no-show inminente quedan abiertos para Alexandro.
+
+**Registro Sesion 8-A (6 jul, HECHA):** matching SQL de lista de espera para Chispa. **SQL** (`migrations/sesion8-matching-lista-espera-ia.sql`,
+aplicada en remoto 2026-07-06, advisors OK sin regresiones nuevas):
+- `matching_lista_espera(p_cita_id)` (security definer, revocada a anon/public): encuentra la mejor candidata
+  de lista de espera compatible con el hueco liberado (cancelación). Criterios: servicio, profesional (si exige),
+  franja horaria (manana/tarde/cualquiera), fechas desde/hasta. **Priorización:** `prioridad desc, created_at asc`
+  (antigüedad en lista). Devuelve metadatos completos: fidelidad (nº citas históricas), gasto acumulado,
+  nombres de servicio/profesional. **Multi-tenant estricto:** deriva `negocio_id` de `auth.uid()` y verifica que
+  la cita pertenece al mismo negocio. Si no hay candidatas, devuelve `candidata: null`.
+- `avisar_lista_espera_candidata(p_lista_espera_id, p_cita_origen_id)` (security definer, revocada a anon/public):
+  crea la cita tentativa (oferta) con `es_oferta_espera=true, canal='ia'`, marca la lista como `avisado`,
+  encola el aviso en `lista_espera_avisos` (template `aviso_lista_espera`) para el motor n8n de Alexandro.
+  Find-or-create de cliente por teléfono. Reutiliza `_lista_espera_ventana_texto` del motor existente.
+- **Permisos:** grant a `authenticated` (staff) + `service_role` (motor n8n); revocados a `anon`/`public`.
+- **Verificado en remoto:** RPCs existen con definición correcta, permisos correctos (authenticated + service_role,
+  sin anon). Las tablas `lista_espera_avisos` y `lista_espera_ofertas` muestran WARN INFO de "RLS enabled no policy"
+  en advisors, lo cual es esperado (son outbox solo para service_role, no necesitan policies públicas).
+- **S8-B pendiente:** UI/edge/integración con Chispa (flujo cancelación -> propone "avisar a X" -> confirmar -> flag motor).
 
 **Guia de modelo:** Opus 4.8 donde equivocarse es caro (arquitectura, seguridad/RGPD, dominio agenda,
 SQL, dinero, parsing de migracion); Sonnet 5 en integraciones acotadas, lectura/analitica y
