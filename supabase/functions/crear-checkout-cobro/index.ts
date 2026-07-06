@@ -55,8 +55,9 @@ Deno.serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      // Metodos segun lo habilitado en el dashboard (tarjeta, Bizum, Apple/Google Pay).
-      automatic_payment_methods: { enabled: true },
+      // Sin payment_method_types: Checkout usa automaticamente los metodos habilitados en el
+      // dashboard (tarjeta + Bizum + Apple/Google Pay). OJO: automatic_payment_methods NO es
+      // un parametro valido de Checkout Sessions (es de PaymentIntent) -> daba 500.
       line_items: [{
         price_data: {
           currency: (pago.moneda ?? 'eur').toLowerCase(),
