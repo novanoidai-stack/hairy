@@ -276,13 +276,21 @@
     });
 
     // host panel show/hide via Tweaks toolbar (postMessage protocol)
+    // En producción standalone el panel está hidden; al recibir la señal del
+    // parent (iframe de preview interno) se quita el atributo y se muestra.
     window.addEventListener('message', function (e) {
       var d = e.data || {};
-      if (d.type === 'tweaks:visibility') host.classList.toggle('open', !!d.visible);
+      if (d.type === 'tweaks:visibility') {
+        if (d.visible) host.removeAttribute('hidden');
+        else host.setAttribute('hidden', '');
+        host.classList.toggle('open', !!d.visible);
+      }
     });
     var closeBtn = $('#twClose', host);
     if (closeBtn) closeBtn.addEventListener('click', function () {
       host.classList.remove('open');
+      host.setAttribute('hidden', '');
+      host.setAttribute('aria-hidden', 'true');
       try { window.parent.postMessage({ type: 'tweaks:closed' }, '*'); } catch (e) {}
     });
   }
