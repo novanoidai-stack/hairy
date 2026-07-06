@@ -3,9 +3,9 @@
 // El edge (supabase/functions/agenda-asistente) devuelve una lista de bloques
 // tipados en vez de texto plano. El renderer unico (components/chispa/
 // BloqueRenderer.web.tsx) mapea cada tipo a un componente reutilizando lo que
-// ya existe. El union type se deja EXTENSIBLE a proposito: 'grafica',
-// 'comparativa', 'lista_clientes', etc. llegan en sesiones posteriores del plan
-// de IA (informes/PLAN-IA-CHISPA.md) sin romper este contrato.
+// ya existe. El union type se deja EXTENSIBLE a proposito: 'lista_clientes',
+// etc. pueden llegar en sesiones posteriores del plan de IA
+// (informes/PLAN-IA-CHISPA.md) sin romper este contrato.
 //
 // PR-12: las escrituras nunca las ejecuta el LLM. El bloque 'accion' es una
 // PROPUESTA que el profesional confirma; la ejecucion vive en lib/agendaOps.ts.
@@ -35,10 +35,24 @@ export type ChispaRutaKey = keyof typeof CHISPA_RUTAS;
 
 // Bloque tipado. Union EXTENSIBLE: anadir nuevos tipos aqui + su caso en
 // BloqueRenderer, sin tocar el resto del flujo.
+// Unidad de un valor numerico de 'grafica'/'comparativa': determina formato y color.
+export type ChispaUnidad = 'eur' | 'citas' | 'pct';
+
 export type Bloque =
   | { tipo: 'texto'; texto: string }
   | { tipo: 'enlace'; ruta: string; label: string; descripcion?: string }
-  | { tipo: 'accion'; accion: AccionPropuesta };
+  | { tipo: 'accion'; accion: AccionPropuesta }
+  // Serie temporal calculada server-side (nunca inventada por el LLM). 'fecha'
+  // viaja como YYYY-MM-DD (cruza el limite JSON del edge).
+  | { tipo: 'grafica'; titulo: string; unidad: ChispaUnidad; serie: { fecha: string; valor: number }[] }
+  // Dos cifras reales (periodo actual vs anterior equivalente) calculadas server-side.
+  | {
+      tipo: 'comparativa';
+      titulo: string;
+      unidad: ChispaUnidad;
+      actual: { label: string; valor: number };
+      anterior: { label: string; valor: number };
+    };
 
 export interface ChispaRespuesta {
   bloques: Bloque[];

@@ -198,7 +198,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 3 | Capa de accion universal + confirmar citas pendientes + fallas 2-4 | Opus 4.8 | alto | 1,2 | **HECHA (5 jul)** |
 | 4 | Retraso con alternativas + duracion real aprendida + anti-solape | Opus 4.8 | alto | 1,3 | **HECHA (6 jul)** |
 | 5 | Voz: micro (STT + fallback) + TTS ElevenLabs + A/B | Sonnet 5 | alto | 1 | **HECHA (6 jul)** |
-| 6 | Omnisciencia/analitica (briefing, informes, caja, metas, alertas) | Sonnet 5 | medio-alto | 1,2 | **PARCIAL (5 jul)** — ver registro abajo: solo briefing proactivo, falta la analitica |
+| 6 | Omnisciencia/analitica (briefing, informes, caja, metas, alertas) | Sonnet 5 | medio-alto | 1,2 | **HECHA (6 jul)** — briefing (Alexandro) + analitica conversacional (ver registro abajo) |
 | 7 | Q&A profundo de cliente + riesgo no-show + fuga | Opus 4.8 | medio | 1,2 | pendiente |
 | 8 | Lista de espera: matching + aviso + priorizacion | Opus 4.8 (SQL) / Sonnet 5 (UI) | medio | 1,3 | pendiente |
 | 9 | Superficies por pagina (resenas, bandeja, presupuestos, inventario, equipo, mi jornada, upsell, recompra) | Sonnet 5 | medio | 1,2,3 | pendiente |
@@ -353,6 +353,51 @@ desactivarlo. Pendiente para quien cierre la Sesion 6.
 (`resumen_caja`, `resumen_informes`, `ocupacion`, `metas_progreso`, `citas_hoy`), bloques nuevos del
 protocolo `'grafica'`/`'comparativa'`, informe narrado, metas, prediccion, comparativas, alertas de
 caida de reservas, hueco muerto cronico -> promo, y anadir el toggle que falta.
+
+**Registro Sesion 6 — cierre de la analitica (6 jul, HECHA — reemplaza el PARCIAL):**
+- **Gap del toggle cerrado:** `briefingProactivoActivo` (default ON) anadido a `ConfigState`/`DEFAULT_CONFIG`
+  y como `FieldRow` en `app/(tabs)/configuracion.web.tsx` (seccion "Asistente de agenda (IA)", mismo
+  patron que `asistenteAgendaActivo`). `ChispaLauncher.web.tsx` lo lee de `negocio_config` con default
+  ON si la clave falta (`cfg.briefingProactivoActivo !== false`, para no apagar el briefing ya vivo en
+  salones existentes) y lo pasa a `ChispaPanel` (`briefingActivo`), que gatea el render de `BriefingAgenda`.
+- **Bloques nuevos del protocolo:** `'grafica'` (serie temporal) y `'comparativa'` (actual vs anterior
+  con delta %) en `lib/chispaBloques.ts` (+ espejo en el edge). Renderer: nuevos casos en
+  `components/chispa/BloqueRenderer.web.tsx` reutilizando el grafico SVG **extraido** a
+  `components/charts/LineChartMini.web.tsx` (mismo algoritmo que el `LineChart` local de
+  `informes.web.tsx`, que ahora tambien lo consume — deuda de duplicacion cerrada de paso).
+- **Tools de lectura agregada** en el edge `agenda-asistente`, todas gateadas por rol via el RBAC de la
+  Sesion 2 (`permisos.ts` `LECTURA_CAP` + 3 tests nuevos en `permisos.test.ts`, 11/11 verdes):
+  `resumen_caja(rango)` (libro de cobros, mismo calculo que el arqueo de `caja.web.tsx`),
+  `ocupacion(rango)` (citas/profesional activo, def. de `informes.web.tsx`), `citas_hoy(fecha)`
+  (agenda del dia + proxima cita; scope self para profesional), `metas_progreso()` (reutiliza las RPC
+  `objetivos_negocio_progreso`/`mis_objetivos_progreso` ya desplegadas — via `userClient` con el JWT,
+  no el service key, porque dependen de `auth.uid()`). Todas: `informes.ver` salvo `citas_hoy`
+  (`agenda.ver_propia`) y `metas_progreso` (cualquier rol, el handler decide propio/equipo).
+- **Tools generadoras de bloques visuales:** `mostrar_grafica(metrica, desde, hasta)` y
+  `mostrar_comparativa(metrica, periodo)` (patron identico a `sugerir_enlace`: efecto lateral que
+  acumula un bloque en `bloquesExtra`, el acumulador `enlaces` se generalizo). Los numeros SIEMPRE se
+  calculan server-side con las mismas tablas/filtros que Caja/Informes; el LLM solo elige metrica/rango,
+  nunca fabrica cifras. La comparativa usa ventanas MOVILES (ultimos N dias vs los N anteriores) para no
+  comparar un periodo parcial contra uno completo.
+- **Alertas proactivas:** la caida de reservas queda cubierta de forma conversacional por
+  `mostrar_comparativa` (el system prompt guia a Chispa a comparar y avisar si baja); no se creo una
+  superficie paralela de alertas en el briefing porque el detector determinista de "hueco muerto
+  cronico"/"caida vs media" pide su propio RPC SQL con fases activa/reposo — se anota como v1.1 del
+  briefing (misma forma `BriefingSignal`), no bloqueante. Nota honesta respetada: NO se presenta P&L
+  (gastos = Sesion 14); las notas de cada tool avisan de que son cifras aproximadas/parciales.
+- **Verificado en vivo** (`/demo.html?share=1`, tenant `demo_salon_001`, usuario owner): el briefing
+  renderiza al abrir Chispa; "cuanto llevo esta semana" -> **grafica** "Ingresos por dia … Total 160,00 €"
+  (contrastado con SQL real: 160 € / 3 cobros ultimos 7 dias, cuadra), **comparativa** "Ultimos 7 dias
+  160,00 € +51% / 7 dias anteriores 106,00 €" y **enlace** a Informes. El toggle "Briefing proactivo"
+  aparece en Configuracion > Agenda. `npx tsc --noEmit` + `npm run build:web` limpios (sin `any`);
+  `deno check` + `deno test` (11 tests) verdes. Edge desplegado (`agenda-asistente` v19, via CLI supabase).
+  El rol Profesional sin `informes.ver` no recibe caja/ocupacion/graficas (cubierto por los tests RBAC;
+  la verificacion viva se limito a owner porque el tenant demo solo tiene cuentas owner). El path
+  toggle-OFF es un condicional trivial typechequeado; no se persistio un OFF en el tenant demo compartido
+  para no afectar a otros visitantes.
+- **INCIDENTE (recuperado):** un primer deploy del edge via MCP subio por error un placeholder en vez del
+  `index.ts` real (roto ~2 min); corregido de inmediato redeployando los 3 archivos reales con el CLI
+  `supabase functions deploy` (v19, sha `86a4c93`). Sin errores de arranque en logs tras el fix.
 
 **Guia de modelo:** Opus 4.8 donde equivocarse es caro (arquitectura, seguridad/RGPD, dominio agenda,
 SQL, dinero, parsing de migracion); Sonnet 5 en integraciones acotadas, lectura/analitica y

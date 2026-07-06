@@ -3,10 +3,22 @@
 // tipo; anadir un tipo nuevo (grafica, listas...) = anadir un caso aqui y en
 // lib/chispaBloques.ts, sin tocar el panel ni el edge.
 import { useRouter } from 'expo-router';
-import type { Bloque } from '@/lib/chispaBloques';
+import type { Bloque, ChispaUnidad } from '@/lib/chispaBloques';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
+import { LineChartMini } from '@/components/charts/LineChartMini.web';
 
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
+
+// Formato + color por unidad para los bloques 'grafica'/'comparativa'. Los
+// valores en si SIEMPRE vienen calculados por el edge (nunca inventados por el LLM).
+function fmtUnidad(unidad: ChispaUnidad): (n: number) => string {
+  if (unidad === 'eur') return (n) => `${n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+  if (unidad === 'pct') return (n) => `${Math.round(n)}%`;
+  return (n) => `${n}`;
+}
+function colorUnidad(unidad: ChispaUnidad): string {
+  return unidad === 'eur' ? T.success : unidad === 'pct' ? T.cyan : T.primary;
+}
 
 // Estado del bloque 'accion' (propone -> confirma). Lo gobierna el panel.
 export type AccionEstado = 'pendiente' | 'aplicando' | 'aplicada' | 'cancelada';
@@ -88,6 +100,48 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
         <span>{bloque.descripcion ? `${bloque.descripcion} — ${bloque.label}` : bloque.label}</span>
         <IconoFlecha size={14} color={T.primaryHi} />
       </button>
+    );
+  }
+
+  // --- GRAFICA: serie temporal real (ver 'grafica' en lib/chispaBloques.ts) ---
+  if (bloque.tipo === 'grafica') {
+    const fmt = fmtUnidad(bloque.unidad);
+    const serie = bloque.serie.map((p) => ({ fecha: new Date(`${p.fecha}T00:00:00`), valor: p.valor }));
+    return (
+      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px 14px' }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 8 }}>{bloque.titulo}</div>
+        <LineChartMini serie={serie} color={colorUnidad(bloque.unidad)} fmt={fmt} />
+      </div>
+    );
+  }
+
+  // --- COMPARATIVA: dos cifras reales (periodo actual vs anterior) ---
+  if (bloque.tipo === 'comparativa') {
+    const { actual, anterior, unidad, titulo } = bloque;
+    const fmt = fmtUnidad(unidad);
+    const igual = actual.valor === anterior.valor;
+    const subiendo = actual.valor > anterior.valor;
+    const deltaPct = anterior.valor > 0
+      ? Math.round(((actual.valor - anterior.valor) / anterior.valor) * 100)
+      : (actual.valor > 0 ? 100 : 0);
+    const colorDelta = igual ? T.textTertiary : subiendo ? T.success : T.danger;
+    return (
+      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px 14px' }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{titulo}</div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: 10.5, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.3 }}>{actual.label}</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: T.text }}>{fmt(actual.valor)}</div>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: colorDelta, paddingBottom: 3 }}>
+            {igual ? '=' : subiendo ? `+${deltaPct}%` : `${deltaPct}%`}
+          </div>
+          <div>
+            <div style={{ fontSize: 10.5, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.3 }}>{anterior.label}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: T.textSecondary }}>{fmt(anterior.valor)}</div>
+          </div>
+        </div>
+      </div>
     );
   }
 

@@ -17,6 +17,7 @@ import { manualInformes } from '@/lib/manuals/informes';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
+import { LineChartMini } from '@/components/charts/LineChartMini.web';
 
 // ---------------------------------------------------------------------------
 // SVG Icons
@@ -1067,38 +1068,8 @@ function InformesScreen() {
     return dias.map(d => { const b = map.get(format(d, 'yyyy-MM-dd'))!; return { fecha: d, ingresos: b.ingresos, citas: b.citas }; });
   }, [activas, srvMap, desde, hasta]);
 
-  // Grafico de linea (SVG) — evolucion de una serie. Sin dependencias externas.
-  const LineChart = ({ serie, valueKey, color, fmt }: { serie: { fecha: Date; ingresos: number; citas: number }[]; valueKey: 'ingresos' | 'citas'; color: string; fmt: (n: number) => string }) => {
-    const W = 640, H = 150, pad = 14;
-    const vals = serie.map(s => s[valueKey]);
-    const max = Math.max(1, ...vals);
-    const n = serie.length;
-    const xx = (i: number) => pad + (n <= 1 ? (W - pad * 2) / 2 : (i / (n - 1)) * (W - pad * 2));
-    const yy = (v: number) => pad + (1 - v / max) * (H - pad * 2);
-    const line = serie.map((s, i) => `${i === 0 ? 'M' : 'L'}${xx(i).toFixed(1)} ${yy(s[valueKey]).toFixed(1)}`).join(' ');
-    const area = n > 0 ? `${line} L${xx(n - 1).toFixed(1)} ${H - pad} L${xx(0).toFixed(1)} ${H - pad} Z` : '';
-    const total = vals.reduce((a, b) => a + b, 0);
-    const gid = `grad-${valueKey}`;
-    return (
-      <div>
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" style={{ display: 'block' }}>
-          <defs>
-            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor={color} stopOpacity="0.22" />
-              <stop offset="1" stopColor={color} stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {area && <path d={area} fill={`url(#${gid})`} />}
-          {n > 0 && <path d={line} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />}
-        </svg>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10.5, color: TOKENS.textTer }}>
-          <span>{serie.length ? format(serie[0].fecha, 'd MMM', { locale: es }) : ''}</span>
-          <span style={{ fontWeight: 600, color: TOKENS.textSec }}>Total: {fmt(total)}</span>
-          <span>{serie.length ? format(serie[serie.length - 1].fecha, 'd MMM', { locale: es }) : ''}</span>
-        </div>
-      </div>
-    );
-  };
+  // Grafico de linea: componente compartido components/charts/LineChartMini
+  // (mismo algoritmo, reutilizado tambien por el bloque 'grafica' de Chispa).
 
   // Cabecera estatica de seccion (siempre visible, parte superior de la tarjeta)
   const SectionHeader = ({ id, icon, iconColor, title, subtitle }: { id?: SeccionId; icon: string; iconColor: string; title: string; subtitle: string }) => (
@@ -1309,11 +1280,11 @@ function InformesScreen() {
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 18 }}>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Ingresos</div>
-                    <LineChart serie={tendenciaData} valueKey="ingresos" color={TOKENS.success} fmt={(n) => `${fmtEur(n)} EUR`} />
+                    <LineChartMini serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.ingresos }))} color={TOKENS.success} fmt={(n) => `${fmtEur(n)} EUR`} />
                   </div>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Citas</div>
-                    <LineChart serie={tendenciaData} valueKey="citas" color={TOKENS.primary} fmt={(n) => `${n}`} />
+                    <LineChartMini serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.citas }))} color={TOKENS.primary} fmt={(n) => `${n}`} />
                   </div>
                 </div>
               </SectionBody>

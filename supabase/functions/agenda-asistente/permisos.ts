@@ -92,6 +92,13 @@ const LECTURA_CAP: Record<string, Capability | null> = {
   consultar_disponibilidad: 'agenda.ver_propia',
   resumen_informes: 'informes.ver',
   sugerir_enlace: null, // navegacion (no lee datos): cualquier rol
+  // --- Omnisciencia/analitica (Sesion 6) ---
+  resumen_caja: 'informes.ver', // dinero cobrado agregado: mismo gate que caja.web.tsx (owner/admin)
+  ocupacion: 'informes.ver', // ocupacion agregada de TODO el salon
+  citas_hoy: 'agenda.ver_propia', // agenda del dia: mismo gate que listar_citas
+  metas_progreso: null, // cualquier rol: el handler decide objetivos propios o del equipo
+  mostrar_grafica: 'informes.ver', // emite bloque 'grafica' con datos agregados del negocio
+  mostrar_comparativa: 'informes.ver', // emite bloque 'comparativa' con datos agregados del negocio
 };
 
 // Predicado central del gating: ¿se declara esta tool al LLM para este rol/scope?

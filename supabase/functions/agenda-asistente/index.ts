@@ -6,7 +6,7 @@
 import OpenAI from 'npm:openai@4';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 // Seguridad de la capa IA (Sesion 2): RBAC de tools + regla dura de salud.
-import { can, roleOf, toolPermitida, esEscritura } from './permisos.ts';
+import { can, roleOf, toolPermitida, esEscritura, type Role } from './permisos.ts';
 import { assertSinCamposProhibidos, proyectarClienteIA } from './whitelist.ts';
 
 // ---------------------------------------------------------------------------
@@ -94,12 +94,22 @@ type AccionPropuesta =
 
 // ---------------------------------------------------------------------------
 // Bloques tipados (deben coincidir con lib/chispaBloques.ts en el cliente).
-// El union se deja extensible: grafica/listas llegan en sesiones posteriores.
+// El union se deja extensible: listas, etc. pueden llegar en sesiones futuras.
 // ---------------------------------------------------------------------------
+type ChispaUnidad = 'eur' | 'citas' | 'pct';
+
 type Bloque =
   | { tipo: 'texto'; texto: string }
   | { tipo: 'enlace'; ruta: string; label: string; descripcion?: string }
-  | { tipo: 'accion'; accion: AccionPropuesta };
+  | { tipo: 'accion'; accion: AccionPropuesta }
+  | { tipo: 'grafica'; titulo: string; unidad: ChispaUnidad; serie: { fecha: string; valor: number }[] }
+  | {
+      tipo: 'comparativa';
+      titulo: string;
+      unidad: ChispaUnidad;
+      actual: { label: string; valor: number };
+      anterior: { label: string; valor: number };
+    };
 
 // Allowlist de rutas para bloques 'enlace' (espejo de CHISPA_RUTAS del cliente).
 // El LLM elige una CLAVE; el edge valida y adjunta la ruta/label real.
@@ -174,6 +184,69 @@ const TOOLS = [
         hasta: { type: 'string', description: 'YYYY-MM-DD (inclusivo, default = desde)' },
       },
       required: ['desde'],
+    },
+  },
+  // --- Omnisciencia/analitica (Sesion 6): lecturas agregadas adicionales ---
+  {
+    name: 'resumen_caja',
+    description: 'Dinero REALMENTE cobrado (libro de caja) en un rango de fechas: total, desglose por efectivo/datafono y propinas, y numero de cobros. Usalo para "cuanto llevo hoy/esta semana/este mes". Solo disponible para direccion/propietario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        desde: { type: 'string', description: 'YYYY-MM-DD (inclusivo)' },
+        hasta: { type: 'string', description: 'YYYY-MM-DD (inclusivo, default = desde)' },
+      },
+      required: ['desde'],
+    },
+  },
+  {
+    name: 'ocupacion',
+    description: 'Ocupacion del salon en un rango de fechas: citas totales, profesionales activos, promedio de citas por profesional y desglose por profesional. Solo disponible para direccion/propietario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        desde: { type: 'string', description: 'YYYY-MM-DD (inclusivo)' },
+        hasta: { type: 'string', description: 'YYYY-MM-DD (inclusivo, default = desde)' },
+      },
+      required: ['desde'],
+    },
+  },
+  {
+    name: 'metas_progreso',
+    description: 'Progreso de los objetivos mensuales (Equipo > Objetivos): si el usuario es direccion/propietario, los del equipo completo; si es profesional, los suyos propios. Si nadie ha fijado objetivos, lo indica.',
+    parameters: { type: 'object' as const, properties: {} },
+  },
+  {
+    name: 'citas_hoy',
+    description: 'Resumen de la agenda de hoy (o de la fecha indicada): total de citas, desglose por estado y la proxima cita (hora, servicio, profesional). Si el usuario es profesional, solo su propia agenda.',
+    parameters: {
+      type: 'object' as const,
+      properties: { fecha: { type: 'string', description: 'YYYY-MM-DD, por defecto hoy' } },
+    },
+  },
+  {
+    name: 'mostrar_grafica',
+    description: 'Anade a la respuesta una GRAFICA real con datos calculados (nunca inventados) de ingresos o numero de citas, dia a dia, en un rango. Usala cuando el usuario pida ver la evolucion/tendencia de una metrica o un resumen visual de un periodo (p.ej. "resumeme el mes", "como va la semana"). Solo disponible para direccion/propietario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        metrica: { type: 'string', description: 'ingresos | citas' },
+        desde: { type: 'string', description: 'YYYY-MM-DD' },
+        hasta: { type: 'string', description: 'YYYY-MM-DD (rango razonable, maximo ~3 meses)' },
+      },
+      required: ['metrica', 'desde', 'hasta'],
+    },
+  },
+  {
+    name: 'mostrar_comparativa',
+    description: 'Anade a la respuesta una COMPARATIVA real entre el periodo actual y el periodo anterior equivalente (ultimos 7 dias vs los 7 anteriores, o ultimos 30 dias vs los 30 anteriores) de ingresos o numero de citas. Solo disponible para direccion/propietario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        metrica: { type: 'string', description: 'ingresos | citas' },
+        periodo: { type: 'string', description: 'semana | mes' },
+      },
+      required: ['metrica', 'periodo'],
     },
   },
   // --- ESCRITURA (el LLM las invoca; la funcion NO las ejecuta) ---
@@ -498,13 +571,14 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     'No uses emojis en tus respuestas.',
     'GUIA DE CONFIGURACION: si el usuario pregunta como o donde configurar/personalizar algo, o que se puede ajustar de una funcion, responde con el MAPA DE CONFIGURACION del final: da la RUTA exacta (Configuracion > Pestana > Seccion) y enumera que se puede ajustar ahi. Cinete ESTRICTAMENTE al mapa: no inventes ajustes, opciones, valores de ejemplo ni rutas que no esten escritos en el (por ejemplo, no anadas "cada 15/30 min" ni "SMS/email" si el mapa no lo dice). Si te preguntan por algo que no esta en el mapa, dilo con franqueza en vez de suponer.',
     'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar un ajuste (por ejemplo "activa los recordatorios" o "pon la antelacion minima en 4h"), usa la tool cambiar_config con la CLAVE exacta de la lista AJUSTES EDITABLES del final. Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
-    'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad).',
+    'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad, citas_hoy).',
+    'Para el progreso de objetivos/metas usa metas_progreso (del equipo si eres direccion/propietario, o los tuyos si eres profesional); si no hay ninguno fijado, dilo con naturalidad y sugiere fijarlo en Equipo.',
     'Para proponer operaciones de agenda usa las tools de escritura (crear_cita, reagendar_cita, cancelar_cita, bloquear_hueco, liberar_hueco).',
     'Tambien puedes proponer acciones de GESTION cuando tengas la tool disponible: confirmar_citas (confirmar en bloque las citas pendientes de un dia, p.ej. "confirmame las citas de manana"), editar_servicio (cambiar precio/nombre/duracion/activar de un servicio del catalogo), editar_horario (fijar el turno de un profesional un dia), crear_presupuesto (borrador con precios REALES del catalogo, nunca inventes precios) y enviar_mensaje_bandeja (guardar un borrador en el hilo de la Bandeja del cliente; NO envia el WhatsApp real, eso lo hace el equipo). Si una tool no esta disponible para el rol de este usuario, no la menciones como algo que puedas hacer: guia a la pantalla correspondiente.',
     'Todas estas acciones son PROPUESTAS: se muestran en una tarjeta y el usuario confirma; tu nunca las aplicas.',
     puedeInformes
-      ? 'Para datos agregados de informes o facturacion (numero de citas por estado, ingresos cobrados en un rango) usa la tool resumen_informes.'
-      : 'NO tienes acceso a informes ni a la facturacion agregada del salon con el rol de este usuario. Si te preguntan por ingresos totales, facturacion, cuanto se ha ganado, estadisticas o informes del negocio, explica con naturalidad que no tienes acceso a esos datos con su rol y que lo consulten con direccion o el propietario. NUNCA inventes cifras.',
+      ? 'Para datos agregados de informes o facturacion (citas por estado, ingresos cobrados en un rango) usa resumen_informes; para dinero cobrado de verdad (efectivo/datafono/propinas) usa resumen_caja; para ocupacion del salon usa ocupacion. Cuando el usuario pida un resumen de un periodo ("resumeme el mes", "como va la semana") o la evolucion de una metrica, ANADE ademas mostrar_grafica (dia a dia) y, si tiene sentido comparar con el periodo anterior, mostrar_comparativa; luego ofrece sugerir_enlace hacia informes para el detalle completo. Nunca inventes cifras: usa solo las que devuelven estas tools, y si el rango tiene pocos datos dilo con franqueza en vez de sonar mas seguro de lo que permiten los datos.'
+      : 'NO tienes acceso a informes, caja agregada, ocupacion ni graficas de negocio con el rol de este usuario. Si te preguntan por ingresos totales, facturacion, cuanto se ha ganado, estadisticas o informes del negocio, explica con naturalidad que no tienes acceso a esos datos con su rol y que lo consulten con direccion o el propietario. NUNCA inventes cifras.',
     'Cuando sea util, usa sugerir_enlace para ofrecer un chip que lleve a la pantalla relevante (p.ej. tras hablar de una clienta, ofrecer ir a Clientes). Es opcional y no modifica nada; no abuses (a lo sumo uno o dos por respuesta).',
     'ANTES de proponer una escritura: resuelve nombres a entidades reales con buscar_cliente e info_catalogo.',
     'Si hay ambiguedad (varios clientes con ese nombre, servicio no encontrado), PREGUNTA al usuario en vez de proponer con datos inciertos.',
@@ -564,7 +638,7 @@ Deno.serve(async (req) => {
     const mensajes = Array.isArray(body?.mensajes) ? body.mensajes : [];
 
     // --- Ejecutar agente ---
-    const resultado = await runAgente(negocioId, role, user.id, realScope, effort, mensajes);
+    const resultado = await runAgente(negocioId, role, user.id, realScope, effort, mensajes, userClient);
     return json(resultado);
   } catch (e) {
     return json({ error: String((e as Error)?.message ?? e) }, 500);
@@ -581,6 +655,7 @@ async function runAgente(
   scope: 'all' | 'self' | 'none',
   _effort: string,
   mensajes: { role: 'user' | 'assistant'; content: string }[],
+  userClient: typeof svc,
 ): Promise<{ bloques: Bloque[]; texto: string; accion_propuesta?: AccionPropuesta }> {
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }); // YYYY-MM-DD
 
@@ -603,7 +678,7 @@ async function runAgente(
   // Serializa el resultado de una tool de lectura hacia el LLM aplicando la
   // regla dura de salud: si algun campo prohibido se colara, falla cerrado.
   const serializarLectura = async (name: string, input: Record<string, string>): Promise<string> => {
-    const r = await ejecutarLectura({ name, input }, negocioId, scope, userId);
+    const r = await ejecutarLectura({ name, input }, negocioId, scope, userId, rolCanon, userClient);
     assertSinCamposProhibidos(r);
     return JSON.stringify(r);
   };
@@ -616,8 +691,10 @@ async function runAgente(
     }
   };
 
-  // Enlaces sugeridos durante el razonamiento; se adjuntan a la respuesta final.
-  const enlaces: Bloque[] = [];
+  // Bloques sin efecto de escritura acumulados durante el razonamiento (enlace,
+  // grafica, comparativa): se adjuntan a la respuesta final junto al texto y la
+  // accion (si la hay).
+  const bloquesExtra: Bloque[] = [];
   const verto = new Set<string>(); // evita enlaces duplicados por ruta
   // Procesa una tool de navegacion: valida el destino y acumula un bloque enlace.
   // Devuelve el texto de respuesta que se reinyecta al LLM.
@@ -626,19 +703,32 @@ async function runAgente(
     if (!meta) return `Destino no valido. Usa uno de: ${Object.keys(RUTAS).join(', ')}.`;
     if (!verto.has(meta.ruta)) {
       verto.add(meta.ruta);
-      enlaces.push({ tipo: 'enlace', ruta: meta.ruta, label: meta.label, descripcion: inp.descripcion });
+      bloquesExtra.push({ tipo: 'enlace', ruta: meta.ruta, label: meta.label, descripcion: inp.descripcion });
     }
     return 'Enlace anadido a la respuesta.';
   };
 
-  // Ensambla la respuesta final: texto (si hay) + enlaces + accion (si hay).
+  // Despacha una tool call que NO es de escritura. 'sugerir_enlace'/'mostrar_grafica'/
+  // 'mostrar_comparativa' tienen efecto lateral (anaden un bloque a bloquesExtra con
+  // datos calculados aqui mismo, nunca por el LLM); el resto son lecturas puras que
+  // se serializan de vuelta al modelo.
+  const procesarToolNoEscritura = async (tc: { function: { name: string; arguments: string } }): Promise<string> => {
+    const name = tc.function.name;
+    const inp = parseArgs(tc);
+    if (name === 'sugerir_enlace') return procesarEnlace(inp);
+    if (name === 'mostrar_grafica') return await procesarGrafica(inp, negocioId, bloquesExtra);
+    if (name === 'mostrar_comparativa') return await procesarComparativa(inp, negocioId, bloquesExtra);
+    return await serializarLectura(name, inp);
+  };
+
+  // Ensambla la respuesta final: texto (si hay) + bloquesExtra + accion (si hay).
   // Ademas de bloques, devuelve texto/accion_propuesta de forma plana para
   // compatibilidad con clientes ya desplegados (que aun no leen bloques);
   // asi el cambio del edge no rompe la web en produccion durante el rebuild.
   const finalizar = (texto: string, accion?: AccionPropuesta): { bloques: Bloque[]; texto: string; accion_propuesta?: AccionPropuesta } => {
     const bloques: Bloque[] = [];
     if (texto && texto.trim()) bloques.push({ tipo: 'texto', texto });
-    bloques.push(...enlaces);
+    bloques.push(...bloquesExtra);
     if (accion) bloques.push({ tipo: 'accion', accion });
     if (bloques.length === 0) bloques.push({ tipo: 'texto', texto: 'Hecho.' });
     const out: { bloques: Bloque[]; texto: string; accion_propuesta?: AccionPropuesta } = { bloques, texto: texto || '' };
@@ -667,7 +757,7 @@ async function runAgente(
 
     const toolCalls = msg.tool_calls ?? [];
 
-    // Sin tool calls: respuesta final de texto (+ enlaces acumulados)
+    // Sin tool calls: respuesta final de texto (+ bloquesExtra acumulados)
     if (toolCalls.length === 0) {
       await registrarConv(negocioId, userId, messages);
       return finalizar(msg.content ?? '');
@@ -710,22 +800,17 @@ async function runAgente(
           content = propuesta.error;
         } else if (esEscritura(tc.function.name)) {
           content = 'Procesa una sola operacion a la vez.';
-        } else if (tc.function.name === 'sugerir_enlace') {
-          content = procesarEnlace(parseArgs(tc));
         } else {
-          content = await serializarLectura(tc.function.name, parseArgs(tc));
+          content = await procesarToolNoEscritura(tc);
         }
         messages.push({ role: 'tool', tool_call_id: tc.id, content });
       }
       continue;
     }
 
-    // Solo lecturas y/o enlaces: ejecutar y reinyectar resultados
+    // Solo lecturas y/o bloques (enlace/grafica/comparativa): ejecutar y reinyectar resultados
     for (const tc of toolCalls) {
-      const content =
-        tc.function.name === 'sugerir_enlace'
-          ? procesarEnlace(parseArgs(tc))
-          : await serializarLectura(tc.function.name, parseArgs(tc));
+      const content = await procesarToolNoEscritura(tc);
       messages.push({ role: 'tool', tool_call_id: tc.id, content });
     }
   }
@@ -751,6 +836,8 @@ async function ejecutarLectura(
   negocioId: string,
   scope: 'all' | 'self' | 'none',
   userId: string,
+  role: Role,
+  userClient: typeof svc,
 ): Promise<unknown> {
   const inp = (t.input ?? {}) as Record<string, string>;
 
@@ -936,9 +1023,317 @@ async function ejecutarLectura(
       };
     }
 
+    case 'resumen_caja': {
+      // Solo llega aqui si el rol tiene informes.ver. Mismo libro de caja y
+      // misma logica que el arqueo de caja.web.tsx, parametrizado por rango.
+      const desde = inp.desde;
+      const hasta = inp.hasta ?? inp.desde;
+      const { data: cobros } = await svc
+        .from('cobros')
+        .select('total_cents, efectivo_cents, datafono_cents, propina_cents')
+        .eq('negocio_id', negocioId)
+        .eq('estado', 'completado')
+        .gte('cobrado_at', `${desde}T00:00:00`)
+        .lte('cobrado_at', `${hasta}T23:59:59`);
+      const filas = (cobros ?? []) as {
+        total_cents: number | null; efectivo_cents: number | null;
+        datafono_cents: number | null; propina_cents: number | null;
+      }[];
+      const eur = (n: number) => Math.round(n) / 100;
+      return {
+        rango: { desde, hasta },
+        total_eur: eur(filas.reduce((s, r) => s + (r.total_cents ?? 0), 0)),
+        efectivo_eur: eur(filas.reduce((s, r) => s + (r.efectivo_cents ?? 0), 0)),
+        datafono_eur: eur(filas.reduce((s, r) => s + (r.datafono_cents ?? 0), 0)),
+        propinas_eur: eur(filas.reduce((s, r) => s + (r.propina_cents ?? 0), 0)),
+        num_cobros: filas.length,
+        nota: 'Dinero realmente cobrado (libro de caja); no incluye citas del rango aun no cobradas.',
+      };
+    }
+
+    case 'ocupacion': {
+      // Misma definicion que ocupacionGlobal/ocupacionData de informes.web.tsx:
+      // citas confirmadas/completadas por profesional activo (no % de horario).
+      const desde = inp.desde;
+      const hasta = inp.hasta ?? inp.desde;
+      const [{ data: citas }, { data: profes }] = await Promise.all([
+        svc
+          .from('citas')
+          .select('profesional_id')
+          .eq('negocio_id', negocioId)
+          .in('estado', ['confirmada', 'completada'])
+          .gte('inicio', `${desde}T00:00:00`)
+          .lte('inicio', `${hasta}T23:59:59`),
+        svc.from('profesionales').select('id, nombre').eq('negocio_id', negocioId).eq('activo', true),
+      ]);
+      const porProfCount = new Map<string, number>();
+      for (const c of (citas ?? []) as { profesional_id: string | null }[]) {
+        if (!c.profesional_id) continue;
+        porProfCount.set(c.profesional_id, (porProfCount.get(c.profesional_id) ?? 0) + 1);
+      }
+      const totalCitasOcup = (citas ?? []).length;
+      const listaProfes = (profes ?? []) as { id: string; nombre: string }[];
+      const porProfesional = listaProfes
+        .map((p) => ({ nombre: p.nombre, citas: porProfCount.get(p.id) ?? 0 }))
+        .sort((a, b) => b.citas - a.citas);
+      return {
+        rango: { desde, hasta },
+        citas_totales: totalCitasOcup,
+        profesionales_activos: listaProfes.length,
+        promedio_citas_por_profesional: listaProfes.length > 0 ? Math.round((totalCitasOcup / listaProfes.length) * 10) / 10 : 0,
+        por_profesional: porProfesional,
+        nota: 'Ocupacion aproximada: citas por profesional activo, no porcentaje de horario disponible.',
+      };
+    }
+
+    case 'metas_progreso': {
+      // Objetivos gamificados existentes (Equipo > Objetivos): reutiliza las RPC
+      // ya desplegadas (objetivos-profesional.sql), no se duplica el calculo.
+      // Dependen de auth.uid(): SIEMPRE via userClient (con el JWT del usuario),
+      // nunca con el service key (svc), o el RPC no reconoceria al llamante.
+      if (role === 'propietario' || role === 'direccion') {
+        const { data, error } = await userClient.rpc('objetivos_negocio_progreso');
+        if (error) return { ambito: 'equipo', objetivos: [], nota: 'No se pudieron leer los objetivos del equipo.' };
+        const objetivos = ((data as { objetivos?: unknown[] } | null)?.objetivos ?? []) as unknown[];
+        return {
+          ambito: 'equipo',
+          objetivos,
+          nota: objetivos.length === 0 ? 'Nadie ha fijado objetivos todavia (Equipo > Objetivos del equipo).' : undefined,
+        };
+      }
+      const { data, error } = await userClient.rpc('mis_objetivos_progreso');
+      if (error) return { ambito: 'propio', objetivos: [], nota: 'No se pudieron leer tus objetivos.' };
+      const objetivos = ((data as { objetivos?: unknown[] } | null)?.objetivos ?? []) as unknown[];
+      return {
+        ambito: 'propio',
+        objetivos,
+        nota: objetivos.length === 0 ? 'No tienes objetivos fijados todavia; te los puede fijar direccion en Equipo.' : undefined,
+      };
+    }
+
+    case 'citas_hoy': {
+      const fecha = /^\d{4}-\d{2}-\d{2}$/.test(inp.fecha ?? '')
+        ? inp.fecha
+        : new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+
+      let profIdFiltro: string | null = null;
+      if (scope === 'self') profIdFiltro = await resolverProfesionalDelUsuario(negocioId, userId);
+
+      let q = svc
+        .from('citas')
+        .select('id, inicio, estado, profesional_id, servicio_id')
+        .eq('negocio_id', negocioId)
+        .gte('inicio', `${fecha}T00:00:00`)
+        .lte('inicio', `${fecha}T23:59:59`)
+        .order('inicio', { ascending: true });
+      if (profIdFiltro) q = q.eq('profesional_id', profIdFiltro);
+      const { data: citasHoyData } = await q;
+      const lista = (citasHoyData ?? []) as {
+        id: string; inicio: string; estado: string; profesional_id: string | null; servicio_id: string | null;
+      }[];
+
+      const servIds = [...new Set(lista.map((c) => c.servicio_id).filter(Boolean))] as string[];
+      const profIds = [...new Set(lista.map((c) => c.profesional_id).filter(Boolean))] as string[];
+      const [servRes, profRes] = await Promise.all([
+        servIds.length
+          ? svc.from('servicios').select('id, nombre').in('id', servIds)
+          : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
+        profIds.length
+          ? svc.from('profesionales').select('id, nombre').in('id', profIds)
+          : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
+      ]);
+      const servMap = new Map((servRes.data ?? []).map((s: { id: string; nombre: string }) => [s.id, s.nombre]));
+      const profMap = new Map((profRes.data ?? []).map((p: { id: string; nombre: string }) => [p.id, p.nombre]));
+
+      const porEstadoHoy: Record<string, number> = {};
+      for (const c of lista) porEstadoHoy[c.estado || 'sin_estado'] = (porEstadoHoy[c.estado || 'sin_estado'] ?? 0) + 1;
+
+      const ahora = Date.now();
+      const proxima = lista
+        .filter((c) => new Date(c.inicio).getTime() >= ahora && c.estado !== 'cancelada')
+        .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())[0];
+
+      const horaDe = (iso: string) => new Date(iso).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+
+      return {
+        fecha,
+        total: lista.length,
+        por_estado: porEstadoHoy,
+        proxima: proxima
+          ? {
+              hora: horaDe(proxima.inicio),
+              servicio: proxima.servicio_id ? servMap.get(proxima.servicio_id) ?? null : null,
+              profesional: proxima.profesional_id ? profMap.get(proxima.profesional_id) ?? null : null,
+            }
+          : null,
+        citas: lista.map((c) => ({
+          hora: horaDe(c.inicio),
+          servicio: c.servicio_id ? servMap.get(c.servicio_id) ?? null : null,
+          profesional: c.profesional_id ? profMap.get(c.profesional_id) ?? null : null,
+          estado: c.estado,
+        })),
+      };
+    }
+
     default:
       return { error: 'tool desconocida' };
   }
+}
+
+// ---------------------------------------------------------------------------
+// Bloques 'grafica'/'comparativa' (Sesion 6): los datos SIEMPRE se calculan
+// aqui con las mismas tablas/filtros que caja.web.tsx e informes.web.tsx; el
+// LLM solo elige metrica/rango, nunca fabrica los numeros que se muestran.
+// ---------------------------------------------------------------------------
+
+// Lista de dias YYYY-MM-DD entre desde y hasta, ambos inclusive.
+function enumerarDias(desde: string, hasta: string): string[] {
+  const out: string[] = [];
+  let d = new Date(`${desde}T00:00:00Z`);
+  const fin = new Date(`${hasta}T00:00:00Z`);
+  if (isNaN(d.getTime()) || isNaN(fin.getTime()) || d > fin) return out;
+  while (d <= fin) {
+    out.push(d.toISOString().slice(0, 10));
+    d = new Date(d.getTime() + 86_400_000);
+  }
+  return out;
+}
+
+// Ingresos reales (libro de cobros) agrupados por dia de cobro.
+async function serieIngresosDiarios(negocioId: string, desde: string, hasta: string, dias: string[]): Promise<{ fecha: string; valor: number }[]> {
+  const { data } = await svc
+    .from('cobros')
+    .select('total_cents, cobrado_at')
+    .eq('negocio_id', negocioId)
+    .eq('estado', 'completado')
+    .gte('cobrado_at', `${desde}T00:00:00`)
+    .lte('cobrado_at', `${hasta}T23:59:59`);
+  const porDia = new Map<string, number>(dias.map((d) => [d, 0]));
+  for (const r of (data ?? []) as { total_cents: number | null; cobrado_at: string }[]) {
+    const key = r.cobrado_at.slice(0, 10);
+    if (porDia.has(key)) porDia.set(key, (porDia.get(key) ?? 0) + (r.total_cents ?? 0));
+  }
+  return dias.map((d) => ({ fecha: d, valor: Math.round(porDia.get(d) ?? 0) / 100 }));
+}
+
+// Citas confirmadas/completadas agrupadas por dia de inicio (misma definicion que 'ocupacion').
+async function serieCitasDiarias(negocioId: string, desde: string, hasta: string, dias: string[]): Promise<{ fecha: string; valor: number }[]> {
+  const { data } = await svc
+    .from('citas')
+    .select('inicio')
+    .eq('negocio_id', negocioId)
+    .in('estado', ['confirmada', 'completada'])
+    .gte('inicio', `${desde}T00:00:00`)
+    .lte('inicio', `${hasta}T23:59:59`);
+  const porDia = new Map<string, number>(dias.map((d) => [d, 0]));
+  for (const r of (data ?? []) as { inicio: string }[]) {
+    const key = r.inicio.slice(0, 10);
+    if (porDia.has(key)) porDia.set(key, (porDia.get(key) ?? 0) + 1);
+  }
+  return dias.map((d) => ({ fecha: d, valor: porDia.get(d) ?? 0 }));
+}
+
+// Procesa la tool 'mostrar_grafica': valida args, calcula la serie real y anade
+// el bloque a bloquesExtra. Devuelve el texto que se reinyecta al LLM.
+async function procesarGrafica(inp: Record<string, string>, negocioId: string, bloques: Bloque[]): Promise<string> {
+  const metrica = (inp.metrica ?? '').trim().toLowerCase();
+  if (metrica !== 'ingresos' && metrica !== 'citas') return 'Metrica no valida para la grafica (usa ingresos o citas).';
+  const desde = inp.desde;
+  const hasta = inp.hasta;
+  if (!desde || !hasta || !/^\d{4}-\d{2}-\d{2}$/.test(desde) || !/^\d{4}-\d{2}-\d{2}$/.test(hasta)) {
+    return 'Necesito fechas desde/hasta validas (YYYY-MM-DD) para la grafica.';
+  }
+  const dias = enumerarDias(desde, hasta);
+  if (dias.length === 0) return 'El rango de fechas no es valido para una grafica.';
+  if (dias.length > 92) return 'Ese rango es demasiado amplio para una grafica (maximo unos 3 meses); acota las fechas.';
+
+  const serie = metrica === 'ingresos'
+    ? await serieIngresosDiarios(negocioId, desde, hasta, dias)
+    : await serieCitasDiarias(negocioId, desde, hasta, dias);
+
+  bloques.push({
+    tipo: 'grafica',
+    titulo: metrica === 'ingresos' ? 'Ingresos por dia' : 'Citas por dia',
+    unidad: metrica === 'ingresos' ? 'eur' : 'citas',
+    serie,
+  });
+  return 'Grafica anadida a la respuesta con los datos reales del rango.';
+}
+
+// Rangos actual/anterior para la comparativa: ventanas MOVILES (ultimos N dias
+// vs los N anteriores), no mes/semana natural, para no comparar un periodo
+// actual parcial contra uno anterior completo (comparacion enganosa).
+function rangosComparativa(hoyISO: string, periodo: 'semana' | 'mes'): {
+  actualDesde: string; actualHasta: string; anteriorDesde: string; anteriorHasta: string;
+  labelActual: string; labelAnterior: string;
+} {
+  const n = periodo === 'semana' ? 7 : 30;
+  const hoy = new Date(`${hoyISO}T00:00:00Z`);
+  const actualDesdeDate = new Date(hoy.getTime() - (n - 1) * 86_400_000);
+  const anteriorHastaDate = new Date(actualDesdeDate.getTime() - 86_400_000);
+  const anteriorDesdeDate = new Date(anteriorHastaDate.getTime() - (n - 1) * 86_400_000);
+  return {
+    actualDesde: actualDesdeDate.toISOString().slice(0, 10),
+    actualHasta: hoyISO,
+    anteriorDesde: anteriorDesdeDate.toISOString().slice(0, 10),
+    anteriorHasta: anteriorHastaDate.toISOString().slice(0, 10),
+    labelActual: periodo === 'semana' ? 'Ultimos 7 dias' : 'Ultimos 30 dias',
+    labelAnterior: periodo === 'semana' ? '7 dias anteriores' : '30 dias anteriores',
+  };
+}
+
+async function totalIngresosRango(negocioId: string, desde: string, hasta: string): Promise<number> {
+  const { data } = await svc
+    .from('cobros')
+    .select('total_cents')
+    .eq('negocio_id', negocioId)
+    .eq('estado', 'completado')
+    .gte('cobrado_at', `${desde}T00:00:00`)
+    .lte('cobrado_at', `${hasta}T23:59:59`);
+  const cents = ((data ?? []) as { total_cents: number | null }[]).reduce((s, r) => s + (r.total_cents ?? 0), 0);
+  return Math.round(cents) / 100;
+}
+
+async function totalCitasRango(negocioId: string, desde: string, hasta: string): Promise<number> {
+  const { count } = await svc
+    .from('citas')
+    .select('id', { count: 'exact', head: true })
+    .eq('negocio_id', negocioId)
+    .in('estado', ['confirmada', 'completada'])
+    .gte('inicio', `${desde}T00:00:00`)
+    .lte('inicio', `${hasta}T23:59:59`);
+  return count ?? 0;
+}
+
+// Procesa la tool 'mostrar_comparativa': valida args, calcula ambos periodos
+// reales y anade el bloque a bloquesExtra.
+async function procesarComparativa(inp: Record<string, string>, negocioId: string, bloques: Bloque[]): Promise<string> {
+  const metrica = (inp.metrica ?? '').trim().toLowerCase();
+  if (metrica !== 'ingresos' && metrica !== 'citas') return 'Metrica no valida para la comparativa (usa ingresos o citas).';
+  const periodo = (inp.periodo ?? '').trim().toLowerCase();
+  if (periodo !== 'semana' && periodo !== 'mes') return 'Periodo no valido para la comparativa (usa semana o mes).';
+
+  const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+  const r = rangosComparativa(hoy, periodo);
+
+  const [actual, anterior] = metrica === 'ingresos'
+    ? await Promise.all([
+        totalIngresosRango(negocioId, r.actualDesde, r.actualHasta),
+        totalIngresosRango(negocioId, r.anteriorDesde, r.anteriorHasta),
+      ])
+    : await Promise.all([
+        totalCitasRango(negocioId, r.actualDesde, r.actualHasta),
+        totalCitasRango(negocioId, r.anteriorDesde, r.anteriorHasta),
+      ]);
+
+  bloques.push({
+    tipo: 'comparativa',
+    titulo: metrica === 'ingresos' ? 'Ingresos: periodo actual vs anterior' : 'Citas: periodo actual vs anterior',
+    unidad: metrica === 'ingresos' ? 'eur' : 'citas',
+    actual: { label: r.labelActual, valor: actual },
+    anterior: { label: r.labelAnterior, valor: anterior },
+  });
+  return 'Comparativa anadida a la respuesta con los datos reales de ambos periodos.';
 }
 
 // ---------------------------------------------------------------------------

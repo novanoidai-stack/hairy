@@ -47,6 +47,9 @@ export interface ChispaPanelProps {
   negocioId: string;
   profile: { id: string; role?: string | null };
   onAgendaChanged: () => void;
+  // Toggle Configuracion > Asistente de agenda (IA) > Briefing proactivo (Sesion 6).
+  // Default true: una clave ausente en negocio_config no debe apagar el briefing.
+  briefingActivo?: boolean;
 }
 
 function IconoCerrar({ size = 15, color = T.textSecondary }: { size?: number; color?: string }) {
@@ -102,7 +105,7 @@ const BIENVENIDA: Mensaje = {
   accionEstado: null,
 };
 
-export default function ChispaPanel({ negocioId, profile, onAgendaChanged }: ChispaPanelProps) {
+export default function ChispaPanel({ negocioId, profile, onAgendaChanged, briefingActivo = true }: ChispaPanelProps) {
   const { isMobile } = useResponsive();
   const [abierto, setAbierto] = useState(false);
   const [mensajes, setMensajes] = useState<Mensaje[]>([BIENVENIDA]);
@@ -165,11 +168,13 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged }: Chi
     return msgs.map((m) => {
       if (m.role === 'user') return { role: 'user' as const, content: m.content };
       const content = m.bloques
-        .map((b) =>
-          b.tipo === 'texto' ? b.texto
-          : b.tipo === 'enlace' ? `[enlace: ${b.label}]`
-          : `[accion propuesta: ${b.accion.resumen}]`,
-        )
+        .map((b) => {
+          if (b.tipo === 'texto') return b.texto;
+          if (b.tipo === 'enlace') return `[enlace: ${b.label}]`;
+          if (b.tipo === 'accion') return `[accion propuesta: ${b.accion.resumen}]`;
+          if (b.tipo === 'grafica') return `[grafica: ${b.titulo}]`;
+          return `[comparativa: ${b.titulo}]`;
+        })
         .join('\n');
       return { role: 'assistant' as const, content };
     });
@@ -381,7 +386,9 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged }: Chi
 
             {/* Lista de mensajes */}
             <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <BriefingAgenda negocioId={negocioId} profile={profile} onClose={() => setAbierto(false)} />
+              {briefingActivo && (
+                <BriefingAgenda negocioId={negocioId} profile={profile} onClose={() => setAbierto(false)} />
+              )}
               {mensajes.map((msg, i) => {
                 if (msg.role === 'user') {
                   return (

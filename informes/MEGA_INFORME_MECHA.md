@@ -1402,3 +1402,44 @@ a `components/chispa/ChispaPanel.web.tsx`; ningun cambio en el contrato de bloqu
   (la version antigua, antes de rotar). Aunque ya no se usa en produccion, sigue versionada en el
   historial de git. Pendiente: purgar esos scripts o al menos la key literal, y confirmar que la key
   activa en Supabase secrets es la ROTADA (no la que aparece en esos archivos).
+  **Cerrado (6 jul, Sesion 6):** ambos scripts leen ahora la key de `os.environ["ELEVENLABS_API_KEY"]`
+  (fallan con mensaje claro si falta); el literal se retiro del working tree. La key vieja sigue en el
+  historial de git pero ya estaba rotada/muerta, asi que no expone nada activo.
+
+## Adenda — Capa IA "Chispa" Sesion 6: Omnisciencia / analitica conversacional — HECHA (6 jul)
+
+Cierre de la Sesion 6 del plan `informes/PLAN-IA-CHISPA.md` (el "briefing proactivo" ya lo habia hecho
+Alexandro como PARCIAL; esta tanda anade la analitica conversacional que su propio diseno dejaba "fuera
+de alcance", ver `docs/superpowers/specs/2026-07-04-copiloto-fase3-briefing-proactivo-design.md`).
+
+- **Gap del toggle cerrado:** nuevo `briefingProactivoActivo` (default ON) en `ConfigState`/`DEFAULT_CONFIG`
+  y como `FieldRow` en `app/(tabs)/configuracion.web.tsx` (seccion "Asistente de agenda (IA)"). Lo lee
+  `components/chispa/ChispaLauncher.web.tsx` de `negocio_config` con default ON si la clave falta
+  (`!== false`, para no apagar el briefing ya vivo) y lo pasa a `ChispaPanel` (`briefingActivo`), que
+  gatea el render de `BriefingAgenda`. El §7 del diseno de Alexandro lo exigia y no existia en el repo.
+- **Protocolo de bloques ampliado:** `'grafica'` (serie temporal) y `'comparativa'` (actual vs anterior
+  con delta %) en `lib/chispaBloques.ts` (+ espejo en el edge). Renderer con dos casos nuevos en
+  `components/chispa/BloqueRenderer.web.tsx`, reutilizando el grafico SVG **extraido** a
+  `components/charts/LineChartMini.web.tsx` (mismo algoritmo que el `LineChart` local de
+  `informes.web.tsx`, que ahora tambien lo consume: se elimina la duplicacion).
+- **Tools de lectura agregada (edge `agenda-asistente`), gateadas por rol** (`permisos.ts` `LECTURA_CAP`
+  + 3 tests nuevos, 11/11 verdes): `resumen_caja` (libro de cobros, calculo del arqueo de `caja.web.tsx`),
+  `ocupacion` (citas/profesional, def. de `informes.web.tsx`), `citas_hoy` (agenda del dia + proxima cita),
+  `metas_progreso` (reutiliza las RPC `objetivos_negocio_progreso`/`mis_objetivos_progreso`, llamadas con
+  el JWT del usuario porque dependen de `auth.uid()`). Gate: `informes.ver` salvo `citas_hoy`
+  (`agenda.ver_propia`) y `metas_progreso` (cualquier rol; el handler decide propio vs equipo).
+- **Tools generadoras de bloques:** `mostrar_grafica` / `mostrar_comparativa` calculan las cifras
+  server-side (mismas tablas que Caja/Informes) y adjuntan el bloque; el LLM solo elige metrica/rango,
+  no fabrica numeros. La comparativa usa ventanas moviles (ultimos N dias vs los N previos). La caida de
+  reservas se cubre conversacionalmente (Chispa compara y avisa); el detector determinista de "hueco
+  muerto cronico" (RPC SQL con fases activa/reposo) se deja como v1.1 del briefing, no bloqueante. NO se
+  presenta P&L (gastos = Sesion 14); las notas de cada tool avisan de cifras aproximadas.
+- **Verificado en vivo** (`/demo.html?share=1`, `demo_salon_001`, owner): "cuanto llevo esta semana" ->
+  grafica "Ingresos por dia · Total 160,00 €" (cuadra con SQL real: 160 €/3 cobros ultimos 7 dias) +
+  comparativa "Ultimos 7 dias 160 € +51% / anteriores 106 €" + enlace a Informes; el toggle "Briefing
+  proactivo" aparece en Configuracion > Agenda; el briefing renderiza al abrir Chispa. `npx tsc --noEmit`
+  + `npm run build:web` limpios (sin `any`); `deno check` + `deno test` (11) verdes. Edge desplegado
+  (`agenda-asistente` **v19** via CLI supabase). Profesional sin `informes.ver` no recibe datos globales
+  (cubierto por los tests RBAC; el tenant demo solo tiene cuentas owner, de ahi que la verificacion viva
+  fuera con owner). **Incidente recuperado:** un primer deploy via MCP subio un placeholder por error
+  (edge roto ~2 min); corregido redeployando los 3 archivos reales con el CLI.

@@ -178,6 +178,9 @@ interface ConfigState {
   asistenteAgendaActivo: boolean;
   asistenteProfesionalEscribe: boolean;
   asistenteEffort: 'low' | 'medium' | 'high';
+  // Briefing proactivo de Chispa (Sesion 6 PLAN-IA-CHISPA): default ON para no
+  // apagar por sorpresa el briefing ya en produccion (ver ChispaLauncher.web.tsx).
+  briefingProactivoActivo: boolean;
   // Lista de espera (matching automatico de huecos)
   listaEsperaMatchingActivo: boolean;
   listaEsperaVentanaMin: number;
@@ -276,6 +279,7 @@ const DEFAULT_CONFIG: ConfigState = {
   notifResenaActiva: true, notifSenalActiva: true, notifRetrasoActiva: true,
   notifNoMolestar: false, notifNoMolestarInicio: '22:00', notifNoMolestarFin: '08:00',
   asistenteAgendaActivo: false, asistenteProfesionalEscribe: false, asistenteEffort: 'medium',
+  briefingProactivoActivo: true,
   listaEsperaMatchingActivo: false, listaEsperaVentanaMin: 30, listaEsperaMaxBloqueoHoras: 2,
   listaEsperaAntelacionMinHoras: 4, listaEsperaDesbloqueoDesde: 'primer_aviso',
   listaEsperaOfertaPideSenal: false, listaEsperaAvisarCaducado: false,
@@ -2589,6 +2593,9 @@ function TabAgenda({ config, setC, bloqueoCounts }: {
             { value: 'medium', label: 'Normal' },
             { value: 'high',   label: 'Alto' },
           ]} />
+        </FieldRow>
+        <FieldRow label="Briefing proactivo" hint="Al abrir Chispa, resume lo que necesita atencion hoy (senales sin pagar, bandeja sin responder, clientes a recuperar, pasos de puesta en marcha)." disabled={!config.asistenteAgendaActivo}>
+          <Toggle on={config.briefingProactivoActivo} onChange={v => setC('briefingProactivoActivo', v)} disabled={!config.asistenteAgendaActivo} />
         </FieldRow>
       </Section>
 

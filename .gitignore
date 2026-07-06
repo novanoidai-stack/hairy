@@ -27,3 +27,7 @@ supabase/.temp/
 # Mockups del companion visual de brainstorming (Claude)
 .superpowers/
 scratch/
+
+# Python bytecode
+__pycache__/
+*.pyc

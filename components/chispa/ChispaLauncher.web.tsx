@@ -18,6 +18,10 @@ export function ChispaLauncher() {
   const { triggerRefresh } = useCalendarRefresh();
   const [perfil, setPerfil] = useState<PerfilChispa | null>(null);
   const [activo, setActivo] = useState(false);
+  // Briefing proactivo (Sesion 6): default ON, distinto de asistenteAgendaActivo
+  // (que por defecto es false). Una clave ausente en negocio_config NO debe
+  // apagar el briefing ya en produccion para salones existentes.
+  const [briefingActivo, setBriefingActivo] = useState(true);
 
   // Mismo criterio de rutas publicas que app/_layout.tsx: en ellas no hay
   // sesion de staff y la IA de gestion no debe aparecer.
@@ -42,6 +46,7 @@ export function ChispaLauncher() {
       const cfg = (cfgRow?.config ?? {}) as Record<string, unknown>;
       setPerfil({ id: p.id, role: p.role, negocio_id: p.negocio_id });
       setActivo(cfg.asistenteAgendaActivo === true);
+      setBriefingActivo(cfg.briefingProactivoActivo !== false);
     }
 
     void cargar();
@@ -55,7 +60,7 @@ export function ChispaLauncher() {
   if (isPublicRoute || isLogin) return null;
   if (!activo || !perfil) return null;
 
-  return <ChispaPanel negocioId={perfil.negocio_id} profile={perfil} onAgendaChanged={triggerRefresh} />;
+  return <ChispaPanel negocioId={perfil.negocio_id} profile={perfil} onAgendaChanged={triggerRefresh} briefingActivo={briefingActivo} />;
 }
 
 export default ChispaLauncher;

@@ -71,6 +71,34 @@ Deno.test('Gestion (Sesion 3): editar_servicio/horario solo direccion+, presupue
   assertEquals(toolPermitida('editar_horario', dir, 'all'), true);
 });
 
+Deno.test('Omnisciencia (Sesion 6): Profesional NO ve caja/ocupacion/graficas globales, SI citas_hoy y metas_progreso', () => {
+  const rol = roleOf('employee');
+  assertEquals(toolPermitida('resumen_caja', rol, 'self'), false);
+  assertEquals(toolPermitida('ocupacion', rol, 'self'), false);
+  assertEquals(toolPermitida('mostrar_grafica', rol, 'self'), false);
+  assertEquals(toolPermitida('mostrar_comparativa', rol, 'self'), false);
+  assertEquals(toolPermitida('citas_hoy', rol, 'self'), true);
+  assertEquals(toolPermitida('metas_progreso', rol, 'self'), true);
+});
+
+Deno.test('Omnisciencia (Sesion 6): Recepcion tampoco ve datos globales (no tiene informes.ver)', () => {
+  const rol = roleOf('recepcion');
+  assertEquals(toolPermitida('resumen_caja', rol, 'all'), false);
+  assertEquals(toolPermitida('ocupacion', rol, 'all'), false);
+  assertEquals(toolPermitida('citas_hoy', rol, 'all'), true);
+});
+
+Deno.test('Omnisciencia (Sesion 6): Direccion y Propietario SI ven caja/ocupacion/graficas', () => {
+  for (const valor of ['admin', 'owner']) {
+    const rol = roleOf(valor);
+    assertEquals(toolPermitida('resumen_caja', rol, 'all'), true);
+    assertEquals(toolPermitida('ocupacion', rol, 'all'), true);
+    assertEquals(toolPermitida('mostrar_grafica', rol, 'all'), true);
+    assertEquals(toolPermitida('mostrar_comparativa', rol, 'all'), true);
+    assertEquals(toolPermitida('metas_progreso', rol, 'all'), true);
+  }
+});
+
 Deno.test('tool desconocida: fail-closed (nunca se declara)', () => {
   for (const scope of ['all', 'self', 'none'] as WriteScope[]) {
     assertEquals(toolPermitida('exfiltrar_todo', roleOf('owner'), scope), false);
