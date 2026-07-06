@@ -64,7 +64,7 @@ semanas o bloqueado por terceros.
 | # | Sesión | Pilar/Fase | Esfuerzo | Gating externo |
 |---|---|---|---|---|
 | **S1** ✅ | Cobro en el local ("pago después") + QR de mostrador | Pilar 2 (QR) | L | — |
-| **S2** | Reembolsos + robustez del webhook | Ciclo de vida | M | — |
+| **S2** ✅ | Reembolsos + robustez del webhook | Ciclo de vida | M | — |
 | **S3** | Holds / pre-autorizaciones (completa Pilar 3) | Pilar 3 | M | — |
 | **S4** | Propinas + pago dividido / grupal | Pilar 4 | L | — |
 | **S5** | Mecha Pay + Stripe Connect (modelo de tasas) | Pilar 1 | XL | KYC Stripe Connect |
@@ -140,15 +140,25 @@ anónima no bloqueada, RPC alcanzable), sin errores de consola. Datos de prueba 
 | S2.4 | UI: botón "Reembolsar" en la ficha (gated a gestor) + estado visible del pago/reembolso | [C] sobre RPC [A] | M |
 | S2.5 | Hardening: log estructurado de eventos, tipos de evento no manejados → 200 + traza (no romper) | [A] | S |
 
-**Estado:** diseño. El webhook actual ya tiene firma + idempotencia + replay protection (buena
-base); sólo cubre un tipo de evento.
+**Estado:** ✅ **HECHO y en producción (6 jul 2026).** Migración `reembolsos-y-robustez-webhook.sql`;
+edge `reembolsar-cobro` (nueva) + `stripe-webhook` (v14). Piezas: RPC `iniciar_reembolso_cobro` (staff,
+autoriza) + `registrar_reembolso` (service_role, persiste, idempotente por `refund_id`); el webhook
+guarda el `payment_intent` al completar (para poder reembolsar), maneja `charge.refunded` (reembolsos
+hechos desde el panel de Stripe también se reflejan), `checkout.session.expired` (marca pago cancelado)
+y loguea eventos no manejados; botón "Reembolsar" en `caja.web.tsx` (cobros online del día). Reembolso
+total → cobro `reembolsado` + cita descobrada; reembolso de señal → cita vuelve a `pendiente`.
+GOTCHA hallado y corregido: el trigger `cobros_anular_desmarcar_cita` **no existe en vivo** (migración
+POS no aplicada) → `registrar_reembolso` descobra la cita explícitamente.
 
 **Pendiente externo (tú):** suscribir en el endpoint del webhook de Stripe los eventos
-`charge.refunded`, `payment_intent.payment_failed`, `checkout.session.expired`.
+`charge.refunded` y `checkout.session.expired` (además de `checkout.session.completed`). Sin eso, el
+reembolso desde Mecha funciona igual (la edge concilia al momento), pero los reembolsos hechos desde el
+panel de Stripe no se reflejarían.
 
-**Verificación:** pago → reembolso total y parcial (importe correcto en Stripe + `pagos`);
-pago fallido/expirado → estado coherente; reenvío de evento no duplica (dedup en vivo — cierra
-también la verificación manual pendiente del Bloque 0).
+**Verificación (6 jul):** E2E en tenant aislado — reembolso total (cobro→reembolsado, cita descobrada,
+`cobro_id` null), reembolso de señal (cita→pendiente, depósito→false), idempotencia (mismo `refund_id`
+= 1 reembolso, sin duplicar). Advisors sin ERROR. Typecheck OK. Falta el E2E con **refund real** en
+Stripe (lo puede cerrar el usuario reembolsando el cobro de la cita de prueba).
 
 ---
 

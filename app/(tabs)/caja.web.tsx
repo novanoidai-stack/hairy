@@ -131,6 +131,8 @@ function CajaScreen() {
   const [fichajesHoy, setFichajesHoy] = useState<Array<{ tipo: string; marcado_at: string; user_id: string | null }>>([]);
   // Cobros del día (filas crudas) para los registros descargables.
   const [cobrosHoy, setCobrosHoy] = useState<Array<any>>([]);
+  // Id del cobro que se está reembolsando (spinner del botón).
+  const [reembolsando, setReembolsando] = useState<string | null>(null);
 
   // --- Venta rápida de productos ---
   type ProductoVenta = { id: string; nombre: string; precio_cents: number };
@@ -229,7 +231,7 @@ function CajaScreen() {
       // Arqueo del dia: lo cobrado HOY de verdad (libro de cobros)
       const { data: cobrosData } = await supabase
         .from('cobros')
-        .select('id, cobrado_at, total_cents, efectivo_cents, datafono_cents, propina_cents')
+        .select('id, cobrado_at, total_cents, efectivo_cents, datafono_cents, propina_cents, metodo, online_cents, cliente_id')
         .eq('negocio_id', profile.negocio_id)
         .eq('estado', 'completado')
         .gte('cobrado_at', todayStart)
@@ -297,6 +299,24 @@ function CajaScreen() {
     setShowCobroModal(false);
     await cargarCitas(); // Recargar
     setTimeout(() => setMensaje(null), 3000);
+  };
+
+  // Reembolsar un cobro online (Stripe). El dinero se devuelve y la cita vuelve a "sin cobrar".
+  const reembolsarCobro = async (cobroId: string, importeCents: number) => {
+    if (typeof window !== 'undefined' &&
+        !window.confirm(`¿Reembolsar ${(importeCents / 100).toFixed(2)} € al cliente?\nEl dinero se devuelve por Stripe y la cita vuelve a estar sin cobrar.`)) return;
+    setReembolsando(cobroId);
+    try {
+      const { data, error } = await supabase.functions.invoke('reembolsar-cobro', { body: { cobro_id: cobroId } });
+      if (error || !(data as any)?.ok) throw new Error((data as any)?.error || 'No se pudo reembolsar.');
+      setMensaje({ type: 'success', text: 'Reembolso realizado.' });
+      await cargarCitas();
+      setTimeout(() => setMensaje(null), 3000);
+    } catch (err) {
+      setMensaje({ type: 'error', text: mensajeDeError(err, 'No se pudo reembolsar.') });
+    } finally {
+      setReembolsando(null);
+    }
   };
 
   // Cobro rapido (walk-in): venta sin cita, mismo motor, sin lista de pendientes que tocar.
@@ -468,6 +488,34 @@ function CajaScreen() {
             <button onClick={descargarCobros} className="ca-btn" style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, border: `1px solid ${T.borderHi}`, background: T.bg, color: T.textSec, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <Icon name="download" size={13} color={T.textSec} /> Cobros (CSV)
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Cobros online de hoy — reembolsables por Stripe (solo propietario/dirección) */}
+      {canSeeAll && cobrosHoy.some((c: any) => c.metodo === 'online' || c.metodo === 'bizum') && (
+        <div style={{ background: T.card, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 4 }}>Cobros online de hoy</div>
+          <div style={{ fontSize: 12, color: T.textSec, marginBottom: 10 }}>Pagos por QR/enlace (tarjeta o Bizum). Puedes reembolsarlos.</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {cobrosHoy.filter((c: any) => c.metodo === 'online' || c.metodo === 'bizum').map((c: any) => (
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 12px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{(c.total_cents / 100).toFixed(2)} €</div>
+                  <div style={{ fontSize: 11.5, color: T.textTer }}>
+                    {c.metodo === 'bizum' ? 'Bizum' : 'Online'} · {new Date(c.cobrado_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+                <button
+                  onClick={() => reembolsarCobro(c.id, c.total_cents)}
+                  disabled={reembolsando === c.id}
+                  className="ca-btn"
+                  style={{ fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.danger}55`, background: T.dangerSoft ?? 'rgba(226,59,52,0.10)', color: T.danger, cursor: reembolsando === c.id ? 'not-allowed' : 'pointer', opacity: reembolsando === c.id ? 0.6 : 1, whiteSpace: 'nowrap' }}
+                >
+                  {reembolsando === c.id ? 'Reembolsando…' : 'Reembolsar'}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}
