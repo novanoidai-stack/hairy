@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import qrcode from 'qrcode-generator';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { mensajeDeError } from '@/lib/errores';
@@ -70,6 +71,22 @@ export function CobroSheet(props: CobroSheetProps) {
   const [propina, setPropina] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
+
+  // --- Cobro online por QR de mostrador (solo mode='cita', 1 cita): genera un enlace de
+  // pago del total; el cliente escanea y paga (Bizum/tarjeta/Apple/Google Pay). El webhook
+  // concilia el cobro en el libro. Ver iniciar_cobro_online / /app/pagar/[token]. ---
+  const [qrEnlace, setQrEnlace] = useState('');
+  const [qrBusy, setQrBusy] = useState(false);
+  const [qrCopiado, setQrCopiado] = useState(false);
+  const qrSvg = useMemo(() => {
+    if (!qrEnlace) return '';
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(qrEnlace);
+      qr.make();
+      return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+    } catch { return ''; }
+  }, [qrEnlace]);
 
   // --- Solo walk-in: lineas libres + profesional opcional (comision) ---
   const [lineas, setLineas] = useState<LineaWalkin[]>([]);
@@ -174,6 +191,39 @@ export function CobroSheet(props: CobroSheetProps) {
     }
   };
 
+  const generarQr = async () => {
+    if (props.mode !== 'cita' || props.citaIds.length !== 1) return;
+    if (totalCents <= 0) { setError('El total debe ser mayor que 0.'); return; }
+    setError('');
+    setQrBusy(true);
+    try {
+      const { data, error: rpcErr } = await supabase.rpc('iniciar_cobro_online', {
+        p_cita_id: props.citaIds[0],
+        p_metodo: 'online',
+        p_propina_cents: propinaCents,
+        p_descuento_cents: descuentoCents,
+      });
+      if (rpcErr) throw rpcErr;
+      const token = (data as { token?: string })?.token;
+      if (!token) throw new Error('No se pudo generar el enlace de pago.');
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.mechaa.es';
+      const appBase = typeof window !== 'undefined' && window.location.pathname.startsWith('/app') ? '/app' : '';
+      setQrEnlace(`${origin}${appBase}/pagar/${token}`);
+    } catch (err) {
+      setError(mensajeDeError(err, 'No se pudo generar el QR de cobro.'));
+    } finally {
+      setQrBusy(false);
+    }
+  };
+
+  const copiarEnlace = async () => {
+    try {
+      await navigator.clipboard.writeText(qrEnlace);
+      setQrCopiado(true);
+      setTimeout(() => setQrCopiado(false), 1800);
+    } catch { /* clipboard no disponible */ }
+  };
+
   const titulo = props.mode === 'cita'
     ? (props.titulo || `Cobrar ${props.citaIds.length} cita${props.citaIds.length > 1 ? 's' : ''}`)
     : props.mode === 'presupuesto'
@@ -273,27 +323,56 @@ export function CobroSheet(props: CobroSheetProps) {
           <span style={{ fontSize: 24, fontWeight: 800, color: T.success }}>{(totalCents / 100).toFixed(2)} €</span>
         </div>
 
-        <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Método</div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          {METODOS.map(([k, lbl]) => {
-            const on = metodo === k;
-            return (
-              <button key={k} onClick={() => setMetodo(k)} style={{ flex: 1, padding: '10px 0', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: on ? T.successSoft : T.bgCard, border: `1px solid ${on ? T.success : T.border}`, color: on ? T.success : T.textSec }}>{lbl}</button>
-            );
-          })}
-        </div>
+        {qrEnlace ? (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 12.5, color: T.textSec, marginBottom: 12 }}>
+              El cliente escanea y paga {(totalCents / 100).toFixed(2)} € con Bizum, tarjeta o Apple/Google&nbsp;Pay.
+            </div>
+            <div
+              style={{ width: 200, height: 200, margin: '0 auto 12px', background: '#fff', borderRadius: 12, border: `1px solid ${T.border}`, padding: 10, boxSizing: 'border-box' }}
+              dangerouslySetInnerHTML={{ __html: qrSvg }}
+            />
+            <div style={{ fontSize: 11.5, color: T.textTer, marginBottom: 14 }}>
+              El cobro se registra automáticamente cuando el cliente paga.
+            </div>
+            {error && <div style={{ fontSize: 12, color: T.danger, marginBottom: 12 }}>{error}</div>}
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+              <button onClick={copiarEnlace} style={{ padding: '9px 18px', background: T.bgCard, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>{qrCopiado ? 'Enlace copiado ✓' : 'Copiar enlace'}</button>
+              <button onClick={onClose} style={{ padding: '9px 20px', background: T.primary, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>Hecho</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Método</div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+              {METODOS.map(([k, lbl]) => {
+                const on = metodo === k;
+                return (
+                  <button key={k} onClick={() => setMetodo(k)} style={{ flex: 1, padding: '10px 0', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: on ? T.successSoft : T.bgCard, border: `1px solid ${on ? T.success : T.border}`, color: on ? T.success : T.textSec }}>{lbl}</button>
+                );
+              })}
+            </div>
 
-        {error && <div style={{ fontSize: 12, color: T.danger, marginBottom: 12 }}>{error}</div>}
+            {error && <div style={{ fontSize: 12, color: T.danger, marginBottom: 12 }}>{error}</div>}
 
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={onClose} disabled={enviando} style={{ padding: '9px 18px', background: T.bgCard, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, cursor: enviando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>Cancelar</button>
-          <button onClick={confirmar} disabled={enviando} style={{ padding: '9px 20px', background: enviando ? T.textTer : 'linear-gradient(180deg,T.success,#15803d)', color: '#fff', border: 'none', borderRadius: 8, cursor: enviando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, opacity: enviando ? 0.7 : 1 }}>
-            {enviando ? 'Cobrando…' : 'Confirmar cobro'}
-          </button>
-        </div>
-        <p style={{ fontSize: 11, color: T.textTer, marginTop: 12, margin: '12px 0 0', textAlign: 'center' }}>
-          {metodo === 'datafono' ? 'El cliente pagará con tarjeta en el datáfono físico.' : metodo === 'bizum' ? 'El cliente pagará por Bizum.' : 'El cliente pagará en efectivo.'}
-        </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={onClose} disabled={enviando} style={{ padding: '9px 18px', background: T.bgCard, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, cursor: enviando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>Cancelar</button>
+              <button onClick={confirmar} disabled={enviando} style={{ padding: '9px 20px', background: enviando ? T.textTer : 'linear-gradient(180deg,T.success,#15803d)', color: '#fff', border: 'none', borderRadius: 8, cursor: enviando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, opacity: enviando ? 0.7 : 1 }}>
+                {enviando ? 'Cobrando…' : 'Confirmar cobro'}
+              </button>
+            </div>
+
+            {props.mode === 'cita' && props.citaIds.length === 1 && (
+              <button onClick={generarQr} disabled={qrBusy || enviando} style={{ width: '100%', marginTop: 10, padding: '11px 0', background: T.bgCard, border: `1px dashed ${T.borderHi}`, color: T.primary, borderRadius: 10, cursor: qrBusy ? 'not-allowed' : 'pointer', fontSize: 12.5, fontWeight: 700, opacity: qrBusy ? 0.7 : 1 }}>
+                {qrBusy ? 'Generando QR…' : 'Cobrar con QR (Bizum · tarjeta · Apple/Google Pay)'}
+              </button>
+            )}
+
+            <p style={{ fontSize: 11, color: T.textTer, marginTop: 12, margin: '12px 0 0', textAlign: 'center' }}>
+              {metodo === 'datafono' ? 'El cliente pagará con tarjeta en el datáfono físico.' : metodo === 'bizum' ? 'El cliente pagará por Bizum.' : 'El cliente pagará en efectivo.'}
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

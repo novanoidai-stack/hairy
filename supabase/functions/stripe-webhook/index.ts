@@ -36,8 +36,14 @@ Deno.serve(async (req) => {
     const pagoId = (session.metadata?.pago_id as string) ?? (session.client_reference_id ?? '');
     if (pagoId) {
       await supabase.from('pagos').update({ estado: 'pagado', paid_at: new Date().toISOString(), metodo: 'tarjeta' }).eq('id', pagoId);
-      const { data: pago } = await supabase.from('pagos').select('cita_id').eq('id', pagoId).single();
-      if (pago?.cita_id) {
+      // Ramificar por tipo de pago (no confiar solo en la metadata: leer el pago).
+      const { data: pago } = await supabase.from('pagos').select('cita_id, tipo, metadata').eq('id', pagoId).single();
+      if (pago?.tipo === 'total') {
+        // Pago del total (cobro en local / enlace): conciliar en el libro de cobros.
+        const metodo = (pago.metadata?.metodo as string) ?? 'online';
+        await supabase.rpc('registrar_cobro_online', { p_pago_id: pagoId, p_metodo: metodo });
+      } else if (pago?.cita_id) {
+        // Senal anti no-show: confirmar la cita.
         await supabase.from('citas').update({ deposito_pagado: true, estado: 'confirmada' }).eq('id', pago.cita_id);
       }
     }

@@ -45,8 +45,8 @@ Deno.serve(async (req) => {
         },
         quantity: 1,
       }],
-      success_url: success_url ?? 'https://mecha.app/app/pago/ok',
-      cancel_url: cancel_url ?? 'https://mecha.app/app/pago/cancelado',
+      success_url: success_url ?? 'https://www.mechaa.es/app/pago/ok',
+      cancel_url: cancel_url ?? 'https://www.mechaa.es/app/pago/cancelado',
       client_reference_id: pago.id,
       metadata: { pago_id: pago.id, cita_id: citaId },
     });
