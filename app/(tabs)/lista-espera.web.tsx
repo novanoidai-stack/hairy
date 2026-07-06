@@ -86,6 +86,13 @@ interface ListaItem {
   created_at: string;
   avisado_at: string | null;
 }
+
+interface AvisoEstado {
+  id: string;
+  estado: 'pendiente' | 'enviado' | 'fallido';
+  enviado_at: string | null;
+  cita_id: string | null;
+}
 interface Servicio { id: string; nombre: string; }
 interface Profesional { id: string; nombre: string; color: string; }
 interface Cliente { id: string; nombre: string; telefono: string | null; }
@@ -107,6 +114,8 @@ function ListaEsperaScreen() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [filtro, setFiltro] = useState<FiltroEstado>('activas');
   const [showAdd, setShowAdd] = useState(false);
+  // Sesion 8-B: estado de avisos por lista de espera
+  const [avisosEstado, setAvisosEstado] = useState<Record<string, AvisoEstado>>({});
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -124,6 +133,11 @@ function ListaEsperaScreen() {
     setServicios(srv.data ?? []);
     setProfesionales(prof.data ?? []);
     setClientes(cli.data ?? []);
+
+    // Sesion 8-B: cargar estado de avisos (pendiente/enviado/fallido)
+    // Nota: lista_espera_avisos tiene RLS desactivado proposito, solo service_role.
+    // Como no podemos leerla directamente, mostramos un indicador basado en el estado de la lista.
+    // Cuando la lista pasa a 'avisado', significa que se encolo un aviso.
     setLoading(false);
   }, []);
 
@@ -299,6 +313,11 @@ function ListaEsperaScreen() {
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: T.textTer, borderTop: `1px solid ${T.border}`, paddingTop: 10, marginTop: 2 }}>
                       <span>Apuntado {format(parseISO(item.created_at), "d MMM 'a las' HH:mm", { locale: es })}</span>
+                      {item.estado === 'avisado' && item.avisado_at && (
+                        <span style={{ color: T.warning, fontWeight: 600 }}>
+                          Avisado {format(parseISO(item.avisado_at), "d MMM 'a las' HH:mm", { locale: es })}
+                        </span>
+                      )}
                     </div>
 
                     {!resueltaOCancelada && (
@@ -347,6 +366,11 @@ function ListaEsperaScreen() {
                     <div style={{ fontSize: 11.5, color: T.textTer, marginTop: 3 }}>
                       Apuntado {format(parseISO(item.created_at), "d MMM 'a las' HH:mm", { locale: es })}
                       {item.telefono ? ` · ${item.telefono}` : ''}
+                      {item.estado === 'avisado' && item.avisado_at && (
+                        <span style={{ color: T.warning, fontWeight: 600 }}>
+                          · Avisado {format(parseISO(item.avisado_at), "d MMM 'a las' HH:mm", { locale: es })}
+                        </span>
+                      )}
                     </div>
                   </div>
                   {!resueltaOCancelada && (

@@ -73,6 +73,9 @@ const ESCRITURA_AGENDA = new Set([
   'liberar_hueco',
   // Batch de confirmacion: opera sobre citas -> mismo gating de agenda (scope).
   'confirmar_citas',
+  // Matching de lista de espera (Sesion 8-B): tras cancelar, busca candidatas
+  // y propone avisar. Opera sobre citas y lista de espera -> mismo scope de agenda.
+  'avisar_lista_espera',
 ]);
 
 // Tools de escritura de GESTION (Sesion 3): cada una requiere su capacidad

@@ -96,6 +96,19 @@ type AccionPropuesta =
       tipo: 'recuperar_cliente';
       negocio_id: string; cliente_id: string; cliente_nombre: string | null;
       dias_sin_venir: number; resumen: string;
+    }
+  // --- Lista de espera (Sesion 8-B) ---
+  | {
+      tipo: 'avisar_lista_espera_match';
+      negocio_id: string;
+      lista_espera_id: string;
+      cita_origen_id: string;
+      cliente_nombre: string;
+      servicio_nombre: string;
+      profesional_nombre: string;
+      inicio: string;
+      fidelidad_citas: number;
+      resumen: string;
     };
 
 // ---------------------------------------------------------------------------
@@ -429,6 +442,18 @@ const TOOLS = [
         cliente: { type: 'string', description: 'Nombre o telefono de la clienta a recuperar' },
       },
       required: ['cliente'],
+    },
+  },
+  // --- LISTA DE ESPERA (Sesion 8-B) ---
+  {
+    name: 'avisar_lista_espera',
+    description: 'Tras cancelar una cita, busca la mejor candidata en la lista de espera y propone avisarle por WhatsApp (la IA no envia nada, solo deja el registro). Chispa puede sugerirlo automaticamente tras una cancelacion si el usuario lo menciona. Devuelve la candidata con su prioridad, fidelidad y datos del hueco.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        cita_id: { type: 'string', description: 'UUID de la cita cancelada (hueco liberado)' },
+      },
+      required: ['cita_id'],
     },
   },
   // --- NAVEGACION (no escribe nada; anade un chip que lleva a otra pantalla) ---
@@ -2014,6 +2039,32 @@ async function construirPropuesta(
         cliente_nombre: cli.nombre,
         dias_sin_venir: dias,
         resumen: `Preparar propuesta de vuelta para ${cli.nombre} (${dias} dias sin venir). El envio lo gestiona el equipo.`,
+      };
+    }
+
+    case 'avisar_lista_espera': {
+      // Llamar a la RPC matching_lista_espera (Sesion 8-B) para encontrar la mejor candidata.
+      // La RPC devuelve { ok, candidata, cita_origen, mensaje }.
+      const { data: match, error: eMatch } = await svc.rpc('matching_lista_espera', { p_cita_id: inp.cita_id });
+      if (eMatch || !match) return { error: `No se ha podido buscar candidatas en lista de espera.` };
+      const m = match as { ok: boolean; candidata: null | { lista_espera_id: string; nombre: string; servicio_nombre: string; profesional_nombre: string; fidelidad_citas: number; created_at: string }; cita_origen: null | { id: string; inicio: string }; mensaje: string };
+      if (!m.ok || !m.candidata || !m.cita_origen) {
+        // No hay candidatas: no es error, es una respuesta válida (información)
+        return { error: m.mensaje || 'No hay candidatas compatibles en lista de espera para este hueco.' };
+      }
+      const fechaHora = new Date(m.cita_origen.inicio).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      const resumen = `Avisar a ${m.candidata.nombre} (${m.candidata.fidelidad_citas} citas) para ${m.candidata.servicio_nombre} con ${m.candidata.profesional_nombre} el ${fechaHora}`;
+      return {
+        tipo: 'avisar_lista_espera_match',
+        negocio_id: negocioId,
+        lista_espera_id: m.candidata.lista_espera_id,
+        cita_origen_id: m.cita_origen.id,
+        cliente_nombre: m.candidata.nombre,
+        servicio_nombre: m.candidata.servicio_nombre,
+        profesional_nombre: m.candidata.profesional_nombre,
+        inicio: m.cita_origen.inicio,
+        fidelidad_citas: m.candidata.fidelidad_citas,
+        resumen,
       };
     }
 

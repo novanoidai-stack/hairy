@@ -153,6 +153,22 @@ export type AccionPropuesta =
       cliente_nombre: string | null;
       dias_sin_venir: number;
       resumen: string;
+    }
+  // --- Lista de espera (Sesion 8-B) ---
+  | {
+      // Aviso a candidata de lista de espera tras cancelar una cita: deja el
+      // REGISTRO/borrador (lista_espera_avisos) para el motor de envio (Alexandro).
+      // La RPC crea la cita tentativa, marca la lista como avisada y encola el aviso.
+      tipo: 'avisar_lista_espera_match';
+      negocio_id: string;
+      lista_espera_id: string;
+      cita_origen_id: string;
+      cliente_nombre: string;
+      servicio_nombre: string;
+      profesional_nombre: string;
+      inicio: string;
+      fidelidad_citas: number;
+      resumen: string;
     };
 
 export type EjecucionResultado =
@@ -446,6 +462,23 @@ export async function ejecutarAccion(
         });
         if (error) return { ok: false, error: error.message };
         return { ok: true, mensaje: `Hecho: ${a.resumen}` };
+      }
+
+      case 'avisar_lista_espera_match': {
+        // Aviso a candidata de lista de espera (Sesion 8-B): llama a la RPC
+        // avisar_lista_espera_candidata que crea la cita tentativa, marca la lista
+        // como avisada y encola el aviso para el motor n8n de Alexandro.
+        const { data, error } = await supabase.rpc('avisar_lista_espera_candidata', {
+          p_lista_espera_id: a.lista_espera_id,
+          p_cita_origen_id: a.cita_origen_id,
+        });
+        if (error) return { ok: false, error: error.message };
+        const res = (data ?? {}) as { ok?: boolean; error?: string; mensaje?: string };
+        if (!res.ok) return { ok: false, error: res.error ?? 'No se pudo avisar a la candidata de lista de espera.' };
+        return {
+          ok: true,
+          mensaje: `Aviso encolado para ${a.cliente_nombre} (${a.servicio_nombre} con ${a.profesional_nombre}). El envio por WhatsApp lo gestiona el equipo.`,
+        };
       }
 
       default: {

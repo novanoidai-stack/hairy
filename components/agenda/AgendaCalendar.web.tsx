@@ -12,8 +12,10 @@ import { DESIGN_TOKENS as TOKENS } from '@/lib/designTokens';
 import { categoryColorHex } from '@/lib/categoryColors';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
+import { ejecutarAccion, type AccionPropuesta } from '@/lib/chispaOps';
 import { proponerRetrasoPorCita, construirUpdatesRetraso, calcularEstrategiasRetraso, mejorAlternativaSlot, duracionRealAprendida, type EstrategiaRetraso, type CitaRetraso, type CitaHistorial } from '@/lib/retrasos';
 import RetrasoEstrategiasModal from './RetrasoEstrategiasModal';
+import ListaEsperaPropuestaModal, { type CandidataListaEspera, type CitaOrigen } from './ListaEsperaPropuestaModal.web';
 import { RiesgoNoShowIndicator, type RiesgoNoShow } from '@/components/clientes/RiesgoNoShowIndicator.web';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { CobroSheet } from '@/components/pos/CobroSheet';
@@ -5142,6 +5144,10 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
   // Lista de espera: candidatos compatibles con el hueco liberado al cancelar
   const [candidatosHueco, setCandidatosHueco] = useState<any[] | null>(null);
   const [asignandoCand, setAsignandoCand] = useState<string | null>(null);
+  // Sesion 8-B: candidata de Chispa (mejor opcion de lista de espera)
+  const [candidataChispa, setCandidataChispa] = useState<CandidataListaEspera | null>(null);
+  const [citaOrigenParaChispa, setCitaOrigenParaChispa] = useState<CitaOrigen | null>(null);
+  const [avisandoChispa, setAvisandoChispa] = useState(false);
   // --- Retrasos encadenados con estrategias (IA de agenda, Sesion 4) ---
   const [retrasoPickerOpen, setRetrasoPickerOpen] = useState(false);
   const [estrategiasRetraso, setEstrategiasRetraso] = useState<EstrategiaRetraso[] | null>(null);
@@ -5629,6 +5635,26 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
         await supabase.from('citas').update(payload).eq('grupo_id', cita.grupo_id).neq('id', cita.id);
       }
       triggerRefresh();
+
+      // Sesion 8-B: matching con Chispa (mejor candidata de lista de espera)
+      try {
+        const { data: matchData } = await supabase.rpc('matching_lista_espera', { p_cita_id: cita.id });
+        if (matchData && typeof matchData === 'object' && matchData.ok) {
+          const candidata = matchData.candidata as CandidataListaEspera | null;
+          const citaOrigen = matchData.cita_origen as CitaOrigen | null;
+          if (candidata && citaOrigen) {
+            setCandidataChispa(candidata);
+            setCitaOrigenParaChispa(citaOrigen);
+            setGuardando(false);
+            setShowCancelModal(false);
+            return; // Priorizamos la propuesta de Chispa
+          }
+        }
+      } catch (e) {
+        console.warn('Error al llamar a matching_lista_espera:', e);
+        // Continuamos con el flujo manual si falla
+      }
+
       // Hueco liberado: ofrecer los candidatos de la lista de espera compatibles (sin WhatsApp)
       let cands: any[] = [];
       try {
@@ -5659,6 +5685,49 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
       console.error('Error al asignar candidato:', err);
       alert(mensajeDeError(err, 'No se pudo asignar el candidato al hueco.'));
       setAsignandoCand(null);
+    }
+  };
+
+  // Sesion 8-B: confirmar aviso a candidata de lista de espera (Chispa)
+  const confirmarAvisoChispa = async (listaEsperaId: string) => {
+    setAvisandoChispa(true);
+    try {
+      const profile = await getUserProfile();
+      if (!profile?.id) {
+        alert('No se pudo obtener tu perfil de usuario.');
+        setAvisandoChispa(false);
+        return;
+      }
+      const negocioId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
+
+      // Construir la acción para Chispa con todos los campos requeridos
+      const accion: AccionPropuesta = {
+        tipo: 'avisar_lista_espera_match',
+        negocio_id: negocioId,
+        lista_espera_id: listaEsperaId,
+        cita_origen_id: citaOrigenParaChispa?.id || cita.id,
+        cliente_nombre: candidataChispa?.nombre || 'Clienta',
+        servicio_nombre: servicios.find((s: any) => s.id === cita.servicio_id)?.nombre || 'Servicio',
+        profesional_nombre: profesionales.find((p: any) => p.id === cita.profesional_id)?.nombre || 'Profesional',
+        inicio: citaOrigenParaChispa?.inicio || cita.inicio,
+        fidelidad_citas: candidataChispa?.fidelidad_citas ?? 0,
+        resumen: `Avisar a ${candidataChispa?.nombre || 'clienta'} por el hueco liberado`,
+      };
+
+      const resultado = await ejecutarAccion(accion, profile.id);
+      if (resultado.ok) {
+        triggerRefresh();
+        setCandidataChispa(null);
+        setCitaOrigenParaChispa(null);
+        onSaved?.() ?? onClose();
+      } else {
+        alert(`No se pudo avisar a la clienta: ${resultado.error}`);
+      }
+    } catch (err) {
+      console.error('Error al avisar a la clienta:', err);
+      alert(mensajeDeError(err, 'No se pudo avisar a la clienta.'));
+    } finally {
+      setAvisandoChispa(false);
     }
   };
 
@@ -7185,6 +7254,19 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
             </div>
           </div>
         </div>
+      )}
+
+      {/* Sesion 8-B: Modal de propuesta de aviso de lista de espera (Chispa) */}
+      {candidataChispa && citaOrigenParaChispa && (
+        <ListaEsperaPropuestaModal
+          candidata={candidataChispa}
+          citaOrigen={citaOrigenParaChispa}
+          servicioNombre={servicios.find((s: any) => s.id === cita.servicio_id)?.nombre}
+          profesionalNombre={profesionales.find((p: any) => p.id === cita.profesional_id)?.nombre}
+          enviando={avisandoChispa}
+          onConfirmar={confirmarAvisoChispa}
+          onCancelar={() => { setCandidataChispa(null); setCitaOrigenParaChispa(null); onSaved?.() ?? onClose(); }}
+        />
       )}
     </div>
   );
