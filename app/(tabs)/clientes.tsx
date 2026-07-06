@@ -39,6 +39,9 @@ interface Cliente {
   perfil_riesgo: string;
   ticket_medio: number;
   frecuencia_dias?: number;
+  consiente_ia?: boolean;
+  consiente_ia_origen?: string;
+  consiente_ia_fecha?: string;
 }
 
 interface FichaTecnica {

@@ -129,6 +129,8 @@ interface Cliente {
   etiquetas?: string[];
   deposito_perfil_override?: string | null;
   consiente_ia?: boolean;
+  consiente_ia_origen?: string;
+  consiente_ia_fecha?: string;
   frecuencia_dias?: number | null;
   enRiesgoFuga?: boolean;
   diasFugaRetraso?: number;
@@ -319,7 +321,7 @@ function ClientesWeb() {
     const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }, { data: fugaData }, { data: riesgoNoShowData }] = await Promise.all([
       supabase
         .from('clientes')
-        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override, consiente_ia')
+        .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override, consiente_ia, consiente_ia_origen, consiente_ia_fecha')
         .eq('negocio_id', profile.negocio_id)
         .order('nombre'),
       supabase
@@ -3395,7 +3397,11 @@ function ConsentimientosSection({ cliente, negocioId }: { cliente: Cliente; nego
   const toggleIA = async () => {
     const nuevo = !consienteIA;
     setConsienteIA(nuevo);
-    await supabase.from('clientes').update({ consiente_ia: nuevo }).eq('id', cliente.id);
+    await supabase.rpc('actualizar_consentimiento_ia', {
+      p_cliente_id: cliente.id,
+      p_consentimiento: nuevo,
+      p_origen: 'staff'
+    });
   };
 
   useEffect(() => {
@@ -3435,9 +3441,17 @@ function ConsentimientosSection({ cliente, negocioId }: { cliente: Cliente; nego
           puede ver/usar los datos operativos de este cliente. */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '9px 0', borderBottom: `1px solid ${TOKENS.border}` }}>
         <div style={{ minWidth: 0 }}>
-          <span style={{ fontSize: 13, color: TOKENS.text }}>Asistente de IA (Chispa)</span>
-          <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2 }}>
-            Si lo desactivas, el asistente de IA no vera ni usara los datos de este cliente. Los datos de salud (alergias) nunca se envian a la IA.
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 13, color: TOKENS.text }}>Asistente de IA (Chispa)</span>
+            <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 6px', borderRadius: 12, background: consienteIA ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: consienteIA ? '#166534' : '#991b1b' }}>
+              Consiente IA: {consienteIA ? 'Sí' : 'No'}
+            </span>
+          </div>
+          <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 4 }}>
+            Si lo desactivas, la IA no verá ni usará datos de este cliente. Salud NUNCA se envía.
+            <div style={{ marginTop: 2, fontStyle: 'italic' }}>
+              Auditoría: {cliente.consiente_ia_fecha ? `${new Date(cliente.consiente_ia_fecha).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })} (origen: ${cliente.consiente_ia_origen || 'desconocido'})` : 'Sin registro'}
+            </div>
           </div>
         </div>
         <button

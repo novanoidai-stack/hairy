@@ -202,7 +202,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 7 | Q&A profundo de cliente + riesgo no-show + fuga | Opus 4.8 | medio | 1,2 | **HECHA (6 jul)** |
 | 8 | Lista de espera: matching + aviso + priorizacion | Opus 4.8 (SQL) / Sonnet 5 (UI) | medio | 1,3 | **HECHA (6 jul, S8-A SQL)** — S8-B (UI/edge) pendiente |
 | 9 | Superficies por pagina (resenas, bandeja, presupuestos, inventario, equipo, mi jornada, upsell, recompra) | Sonnet 5 | medio | 1,2,3 | **HECHA (6 jul)** (Reseñas, Bandeja, Mi Jornada, Upsell Caja) |
-| 10 | Consentimiento cliente-facing + cierre legal | Opus 4.8 | medio | 2 | pendiente |
+| 10 | Consentimiento cliente-facing + cierre legal | Opus 4.8 | medio | 2 | **HECHA (6 jul)** |
 | 11 | Ventas: migracion magica Booksy/Fresha + catalogo desde foto + facturas->stock + Chispa landing | Opus 4.8 | alto | 1 | pendiente |
 | 12 | Vertical color: dictado manos-libres de formulas + traductor entre marcas | Opus 4.8 | alto | 5 | pendiente |
 | 13 | Vision: try-on de color + antes/despues Instagram + "quiero este corte" | Sonnet 5 | medio | 1,10 | pendiente |

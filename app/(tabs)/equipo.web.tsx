@@ -790,7 +790,7 @@ export default function EquipoWeb() {
                     <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#D46B08' }}>Resumen Inteligente de Chispa</h4>
                   </div>
                   {chispaBloques.map((b, i) => (
-                    <BloqueRenderer key={i} bloque={b} onAction={procesarAccionChispa} isMobile={isMobile} />
+                    <BloqueRenderer key={i} bloque={b} onConfirmar={procesarAccionChispa} isMobile={isMobile} />
                   ))}
                   <div style={{ textAlign: 'right', marginTop: 10 }}>
                     <button onClick={limpiarResumen} style={{ background: 'none', border: 'none', color: TOKENS.textTer, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Ocultar resumen</button>

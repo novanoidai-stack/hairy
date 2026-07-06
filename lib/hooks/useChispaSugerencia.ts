@@ -10,12 +10,16 @@ interface SugerenciaChispa {
   error: string | null;
   generar: (prompt: string, contexto?: Record<string, unknown>) => Promise<string | null>;
   reset: () => void;
+  cargando: boolean;
+  limpiar: () => void;
+  bloques: Bloque[];
 }
 
 // Hook para generar sugerencias de Chispa (borradores editables)
 export function useChispaSugerencia(): SugerenciaChispa {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bloques, setBloques] = useState<Bloque[]>([]);
 
   const generar = useCallback(async (prompt: string, contexto?: Record<string, unknown>): Promise<string | null> => {
     setLoading(true);
@@ -52,8 +56,8 @@ export function useChispaSugerencia(): SugerenciaChispa {
 
   const reset = useCallback(() => {
     setError(null);
-    setLoading(false);
+    setBloques([]);
   }, []);
 
-  return { loading, error, generar, reset };
+  return { loading, cargando: loading, error, generar, reset, limpiar: reset, bloques };
 }
