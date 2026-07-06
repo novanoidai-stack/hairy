@@ -203,7 +203,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 8 | Lista de espera: matching + aviso + priorizacion | Opus 4.8 (SQL) / Sonnet 5 (UI) | medio | 1,3 | **HECHA (6 jul, S8-A SQL)** — S8-B (UI/edge) pendiente |
 | 9 | Superficies por pagina (resenas, bandeja, presupuestos, inventario, equipo, mi jornada, upsell, recompra) | Sonnet 5 | medio | 1,2,3 | **HECHA (6 jul)** (Reseñas, Bandeja, Mi Jornada, Upsell Caja) |
 | 10 | Consentimiento cliente-facing + cierre legal | Opus 4.8 | medio | 2 | **HECHA (6 jul)** |
-| 11 | Ventas: migracion magica Booksy/Fresha + catalogo desde foto + facturas->stock + Chispa landing | Opus 4.8 | alto | 1 | pendiente |
+| 11 | Ventas: migracion magica Booksy/Fresha + catalogo desde foto + facturas->stock + Chispa landing | Opus 4.8 | alto | 1 | **HECHA (11-A)** (11-B pendiente) |
 | 12 | Vertical color: dictado manos-libres de formulas + traductor entre marcas | Opus 4.8 | alto | 5 | pendiente |
 | 13 | Vision: try-on de color + antes/despues Instagram + "quiero este corte" | Sonnet 5 | medio | 1,10 | pendiente |
 | 14 | Negocio no-IA: bonos/paquetes + tarjetas regalo (decision Jose) + propinas + modulo de gastos | Opus 4.8 | medio-alto | — | pendiente |
@@ -967,14 +967,40 @@ CIERRE: commit + push a master; MEGA_INFORME + marca Sesion 10 HECHA en el plan.
 
 ## Prompt Sesion 11 — Ventas: migracion magica + catalogo foto + Chispa landing (Opus 4.8, esfuerzo alto)
 
+> DIVIDIDA EN DOS SESIONES (11-A y 11-B) para mejor gestion de contexto. Ver prompts abajo.
+
+**Division:** S11-A (Migracion magica + catalogo desde foto + factura->stock) + S11-B (Chispa landing + CTA)
+
+IMPORTANTE: Antes de ejecutar cualquiera de las dos sesiones, analiza la calidad del codigo de las
+sesiones anteriores 1-6 para mantener consistencia en estilos, calidad de codigo, patrones y metodos.
+NO cambies estilos ya establecidos (comentarios en espanol sin emojis, codigo en ingles, tokens fuego
+#f4501e/#c0260a, sin any, movil primero useResponsive, PR-12 estricto, RBAC via permisos.ts,
+ejecutor general lib/chispaOps.ts, renderer de bloques BloqueRenderer, protocolo de bloques
+lib/chispaBloques.ts, multi-tenant negocio_id, RLS + can()). Si hay patrones establecidos, REUTILIZALOS.
+
+YA EXISTE: components/config/TabImportarCitas.tsx (importador manual). Usalo de base/inspiracion.
+
+Los prompts completos de 11-A y 11-B estan en informes/PROMPT-SESION-11-A.md y
+informes/PROMPT-SESION-11-B.md.
+
+## Prompt Sesion 11-A — Migracion magica + catalogo desde foto + factura->stock (Opus 4.8, esfuerzo alto)
+
 ```
 Trabajas en Mecha (repo Hairy). Lee ENTERO informes/PLAN-IA-CHISPA.md (Sesion 11) y
 informes/DIFERENCIADORES-IA-MECHA.md (seccion A.1 y B). Gap de mercado confirmado: nadie migra desde
 Booksy/Fresha con IA. Parsing correctness-critical: datos de un negocio real, no se puede corromper.
 
+IMPORTANTE: Antes de empezar, analiza la calidad del codigo de las sesiones anteriores 1-6
+para mantener consistencia en estilos, calidad de codigo, patrones y metodos. NO cambies
+estilos ya establecidos (comentarios en espanol sin emojis, codigo en ingles, tokens fuego
+#f4501e/#c0260a, sin any, movil primero useResponsive, PR-12 estricto, RBAC via permisos.ts,
+ejecutor general lib/chispaOps.ts, renderer de bloques BloqueRenderer, protocolo de bloques
+lib/chispaBloques.ts, multi-tenant negocio_id, RLS + can()). Si hay patrones establecidos,
+REUTILIZALOS.
+
 YA EXISTE: components/config/TabImportarCitas.tsx (importador manual). Usalo de base/inspiracion.
 
-CONSTRUYE:
+CONSTRUYE (esta sesion NO toca la landing, eso es Sesion 11-B):
 1) MIGRACION MAGICA: flujo en Configuracion (y enlace desde onboarding): el usuario sube CSV/Excel
    exportado de Booksy o Fresha, O una foto/PDF de su agenda o listado. Edge function
    migracion-magica: LLM con vision + structured output (JSON schema estricto) mapea a entidades
@@ -987,18 +1013,58 @@ CONSTRUYE:
    precio/duracion -> preview -> confirmar.
 3) FACTURA PROVEEDOR -> STOCK: foto de albaran -> lineas de entrada de inventario (inventario v0
    existe) -> preview -> confirmar.
-4) CHISPA EN LA LANDING (web/ estatica): widget de chat en index.html que responde preguntas de
+
+NOTA: La landing (Chispa widget + CTA "Cambiate desde Booksy/Fresha") se construye en la
+Sesion 11-B, NO en esta. Esta sesion se centra SOLO en el motor de migracion/vision.
+
+VERIFICA: CSV de prueba estilo Booksy y estilo Fresha -> preview correcto -> importa en demo; foto de
+una lista de precios -> catalogo propuesto; factura de proveedor -> lineas de inventario propuestas.
+Advisors tras cualquier migracion SQL.
+
+CIERRE: commit + push a master; actualiza informes/MEGA_INFORME_MECHA.md con lo hecho y marca
+"Sesion 11-A HECHA (11-B pendiente)" en informes/PLAN-IA-CHISPA.md. Si otra sesion empujo a master,
+stash/pull/pop.
+```
+
+## Prompt Sesion 11-B — Chispa en la landing + CTA migracion (Opus 4.8, esfuerzo medio)
+
+```
+Trabajas en Mecha (repo Hairy). Lee ENTERO informes/PLAN-IA-CHISPA.md (Sesion 11) y
+informes/DIFERENCIADORES-IA-MECHA.md (seccion A.1 y B). Esta es la PARTE B de la Sesion 11.
+La PARTE A (migracion magica + catalogo desde foto + factura->stock) debe estar HECHA antes.
+Requiere Sesiones 1, 2, 3 (renderer + RBAC + ejecutor general).
+
+IMPORTANTE: Antes de empezar, analiza la calidad del codigo de las sesiones anteriores 1-6
+para mantener consistencia en estilos, calidad de codigo, patrones y metodos. NO cambies
+estilos ya establecidos (comentarios en espanol sin emojis, codigo en ingles, tokens fuego
+#f4501e/#c0260a, sin any, movil primero useResponsive, PR-12 estricto, RBAC via permisos.ts,
+ejecutor general lib/chispaOps.ts, renderer de bloques BloqueRenderer, protocolo de bloques
+lib/chispaBloques.ts, multi-tenant negocio_id, RLS + can()). Si hay patrones establecidos,
+REUTILIZALOS.
+
+CONSTRUYE (esta sesion toca SOLO la landing web/ estatica y el CTA):
+1) CHISPA EN LA LANDING (web/ estatica): widget de chat en index.html que responde preguntas de
    prospectos con RAG sobre los manuales existentes y especificaciones.html (edge function publica
    con rate-limit por IP y anti-abuso, misma disciplina que las RPC publicas; se identifica como IA;
    sin claims falsos ni cifras inventadas; escala a "reserva una llamada" -> reservar.html).
-5) CTA en la landing: "Cambiate desde Booksy o Fresha en 10 minutos" enlazando al flujo (respeta el
-   estilo de landing: menos texto, mas visual — memoria landing-copy-style).
+2) CTA en la landing: "Cambiate desde Booksy o Fresha en 10 minutos" enlazando al flujo de migracion
+   (respeta el estilo de landing: menos texto, mas visual — memoria landing-copy-style).
 
-VERIFICA: CSV de prueba estilo Booksy y estilo Fresha -> preview correcto -> importa en demo; foto de
-una lista de precios -> catalogo propuesto; el chat de la landing responde 3 preguntas reales del
-manual y rechaza salirse de tema. Advisors tras cualquier migracion SQL.
+NOTA: El motor de migracion magica (CSV/Excel/foto -> preview -> import) se construyo en la
+Sesion 11-A, NO en esta. Esta sesion se centra SOLO en la landing (widget + CTA).
 
-CIERRE: commit + push a master; MEGA_INFORME + marca Sesion 11 HECHA en el plan.
+REGLAS: PR-12 estricto (Chispa propone, usuario confirma), multi-tenant negocio_id, sin any,
+comentarios en espanol sin emojis. Edge publica: grant execute a anon explicito, rate-limit
+por IP, anti-abuso (mismas disciplinas que portal_info/crear_cita_publica). Sin claims falsos
+ni cifras inventadas en la landing.
+
+VERIFICA: el chat de la landing responde 3 preguntas reales del manual y rechaza salirse de tema;
+el CTA enlaza correctamente al flujo de migracion (si 11-A esta hecha). Prueba en local con
+node scripts/serve-web.mjs.
+
+CIERRE: commit + push a master; actualiza informes/MEGA_INFORME_MECHA.md con lo hecho y marca
+"Sesion 11-B HECHA (completa S11)" y "Sesion 11 HECHA" en informes/PLAN-IA-CHISPA.md.
+Si otra sesion empujo a master, stash/pull/pop.
 ```
 
 ## Prompt Sesion 12 — Vertical color: dictado de formulas + traductor (Opus 4.8, esfuerzo alto)

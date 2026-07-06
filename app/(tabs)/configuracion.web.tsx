@@ -8,6 +8,7 @@ import { CATEGORY_COLOR_TOKENS, categoryColorHex, type CategoryColorToken } from
 import { TabPresupuestoConceptos } from '@/components/config/TabPresupuestoConceptos';
 import { MiPerfilProfesional } from '@/components/config/MiPerfilProfesional';
 import { TabImportarCitas } from '@/components/config/TabImportarCitas';
+import { TabMigracionMagica } from '@/components/config/TabMigracionMagica';
 import { TabRecompensas } from '@/components/config/TabRecompensas.web';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -239,7 +240,8 @@ const TABS: TabDef[] = [
   { id: 'comisiones',     label: 'Comisiones',     icon: 'percent',   section: 'Operativa' },
   { id: 'presupuestos',   label: 'Presupuestos',   icon: 'copy',      section: 'Operativa' },
   { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
-  { id: 'importar',       label: 'Importar',       icon: 'upload',    section: 'Operativa' },
+  { id: 'importar',       label: 'Importar CSV',       icon: 'upload',    section: 'Operativa' },
+  { id: 'migracion_magica', label: 'Migración Mágica', icon: 'zap', section: 'Operativa' },
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion' },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion' },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
