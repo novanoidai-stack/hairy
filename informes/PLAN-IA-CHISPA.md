@@ -934,7 +934,7 @@ Si otra sesion empujo a master, stash/pull/pop.
 
 ## Prompt Sesion 10 — Consentimiento cliente-facing + cierre legal (Opus 4.8, esfuerzo medio)
 
-**ESTADO**: Sesion 10-A HECHA (PARTE B pendiente).
+**ESTADO**: HECHA (6 jul) — 10-A (portal + autogestión + backend) y 10-B (staff toggle + política privacidad + checklist DPO) completas. Commit 8c68796c2.
 
 ```
 Trabajas en Mecha (repo Hairy). Lee ENTERO informes/PLAN-IA-CHISPA.md y ejecuta la SESION 10.
