@@ -1539,3 +1539,5 @@ Cierre de la Sesion 8 del plan `informes/PLAN-IA-CHISPA.md` en dos partes: SQL (
 - Verificación E2E completa en demo (cancelar cita con lista de espera compatible -> propuesta -> confirmar).
 - Envío real de WhatsApp (plantilla `aviso_lista_espera` en n8n, pendiente de Alexandro).
 - Re-sembrar demo si se ensucia durante la verificación.
+
+- **Sesion 10-A HECHA (PARTE B pendiente)**: Se ha implementado el opt-in de IA en el portal publico (app/r/[slug].web.tsx) y en la vista de autogestion (app/cita/[id].web.tsx). Se actualizo la base de datos con la nueva RPC actualizar_consentimiento_ia y se modifico crear_cita_publica para soportar el opt-in. Los datos de salud NUNCA se enviaran al LLM.
