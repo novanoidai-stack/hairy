@@ -457,7 +457,18 @@ aplicada en remoto 2026-07-06, advisors OK sin regresiones nuevas):
 - **Verificado en remoto:** RPCs existen con definición correcta, permisos correctos (authenticated + service_role,
   sin anon). Las tablas `lista_espera_avisos` y `lista_espera_ofertas` muestran WARN INFO de "RLS enabled no policy"
   en advisors, lo cual es esperado (son outbox solo para service_role, no necesitan policies públicas).
-- **S8-B pendiente:** UI/edge/integración con Chispa (flujo cancelación -> propone "avisar a X" -> confirmar -> flag motor).
+- **S8-B HECHA (6 jul):** UI + edge + integración con Chispa. **Commit** `dc83a7fe8`:
+	  - Tool `avisar_lista_espera` en `agenda-asistente` edge: llama a RPC `matching_lista_espera` con datos del hueco,
+	    devuelve bloque acción con `proposes -> confirma`.
+	  - Ejecutor `avisar_lista_espera_match` en `chispaOps.ts`: crea la acción de Chispa con metadatos completos
+	    (negocio_id, lista_espera_id, cita_origen_id, cliente_nombre, servicio_nombre, profesional_nombre,
+	    inicio, fidelidad_citas, resumen). El flag `aviso_pendiente=true` se deja para el motor n8n de Alexandro.
+	  - **Trigger:** al cancelar una cita, si hay candidatas -> propuesta de Chispa con "avisar a X (1a)".
+	  - **Modal `ListaEsperaPropuestaModal.web.tsx`:** muestra la mejor candidata (nombre, teléfono, fidelidad,
+	    franja, nota) con botón "Avisar por WhatsApp" que confirma la acción.
+	  - **UI `lista-espera.web.tsx`:** muestra fecha de aviso (estado `avisado`) en móvil y desktop.
+	  - **Build + tsc** limpios, commit y push a master. Verificación E2E pendiente (requiere navegación manual
+	    completa: crear cita, añadir a lista de espera, cancelar, confirmar aviso).
 
 **Guia de modelo:** Opus 4.8 donde equivocarse es caro (arquitectura, seguridad/RGPD, dominio agenda,
 SQL, dinero, parsing de migracion); Sonnet 5 en integraciones acotadas, lectura/analitica y

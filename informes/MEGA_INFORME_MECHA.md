@@ -1476,3 +1476,44 @@ parcial de Alexandro pero ninguna UI la llamaba y no actualizaba el contador).
   el payload del edge (network, 200) da enlace a la ficha y NUNCA el texto de la nota de salud; Sofia Torres con
   `consiente_ia=false` -> Chispa no la conoce. `tsc` + `build:web` limpios; `deno` verde. Demo intacta tras la
   verificacion. Envio real de la propuesta de vuelta y plantilla WhatsApp del no-show inminente = Alexandro.
+
+## Adenda — Capa IA "Chispa" Sesion 8: Lista de espera (matching + aviso) — HECHA (6 jul)
+
+Cierre de la Sesion 8 del plan `informes/PLAN-IA-CHISPA.md` en dos partes: SQL (S8-A) + UI/edge/integración (S8-B).
+
+### S8-A (6 jul, HECHA): Matching SQL de lista de espera para Chispa
+**Migración** `migrations/sesion8-matching-lista-espera-ia.sql` (aplicada en remoto, advisors OK):
+- `matching_lista_espera(p_cita_id)`: encuentra la mejor candidata de lista de espera compatible con el hueco
+  liberado (cancelación). Criterios: servicio, profesional (si exige), franja horaria (manana/tarde/cualquiera),
+  fechas desde/hasta. **Priorización:** `prioridad desc, created_at asc` (antigüedad en lista). Devuelve
+  metadatos completos: fidelidad (nº citas históricas), gasto acumulado, nombres de servicio/profesional.
+  **Multi-tenant estricto:** deriva `negocio_id` de `auth.uid()` y verifica que la cita pertenece al mismo negocio.
+- `avisar_lista_espera_candidata(p_lista_espera_id, p_cita_origen_id)`: crea la cita tentativa (oferta) con
+  `es_oferta_espera=true, canal='ia'`, marca la lista como `avisado`, encola el aviso en `lista_espera_avisos`
+  (template `aviso_lista_espera`) para el motor n8n. Find-or-create de cliente por teléfono.
+- **Permisos:** grant a `authenticated` (staff) + `service_role` (motor n8n); revocados a `anon`/`public`.
+- **Verificado en remoto:** RPCs existen con definición correcta, permisos correctos (authenticated + service_role,
+  sin anon). Las tablas `lista_espera_avisos` y `lista_espera_ofertas` muestran WARN INFO de "RLS enabled no policy"
+  en advisors (esperado: son outbox solo para service_role).
+
+### S8-B (6 jul, HECHA): UI + edge + integración con Chispa
+**Commit** `dc83a7fe8` (build + tsc limpios, push a master):
+- **Edge (`supabase/functions/agenda-asistente/index.ts`):** tool `avisar_lista_espera` que llama a la RPC
+  `matching_lista_espera` con los datos del hueco y devuelve un bloque acción con `proposes -> confirma`.
+  Añadido a permisos de escritura de agenda.
+- **Ejecutor (`lib/chispaOps.ts`):** `avisar_lista_espera_match` crea la acción de Chispa con metadatos completos
+  (negocio_id, lista_espera_id, cita_origen_id, cliente_nombre, servicio_nombre, profesional_nombre,
+  inicio, fidelidad_citas, resumen). El flag `aviso_pendiente=true` se deja para el motor n8n de Alexandro.
+- **Trigger (`components/agenda/AgendaCalendar.web.tsx`):** al cancelar una cita, si hay candidatas compatibles ->
+  llamada a `matching_lista_espera` y propuesta de Chispa con "avisar a X (1a)".
+- **Modal (`components/agenda/ListaEsperaPropuestaModal.web.tsx`):** muestra la mejor candidata (nombre, teléfono,
+  fidelidad, franja, nota) con botón "Avisar por WhatsApp" que confirma la acción. Link directo a WhatsApp.
+- **UI (`app/(tabs)/lista-espera.web.tsx`):** muestra fecha de aviso (estado `avisado`) en móvil y desktop.
+  Filtro "Avisadas" en el tab bar.
+- **Verificación E2E:** pendiente (requiere navegación manual completa: crear cita, añadir a lista de espera,
+  cancelar, confirmar aviso). El código está integrado y compila correctamente.
+
+### Pendientes (out of scope para S8, despues de verify)
+- Verificación E2E completa en demo (cancelar cita con lista de espera compatible -> propuesta -> confirmar).
+- Envío real de WhatsApp (plantilla `aviso_lista_espera` en n8n, pendiente de Alexandro).
+- Re-sembrar demo si se ensucia durante la verificación.
