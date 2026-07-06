@@ -1,8 +1,11 @@
 """Generar voz femenina con ElevenLabs API"""
 import requests
 import os
+import sys
 
-API_KEY = "sk_0f491d781080388a0d3f6fd796602a4040459c875051d7b0"
+API_KEY = os.environ.get("ELEVENLABS_API_KEY")
+if not API_KEY:
+    sys.exit("[ERROR] Falta la variable de entorno ELEVENLABS_API_KEY")
 OUTPUT = r"C:\Users\carli\OneDrive\Escritorio\novanoidai\Hairy\DELIVERY\mecha-voice-female.mp3"
 
 # Texto limpio sin caracteres problemáticos
