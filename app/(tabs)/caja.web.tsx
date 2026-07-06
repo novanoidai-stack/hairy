@@ -13,6 +13,7 @@ import { manualCaja } from '@/lib/manuals/caja';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
+import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
 
 // ─────────────────────────────────────────────────────────────────────────────────
 // Tokens (consistente con el resto de .web.tsx)
@@ -143,6 +144,10 @@ function CajaScreen() {
   const [ventaMetodo, setVentaMetodo] = useState<'efectivo' | 'datafono' | 'bizum'>('efectivo');
   const [ventaEnviando, setVentaEnviando] = useState(false);
 
+  // Sesión 9-A: Upsell IA
+  const chispa = useChispaSugerencia();
+  const [upsellSugerido, setUpsellSugerido] = useState<string | null>(null);
+
   // Totales de la selección
   const seleccion = useMemo(() => {
     const seleccionadas = citas.filter(c => selectedIds.has(c.id));
@@ -264,6 +269,16 @@ function CajaScreen() {
         .is('cobro_id', null)
         .order('created_at', { ascending: true });
       setPresupuestosCobrables((presData || []) as PresupuestoCobrable[]);
+
+      // Cargar productos para Upsell IA
+      const { data: prods } = await supabase
+        .from('productos')
+        .select('id, nombre, precio_cents')
+        .eq('negocio_id', profile.negocio_id)
+        .eq('activo', true)
+        .order('nombre');
+      if (prods) setProductosDisponibles(prods);
+
     } catch (err) {
       console.error('Error cargando citas pendientes:', err);
       setMensaje({ type: 'error', text: mensajeDeError(err) });
@@ -291,6 +306,22 @@ function CajaScreen() {
       setSelectedIds(new Set(citas.map(c => c.id)));
     }
   };
+
+  useEffect(() => {
+    if (selectedIds.size === 1 && productosDisponibles.length > 0) {
+      const id = Array.from(selectedIds)[0];
+      const cita = citas.find(c => c.id === id);
+      if (cita && cita.servicio_nombre) {
+        const prods = productosDisponibles.map(p => p.nombre).join(', ');
+        const prompt = `El cliente ${cita.cliente_nombre || 'Cliente'} se ha hecho el servicio '${cita.servicio_nombre}'. Productos en catálogo: ${prods}. ¿Qué producto de este catálogo le ofrecerías venderle justo antes de cobrar? Responde con 1 sola frase corta y directa dirigida al peluquero. Ej: "Ofrécele la Mascarilla X para mantener su color vivo."`;
+        chispa.generar(prompt).then(res => setUpsellSugerido(res));
+      } else {
+        setUpsellSugerido(null);
+      }
+    } else {
+      setUpsellSugerido(null);
+    }
+  }, [selectedIds, citas, productosDisponibles]);
 
   // Tras cobrar con exito desde el CobroSheet: recargar, avisar, cerrar.
   const handleCobroSuccess = async (cobroIds: string[]) => {
@@ -400,13 +431,6 @@ function CajaScreen() {
               <button
                 onClick={async () => {
                   setShowVentaProductos(true);
-                  if (productosDisponibles.length === 0) {
-                    const profile = await getUserProfile();
-                    if (profile?.negocio_id) {
-                      const { data } = await supabase.from('productos').select('id, nombre, precio_cents').eq('negocio_id', profile.negocio_id).eq('activo', true).order('nombre');
-                      setProductosDisponibles(data ?? []);
-                    }
-                  }
                 }}
                 className="ca-btn"
                 style={{ padding: '10px 18px', background: T.primary, border: 'none', color: '#fff', borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
@@ -553,6 +577,14 @@ function CajaScreen() {
 
           {seleccion.count > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              {upsellSugerido && (
+                <div style={{ fontSize: 12, color: T.textSec, background: T.cardHi, padding: '8px 12px', borderRadius: 8, border: `1px dashed ${T.primary}66`, maxWidth: 220, fontStyle: 'italic', display: 'flex', gap: 6 }}>
+                  <span>✨</span> <span>{upsellSugerido}</span>
+                </div>
+              )}
+              {chispa.loading && selectedIds.size === 1 && (
+                <div style={{ fontSize: 12, color: T.textTer }}>Analizando oportunidad...</div>
+              )}
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 12, color: T.textSec }}>Pendiente</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: T.primary }}>

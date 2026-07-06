@@ -13,6 +13,10 @@ import { manualMiJornada } from '@/lib/manuals/mi-jornada';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
+import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { normalizarRespuesta, type Bloque } from '@/lib/chispaBloques';
+import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
+import { ejecutarAccion } from '@/lib/chispaOps';
 
 const T = DESIGN_TOKENS;
 
@@ -201,6 +205,52 @@ function MiJornadaScreen() {
   const [showAusenciaModal, setShowAusenciaModal] = useState(false);
   const [nuevaAusencia, setNuevaAusencia] = useState<{tipo: string; inicio: string; fin: string; motivo: string}>({ tipo: 'vacaciones', inicio: '', fin: '', motivo: '' });
   const [guardandoAusencia, setGuardandoAusencia] = useState(false);
+
+  // Sesión 9-A: Chispa Mi Jornada
+  const [textoIA, setTextoIA] = useState('');
+  const [bloqueIA, setBloqueIA] = useState<Bloque | null>(null);
+  const [cargandoIA, setCargandoIA] = useState(false);
+  const [accionEstadoIA, setAccionEstadoIA] = useState<AccionEstado>('pendiente');
+
+  const analizarDiaIA = async () => {
+    setCargandoIA(true);
+    setTextoIA('');
+    setBloqueIA(null);
+    setAccionEstadoIA('pendiente');
+    try {
+      const prompt = `Analiza el día del profesional ${resumen?.profesional.nombre}.
+Tiene ${resumen?.citas_completadas} citas en este periodo.
+Citas: ${JSON.stringify(resumen?.citas_lista || [])}.
+Horas: ${resumen?.horas}.
+Comisión estimada: ${(resumen?.comision_cents || 0) / 100}€.
+Haz un breve resumen amistoso y motivador. Si ves que tiene huecos o pocas citas, sugiérele proponer citas y añade un bloque de acción 'crear_cita' o algo similar.`;
+      const { data, error: err } = await supabase.functions.invoke('agenda-asistente', {
+        body: { mensajes: [{ role: 'user', content: prompt }] },
+      });
+      if (!err && data) {
+        const bloques = normalizarRespuesta(data);
+        const text = bloques.filter(b => b.tipo === 'texto').map(b => (b as Extract<Bloque, { tipo: 'texto' }>).texto).join('\n\n');
+        setTextoIA(text);
+        const accion = bloques.find(b => b.tipo === 'accion');
+        if (accion) setBloqueIA(accion);
+      }
+    } finally {
+      setCargandoIA(false);
+    }
+  };
+
+  const confirmarAccionIA = async () => {
+    if (!bloqueIA || bloqueIA.tipo !== 'accion') return;
+    setAccionEstadoIA('aplicando');
+    const user = await getUserProfile();
+    const res = await ejecutarAccion(bloqueIA.accion, user?.id || '');
+    if (res.ok) {
+      setAccionEstadoIA('aplicada');
+    } else {
+      setAccionEstadoIA('pendiente');
+      setError(res.error);
+    }
+  };
 
   const cargar = useCallback(async (per: Periodo) => {
     setLoading(true);
@@ -766,6 +816,37 @@ function MiJornadaScreen() {
                   {f.tipo === 'entrada' ? 'Entrada' : 'Salida'} {format(parseISO(f.marcado_at), 'HH:mm', { locale: es })}
                 </span>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Analisis IA */}
+        <div className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.primary}40`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>✨</span>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Resumen IA de tu día</div>
+                <div style={{ fontSize: 12, color: T.textSec }}>Descubre oportunidades o huecos libres</div>
+              </div>
+            </div>
+            <button onClick={analizarDiaIA} disabled={cargandoIA} className="mj-btn" style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 700, cursor: cargandoIA ? 'not-allowed' : 'pointer' }}>
+              {cargandoIA ? 'Analizando...' : 'Analizar mi día'}
+            </button>
+          </div>
+          {textoIA && (
+            <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${T.border}`, fontSize: 13.5, color: T.text, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+              {textoIA}
+            </div>
+          )}
+          {bloqueIA && (
+            <div style={{ marginTop: 12 }}>
+              <BloqueRenderer 
+                bloque={bloqueIA} 
+                accionEstado={accionEstadoIA} 
+                onConfirmar={confirmarAccionIA} 
+                onCancelar={() => setBloqueIA(null)} 
+              />
             </div>
           )}
         </div>

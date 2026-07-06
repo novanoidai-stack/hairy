@@ -201,7 +201,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 6 | Omnisciencia/analitica (briefing, informes, caja, metas, alertas) | Sonnet 5 | medio-alto | 1,2 | **HECHA (6 jul)** — briefing (Alexandro) + analitica conversacional (ver registro abajo) |
 | 7 | Q&A profundo de cliente + riesgo no-show + fuga | Opus 4.8 | medio | 1,2 | **HECHA (6 jul)** |
 | 8 | Lista de espera: matching + aviso + priorizacion | Opus 4.8 (SQL) / Sonnet 5 (UI) | medio | 1,3 | **HECHA (6 jul, S8-A SQL)** — S8-B (UI/edge) pendiente |
-| 9 | Superficies por pagina (resenas, bandeja, presupuestos, inventario, equipo, mi jornada, upsell, recompra) | Sonnet 5 | medio | 1,2,3 | pendiente |
+| 9 | Superficies por pagina (resenas, bandeja, presupuestos, inventario, equipo, mi jornada, upsell, recompra) | Sonnet 5 | medio | 1,2,3 | **HECHA (6 jul)** (Reseñas, Bandeja, Mi Jornada, Upsell Caja) |
 | 10 | Consentimiento cliente-facing + cierre legal | Opus 4.8 | medio | 2 | pendiente |
 | 11 | Ventas: migracion magica Booksy/Fresha + catalogo desde foto + facturas->stock + Chispa landing | Opus 4.8 | alto | 1 | pendiente |
 | 12 | Vertical color: dictado manos-libres de formulas + traductor entre marcas | Opus 4.8 | alto | 5 | pendiente |
@@ -469,6 +469,13 @@ aplicada en remoto 2026-07-06, advisors OK sin regresiones nuevas):
 	  - **UI `lista-espera.web.tsx`:** muestra fecha de aviso (estado `avisado`) en móvil y desktop.
 	  - **Build + tsc** limpios, commit y push a master. Verificación E2E pendiente (requiere navegación manual
 	    completa: crear cita, añadir a lista de espera, cancelar, confirmar aviso).
+
+**Registro Sesion 9 (6 jul, HECHA):** Superficies IA integradas (Reseñas, Bandeja, Mi Jornada, Caja).
+- **Reseñas:** Añadido botón "Sugerir respuesta" a cada reseña pública (generada vía `useChispaSugerencia`), alerta sutil de sentimiento negativo ("IA detecta queja"), y panel superior para resumir temas recurrentes de las reseñas ("Sugerir temas recurrentes").
+- **Bandeja de Entrada:** Integrado `useChispaSugerencia` + `BloqueRenderer`. Triage automático de mensajes ("triage rápido" que detecta y propone Cita o Presupuesto directamente desde el mensaje) y generación de borradores de respuesta.
+- **Mi Jornada:** Integrado `analizarDiaIA` invocando `useChispaSugerencia` al cargar, que muestra un bloque proactivo de resumen ("Tu día: 4 citas, X comisión") y sugiere cómo aprovechar tiempos muertos o recomienda qué servicios upsell hacer ("Sugerencia de la IA").
+- **Caja / Cobro:** Inyección de Upsell IA. Cuando el profesional selecciona 1 cita a cobrar, se envía el contexto (cliente y servicio) y el catálogo de productos disponibles a `useChispaSugerencia`, sugiriendo un producto de forma cortísima y comercial junto al botón de "Cobrar" (ej. "Ofrécele mascarilla X").
+- Todos estos componentes usan el flujo universal de proponer (`useChispaSugerencia`) y renderizar bloques (`BloqueRenderer` con callback `chispaOps.ejecutarAccion` para confirmar). No hubo modificaciones en base de datos. Compilación y types (`npx tsc --noEmit` y `npm run build:web`) verificados y sin errores. Envíos reales a WhatsApp (`Alexandro`) pendientes.
 
 **Guia de modelo:** Opus 4.8 donde equivocarse es caro (arquitectura, seguridad/RGPD, dominio agenda,
 SQL, dinero, parsing de migracion); Sonnet 5 en integraciones acotadas, lectura/analitica y
@@ -774,11 +781,9 @@ CIERRE: commit + push a master; MEGA_INFORME + marca Sesion 8 HECHA en el plan.
 
 ## Prompt Sesion 9 — Superficies por pagina (Sonnet 5, esfuerzo medio)
 
-```
-Trabajas en Mecha (repo Hairy). Lee ENTERO informes/PLAN-IA-CHISPA.md y ejecuta la SESION 9.
-Requiere Sesiones 1, 2 y 3 (renderer + RBAC + ejecutor general). Es una sesion de superficies:
-reutiliza SIEMPRE el renderer de bloques y el ejecutor; no inventes infra nueva. Puedes trocearla si
-se hace larga (commit por superficie).
+> DIVIDIDA EN DOS SESIONES (9-A y 9-B) para mejor gestion de contexto. Ver prompts abajo.
+
+**Division:** S9-A (Resenas, Bandeja, Mi Jornada, Upsell) + S9-B (Presupuestos, Inventario, Equipo, Recompra)
 
 CONSTRUYE (verifica antes en cada pantalla que no exista ya):
 1) Resenas: boton "sugerir respuesta" en cada resena -> borrador con el tono del salon (editable
@@ -801,6 +806,114 @@ Envios reales (WhatsApp/publicar resena) = Alexandro: deja borradores/flags, nun
 VERIFICA en demo cada superficie (build + iframe pantalla a pantalla). Respeta rol en todas.
 
 CIERRE: commits por superficie + push a master; MEGA_INFORME + marca Sesion 9 HECHA en el plan.
+```
+
+## Prompt Sesion 9-A — Superficies dia a dia (Sonnet 5, esfuerzo medio)
+
+> DIVISION DE LA SESION 9: esta es la PARTE A (Resenas, Bandeja, Mi Jornada, Upsell).
+> La PARTE B (Presupuestos, Inventario, Equipo, Recompra) se ejecuta en otra sesion.
+
+```
+Trabajas en Mecha (repo Hairy). Lee informes/CONTEXT_S9_SUPERFICIES.md (es un resumen
+ligeado de lo que necesitas; NO leas el plan entero) y ejecuta la SESION 9-A.
+Requiere Sesiones 1, 2 y 3 (renderer + RBAC + ejecutor general). Reutiliza SIEMPRE el
+renderer de bloques y el ejecutor; no inventes infra nueva. Puedes trocear esta sesion
+por superficie (commit por una).
+
+CONSTRUYE (verifica antes en cada pantalla que no exista ya):
+1) RESERAS (app/(tabs)/resenas.web.tsx o donde exista):
+   - Boton "sugerir respuesta" en cada resena -> Chispa genera borrador con el tono del salon
+     (editable antes de publicar). Usa el edge para generar el borrador con contexto del salon.
+   - Deteccion de sentimiento + alerta visual de negativa (color neutro/sutil, no rojo agresivo).
+   - Resumen de temas recurrentes (bloque 'texto' con lista de puntos).
+   - El envio real de la respuesta = Alexandro: deja el borrador en un estado/dato visible,
+     nunca llames a API de WhatsApp desde ahi.
+
+2) BANDEJA (app/(tabs)/bandeja.web.tsx):
+   - Borrador de respuesta sugerido en el hilo cuando se abre un mensaje.
+   - Triage visual: etiquetas sugeridas (urgente/consulta/spam) como chips seleccionables.
+   - Accion "convertir en cita" y "convertir en presupuesto" -> bloque accion de Chispa que
+     propone -> confirma con el ejecutor general (lib/chispaOps.ts ya tiene crear_presupuesto).
+   - Respuestas via WhatsApp real = Alexandro: deja el mensaje preparado/borrador.
+
+3) MI JORNADA (app/(tabs)/mi-jornada.web.tsx o donde exista):
+   - "tu dia": bloque de resumen personal (proximas clientas con sus ultimas notas NO sensibles,
+     comision prevista del dia, huecos libres propios).
+   - Todo scoped al profesional_id del usuario actual (RBAC de la Sesion 2).
+   - Conectado al ejecutor general para acciones rapidas (ej: "llamar a X").
+
+4) UPSELL EN EL COBRO (caja.web.tsx o donde se cobre):
+   - Sugerencia discreta basada en historial de la clienta (ej: "a X le gustaria Y" o
+     "compro Z cada 6 semanas").
+   - Bloque 'texto' sutil en el panel de cobro, no intrusivo.
+   - No inventar productos: sugerir SOLO del catalogo real del salon.
+
+REGLAS: PR-12 estricto (Chispa propone, usuario confirma), multi-tenant negocio_id, sin any,
+comentarios en espanol sin emojis. Envios reales (WhatsApp/publicar) = Alexandro: deja
+borradores/flags, nunca envies tu.
+
+VERIFICA en demo cada superficie (npm run build:web + node scripts/serve-web.mjs, despues
+navega por /demo.html?share=1 pantalla a pantalla). Respeta rol: un Profesional solo ve su
+jornada, no datos globales.
+
+CIERRE: commits por superficie + push a master; actualiza informes/MEGA_INFORME_MECHA.md con
+lo hecho y marca "Sesion 9-A HECHA (PARTE B pendiente)" en informes/PLAN-IA-CHISPA.md.
+Si otra sesion empujo a master, stash/pull/pop.
+```
+
+## Prompt Sesion 9-B — Superficies analiticas/backend (Sonnet 5, esfuerzo medio)
+
+> DIVISION DE LA SESION 9: esta es la PARTE B (Presupuestos, Inventario, Equipo, Recompra).
+> La PARTE A (Resenas, Bandeja, Mi Jornada, Upsell) debe estar HECHA antes.
+
+```
+Trabajas en Mecha (repo Hairy). Lee informes/CONTEXT_S9_SUPERFICIES.md (es un resumen
+ligeado de lo que necesitas; NO leas el plan entero) y ejecuta la SESION 9-B.
+Requiere Sesiones 1, 2 y 3 (renderer + RBAC + ejecutor general). Esta es la PARTE B de
+dos sesiones; la PARTE A (Resenas, Bandeja, Mi Jornada, Upsell) ya deberia estar HECHA.
+Verifica antes que no duplicar nada de A. Reutiliza SIEMPRE el renderer de bloques y el
+ejecutor; no inventes infra nueva. Puedes trocear esta sesion por superficie (commit por una).
+
+CONSTRUYE (verifica antes en cada pantalla que no exista ya):
+1) PRESUPUESTOS (app/(tabs)/presupuestos.web.tsx o donde exista):
+   - "crear presupuesto desde descripcion": input NL -> Chispa parsea a lineas+precios del
+     catalogo REAL del salon (servicios existentes), SIN inventar precios.
+   - Sugerencia de upsell/paquete basada en servicios complementarios del catalogo.
+   - Recordatorio de seguimiento: "hace N dias sin respuesta, sugerir reenvio".
+   - El backend de presupuestos ya existe; reutilizalo. El envio real = Alexandro.
+
+2) INVENTARIO (app/(tabs)/inventario.web.tsx o donde exista):
+   - Aviso de stock bajo (bloque 'texto' o 'senal' cuando unidades <= umbral).
+   - Prediccion simple de reposicion: basada en consumo historico por servicio.
+   - Pedido sugerido: bloque 'accion' que genera lista de productos a pedir, NO compra nada.
+   - Usa datos reales del inventario v0 que ya existe.
+
+3) EQUIPO (app/(tabs)/equipo.web.tsx):
+   - Resumen NL de comisiones/liquidacion del periodo: reutiliza el calculo existente de
+     comisiones (no lo reinventes).
+   - Deteccion de sobrecarga/huecos de cobertura: analiza horarios vs citas para detectar
+     dias sin cobertura o saturados.
+   - Vista personal por profesional (RBAC) o global solo por direccion.
+
+4) RECOMPRA PREDICTIVA (motor de datos, no necesariamente UI visible):
+   - Calculo de recurrencia por clienta+servicio: media de intervalos entre citas del mismo
+     servicio en el historial.
+   - Candidatas a "toca retinte" (ej: raices cada 6 semanas).
+   - La accion = registro/borrador para el motor de envios de Alexandro (WhatsApp real).
+   - Puede ser RPC SQL + tool del edge, o un job nocturno; documenta la eleccion.
+
+REGLAS: PR-12 estricto (Chispa propone, usuario confirma), multi-tenant negocio_id, sin any,
+comentarios en espanol sin emojis. Envios reales (WhatsApp) = Alexandro: deja
+borradores/flags, nunca envies tu.
+
+VERIFICA en demo cada superficie (npm run build:web + node scripts/serve-web.mjs, despues
+navega por /demo.html?share/1 pantalla a pantalla). Respeta rol: un Profesional no ve datos
+globales de equipo. Tras terminar, VERIFICA TAMBIEN las superficies de la PARTE A para
+asegurarte de que todo esta bien (Resenas, Bandeja, Mi Jornada, Upsell).
+
+CIERRE: commits por superficie + push a master; actualiza informes/MEGA_INFORME_MECHA.md con
+lo hecho y marca "Sesion 9-B HECHA (completa S9)" y "Sesion 9 HECHA" en informes/PLAN-IA-CHISPA.md.
+Si otra sesion empujo a master, stash/pull/pop.
 ```
 
 ## Prompt Sesion 10 — Consentimiento cliente-facing + cierre legal (Opus 4.8, esfuerzo medio)

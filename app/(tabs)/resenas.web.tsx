@@ -4,6 +4,7 @@ import { getUserProfile } from '@/lib/auth';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { useResponsive } from '@/lib/hooks/useResponsive';
+import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { PageLoader } from '@/components/ui/DesignComponents';
@@ -12,6 +13,8 @@ import { manualResenas } from '@/lib/manuals/resenas';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
+import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
+import type { Bloque } from '@/lib/chispaBloques';
 
 const TOKENS = {
   bg: '#f6f1ea',
@@ -63,6 +66,7 @@ interface Resena {
   mecha_disponibilidad_puntuacion?: number | null;
   mecha_pagos_puntuacion?: number | null;
   mecha_mejora_comentario?: string | null;
+  respuesta_borrador?: string | null; // Sesion 9-A: borrador de respuesta generado por Chispa
 }
 
 // Metricas valorables: cada subcategoria del salon y de Mecha Reservas.
@@ -177,6 +181,41 @@ function ResenasScreen() {
   const [fScope, setFScope] = useState<ScopeKey>('all');
   const [fSearch, setFSearch] = useState('');
 
+  // Sugerencia de respuesta con Chispa (Sesion 9-A)
+  const [resenaEnEdicion, setResenaEnEdicion] = useState<Resena | null>(null);
+  const [borradorRespuesta, setBorradorRespuesta] = useState('');
+  const [mostrarModalRespuesta, setMostrarModalRespuesta] = useState(false);
+  const [guardandoRespuesta, setGuardandoRespuesta] = useState(false);
+  const [respuestaGuardada, setRespuestaGuardada] = useState(false);
+  const chispa = useChispaSugerencia();
+
+  // Chispa: Resumen de temas recurrentes
+  const [generandoResumen, setGenerandoResumen] = useState(false);
+  const [resumenTemas, setResumenTemas] = useState<Bloque | null>(null);
+
+  const generarResumenTemas = async () => {
+    if (filtradas.length === 0) return;
+    setGenerandoResumen(true);
+    try {
+      const comentarios = filtradas
+        .map(r => `[${r.puntuacion}/5]: ${r.comentario || r.mecha_mejora_comentario || 'Sin comentario'}`)
+        .join('\n');
+      
+      const prompt = `Analiza estas valoraciones de clientes y resume los temas recurrentes. 
+Destaca los puntos fuertes más mencionados y las quejas o áreas de mejora principales.
+Formato: una lista de puntos clara y concisa.
+Valoraciones:
+${comentarios}`;
+      
+      const texto = await chispa.generar(prompt);
+      if (texto) {
+        setResumenTemas({ tipo: 'texto', texto });
+      }
+    } finally {
+      setGenerandoResumen(false);
+    }
+  };
+
   const cargar = async () => {
     setLoading(true);
     const profile = await getUserProfile();
@@ -213,6 +252,71 @@ function ResenasScreen() {
     if (!confirm('¿Seguro que quieres eliminar esta reseña? No se puede deshacer.')) return;
     setResenas((prev) => prev.filter((r) => r.id !== id));
     await supabase.from('resenas').delete().eq('id', id);
+  };
+
+  // Sesion 9-A: generar sugerencia de respuesta con Chispa
+  const generarSugerenciaRespuesta = async (resena: Resena) => {
+    setResenaEnEdicion(resena);
+    setMostrarModalRespuesta(true);
+    setRespuestaGuardada(false);
+
+    // Prompt especifico para generar respuesta a reseña
+    const prompt = `Genera una respuesta educada y profesional para esta reseña de cliente.
+Cliente: ${resena.autor_nombre || 'Anónimo'}
+Valoración: ${resena.puntuacion}/5
+Comentario: ${resena.comentario || 'Sin comentarios'}
+${resena.mecha_mejora_comentario ? `Sugerencia de mejora: ${resena.mecha_mejora_comentario}` : ''}
+
+Instrucciones:
+- Si la valoración es positiva (4-5): agradecer, mencionar algo concreto del comentario e invitar a volver.
+- Si es neutral (3): agradecer, mostrar interés en mejorar y ofrecer contacto directo.
+- Si es negativa (1-2): disculparse sin ser defensivos, explicar acciones correctivas y ofrecer solución.
+- Tono cercano pero profesional, adaptado a un salón de peluquería.
+- NO inventar servicios ni promesas falsas.
+- Máximo 3-4 líneas.
+
+Responde solo con el texto de la respuesta, sin explicaciones previas.`;
+
+    const sugerencia = await chispa.generar(prompt);
+    if (sugerencia) {
+      setBorradorRespuesta(sugerencia);
+    }
+  };
+
+  // Guardar borrador de respuesta (visible para Alexandro -> envío real por WhatsApp)
+  const guardarBorradorRespuesta = async () => {
+    if (!resenaEnEdicion || !borradorRespuesta.trim()) return;
+    setGuardandoRespuesta(true);
+
+    try {
+      // Guardar en tabla de respuestas_borrador (nueva tabla para Sesion 9-A)
+      const { error } = await supabase.from('respuestas_borrador').insert({
+        negocio_id: (await getUserProfile())?.negocio_id || NEGOCIO_ID_FALLBACK,
+        resena_id: resenaEnEdicion.id,
+        borrador: borradorRespuesta,
+        estado: 'pendiente_envio', // pendiente de que Alexandro lo envie
+        creado_por: (await getUserProfile())?.id,
+      });
+
+      if (error) throw error;
+
+      setRespuestaGuardada(true);
+      // Actualizar estado visual de la reseña localmente
+      setResenas((prev) => prev.map((r) => (r.id === resenaEnEdicion.id ? { ...r, respuesta_borrador: borradorRespuesta } : r)));
+    } catch (e) {
+      console.error('Error guardando borrador:', e);
+    } finally {
+      setGuardandoRespuesta(false);
+    }
+  };
+
+  // Cerrar modal de respuesta
+  const cerrarModalRespuesta = () => {
+    setMostrarModalRespuesta(false);
+    setResenaEnEdicion(null);
+    setBorradorRespuesta('');
+    setRespuestaGuardada(false);
+    chispa.reset();
   };
 
   // --- Filtrado ---
@@ -384,62 +488,84 @@ function ResenasScreen() {
 
             {/* ANALISIS DE SENTIMIENTO */}
             {hasSentiment && (
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr)', gap: 14, marginBottom: 24 }}>
-                {/* Puntos fuertes */}
-                <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 20, borderTop: `3px solid ${TOKENS.success}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <div style={{ display: 'inline-flex', padding: 6, borderRadius: 8, background: TOKENS.successSoft, color: TOKENS.success }}>
-                      <Icon name="up" size={16} color="currentColor" />
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr)', gap: 14 }}>
+                  {/* Puntos fuertes */}
+                  <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 20, borderTop: `3px solid ${TOKENS.success}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <div style={{ display: 'inline-flex', padding: 6, borderRadius: 8, background: TOKENS.successSoft, color: TOKENS.success }}>
+                        <Icon name="up" size={16} color="currentColor" />
+                      </div>
+                      <span style={{ fontSize: 15, fontWeight: 800, color: TOKENS.text }}>Lo que mejor hacéis</span>
                     </div>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: TOKENS.text }}>Lo que mejor hacéis</span>
+                    {sentiment.strengths.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {sentiment.strengths.map((s) => (
+                          <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 13.5, color: TOKENS.textSec }}>{s.label}</span>
+                            <span style={{ fontSize: 13.5, fontWeight: 800, color: TOKENS.success, whiteSpace: 'nowrap' }}>{s.avg} <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer }}>/5</span></span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 13, color: TOKENS.textTer }}>Aún sin destacados claros con los filtros actuales.</div>
+                    )}
+                    {sentiment.elogios.length > 0 && (
+                      <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${TOKENS.border}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {sentiment.elogios.map((c, i) => (
+                          <div key={i} style={{ fontSize: 12.5, color: TOKENS.textSec, fontStyle: 'italic', lineHeight: 1.4 }}>“{c}”</div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {sentiment.strengths.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {sentiment.strengths.map((s) => (
-                        <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontSize: 13.5, color: TOKENS.textSec }}>{s.label}</span>
-                          <span style={{ fontSize: 13.5, fontWeight: 800, color: TOKENS.success, whiteSpace: 'nowrap' }}>{s.avg} <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer }}>/5</span></span>
-                        </div>
-                      ))}
+
+                  {/* Oportunidades de mejora */}
+                  <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 20, borderTop: `3px solid ${TOKENS.star}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <div style={{ display: 'inline-flex', padding: 6, borderRadius: 8, background: TOKENS.goldSoft, color: TOKENS.gold }}>
+                        <Icon name="spark" size={16} color="currentColor" />
+                      </div>
+                      <span style={{ fontSize: 15, fontWeight: 800, color: TOKENS.text }}>A mejorar</span>
                     </div>
-                  ) : (
-                    <div style={{ fontSize: 13, color: TOKENS.textTer }}>Aún sin destacados claros con los filtros actuales.</div>
-                  )}
-                  {sentiment.elogios.length > 0 && (
-                    <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${TOKENS.border}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {sentiment.elogios.map((c, i) => (
-                        <div key={i} style={{ fontSize: 12.5, color: TOKENS.textSec, fontStyle: 'italic', lineHeight: 1.4 }}>“{c}”</div>
-                      ))}
-                    </div>
-                  )}
+                    {sentiment.opportunities.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {sentiment.opportunities.map((s) => (
+                          <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 13.5, color: TOKENS.textSec }}>{s.label}</span>
+                            <span style={{ fontSize: 13.5, fontWeight: 800, color: TOKENS.gold, whiteSpace: 'nowrap' }}>{s.avg} <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer }}>/5</span></span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 13, color: TOKENS.textTer }}>Sin focos de mejora marcados. ¡Buen trabajo!</div>
+                    )}
+                    {sentiment.sugerencias.length > 0 && (
+                      <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${TOKENS.border}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Sugerencias de clientes</span>
+                        {sentiment.sugerencias.map((c, i) => (
+                          <div key={i} style={{ fontSize: 12.5, color: TOKENS.textSec, fontStyle: 'italic', lineHeight: 1.4 }}>“{c}”</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Oportunidades de mejora */}
-                <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 20, borderTop: `3px solid ${TOKENS.star}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <div style={{ display: 'inline-flex', padding: 6, borderRadius: 8, background: TOKENS.goldSoft, color: TOKENS.gold }}>
-                      <Icon name="spark" size={16} color="currentColor" />
-                    </div>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: TOKENS.text }}>A mejorar</span>
-                  </div>
-                  {sentiment.opportunities.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {sentiment.opportunities.map((s) => (
-                        <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontSize: 13.5, color: TOKENS.textSec }}>{s.label}</span>
-                          <span style={{ fontSize: 13.5, fontWeight: 800, color: TOKENS.gold, whiteSpace: 'nowrap' }}>{s.avg} <span style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textTer }}>/5</span></span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: 13, color: TOKENS.textTer }}>Sin focos de mejora marcados. ¡Buen trabajo!</div>
+                {/* Resumen de temas (Chispa) */}
+                <div style={{ marginTop: 14 }}>
+                  {!resumenTemas && !generandoResumen && (
+                    <button onClick={generarResumenTemas} disabled={chispa.loading || filtradas.length === 0} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: TOKENS.primarySoft, color: TOKENS.primaryHi, border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      <Icon name="spark" size={16} /> Resumir temas recurrentes (IA)
+                    </button>
                   )}
-                  {sentiment.sugerencias.length > 0 && (
-                    <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${TOKENS.border}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Sugerencias de clientes</span>
-                      {sentiment.sugerencias.map((c, i) => (
-                        <div key={i} style={{ fontSize: 12.5, color: TOKENS.textSec, fontStyle: 'italic', lineHeight: 1.4 }}>“{c}”</div>
-                      ))}
+                  {generandoResumen && (
+                    <div style={{ fontSize: 13, color: TOKENS.textSec, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span className="chispa-loader" style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${TOKENS.primary}`, borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
+                      Analizando reseñas con Chispa...
+                    </div>
+                  )}
+                  {resumenTemas && (
+                    <div style={{ marginTop: 8 }}>
+                      <BloqueRenderer bloque={resumenTemas} />
                     </div>
                   )}
                 </div>
@@ -499,7 +625,9 @@ function ResenasScreen() {
                 {filtradas.map((r, i) => (
                   <div key={r.id} className="resena-card" style={{
                     animationDelay: `${Math.min(i, 8) * 0.05}s`,
-                    background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 20,
+                    background: r.puntuacion <= 2 ? '#faf9f7' : TOKENS.bgCard, // Alerta visual sutil/neutra
+                    border: `1px solid ${r.puntuacion <= 2 ? 'rgba(217,119,6,0.3)' : TOKENS.border}`,
+                    borderRadius: 16, padding: 20,
                     display: 'flex', flexDirection: 'column',
                     opacity: r.visible ? 1 : 0.65,
                     transition: 'opacity 0.2s ease',
@@ -605,6 +733,24 @@ function ResenasScreen() {
                       </div>
                     ) : null}
 
+                    {r.respuesta_borrador ? (
+                      <div style={{ marginTop: 16, padding: 12, background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`, borderRadius: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                          <Icon name="spark" size={14} color={TOKENS.primary} />
+                          <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.primary, textTransform: 'uppercase' }}>Respuesta sugerida</span>
+                        </div>
+                        <div style={{ fontSize: 13, color: TOKENS.textSec, fontStyle: 'italic' }}>
+                          "{r.respuesta_borrador}"
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ marginTop: 16 }}>
+                        <button onClick={() => generarSugerenciaRespuesta(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: TOKENS.primarySoft, color: TOKENS.primaryHi, border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                          <Icon name="spark" size={14} /> Responder (Chispa)
+                        </button>
+                      </div>
+                    )}
+
                     {!r.visible && (
                       <div style={{ marginTop: 16, fontSize: 12, fontWeight: 600, color: TOKENS.textTer, display: 'flex', alignItems: 'center', gap: 6, background: TOKENS.bgCardHi, padding: '6px 10px', borderRadius: 6, alignSelf: 'flex-start' }}>
                         <Icon name="eyeOff" size={14} color={TOKENS.textTer} /> Oculta al público
@@ -616,6 +762,49 @@ function ResenasScreen() {
             )}
           </>
         )}
+        {/* MODAL RESPUESTA */}
+        {mostrarModalRespuesta && resenaEnEdicion && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} onClick={cerrarModalRespuesta} />
+            <div style={{ position: 'relative', background: TOKENS.bgPanel, width: '100%', maxWidth: 500, borderRadius: 20, boxShadow: '0 20px 40px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <div style={{ padding: '20px 24px', borderBottom: `1px solid ${TOKENS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Icon name="spark" size={20} color={TOKENS.primary} />
+                  <span style={{ fontSize: 18, fontWeight: 800, color: TOKENS.text }}>Responder Reseña</span>
+                </div>
+                <button onClick={cerrarModalRespuesta} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: TOKENS.textTer }}>×</button>
+              </div>
+              <div style={{ padding: 24 }}>
+                {chispa.loading ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 30 }}>
+                    <span className="chispa-loader" style={{ width: 24, height: 24, borderRadius: '50%', border: `3px solid ${TOKENS.primary}`, borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
+                    <span style={{ fontSize: 14, color: TOKENS.textSec }}>Generando sugerencia...</span>
+                    <style dangerouslySetInnerHTML={{ __html: '@keyframes spin { 100% { transform: rotate(360deg); } }' }} />
+                  </div>
+                ) : (
+                  <>
+                    <textarea 
+                      value={borradorRespuesta} 
+                      onChange={(e) => setBorradorRespuesta(e.target.value)}
+                      style={{ width: '100%', height: 120, padding: 12, borderRadius: 10, border: `1px solid ${TOKENS.borderHi}`, fontSize: 14, fontFamily: 'inherit', resize: 'none' }}
+                      placeholder="Escribe aquí la respuesta..."
+                    />
+                    {chispa.error && <div style={{ color: TOKENS.danger, fontSize: 13, marginTop: 8 }}>{chispa.error}</div>}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 20 }}>
+                      <button onClick={cerrarModalRespuesta} style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: TOKENS.bgCardHi, color: TOKENS.textSec, fontWeight: 600, cursor: 'pointer' }}>
+                        Cancelar
+                      </button>
+                      <button disabled={guardandoRespuesta || !borradorRespuesta.trim() || respuestaGuardada} onClick={guardarBorradorRespuesta} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: respuestaGuardada ? TOKENS.success : TOKENS.primary, color: '#fff', fontWeight: 700, cursor: (guardandoRespuesta || !borradorRespuesta.trim() || respuestaGuardada) ? 'default' : 'pointer', opacity: guardandoRespuesta ? 0.7 : 1 }}>
+                        {guardandoRespuesta ? 'Guardando...' : respuestaGuardada ? 'Guardado' : 'Guardar borrador'}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
       {showManualPanel && (
         <ManualPanel

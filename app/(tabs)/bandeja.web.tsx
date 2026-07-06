@@ -16,6 +16,11 @@ import { manualBandeja } from '@/lib/manuals/bandeja';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
+import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { normalizarRespuesta, type Bloque } from '@/lib/chispaBloques';
+import { ejecutarAccion } from '@/lib/chispaOps';
+import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
+import { supabase } from '@/lib/supabase';
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
@@ -76,6 +81,62 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
   const [error, setError] = useState('');
   const [cambiandoEstado, setCambiandoEstado] = useState(false);
 
+  // Sesión 9-A: Chispa (borrador y acciones)
+  const chispa = useChispaSugerencia();
+  const [bloqueIA, setBloqueIA] = useState<Bloque | null>(null);
+  const [accionEstado, setAccionEstado] = useState<AccionEstado>('pendiente');
+  const [loadingAccion, setLoadingAccion] = useState(false);
+
+  const triageSugerido = useMemo(() => {
+    if (mensajes.length === 0) return null;
+    const txt = mensajes.map(m => m.cuerpo.toLowerCase()).join(' ');
+    if (txt.includes('urgente') || txt.includes('ayuda') || txt.includes('ya') || txt.includes('pronto')) return { label: 'Urgente', color: T.danger };
+    if (txt.includes('precio') || txt.includes('cuanto') || txt.includes('cita') || txt.includes('reserva')) return { label: 'Consulta', color: T.primary };
+    if (txt.includes('gratis') || txt.includes('oferta') || txt.includes('seo')) return { label: 'Spam/Promo', color: T.textTer };
+    return null;
+  }, [mensajes]);
+
+  const generarBorradorIA = async () => {
+    if (mensajes.length === 0) return;
+    const txt = mensajes.map(m => `${m.autor}: ${m.cuerpo}`).join('\n');
+    const prompt = `El cliente ${conv.contacto_nombre} escribió esto:\n${txt}\nPropón una respuesta educada y breve desde el salón.`;
+    const borrador = await chispa.generar(prompt);
+    if (borrador) setRespuesta(borrador);
+  };
+
+  const proponerAccionIA = async (tipoAccion: 'cita' | 'presupuesto') => {
+    setLoadingAccion(true);
+    setBloqueIA(null);
+    setAccionEstado('pendiente');
+    try {
+      const txt = mensajes.map(m => `${m.autor}: ${m.cuerpo}`).join('\n');
+      const prompt = `Analiza esta conversación con ${conv.contacto_nombre}. Genera un bloque de acción de tipo '${tipoAccion === 'cita' ? 'crear_cita' : 'crear_presupuesto'}' con los datos que puedas extraer. Si faltan datos, usa valores por defecto lógicos.\nConversación:\n${txt}`;
+      const { data, error: err } = await supabase.functions.invoke('agenda-asistente', {
+        body: { mensajes: [{ role: 'user', content: prompt }] },
+      });
+      if (!err && data) {
+        const bloques = normalizarRespuesta(data);
+        const accion = bloques.find(b => b.tipo === 'accion');
+        if (accion) setBloqueIA(accion);
+      }
+    } finally {
+      setLoadingAccion(false);
+    }
+  };
+
+  const confirmarAccionIA = async () => {
+    if (!bloqueIA || bloqueIA.tipo !== 'accion') return;
+    setAccionEstado('aplicando');
+    const user = await getUserProfile();
+    const res = await ejecutarAccion(bloqueIA.accion, user?.id || '');
+    if (res.ok) {
+      setAccionEstado('aplicada');
+    } else {
+      setAccionEstado('pendiente');
+      setError(res.error);
+    }
+  };
+
   const cargar = useCallback(async () => {
     setLoading(true);
     try {
@@ -120,6 +181,11 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
             <div style={{ fontSize: 12.5, color: T.textTer }}>
               {[conv.contacto_telefono, conv.contacto_email].filter(Boolean).join(' · ') || 'Sin datos de contacto'}
             </div>
+            {triageSugerido && (
+              <div style={{ marginTop: 6, display: 'inline-block', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: triageSugerido.color === T.danger ? T.dangerSoft : T.cardHi, color: triageSugerido.color }}>
+                {triageSugerido.label}
+              </div>
+            )}
           </div>
           <button onClick={onClose} className="b-btn" style={{ background: 'none', border: 'none', padding: 4 }}><Icon name="x" size={20} color={T.textSec} /></button>
         </div>
@@ -155,6 +221,32 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
             </div>
           ))}
         </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={generarBorradorIA} disabled={chispa.loading || enviando} className="b-btn" style={{ padding: '6px 10px', background: T.primarySoft, color: T.primaryHi, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="spark" size={14} />
+              {chispa.loading ? '...' : 'Sugerir borrador'}
+            </button>
+            <button onClick={() => proponerAccionIA('cita')} disabled={loadingAccion || enviando} className="b-btn" style={{ padding: '6px 10px', background: T.cardHi, color: T.textSec, border: `1px solid ${T.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
+              Cita (IA)
+            </button>
+            <button onClick={() => proponerAccionIA('presupuesto')} disabled={loadingAccion || enviando} className="b-btn" style={{ padding: '6px 10px', background: T.cardHi, color: T.textSec, border: `1px solid ${T.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
+              Presupuesto (IA)
+            </button>
+          </div>
+        </div>
+
+        {bloqueIA && (
+          <div style={{ marginBottom: 12 }}>
+            <BloqueRenderer 
+              bloque={bloqueIA} 
+              accionEstado={accionEstado} 
+              onConfirmar={confirmarAccionIA} 
+              onCancelar={() => setBloqueIA(null)} 
+            />
+          </div>
+        )}
 
         <textarea value={respuesta} onChange={(e) => setRespuesta(e.target.value)} placeholder="Escribe tu respuesta…" rows={3}
           style={{ width: '100%', padding: 11, borderRadius: 10, border: `1px solid ${T.border}`, fontSize: 13.5, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box', marginBottom: 8 }} />

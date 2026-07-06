@@ -1,0 +1,49 @@
+# Prompt Sesion 9-B — Superficies analiticas/backend (Sonnet 5, esfuerzo medio)
+
+Trabajas en Mecha (repo Hairy). Lee informes/CONTEXT_S9_SUPERFICIES.md (es un resumen
+ligeado de lo que necesitas; NO leas el plan entero) y ejecuta la SESION 9-B.
+Requiere Sesiones 1, 2 y 3 (renderer + RBAC + ejecutor general). Esta es la PARTE B de
+dos sesiones; la PARTE A (Resenas, Bandeja, Mi Jornada, Upsell) ya deberia estar HECHA.
+Verifica antes que no duplicar nada de A. Reutiliza SIEMPRE el renderer de bloques y el
+ejecutor; no inventes infra nueva. Puedes trocear esta sesion por superficie (commit por una).
+
+CONSTRUYE (verifica antes en cada pantalla que no exista ya):
+1) PRESUPUESTOS (app/(tabs)/presupuestos.web.tsx o donde exista):
+   - "crear presupuesto desde descripcion": input NL -> Chispa parsea a lineas+precios del
+     catalogo REAL del salon (servicios existentes), SIN inventar precios.
+   - Sugerencia de upsell/paquete basada en servicios complementarios del catalogo.
+   - Recordatorio de seguimiento: "hace N dias sin respuesta, sugerir reenvio".
+   - El backend de presupuestos ya existe; reutilizalo. El envio real = Alexandro.
+
+2) INVENTARIO (app/(tabs)/inventario.web.tsx o donde exista):
+   - Aviso de stock bajo (bloque 'texto' o 'senal' cuando unidades <= umbral).
+   - Prediccion simple de reposicion: basada en consumo historico por servicio.
+   - Pedido sugerido: bloque 'accion' que genera lista de productos a pedir, NO compra nada.
+   - Usa datos reales del inventario v0 que ya existe.
+
+3) EQUIPO (app/(tabs)/equipo.web.tsx):
+   - Resumen NL de comisiones/liquidacion del periodo: reutiliza el calculo existente de
+     comisiones (no lo reinventes).
+   - Deteccion de sobrecarga/huecos de cobertura: analiza horarios vs citas para detectar
+     dias sin cobertura o saturados.
+   - Vista personal por profesional (RBAC) o global solo por direccion.
+
+4) RECOMPRA PREDICTIVA (motor de datos, no necesariamente UI visible):
+   - Calculo de recurrencia por clienta+servicio: media de intervalos entre citas del mismo
+     servicio en el historial.
+   - Candidatas a "toca retinte" (ej: raices cada 6 semanas).
+   - La accion = registro/borrador para el motor de envios de Alexandro (WhatsApp real).
+   - Puede ser RPC SQL + tool del edge, o un job nocturno; documenta la eleccion.
+
+REGLAS: PR-12 estricto (Chispa propone, usuario confirma), multi-tenant negocio_id, sin any,
+comentarios en espanol sin emojis. Envios reales (WhatsApp) = Alexandro: deja
+borradores/flags, nunca envies tu.
+
+VERIFICA en demo cada superficie (npm run build:web + node scripts/serve-web.mjs, despues
+navega por /demo.html?share/1 pantalla a pantalla). Respeta rol: un Profesional no ve datos
+globales de equipo. Tras terminar, VERIFICA TAMBIEN las superficies de la PARTE A para
+asegurarte de que todo esta bien (Resenas, Bandeja, Mi Jornada, Upsell).
+
+CIERRE: commits por superficie + push a master; actualiza informes/MEGA_INFORME_MECHA.md con
+lo hecho y marca "Sesion 9-B HECHA (completa S9)" y "Sesion 9 HECHA" en informes/PLAN-IA-CHISPA.md.
+Si otra sesion empujo a master, stash/pull/pop.

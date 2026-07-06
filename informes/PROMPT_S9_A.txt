@@ -1,0 +1,47 @@
+# Prompt Sesion 9-A — Superficies dia a dia (Sonnet 5, esfuerzo medio)
+
+Trabajas en Mecha (repo Hairy). Lee informes/CONTEXT_S9_SUPERFICIES.md (es un resumen
+ligeado de lo que necesitas; NO leas el plan entero) y ejecuta la SESION 9-A.
+Requiere Sesiones 1, 2 y 3 (renderer + RBAC + ejecutor general). Reutiliza SIEMPRE el
+renderer de bloques y el ejecutor; no inventes infra nueva. Puedes trocear esta sesion
+por superficie (commit por una).
+
+CONSTRUYE (verifica antes en cada pantalla que no exista ya):
+1) RESERAS (app/(tabs)/resenas.web.tsx o donde exista):
+   - Boton "sugerir respuesta" en cada resena -> Chispa genera borrador con el tono del salon
+     (editable antes de publicar). Usa el edge para generar el borrador con contexto del salon.
+   - Deteccion de sentimiento + alerta visual de negativa (color neutro/sutil, no rojo agresivo).
+   - Resumen de temas recurrentes (bloque 'texto' con lista de puntos).
+   - El envio real de la respuesta = Alexandro: deja el borrador en un estado/dato visible,
+     nunca llames a API de WhatsApp desde ahi.
+
+2) BANDEJA (app/(tabs)/bandeja.web.tsx):
+   - Borrador de respuesta sugerido en el hilo cuando se abre un mensaje.
+   - Triage visual: etiquetas sugeridas (urgente/consulta/spam) como chips seleccionables.
+   - Accion "convertir en cita" y "convertir en presupuesto" -> bloque accion de Chispa que
+     propone -> confirma con el ejecutor general (lib/chispaOps.ts ya tiene crear_presupuesto).
+   - Respuestas via WhatsApp real = Alexandro: deja el mensaje preparado/borrador.
+
+3) MI JORNADA (app/(tabs)/mi-jornada.web.tsx o donde exista):
+   - "tu dia": bloque de resumen personal (proximas clientas con sus ultimas notas NO sensibles,
+     comision prevista del dia, huecos libres propios).
+   - Todo scoped al profesional_id del usuario actual (RBAC de la Sesion 2).
+   - Conectado al ejecutor general para acciones rapidas (ej: "llamar a X").
+
+4) UPSELL EN EL COBRO (caja.web.tsx o donde se cobre):
+   - Sugerencia discreta basada en historial de la clienta (ej: "a X le gustaria Y" o
+     "compro Z cada 6 semanas").
+   - Bloque 'texto' sutil en el panel de cobro, no intrusivo.
+   - No inventar productos: sugerir SOLO del catalogo real del salon.
+
+REGLAS: PR-12 estricto (Chispa propone, usuario confirma), multi-tenant negocio_id, sin any,
+comentarios en espanol sin emojis. Envios reales (WhatsApp/publicar) = Alexandro: deja
+borradores/flags, nunca envies tu.
+
+VERIFICA en demo cada superficie (npm run build:web + node scripts/serve-web.mjs, despues
+navega por /demo.html?share=1 pantalla a pantalla). Respeta rol: un Profesional solo ve su
+jornada, no datos globales.
+
+CIERRE: commits por superficie + push a master; actualiza informes/MEGA_INFORME_MECHA.md con
+lo hecho y marca "Sesion 9-A HECHA (PARTE B pendiente)" en informes/PLAN-IA-CHISPA.md.
+Si otra sesion empujo a master, stash/pull/pop.

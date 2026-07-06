@@ -37,6 +37,17 @@
 
 ---
 
+## Adenda — Capa IA Superficies (Sesión 9-A) (6 jul 2026, Carlos + Claude)
+
+Se han completado las inyecciones de IA en las superficies (Reseñas, Bandeja, Mi Jornada y Caja) según el plan de Chispa:
+- **Reseñas:** IA generativa de borradores con tono local y detección de sentimiento. Resumen de temas recurrentes de todas las reseñas de un local. (Todo proactivo).
+- **Bandeja de Entrada:** IA para sugerir respuestas y hacer triage ("Sugiere Cita", "Sugiere Presupuesto").
+- **Mi Jornada:** Resumen de "Tu día" al cargar la pantalla. La IA evalúa citas del día (excluyendo notas sensibles) y propone rellenar huecos libres y priorizar tareas.
+- **Caja:** Inyección de sugerencia discreta de Upsell al cobrar una cita, cruzando el servicio que se acaba de hacer con el catálogo real del negocio.
+- **Estado general:** `npx tsc --noEmit` + `npm run build:web` limpios. Verificados sin errores TS.
+
+---
+
 ## Adenda — Capa IA "Chispa" Sesion 1 (5 jul 2026, Carlos + Claude)
 
 Nucleo generativo de la capa de IA transversal (plan `informes/PLAN-IA-CHISPA.md`, Sesion 1 HECHA):
