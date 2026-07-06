@@ -14,6 +14,7 @@ import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { proponerRetrasoPorCita, construirUpdatesRetraso, calcularEstrategiasRetraso, mejorAlternativaSlot, duracionRealAprendida, type EstrategiaRetraso, type CitaRetraso, type CitaHistorial } from '@/lib/retrasos';
 import RetrasoEstrategiasModal from './RetrasoEstrategiasModal';
+import { RiesgoNoShowIndicator, type RiesgoNoShow } from '@/components/clientes/RiesgoNoShowIndicator.web';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { CobroSheet } from '@/components/pos/CobroSheet';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
@@ -5227,6 +5228,48 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
   const [citaAddons, setCitaAddons] = useState<any[]>([]);
   const [availableAddons, setAvailableAddons] = useState<any[]>([]);
   const [togglingAddon, setTogglingAddon] = useState<string | null>(null);
+  // Riesgo de no-show de la clienta (Sesion 7): score neutro derivado del historial,
+  // solo para el equipo. Se pide a la RPC al abrir; null si es baja o sin clienta.
+  const [riesgoCliente, setRiesgoCliente] = useState<RiesgoNoShow | null>(null);
+
+  // ¿La cita ya paso y sigue en un estado que admite marcarla como no-show?
+  const citaPasada = new Date(cita.inicio) < new Date();
+  const puedeMarcarNoShow = citaPasada && (cita.estado === 'confirmada' || cita.estado === 'completada');
+
+  async function marcarNoShow() {
+    if (guardando) return;
+    setGuardando(true);
+    setErrMsg('');
+    try {
+      const { data, error } = await supabase.rpc('marcar_cita_no_show', { p_cita_id: cita.id });
+      const res = (data ?? {}) as { ok?: boolean; error?: string };
+      if (error || !res.ok) {
+        const map: Record<string, string> = {
+          no_autorizado: 'No tienes permiso para marcar ausencias.',
+          cita_futura: 'La cita aun no ha pasado.',
+          estado_no_valido: 'Solo se puede marcar en citas confirmadas o completadas.',
+        };
+        setErrMsg(error?.message || map[res.error ?? ''] || 'No se pudo marcar la ausencia.');
+        setGuardando(false);
+        return;
+      }
+      onSaved?.();
+      triggerRefresh?.();
+      onClose?.();
+    } catch (e) {
+      setErrMsg(String(e));
+      setGuardando(false);
+    }
+  }
+
+  useEffect(() => {
+    let cancel = false;
+    if (!cita.cliente_id) { setRiesgoCliente(null); return; }
+    supabase.rpc('riesgo_no_show_cliente', { p_cliente_id: cita.cliente_id }).then(({ data }) => {
+      if (!cancel && data) setRiesgoCliente(data as RiesgoNoShow);
+    });
+    return () => { cancel = true; };
+  }, [cita.cliente_id]);
 
   useEffect(() => {
     supabase
@@ -5909,8 +5952,10 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
               <div style={{ fontSize: 11, color: TOKENS.textTer, letterSpacing: 1.5, fontWeight: 600, textTransform: 'uppercase' }}>
                 Detalle de cita
               </div>
-              <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.3, color: TOKENS.text, marginTop: 2 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.3, color: TOKENS.text, marginTop: 2, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 {selectedCliente?.nombre}
+                {/* Riesgo de no-show de la clienta (Sesion 7): discreto, solo equipo. */}
+                <RiesgoNoShowIndicator riesgo={riesgoCliente} compact />
               </div>
               <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
@@ -6927,6 +6972,16 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
                 </div>
               )}
             </div>
+          )}
+          {puedeMarcarNoShow && (
+            <button
+              onClick={marcarNoShow}
+              disabled={guardando}
+              title="Registrar que la clienta no acudio a su cita. Se usa para el riesgo de no-show (tono neutro, solo el equipo lo ve)."
+              style={{ padding: '9px 14px', background: 'rgba(245,158,11,0.10)', color: '#b45309', border: '1px solid rgba(245,158,11,0.55)', borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              No se presentó
+            </button>
           )}
           {!cobrada && cita.estado !== CITA_STATUS.CANCELADA && (
             <button

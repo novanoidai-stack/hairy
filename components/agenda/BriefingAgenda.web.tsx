@@ -6,6 +6,7 @@ import { roleOf } from '@/lib/permissions';
 import {
   cargarSenalesOperativas,
   cargarClientesRecuperar,
+  cargarNoShowInminente,
   senalesSetup,
   rankearSenales,
   type BriefingSignal,
@@ -31,6 +32,7 @@ export default function BriefingAgenda({ negocioId, profile, onClose }: Briefing
   const status = useOnboardingStatus(negocioId, true);
   const [ops, setOps] = useState<BriefingSignal[]>([]);
   const [recuperar, setRecuperar] = useState<BriefingSignal | null>(null);
+  const [noShow, setNoShow] = useState<BriefingSignal | null>(null);
   const [cargando, setCargando] = useState(true);
 
   const scope: 'all' | 'self' = roleOf(profile) === 'profesional' ? 'self' : 'all';
@@ -39,8 +41,12 @@ export default function BriefingAgenda({ negocioId, profile, onClose }: Briefing
     let cancel = false;
     (async () => {
       setCargando(true);
-      const [o, r] = await Promise.all([cargarSenalesOperativas(scope), cargarClientesRecuperar(scope)]);
-      if (!cancel) { setOps(o); setRecuperar(r); setCargando(false); }
+      const [o, r, ns] = await Promise.all([
+        cargarSenalesOperativas(scope),
+        cargarClientesRecuperar(scope),
+        cargarNoShowInminente(scope),
+      ]);
+      if (!cancel) { setOps(o); setRecuperar(r); setNoShow(ns); setCargando(false); }
     })();
     return () => { cancel = true; };
   }, [scope, negocioId]);
@@ -51,13 +57,17 @@ export default function BriefingAgenda({ negocioId, profile, onClose }: Briefing
     if (p.pathname) router.push({ pathname: p.pathname as never, params: p.params });
     else if (p.destino === 'bandeja') router.push('/(tabs)/bandeja' as never);
     else if (p.destino === 'clientes') router.push('/(tabs)/clientes' as never);
+    else if (p.destino === 'agenda') router.push('/(tabs)' as never);
     else return;
     onClose();
   }
 
   if (cargando || !status.ready) return null;
 
-  const senales = rankearSenales(senalesSetup(status), ops, recuperar, status.coreDone);
+  // El no-show inminente es una senal operativa mas: se suma a las del RPC para
+  // que rankearSenales la ordene por severidad junto al resto.
+  const operativas = noShow ? [...ops, noShow] : ops;
+  const senales = rankearSenales(senalesSetup(status), operativas, recuperar, status.coreDone);
   if (senales.length === 0) return null;
 
   return (

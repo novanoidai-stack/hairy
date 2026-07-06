@@ -90,6 +90,12 @@ type AccionPropuesta =
       tipo: 'enviar_mensaje_bandeja';
       negocio_id: string; conversacion_id: string; contacto_nombre: string | null;
       cuerpo: string; resumen: string;
+    }
+  // --- Recuperacion de fuga (Sesion 7) ---
+  | {
+      tipo: 'recuperar_cliente';
+      negocio_id: string; cliente_id: string; cliente_nombre: string | null;
+      dias_sin_venir: number; resumen: string;
     };
 
 // ---------------------------------------------------------------------------
@@ -145,6 +151,17 @@ const TOOLS = [
       type: 'object' as const,
       properties: { texto: { type: 'string', description: 'Nombre o telefono parcial' } },
       required: ['texto'],
+    },
+  },
+  {
+    name: 'ficha_cliente',
+    description: 'Ficha 360 de UNA clienta: ultimas citas (fecha/servicio/estado/importe), gasto acumulado, frecuencia, ticket medio, etiquetas no sensibles y riesgo de no-show. Usala cuando el usuario pida "cuentame de X", "que sabes de X", "ficha de X". Devuelve tiene_notas_salud=true SIN contenido si hay notas de salud: en ese caso NUNCA inventes ni deduzcas la salud, di que hay notas en su ficha para revisarlas alli. Si la clienta no aparece puede que no exista o que no haya dado su consentimiento para la IA.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        texto: { type: 'string', description: 'Nombre o telefono de la clienta' },
+        id: { type: 'string', description: 'UUID de la clienta si ya lo tienes (opcional)' },
+      },
     },
   },
   {
@@ -403,6 +420,17 @@ const TOOLS = [
       required: ['cliente', 'cuerpo'],
     },
   },
+  {
+    name: 'recuperar_cliente',
+    description: 'Propone lanzar una PROPUESTA DE VUELTA a una clienta que lleva tiempo sin venir (en riesgo de fuga). Deja el registro/borrador para el equipo; el envio real por WhatsApp lo gestiona el equipo, tu no lo mandas. Usalo cuando el usuario quiera recuperar/reenganchar a una clienta concreta.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        cliente: { type: 'string', description: 'Nombre o telefono de la clienta a recuperar' },
+      },
+      required: ['cliente'],
+    },
+  },
   // --- NAVEGACION (no escribe nada; anade un chip que lleva a otra pantalla) ---
   {
     name: 'sugerir_enlace',
@@ -572,6 +600,9 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     'GUIA DE CONFIGURACION: si el usuario pregunta como o donde configurar/personalizar algo, o que se puede ajustar de una funcion, responde con el MAPA DE CONFIGURACION del final: da la RUTA exacta (Configuracion > Pestana > Seccion) y enumera que se puede ajustar ahi. Cinete ESTRICTAMENTE al mapa: no inventes ajustes, opciones, valores de ejemplo ni rutas que no esten escritos en el (por ejemplo, no anadas "cada 15/30 min" ni "SMS/email" si el mapa no lo dice). Si te preguntan por algo que no esta en el mapa, dilo con franqueza en vez de suponer.',
     'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar un ajuste (por ejemplo "activa los recordatorios" o "pon la antelacion minima en 4h"), usa la tool cambiar_config con la CLAVE exacta de la lista AJUSTES EDITABLES del final. Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad, citas_hoy).',
+    'Para responder sobre UNA clienta (su historial, cuanto gasta, cada cuanto viene, su etiquetas o su riesgo de no-show) usa ficha_cliente. REGLA DURA DE SALUD: nunca pidas, muestres ni deduzcas datos de salud, alergias, medicacion o notas medicas. Si ficha_cliente devuelve tiene_notas_salud=true, di UNICAMENTE que "hay notas en su ficha, revisalas alli" y ofrece un enlace a Clientes con sugerir_enlace; jamas inventes el contenido. Si la ficha no aparece (encontrado=false), di con naturalidad que no la encuentras: puede que no exista o que no haya dado su consentimiento para que la IA use sus datos.',
+    'Menciona el riesgo de no-show de una clienta solo si es relevante (p.ej. el usuario pregunta si es fiable, o hay una cita suya sin confirmar), y siempre en tono neutro y sin juzgar: es una senal operativa, no una etiqueta sobre la persona.',
+    'Si el usuario quiere recuperar a una clienta que lleva tiempo sin venir, puedes proponer recuperar_cliente (deja el registro para que el equipo le mande la propuesta de vuelta; tu no envias nada).',
     'Para el progreso de objetivos/metas usa metas_progreso (del equipo si eres direccion/propietario, o los tuyos si eres profesional); si no hay ninguno fijado, dilo con naturalidad y sugiere fijarlo en Equipo.',
     'Para proponer operaciones de agenda usa las tools de escritura (crear_cita, reagendar_cita, cancelar_cita, bloquear_hueco, liberar_hueco).',
     'Tambien puedes proponer acciones de GESTION cuando tengas la tool disponible: confirmar_citas (confirmar en bloque las citas pendientes de un dia, p.ej. "confirmame las citas de manana"), editar_servicio (cambiar precio/nombre/duracion/activar de un servicio del catalogo), editar_horario (fijar el turno de un profesional un dia), crear_presupuesto (borrador con precios REALES del catalogo, nunca inventes precios) y enviar_mensaje_bandeja (guardar un borrador en el hilo de la Bandeja del cliente; NO envia el WhatsApp real, eso lo hace el equipo). Si una tool no esta disponible para el rol de este usuario, no la menciones como algo que puedas hacer: guia a la pantalla correspondiente.',
@@ -869,6 +900,83 @@ async function ejecutarLectura(
         .or(`nombre.ilike.%${sanitizarFiltro(inp.texto)}%,telefono.ilike.%${sanitizarFiltro(inp.texto)}%`)
         .limit(8);
       return (data ?? []).map((row) => proyectarClienteIA(row as Record<string, unknown>));
+    }
+
+    case 'ficha_cliente': {
+      // Ficha 360 para la IA (Sesion 7). Regla dura de salud: lista blanca de
+      // campos operativos + un booleano tiene_notas_salud SIN contenido. Un cliente
+      // con consiente_ia=false es INVISIBLE (se responde como si no existiera).
+      const idInp = String(inp.id ?? '').trim();
+      // Se seleccionan tambien alergias/notas/sensibilidades SOLO para derivar el
+      // booleano de salud aqui dentro; esos campos NUNCA se devuelven ni viajan al LLM.
+      let q = svc
+        .from('clientes')
+        .select('id, nombre, telefono, total_visitas, ultima_visita, primera_visita, ticket_medio, frecuencia_dias, etiquetas, alergias, notas, sensibilidades_cuero')
+        .eq('negocio_id', negocioId)
+        .eq('consiente_ia', true)
+        .limit(1);
+      q = /^[0-9a-f-]{36}$/i.test(idInp)
+        ? q.eq('id', idInp)
+        : q.or(`nombre.ilike.%${sanitizarFiltro(inp.texto)}%,telefono.ilike.%${sanitizarFiltro(inp.texto)}%`);
+      const { data: filas } = await q;
+      const row = (filas ?? [])[0] as Record<string, unknown> | undefined;
+      if (!row) return { encontrado: false };
+
+      const clienteId = String(row.id);
+      // Booleano de salud: se calcula aqui y el contenido se descarta de inmediato.
+      const tieneNotasSalud =
+        String(row.alergias ?? '').trim().length > 0 ||
+        String(row.notas ?? '').trim().length > 0 ||
+        String(row.sensibilidades_cuero ?? '').trim().length > 0;
+
+      // Etiquetas no sensibles: se retiran las reservadas de seguimiento de resenas.
+      const TAGS_RESERVADAS = new Set(['Reseñó salón', 'Reseñó Mecha']);
+      const etiquetas = Array.isArray(row.etiquetas)
+        ? (row.etiquetas as string[]).filter((t) => !TAGS_RESERVADAS.has(t))
+        : [];
+
+      // Ultimas citas (fecha/servicio/estado/importe) + gasto acumulado real.
+      const { data: cits } = await svc
+        .from('citas')
+        .select('inicio, estado, servicio_id, importe_final, cobrada')
+        .eq('negocio_id', negocioId)
+        .eq('cliente_id', clienteId)
+        .order('inicio', { ascending: false })
+        .limit(8);
+      const svcIds = [...new Set((cits ?? []).map((c: { servicio_id: string | null }) => c.servicio_id).filter(Boolean))] as string[];
+      const svcMap = new Map<string, string>();
+      if (svcIds.length) {
+        const { data: servs } = await svc.from('servicios').select('id, nombre').eq('negocio_id', negocioId).in('id', svcIds);
+        for (const s of (servs ?? []) as { id: string; nombre: string }[]) svcMap.set(s.id, s.nombre);
+      }
+      const ultimasCitas = (cits ?? []).map((c: { inicio: string; estado: string; servicio_id: string | null; importe_final: number | null }) => ({
+        fecha: c.inicio,
+        servicio: c.servicio_id ? (svcMap.get(c.servicio_id) ?? null) : null,
+        estado: c.estado,
+        importe: c.importe_final ?? null,
+      }));
+      const gastoAcumulado = (cits ?? []).reduce(
+        (s: number, c: { importe_final: number | null; cobrada: boolean | null }) => s + (c.cobrada && c.importe_final ? Number(c.importe_final) : 0),
+        0,
+      );
+
+      // Riesgo de no-show: se calcula con la RPC (una sola fuente de verdad), via el
+      // JWT del usuario (SECURITY DEFINER scoped a su negocio).
+      let riesgo: unknown = { nivel: 'bajo', score: 0 };
+      const { data: rk } = await userClient.rpc('riesgo_no_show_cliente', { p_cliente_id: clienteId });
+      if (rk) riesgo = rk;
+
+      // Proyeccion final: lista blanca de operativos + agregados NO sensibles.
+      const base = proyectarClienteIA(row);
+      return {
+        encontrado: true,
+        cliente: base,
+        ultimas_citas: ultimasCitas,
+        gasto_acumulado: gastoAcumulado,
+        etiquetas,
+        tiene_notas_salud: tieneNotasSalud,
+        riesgo_no_show: riesgo,
+      };
     }
 
     case 'listar_citas': {
@@ -1883,6 +1991,29 @@ async function construirPropuesta(
         contacto_nombre: conv.contacto_nombre ?? cli.nombre,
         cuerpo,
         resumen: `Guardar en Bandeja para ${cli.nombre}: "${cuerpo.length > 60 ? cuerpo.slice(0, 57) + '...' : cuerpo}"`,
+      };
+    }
+
+    case 'recuperar_cliente': {
+      const { data: clientes } = await svc
+        .from('clientes').select('id, nombre, ultima_visita, frecuencia_dias')
+        .eq('negocio_id', negocioId).eq('consiente_ia', true)
+        .or(`nombre.ilike.%${sanitizarFiltro(inp.cliente)}%,telefono.ilike.%${sanitizarFiltro(inp.cliente)}%`)
+        .limit(5);
+      if (!clientes || clientes.length === 0) return { error: `Cliente "${inp.cliente}" no encontrado (o sin consentimiento de IA).` };
+      if (clientes.length > 1) return { error: `Varios clientes coinciden con "${inp.cliente}". ¿Cual?` };
+      const cli = clientes[0] as { id: string; nombre: string; ultima_visita: string | null; frecuencia_dias: number | null };
+      if (!cli.ultima_visita || cli.frecuencia_dias == null) {
+        return { error: `Aun no tengo historial suficiente de ${cli.nombre} para preparar una propuesta de vuelta.` };
+      }
+      const dias = Math.max(0, Math.round((Date.now() - new Date(cli.ultima_visita).getTime()) / 86400000));
+      return {
+        tipo: 'recuperar_cliente',
+        negocio_id: negocioId,
+        cliente_id: cli.id,
+        cliente_nombre: cli.nombre,
+        dias_sin_venir: dias,
+        resumen: `Preparar propuesta de vuelta para ${cli.nombre} (${dias} dias sin venir). El envio lo gestiona el equipo.`,
       };
     }
 

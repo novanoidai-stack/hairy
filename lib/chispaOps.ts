@@ -142,6 +142,17 @@ export type AccionPropuesta =
       contacto_nombre: string | null;
       cuerpo: string;
       resumen: string;
+    }
+  | {
+      // Recuperacion de clienta en fuga (Sesion 7): deja el REGISTRO/borrador de
+      // "propuesta de vuelta" (fuga_clientas_avisos) para el motor de envio. El
+      // envio real por WhatsApp es de Alexandro: aqui NO se dispara ningun envio.
+      tipo: 'recuperar_cliente';
+      negocio_id: string;
+      cliente_id: string;
+      cliente_nombre: string | null;
+      dias_sin_venir: number;
+      resumen: string;
     };
 
 export type EjecucionResultado =
@@ -404,6 +415,25 @@ export async function ejecutarAccion(
         return {
           ok: true,
           mensaje: `Mensaje guardado en la Bandeja${a.contacto_nombre ? ` para ${a.contacto_nombre}` : ''}. El envio por WhatsApp lo gestiona el equipo.`,
+        };
+      }
+
+      case 'recuperar_cliente': {
+        // Registra el borrador de "propuesta de vuelta" via RPC security definer
+        // (RLS de fuga_clientas_avisos no permite INSERT directo). El motor de
+        // Alexandro recoge el registro 'pendiente' y hace el envio real. La RPC es
+        // idempotente (si ya hay un aviso pendiente para la clienta, lo reutiliza).
+        const { data, error } = await supabase.rpc('registrar_aviso_fuga', {
+          p_cliente_id: a.cliente_id,
+        });
+        if (error) return { ok: false, error: error.message };
+        const res = (data ?? {}) as { ok?: boolean; error?: string; ya_existia?: boolean };
+        if (!res.ok) return { ok: false, error: res.error ?? 'No se pudo registrar la propuesta de vuelta.' };
+        return {
+          ok: true,
+          mensaje: res.ya_existia
+            ? `Ya habia una propuesta de vuelta pendiente para ${a.cliente_nombre ?? 'la clienta'}. El equipo la gestiona.`
+            : `Propuesta de vuelta registrada para ${a.cliente_nombre ?? 'la clienta'}. El envio lo gestiona el equipo.`,
         };
       }
 

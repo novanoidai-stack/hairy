@@ -11,6 +11,7 @@ import { mensajeDeError } from '@/lib/errores';
 import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA } from '@/lib/constants';
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { PhoneInput } from '@/components/ui/PhoneInput';
+import { RiesgoNoShowIndicator, type RiesgoNoShow } from '@/components/clientes/RiesgoNoShowIndicator.web';
 import * as XLSX from 'xlsx';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualClientes } from '@/lib/manuals/clientes';
@@ -132,6 +133,7 @@ interface Cliente {
   enRiesgoFuga?: boolean;
   diasFugaRetraso?: number;
   recompensaFugaNombre?: string;
+  riesgoNoShow?: RiesgoNoShow | null;
 }
 
 type Tab = 'resumen' | 'notas' | 'color' | 'historial';
@@ -312,7 +314,7 @@ function ClientesWeb() {
     }
     setNegocioId(profile.negocio_id);
 
-    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }, { data: fugaData }] = await Promise.all([
+    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }, { data: fugaData }, { data: riesgoNoShowData }] = await Promise.all([
       supabase
         .from('clientes')
         .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override, consiente_ia')
@@ -341,12 +343,20 @@ function ClientesWeb() {
         .eq('negocio_id', profile.negocio_id)
         .maybeSingle(),
       supabase.rpc('clientes_en_riesgo_fuga'),
+      supabase.rpc('clientes_riesgo_no_show'),
     ]);
 
     // Riesgo de fuga: mapa cliente_id -> datos del RPC (dias de retraso, recompensa sugerida)
     const fugaPorCliente = new Map<string, { dias: number; recompensa?: string }>();
     (fugaData ?? []).forEach((f: any) => {
       fugaPorCliente.set(f.cliente_id, { dias: f.dias_desde_ultima_visita, recompensa: f.recompensa_nombre ?? undefined });
+    });
+
+    // Riesgo de no-show (Sesion 7): mapa cliente_id -> score (solo medio/alto; el RPC
+    // ya excluye a las fiables). Derivado del historial server-side, sin datos de salud.
+    const riesgoPorCliente = new Map<string, RiesgoNoShow>();
+    (riesgoNoShowData ?? []).forEach((r: any) => {
+      riesgoPorCliente.set(r.cliente_id, { nivel: r.nivel, score: r.score, no_shows: r.no_shows, cancelaciones_tardias: r.cancelaciones_tardias });
     });
 
     const cfg: any = (cfgRow?.config && typeof cfgRow.config === 'object') ? cfgRow.config : {};
@@ -385,8 +395,9 @@ function ClientesWeb() {
       const profHabitual = topProf ? ((profData ?? []).find((p: any) => p.id === topProf[0])?.nombre ?? undefined) : undefined;
 
       const fuga = fugaPorCliente.get(cl.id);
+      const riesgoNoShow = riesgoPorCliente.get(cl.id) ?? null;
 
-      return { ...cl, visitas, gastado, ultimaVisita, primeraVisita, ultimaVisitaStr, fav, favCount, tag, actividad, riesgo, noshows_count: noshows, diasInactiva, profHabitual, enRiesgoFuga: !!fuga, diasFugaRetraso: fuga?.dias, recompensaFugaNombre: fuga?.recompensa } as Cliente;
+      return { ...cl, visitas, gastado, ultimaVisita, primeraVisita, ultimaVisitaStr, fav, favCount, tag, actividad, riesgo, riesgoNoShow, noshows_count: noshows, diasInactiva, profHabitual, enRiesgoFuga: !!fuga, diasFugaRetraso: fuga?.dias, recompensaFugaNombre: fuga?.recompensa } as Cliente;
     });
 
     setClientes(enrichedClients);
@@ -849,8 +860,9 @@ function ClientesWeb() {
                         </Pill>
                         {c.actividad === 'Inactiva' && <Pill color={TOKENS.textTer} title="Sin visitas recientes. Informativo (util para campanas de recuperacion).">Inactiva</Pill>}
                         {c.actividad === 'Riesgo abandono' && <Pill color={TOKENS.warning} title="Hace tiempo que no viene. Informativo.">Riesgo abandono</Pill>}
-                        {c.riesgo === 'Alto riesgo' && <Pill color={TOKENS.danger} title="Varios no-shows en su historial. Con el deposito dinamico activo, se le puede pedir prepago total.">No-show</Pill>}
-                        {c.riesgo === 'Incidencias' && <Pill color={TOKENS.warning} title="Algun no-show en su historial. Con el deposito dinamico activo, paga mas senal.">Incidencias</Pill>}
+                        {/* Riesgo de no-show (Sesion 7): score neutro derivado del historial
+                            (ausencias, cancelaciones tardias, antiguedad). Solo medio/alto. */}
+                        <RiesgoNoShowIndicator riesgo={c.riesgoNoShow} />
                         {c.bloqueado && <Pill color={TOKENS.danger} title="No puede reservar online. Se gestiona con el boton Bloquear.">Bloqueado</Pill>}
                         <button
                           title={c.bloqueado && c.bloqueo_motivo ? `Motivo: ${c.bloqueo_motivo}` : (c.bloqueado ? 'Cliente bloqueado' : 'Impedir que reserve online')}

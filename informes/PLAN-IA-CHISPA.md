@@ -199,7 +199,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 4 | Retraso con alternativas + duracion real aprendida + anti-solape | Opus 4.8 | alto | 1,3 | **HECHA (6 jul)** |
 | 5 | Voz: micro (STT + fallback) + TTS ElevenLabs + A/B | Sonnet 5 | alto | 1 | **HECHA (6 jul)** |
 | 6 | Omnisciencia/analitica (briefing, informes, caja, metas, alertas) | Sonnet 5 | medio-alto | 1,2 | **HECHA (6 jul)** — briefing (Alexandro) + analitica conversacional (ver registro abajo) |
-| 7 | Q&A profundo de cliente + riesgo no-show + fuga | Opus 4.8 | medio | 1,2 | pendiente |
+| 7 | Q&A profundo de cliente + riesgo no-show + fuga | Opus 4.8 | medio | 1,2 | **HECHA (6 jul)** |
 | 8 | Lista de espera: matching + aviso + priorizacion | Opus 4.8 (SQL) / Sonnet 5 (UI) | medio | 1,3 | pendiente |
 | 9 | Superficies por pagina (resenas, bandeja, presupuestos, inventario, equipo, mi jornada, upsell, recompra) | Sonnet 5 | medio | 1,2,3 | pendiente |
 | 10 | Consentimiento cliente-facing + cierre legal | Opus 4.8 | medio | 2 | pendiente |
@@ -398,6 +398,48 @@ caida de reservas, hueco muerto cronico -> promo, y anadir el toggle que falta.
 - **INCIDENTE (recuperado):** un primer deploy del edge via MCP subio por error un placeholder en vez del
   `index.ts` real (roto ~2 min); corregido de inmediato redeployando los 3 archivos reales con el CLI
   `supabase functions deploy` (v19, sha `86a4c93`). Sin errores de arranque en logs tras el fix.
+
+**Registro Sesion 7 (6 jul, HECHA):** Q&A profundo de clienta + riesgo de no-show + fuga, tocando la
+regla dura de salud. **SQL** (`migrations/sesion7-riesgo-noshow-y-ficha.sql`, aplicada + advisors OK,
+solo el WARN esperado de security-definer ejecutable por authenticated con guardas internas):
+- `marcar_cita_no_show` **cerrada de circuito**: ademas de poner `estado='no_show'` (existia de la S6
+  parcial de Alexandro, sin UI que la llamara) ahora **incrementa `clientes.noshows_count`** y sella
+  `modificado_por/at`, para que la pildora de riesgo de la ficha y el score dejen de salir siempre vacios.
+- `clientes_riesgo_no_show()` (tabla, negocio del caller via `auth.uid()`; SOLO devuelve medio/alto para
+  no etiquetar a la mayoria fiable) + `riesgo_no_show_cliente(id)` (jsonb de UNA clienta, incluye bajo)
+  + `citas_riesgo_no_show(desde,hasta)` (citas sin confirmar de clientas de riesgo, para el aviso
+  "no-show inminente"). Score DETERMINISTA: `no_shows*35 + cancelaciones_tardias*15 + (clienta nueva ?10)`,
+  nivel alto>=50 / medio>=20 / bajo. Cancelacion tardia = cancelada cuyo ultimo cambio cae en +-24h del
+  inicio. **Verificado con datos reales de demo** (mark+medir+revert): 1 no-show de Ana Ruiz -> score 35
+  -> nivel medio, cuadra. + `registrar_aviso_fuga(cliente,recompensa?)` (security definer, idempotente,
+  guardrail demo) porque `fuga_clientas_avisos` no tiene policy de INSERT: deja el registro 'pendiente'
+  que recoge el motor de Alexandro (envio real WhatsApp = suyo).
+- **Wire-up del boton "No se presentó"** en el `DetalleCitaModal` de `AgendaCalendar.web.tsx` (visible solo
+  cuando la cita ya paso y sigue confirmada/completada) -> llama la RPC -> refresca. Sin esto, hoy 0 citas
+  se habian marcado nunca como no_show y el score no tenia datos que contar.
+- **Edge `agenda-asistente`** (desplegado v-nueva via CLI supabase, 3 archivos reales): tool de lectura
+  `ficha_cliente(texto|id)` con **lista blanca dura**: devuelve operativos (ultimas citas, servicio, gasto
+  acumulado real de cobros, frecuencia, ticket, etiquetas NO reservadas) + `riesgo_no_show` + el booleano
+  `tiene_notas_salud` **SIN el contenido** (alergias/notas/sensibilidades se leen solo para derivar el flag
+  y se descartan; nunca viajan). `assertSinCamposProhibidos` sigue corriendo sobre el retorno. `consiente_ia=false`
+  -> `encontrado:false` (invisible). Tool de escritura `recuperar_cliente` (propone->confirma -> `registrar_aviso_fuga`).
+  RBAC (permisos.ts): `ficha_cliente`=`clientes.ver` (todos), `recuperar_cliente`=`bandeja.escribir` (recepcion+);
+  2 tests nuevos (13/13). System prompt: guia de salud ("si tiene_notas_salud, di que hay notas en su ficha y
+  enlaza; jamas inventes el contenido") + tono neutro del riesgo.
+- **UI cliente:** componente reutilizable `components/clientes/RiesgoNoShowIndicator.web.tsx` (neutro, no rojo
+  de alarma, solo medio/alto, tooltip "solo visible para el equipo"), montado en la ficha de Clientes
+  (reemplaza las viejas pildoras No-show/Incidencias basadas solo en noshows_count por el score mas rico) y en
+  el header del `DetalleCitaModal` (compact). Alerta de **fuga conectada a Chispa** via `recuperar_cliente`
+  (ejecutor en `lib/chispaOps.ts`; en demo la escritura es simulada por el guardrail de `ChispaPanel`).
+  **No-show inminente** integrado como senal mas del briefing (`lib/briefing.ts` `cargarNoShowInminente` ->
+  `BriefingAgenda`), citas sin confirmar de MANANA de clientas de riesgo.
+- **Verificado en vivo** (`/demo.html?share=1`, owner): "cuentame de Ana Ruiz" y "¿tiene alguna alergia?" ->
+  el payload del edge (inspeccionado en network, 200) devuelve enlace a la ficha y **nunca** el texto de su nota
+  de salud ("...sin amoniaco" no aparece en ninguna respuesta); Sofia Torres con `consiente_ia=false` -> Chispa
+  no la conoce (encontrado:false). El RPC `citas_riesgo_no_show` se dispara al abrir Chispa (briefing). `npx tsc
+  --noEmit` + `npm run build:web` limpios (sin `any`); `deno check` + `deno test` (13 permisos + 6 whitelist) verdes.
+  Demo re-verificada intacta (0 no_show, 0 noshows>0, 0 consent-false, 0 fuga_avisos). Envio real de la propuesta
+  de vuelta y plantilla WhatsApp del recordatorio de no-show inminente quedan abiertos para Alexandro.
 
 **Guia de modelo:** Opus 4.8 donde equivocarse es caro (arquitectura, seguridad/RGPD, dominio agenda,
 SQL, dinero, parsing de migracion); Sonnet 5 en integraciones acotadas, lectura/analitica y

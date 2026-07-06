@@ -1443,3 +1443,36 @@ de alcance", ver `docs/superpowers/specs/2026-07-04-copiloto-fase3-briefing-proa
   (cubierto por los tests RBAC; el tenant demo solo tiene cuentas owner, de ahi que la verificacion viva
   fuera con owner). **Incidente recuperado:** un primer deploy via MCP subio un placeholder por error
   (edge roto ~2 min); corregido redeployando los 3 archivos reales con el CLI.
+
+## Adenda — Capa IA "Chispa" Sesion 7: Q&A de cliente + riesgo de no-show + fuga — HECHA (6 jul)
+
+Cierre de la Sesion 7 del plan `informes/PLAN-IA-CHISPA.md`. Aqui se TOCA la regla dura de salud (datos de
+salud NUNCA al LLM) y se cierra el circuito del no-show (la RPC `marcar_cita_no_show` existia desde la S6
+parcial de Alexandro pero ninguna UI la llamaba y no actualizaba el contador).
+
+- **SQL** (`migrations/sesion7-riesgo-noshow-y-ficha.sql`, aplicada; advisors: solo el WARN esperado de
+  security-definer ejecutable por authenticated con guardas internas, sin ERROR ni RLS faltante):
+  - `marcar_cita_no_show` ahora **incrementa `clientes.noshows_count`** y sella `modificado_por/at` (antes
+    solo cambiaba el estado -> la pildora de riesgo y el score salian siempre vacios).
+  - `clientes_riesgo_no_show()` (tabla, negocio del caller; SOLO medio/alto para no etiquetar a la mayoria
+    fiable), `riesgo_no_show_cliente(id)` (jsonb de una clienta, incluye bajo) y `citas_riesgo_no_show(desde,
+    hasta)` (citas sin confirmar de clientas de riesgo -> aviso "no-show inminente"). Score DETERMINISTA:
+    `no_shows*35 + cancelaciones_tardias*15 + (clienta nueva ?10)`; alto>=50 / medio>=20 / bajo. Verificado
+    con datos reales de demo (mark+medir+revert): 1 no-show -> score 35 -> medio.
+  - `registrar_aviso_fuga(cliente,recompensa?)` (idempotente, guardrail demo) porque `fuga_clientas_avisos`
+    no admite INSERT directo por RLS: deja el registro 'pendiente' para el motor de Alexandro.
+- **UI agenda:** boton **"No se presentó"** en el `DetalleCitaModal` (solo si la cita ya paso y sigue
+  confirmada/completada) -> RPC -> refresca; indicador de riesgo (compact) en el header de la cita.
+- **Edge `agenda-asistente`** (desplegado via CLI supabase, 3 archivos reales): tool `ficha_cliente(texto|id)`
+  con **lista blanca dura** (operativos + gasto/frecuencia + riesgo) y el booleano `tiene_notas_salud` SIN
+  contenido (alergias/notas se leen solo para el flag y se descartan); `consiente_ia=false` -> `encontrado:false`.
+  Tool de escritura `recuperar_cliente` (propone->confirma). RBAC: `ficha_cliente`=`clientes.ver`,
+  `recuperar_cliente`=`bandeja.escribir`; +2 tests (13/13). System prompt: guia de salud y tono neutro del riesgo.
+- **UI cliente:** `components/clientes/RiesgoNoShowIndicator.web.tsx` (neutro, solo medio/alto, "solo el equipo")
+  en la ficha de Clientes (reemplaza las viejas pildoras No-show/Incidencias) y en la cita. Fuga conectada a
+  Chispa (`recuperar_cliente` en `lib/chispaOps.ts`). No-show inminente = senal mas del briefing
+  (`lib/briefing.ts` `cargarNoShowInminente` -> `BriefingAgenda`).
+- **Verificado en vivo** (`/demo.html?share=1`, owner): "cuentame de Ana Ruiz" / "¿tiene alguna alergia?" ->
+  el payload del edge (network, 200) da enlace a la ficha y NUNCA el texto de la nota de salud; Sofia Torres con
+  `consiente_ia=false` -> Chispa no la conoce. `tsc` + `build:web` limpios; `deno` verde. Demo intacta tras la
+  verificacion. Envio real de la propuesta de vuelta y plantilla WhatsApp del no-show inminente = Alexandro.

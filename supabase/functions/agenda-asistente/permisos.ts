@@ -82,12 +82,18 @@ const ESCRITURA_GESTION: Record<string, Capability> = {
   editar_horario: 'horarios.editar',
   crear_presupuesto: 'presupuestos.crear',
   enviar_mensaje_bandeja: 'bandeja.escribir',
+  // Recuperacion de clienta en fuga (Sesion 7): deja el registro/borrador para el
+  // motor de envio (WhatsApp real = Alexandro). Misma capacidad que la Bandeja.
+  recuperar_cliente: 'bandeja.escribir',
 };
 
 // Capacidad requerida por cada tool de LECTURA/NAVEGACION. null = cualquier rol.
 const LECTURA_CAP: Record<string, Capability | null> = {
   info_catalogo: null,
   buscar_cliente: 'clientes.ver',
+  // Ficha 360 de una clienta (Sesion 7): historial/gasto/frecuencia/riesgo + flag
+  // de notas de salud SIN contenido (regla dura de salud). Mismo gate que buscar.
+  ficha_cliente: 'clientes.ver',
   listar_citas: 'agenda.ver_propia',
   consultar_disponibilidad: 'agenda.ver_propia',
   resumen_informes: 'informes.ver',

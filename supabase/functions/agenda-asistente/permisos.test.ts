@@ -99,6 +99,19 @@ Deno.test('Omnisciencia (Sesion 6): Direccion y Propietario SI ven caja/ocupacio
   }
 });
 
+Deno.test('Sesion 7: ficha_cliente sigue clientes.ver (todos los roles la tienen)', () => {
+  for (const valor of ['employee', 'recepcion', 'admin', 'owner']) {
+    assertEquals(toolPermitida('ficha_cliente', roleOf(valor), valor === 'employee' ? 'self' : 'all'), true);
+  }
+});
+
+Deno.test('Sesion 7: recuperar_cliente solo recepcion+ (misma capacidad que Bandeja)', () => {
+  assertEquals(toolPermitida('recuperar_cliente', roleOf('employee'), 'self'), false);
+  assertEquals(toolPermitida('recuperar_cliente', roleOf('recepcion'), 'all'), true);
+  assertEquals(toolPermitida('recuperar_cliente', roleOf('admin'), 'all'), true);
+  assertEquals(toolPermitida('recuperar_cliente', roleOf('owner'), 'all'), true);
+});
+
 Deno.test('tool desconocida: fail-closed (nunca se declara)', () => {
   for (const scope of ['all', 'self', 'none'] as WriteScope[]) {
     assertEquals(toolPermitida('exfiltrar_todo', roleOf('owner'), scope), false);

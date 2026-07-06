@@ -44,6 +44,34 @@ export async function cargarClientesRecuperar(scope: 'all' | 'self'): Promise<Br
   };
 }
 
+// No-show inminente (Sesion 7): citas de MANANA sin confirmar de clientas con
+// riesgo medio/alto (RPC citas_riesgo_no_show, self-gated por auth.uid()). Chispa
+// sugiere reforzar el recordatorio. Solo a nivel de negocio (scope all).
+export async function cargarNoShowInminente(scope: 'all' | 'self'): Promise<BriefingSignal | null> {
+  if (scope === 'self') return null;
+  // Ventana: desde el inicio de manana hasta el inicio de pasado manana (hora local).
+  const inicio = new Date();
+  inicio.setHours(0, 0, 0, 0);
+  inicio.setDate(inicio.getDate() + 1);
+  const fin = new Date(inicio);
+  fin.setDate(fin.getDate() + 1);
+  const { data, error } = await supabase.rpc('citas_riesgo_no_show', {
+    p_desde: inicio.toISOString(),
+    p_hasta: fin.toISOString(),
+  });
+  if (error || !Array.isArray(data) || data.length === 0) return null;
+  return {
+    tipo: 'no_show_inminente',
+    familia: 'operativa',
+    severidad: 'media',
+    titulo: 'Posibles ausencias manana',
+    detalle: `${data.length} ${data.length === 1 ? 'cita sin confirmar de una clienta' : 'citas sin confirmar de clientas'} con historial de no-show. Refuerza el recordatorio.`,
+    count: data.length,
+    items: data.slice(0, 20) as Array<Record<string, unknown>>,
+    accion: { tipo: 'ir_a', label: 'Ver agenda de manana', payload: { destino: 'agenda' } },
+  };
+}
+
 // Senales de puesta en marcha: un paso pendiente del onboarding = una senal.
 // Reusa ONBOARDING_STEPS (titulo/porque/cta/pathname) para no duplicar textos ni destinos.
 export function senalesSetup(status: OnboardingStatus): BriefingSignal[] {
