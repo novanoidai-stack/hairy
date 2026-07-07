@@ -33,15 +33,26 @@ const DEMO_COUNT_KEY = 'mecha-chispa-demo-msgs';
 const PANEL_STYLES = `
   @keyframes chispaDrawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
   @keyframes chispaBackdropIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes chispaMsgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes chispaMsgIn { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
   @keyframes chispaTabIn { from { opacity: 0; transform: translate(20px,-50%); } to { opacity: 1; transform: translate(0,-50%); } }
   @keyframes chispaDot { 0%, 80%, 100% { opacity: 0.3; transform: scale(0.85); } 40% { opacity: 1; transform: scale(1); } }
-  .chispa-msg { animation: chispaMsgIn 0.22s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes chispaTabPulse {
+    0%, 100% { box-shadow: 0 8px 24px rgba(192,38,10,0.32); }
+    50% { box-shadow: 0 8px 32px rgba(244,80,30,0.52), 0 0 16px rgba(255,140,66,0.3); }
+  }
+  @keyframes chispaTypewriter { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+  .chispa-msg { animation: chispaMsgIn 0.3s cubic-bezier(0.16,1,0.3,1); }
   .chispa-drawer { animation: chispaDrawerIn 0.30s cubic-bezier(0.16,1,0.3,1); }
   .chispa-backdrop { animation: chispaBackdropIn 0.25s ease; }
-  .chispa-launch-tab { animation: chispaTabIn 0.3s cubic-bezier(0.16,1,0.3,1); }
+  .chispa-launch-tab { animation: chispaTabIn 0.3s cubic-bezier(0.16,1,0.3,1), chispaTabPulse 3s ease-in-out infinite 0.3s; }
+  .chispa-typewriter-word { display: inline; animation: chispaTypewriter 0.18s ease-out both; }
+  .chispa-text-bubble strong, .chispa-text-bubble b { font-weight: 700; color: #1c1814; }
+  .chispa-text-bubble em, .chispa-text-bubble i { font-style: italic; }
+  .chispa-text-bubble code { background: rgba(40,30,24,0.06); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; font-family: monospace; }
+  .chispa-text-bubble ul, .chispa-text-bubble ol { margin: 4px 0; padding-left: 18px; }
+  .chispa-text-bubble li { margin-bottom: 2px; }
   @media (prefers-reduced-motion: reduce) {
-    .chispa-msg, .chispa-drawer, .chispa-backdrop, .chispa-launch-tab { animation: none !important; }
+    .chispa-msg, .chispa-drawer, .chispa-backdrop, .chispa-launch-tab, .chispa-typewriter-word { animation: none !important; }
   }
 `;
 
@@ -116,7 +127,7 @@ const BIENVENIDA: Mensaje = {
   role: 'assistant',
   bloques: [{
     tipo: 'texto',
-    texto: 'Hola, soy Chispa, la IA del salon. Puedo gestionar tu agenda (crear, reagendar, cancelar o confirmar citas en bloque), cambiar precios de servicios, preparar presupuestos y ajustes, y llevarte a la pantalla que necesites. Te propongo y tu confirmas. ¿Que hacemos?',
+    texto: '¡Hola! 👋 Soy **Chispa**, la IA de tu salón.\n\nPuedo ayudarte con:\n• **Agenda** — crear, reagendar, cancelar o confirmar citas en bloque\n• **Catálogo** — cambiar precios de servicios\n• **Presupuestos** — preparar presupuestos al instante\n• **Navegación** — llevarte a la pantalla que necesites\n\nYo propongo y **tú confirmas**. ¿Qué hacemos?',
   }],
   accionEstado: null,
 };
@@ -538,12 +549,15 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
               {/* Estado de voz visible (accesibilidad: nunca escuchar/hablar en
                   silencio sin que se note) + errores no bloqueantes */}
               {(voz.estado !== 'inactivo' || voz.errorVoz) && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, paddingLeft: 4 }}>
+                <div style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 6, paddingLeft: 4,
+                  ...(voz.errorVoz ? { background: T.warningSoft, borderRadius: 8, padding: '6px 10px', marginLeft: -6, marginRight: -6 } : {}),
+                }}>
                   {voz.estado !== 'inactivo' && (
-                    <span style={{ width: 6, height: 6, borderRadius: 999, background: voz.errorVoz ? T.textMuted : T.primary, animation: voz.errorVoz ? 'none' : 'chispaDot 1s ease-in-out infinite' }} />
+                    <span style={{ width: 6, height: 6, borderRadius: 999, background: voz.errorVoz ? T.textMuted : T.primary, animation: voz.errorVoz ? 'none' : 'chispaDot 1s ease-in-out infinite', flexShrink: 0, marginTop: 4 }} />
                   )}
-                  <span style={{ fontSize: 11.5, color: voz.errorVoz ? T.warning : T.textTertiary }}>
-                    {voz.errorVoz ?? (voz.estado === 'escuchando' ? 'Escuchando…' : voz.estado === 'transcribiendo' ? 'Transcribiendo…' : voz.estado === 'hablando' ? 'Chispa esta hablando…' : '')}
+                  <span style={{ fontSize: 11.5, color: voz.errorVoz ? T.warning : T.textTertiary, lineHeight: 1.4 }}>
+                    {voz.errorVoz ?? (voz.estado === 'escuchando' ? 'Escuchando… habla ahora 🎙️' : voz.estado === 'transcribiendo' ? 'Transcribiendo tu voz…' : voz.estado === 'hablando' ? 'Chispa está hablando… 🔊' : '')}
                   </span>
                 </div>
               )}

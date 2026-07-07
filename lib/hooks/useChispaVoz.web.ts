@@ -145,9 +145,9 @@ export function useChispaVoz() {
       const data = (await r.json()) as { texto?: string };
       const texto = typeof data.texto === 'string' ? data.texto.trim() : '';
       if (texto) onResultadoRef.current?.(texto);
-      else setErrorVoz('No se entendio el audio, intentalo de nuevo.');
+      else setErrorVoz('No se entendió lo que dijiste. Intenta hablar un poco más alto y claro.');
     } catch {
-      setErrorVoz('No se pudo transcribir el audio.');
+      setErrorVoz('Error al conectar con el servicio de voz. Comprueba tu conexión.');
     } finally {
       setEstado('inactivo');
     }
@@ -169,10 +169,19 @@ export function useChispaVoz() {
       rec.onresult = (e) => {
         const texto = String(e.results?.[0]?.[0]?.transcript ?? '').trim();
         if (texto) onResultadoRef.current?.(texto);
-        else setErrorVoz('No se entendio, intentalo de nuevo.');
+        else setErrorVoz('No se entendió. Habla un poco más alto y claro.');
       };
-      rec.onerror = () => {
-        setErrorVoz('No se pudo escuchar el microfono.');
+      rec.onerror = (ev: Event) => {
+        const errorType = (ev as any).error ?? '';
+        if (errorType === 'not-allowed' || errorType === 'permission-denied') {
+          setErrorVoz('⚠️ El micrófono está bloqueado. Haz clic en el candado 🔒 de la barra del navegador → Permisos → Micrófono → Permitir, y vuelve a intentarlo.');
+        } else if (errorType === 'no-speech') {
+          setErrorVoz('No detecté tu voz. ¿Tienes el micrófono encendido? Pulsa de nuevo e intenta hablar.');
+        } else if (errorType === 'network') {
+          setErrorVoz('Error de red al usar el reconocimiento de voz. Comprueba tu conexión a internet.');
+        } else {
+          setErrorVoz('No se pudo escuchar. Revisa que tu micrófono esté conectado y que el navegador tenga permiso para usarlo.');
+        }
         setEstado('inactivo');
       };
       rec.onend = () => setEstado((e) => (e === 'escuchando' ? 'inactivo' : e));
@@ -181,7 +190,7 @@ export function useChispaVoz() {
         rec.start();
         setEstado('escuchando');
       } catch {
-        setErrorVoz('No se pudo iniciar el microfono.');
+        setErrorVoz('No se pudo iniciar el micrófono. Comprueba que está conectado y permitido en el navegador.');
       }
       return;
     }
@@ -205,7 +214,7 @@ export function useChispaVoz() {
       mr.start();
       setEstado('escuchando');
     } catch {
-      setErrorVoz('No se pudo acceder al microfono. Revisa los permisos del navegador.');
+      setErrorVoz('No se pudo acceder al micrófono. Ve a los ajustes del navegador y permite el acceso al micrófono para este sitio.');
       setEstado('inactivo');
     }
   }, [estado, soportaReconocimientoNativo, transcribirServidor]);

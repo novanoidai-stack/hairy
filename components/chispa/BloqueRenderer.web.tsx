@@ -9,6 +9,64 @@ import { LineChartMini } from '@/components/charts/LineChartMini.web';
 
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
 
+// Convierte markdown ligero (bold, newlines, bullets) a HTML con animacion
+// de entrada word-by-word para que el texto se sienta dinamico.
+function renderChispaMarkdown(raw: string): string {
+  let wordIdx = 0;
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const animWord = (w: string) => {
+    const delay = Math.min(wordIdx * 25, 800); // cap at 0.8s
+    wordIdx++;
+    return `<span class="chispa-typewriter-word" style="animation-delay:${delay}ms">${w}</span> `;
+  };
+
+  // Process line by line
+  const lines = raw.split('\n');
+  const html: string[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) { html.push('<br/>'); continue; }
+
+    // Bullet point
+    const isBullet = trimmed.startsWith('• ') || trimmed.startsWith('- ') || trimmed.startsWith('* ');
+    let processed = esc(isBullet ? trimmed.slice(2) : trimmed);
+
+    // Bold: **text** -> <strong>text</strong>
+    processed = processed.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // Italic: *text* -> <em>text</em>
+    processed = processed.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>');
+    // Code: `text` -> <code>text</code>
+    processed = processed.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Wrap each "word" (split by spaces) in animated span
+    const words = processed.split(/(\s+|<[^>]+>)/g);
+    let animated = '';
+    let insideTag = false;
+    for (const part of words) {
+      if (part.startsWith('<') && !part.startsWith('<span')) {
+        animated += part;
+        insideTag = part.startsWith('<') && !part.endsWith('>');
+      } else if (insideTag) {
+        animated += part;
+        if (part.endsWith('>')) insideTag = false;
+      } else if (part.trim()) {
+        animated += animWord(part);
+      } else {
+        animated += part;
+      }
+    }
+
+    if (isBullet) {
+      html.push(`<div style="display:flex;gap:6px;align-items:baseline;margin:2px 0"><span style="color:#f4501e;font-weight:700;flex-shrink:0">•</span><span>${animated}</span></div>`);
+    } else {
+      html.push(`<div style="margin:1px 0">${animated}</div>`);
+    }
+  }
+
+  return html.join('');
+}
+
 // Formato + color por unidad para los bloques 'grafica'/'comparativa'. Los
 // valores en si SIEMPRE vienen calculados por el edge (nunca inventados por el LLM).
 function fmtUnidad(unidad: ChispaUnidad): (n: number) => string {
@@ -82,19 +140,21 @@ function citasAfectadas(accion: unknown): { id: string; label: string }[] {
 export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar, onCancelar }: BloqueRendererProps) {
   const router = useRouter();
 
-  // --- TEXTO: burbuja del asistente ---
+// --- TEXTO: burbuja del asistente con markdown ligero y typewriter ---
   if (bloque.tipo === 'texto') {
     return (
-      <div style={{
-        padding: '9px 12px',
-        borderRadius: '14px 14px 14px 4px',
-        background: T.bgCard,
-        border: `1px solid ${T.border}`,
-        fontSize: 13.5, fontWeight: 400, color: T.text,
-        lineHeight: 1.5, wordBreak: 'break-word', whiteSpace: 'pre-wrap',
-      }}>
-        {bloque.texto}
-      </div>
+      <div
+        className="chispa-text-bubble"
+        style={{
+          padding: '9px 12px',
+          borderRadius: '14px 14px 14px 4px',
+          background: T.bgCard,
+          border: `1px solid ${T.border}`,
+          fontSize: 13.5, fontWeight: 400, color: T.text,
+          lineHeight: 1.55, wordBreak: 'break-word',
+        }}
+        dangerouslySetInnerHTML={{ __html: renderChispaMarkdown(bloque.texto) }}
+      />
     );
   }
 
