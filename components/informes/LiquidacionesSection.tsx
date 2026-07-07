@@ -243,6 +243,14 @@ function LiquidacionDetalleModal({ open, onClose, liquidacion }: LiquidacionDeta
                 {detalle.incluir_propinas ? 'Si' : 'No'}
               </span>
             </div>
+            {detalle.propinas_cents !== undefined && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, paddingTop: 6, borderTop: `1px solid ${TOKENS.border}` }}>
+                <span style={{ color: TOKENS.textSec }}>Propinas acumuladas</span>
+                <span style={{ fontWeight: 600, color: TOKENS.success }}>
+                  {fmtEur(detalle.propinas_cents)} €
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -539,13 +547,15 @@ export function LiquidacionesSection({ negocioId: propNegocioId }: Liquidaciones
 
   // Export CSV
   const handleExportCSV = useCallback(() => {
-    const headers = ['Profesional', 'Periodo', 'Base (EUR)', 'Porcentaje', 'Comisión (EUR)', 'Estado', 'Creada', 'Pagada'];
+    const headers = ['Profesional', 'Periodo', 'Base (EUR)', 'Porcentaje', 'Comisión (EUR)', 'Propinas (EUR)', 'Total (EUR)', 'Estado', 'Creada', 'Pagada'];
     const rows = liquidaciones.map(l => [
       l.profesional_nombre,
       `${format(parseISO(l.periodo_inicio), 'dd/MM/yyyy')} - ${format(parseISO(l.periodo_fin), 'dd/MM/yyyy')}`,
       fmtEur(l.base_calculo_cents),
       fmtPct(l.porcentaje_aplicado),
       fmtEur(l.importe_comision_cents),
+      fmtEur(l.detalles?.propinas_cents || 0),
+      fmtEur(l.importe_comision_cents + (l.detalles?.propinas_cents || 0)),
       l.estado,
       format(parseISO(l.created_at), 'dd/MM/yyyy HH:mm'),
       l.pagada_en ? format(parseISO(l.pagada_en), 'dd/MM/yyyy HH:mm') : '',
@@ -564,6 +574,7 @@ export function LiquidacionesSection({ negocioId: propNegocioId }: Liquidaciones
   // Calculo de totales
   const totalBase = liquidaciones.reduce((s, l) => s + l.base_calculo_cents, 0);
   const totalComision = liquidaciones.reduce((s, l) => s + l.importe_comision_cents, 0);
+  const totalPropinas = liquidaciones.reduce((s, l) => s + (l.detalles?.propinas_cents || 0), 0);
   const pendientesCount = liquidaciones.filter(l => l.estado === 'pendiente').length;
   const pagadasCount = liquidaciones.filter(l => l.estado === 'pagada').length;
 
@@ -726,6 +737,14 @@ export function LiquidacionesSection({ negocioId: propNegocioId }: Liquidaciones
                 </div>
                 <div>
                   <div style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>
+                    Propinas
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: TOKENS.primaryHi }}>
+                    {fmtEur(totalPropinas)} €
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>
                     Pendientes
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: TOKENS.warning }}>
@@ -796,17 +815,18 @@ export function LiquidacionesSection({ negocioId: propNegocioId }: Liquidaciones
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: isMobile
-                  ? '1.5fr 0.8fr 1fr 0.8fr 0.8fr'
-                  : '2fr 1fr 1fr 1fr 1fr',
+                  ? '1.5fr 0.8fr 1fr 1fr'
+                  : '1.5fr 1fr 1fr 1fr 1.2fr 1fr',
                 padding: isMobile ? '9px 10px' : '10px 14px',
                 background: TOKENS.bgPanel, borderBottom: `1px solid ${TOKENS.border}`,
                 fontSize: isMobile ? 10 : 11, fontWeight: 600, color: TOKENS.textTer,
                 textTransform: 'uppercase', letterSpacing: isMobile ? 0.2 : 0.5,
               }}>
                 <div>Profesional</div>
-                <div style={{ textAlign: 'right' }}>%</div>
-                <div style={{ textAlign: 'right' }}>Base</div>
+                {!isMobile && <div style={{ textAlign: 'right' }}>Base</div>}
                 <div style={{ textAlign: 'right' }}>Comisión</div>
+                <div style={{ textAlign: 'right' }}>Propinas</div>
+                <div style={{ textAlign: 'right', color: TOKENS.text }}>Total</div>
                 <div style={{ textAlign: 'right' }}>Estado</div>
               </div>
 
@@ -819,8 +839,8 @@ export function LiquidacionesSection({ negocioId: propNegocioId }: Liquidaciones
                     style={{
                       display: 'grid',
                       gridTemplateColumns: isMobile
-                        ? '1.5fr 0.8fr 1fr 0.8fr 0.8fr'
-                        : '2fr 1fr 1fr 1fr 1fr',
+                        ? '1.5fr 0.8fr 1fr 1fr'
+                        : '1.5fr 1fr 1fr 1fr 1.2fr 1fr',
                       padding: isMobile ? '9px 10px' : '10px 14px',
                       borderBottom: i < datosAMostrar.length - 1 ? `1px solid ${TOKENS.border}` : 'none',
                       background: esPreview ? TOKENS.amberSoft : 'transparent',
@@ -841,14 +861,19 @@ export function LiquidacionesSection({ negocioId: propNegocioId }: Liquidaciones
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: 12, color: TOKENS.textSec, textAlign: 'right' }}>
-                      {fmtPct(l.porcentaje_aplicado)}
-                    </div>
-                    <div style={{ fontSize: 12, color: TOKENS.text, textAlign: 'right' }}>
-                      {fmtEur(l.base_calculo_cents)} €
-                    </div>
-                    <div style={{ fontSize: 12, color: TOKENS.success, fontWeight: 600, textAlign: 'right' }}>
+                    {!isMobile && (
+                      <div style={{ fontSize: 12, color: TOKENS.text, textAlign: 'right' }}>
+                        {fmtEur(l.base_calculo_cents)} €
+                      </div>
+                    )}
+                    <div style={{ fontSize: 12, color: TOKENS.success, textAlign: 'right' }}>
                       {fmtEur(l.importe_comision_cents)} €
+                    </div>
+                    <div style={{ fontSize: 12, color: TOKENS.primaryHi, textAlign: 'right' }}>
+                      {l.detalles?.propinas_cents ? '+' + fmtEur(l.detalles.propinas_cents) + ' €' : '-'}
+                    </div>
+                    <div style={{ fontSize: 13, color: TOKENS.text, fontWeight: 700, textAlign: 'right' }}>
+                      {fmtEur(l.importe_comision_cents + (l.detalles?.propinas_cents || 0))} €
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
                       <span style={{

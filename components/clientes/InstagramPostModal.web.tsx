@@ -19,7 +19,7 @@ const TOKENS = {
   success: '#10B981',
 };
 
-const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
+const Icon = ({ name, size = 24, color = '#f8fafc' }: { name: string, size?: number, color?: string }) => {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       {name === 'x' && <><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>}
@@ -30,9 +30,9 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
   );
 };
 
-export function InstagramPostModal({ fotos, onClose, tonoSalon }: { fotos: any[]; onClose: () => void; tonoSalon?: string }) {
-  const [antes, setAntes] = useState<any>(fotos.length === 2 ? fotos[1] : null); // Asumiendo que el más antiguo es el antes
-  const [despues, setDespues] = useState<any>(fotos.length === 2 ? fotos[0] : null);
+export function InstagramPostModal({ fotos, onClose, tonoSalon }: { fotos: { id: string, created_at: string, url: string }[]; onClose: () => void; tonoSalon?: string }) {
+  const [antes, setAntes] = useState<{ id: string, url: string } | null>(fotos.length === 2 ? fotos[1] : null); // Asumiendo que el más antiguo es el antes
+  const [despues, setDespues] = useState<{ id: string, url: string } | null>(fotos.length === 2 ? fotos[0] : null);
   const [caption, setCaption] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -154,8 +154,8 @@ export function InstagramPostModal({ fotos, onClose, tonoSalon }: { fotos: any[]
       if (data.error) throw new Error(data.error);
 
       setCaption(data.caption);
-    } catch (e: any) {
-      setError(e.message || 'Error al generar el texto');
+    } catch (e) {
+      setError((e as Error).message || 'Error al generar el texto');
     } finally {
       setLoading(false);
     }

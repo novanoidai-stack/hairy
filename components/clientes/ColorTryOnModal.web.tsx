@@ -16,7 +16,7 @@ const TOKENS = {
   dangerSoft: 'rgba(226,59,52,0.14)',
 };
 
-const Icon = ({ name, size = 24, color = 'currentColor' }: any) => {
+const Icon = ({ name, size = 24, color = 'currentColor' }: { name: string, size?: number, color?: string }) => {
   const icons: any = {
     x: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
     upload: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
@@ -36,7 +36,7 @@ const TONES = [
   { name: 'Fantasía Rosa', value: 'rosa', hex: '#FF69B4' },
 ];
 
-export function ColorTryOnModal({ cliente, negocioId, onClose, onSaved }: { cliente: any, negocioId: string, onClose: () => void, onSaved: () => Promise<void> }) {
+export function ColorTryOnModal({ cliente, negocioId, onClose, onSaved }: { cliente: { id: string, consiente_ia?: boolean }, negocioId: string, onClose: () => void, onSaved: () => Promise<void> }) {
   const { isMobile } = useResponsive();
   const [step, setStep] = useState<'consent' | 'upload' | 'select' | 'processing' | 'result'>(
     cliente.consiente_ia ? 'upload' : 'consent'
@@ -62,8 +62,8 @@ export function ColorTryOnModal({ cliente, negocioId, onClose, onSaved }: { clie
       
       if (dbErr) throw dbErr;
       setStep('upload');
-    } catch (err: any) {
-      setError(err.message || 'Error al actualizar consentimiento');
+    } catch (err) {
+      setError((err as Error).message || 'Error al actualizar consentimiento');
     } finally {
       setLoading(false);
     }
@@ -119,8 +119,8 @@ export function ColorTryOnModal({ cliente, negocioId, onClose, onSaved }: { clie
 
       setResultUrl(res.resultUrl);
       setStep('result');
-    } catch (err: any) {
-      setError(err.message || 'Error durante la simulación');
+    } catch (err) {
+      setError((err as Error).message || 'Error durante la simulación');
       setStep('select');
     } finally {
       setLoading(false);
@@ -146,8 +146,8 @@ export function ColorTryOnModal({ cliente, negocioId, onClose, onSaved }: { clie
       // A generic approach: alert or direct to agenda
       alert(`¡Tono ${tonoObj?.name} guardado en la ficha técnica! Ya puedes agendar su cita de color.`);
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Error al guardar la fórmula');
+    } catch (err) {
+      setError((err as Error).message || 'Error al guardar la fórmula');
       setLoading(false);
     }
   };

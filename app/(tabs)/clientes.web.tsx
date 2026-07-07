@@ -1094,6 +1094,11 @@ function ClientesWeb() {
                   />
                 </Panel>
 
+                {/* Fila 1.9: Bonos */}
+                <Panel title="Bonos activos" accent={TOKENS.success}>
+                  <BonosClienteSection clienteId={c.id} />
+                </Panel>
+
                 {/* Fila 2: Notas + Color/Quimica (50/50) */}
                 <div style={{ display: 'grid', gridTemplateColumns: (isMobile || isTablet) ? '1fr' : '1fr 1fr', gap: 18 }}>
                   <Panel title="Alergias" accent={TOKENS.danger}>
@@ -3258,6 +3263,59 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
         </div>
       </div>
       {children}
+    </div>
+  );
+}
+
+function BonosClienteSection({ clienteId }: { clienteId: string }) {
+  const [bonos, setBonos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancel = false;
+    supabase
+      .from('bonos')
+      .select('*, servicios(nombre)')
+      .eq('cliente_id', clienteId)
+      .eq('estado', 'activo')
+      .gt('sesiones_disponibles', 0)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (!cancel) {
+          setBonos(data || []);
+          setLoading(false);
+        }
+      });
+    return () => { cancel = true; };
+  }, [clienteId]);
+
+  if (loading) return <div style={{ fontSize: 13, color: TOKENS.textSec }}>Cargando bonos...</div>;
+  if (bonos.length === 0) return <div style={{ fontSize: 13, color: TOKENS.textSec }}>No hay bonos activos.</div>;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {bonos.map((b) => (
+        <div key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>
+              Bono {b.servicios?.nombre || 'Servicio'}
+            </span>
+            <span style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 2 }}>
+              {b.sesiones_disponibles} de {b.sesiones_totales} sesiones disponibles
+            </span>
+            <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+              {Array.from({ length: b.sesiones_totales }).map((_, i) => (
+                <div key={i} style={{ width: 12, height: 12, borderRadius: '50%', background: i < b.sesiones_disponibles ? TOKENS.success : TOKENS.borderHi }} />
+              ))}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: TOKENS.success }}>
+              {(b.precio_cents / 100).toFixed(2)}€
+            </span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

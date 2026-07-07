@@ -4135,8 +4135,8 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
       }
 
       await supabase.storage.from('cliente-fotos').remove([path]);
-    } catch (e: any) {
-      setVisionError(e.message || 'Error en la búsqueda visual');
+    } catch (e) {
+      setVisionError((e as Error).message || 'Error en la búsqueda visual');
     } finally {
       setVisionLoading(false);
       if (fileVisionRef.current) fileVisionRef.current.value = '';

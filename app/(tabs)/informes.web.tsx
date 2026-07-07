@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { LiquidacionesSection } from '@/components/informes/LiquidacionesSection';
+import { GastosSection } from '@/components/informes/GastosSection';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { NEGOCIO_ID_FALLBACK, CITA_STATUS, HORARIO_APERTURA, HORARIO_CIERRE } from '@/lib/constants';
@@ -351,6 +352,7 @@ function InformesScreen() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [resenas, setResenas] = useState<{ puntuacion: number }[]>([]);
   const [cobros, setCobros] = useState<{ total_cents: number; cobrado_at?: string; efectivo_cents?: number; datafono_cents?: number; propina_cents?: number; profesional_id?: string | null }[]>([]);
+  const [gastos, setGastos] = useState<{ importe_cents: number }[]>([]);
 
   // UI
   const [comisionPct, setComisionPct] = useState<number>(30);
@@ -370,7 +372,7 @@ function InformesScreen() {
 
     const { desde, hasta } = getRango(periodo);
 
-    const [citaRes, profRes, srvRes, cltRes, resRes, cobRes] = await Promise.all([
+    const [citaRes, profRes, srvRes, cltRes, resRes, cobRes, gastosRes] = await Promise.all([
       supabase
         .from('citas')
         .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id')
@@ -395,6 +397,12 @@ function InformesScreen() {
         .eq('estado', 'completado')
         .gte('cobrado_at', desde.toISOString())
         .lte('cobrado_at', hasta.toISOString()),
+      supabase
+        .from('gastos')
+        .select('importe_cents')
+        .eq('negocio_id', nId)
+        .gte('fecha', desde.toISOString())
+        .lte('fecha', hasta.toISOString()),
     ]);
 
     setCitas(citaRes.data ?? []);
@@ -403,6 +411,7 @@ function InformesScreen() {
     setClientes(cltRes.data ?? []);
     setResenas(resRes.data ?? []);
     setCobros(cobRes.data ?? []);
+    setGastos(gastosRes.data ?? []);
     setLoading(false);
   }
 
@@ -437,6 +446,9 @@ function InformesScreen() {
   // cifra autoritativa; si no, queda en 0 y se sigue mostrando solo el estimado.
   const totalCobrado = useMemo(() => cobros.reduce((s, c) => s + (c.total_cents || 0), 0) / 100, [cobros]);
   const hayCobros = cobros.length > 0;
+  
+  const totalGastos = useMemo(() => gastos.reduce((s, g) => s + (g.importe_cents || 0), 0) / 100, [gastos]);
+  const margenAproximado = totalCobrado - totalGastos;
 
   // Caja diaria: agrupa los cobros reales por día (total, efectivo, datáfono, propina).
   const cajaPorDia = useMemo(() => {
@@ -1231,7 +1243,10 @@ function InformesScreen() {
               {[
                 { label: 'Citas totales', value: totalCitas, icon: 'calendar', color: TOKENS.primary, bg: TOKENS.primarySoft },
                 { label: hayCobros ? 'Ingresos (estim.)' : 'Ingresos', value: `${fmtEur(totalIngresos)} EUR`, icon: 'dollar', color: TOKENS.success, bg: TOKENS.successSoft },
-                ...(hayCobros ? [{ label: 'Cobrado (real)', value: `${fmtEur(totalCobrado)} EUR`, icon: 'dollar', color: TOKENS.primary, bg: TOKENS.primarySoft }] : []),
+                ...(hayCobros ? [
+                  { label: 'Cobrado (real)', value: `${fmtEur(totalCobrado)} EUR`, icon: 'dollar', color: TOKENS.primary, bg: TOKENS.primarySoft },
+                  { label: 'Margen (aprox)', value: `${fmtEur(margenAproximado)} EUR`, icon: 'trendingUp', color: TOKENS.success, bg: TOKENS.successSoft }
+                ] : []),
                 { label: 'Citas/profesional', value: `${Math.round(ocupacionGlobal * 10) / 10}`, icon: 'barChart', color: TOKENS.cyan, bg: TOKENS.cyanSoft },
                 { label: 'No-shows', value: `${noShows.length} (${fmtPct(tasaNoShow)})`, icon: 'alertTriangle', color: TOKENS.danger, bg: TOKENS.dangerSoft },
                 { label: 'Tiempo espera medio', value: `${Math.round(esperaData.avgGlobal)} min`, icon: 'clock', color: TOKENS.warning, bg: TOKENS.warningSoft },
@@ -1780,6 +1795,9 @@ function InformesScreen() {
                 </div>
               </SectionBody>
             </div>
+            {/* Gastos (fijos/variables) */}
+            <GastosSection negocioId={negocioId} onGastosChange={cargar} />
+
             {/* Liquidaciones persistentes (generar, marcar pagada, exportar) */}
             <LiquidacionesSection negocioId={negocioId} />
           </>

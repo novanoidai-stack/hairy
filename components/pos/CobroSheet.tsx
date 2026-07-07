@@ -71,6 +71,39 @@ export function CobroSheet(props: CobroSheetProps) {
   const [propina, setPropina] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
+  const [bonoDisponible, setBonoDisponible] = useState<any>(null);
+  const [usarBono, setUsarBono] = useState(false);
+
+  // --- Tarjeta Regalo ---
+  const [trCodigo, setTrCodigo] = useState('');
+  const [trBuscando, setTrBuscando] = useState(false);
+  interface TarjetaRegaloInfo { id: string; saldo_actual_cents: number; codigo: string }
+  const [trTarjeta, setTrTarjeta] = useState<TarjetaRegaloInfo | null>(null);
+  const [trUsarSaldo, setTrUsarSaldo] = useState(false);
+
+  const buscarTarjetaRegalo = async () => {
+    if (!trCodigo.trim()) return;
+    setTrBuscando(true);
+    setError('');
+    try {
+      const profile = await getUserProfile();
+      if (!profile?.negocio_id) { setError('No autorizado'); return; }
+      const { data, error: dbErr } = await supabase
+        .from('tarjetas_regalo')
+        .select('id, saldo_actual_cents, codigo')
+        .eq('negocio_id', profile.negocio_id)
+        .eq('codigo', trCodigo.trim().toUpperCase())
+        .single();
+      if (dbErr || !data) { setError('Tarjeta no encontrada'); setTrTarjeta(null); return; }
+      if ((data as TarjetaRegaloInfo).saldo_actual_cents <= 0) { setError('Tarjeta sin saldo'); setTrTarjeta(null); return; }
+      setTrTarjeta(data as TarjetaRegaloInfo);
+      setTrUsarSaldo(true);
+    } catch {
+      setError('Error al buscar tarjeta');
+    } finally {
+      setTrBuscando(false);
+    }
+  };
 
   // --- Cobro online por QR de mostrador (solo mode='cita', 1 cita): genera un enlace de
   // pago del total; el cliente escanea y paga (Bizum/tarjeta/Apple/Google Pay). El webhook
@@ -110,6 +143,28 @@ export function CobroSheet(props: CobroSheetProps) {
     })();
   }, [isWalkin]);
 
+  useEffect(() => {
+    if (props.mode !== 'cita') return;
+    if (props.citaIds.length !== 1) return;
+    (async () => {
+      try {
+        const { data: cita } = await supabase.from('citas').select('cliente_id, servicio_id').eq('id', props.citaIds[0]).single();
+        if (!cita?.cliente_id || !cita?.servicio_id) return;
+        const { data: bonos } = await supabase.from('bonos')
+          .select('*')
+          .eq('cliente_id', cita.cliente_id)
+          .eq('servicio_id', cita.servicio_id)
+          .eq('estado', 'activo')
+          .gt('sesiones_disponibles', 0)
+          .order('created_at', { ascending: true })
+          .limit(1);
+        if (bonos && bonos.length > 0) {
+          setBonoDisponible(bonos[0]);
+        }
+      } catch (err) {}
+    })();
+  }, [props.mode, 'citaIds' in props ? props.citaIds.join(',') : null]);
+
   const aEntero = (s: string) => Math.max(0, parseFloat((s || '0').replace(',', '.')) || 0);
 
   const agregarLinea = () => {
@@ -133,11 +188,34 @@ export function CobroSheet(props: CobroSheetProps) {
   const senalCents = props.mode === 'cita' ? (props.senalCents ?? 0) : 0;
   const descuentoCents = Math.round(aEntero(descuento) * 100);
   const propinaCents = Math.round(aEntero(propina) * 100);
-  const totalCents = Math.max(0, pendienteCents - descuentoCents) + propinaCents;
+  // Saldo de tarjeta regalo aplicable al cobro (no puede exceder el neto antes de propina)
+  const netoCents = Math.max(0, pendienteCents - descuentoCents);
+  const trAplicadoCents = trUsarSaldo && trTarjeta
+    ? Math.min(trTarjeta.saldo_actual_cents, netoCents)
+    : 0;
+  const totalCents = usarBono ? propinaCents : (netoCents - trAplicadoCents) + propinaCents;
+
+  // Tras completar un cobro, si se uso tarjeta regalo, descontar saldo y registrar movimiento.
+  const aplicarTarjetaRegalo = async (cobroId: string) => {
+    if (!trUsarSaldo || !trTarjeta || trAplicadoCents <= 0) return;
+    // 1. Reducir saldo de la tarjeta
+    await supabase
+      .from('tarjetas_regalo')
+      .update({ saldo_actual_cents: trTarjeta.saldo_actual_cents - trAplicadoCents })
+      .eq('id', trTarjeta.id);
+    // 2. Registrar movimiento (negativo = consumo)
+    await supabase
+      .from('tarjetas_regalo_movimientos')
+      .insert({
+        tarjeta_id: trTarjeta.id,
+        cobro_id: cobroId,
+        importe_cents: -trAplicadoCents,
+      });
+  };
 
   const confirmar = async () => {
     if (isWalkin && lineas.length === 0) { setError('Añade al menos una línea.'); return; }
-    if (totalCents <= 0) { setError('El total debe ser mayor que 0.'); return; }
+    if (totalCents <= 0 && !usarBono && trAplicadoCents <= 0) { setError('El total debe ser mayor que 0.'); return; }
     setError('');
     setEnviando(true);
     try {
@@ -155,7 +233,9 @@ export function CobroSheet(props: CobroSheetProps) {
           p_profesional_id: profesionalId || null,
         });
         if (rpcErr) throw rpcErr;
-        onSuccess([data as string]);
+        const cobroId = data as string;
+        await aplicarTarjetaRegalo(cobroId);
+        onSuccess([cobroId]);
       } else if (props.mode === 'presupuesto') {
         const { data, error: rpcErr } = await supabase.rpc('crear_cobro_desde_presupuesto', {
           p_presupuesto_id: props.presupuestoId,
@@ -164,25 +244,40 @@ export function CobroSheet(props: CobroSheetProps) {
           p_descuento_cents: descuentoCents,
         });
         if (rpcErr) throw rpcErr;
-        onSuccess([data as string]);
+        const cobroId = data as string;
+        await aplicarTarjetaRegalo(cobroId);
+        onSuccess([cobroId]);
       } else {
-        const resultados = await Promise.all(
-          props.citaIds.map((id) =>
-            supabase.rpc('crear_cobro_desde_cita', {
-              p_cita_id: id,
-              p_metodo: metodo,
-              p_propina_cents: propinaCents,
-              p_descuento_cents: descuentoCents,
-            })
-          )
-        );
-        const fallidos = resultados.filter((r) => r.error);
-        if (fallidos.length > 0) {
-          throw fallidos.length === props.citaIds.length
-            ? fallidos[0].error
-            : new Error(`${fallidos.length} de ${props.citaIds.length} cobros fallaron.`);
+        if (usarBono && bonoDisponible && props.citaIds.length === 1) {
+          const { data, error: rpcErr } = await supabase.rpc('consumir_bono_cita', {
+            p_cita_id: props.citaIds[0],
+            p_bono_id: bonoDisponible.id,
+            p_propina_cents: propinaCents
+          });
+          if (rpcErr) throw rpcErr;
+          onSuccess([data as string]);
+        } else {
+          const resultados = await Promise.all(
+            props.citaIds.map((id) =>
+              supabase.rpc('crear_cobro_desde_cita', {
+                p_cita_id: id,
+                p_metodo: metodo,
+                p_propina_cents: propinaCents,
+                p_descuento_cents: descuentoCents,
+              })
+            )
+          );
+          const fallidos = resultados.filter((r) => r.error);
+          if (fallidos.length > 0) {
+            throw fallidos.length === props.citaIds.length
+              ? fallidos[0].error
+              : new Error(`${fallidos.length} de ${props.citaIds.length} cobros fallaron.`);
+          }
+          const cobroIds = resultados.map((r) => r.data as string);
+          // Aplicar tarjeta regalo al primer cobro (si hay multiples citas)
+          if (cobroIds.length > 0) await aplicarTarjetaRegalo(cobroIds[0]);
+          onSuccess(cobroIds);
         }
-        onSuccess(resultados.map((r) => r.data as string));
       }
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudo registrar el cobro.'));
@@ -298,29 +393,77 @@ export function CobroSheet(props: CobroSheetProps) {
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12, marginTop: isWalkin ? 16 : (subtitulo ? 0 : 14) }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 12.5, color: T.textSec }}>Pendiente</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{(pendienteCents / 100).toFixed(2)} €</span>
-          </div>
-          {senalCents > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 12.5, color: T.success }}>Señal ya pagada</span>
-              <span style={{ fontSize: 12.5, color: T.success }}>incluida (no se vuelve a cobrar)</span>
+          {bonoDisponible && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: usarBono ? T.successSoft : T.bgCard, border: `1px solid ${usarBono ? T.success : T.primarySoft}`, borderRadius: 8, cursor: 'pointer' }} onClick={() => setUsarBono(!usarBono)}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="checkbox" checked={usarBono} readOnly style={{ cursor: 'pointer' }} />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: usarBono ? T.success : T.text }}>Usar Bono Disponible</span>
+                  <span style={{ fontSize: 11, color: usarBono ? T.success : T.textSec }}>Quedan {bonoDisponible.sesiones_disponibles} sesiones</span>
+                </div>
+              </div>
             </div>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-            <label style={{ fontSize: 12.5, color: T.textSec }}>Descuento (€)</label>
-            <input type="text" inputMode="decimal" value={descuento} onChange={(e) => setDescuento(e.target.value)} placeholder="0" style={{ width: 92, padding: '8px 10px', textAlign: 'right', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-            <label style={{ fontSize: 12.5, color: T.textSec }}>Propina (€)</label>
-            <input type="text" inputMode="decimal" value={propina} onChange={(e) => setPropina(e.target.value)} placeholder="0" style={{ width: 92, padding: '8px 10px', textAlign: 'right', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
+          {/* Tarjeta regalo */}
+          {!usarBono && (
+            <div style={{ padding: '10px 12px', background: trTarjeta && trUsarSaldo ? '#fef3c720' : T.bgCard, border: `1px solid ${trTarjeta && trUsarSaldo ? '#ca8a04' : T.border}`, borderRadius: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Tarjeta Regalo</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  type="text" value={trCodigo} onChange={e => setTrCodigo(e.target.value.toUpperCase())}
+                  placeholder="TR-XXXX-XXXX"
+                  style={{ flex: 1, padding: '7px 10px', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 7, color: T.text, fontSize: 13, fontFamily: 'monospace', fontWeight: 600, boxSizing: 'border-box' }}
+                  onKeyDown={e => { if (e.key === 'Enter') buscarTarjetaRegalo(); }}
+                />
+                <button onClick={buscarTarjetaRegalo} disabled={trBuscando || !trCodigo.trim()} style={{ padding: '0 14px', background: T.primary, color: '#fff', border: 'none', borderRadius: 7, cursor: trBuscando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  {trBuscando ? '...' : 'Buscar'}
+                </button>
+              </div>
+              {trTarjeta && (
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => setTrUsarSaldo(!trUsarSaldo)}>
+                    <input type="checkbox" checked={trUsarSaldo} readOnly style={{ cursor: 'pointer' }} />
+                    <span style={{ fontSize: 12, color: trUsarSaldo ? '#ca8a04' : T.textSec, fontWeight: 600 }}>
+                      Aplicar saldo: {(trTarjeta.saldo_actual_cents / 100).toFixed(2)} €
+                    </span>
+                  </div>
+                  {trUsarSaldo && trAplicadoCents > 0 && (
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#ca8a04' }}>-{(trAplicadoCents / 100).toFixed(2)} €</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          {!usarBono && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 12.5, color: T.textSec }}>Pendiente</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{(pendienteCents / 100).toFixed(2)} €</span>
+              </div>
+              {senalCents > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12.5, color: T.success }}>Señal ya pagada</span>
+                  <span style={{ fontSize: 12.5, color: T.success }}>incluida (no se vuelve a cobrar)</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <label style={{ fontSize: 12.5, color: T.textSec }}>Descuento (€)</label>
+                <input type="text" inputMode="decimal" value={descuento} onChange={(e) => setDescuento(e.target.value)} placeholder="0" style={{ width: 92, padding: '8px 10px', textAlign: 'right', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
+              </div>
+            </>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 4 }}>
+            <label style={{ fontSize: 12.5, color: T.primary }}>Propina (€) — No fiscal</label>
+            <input type="text" inputMode="decimal" value={propina} onChange={(e) => setPropina(e.target.value)} placeholder="0" style={{ width: 92, padding: '8px 10px', textAlign: 'right', background: T.primarySoft, border: `1px solid ${T.primary}`, borderRadius: 8, color: T.primary, fontSize: 13, fontWeight: 700, boxSizing: 'border-box' }} />
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '12px 0', borderTop: `1px solid ${T.border}`, marginBottom: 14 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Total a cobrar</span>
-          <span style={{ fontSize: 24, fontWeight: 800, color: T.success }}>{(totalCents / 100).toFixed(2)} €</span>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 24, fontWeight: 800, color: T.success }}>{(totalCents / 100).toFixed(2)} €</div>
+            {propinaCents > 0 && !usarBono && <div style={{ fontSize: 11, color: T.textTer }}>Incluye {(propinaCents / 100).toFixed(2)}€ de propina</div>}
+          </div>
         </div>
 
         {qrEnlace ? (

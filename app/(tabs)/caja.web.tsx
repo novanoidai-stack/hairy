@@ -7,6 +7,8 @@ import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { CobroSheet } from '@/components/pos/CobroSheet';
+import { VentaBonoModal } from '@/components/pos/VentaBonoModal';
+import { VentaTarjetaRegaloModal } from '@/components/pos/VentaTarjetaRegaloModal';
 import { categoryColorHex } from '@/lib/categoryColors';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualCaja } from '@/lib/manuals/caja';
@@ -63,6 +65,7 @@ function Icon({ name, size = 18, color = T.text }: { name: string; size?: number
     alert: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
     x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+    gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>',
   };
   return (
     <span style={{ display: 'inline-flex', color, flexShrink: 0 }} dangerouslySetInnerHTML={{
@@ -139,6 +142,8 @@ function CajaScreen() {
   type ProductoVenta = { id: string; nombre: string; precio_cents: number };
   type CarritoItem = ProductoVenta & { cantidad: number };
   const [showVentaProductos, setShowVentaProductos] = useState(false);
+  const [showVentaBono, setShowVentaBono] = useState(false);
+  const [showVentaTarjetaRegalo, setShowVentaTarjetaRegalo] = useState(false);
   const [productosDisponibles, setProductosDisponibles] = useState<ProductoVenta[]>([]);
   const [carrito, setCarrito] = useState<CarritoItem[]>([]);
   const [ventaMetodo, setVentaMetodo] = useState<'efectivo' | 'datafono' | 'bizum'>('efectivo');
@@ -445,6 +450,22 @@ function CajaScreen() {
               >
                 <Icon name="cash" size={15} color={T.primary} />
                 Cobro rápido
+              </button>
+              <button
+                onClick={() => setShowVentaBono(true)}
+                className="ca-btn"
+                style={{ padding: '10px 18px', background: T.card, border: `1px solid ${T.borderHi}`, color: T.text, borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
+              >
+                <Icon name="scisors" size={15} color={T.primary} />
+                Vender bono
+              </button>
+              <button
+                onClick={() => setShowVentaTarjetaRegalo(true)}
+                className="ca-btn"
+                style={{ padding: '10px 18px', background: T.card, border: `1px solid ${T.borderHi}`, color: T.text, borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
+              >
+                <Icon name="gift" size={15} color={T.primary} />
+                Vender tarjeta regalo
               </button>
             </>
           )}
@@ -931,6 +952,28 @@ function CajaScreen() {
           content={manualCaja}
           isMobile={isMobile}
           onClose={() => setShowManualPanel(false)}
+        />
+      )}
+      {showVentaBono && (
+        <VentaBonoModal
+          onClose={() => setShowVentaBono(false)}
+          onSuccess={() => {
+            setShowVentaBono(false);
+            setMensaje({ type: 'success', text: 'Bono vendido correctamente.' });
+            setTimeout(() => setMensaje(null), 4000);
+            cargarCitas();
+          }}
+        />
+      )}
+      {showVentaTarjetaRegalo && (
+        <VentaTarjetaRegaloModal
+          onClose={() => setShowVentaTarjetaRegalo(false)}
+          onSuccess={() => {
+            setShowVentaTarjetaRegalo(false);
+            setMensaje({ type: 'success', text: 'Tarjeta regalo vendida correctamente.' });
+            setTimeout(() => setMensaje(null), 4000);
+            cargarCitas();
+          }}
         />
       )}
     </div>
