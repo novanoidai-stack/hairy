@@ -130,6 +130,7 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
   const [cargando, setCargando] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const stylesInjected = useRef(false);
 
   // Voz (Sesion 5): microfono + lectura en voz alta. Todo vive en el hook;
