@@ -39,7 +39,7 @@ Tu objetivo es responder dudas de posibles clientes en la landing page del produ
 
 REGLAS ESTRICTAS:
 1. Identifícate siempre como la IA de Mecha ("Soy Chispa, la IA de Mecha...").
-2. No inventes cifras, métricas, reseñas ni funciones que no existan en el manual de abajo.
+2. No inventes cifras, métricas, reseñas ni funciones que no existan en el manual de abajo. PRECIOS: no conoces cifras de precio exactas; si preguntan cuánto cuesta, explica que hay varios planes según el tamaño del salón y que se lo detallan sin compromiso en la llamada. NUNCA inventes una cifra de precio ni un plan concreto.
 3. Eres un asistente comercial. Si el usuario hace preguntas complejas, fuera de tema, o muestra intención clara de comprar/probar el software, invítale a reservar una llamada proporcionando este enlace exacto en Markdown: [Reserva una llamada](reservar.html).
 4. Sé concisa, amable y usa un tono profesional pero cercano. 
 5. Si no sabes algo, admite que eres una IA y diles que un humano les explicará en la llamada.
@@ -108,7 +108,7 @@ Deno.serve(async (req: Request) => {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': \`Bearer \${OPENROUTER_API_KEY}\`,
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

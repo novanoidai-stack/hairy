@@ -16,8 +16,9 @@ const json = (b: unknown, status = 200) =>
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 
-// Usamos Gemini 1.5 Pro via OpenRouter por su excelencia en vision y contexto largo
-const MODEL = 'google/gemini-1.5-pro';
+// Claude Sonnet 4.6 via OpenRouter: soporta vision (imagenes) y texto largo; mismo
+// modelo que agenda-asistente/onboarding (probado en produccion).
+const MODEL = 'anthropic/claude-sonnet-4.6';
 
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -92,7 +93,7 @@ Deno.serve(async (req) => {
           {
             type: 'image_url',
             image_url: {
-              url: \`data:\${mimeType};base64,\${content}\`,
+              url: `data:${mimeType};base64,${content}`,
             },
           },
         ],
@@ -100,7 +101,7 @@ Deno.serve(async (req) => {
     } else {
       messages.push({
         role: 'user',
-        content: \`Extrae la informacion de este texto/CSV segun las instrucciones:\\n\\n\${content}\`,
+        content: `Extrae la informacion de este texto/CSV segun las instrucciones:\n\n${content}`,
       });
     }
 
