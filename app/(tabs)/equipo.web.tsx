@@ -443,7 +443,7 @@ export default function EquipoWeb() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {!profileData || can({ role: roleOf(profileData) as any } as any, 'config.ver') ? (
+          {!profileData || can({ role: roleOf(profileData as any) as any } as any, 'config.ver') ? (
             <button
               className="m-btn-secondary"
               onClick={() => router.push('/(tabs)/configuracion?tab=horarios' as never)}
@@ -453,7 +453,7 @@ export default function EquipoWeb() {
               {isMobile ? 'Horarios' : 'Horarios base'}
             </button>
           ) : null}
-          {!profileData || can({ role: roleOf(profileData) as any } as any, 'equipo.gestionar') ? (
+          {!profileData || can({ role: roleOf(profileData as any) as any } as any, 'equipo.gestionar') ? (
             <button
               className="m-btn-primary"
               onClick={() => setShowNewProf(true)}
@@ -702,7 +702,7 @@ export default function EquipoWeb() {
               </div>
 
               <div style={{ display: 'flex', gap: 10, width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end' }}>
-                {!profileData || can({ role: roleOf(profileData) as any } as any, 'equipo.gestionar') ? (
+                {!profileData || can({ role: roleOf(profileData as any) as any } as any, 'equipo.gestionar') ? (
                   <>
                     <button
                       onClick={() => setEditingProf(profSel)}

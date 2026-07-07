@@ -205,7 +205,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 10 | Consentimiento cliente-facing + cierre legal | Opus 4.8 | medio | 2 | **HECHA (6 jul)** |
 | 11 | Ventas: migracion magica Booksy/Fresha + catalogo desde foto + facturas->stock + Chispa landing | Opus 4.8 | alto | 1 | **HECHA (completa S11)** |
 | 12 | Vertical color: dictado manos-libres de formulas + traductor entre marcas | Opus 4.8 | alto | 5 | **HECHA (12-A y 12-B)** |
-| 13 | Vision: try-on de color + antes/despues Instagram + "quiero este corte" | Sonnet 5 | medio | 1,10 | pendiente |
+| 13 | Vision: try-on de color + antes/despues Instagram + "quiero este corte" | Sonnet 5 | medio | 1,10 | HECHA |
 | 14 | Negocio no-IA: bonos/paquetes + tarjetas regalo (decision Jose) + propinas + modulo de gastos | Opus 4.8 | medio-alto | — | pendiente |
 | 15 | Operativa no-IA: citas recurrentes + cumpleanos + festivos salon + fusionar duplicadas + export RGPD + multi-idioma portal | Opus 4.8 (recurrentes) / Sonnet 5 (resto) | medio | — | pendiente |
 

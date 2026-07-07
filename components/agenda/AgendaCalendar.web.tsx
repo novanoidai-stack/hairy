@@ -3458,6 +3458,11 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
   const [negocioId, setNegocioId] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [duracionOverride, setDuracionOverride] = useState<any>(null);
+  
+  // States para la búsqueda visual (Sesión 13 B)
+  const [visionLoading, setVisionLoading] = useState(false);
+  const [visionError, setVisionError] = useState('');
+  const fileVisionRef = useRef<HTMLInputElement | null>(null);
   const [duracionActivaCustom, setDuracionActivaCustom] = useState<number | null>(null);
   const [duracionEsperaCustom, setDuracionEsperaCustom] = useState<number | null>(null);
   const [duracionActivaExtraCustom, setDuracionActivaExtraCustom] = useState<number | null>(null);
@@ -4075,6 +4080,69 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
     }
   };
 
+  const handleVisionSearch = async (files: FileList | null) => {
+    if (!files || files.length === 0 || !negocioId) return;
+    
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      setVisionError('El archivo debe ser una imagen');
+      return;
+    }
+    
+    const cSelected = clientes.find(c => c.id === selectedCliente);
+    if (!cSelected?.consiente_ia) {
+      alert('Para sugerir servicios con IA, marca la casilla de consentimiento de IA en la ficha de la clienta.');
+      if (fileVisionRef.current) fileVisionRef.current.value = '';
+      return;
+    }
+
+    setVisionLoading(true);
+    setVisionError('');
+
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+      
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${negocioId}/${selectedCliente}/vision_temp_${Date.now()}.${ext}`;
+      const up = await supabase.storage.from('cliente-fotos').upload(path, file, { contentType: file.type });
+      if (up.error) throw new Error('Error al subir la imagen');
+      
+      const { data: signed } = await supabase.storage.from('cliente-fotos').createSignedUrl(path, 60);
+      if (!signed?.signedUrl) throw new Error('Error al generar URL temporal');
+
+      const res = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/chispa-vision-corte`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          imageUrl: signed.signedUrl,
+          catalogo: servicios
+        })
+      });
+
+      if (!res.ok) throw new Error('Error en la llamada a la IA');
+      const result = await res.json();
+      
+      if (result.error) throw new Error(result.error);
+      if (result.servicio_ids && result.servicio_ids.length > 0) {
+        setSelectedServicio(result.servicio_ids[0]);
+        alert(`Sugerencia de IA: ${result.razonamiento}`);
+      } else {
+        setVisionError('La IA no pudo mapear la foto a ningún servicio.');
+      }
+
+      await supabase.storage.from('cliente-fotos').remove([path]);
+    } catch (e: any) {
+      setVisionError(e.message || 'Error en la búsqueda visual');
+    } finally {
+      setVisionLoading(false);
+      if (fileVisionRef.current) fileVisionRef.current.value = '';
+    }
+  };
+
   const handleCreateCliente = async () => {
     if (!nuevoClienteNombre.trim()) {
       alert('Por favor ingresa el nombre del cliente');
@@ -4401,7 +4469,30 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
 
         {/* FormField Servicio */}
         <div ref={(el) => { servicioZoneRef.current = el; }} style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Servicio</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: 0.5 }}>Servicio</div>
+            {selectedCliente && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <input ref={fileVisionRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleVisionSearch((e.target as HTMLInputElement).files)} />
+                <button
+                  onClick={() => {
+                    const cSelected = clientes.find(c => c.id === selectedCliente);
+                    if (!cSelected?.consiente_ia) {
+                      alert('Para sugerir servicios con IA, la clienta debe tener el consentimiento de IA marcado.');
+                      return;
+                    }
+                    fileVisionRef.current?.click();
+                  }}
+                  disabled={visionLoading}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 8, border: `1px solid ${TOKENS.primary}`, background: TOKENS.primarySoft, color: TOKENS.primaryHi, fontSize: 11, fontWeight: 700, cursor: visionLoading ? 'default' : 'pointer', opacity: visionLoading ? 0.6 : 1 }}
+                >
+                  <Icon name="sparkle" size={12} color={TOKENS.primaryHi} />
+                  {visionLoading ? 'Analizando...' : 'Sugerir por foto'}
+                </button>
+              </div>
+            )}
+          </div>
+          {visionError && <div style={{ fontSize: 11, color: TOKENS.danger, marginBottom: 8 }}>{visionError}</div>}
           {gruposServicio.map((grupo) => (
             <div key={grupo.key} style={{ marginBottom: 10 }}>
               {!(gruposServicio.length === 1 && grupo.key === '__sin_categoria__') && (

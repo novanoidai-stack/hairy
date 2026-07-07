@@ -27,8 +27,9 @@ export interface BloqueRendererProps {
   bloque: Bloque;
   // Solo para bloque 'accion':
   accionEstado?: AccionEstado;
-  onConfirmar?: () => void;
+  onConfirmar?: (accion?: any) => void | Promise<void>;
   onCancelar?: () => void;
+  isMobile?: boolean;
 }
 
 function IconoAdvertencia({ size = 14, color = T.warning }: { size?: number; color?: string }) {

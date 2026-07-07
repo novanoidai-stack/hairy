@@ -46,23 +46,14 @@ interface Cliente {
 
 interface FichaTecnica {
   id: string;
-  tipo_servicio: string;
-  marca_producto?: string;
-  formula: any;
-  oxidante_volumen?: number;
-  oxidante_proporcion?: string;
-  tiempo_exposicion_min?: number;
-  tecnica_aplicacion: string[];
-  base_natural?: string;
-  color_previo?: string;
-  porcentaje_canas?: number;
-  resultado_color?: string;
-  resultado_satisfactorio?: boolean;
-  resultado_notas?: string;
-  incidencias?: string;
+  producto?: string;
+  tono?: string;
+  gramos?: number;
+  oxidante?: string;
+  tiempos?: string;
+  notas?: string;
   profesional_nombre?: string;
   created_at: string;
-  cerrada: boolean;
 }
 
 interface NotaInterna {
@@ -243,7 +234,7 @@ function ClientesScreen() {
 
     const [{ data: fichas }, { data: notas }, { data: citas }] = await Promise.all([
       supabase
-        .from('fichas_tecnicas_color')
+        .from('formulas_color')
         .select('*, profesionales(nombre)')
         .eq('cliente_id', cli.id)
         .order('created_at', { ascending: false }),
@@ -547,7 +538,7 @@ function ClientesScreen() {
             <View style={s.fichaHeader}>
               <View style={[s.fichaTipoBadge, { backgroundColor: tokens.violetSoft, borderColor: tokens.violet }]}>
                 <TText style={[s.fichaTipoText, { color: tokens.violet }]}>
-                  {TIPOS_SERVICIO[ficha.tipo_servicio] || ficha.tipo_servicio}
+                  Formula Color
                 </TText>
               </View>
               <TText style={[s.fichaFecha, { color: c.textTertiary }]}>
@@ -562,51 +553,22 @@ function ClientesScreen() {
             )}
 
             <View style={s.fichaGrid}>
-              {ficha.marca_producto && <FichaField label="Marca" value={ficha.marca_producto} c={c} />}
-              {ficha.oxidante_volumen && <FichaField label="Oxidante" value={`${ficha.oxidante_volumen} vol${ficha.oxidante_proporcion ? ` (${ficha.oxidante_proporcion})` : ''}`} c={c} />}
-              {ficha.tiempo_exposicion_min && <FichaField label="Tiempo" value={`${ficha.tiempo_exposicion_min} min`} c={c} />}
-              {ficha.base_natural && <FichaField label="Base natural" value={ficha.base_natural} c={c} />}
-              {ficha.color_previo && <FichaField label="Color previo" value={ficha.color_previo} c={c} />}
-              {ficha.porcentaje_canas != null && <FichaField label="Canas" value={`${ficha.porcentaje_canas}%`} c={c} />}
+              {ficha.producto && <FichaField label="Marca" value={ficha.producto} c={c} />}
+              {ficha.oxidante && <FichaField label="Oxidante" value={ficha.oxidante} c={c} />}
+              {ficha.tiempos && <FichaField label="Tiempo" value={ficha.tiempos} c={c} />}
             </View>
 
-            {ficha.formula && Array.isArray(ficha.formula) && ficha.formula.length > 0 && (
+            {(ficha.tono || ficha.gramos) && (
               <View style={s.formulaBox}>
                 <TText style={[s.formulaLabel, { color: c.textTertiary }]}>FORMULA</TText>
                 <TText style={[s.formulaValue, { color: c.text }]}>
-                  {ficha.formula.map((f: any) => `${f.numero || '?'} (${f.gramos || '?'}g)`).join(' + ')}
+                  {ficha.tono || '?'} {ficha.gramos ? `(${ficha.gramos}g)` : ''}
                 </TText>
               </View>
             )}
 
-            {ficha.tecnica_aplicacion && ficha.tecnica_aplicacion.length > 0 && (
-              <View style={s.tagRow}>
-                {ficha.tecnica_aplicacion.map(t => (
-                  <Pill key={t} color={tokens.cyan}>{t}</Pill>
-                ))}
-              </View>
-            )}
-
-            {ficha.resultado_color && (
-              <View style={s.resultadoBox}>
-                <Ionicons
-                  name={ficha.resultado_satisfactorio ? 'checkmark-circle' : 'alert-circle'}
-                  size={16}
-                  color={ficha.resultado_satisfactorio ? tokens.success : tokens.warning}
-                />
-                <TText style={[s.resultadoText, { color: c.textSecondary }]}>{ficha.resultado_color}</TText>
-              </View>
-            )}
-
-            {ficha.resultado_notas && (
-              <TText style={[s.fichaNotas, { color: c.textTertiary }]}>{ficha.resultado_notas}</TText>
-            )}
-
-            {ficha.incidencias && (
-              <View style={[s.incidenciaBox, { backgroundColor: tokens.dangerSoft, borderColor: `${tokens.danger}33` }]}>
-                <Ionicons name="warning-outline" size={14} color={tokens.danger} />
-                <TText style={[s.incidenciaText, { color: tokens.danger }]}>{ficha.incidencias}</TText>
-              </View>
+            {ficha.notas && (
+              <TText style={[s.fichaNotas, { color: c.textTertiary }]}>{ficha.notas}</TText>
             )}
           </Card>
         ))}

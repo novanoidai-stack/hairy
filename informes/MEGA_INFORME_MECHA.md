@@ -1568,3 +1568,10 @@ Se ha completado la S12-B para la experiencia "manos sucias" de los profesionale
 - **Regla de Salud**: Alerta roja bloqueante para el profesional cuando la IA detecta que el cliente tiene notas de salud (`health_warning: true`), asegurando que no se pase por alto antes de aplicar el tinte.
 - **Traductor de Marcas**: Botón "Traducir marca" en el historial de color que llama a la edge function `traductor-marcas` y guarda el resultado como una nueva ficha técnica, preservando la fórmula original.
 - Verificación completa: Build web y TypeScript compilando de forma limpia tras los cambios de UI y edge functions.
+
+## Adenda — Capa IA "Chispa" Sesion 13: Vision Try-On e Instagram — HECHA (7 jul)
+
+Se ha completado la Sesión 13 Parte B (IA Vision para Marketing e Inspo):
+- **Instagram Posts (Antes/Después)**: Implementado `InstagramPostModal` en la vista de fotos de clientes. Compone un collage simple (client-side `<canvas>`) combinando el "Antes" y "Después". Usa la edge function `chispa-vision-instagram` (GPT-4o Vision) para generar automáticamente un caption atractivo para Instagram en base a la foto resultante. Solo permite descargas, no publica automáticamente por seguridad.
+- **Sugerir Servicio por Foto (Inspo)**: Añadido botón "Sugerir por foto" en el modal de nueva cita. Las clientas pueden enviar una foto de un peinado que les gusta, y mediante la edge function `chispa-vision-corte` se mapea a un servicio de nuestro catálogo (identificando técnicas como balayage y duraciones aproximadas).
+- **Protección de Privacidad (Consentimiento)**: Ambos flujos exigen que la clienta tenga activado el flag `consiente_ia`. Si no lo tiene, el botón se deshabilita/alerta y se aborta el envío de la foto a OpenAI. Se han utilizado Signed URLs temporales para enviar las imágenes protegidas por RLS hacia la IA.
