@@ -289,6 +289,8 @@ function ClientesWeb() {
   // Plantillas de notas del salon (Configuracion > Plantillas) para la ficha
   const [plantillasNota, setPlantillasNota] = useState<{ nombre: string; texto: string }[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  // Fusion de duplicadas: la clienta abierta actua de maestra; se elige la duplicada.
+  const [fusionMaestro, setFusionMaestro] = useState<Cliente | null>(null);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
   const [showClienteModal, setShowClienteModal] = useState(false);
@@ -1007,6 +1009,8 @@ function ClientesWeb() {
                 // Portabilidad RGPD (art. 20): descarga JSON con todos los datos de ESTA
                 // clienta. El RPC valida owner/admin en servidor (igual que anonimizar).
                 { l: 'Exportar (RGPD)', icon: 'download', action: () => { void exportDatosClienteJSON(c.id, c.nombre); } },
+                // Fusionar una duplicada dentro de ESTA (que actua de maestra).
+                { l: 'Fusionar dupl.', icon: 'copy', action: () => setFusionMaestro(c) },
               ].map((a, i) => (
                 <button
                   key={i}
@@ -1150,6 +1154,109 @@ function ClientesWeb() {
           onClose={() => setShowManualPanel(false)}
         />
       )}
+      {fusionMaestro && (
+        <FusionClienteModal
+          maestro={fusionMaestro}
+          clientes={clientes}
+          isMobile={isMobile}
+          onClose={() => setFusionMaestro(null)}
+          onDone={async () => { setFusionMaestro(null); await cargar(); triggerRefresh(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Fusion de clientas duplicadas: la 'maestra' es la ficha abierta; el gestor elige la
+// duplicada a absorber. Todo (citas, cobros, historial...) se mueve a la maestra y la
+// duplicada se borra, via RPC transaccional fusionar_clientes (owner/admin, server-side).
+function FusionClienteModal({ maestro, clientes, isMobile, onClose, onDone }: {
+  maestro: Cliente; clientes: Cliente[]; isMobile: boolean;
+  onClose: () => void; onDone: () => Promise<void> | void;
+}) {
+  const [q, setQ] = useState('');
+  const [dup, setDup] = useState<Cliente | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const candidatos = useMemo(() => {
+    const term = norm(q.trim());
+    return clientes
+      .filter((x) => x.id !== maestro.id)
+      .filter((x) => {
+        if (!term) {
+          // Sin busqueda, sugiere las que comparten telefono o nombre con la maestra.
+          const mismoTel = !!maestro.telefono && x.telefono === maestro.telefono;
+          const mismoNombre = norm(x.nombre || '') === norm(maestro.nombre || '');
+          return mismoTel || mismoNombre;
+        }
+        return norm(x.nombre || '').includes(term) || (x.telefono || '').includes(q.trim());
+      })
+      .slice(0, 8);
+  }, [q, clientes, maestro]);
+
+  const fusionar = async () => {
+    if (!dup) return;
+    setLoading(true);
+    setError('');
+    type Resp = { ok: boolean; error?: string; citas_movidas?: number };
+    const { data, error: err } = await supabase.rpc('fusionar_clientes', { p_maestro: maestro.id, p_duplicado: dup.id });
+    const resp = (data ?? null) as Resp | null;
+    setLoading(false);
+    if (err || !resp?.ok) {
+      setError(err ? mensajeDeError(err, 'No se pudo fusionar.') : (resp?.error || 'No se pudo fusionar.'));
+      return;
+    }
+    await onDone();
+  };
+
+  return (
+    <div className="m-overlay-enter" style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 120, padding: isMobile ? 12 : 24 }}>
+      <div className="m-modal-enter" style={{ width: isMobile ? '100%' : 460, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: isMobile ? 16 : 22 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TOKENS.text }}>Fusionar duplicada</h3>
+          <button className="m-btn-icon" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+            <Icon name="x" size={14} color={TOKENS.textSec} />
+          </button>
+        </div>
+        <div style={{ fontSize: 12.5, color: TOKENS.textSec, lineHeight: 1.5, marginBottom: 14 }}>
+          Todo (citas, cobros, historial, notas...) pasara a <strong style={{ color: TOKENS.text }}>{maestro.nombre}</strong> y la clienta duplicada se eliminara. Esta accion no se puede deshacer.
+        </div>
+
+        <div style={{ marginBottom: 10 }}>
+          <input value={q} onChange={(e) => { setQ(e.target.value); setDup(null); }} placeholder="Buscar la clienta duplicada (nombre o telefono)"
+            style={{ width: '100%', height: 44, padding: '0 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+          {candidatos.length === 0 ? (
+            <div style={{ fontSize: 12, color: TOKENS.textTer, padding: '6px 2px' }}>
+              {q.trim() ? 'Sin coincidencias.' : 'Escribe para buscar la duplicada.'}
+            </div>
+          ) : candidatos.map((x) => {
+            const sel = dup?.id === x.id;
+            return (
+              <button key={x.id} onClick={() => setDup(x)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '10px 12px', background: sel ? 'rgba(244,80,30,0.10)' : TOKENS.bgCard, border: `1px solid ${sel ? TOKENS.primary : TOKENS.border}`, borderRadius: 10, cursor: 'pointer', textAlign: 'left' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text }}>{x.nombre}</div>
+                  <div style={{ fontSize: 11.5, color: TOKENS.textTer }}>{x.telefono || 'Sin telefono'}</div>
+                </div>
+                {sel ? <Icon name="check" size={16} color={TOKENS.primary} /> : null}
+              </button>
+            );
+          })}
+        </div>
+
+        {error ? <div style={{ padding: '10px 12px', background: TOKENS.dangerSoft, border: `1px solid rgba(239,68,68,0.30)`, borderRadius: 10, color: TOKENS.danger, fontSize: 12, marginBottom: 12 }}>{error}</div> : null}
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 12, borderTop: `1px solid ${TOKENS.border}` }}>
+          <button className="m-btn-secondary" onClick={onClose} disabled={loading} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
+          <button className="m-btn-primary" onClick={fusionar} disabled={loading || !dup} style={{ padding: '9px 14px', background: dup ? `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)` : TOKENS.bgCard, color: dup ? '#fff' : TOKENS.textTer, border: 'none', borderRadius: 10, cursor: loading || !dup ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>
+            {loading ? 'Fusionando...' : 'Fusionar'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
