@@ -93,7 +93,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
           const { error } = await supabase.from('clientes').upsert({
             negocio_id: negocioId,
             nombre: c.nombre,
-            telefono: c.telefono || null,
+            telefono: c.telefono ? c.telefono.replace(/\D/g, '') : null,
             email: c.email || null
           }, { onConflict: 'negocio_id,telefono' });
           if (error) errores.push(`Cliente ${c.nombre}: ${error.message}`);
@@ -122,7 +122,8 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
           // Buscar cliente_id si hay telefono
           let clienteId = null;
           if (c.cliente_telefono) {
-            const { data: cls } = await supabase.from('clientes').select('id').eq('negocio_id', negocioId).eq('telefono', c.cliente_telefono).limit(1);
+            const telefonoLimpio = c.cliente_telefono.replace(/\D/g, '');
+            const { data: cls } = await supabase.from('clientes').select('id').eq('negocio_id', negocioId).eq('telefono', telefonoLimpio).limit(1);
             if (cls && cls[0]) clienteId = cls[0].id;
           }
 
@@ -248,7 +249,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               <button
                 onClick={() => setState(prev => ({ ...prev, paso: 'subir', intencion: 'agenda_booksy_fresha' }))}
                 style={{
-                  padding: 20, borderRadius: 12, border: \`2px solid \${T.border}\`, background: T.bgCard,
+                  padding: 20, borderRadius: 12, border: `2px solid ${T.border}`, background: T.bgCard,
                   cursor: 'pointer', transition: 'all 0.15s ease', textAlign: 'center',
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = T.primary; }}
@@ -262,7 +263,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               <button
                 onClick={() => setState(prev => ({ ...prev, paso: 'subir', intencion: 'catalogo' }))}
                 style={{
-                  padding: 20, borderRadius: 12, border: \`2px solid \${T.border}\`, background: T.bgCard,
+                  padding: 20, borderRadius: 12, border: `2px solid ${T.border}`, background: T.bgCard,
                   cursor: 'pointer', transition: 'all 0.15s ease', textAlign: 'center',
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = T.primary; }}
@@ -276,7 +277,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               <button
                 onClick={() => setState(prev => ({ ...prev, paso: 'subir', intencion: 'factura_proveedor' }))}
                 style={{
-                  padding: 20, borderRadius: 12, border: \`2px solid \${T.border}\`, background: T.bgCard,
+                  padding: 20, borderRadius: 12, border: `2px solid ${T.border}`, background: T.bgCard,
                   cursor: 'pointer', transition: 'all 0.15s ease', textAlign: 'center',
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = T.primary; }}
@@ -303,7 +304,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
             </div>
             <div
               style={{
-                padding: 40, borderRadius: 12, border: \`2px dashed \${T.border}\`,
+                padding: 40, borderRadius: 12, border: `2px dashed ${T.border}`,
                 background: T.bgCard, textAlign: 'center', cursor: 'pointer',
               }}
               onClick={() => {
@@ -346,7 +347,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               Vista previa de la extracción
             </div>
 
-            <div style={{ background: T.bgCard, borderRadius: 10, overflow: 'hidden', marginBottom: 16, border: \`1px solid \${T.border}\` }}>
+            <div style={{ background: T.bgCard, borderRadius: 10, overflow: 'hidden', marginBottom: 16, border: `1px solid ${T.border}` }}>
               <pre style={{ margin: 0, padding: 16, fontSize: 12, color: T.text, maxHeight: 400, overflow: 'auto', background: T.bgCard }}>
                 {JSON.stringify(state.data, null, 2)}
               </pre>

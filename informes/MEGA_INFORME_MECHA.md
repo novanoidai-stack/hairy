@@ -59,6 +59,15 @@ Se han completado las inyecciones de IA restantes de las superficies (Presupuest
 
 ---
 
+## Adenda — Capa IA Ventas (Sesión 11-B) (6 jul 2026, Carlos + Claude)
+
+Se ha implementado el asistente de ventas Chispa en la landing pública:
+- **Chispa en Landing (`index.html`):** Inyección de burbuja de chat para responder dudas comerciales usando una base de conocimiento curada de Mecha.
+- **Edge Function (`chispa-landing`):** Rate-limiting por IP mediante una nueva tabla SQL y RPC `check_landing_rate_limit`. Se usa OpenRouter (Anthropic) con un prompt comercial restrictivo que deriva al cierre de venta (`reservar.html`).
+- **CTA Migración:** Añadido CTA "Cámbiate desde Booksy o Fresha en 10 minutos" en el Hero de la web pública enlazando a la nueva Migración Mágica (Sesión 11-A).
+
+---
+
 ## Adenda — Capa IA "Chispa" Sesion 1 (5 jul 2026, Carlos + Claude)
 
 Nucleo generativo de la capa de IA transversal (plan `informes/PLAN-IA-CHISPA.md`, Sesion 1 HECHA):

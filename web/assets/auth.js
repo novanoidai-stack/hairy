@@ -288,7 +288,14 @@
     } catch (e) { return { allowed: false, remaining: 0, reason: 'error' }; }
   }
 
-  function goToApp() { window.location.href = APP_URL; }
+  function goToApp() {
+    var qs = new URLSearchParams(window.location.search);
+    if (qs.get('next') === 'migrar' || qs.get('migrar') === 'true') {
+      window.location.href = APP_URL + '/configuracion?tab=migracion_magica';
+    } else {
+      window.location.href = APP_URL + window.location.search;
+    }
+  }
 
   window.MechaAPI = {
     client: client,

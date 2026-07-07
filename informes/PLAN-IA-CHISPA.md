@@ -203,8 +203,8 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 8 | Lista de espera: matching + aviso + priorizacion | Opus 4.8 (SQL) / Sonnet 5 (UI) | medio | 1,3 | **HECHA (6 jul, S8-A SQL)** — S8-B (UI/edge) pendiente |
 | 9 | Superficies por pagina (resenas, bandeja, presupuestos, inventario, equipo, mi jornada, upsell, recompra) | Sonnet 5 | medio | 1,2,3 | **HECHA (6 jul)** (Reseñas, Bandeja, Mi Jornada, Upsell Caja) |
 | 10 | Consentimiento cliente-facing + cierre legal | Opus 4.8 | medio | 2 | **HECHA (6 jul)** |
-| 11 | Ventas: migracion magica Booksy/Fresha + catalogo desde foto + facturas->stock + Chispa landing | Opus 4.8 | alto | 1 | **HECHA (11-A)** (11-B pendiente) |
-| 12 | Vertical color: dictado manos-libres de formulas + traductor entre marcas | Opus 4.8 | alto | 5 | pendiente |
+| 11 | Ventas: migracion magica Booksy/Fresha + catalogo desde foto + facturas->stock + Chispa landing | Opus 4.8 | alto | 1 | **HECHA (completa S11)** |
+| 12 | Vertical color: dictado manos-libres de formulas + traductor entre marcas | Opus 4.8 | alto | 5 | **HECHA (12-A) / pendiente (12-B)** |
 | 13 | Vision: try-on de color + antes/despues Instagram + "quiero este corte" | Sonnet 5 | medio | 1,10 | pendiente |
 | 14 | Negocio no-IA: bonos/paquetes + tarjetas regalo (decision Jose) + propinas + modulo de gastos | Opus 4.8 | medio-alto | — | pendiente |
 | 15 | Operativa no-IA: citas recurrentes + cumpleanos + festivos salon + fusionar duplicadas + export RGPD + multi-idioma portal | Opus 4.8 (recurrentes) / Sonnet 5 (resto) | medio | — | pendiente |
@@ -492,6 +492,12 @@ aplicada en remoto 2026-07-06, advisors OK sin regresiones nuevas):
    - Detección de "Oportunidad de Recompra" (clientes con ciclo de visita vencido).
 5. **Cierre de hito:** 
    - Build limpio y consolidación del informe maestro.
+
+**Registro Sesion 11-B (6 jul, HECHA):**
+- **Chispa en la Landing:** Edge function `chispa-landing` implementada con contexto (RAG) basado en el contenido de `especificaciones.html`. Identificación como IA, prevención de afirmaciones falsas, redirección a `reservar.html`.
+- **UI:** Añadido widget chat burbuja flotante a `index.html` que interactúa con la edge function.
+- **CTA:** Añadido banner/botón en `index.html` bajo el Hero animando a la migración mágica ("Cámbiate desde Booksy o Fresha en 10 minutos"), enlazando a la pantalla de login con el query param de migración.
+- **Rate Limiting:** Creado migration SQL (`sesion11_b_landing_ratelimit`) con tabla y RPC `check_landing_rate_limit` (15 msg/hora) por IP. Invocado desde la Edge Function. Verificado build y tipado.
 
 **Guia de modelo:** Opus 4.8 donde equivocarse es caro (arquitectura, seguridad/RGPD, dominio agenda,
 SQL, dinero, parsing de migracion); Sonnet 5 en integraciones acotadas, lectura/analitica y
@@ -1068,6 +1074,11 @@ Si otra sesion empujo a master, stash/pull/pop.
 ```
 
 ## Prompt Sesion 12 — Vertical color: dictado de formulas + traductor (Opus 4.8, esfuerzo alto)
+
+> DIVIDIDA EN DOS SESIONES (12-A y 12-B) para garantizar calidad y enfoque. 
+> 12-A: Motor Backend, SQL y Reglas Estrictas de Salud.
+> 12-B: Frontend "Manos Sucias" e Integración.
+> Los prompts completos están en informes/PROMPT-SESION-12-A.md y informes/PROMPT-SESION-12-B.md.
 
 ```
 Trabajas en Mecha (repo Hairy). Lee ENTERO informes/PLAN-IA-CHISPA.md (Sesion 12) y

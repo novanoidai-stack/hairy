@@ -1150,6 +1150,9 @@ export default function ConfiguracionWeb() {
             {tab === 'importar' && (
               <TabImportarCitas negocioId={negocioId} />
             )}
+            {tab === 'migracion_magica' && (
+              <TabMigracionMagica negocioId={negocioId} />
+            )}
             {tab === 'notificaciones' && <TabNotificaciones config={config} setC={setC} />}
             {tab === 'politicas' && <TabPoliticas config={config} setC={setC} />}
             {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
