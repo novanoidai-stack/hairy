@@ -57,6 +57,10 @@ export function useChispaVoz() {
   // Se apaga solo (y para toda la sesion de la pestana) si el edge responde que
   // no hay ELEVENLABS_API_KEY configurada: evita reintentar en cada respuesta.
   const [ttsDisponible, setTtsDisponible] = useState(true);
+  // Voz honesta (Sesion 1 V2): true cuando la ULTIMA vez que se intento hablar con
+  // ElevenLabs, fallo y se degrado a la voz del navegador. Se apaga en el proximo
+  // exito. NO se activa cuando el usuario elige "navegador" a proposito en el A/B.
+  const [vozDegradada, setVozDegradada] = useState(false);
   const [motorVoz, setMotorVozState] = useState<MotorVoz>('elevenlabs');
   const [vozActiva, setVozActivaState] = useState(false);
 
@@ -159,6 +163,25 @@ export function useChispaVoz() {
     setErrorVoz(null);
     onResultadoRef.current = onResultado;
 
+    // Provoca el prompt NATIVO de permiso del navegador (getUserMedia) ANTES de
+    // intentar Web Speech: el permiso interno de SpeechRecognition no es fiable
+    // en todos los navegadores, y esto asegura un dialogo claro en el primer uso
+    // en vez de un fallo silencioso o un mensaje generico de "activalo a mano".
+    try {
+      const permiso = await navigator.mediaDevices.getUserMedia({ audio: true });
+      permiso.getTracks().forEach((t) => t.stop());
+    } catch (err) {
+      const nombre = (err as { name?: string } | undefined)?.name ?? '';
+      if (nombre === 'NotAllowedError' || nombre === 'PermissionDeniedError') {
+        setErrorVoz('El microfono esta bloqueado para este sitio. Haz clic en el candado de la barra de direcciones, entra en Permisos, pon Microfono en Permitir, y vuelve a pulsar el microfono.');
+      } else if (nombre === 'NotFoundError' || nombre === 'DevicesNotFoundError') {
+        setErrorVoz('No se ha encontrado ningun microfono conectado a este dispositivo.');
+      } else {
+        setErrorVoz('No se pudo acceder al microfono. Comprueba los permisos del navegador para este sitio.');
+      }
+      return;
+    }
+
     const SR = speechRecognitionCtor();
     if (soportaReconocimientoNativo && SR) {
       const rec = new SR();
@@ -174,7 +197,7 @@ export function useChispaVoz() {
       rec.onerror = (ev: Event) => {
         const errorType = (ev as any).error ?? '';
         if (errorType === 'not-allowed' || errorType === 'permission-denied') {
-          setErrorVoz('⚠️ El micrófono está bloqueado. Haz clic en el candado 🔒 de la barra del navegador → Permisos → Micrófono → Permitir, y vuelve a intentarlo.');
+          setErrorVoz('El micrófono está bloqueado. Haz clic en el candado de la barra del navegador, entra en Permisos, pon Micrófono en Permitir, y vuelve a intentarlo.');
         } else if (errorType === 'no-speech') {
           setErrorVoz('No detecté tu voz. ¿Tienes el micrófono encendido? Pulsa de nuevo e intenta hablar.');
         } else if (errorType === 'network') {
@@ -256,14 +279,21 @@ export function useChispaVoz() {
           // Sin ELEVENLABS_API_KEY configurada en Supabase secrets: se apaga el
           // motor IA para el resto de la sesion y se degrada al navegador.
           setTtsDisponible(false);
+          setVozDegradada(true);
           hablarNavegador(limpio);
           return;
         }
-        if (!r.ok) throw new Error('Fallo al generar audio');
+        if (!r.ok) {
+          setVozDegradada(true);
+          throw new Error('Fallo al generar audio');
+        }
         const blob = await r.blob();
         url = URL.createObjectURL(blob);
         cacheAudioTts.set(limpio, url);
       }
+      // Llegar hasta aqui (cache o fetch fresco) significa que ElevenLabs
+      // respondio bien: la voz deja de estar degradada.
+      setVozDegradada(false);
       const audio = new Audio(url);
       audioElRef.current = audio;
       audio.onplay = () => setEstado('hablando');
@@ -272,12 +302,13 @@ export function useChispaVoz() {
       await audio.play();
     } catch {
       // No dejar a Chispa "muda": si falla el proxy de ElevenLabs, se degrada.
+      setVozDegradada(true);
       hablarNavegador(limpio);
     }
   }, [motorVoz, ttsDisponible, detenerHabla, hablarNavegador]);
 
   return {
-    estado, errorVoz, soportaReconocimientoNativo, ttsDisponible,
+    estado, errorVoz, soportaReconocimientoNativo, ttsDisponible, vozDegradada,
     motorVoz, setMotorVoz, vozActiva, setVozActiva,
     iniciarEscucha, detenerEscucha, hablar, detenerHabla,
   };

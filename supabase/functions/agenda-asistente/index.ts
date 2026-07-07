@@ -123,6 +123,20 @@ type AccionPropuesta =
 // ---------------------------------------------------------------------------
 type ChispaUnidad = 'eur' | 'citas' | 'pct';
 
+// Bloques de entrada (Sesion 1 V2 del plan): formulario/opciones/progreso. Este
+// edge NO los emite todavia (llegara en las Sesiones 2-3, config guiada y
+// "actua con minima info"); el tipo se mantiene espejado desde ya para que esas
+// sesiones no tengan que retocar este contrato.
+type CampoFormularioTipo = 'texto' | 'numero' | 'euro' | 'tel' | 'hora' | 'select';
+type CampoFormulario = {
+  key: string;
+  label: string;
+  tipo: CampoFormularioTipo;
+  opciones?: { valor: string; label: string }[];
+  valor?: string | number;
+  requerido?: boolean;
+};
+
 type Bloque =
   | { tipo: 'texto'; texto: string }
   | { tipo: 'enlace'; ruta: string; label: string; descripcion?: string }
@@ -134,7 +148,16 @@ type Bloque =
       unidad: ChispaUnidad;
       actual: { label: string; valor: number };
       anterior: { label: string; valor: number };
-    };
+    }
+  | { tipo: 'formulario'; id: string; titulo: string; campos: CampoFormulario[]; enviarLabel?: string }
+  | {
+      tipo: 'opciones';
+      id: string;
+      titulo?: string;
+      opciones: { valor: string; label: string; descripcion?: string }[];
+      multiple?: boolean;
+    }
+  | { tipo: 'progreso'; paso: number; total: number; etiqueta?: string };
 
 // Allowlist de rutas para bloques 'enlace' (espejo de CHISPA_RUTAS del cliente).
 // El LLM elige una CLAVE; el edge valida y adjunta la ruta/label real.

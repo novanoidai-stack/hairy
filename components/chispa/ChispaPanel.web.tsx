@@ -29,6 +29,7 @@ function triggerHaptic() {
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
 const DEMO_LIMITE_MSGS = 15; // rate-limit por sesion en la demo compartida
 const DEMO_COUNT_KEY = 'mecha-chispa-demo-msgs';
+const FULLSCREEN_KEY = 'mecha-chispa-fullscreen'; // preferencia por navegador (Sesion 1)
 
 const PANEL_STYLES = `
   @keyframes chispaDrawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
@@ -123,6 +124,18 @@ function IconoStop({ size = 12, color = '#fff' }: { size?: number; color?: strin
   );
 }
 
+function IconoPantallaCompleta({ activo, size = 15, color = T.textSecondary }: { activo: boolean; size?: number; color?: string }) {
+  return activo ? (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M9 3v4a2 2 0 0 1-2 2H3M15 3v4a2 2 0 0 0 2 2h4M9 21v-4a2 2 0 0 0-2-2H3M15 21v-4a2 2 0 0 1 2-2h4" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 const BIENVENIDA: Mensaje = {
   role: 'assistant',
   bloques: [{
@@ -139,6 +152,10 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
   const [texto, setTexto] = useState('');
   const [imagenB64, setImagenB64] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+  // Pantalla completa del panel (Sesion 1 V2): preferencia persistida por navegador.
+  const [pantallaCompleta, setPantallaCompleta] = useState(false);
+  // blockId -> payload ya enviado de un bloque 'formulario'/'opciones' (Sesion 1 V2).
+  const [respuestasInteractivas, setRespuestasInteractivas] = useState<Record<string, unknown>>({});
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -150,8 +167,26 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
   // Modo comparacion A/B (solo dev/decision, no para clientas): ?vozab=1 en la
   // URL muestra el selector de motor de voz para decidir si compensa el plan
   // de pago de ElevenLabs frente al speechSynthesis gratis del navegador.
-  const { vozab } = useGlobalSearchParams<{ vozab?: string }>();
+  // ?chispatest=1 (mismo espiritu): manda un bloque de prueba con
+  // 'formulario'+'opciones'+'progreso' sin llamar al edge, para verificar el
+  // contrato de bloques interactivos end-to-end (Sesion 1 V2).
+  const { vozab, chispatest } = useGlobalSearchParams<{ vozab?: string; chispatest?: string }>();
   const mostrarSelectorVoz = vozab === '1';
+  const mostrarArnesPruebas = chispatest === '1';
+
+  const amplio = pantallaCompleta && !isMobile;
+
+  useEffect(() => {
+    try { setPantallaCompleta(localStorage.getItem(FULLSCREEN_KEY) === '1'); } catch { /* no critico */ }
+  }, []);
+
+  function alternarPantallaCompleta() {
+    setPantallaCompleta((v) => {
+      const nv = !v;
+      try { localStorage.setItem(FULLSCREEN_KEY, nv ? '1' : '0'); } catch { /* no critico */ }
+      return nv;
+    });
+  }
 
   // Rate-limit de la demo: contador por sesion (persistente entre recargas del iframe).
   const demoCount = useRef<number>(0);
@@ -187,10 +222,16 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
 
   useEffect(() => {
     if (!abierto) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      // Primer Escape sale de pantalla completa (sin tocar la preferencia
+      // guardada); el siguiente Escape cierra el panel.
+      if (pantallaCompleta) { setPantallaCompleta(false); return; }
+      setAbierto(false);
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [abierto]);
+  }, [abierto, pantallaCompleta]);
 
   // Historial en texto plano para dar contexto al edge (los bloques se aplanan).
   function historialParaEdge(msgs: Mensaje[]): { role: 'user' | 'assistant'; content: any }[] {
@@ -213,7 +254,10 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
           if (b.tipo === 'enlace') return `[enlace: ${b.label}]`;
           if (b.tipo === 'accion') return `[accion propuesta: ${b.accion.resumen}]`;
           if (b.tipo === 'grafica') return `[grafica: ${b.titulo}]`;
-          return `[comparativa: ${b.titulo}]`;
+          if (b.tipo === 'comparativa') return `[comparativa: ${b.titulo}]`;
+          if (b.tipo === 'formulario') return `[formulario: ${b.titulo}]`;
+          if (b.tipo === 'opciones') return `[opciones: ${b.titulo ?? ''}]`;
+          return `[progreso: paso ${b.paso} de ${b.total}]`;
         })
         .join('\n');
       return { role: 'assistant' as const, content };
@@ -232,9 +276,75 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
       .map((b) => b.texto).join(' ').trim();
   }
 
+  // Resume el payload de un bloque interactivo respondido en una frase legible
+  // para reinyectarla como el siguiente turno del usuario (mismo camino que
+  // escribir a mano, sin que el usuario tenga que teclear nada).
+  function textoDeRespuestaInteractiva(bloque: Bloque, payload: unknown): string {
+    if (bloque.tipo === 'formulario') {
+      const vals = payload as Record<string, string | number>;
+      return bloque.campos
+        .map((c) => `${c.label}: ${vals[c.key] ?? ''}`)
+        .join(', ');
+    }
+    if (bloque.tipo === 'opciones') {
+      const sel = payload as string[];
+      const labels = bloque.opciones.filter((o) => sel.includes(o.valor)).map((o) => o.label);
+      return labels.join(', ');
+    }
+    return '';
+  }
+
+  // Callback unico para bloques 'formulario'/'opciones' (Sesion 1 V2): marca el
+  // bloque como respondido (queda fijado en la UI) y convierte el payload en el
+  // siguiente turno de la conversacion, igual que si el usuario lo hubiera escrito.
+  function manejarRespuestaInteractiva(bloque: Bloque, payload: unknown) {
+    if (bloque.tipo !== 'formulario' && bloque.tipo !== 'opciones') return;
+    setRespuestasInteractivas((prev) => ({ ...prev, [bloque.id]: payload }));
+    const t = textoDeRespuestaInteractiva(bloque, payload);
+    if (t) void enviarMensaje(t);
+  }
+
   async function enviarMensaje(textoOverride?: string) {
     const t = (textoOverride ?? texto).trim();
     if ((!t && !imagenB64) || bloqueado) return;
+
+    // Arnes de pruebas SOLO con ?chispatest=1 en la URL (mismo espiritu que
+    // ?vozab=1): simula una respuesta con 'progreso'+'formulario'+'opciones' sin
+    // llamar al edge, para verificar el contrato de bloques interactivos de
+    // punta a punta (rellenar/pulsar y que el payload vuelva como turno).
+    if (mostrarArnesPruebas && t === '/testbloques') {
+      setMensajes((m) => [
+        ...m,
+        { role: 'user', content: t },
+        {
+          role: 'assistant',
+          accionEstado: null,
+          bloques: [
+            { tipo: 'progreso', paso: 1, total: 2, etiqueta: 'Datos del servicio' },
+            {
+              tipo: 'formulario', id: `test-form-${Date.now()}`, titulo: 'Nuevo servicio', enviarLabel: 'Crear servicio',
+              campos: [
+                { key: 'nombre', label: 'Nombre', tipo: 'texto', requerido: true },
+                { key: 'precio', label: 'Precio', tipo: 'euro', requerido: true },
+                { key: 'duracion', label: 'Duracion (min)', tipo: 'numero' },
+                { key: 'categoria', label: 'Categoria', tipo: 'select', opciones: [{ valor: 'corte', label: 'Corte' }, { valor: 'color', label: 'Color' }] },
+              ],
+            },
+            {
+              tipo: 'opciones', id: `test-opciones-${Date.now()}`, titulo: 'Como se ha reservado',
+              opciones: [
+                { valor: 'telefono', label: 'Telefono', descripcion: 'Llamada directa' },
+                { valor: 'whatsapp', label: 'WhatsApp' },
+                { valor: 'presencial', label: 'Presencial' },
+              ],
+            },
+          ],
+        },
+      ]);
+      setTexto('');
+      setImagenB64(null);
+      return;
+    }
 
     // Guardrail demo: limite de mensajes por sesion (protege el coste del LLM en
     // la cuenta publica compartida). En cuentas reales no hay limite.
@@ -345,7 +455,7 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
     pushAssistantTexto('Accion cancelada.');
   }
 
-  const drawerWidth = isMobile ? '100%' : 400;
+  const drawerWidth = isMobile || amplio ? '100%' : 400;
 
   const contenido = (
     <>
@@ -392,7 +502,24 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
               <ChispaMascota size={30} showLabel={false} animar={false} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>Chispa</div>
-                <div style={{ fontSize: 11, color: T.textTertiary, marginTop: 1 }}>IA · asistente del salon</div>
+                <div style={{ fontSize: 11, color: T.textTertiary, marginTop: 1, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <span>IA · asistente del salon</span>
+                  {/* Voz honesta (Sesion 1 V2): indicador discreto y persistente
+                      mientras la voz este degradada a la del navegador. Nunca se
+                      finge que es la voz premium de ElevenLabs. */}
+                  {voz.vozDegradada && (
+                    <span
+                      title="ElevenLabs no esta disponible ahora mismo: Chispa usa la voz basica del navegador."
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', padding: '2px 7px', borderRadius: 999,
+                        background: T.warningSoft, border: '1px solid rgba(224,138,0,0.28)',
+                        color: T.warning, fontSize: 10, fontWeight: 700, letterSpacing: 0.2, whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Voz básica del navegador
+                    </span>
+                  )}
+                </div>
               </div>
               {voz.estado === 'hablando' && (
                 <button onClick={voz.detenerHabla} aria-label="Detener la voz de Chispa"
@@ -413,6 +540,16 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
                 }}>
                 <IconoAltavoz size={15} color={voz.vozActiva ? T.primaryHi : T.textSecondary} activo={voz.vozActiva} />
               </button>
+              {!isMobile && (
+                <button
+                  onClick={alternarPantallaCompleta}
+                  aria-label={pantallaCompleta ? 'Salir de pantalla completa' : 'Ver Chispa a pantalla completa'}
+                  aria-pressed={pantallaCompleta}
+                  title={pantallaCompleta ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                  style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <IconoPantallaCompleta activo={pantallaCompleta} size={15} color={T.textSecondary} />
+                </button>
+              )}
               <button onClick={() => setAbierto(false)} aria-label="Cerrar Chispa"
                 style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <IconoCerrar size={15} color={T.textSecondary} />
@@ -437,60 +574,68 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
               </div>
             )}
 
-            {/* Lista de mensajes */}
-            <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {briefingActivo && (
-                <BriefingAgenda negocioId={negocioId} profile={profile} onClose={() => setAbierto(false)} />
-              )}
-              {mensajes.map((msg, i) => {
-                if (msg.role === 'user') {
+            {/* Lista de mensajes. En pantalla completa (desktop) se centra en una
+                columna con mas aire para que formularios/graficas no se
+                aplasten a lo ancho de todo el viewport. */}
+            <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: amplio ? '20px 0' : '12px 14px', display: 'flex', flexDirection: 'column', alignItems: amplio ? 'center' : 'stretch' }}>
+              <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {briefingActivo && (
+                  <BriefingAgenda negocioId={negocioId} profile={profile} onClose={() => setAbierto(false)} />
+                )}
+                {mensajes.map((msg, i) => {
+                  if (msg.role === 'user') {
+                    return (
+                      <div key={i} className="chispa-msg" style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'flex-end' }}>
+                        <div style={{
+                          maxWidth: '80%', padding: '9px 12px', borderRadius: '14px 14px 4px 14px',
+                          background: T.primary, fontSize: 13.5, color: '#fff', lineHeight: 1.5,
+                          wordBreak: 'break-word', whiteSpace: 'pre-wrap',
+                        }}>
+                          {msg.content}
+                        </div>
+                      </div>
+                    );
+                  }
+                  // Assistant: avatar + columna de bloques
                   return (
-                    <div key={i} className="chispa-msg" style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'flex-end' }}>
-                      <div style={{
-                        maxWidth: '80%', padding: '9px 12px', borderRadius: '14px 14px 4px 14px',
-                        background: T.primary, fontSize: 13.5, color: '#fff', lineHeight: 1.5,
-                        wordBreak: 'break-word', whiteSpace: 'pre-wrap',
-                      }}>
-                        {msg.content}
+                    <div key={i} className="chispa-msg" style={{ display: 'flex', gap: 7, alignItems: 'flex-start' }}>
+                      <div style={{ flexShrink: 0, marginTop: 2 }}>
+                        <ChispaMascota size={22} showLabel={false} animar={false} />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, maxWidth: amplio ? '100%' : '84%' }}>
+                        {msg.bloques.map((b, j) => (
+                          <BloqueRenderer
+                            key={j}
+                            bloque={b}
+                            accionEstado={msg.accionEstado ?? 'pendiente'}
+                            onConfirmar={b.tipo === 'accion' ? () => confirmarAccion(i, b.accion) : undefined}
+                            onCancelar={b.tipo === 'accion' ? () => cancelarAccion(i) : undefined}
+                            anchoAmplio={amplio}
+                            respuestasInteractivas={respuestasInteractivas}
+                            onRespuestaInteractiva={manejarRespuestaInteractiva}
+                          />
+                        ))}
                       </div>
                     </div>
                   );
-                }
-                // Assistant: avatar + columna de bloques
-                return (
-                  <div key={i} className="chispa-msg" style={{ display: 'flex', gap: 7, alignItems: 'flex-start' }}>
-                    <div style={{ flexShrink: 0, marginTop: 2 }}>
-                      <ChispaMascota size={22} showLabel={false} animar={false} />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, maxWidth: '84%' }}>
-                      {msg.bloques.map((b, j) => (
-                        <BloqueRenderer
-                          key={j}
-                          bloque={b}
-                          accionEstado={msg.accionEstado ?? 'pendiente'}
-                          onConfirmar={b.tipo === 'accion' ? () => confirmarAccion(i, b.accion) : undefined}
-                          onCancelar={b.tipo === 'accion' ? () => cancelarAccion(i) : undefined}
-                        />
+                })}
+
+                {cargando && (
+                  <div className="chispa-msg" style={{ display: 'flex', gap: 7, alignItems: 'flex-end' }}>
+                    <div style={{ flexShrink: 0 }}><ChispaMascota size={22} showLabel={false} mood="think" /></div>
+                    <div style={{ padding: '9px 14px', borderRadius: '14px 14px 14px 4px', background: T.bgCard, border: `1px solid ${T.border}`, display: 'flex', gap: 4, alignItems: 'center' }}>
+                      {[0, 1, 2].map((n) => (
+                        <div key={n} style={{ width: 6, height: 6, borderRadius: 999, background: T.textMuted, animation: `chispaDot 1.2s ease-in-out ${n * 0.2}s infinite` }} />
                       ))}
                     </div>
                   </div>
-                );
-              })}
-
-              {cargando && (
-                <div className="chispa-msg" style={{ display: 'flex', gap: 7, alignItems: 'flex-end' }}>
-                  <div style={{ flexShrink: 0 }}><ChispaMascota size={22} showLabel={false} mood="think" /></div>
-                  <div style={{ padding: '9px 14px', borderRadius: '14px 14px 14px 4px', background: T.bgCard, border: `1px solid ${T.border}`, display: 'flex', gap: 4, alignItems: 'center' }}>
-                    {[0, 1, 2].map((n) => (
-                      <div key={n} style={{ width: 6, height: 6, borderRadius: 999, background: T.textMuted, animation: `chispaDot 1.2s ease-in-out ${n * 0.2}s infinite` }} />
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Input */}
-            <div style={{ padding: '10px 12px 12px', borderTop: `1px solid ${T.border}`, flexShrink: 0 }}>
+            <div style={{ padding: '10px 12px 12px', borderTop: `1px solid ${T.border}`, flexShrink: 0, display: 'flex', justifyContent: amplio ? 'center' : 'stretch' }}>
+              <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined }}>
               {imagenB64 && (
                 <div style={{ padding: '8px', marginBottom: '8px', background: T.bgCard, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                    <div style={{ fontSize: '12px', color: T.textSecondary }}>📸 Imagen adjuntada lista para enviar</div>
@@ -557,10 +702,11 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
                     <span style={{ width: 6, height: 6, borderRadius: 999, background: voz.errorVoz ? T.textMuted : T.primary, animation: voz.errorVoz ? 'none' : 'chispaDot 1s ease-in-out infinite', flexShrink: 0, marginTop: 4 }} />
                   )}
                   <span style={{ fontSize: 11.5, color: voz.errorVoz ? T.warning : T.textTertiary, lineHeight: 1.4 }}>
-                    {voz.errorVoz ?? (voz.estado === 'escuchando' ? 'Escuchando… habla ahora 🎙️' : voz.estado === 'transcribiendo' ? 'Transcribiendo tu voz…' : voz.estado === 'hablando' ? 'Chispa está hablando… 🔊' : '')}
+                    {voz.errorVoz ?? (voz.estado === 'escuchando' ? 'Escuchando... habla ahora' : voz.estado === 'transcribiendo' ? 'Transcribiendo tu voz...' : voz.estado === 'hablando' ? 'Chispa está hablando...' : '')}
                   </span>
                 </div>
               )}
+              </div>
             </div>
           </div>
         </>

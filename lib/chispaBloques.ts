@@ -38,6 +38,21 @@ export type ChispaRutaKey = keyof typeof CHISPA_RUTAS;
 // Unidad de un valor numerico de 'grafica'/'comparativa': determina formato y color.
 export type ChispaUnidad = 'eur' | 'citas' | 'pct';
 
+// Tipo de campo de un bloque 'formulario'. Determina que control se renderiza
+// (ver CampoControl en BloqueRenderer.web.tsx).
+export type CampoFormularioTipo = 'texto' | 'numero' | 'euro' | 'tel' | 'hora' | 'select';
+
+export interface CampoFormulario {
+  key: string;
+  label: string;
+  tipo: CampoFormularioTipo;
+  // Solo si tipo === 'select'.
+  opciones?: { valor: string; label: string }[];
+  // Valor por el que el LLM puede pre-rellenar el campo (el usuario lo puede editar).
+  valor?: string | number;
+  requerido?: boolean;
+}
+
 export type Bloque =
   | { tipo: 'texto'; texto: string }
   | { tipo: 'enlace'; ruta: string; label: string; descripcion?: string }
@@ -52,7 +67,22 @@ export type Bloque =
       unidad: ChispaUnidad;
       actual: { label: string; valor: number };
       anterior: { label: string; valor: number };
-    };
+    }
+  // Bloques de ENTRADA (Sesion 1 del plan V2): recogen datos sin que el usuario
+  // tenga que escribirlos en texto libre. Al enviar/elegir, el panel llama a
+  // onRespuestaInteractiva(bloque, payload) y lo convierte en el siguiente turno.
+  // 'formulario': payload = Record<clave_del_campo, valor>.
+  | { tipo: 'formulario'; id: string; titulo: string; campos: CampoFormulario[]; enviarLabel?: string }
+  // 'opciones': payload = string[] (los 'valor' elegidos; un solo elemento si multiple es false/ausente).
+  | {
+      tipo: 'opciones';
+      id: string;
+      titulo?: string;
+      opciones: { valor: string; label: string; descripcion?: string }[];
+      multiple?: boolean;
+    }
+  // Indicador de paso dentro de un flujo guiado (config guiada, Sesion 2+). No es interactivo.
+  | { tipo: 'progreso'; paso: number; total: number; etiqueta?: string };
 
 export interface ChispaRespuesta {
   bloques: Bloque[];

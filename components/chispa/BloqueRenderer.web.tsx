@@ -2,10 +2,12 @@
 // bloque.tipo -> componente. Un solo sitio donde se decide como se pinta cada
 // tipo; anadir un tipo nuevo (grafica, listas...) = anadir un caso aqui y en
 // lib/chispaBloques.ts, sin tocar el panel ni el edge.
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import type { Bloque, ChispaUnidad } from '@/lib/chispaBloques';
+import type { Bloque, ChispaUnidad, CampoFormulario } from '@/lib/chispaBloques';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { LineChartMini } from '@/components/charts/LineChartMini.web';
+import { STextInput, SSelect, NumberInput, TimeInput } from '@/components/ui/SettingsAtoms';
 
 const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
 
@@ -88,6 +90,13 @@ export interface BloqueRendererProps {
   onConfirmar?: (accion?: any) => void | Promise<void>;
   onCancelar?: () => void;
   isMobile?: boolean;
+  // Solo para bloques 'formulario'/'opciones' (Sesion 1): mapa blockId -> payload
+  // ya enviado (el panel lo guarda por toda la conversacion) + callback de envio.
+  respuestasInteractivas?: Record<string, unknown>;
+  onRespuestaInteractiva?: (bloque: Bloque, payload: unknown) => void;
+  // true cuando el panel esta en pantalla completa (desktop): da mas aire a los
+  // formularios (grid de 2 columnas en vez de 1).
+  anchoAmplio?: boolean;
 }
 
 function IconoAdvertencia({ size = 14, color = T.warning }: { size?: number; color?: string }) {
@@ -137,7 +146,183 @@ function citasAfectadas(accion: unknown): { id: string; label: string }[] {
   return [];
 }
 
-export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar, onCancelar }: BloqueRendererProps) {
+// --- Control de un campo de 'formulario', segun su tipo. Se envuelve en un
+// <label> nativo (no id/htmlFor) para que la etiqueta sea accesible sin tener
+// que anadir props de id a los atomos de SettingsAtoms. ---
+function CampoControl({ campo, valor, disabled, onChange }: {
+  campo: CampoFormulario;
+  valor: string | number | undefined;
+  disabled?: boolean;
+  onChange: (v: string | number) => void;
+}) {
+  if (campo.tipo === 'select') {
+    return (
+      <SSelect
+        value={valor ?? ''}
+        onChange={onChange}
+        options={(campo.opciones ?? []).map((o) => ({ value: o.valor, label: o.label }))}
+        disabled={disabled}
+        width="100%"
+      />
+    );
+  }
+  if (campo.tipo === 'hora') {
+    return <TimeInput value={String(valor ?? '')} onChange={onChange} disabled={disabled} />;
+  }
+  if (campo.tipo === 'numero' || campo.tipo === 'euro') {
+    return (
+      <NumberInput
+        value={valor ?? ''}
+        onChange={onChange}
+        unit={campo.tipo === 'euro' ? '€' : undefined}
+        step={campo.tipo === 'euro' ? 0.5 : 1}
+        disabled={disabled}
+      />
+    );
+  }
+  return (
+    <STextInput
+      value={String(valor ?? '')}
+      onChange={onChange}
+      disabled={disabled}
+      type={campo.tipo === 'tel' ? 'tel' : 'text'}
+      width="100%"
+    />
+  );
+}
+
+// --- BLOQUE 'formulario': recoge varios campos a la vez (en vez de un
+// interrogatorio de texto turno a turno) y los manda como un unico payload. ---
+function BloqueFormulario({ bloque, respondido, anchoAmplio, onEnviar }: {
+  bloque: Extract<Bloque, { tipo: 'formulario' }>;
+  respondido?: Record<string, string | number>;
+  anchoAmplio?: boolean;
+  onEnviar: (valores: Record<string, string | number>) => void;
+}) {
+  const [valores, setValores] = useState<Record<string, string | number>>(() =>
+    Object.fromEntries(bloque.campos.map((c) => [c.key, c.valor ?? ''])),
+  );
+  const enviado = !!respondido;
+  const datos = respondido ?? valores;
+  const faltaRequerido = !enviado && bloque.campos.some(
+    (c) => c.requerido && (valores[c.key] === '' || valores[c.key] == null),
+  );
+
+  return (
+    <div style={{ background: T.bgCard, border: `1.5px solid ${T.borderHi}`, borderRadius: 14, padding: '14px 16px' }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 12 }}>{bloque.titulo}</div>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: anchoAmplio ? 'repeat(auto-fit, minmax(200px, 1fr))' : '1fr',
+        gap: 12, marginBottom: enviado ? 4 : 14,
+      }}>
+        {bloque.campos.map((campo) => (
+          <label key={campo.key} style={{ display: 'block', minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: T.textSecondary, marginBottom: 5 }}>
+              {campo.label}{campo.requerido && !enviado ? ' *' : ''}
+            </span>
+            <CampoControl
+              campo={campo}
+              valor={datos[campo.key]}
+              disabled={enviado}
+              onChange={(v) => setValores((prev) => ({ ...prev, [campo.key]: v }))}
+            />
+          </label>
+        ))}
+      </div>
+      {enviado ? (
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: T.success }}>Enviado</div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onEnviar(valores)}
+          disabled={faltaRequerido}
+          style={{
+            width: '100%', padding: '10px 0', borderRadius: 10, border: 'none',
+            background: faltaRequerido ? T.bgCardHi : FIRE,
+            color: faltaRequerido ? T.textMuted : '#fff',
+            fontSize: 13.5, fontWeight: 700, cursor: faltaRequerido ? 'not-allowed' : 'pointer',
+            boxShadow: faltaRequerido ? 'none' : '0 6px 18px rgba(192,38,10,0.22)',
+          }}
+        >
+          {bloque.enviarLabel || 'Enviar'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// --- BLOQUE 'opciones': chips seleccionables. Selección simple envía al
+// instante (funciona como una respuesta rápida); selección múltiple pide
+// confirmación explícita. ---
+function BloqueOpciones({ bloque, respondido, onEnviar }: {
+  bloque: Extract<Bloque, { tipo: 'opciones' }>;
+  respondido?: string[];
+  onEnviar: (seleccion: string[]) => void;
+}) {
+  const [seleccion, setSeleccion] = useState<string[]>([]);
+  const enviado = !!respondido;
+  const activos = respondido ?? seleccion;
+
+  function toggle(valor: string) {
+    if (enviado) return;
+    if (bloque.multiple) {
+      setSeleccion((prev) => (prev.includes(valor) ? prev.filter((v) => v !== valor) : [...prev, valor]));
+    } else {
+      onEnviar([valor]);
+    }
+  }
+
+  return (
+    <div style={{ background: T.bgCard, border: `1.5px solid ${T.borderHi}`, borderRadius: 14, padding: '12px 14px' }}>
+      {bloque.titulo && <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: bloque.multiple && !enviado ? 12 : 0 }}>
+        {bloque.opciones.map((o) => {
+          const activo = activos.includes(o.valor);
+          return (
+            <button
+              key={o.valor}
+              type="button"
+              onClick={() => toggle(o.valor)}
+              disabled={enviado}
+              aria-pressed={activo}
+              style={{
+                textAlign: 'left', padding: '10px 12px', borderRadius: 10,
+                border: `1.5px solid ${activo ? T.primary : T.border}`,
+                background: activo ? T.primarySoft : T.bgPanel,
+                cursor: enviado ? 'default' : 'pointer',
+                opacity: enviado && !activo ? 0.5 : 1,
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 600, color: activo ? T.primaryHi : T.text }}>{o.label}</div>
+              {o.descripcion && <div style={{ fontSize: 11.5, color: T.textTertiary, marginTop: 2 }}>{o.descripcion}</div>}
+            </button>
+          );
+        })}
+      </div>
+      {bloque.multiple && !enviado && (
+        <button
+          type="button"
+          onClick={() => onEnviar(seleccion)}
+          disabled={seleccion.length === 0}
+          style={{
+            width: '100%', padding: '9px 0', borderRadius: 10, border: 'none',
+            background: seleccion.length === 0 ? T.bgCardHi : FIRE,
+            color: seleccion.length === 0 ? T.textMuted : '#fff',
+            fontSize: 13, fontWeight: 700, cursor: seleccion.length === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          Confirmar selección
+        </button>
+      )}
+      {enviado && (
+        <div style={{ marginTop: bloque.multiple ? 10 : 0, fontSize: 12.5, fontWeight: 700, color: T.success }}>Enviado</div>
+      )}
+    </div>
+  );
+}
+
+export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar, onCancelar, anchoAmplio, respuestasInteractivas, onRespuestaInteractiva }: BloqueRendererProps) {
   const router = useRouter();
 
 // --- TEXTO: burbuja del asistente con markdown ligero y typewriter ---
@@ -218,6 +403,56 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
             <div style={{ fontSize: 10.5, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.3 }}>{anterior.label}</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: T.textSecondary }}>{fmt(anterior.valor)}</div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- FORMULARIO: recoge varios campos a la vez (Sesion 1) ---
+  if (bloque.tipo === 'formulario') {
+    const respondido = respuestasInteractivas && bloque.id in respuestasInteractivas
+      ? (respuestasInteractivas[bloque.id] as Record<string, string | number>)
+      : undefined;
+    return (
+      <BloqueFormulario
+        bloque={bloque}
+        respondido={respondido}
+        anchoAmplio={anchoAmplio}
+        onEnviar={(valores) => onRespuestaInteractiva?.(bloque, valores)}
+      />
+    );
+  }
+
+  // --- OPCIONES: chips seleccionables (Sesion 1) ---
+  if (bloque.tipo === 'opciones') {
+    const respondido = respuestasInteractivas && bloque.id in respuestasInteractivas
+      ? (respuestasInteractivas[bloque.id] as string[])
+      : undefined;
+    return (
+      <BloqueOpciones
+        bloque={bloque}
+        respondido={respondido}
+        onEnviar={(seleccion) => onRespuestaInteractiva?.(bloque, seleccion)}
+      />
+    );
+  }
+
+  // --- PROGRESO: indicador de paso X de Y (no interactivo) ---
+  if (bloque.tipo === 'progreso') {
+    const pct = bloque.total > 0 ? Math.min(100, Math.round((bloque.paso / bloque.total) * 100)) : 0;
+    return (
+      <div style={{ padding: '2px 2px 4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: T.textTertiary }}>
+            {bloque.etiqueta ?? `Paso ${bloque.paso} de ${bloque.total}`}
+          </span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: T.textTertiary }}>{pct}%</span>
+        </div>
+        <div style={{ height: 6, borderRadius: 999, background: T.bgCardHi, overflow: 'hidden' }}>
+          <div style={{
+            width: `${pct}%`, height: '100%', background: FIRE, borderRadius: 999,
+            transition: 'width 0.3s cubic-bezier(0.16,1,0.3,1)',
+          }} />
         </div>
       </div>
     );

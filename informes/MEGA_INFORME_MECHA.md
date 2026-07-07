@@ -1602,3 +1602,42 @@ Cierre del plan Chispa con la operativa no-IA que mas duele en el dia a dia. Reg
 6 migraciones aplicadas en remoto; `tsc` + `build:web` limpios; verificado por DOM en la demo. Con esto,
 las 15 sesiones del plan Chispa quedan HECHAS. Pendiente ajeno detectado: la app lee fichas de color de
 `formulas_color` pero la tabla remota es `fichas_tecnicas_color` (revisar en otra tanda).
+
+## Adenda — Capa IA "Chispa" V2 Sesion 1: Bloques interactivos + panel (fundacion) — HECHA (8 jul)
+
+Tras el feedback de Jose ("no es de la calidad acordada, no nos diferencia") se redisena la capa de IA
+en `informes/PLAN-IA-CHISPA-V2-REDISENO.md`. Esta sesion construye la FUNDACION reutilizable de la que
+dependen las Sesiones 2-10.
+
+- **Bloques de entrada nuevos** en `lib/chispaBloques.ts` (union extensible, espejados tipo-solo en el
+  edge `agenda-asistente`, sin cambio de comportamiento): `formulario` (campos texto/numero/euro/tel/hora/
+  select), `opciones` (chips, single o multiple) y `progreso` (paso X de Y). El LLM aun no los emite
+  (llega en Sesiones 2-3, config guiada y "actua con minima info"); el contrato ya esta listo para que esas
+  sesiones no tengan que tocarlo.
+- **Renderer** en `BloqueRenderer.web.tsx`: campos construidos sobre los atomos de `SettingsAtoms`
+  (`STextInput`/`NumberInput`/`SSelect`/`TimeInput`) envueltos en `<label>` nativo para accesibilidad sin
+  anadir props de id. Estado de "respondido" vive en `ChispaPanel` (mapa blockId->payload, sobrevive a
+  re-renders) y se convierte en el siguiente turno real de la conversacion via
+  `onRespuestaInteractiva(bloque, payload)`.
+- **Pantalla completa:** boton en la cabecera del panel (oculto en movil, que ya es fullscreen de por si),
+  preferencia persistida en `localStorage`; en fullscreen la lista de mensajes se centra en una columna de
+  760px con mas aire para que formularios/graficas no se aplasten.
+- **Voz honesta:** nuevo estado `vozDegradada` en `useChispaVoz.web.ts` — se activa cuando la llamada a
+  `chispa-tts` falla (501/otro error/excepcion) y Chispa cae a `speechSynthesis` del navegador; se apaga en
+  el siguiente exito. Badge discreto y persistente en la cabecera ("Voz basica del navegador") solo cuando
+  aplica; nunca se finge que es la voz premium.
+- **Micro:** `iniciarEscucha` ahora pide `getUserMedia({audio:true})` explicitamente ANTES de intentar Web
+  Speech, para forzar el dialogo nativo del navegador en el primer uso; si se deniega, mensaje con los
+  pasos exactos (candado > Permisos > Microfono > Permitir) en vez de "activalo a mano".
+- **Arnes de pruebas dev-only** `?chispatest=1` + mensaje `/testbloques` (mismo patron que `?vozab=1` de la
+  Sesion 5): simula una respuesta con los 3 bloques nuevos sin llamar al edge, para poder probar el
+  contrato end-to-end antes de que el LLM los emita de verdad.
+
+**Verificado E2E en la demo** (`/demo.html?share=1`, iframe `?demo=1&chispatest=1`): formulario relleno y
+enviado -> el texto resumido llego como turno real al edge -> la IA respondio pidiendo el campo que
+faltaba (confirma ida y vuelta real con el LLM, no un mock); opcion unica enviada al instante. Fullscreen
+persistio tras un reload completo de la demo. Badge de voz basica: oculto con ElevenLabs sano (200 real),
+aparecio correctamente al forzar (fetch interceptado) un fallo de `chispa-tts`. Microfono: en el entorno
+de preview `getUserMedia` deniega y aparecio el mensaje claro con los pasos, antes de tocar Web Speech.
+`tsc --noEmit` y `build:web` limpios. Edge `agenda-asistente` redesplegado por CLI y verificado (curl sin
+auth -> 401; llamadas autenticadas reales de la demo -> 200).
