@@ -206,7 +206,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 11 | Ventas: migracion magica Booksy/Fresha + catalogo desde foto + facturas->stock + Chispa landing | Opus 4.8 | alto | 1 | **HECHA (completa S11)** |
 | 12 | Vertical color: dictado manos-libres de formulas + traductor entre marcas | Opus 4.8 | alto | 5 | **HECHA (12-A y 12-B)** |
 | 13 | Vision: try-on de color + antes/despues Instagram + "quiero este corte" | Sonnet 5 | medio | 1,10 | HECHA |
-| 14 | Negocio no-IA: bonos/paquetes + tarjetas regalo (decision Jose) + propinas + modulo de gastos | Opus 4.8 | medio-alto | — | pendiente |
+| 14 | Negocio no-IA: bonos/paquetes + tarjetas regalo (decision Jose) + propinas + modulo de gastos | Opus 4.8 | medio-alto | — | **HECHA (7 jul)** |
 | 15 | Operativa no-IA: citas recurrentes + cumpleanos + festivos salon + fusionar duplicadas + export RGPD + multi-idioma portal | Opus 4.8 (recurrentes) / Sonnet 5 (resto) | medio | — | pendiente |
 
 **Registro Sesion 1 (5 jul, HECHA):** protocolo de bloques tipados (`lib/chispaBloques.ts` +
@@ -1136,6 +1136,25 @@ consentimiento -> los flujos de foto se bloquean con explicacion.
 
 CIERRE: commit + push a master; MEGA_INFORME + marca Sesion 13 HECHA en el plan.
 ```
+
+**Registro Sesion 14 (7 jul, HECHA):** negocio no-IA completo (bonos, tarjetas regalo, propinas, gastos).
+**Parte A (bonos + propinas):** tabla `bonos` (N sesiones servicio, precio, caducidad, estado) + RPCs
+`vender_bono` (crea bono + cobro) y `consumir_bono_cita` (descuenta sesión, crea cobro 0€ + propina).
+RLS multi-tenant por `negocio_id`. Propinas: campo `propina_cents` en `cobros` (separado de base),
+visible en arqueo de Caja y en `LiquidacionesSection` (columna, CSV, totales); RPC `calcular_comisiones_periodo`
+actualizada con `incluir_propinas` (configurable por negocio, default false). **Parte B (gastos):** tabla
+`gastos` (concepto, categoría: alquiler/suministros/producto/otros, importe, fecha, recurrente) + RLS
+(admin/owner). CRUD completo en `GastosSection` (Informes): selector de mes, modal crear/borrar, total
+del periodo. Integrado en Informes para margen aproximado (cobrado - gastos). **Parte 3 (tarjetas regalo):**
+tablas `tarjetas_regalo` (código único, saldo inicial/actual, cliente comprador, caducidad) +
+`tarjetas_regalo_movimientos` (tracking de ventas/consumos); columna `tarjeta_regalo_cents` en `cobros`.
+RPC `vender_tarjeta_regalo` (emisión: cobro + tarjeta + movimiento inicial). **UI:** modales
+`VentaBonoModal` y `VentaTarjetaRegaloModal` integrados en Caja; `BonosClienteSection` en ficha de cliente
+(muestra bonos activos con sesiones disponibles, visual de puntos); consumo de bono y redención de
+tarjeta en `CobroSheet` (lookup por código, validación de saldo, aplicación parcial/total).
+**Verificación:** `npx tsc --noEmit` limpio (0 errores); commit `644547538` en master; build web OK.
+Las migraciones están listas para aplicar en Supabase (si no lo están ya). Envíos reales WhatsApp de
+notificaciones quedan pendientes (Alexandro).
 
 ## Prompt Sesion 14 — Negocio no-IA: bonos, gift cards, propinas, gastos (Opus 4.8, esfuerzo medio-alto)
 
