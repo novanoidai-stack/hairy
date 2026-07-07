@@ -207,7 +207,7 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
 | 12 | Vertical color: dictado manos-libres de formulas + traductor entre marcas | Opus 4.8 | alto | 5 | **HECHA (12-A y 12-B)** |
 | 13 | Vision: try-on de color + antes/despues Instagram + "quiero este corte" | Sonnet 5 | medio | 1,10 | HECHA |
 | 14 | Negocio no-IA: bonos/paquetes + tarjetas regalo (decision Jose) + propinas + modulo de gastos | Opus 4.8 | medio-alto | — | **HECHA (7 jul)** |
-| 15 | Operativa no-IA: citas recurrentes + cumpleanos + festivos salon + fusionar duplicadas + export RGPD + multi-idioma portal | Opus 4.8 (recurrentes) / Sonnet 5 (resto) | medio | — | pendiente |
+| 15 | Operativa no-IA: citas recurrentes + cumpleanos + festivos salon + fusionar duplicadas + export RGPD + multi-idioma portal | Opus 4.8 (recurrentes) / Sonnet 5 (resto) | medio | — | **HECHA (7 jul)** |
 
 **Registro Sesion 1 (5 jul, HECHA):** protocolo de bloques tipados (`lib/chispaBloques.ts` +
 edge devuelve `{ bloques: Bloque[] }` con `texto|accion|enlace`, union extensible, y ademas
@@ -498,6 +498,53 @@ aplicada en remoto 2026-07-06, advisors OK sin regresiones nuevas):
 - **UI:** Añadido widget chat burbuja flotante a `index.html` que interactúa con la edge function.
 - **CTA:** Añadido banner/botón en `index.html` bajo el Hero animando a la migración mágica ("Cámbiate desde Booksy o Fresha en 10 minutos"), enlazando a la pantalla de login con el query param de migración.
 - **Rate Limiting:** Creado migration SQL (`sesion11_b_landing_ratelimit`) con tabla y RPC `check_landing_rate_limit` (15 msg/hora) por IP. Invocado desde la Edge Function. Verificado build y tipado.
+
+**Registro Sesion 15 (7 jul, HECHA):** operativa no-IA. Lección del "verificar antes de construir":
+mucho ya existía y se acotó el trabajo real. Piezas:
+- **Multi-idioma del portal — YA EXISTIA (verificado):** `lib/portalI18n.ts` (`makeT`/`localeOf`,
+  idiomas es/ca/en/pt) + `app/r/[slug].web.tsx` con 62 `t()` keyed en `info.negocio.idioma`
+  (configurable en Config > Reserva online). No se reconstruyo; los idiomas fuera de es/ca/en/pt
+  caen a 'es' via `normLang` (ampliable si Jose lo pide). Demo publica sigue forzada a 'es'.
+- **Cumpleanos — data/avisos/UI ya existian; se añadio el envio WhatsApp:** `fecha_nacimiento`,
+  avisos de campana (`useAvisos.ts`) y UI ya estaban. Nuevo: config `notifCumpleanosActiva` +
+  `notifCumpleanosDescuentoPct` (Config > Notificaciones, gatea el motor n8n); outbox
+  `cumpleanos_avisos` + RPCs `cumpleanos_para_felicitar(fecha)` / `marcar_cumpleanos_enviado(ids)`
+  (service_role) con plantilla `felicitacion_cumpleanos` documentada para Alexandro (envio real = suyo).
+  Migracion `sesion15_cumpleanos_whatsapp.sql` aplicada; RPC verificada en remoto.
+- **Export RGPD por-clienta (NUEVO):** el export de NEGOCIO ya existia (`exportar_datos_negocio` en
+  Config); faltaba el de UNA clienta (portabilidad art. 20 individual). RPC `exportar_datos_cliente(id)`
+  (owner/admin, multi-tenant) vuelca ficha+citas+cobros+presupuestos+fichas tecnicas+consentimientos+
+  resenas+lista de espera; boton "Exportar (RGPD)" en las acciones de la ficha. Sub-consultas verificadas
+  contra datos demo reales. (Nota: la app lee fichas de color de `formulas_color` pero la tabla remota
+  es `fichas_tecnicas_color` — desajuste ajeno a esta sesion, anotado para revisar.)
+- **Festivos/cierres de salon (NUEVO):** tabla `cierres_negocio` (dia completo, nivel negocio; distinto
+  de los bloqueos por profesional) + RLS (lectura equipo, escritura gestor, bloqueada en demo).
+  `disponibilidad_publica` y `portal_dias_disponibles` no ofrecen huecos en dias cerrados (guard
+  añadido re-creando ambas RPC desde su definicion remota actual, preservando grants). CRUD en
+  Config > Horarios ("Festivos y cierres del salon") y banner "Salon cerrado" en la cabecera de la
+  agenda. **Verificado en remoto:** con un cierre insertado, `disponibilidad_publica`/`portal_dias_disponibles`
+  pasan de 58 slots / 1 dia ofrecido a 0/0; revertido, la demo queda intacta.
+- **Fusionar clientas duplicadas (NUEVO):** solo habia DETECCION al crear; ahora RPC transaccional
+  `fusionar_clientes(maestro, duplicado)` (owner/admin, multi-tenant, no demo) que reasigna las 17
+  tablas con `cliente_id` (des-colisionando las 3 con UNIQUE: cumpleanos_avisos, grupo_familiar_miembros,
+  logros_desbloqueados), completa los datos faltantes de la maestra (coalesce + union de etiquetas) y
+  borra la duplicada. **Verificado atomico** (todas las sentencias corren en un bloque con rollback,
+  demo intacta). UI: accion "Fusionar dupl." en la ficha -> modal que busca la duplicada (sugiere mismo
+  telefono/nombre) -> confirma.
+- **Citas recurrentes (NUEVO, la mas delicada):** columna `citas.serie_id`. En `NewCitaModal`, control
+  "Repetir cita cada N semanas, M citas" **solo para reserva simple** (1 servicio, sin encadenar ni
+  senal — las cadenas multiprofesional quedan fuera para no multiplicar complejidad). La cita base lleva
+  el `serie_id`; tras el insert base ya validado se generan las repeticiones desplazadas, **validando por
+  ocurrencia** (bloqueo + horario laboral + solape activa-activa, reusando los helpers existentes); las
+  conflictivas se **OMITEN y se reportan** (decision honesta MVP: no se auto-mueven de hueco; el gestor
+  las coloca a mano). Cancelar: casilla "y las siguientes de la serie" en el modal de cancelar (cancela
+  las futuras del `serie_id`). Editar en serie se deja para v1.1. Migracion `sesion15_citas_recurrentes.sql`.
+- **Verificado en la demo** (`/demo.html?share=1`, tenant demo, por DOM): la seccion "Festivos y cierres"
+  con su empty state y nota demo; los toggles de cumpleanos + descuento en Notificaciones; los botones
+  "Exportar (RGPD)" y "Fusionar dupl." en la ficha (+ el modal de fusion abre con buscador y aviso); el
+  modal de Nueva Cita abre sin romperse y el control de recurrencia esta gateado al formulario completo.
+  `npx tsc --noEmit` + `npm run build:web` limpios. 6 migraciones aplicadas en remoto. Envios reales
+  WhatsApp (cumpleanos) = Alexandro.
 
 **Guia de modelo:** Opus 4.8 donde equivocarse es caro (arquitectura, seguridad/RGPD, dominio agenda,
 SQL, dinero, parsing de migracion); Sonnet 5 en integraciones acotadas, lectura/analitica y

@@ -1575,3 +1575,30 @@ Se ha completado la Sesión 13 Parte B (IA Vision para Marketing e Inspo):
 - **Instagram Posts (Antes/Después)**: Implementado `InstagramPostModal` en la vista de fotos de clientes. Compone un collage simple (client-side `<canvas>`) combinando el "Antes" y "Después". Usa la edge function `chispa-vision-instagram` (GPT-4o Vision) para generar automáticamente un caption atractivo para Instagram en base a la foto resultante. Solo permite descargas, no publica automáticamente por seguridad.
 - **Sugerir Servicio por Foto (Inspo)**: Añadido botón "Sugerir por foto" en el modal de nueva cita. Las clientas pueden enviar una foto de un peinado que les gusta, y mediante la edge function `chispa-vision-corte` se mapea a un servicio de nuestro catálogo (identificando técnicas como balayage y duraciones aproximadas).
 - **Protección de Privacidad (Consentimiento)**: Ambos flujos exigen que la clienta tenga activado el flag `consiente_ia`. Si no lo tiene, el botón se deshabilita/alerta y se aborta el envío de la foto a OpenAI. Se han utilizado Signed URLs temporales para enviar las imágenes protegidas por RLS hacia la IA.
+
+## Adenda — Sesion 15: Operativa no-IA (recurrentes, cumpleanos, festivos, fusion, export, i18n) — HECHA (7 jul)
+
+Cierre del plan Chispa con la operativa no-IA que mas duele en el dia a dia. Regla del
+"verificar antes de construir": buena parte ya existia y solo faltaban piezas concretas.
+
+- **Multi-idioma del portal — YA EXISTIA** (`lib/portalI18n.ts`, es/ca/en/pt; `app/r/[slug].web.tsx`
+  keyed en `negocio.idioma`, configurable en Config > Reserva online). Verificado, no reconstruido.
+- **Cumpleanos por WhatsApp:** data/avisos/UI ya estaban; añadido el flag para el motor. Config
+  `notifCumpleanosActiva` + `notifCumpleanosDescuentoPct` (Config > Notificaciones) + outbox
+  `cumpleanos_avisos` + RPC `cumpleanos_para_felicitar` / `marcar_cumpleanos_enviado` (service_role),
+  plantilla `felicitacion_cumpleanos` documentada. **Envio real WhatsApp = Alexandro.**
+- **Export RGPD por-clienta:** RPC `exportar_datos_cliente(id)` (owner/admin) + boton "Exportar (RGPD)"
+  en la ficha (portabilidad art. 20 individual; el export de negocio ya existia).
+- **Festivos / cierres de salon:** tabla `cierres_negocio` (dia completo, nivel negocio) + RLS; el portal
+  publico (`disponibilidad_publica` / `portal_dias_disponibles`) no ofrece huecos en dias cerrados
+  (verificado: 58/1 -> 0/0 con un cierre); CRUD en Config > Horarios + banner "Salon cerrado" en la agenda.
+- **Fusionar clientas duplicadas:** RPC transaccional `fusionar_clientes(maestro, duplicado)` que reasigna
+  las 17 tablas con `cliente_id` (des-colisionando las 3 con UNIQUE) y borra la duplicada; verificado
+  atomico. UI: accion "Fusionar dupl." en la ficha + modal buscador.
+- **Citas recurrentes:** columna `citas.serie_id`; control "repetir cada N semanas, M citas" en
+  NewCitaModal (reserva simple), genera la serie validando por ocurrencia y **omitiendo/reportando** las
+  conflictivas; cancelar "esta y las siguientes" en el modal de cancelar. Editar-serie = v1.1.
+
+6 migraciones aplicadas en remoto; `tsc` + `build:web` limpios; verificado por DOM en la demo. Con esto,
+las 15 sesiones del plan Chispa quedan HECHAS. Pendiente ajeno detectado: la app lee fichas de color de
+`formulas_color` pero la tabla remota es `fichas_tecnicas_color` (revisar en otra tanda).
