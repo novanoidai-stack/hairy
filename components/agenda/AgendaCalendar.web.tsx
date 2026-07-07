@@ -474,7 +474,7 @@ export default function AgendaCalendar() {
           supabase.from('profesionales').select('id, nombre, color, activo').eq('negocio_id', negocioId),
           supabase
             .from('citas')
-            .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo')
+            .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id')
             .eq('negocio_id', negocioId)
             .eq('oculta_en_calendario', false),
           supabase.from('servicios').select('id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria_id').eq('negocio_id', negocioId),
@@ -3519,6 +3519,11 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
   }, [selectedCliente, selectedServicio, servicios, negocioId]);
   const [errMsg, setErrMsg] = useState('');
   const [guardando, setGuardando] = useState(false);
+  // Cita recurrente: repetir cada N semanas, M veces (serie). Solo para reserva simple
+  // (1 servicio, sin encadenar, sin senal): las cadenas multiprofesional quedan fuera.
+  const [repetir, setRepetir] = useState(false);
+  const [repetirCada, setRepetirCada] = useState(1); // cada N semanas
+  const [repetirVeces, setRepetirVeces] = useState(4); // total de citas de la serie
   const [bloqueosProfHoy, setBloqueosProfHoy] = useState<any[]>([]);
   const [showCreateCliente, setShowCreateCliente] = useState(false);
   const [nuevoClienteNombre, setNuevoClienteNombre] = useState('');
@@ -3991,6 +3996,12 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
         }
       }
 
+      // Serie recurrente: solo reserva simple (1 cita, sin grupo/encadenado ni senal).
+      // La cita base lleva el serie_id; las repeticiones se generan tras el insert base.
+      const esRecurrente = repetir && repetirVeces > 1 && citasAGuardar.length === 1 && !grupoId && !citasAGuardar[0].deposito_requerido;
+      const serieId = esRecurrente ? crypto.randomUUID() : null;
+      if (esRecurrente) citasAGuardar[0].serie_id = serieId;
+
       // Validar cada cita contra DB y entre si
       for (let i = 0; i < citasAGuardar.length; i++) {
         const cita = citasAGuardar[i];
@@ -4089,6 +4100,88 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
               addons.map((aid: string) => ({ cita_id: citasInsertadas[i].id, addon_id: aid }))
             );
           }
+        }
+      }
+
+      // Serie recurrente: genera las repeticiones (occ 2..M) desplazando la cita base
+      // repetirCada semanas cada vez. Cada ocurrencia se valida igual que la base
+      // (bloqueo + horario laboral + solape activa-activa en DB); las que chocan se
+      // OMITEN y se reportan (no se mueven de hueco: el gestor las coloca a mano).
+      if (esRecurrente && citasInsertadas && citasInsertadas.length > 0) {
+        const base = citasAGuardar[0];
+        const addonsBase: string[] = base._addons || [];
+        const bInicio = new Date(base.inicio);
+        const bFin = new Date(base.fin);
+        const bFinActiva = new Date(base.fin_activa);
+        const bFinEspera = new Date(base.fin_espera);
+        const durMs = bFin.getTime() - bInicio.getTime();
+        const filasSerie: any[] = [];
+        const omitidas: string[] = [];
+
+        for (let k = 1; k < repetirVeces; k++) {
+          const shift = k * repetirCada * 7 * 86400000;
+          const oInicio = new Date(bInicio.getTime() + shift);
+          const oFin = new Date(oInicio.getTime() + durMs);
+          const oFinActiva = new Date(bFinActiva.getTime() + shift);
+          const oFinEspera = new Date(bFinEspera.getTime() + shift);
+          const fechaTxt = oInicio.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
+
+          // Bloqueo del profesional en ese hueco
+          const { data: bloq } = await supabase
+            .from('bloqueos_profesional')
+            .select('id')
+            .eq('profesional_id', base.profesional_id)
+            .lt('inicio', oFin.toISOString())
+            .gt('fin', oInicio.toISOString());
+          if (bloq && bloq.length > 0) { omitidas.push(fechaTxt); continue; }
+
+          // Horario laboral (turnos / horario partido)
+          const errH = await validarHorarioLaboral(base.profesional_id, oInicio, oFin);
+          if (errH) { omitidas.push(fechaTxt); continue; }
+
+          // Solape activa-activa contra citas confirmadas en DB
+          const { data: cand } = await supabase
+            .from('citas')
+            .select('inicio, fin_activa, fin_espera, fin')
+            .eq('profesional_id', base.profesional_id)
+            .eq('estado', CITA_STATUS.CONFIRMADA)
+            .lt('inicio', oFin.toISOString())
+            .gt('fin', oInicio.toISOString());
+          const choca = (cand || []).some((c: any) => {
+            const ci = new Date(c.inicio); const cfa = new Date(c.fin_activa);
+            return ci < oFinActiva && cfa > oInicio;
+          });
+          if (choca) { omitidas.push(fechaTxt); continue; }
+
+          filasSerie.push({
+            negocio_id: base.negocio_id,
+            profesional_id: base.profesional_id,
+            servicio_id: base.servicio_id,
+            cliente_id: base.cliente_id,
+            inicio: oInicio.toISOString(),
+            fin: oFin.toISOString(),
+            fin_activa: oFinActiva.toISOString(),
+            fin_espera: oFinEspera.toISOString(),
+            estado: CITA_STATUS.CONFIRMADA,
+            canal: 'manual',
+            creado_por: userId,
+            serie_id: serieId,
+          });
+        }
+
+        if (filasSerie.length > 0) {
+          const { data: serieInsertadas } = await supabase.from('citas').insert(filasSerie).select();
+          if (serieInsertadas && addonsBase.length > 0) {
+            for (const s of serieInsertadas) {
+              if (s?.id) await supabase.from('cita_addons').insert(addonsBase.map((aid: string) => ({ cita_id: s.id, addon_id: aid })));
+            }
+          }
+          if (serieInsertadas) for (const s of serieInsertadas) citasInsertadas.push(s);
+        }
+
+        const creadas = 1 + filasSerie.length;
+        if (omitidas.length > 0) {
+          alert(`Serie creada: ${creadas} de ${repetirVeces} citas.\nOmitidas por conflicto de horario/hueco: ${omitidas.join(', ')}.\nColocalas a mano si lo necesitas.`);
         }
       }
 
@@ -5103,6 +5196,31 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
 
         </div>
 
+        {/* Cita recurrente: solo en reserva simple (sin encadenar). */}
+        {citasConfirmadas.length === 0 && selectedCliente && selectedServicio && selectedProf && horaActual && (
+          <div style={{ flexShrink: 0, padding: isMobileOrTablet ? '0 20px 6px' : '0 24px 6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '10px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10 }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, color: TOKENS.text }}>
+                <input type="checkbox" checked={repetir} onChange={(e) => setRepetir(e.target.checked)} style={{ accentColor: '#f4501e', width: 15, height: 15 }} />
+                Repetir cita
+              </label>
+              {repetir && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontSize: 12, color: TOKENS.textSec }}>
+                  <span>cada</span>
+                  <input type="number" min={1} max={12} value={repetirCada}
+                    onChange={(e) => setRepetirCada(Math.max(1, Math.min(12, parseInt(e.target.value) || 1)))}
+                    style={{ width: 50, height: 32, textAlign: 'center', background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.text, fontSize: 13 }} />
+                  <span>{repetirCada === 1 ? 'semana' : 'semanas'},</span>
+                  <input type="number" min={2} max={12} value={repetirVeces}
+                    onChange={(e) => setRepetirVeces(Math.max(2, Math.min(12, parseInt(e.target.value) || 2)))}
+                    style={{ width: 50, height: 32, textAlign: 'center', background: TOKENS.bg, border: `1px solid ${TOKENS.border}`, borderRadius: 8, color: TOKENS.text, fontSize: 13 }} />
+                  <span>citas en total</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Bottom buttons — barra fija inferior: siempre visible y alcanzable */}
         {(() => {
           const formCompleto = !!(selectedCliente && selectedServicio && selectedProf && horaActual);
@@ -5263,6 +5381,8 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [motivoCancelacion, setMotivoCancelacion] = useState('');
   const [canceladoPor, setCanceladoPor] = useState<'clienta' | 'negocio'>('negocio');
+  // Cita de una serie recurrente: cancelar solo esta o esta y las siguientes.
+  const [cancelarSerie, setCancelarSerie] = useState(false);
   // Lista de espera: candidatos compatibles con el hueco liberado al cancelar
   const [candidatosHueco, setCandidatosHueco] = useState<any[] | null>(null);
   const [asignandoCand, setAsignandoCand] = useState<string | null>(null);
@@ -5755,6 +5875,10 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
       // If part of a group, cancel all siblings too
       if (cita.grupo_id) {
         await supabase.from('citas').update(payload).eq('grupo_id', cita.grupo_id).neq('id', cita.id);
+      }
+      // Serie recurrente: si se pidio "y las siguientes", cancela las futuras de la serie.
+      if (cita.serie_id && cancelarSerie) {
+        await supabase.from('citas').update(payload).eq('serie_id', cita.serie_id).gte('inicio', cita.inicio).neq('id', cita.id);
       }
       triggerRefresh();
 
@@ -7328,6 +7452,13 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
           <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 28, width: 360, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: TOKENS.text }}>Cancelar cita</div>
             <div style={{ fontSize: 13, color: TOKENS.textSec }}>La cita desaparecera del calendario pero se conservara en el historial.</div>
+
+            {cita.serie_id && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '10px 12px', background: 'rgba(244,80,30,0.06)', border: `1px solid ${cancelarSerie ? 'rgba(244,80,30,0.45)' : TOKENS.border}`, borderRadius: 10, fontSize: 12.5, fontWeight: 600, color: TOKENS.text }}>
+                <input type="checkbox" checked={cancelarSerie} onChange={(e) => setCancelarSerie(e.target.checked)} style={{ accentColor: '#f4501e', width: 15, height: 15 }} />
+                Cancelar tambien las siguientes de la serie
+              </label>
+            )}
 
             {/* Quien cancela */}
             <div>
