@@ -92,5 +92,11 @@ $$;
 
 revoke execute on function public.cumpleanos_para_felicitar(date) from public;
 revoke execute on function public.marcar_cumpleanos_enviado(uuid[]) from public;
+-- OJO: el default privilege global (round4b) concede execute a authenticated en las
+-- funciones nuevas; como estas NO estan scoped al negocio del caller (security definer,
+-- devuelven cumpleanos de TODOS los salones) hay que revocarlo explicitamente: son solo
+-- del motor (service_role), un usuario autenticado no debe verlas.
+revoke execute on function public.cumpleanos_para_felicitar(date) from authenticated;
+revoke execute on function public.marcar_cumpleanos_enviado(uuid[]) from authenticated;
 grant execute on function public.cumpleanos_para_felicitar(date) to service_role;
 grant execute on function public.marcar_cumpleanos_enviado(uuid[]) to service_role;
