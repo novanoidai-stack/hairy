@@ -172,6 +172,9 @@ interface ConfigState {
   notifResenaActiva: boolean;
   notifSenalActiva: boolean;
   notifRetrasoActiva: boolean;
+  // Felicitacion de cumpleanos (gatea el motor n8n: RPC cumpleanos_para_felicitar).
+  notifCumpleanosActiva: boolean;
+  notifCumpleanosDescuentoPct: number;
   notifNoMolestar: boolean;
   notifNoMolestarInicio: string;
   notifNoMolestarFin: string;
@@ -279,6 +282,7 @@ const DEFAULT_CONFIG: ConfigState = {
   mi_jornada_mostrar_importes: true, mi_jornada_mostrar_comision: false,
   notifConfirmacionActiva: true, notifRecordatorioActiva: true, notifRecordatorioHoras: 24,
   notifResenaActiva: true, notifSenalActiva: true, notifRetrasoActiva: true,
+  notifCumpleanosActiva: false, notifCumpleanosDescuentoPct: 0,
   notifNoMolestar: false, notifNoMolestarInicio: '22:00', notifNoMolestarFin: '08:00',
   asistenteAgendaActivo: false, asistenteProfesionalEscribe: false, asistenteEffort: 'medium',
   briefingProactivoActivo: true,
@@ -1109,10 +1113,13 @@ export default function ConfiguracionWeb() {
               </>
             )}
             {tab === 'horarios' && (
-              <TabHorarios
-                config={config} setC={setC}
-                diasHorario={diasHorario} setDiasHorario={setDiasHorario}
-              />
+              <>
+                <TabHorarios
+                  config={config} setC={setC}
+                  diasHorario={diasHorario} setDiasHorario={setDiasHorario}
+                />
+                <CierresNegocioSection negocioId={negocioId} />
+              </>
             )}
             {tab === 'servicios' && (
               <TabServicios
@@ -2052,6 +2059,108 @@ function TabSoporte({ account }: { account: AccountInfo | null }) {
 // Tab: Horarios
 // ===========================================================================
 
+// Festivos / cierres del salon completo (dia completo, nivel negocio). Distinto de
+// los bloqueos por profesional. La agenda lo pinta como cerrado y el portal publico
+// no ofrece huecos ese dia (RPC disponibilidad_publica / portal_dias_disponibles).
+interface CierreNegocio { id: string; fecha: string; motivo: string | null; }
+
+function CierresNegocioSection({ negocioId }: { negocioId: string }) {
+  const demo = IS_DEMO_MODE;
+  const [cierres, setCierres] = useState<CierreNegocio[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [nuevaFecha, setNuevaFecha] = useState('');
+  const [nuevoMotivo, setNuevoMotivo] = useState('');
+  const [err, setErr] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const cargar = useCallback(async () => {
+    if (!negocioId) return;
+    setLoading(true);
+    const hoy = new Date().toISOString().slice(0, 10);
+    const { data } = await supabase
+      .from('cierres_negocio')
+      .select('id, fecha, motivo')
+      .eq('negocio_id', negocioId)
+      .gte('fecha', hoy)
+      .order('fecha', { ascending: true });
+    setCierres((data as CierreNegocio[]) ?? []);
+    setLoading(false);
+  }, [negocioId]);
+
+  useEffect(() => { void cargar(); }, [cargar]);
+
+  const anadir = async () => {
+    setErr('');
+    if (!nuevaFecha) { setErr('Elige una fecha.'); return; }
+    if (demo) { setErr('En la demo compartida no se pueden anadir cierres.'); return; }
+    setSaving(true);
+    const { error } = await supabase.from('cierres_negocio').insert({
+      negocio_id: negocioId,
+      fecha: nuevaFecha,
+      motivo: nuevoMotivo.trim() || null,
+    });
+    setSaving(false);
+    if (error) {
+      setErr(error.code === '23505' ? 'Ese dia ya esta marcado como cerrado.' : (error.message || 'No se pudo guardar el cierre.'));
+      return;
+    }
+    setNuevaFecha(''); setNuevoMotivo('');
+    void cargar();
+  };
+
+  const eliminar = async (id: string) => {
+    setErr('');
+    const { error } = await supabase.from('cierres_negocio').delete().eq('id', id);
+    if (error) { setErr(error.message || 'No se pudo eliminar.'); return; }
+    setCierres(cs => cs.filter(c => c.id !== id));
+  };
+
+  const fmtFecha = (f: string) => {
+    const d = new Date(f + 'T00:00:00');
+    return isNaN(d.getTime()) ? f : d.toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+  };
+
+  return (
+    <Section title="Festivos y cierres del salon" desc="Dias completos en los que el salon no abre (festivos, vacaciones, dias sueltos). La agenda los muestra cerrados y la reserva online no ofrece huecos esos dias. Distinto de los bloqueos por profesional.">
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+        <div>
+          <div style={{ fontSize: 11, color: T.textTertiary, marginBottom: 4 }}>Fecha</div>
+          <input type="date" value={nuevaFecha} min={new Date().toISOString().slice(0, 10)} onChange={e => setNuevaFecha(e.target.value)}
+            style={{ height: 40, padding: '0 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.text, fontSize: 13, colorScheme: 'dark' }} />
+        </div>
+        <div style={{ flex: '1 1 180px', minWidth: 0 }}>
+          <div style={{ fontSize: 11, color: T.textTertiary, marginBottom: 4 }}>Motivo (opcional)</div>
+          <STextInput value={nuevoMotivo} onChange={setNuevoMotivo} placeholder="Ej. Festivo local, vacaciones..." />
+        </div>
+        <Btn variant="primary" size="sm" onClick={anadir} disabled={saving || demo || !nuevaFecha}>
+          {saving ? 'Guardando...' : 'Anadir cierre'}
+        </Btn>
+      </div>
+
+      {err ? <div style={{ fontSize: 12, color: T.danger, fontWeight: 600, marginBottom: 10 }}>{err}</div> : null}
+      {demo ? <div style={{ fontSize: 12, color: T.textTertiary, marginBottom: 10 }}>En la demo compartida los cierres estan desactivados.</div> : null}
+
+      {loading ? (
+        <div style={{ fontSize: 12, color: T.textTertiary }}>Cargando...</div>
+      ) : cierres.length === 0 ? (
+        <div style={{ fontSize: 12, color: T.textTertiary }}>No hay cierres proximos. Anade festivos o dias de vacaciones arriba.</div>
+      ) : (
+        <div style={{ borderTop: `1px solid ${T.border}` }}>
+          {cierres.map(c => (
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 0', borderBottom: `1px solid ${T.border}` }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.text, textTransform: 'capitalize' }}>{fmtFecha(c.fecha)}</div>
+                {c.motivo ? <div style={{ fontSize: 11.5, color: T.textTertiary, marginTop: 1 }}>{c.motivo}</div> : null}
+              </div>
+              <IconBtn icon="trash" size={30} title="Quitar cierre" onClick={() => eliminar(c.id)} />
+            </div>
+          ))}
+        </div>
+      )}
+    </Section>
+  );
+}
+
 function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
   config: ConfigState; setC: (k: keyof ConfigState, v: any) => void;
   diasHorario: Record<number, DiaHorario>; setDiasHorario: (v: Record<number, DiaHorario>) => void;
@@ -2971,6 +3080,13 @@ function TabNotificaciones({ config, setC }: {
         </FieldRow>
         <FieldRow label="Aviso de retraso" hint="Cuando reorganizas el dia por un retraso, avisa a los clientes afectados de su nueva hora. Al aplicar el retraso debes marcar la casilla 'avisar'.">
           <Toggle on={config.notifRetrasoActiva} onChange={v => setC('notifRetrasoActiva', v)} />
+        </FieldRow>
+        <FieldRow label="Felicitacion de cumpleanos" hint="El dia de su cumpleanos, felicita a la clienta por WhatsApp. Solo a clientas con fecha de nacimiento y telefono; una vez al ano.">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <Toggle on={config.notifCumpleanosActiva} onChange={v => setC('notifCumpleanosActiva', v)} />
+            <NumberInput value={config.notifCumpleanosDescuentoPct} onChange={v => setC('notifCumpleanosDescuentoPct', v)}
+              unit="% descuento" min={0} max={100} step={5} width={170} disabled={!config.notifCumpleanosActiva} />
+          </div>
         </FieldRow>
       </Section>
 

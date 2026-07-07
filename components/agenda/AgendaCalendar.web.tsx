@@ -262,6 +262,8 @@ export default function AgendaCalendar() {
   const profesionalesRef = useRef<Profesional[]>([]);
   profesionalesRef.current = profesionales;
   const [bloqueos, setBloqueos] = useState<any[]>([]);
+  // Cierres del salon completo (festivos/vacaciones): la agenda pinta el dia cerrado.
+  const [cierres, setCierres] = useState<{ fecha: string; motivo: string | null }[]>([]);
   const [citaAddonsMap, setCitaAddonsMap] = useState<Record<string, any[]>>({});
   const [citasVencidas, setCitasVencidas] = useState<Cita[]>([]);
   const [hideCitasVencidas, setHideCitasVencidas] = useState(false);
@@ -468,7 +470,7 @@ export default function AgendaCalendar() {
           negocioId = profile.negocio_id;
         }
 
-        const [profResult, citaResult, srvResult, cltResult, bloqueoResult, addonsResult, cfgResult, catResult] = await Promise.all([
+        const [profResult, citaResult, srvResult, cltResult, bloqueoResult, addonsResult, cfgResult, catResult, cierreResult] = await Promise.all([
           supabase.from('profesionales').select('id, nombre, color, activo').eq('negocio_id', negocioId),
           supabase
             .from('citas')
@@ -481,6 +483,7 @@ export default function AgendaCalendar() {
           supabase.from('cita_addons').select('cita_id, service_addons(nombre)'),
           supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
           supabase.from('categorias_servicio').select('id, nombre, color, orden, icono').eq('negocio_id', negocioId).eq('activo', true).order('orden'),
+          supabase.from('cierres_negocio').select('fecha, motivo').eq('negocio_id', negocioId),
         ]);
         const cfg = ((cfgResult as any)?.data?.config ?? {}) as any;
         setRecolocarRetraso(cfg.recolocarRetraso !== false);
@@ -500,6 +503,7 @@ export default function AgendaCalendar() {
         setCategorias(catResult.data ?? []);
         setClientes(cltResult.data ?? []);
         setBloqueos(bloqueoResult.data ?? []);
+        setCierres((cierreResult as any)?.data ?? []);
         const addonMap: Record<string, any[]> = {};
         for (const row of (addonsResult.data ?? [])) {
           if (!addonMap[row.cita_id]) addonMap[row.cita_id] = [];
@@ -688,6 +692,16 @@ export default function AgendaCalendar() {
   }, [citas, month, year]);
 
   const selectedDateObj = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDate);
+
+  // Cierre del salon completo para el dia visible (festivo/vacaciones). Comparamos por
+  // fecha local YYYY-MM-DD (cierres_negocio guarda date, sin hora).
+  const cierreHoy = useMemo(() => {
+    const y = selectedDateObj.getFullYear();
+    const m = String(selectedDateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(selectedDateObj.getDate()).padStart(2, '0');
+    const key = `${y}-${m}-${d}`;
+    return cierres.find((c) => c.fecha === key) || null;
+  }, [cierres, selectedDate, currentMonth]);
 
   const citasHoy = useMemo(() => {
     return citas.filter((c) => {
@@ -899,6 +913,12 @@ export default function AgendaCalendar() {
             <p style={{ margin: 0, fontSize: 12.5, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).charAt(0).toUpperCase() + selectedDateObj.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }).slice(1)} · {totalCitasHoy} citas · {confirmadasHoy} confirmadas
             </p>
+          )}
+          {cierreHoy && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6, padding: '4px 10px', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.30)', color: '#ef4444', borderRadius: 999, fontSize: 11.5, fontWeight: 700 }}>
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: '#ef4444' }} />
+              Salon cerrado{cierreHoy.motivo ? ` · ${cierreHoy.motivo}` : ''}
+            </div>
           )}
         </div>
         <div style={{ display: 'flex', gap: isMobile ? 6 : 10, alignItems: 'center', flexShrink: 0 }}>
