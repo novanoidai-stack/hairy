@@ -7333,6 +7333,10 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
           profesionales={profesionales}
           onClose={() => setShowFichaColor(false)}
           onSaved={async () => { setShowFichaColor(false); triggerRefresh?.(); }}
+          onGoToNotas={() => {
+            setShowFichaColor(false);
+            alert("Por favor, anota las alergias en el campo de Notas de la cita o en la pestaña de Notas del cliente.");
+          }}
         />
       )}
     </div>

@@ -1055,7 +1055,7 @@ function ClientesWeb() {
                   setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
                   triggerRefresh();
                 }} />}
-                {activeTab === 'color' && <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} />}
+                {activeTab === 'color' && <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} onGoToNotas={() => setActiveTab('notas')} />}
                 {activeTab === 'historial' && <HistorialTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} />}
               </div>
             ) : (
@@ -1097,11 +1097,11 @@ function ClientesWeb() {
                   <Panel title="Alergias" accent={TOKENS.danger}>
                     <NotasTab cliente={c} catalogoAlergias={catalogoAlergias} onSaveToCatalog={addAlergiaToCatalog} onUpdated={(updated) => {
                       setClientes((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
-                  triggerRefresh();
+                      triggerRefresh();
                     }} />
                   </Panel>
                   <Panel title="Color / Química" accent={TOKENS.violet}>
-                    <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} />
+                    <ColorTab cliente={c} citas={citas} servicios={servicios} profesionales={profesionales} fichasTecnicas={fichasTecnicas} negocioId={negocioId} onChanged={async () => { await cargar(); triggerRefresh(); }} onGoToNotas={() => setActiveTab('notas')} />
                   </Panel>
                 </div>
 
@@ -1518,7 +1518,7 @@ function NotasTab({ cliente, onUpdated, catalogoAlergias = [], onSaveToCatalog }
 }
 
 // ── Tab: Color/Quimica (usa fichas_tecnicas_color + fallback a campos legacy en citas)
-function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, negocioId, onChanged }: { cliente: Cliente; citas: Cita[]; servicios: any[]; profesionales: any[]; fichasTecnicas: any[]; negocioId: string; onChanged: () => Promise<void> }) {
+function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, negocioId, onChanged, onGoToNotas }: { cliente: Cliente; citas: Cita[]; servicios: any[]; profesionales: any[]; fichasTecnicas: any[]; negocioId: string; onChanged: () => Promise<void>; onGoToNotas?: () => void; }) {
   const [editingFicha, setEditingFicha] = useState<any | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [traduciendoId, setTraduciendoId] = useState<string | null>(null);
@@ -1766,13 +1766,14 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
           profesionales={profesionales}
           onClose={() => { setEditingFicha(null); setShowAdd(false); }}
           onSaved={async () => { setEditingFicha(null); setShowAdd(false); await onChanged(); }}
+          onGoToNotas={onGoToNotas}
         />
       )}
     </>
   );
 }
 
-export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, servicios, profesionales, onClose, onSaved }: {
+export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, servicios, profesionales, onClose, onSaved, onGoToNotas }: {
   mode: 'add' | 'edit';
   ficha: any | null;
   clienteId: string;
@@ -1782,6 +1783,7 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
   profesionales: any[];
   onClose: () => void;
   onSaved: () => Promise<void>;
+  onGoToNotas?: () => void;
 }) {
   const { isMobile } = useResponsive();
   const isLocked = mode === 'edit' && ficha?.cerrada === true;
@@ -2032,9 +2034,16 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
           </button>
           {errorVoz && <div style={{ fontSize: 12, color: TOKENS.danger, marginTop: 8, textAlign: 'center' }}>{errorVoz}</div>}
           {dictadoWarn && (
-            <div style={{ padding: '12px 16px', background: TOKENS.danger, borderRadius: 12, color: '#fff', fontSize: 14, fontWeight: 600, marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 4px 12px rgba(239,68,68,0.4)' }}>
-              <Icon name="alert" size={20} color="#fff" />
-              {dictadoWarn}
+            <div style={{ padding: '12px 16px', background: TOKENS.danger, borderRadius: 12, color: '#fff', fontSize: 14, fontWeight: 600, marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, boxShadow: '0 4px 12px rgba(239,68,68,0.4)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Icon name="alert" size={20} color="#fff" />
+                <span>{dictadoWarn}</span>
+              </div>
+              {onGoToNotas && (
+                <button onClick={() => { onClose(); onGoToNotas(); }} style={{ background: '#fff', color: TOKENS.danger, padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  Ir a Notas de Salud
+                </button>
+              )}
             </div>
           )}
         </div>

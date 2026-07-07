@@ -116,9 +116,9 @@ Leyenda: **[YA]** existe · **[AMPL]** ampliar · **[NEW]** nuevo · **·C** Car
   **confirmar citas pendientes** (voz/texto) [NEW·C+A](S3) · **duracion real aprendida por clienta**
   [NEW·C](S4) · origen IA vs manual visible [YA].
 - **2. Clientes:** Q&A de ficha [NEW·A](S7) · riesgo de no-show [NEW·C+A](S7) · sugeridor de ficha
-  tecnica de color [NEW·A](S12) · alerta de fuga + recuperacion [AMPL·C+A](S7) · notas/resumen post
-  cita [NEW·A](S12 dictado) · **dictado manos-libres de formulas** [NEW·C](S12) · **traductor de
-  formulas entre marcas** [NEW·C+A](S12) · **try-on de color** [NEW·C](S13).
+  tecnica de color [NEW·A](S12)[HECHA] · alerta de fuga + recuperacion [AMPL·C+A](S7) · notas/resumen post
+  cita [NEW·A](S12 dictado)[HECHA] · **dictado manos-libres de formulas** [NEW·C](S12)[HECHA] · **traductor de
+  formulas entre marcas** [NEW·C+A](S12)[HECHA] · **try-on de color** [NEW·C](S13).
 - **3. Caja:** "cuanto llevo hoy/semana" [NEW·A](S6) · asistente de arqueo [NEW·C+A](S6) · deteccion
   de anomalias [NEW·A](S6) · upsell sugerido en el cobro [NEW·A](S9). (Fiscal: NO improvisar.)
 - **4. Informes:** informe narrado [NEW·A](S6) · metas [NEW·A](S6) · prediccion ocupacion/ingresos
