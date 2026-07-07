@@ -1558,3 +1558,13 @@ Se ha implementado el motor de Migración Mágica para facilitar el onboarding (
 - **Edge Function `migracion-magica`**: Usa Gemini 1.5 Pro via OpenRouter para extraer estructuradamente (JSON) `clientes`, `servicios`, `citas` (desde Booksy/Fresha), o `servicios` desde una foto de catálogo, o `lineas` de factura de proveedor.
 - **UI `TabMigracionMagica.tsx`**: Permite al usuario subir archivos, previsualizar los datos extraídos en JSON y ejecutar la inserción en bloque aprovechando `upsert` y `rpc` de Supabase con RLS.
 - **Integración**: Agregado como pestaña "Migración Mágica" en el panel de Configuración.
+
+## Adenda — Capa IA "Chispa" Sesion 12: Vertical color — HECHA (7 jul)
+
+Se ha completado la S12-B para la experiencia "manos sucias" de los profesionales del color:
+- **Dictado Manos-Libres**: Botones gigantes de dictado en la agenda (`DetalleCitaModal`) y clientes (`FichaColorModal`) integrados con `useChispaVoz`.
+- **Notas Post-Servicio**: Dictado directo al campo de notas de la cita.
+- **Parser de Fórmulas**: Integración con edge function `color-formula-parser` y UI de confirmación editable (con preview visual).
+- **Regla de Salud**: Alerta roja bloqueante para el profesional cuando la IA detecta que el cliente tiene notas de salud (`health_warning: true`), asegurando que no se pase por alto antes de aplicar el tinte.
+- **Traductor de Marcas**: Botón "Traducir marca" en el historial de color que llama a la edge function `traductor-marcas` y guarda el resultado como una nueva ficha técnica, preservando la fórmula original.
+- Verificación completa: Build web y TypeScript compilando de forma limpia tras los cambios de UI y edge functions.

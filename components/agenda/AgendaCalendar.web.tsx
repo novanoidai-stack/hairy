@@ -28,6 +28,8 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualAgenda } from '@/lib/manuals/agenda';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
+import { FichaColorModal } from '@/app/(tabs)/clientes.web';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -150,12 +152,9 @@ const generarSlotsHorarios = () => {
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
   const icons: any = {
-    bell: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
-    cake: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3M12 8v3M17 8v3"/><path d="M7 4h.01M12 4h.01M17 4h.01"/></svg>`,
-    calendar: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>`,
+    search: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`,
+    filter: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>`,
     plus: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
-    chevronLeft: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>`,
-    chevronRight: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>`,
     chevronDown: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>`,
     maximize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
     minimize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
@@ -5134,6 +5133,18 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
   const [openCli, setOpenCli] = useState(false);
   const [openSrv, setOpenSrv] = useState(false);
   const [openEst, setOpenEst] = useState(false);
+
+  const [showFichaColor, setShowFichaColor] = useState(false);
+  const { estado: estadoVoz, errorVoz, iniciarEscucha, detenerEscucha } = useChispaVoz();
+  const [loadingDictado, setLoadingDictado] = useState(false);
+
+  async function procesarDictadoNotas(texto: string) {
+    if (!texto.trim()) return;
+    setLoadingDictado(true);
+    setNotasCita((prev: string) => prev ? `${prev}\n${texto}` : texto);
+    setLoadingDictado(false);
+  }
+
   const [activo, setActivo] = useState(cita.fin_activa ? Math.round((new Date(cita.fin_activa).getTime() - new Date(cita.inicio).getTime()) / 60000) : 30);
   const [espera, setEspera] = useState(cita.fin_espera ? Math.round((new Date(cita.fin_espera).getTime() - new Date(cita.fin_activa).getTime()) / 60000) : 0);
   const [activo2, setActivo2] = useState(cita.fin ? Math.round((new Date(cita.fin).getTime() - new Date(cita.fin_espera).getTime()) / 60000) : 0);
@@ -6350,6 +6361,48 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
                   </DropdownItem>
                 ))}
               </SearchDropdown>
+
+              {/* Dictar Fórmula Color / Notas Post-Servicio */}
+              {selectedCliente?.id && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowFichaColor(true)}
+                    style={{
+                      width: '100%', padding: '12px', 
+                      background: 'rgba(244,80,30,0.06)', border: `2px dashed rgba(244,80,30,0.3)`, 
+                      borderRadius: 12, color: TOKENS.primary, 
+                      fontSize: 14, fontWeight: 700, cursor: 'pointer', 
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <Icon name="mic" size={20} color={TOKENS.primary} />
+                    Dictar Fórmula de Color
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (estadoVoz === 'inactivo') iniciarEscucha(procesarDictadoNotas);
+                      else detenerEscucha();
+                    }}
+                    disabled={loadingDictado}
+                    style={{
+                      width: '100%', padding: '12px', 
+                      background: estadoVoz === 'inactivo' ? TOKENS.bgCardHi : 'rgba(16,185,129,0.1)', 
+                      border: `1px solid ${estadoVoz === 'inactivo' ? TOKENS.border : TOKENS.success}`, 
+                      borderRadius: 12, color: estadoVoz === 'inactivo' ? TOKENS.textSec : TOKENS.success, 
+                      fontSize: 14, fontWeight: 600, cursor: loadingDictado ? 'not-allowed' : 'pointer', 
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                    }}
+                  >
+                    <Icon name="mic" size={18} color={estadoVoz === 'inactivo' ? TOKENS.textSec : TOKENS.success} />
+                    {estadoVoz === 'inactivo' ? 'Dictar Notas Post-Servicio' : 
+                     estadoVoz === 'escuchando' ? 'Escuchando...' : 'Procesando dictado...'}
+                  </button>
+                  {errorVoz && <div style={{ fontSize: 12, color: TOKENS.danger, textAlign: 'center' }}>{errorVoz}</div>}
+                </div>
+              )}
             </div>
 
             {/* Confirmacion del cliente */}
@@ -7266,6 +7319,20 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
           enviando={avisandoChispa}
           onConfirmar={confirmarAvisoChispa}
           onCancelar={() => { setCandidataChispa(null); setCitaOrigenParaChispa(null); onSaved?.() ?? onClose(); }}
+        />
+      )}
+
+      {showFichaColor && selectedCliente?.id && (
+        <FichaColorModal
+          mode="add"
+          ficha={{ cita_id: cita.id, profesional_id: cita.profesional_id }}
+          clienteId={selectedCliente.id}
+          negocioId={cita.negocio_id || ''}
+          citasCliente={allCitas ? allCitas.filter((c: any) => c.cliente_id === selectedCliente.id) : []}
+          servicios={servicios}
+          profesionales={profesionales}
+          onClose={() => setShowFichaColor(false)}
+          onSaved={async () => { setShowFichaColor(false); triggerRefresh?.(); }}
         />
       )}
     </div>

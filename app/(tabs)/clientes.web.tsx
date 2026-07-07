@@ -18,6 +18,7 @@ import { manualClientes } from '@/lib/manuals/clientes';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
+import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -46,6 +47,8 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
     minimize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
     download: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
     upload: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
+    mic: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>`,
+    refreshCcw: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M21 21v-5h-5"/></svg>`,
   };
   return <div style={{ display: 'inline-flex', color }} dangerouslySetInnerHTML={{ __html: icons[name] || '' }} />;
 };
@@ -1518,6 +1521,48 @@ function NotasTab({ cliente, onUpdated, catalogoAlergias = [], onSaveToCatalog }
 function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, negocioId, onChanged }: { cliente: Cliente; citas: Cita[]; servicios: any[]; profesionales: any[]; fichasTecnicas: any[]; negocioId: string; onChanged: () => Promise<void> }) {
   const [editingFicha, setEditingFicha] = useState<any | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [traduciendoId, setTraduciendoId] = useState<string | null>(null);
+
+  async function handleTraducirFormula(ficha: any, marcaDestino: string) {
+    if (!marcaDestino.trim()) return;
+    setTraduciendoId(ficha.id);
+    try {
+      const { data: sesion } = await supabase.auth.getSession();
+      const token = sesion.session?.access_token;
+      if (!token) throw new Error('Sin sesion');
+      const r = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/traductor-marcas`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ formula: ficha, marca_destino: marcaDestino }),
+      });
+      if (!r.ok) throw new Error('Error al traducir formula');
+      const res = await r.json();
+      
+      const disclaimer = res.disclaimer || "orientativo, verifica con tu carta de color";
+      
+      const formulaNueva = [{ numero: res.tono || '', gramos: String(res.gramos || '') }];
+      
+      const nuevaFicha = {
+        ...ficha,
+        id: undefined,
+        marca_producto: res.producto || marcaDestino,
+        formula: formulaNueva,
+        oxidante_volumen: res.oxidante ? parseInt(res.oxidante, 10) : ficha.oxidante_volumen,
+        resultado_notas: `Traducción: ${res.formula_nueva}\n\nATENCIÓN: ${disclaimer}`,
+        cerrada: false
+      };
+      
+      setEditingFicha(nuevaFicha);
+    } catch (e) {
+      alert('No se pudo traducir la fórmula.');
+    } finally {
+      setTraduciendoId(null);
+    }
+  }
 
   const clientCitas = citas
     .filter((cit) => cit.cliente_id === cliente.id)
@@ -1604,6 +1649,18 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
                         {prof.nombre}
                       </div>
                     )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const marca = prompt('¿A qué marca quieres traducir esta fórmula? (Ej. Wella, Schwarzkopf)');
+                        if (marca) handleTraducirFormula(ficha, marca);
+                      }}
+                      disabled={traduciendoId === ficha.id}
+                      style={{ padding: '4px 8px', borderRadius: 6, background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: traduciendoId === ficha.id ? 'wait' : 'pointer', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}
+                    >
+                      <Icon name="refreshCcw" size={10} color={TOKENS.textSec} />
+                      {traduciendoId === ficha.id ? 'Traduciendo...' : 'Traducir marca'}
+                    </button>
                     <Icon name="edit" size={11} color={TOKENS.textTer} />
                   </div>
                 </div>
@@ -1715,7 +1772,7 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
   );
 }
 
-function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, servicios, profesionales, onClose, onSaved }: {
+export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, servicios, profesionales, onClose, onSaved }: {
   mode: 'add' | 'edit';
   ficha: any | null;
   clienteId: string;
@@ -1762,6 +1819,53 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
   const [citaId, setCitaId] = useState(ficha?.cita_id ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const { estado: estadoVoz, errorVoz, iniciarEscucha, detenerEscucha } = useChispaVoz();
+  const [dictadoWarn, setDictadoWarn] = useState('');
+
+  async function procesarDictado(texto: string) {
+    if (!texto.trim()) return;
+    setLoading(true);
+    setDictadoWarn('');
+    try {
+      const { data: sesion } = await supabase.auth.getSession();
+      const token = sesion.session?.access_token;
+      if (!token) throw new Error('Sin sesion');
+      const r = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/color-formula-parser`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ texto }),
+      });
+      if (!r.ok) throw new Error('Error al parsear formula');
+      const parsed = await r.json();
+
+      if (parsed.health_warning) {
+        setDictadoWarn('Las notas de salud van en su ficha, a mano. No se ha guardado información médica.');
+      } else {
+        if (parsed.producto) setMarcaProducto(parsed.producto);
+        if (parsed.tono || parsed.gramos) {
+          setFormulaEntries([{ numero: parsed.tono || '', gramos: String(parsed.gramos || '') }]);
+        }
+        if (parsed.oxidante) {
+          const vol = parseInt(parsed.oxidante.replace(/\D/g, ''), 10);
+          if (!isNaN(vol)) setOxidanteVol(String(vol));
+        }
+        if (parsed.tiempos) {
+          const min = parseInt(parsed.tiempos.replace(/\D/g, ''), 10);
+          if (!isNaN(min)) setTiempoExp(String(min));
+        }
+        if (parsed.notas) setResultadoNotas(parsed.notas);
+      }
+    } catch (e) {
+      setError('Error al procesar el dictado: ' + String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function addFormulaEntry() { setFormulaEntries([...formulaEntries, { numero: '', gramos: '' }]); }
   function removeFormulaEntry(i: number) { setFormulaEntries(formulaEntries.filter((_, idx) => idx !== i)); }
@@ -1899,6 +2003,41 @@ function FichaColorModal({ mode, ficha, clienteId, negocioId, citasCliente, serv
             Copiar ultima formula de este cliente
           </button>
         )}
+
+        <div style={{ marginBottom: 20 }}>
+          <button
+            type="button"
+            onClick={() => {
+              if (estadoVoz === 'inactivo') iniciarEscucha(procesarDictado);
+              else detenerEscucha();
+            }}
+            disabled={loading}
+            style={{
+              width: '100%', padding: '18px 24px', 
+              background: estadoVoz === 'inactivo' ? TOKENS.bgCardHi : 'rgba(192,38,10,0.1)', 
+              border: `2px dashed ${estadoVoz === 'inactivo' ? TOKENS.borderHi : TOKENS.primary}`, 
+              borderRadius: 16, 
+              color: estadoVoz === 'inactivo' ? TOKENS.text : TOKENS.primary, 
+              fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', 
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+              transition: 'all 0.2s ease',
+              boxShadow: estadoVoz !== 'inactivo' ? '0 8px 24px rgba(192,38,10,0.2)' : 'none'
+            }}
+          >
+            <div style={{ width: 48, height: 48, borderRadius: 24, background: estadoVoz === 'inactivo' ? TOKENS.border : TOKENS.primary, color: '#fff', display: 'grid', placeItems: 'center' }}>
+              <Icon name="mic" size={24} color="#fff" />
+            </div>
+            {estadoVoz === 'inactivo' ? 'Dictar Fórmula (Manos libres)' : 
+             estadoVoz === 'escuchando' ? 'Escuchando... (pulsa para detener)' : 'Procesando dictado...'}
+          </button>
+          {errorVoz && <div style={{ fontSize: 12, color: TOKENS.danger, marginTop: 8, textAlign: 'center' }}>{errorVoz}</div>}
+          {dictadoWarn && (
+            <div style={{ padding: '12px 16px', background: TOKENS.danger, borderRadius: 12, color: '#fff', fontSize: 14, fontWeight: 600, marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 4px 12px rgba(239,68,68,0.4)' }}>
+              <Icon name="alert" size={20} color="#fff" />
+              {dictadoWarn}
+            </div>
+          )}
+        </div>
 
         {/* Form wrapper - disabled when locked */}
         <div style={{ pointerEvents: isLocked ? 'none' : 'auto', opacity: isLocked ? 0.6 : 1 }}>
