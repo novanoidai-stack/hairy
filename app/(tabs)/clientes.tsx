@@ -46,12 +46,13 @@ interface Cliente {
 
 interface FichaTecnica {
   id: string;
-  producto?: string;
-  tono?: string;
-  gramos?: number;
-  oxidante?: string;
-  tiempos?: string;
-  notas?: string;
+  tipo_servicio?: string;
+  marca_producto?: string;
+  formula?: { numero?: string; gramos?: number | string | null }[];
+  oxidante_volumen?: number | null;
+  tiempo_exposicion_min?: number | null;
+  tecnica_aplicacion?: string[];
+  resultado_notas?: string;
   profesional_nombre?: string;
   created_at: string;
 }
@@ -234,7 +235,7 @@ function ClientesScreen() {
 
     const [{ data: fichas }, { data: notas }, { data: citas }] = await Promise.all([
       supabase
-        .from('formulas_color')
+        .from('fichas_tecnicas_color')
         .select('*, profesionales(nombre)')
         .eq('cliente_id', cli.id)
         .order('created_at', { ascending: false }),
@@ -553,22 +554,25 @@ function ClientesScreen() {
             )}
 
             <View style={s.fichaGrid}>
-              {ficha.producto && <FichaField label="Marca" value={ficha.producto} c={c} />}
-              {ficha.oxidante && <FichaField label="Oxidante" value={ficha.oxidante} c={c} />}
-              {ficha.tiempos && <FichaField label="Tiempo" value={ficha.tiempos} c={c} />}
+              {ficha.marca_producto && <FichaField label="Marca" value={ficha.marca_producto} c={c} />}
+              {ficha.oxidante_volumen != null && <FichaField label="Oxidante" value={`${ficha.oxidante_volumen} vol`} c={c} />}
+              {ficha.tiempo_exposicion_min != null && <FichaField label="Tiempo" value={`${ficha.tiempo_exposicion_min} min`} c={c} />}
+              {Array.isArray(ficha.tecnica_aplicacion) && ficha.tecnica_aplicacion.length > 0 && (
+                <FichaField label="Tecnica" value={ficha.tecnica_aplicacion.join(', ')} c={c} />
+              )}
             </View>
 
-            {(ficha.tono || ficha.gramos) && (
+            {Array.isArray(ficha.formula) && ficha.formula.length > 0 && (
               <View style={s.formulaBox}>
                 <TText style={[s.formulaLabel, { color: c.textTertiary }]}>FORMULA</TText>
                 <TText style={[s.formulaValue, { color: c.text }]}>
-                  {ficha.tono || '?'} {ficha.gramos ? `(${ficha.gramos}g)` : ''}
+                  {ficha.formula.map((f) => `${f.numero || '?'}${f.gramos ? ` (${f.gramos}g)` : ''}`).join('  +  ')}
                 </TText>
               </View>
             )}
 
-            {ficha.notas && (
-              <TText style={[s.fichaNotas, { color: c.textTertiary }]}>{ficha.notas}</TText>
+            {ficha.resultado_notas && (
+              <TText style={[s.fichaNotas, { color: c.textTertiary }]}>{ficha.resultado_notas}</TText>
             )}
           </Card>
         ))}

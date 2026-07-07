@@ -131,12 +131,13 @@ export function ColorTryOnModal({ cliente, negocioId, onClose, onSaved }: { clie
     setLoading(true);
     try {
       const tonoObj = TONES.find(t => t.value === selectedColor);
-      const { error: dbErr } = await supabase.from('formulas_color').insert({
+      const { error: dbErr } = await supabase.from('fichas_tecnicas_color').insert({
         negocio_id: negocioId,
         cliente_id: cliente.id,
-        producto: 'Simulación IA',
-        tono: tonoObj?.name || selectedColor,
-        notas: `Tono virtual generado a partir de foto. \nColor objetivo: ${tonoObj?.name}`,
+        tipo_servicio: 'otro', // NOT NULL en la tabla; simulacion no encaja en un tipo concreto
+        marca_producto: 'Simulación IA',
+        formula: [{ numero: tonoObj?.name || selectedColor, gramos: null }],
+        resultado_notas: `Tono virtual generado a partir de foto. \nColor objetivo: ${tonoObj?.name}`,
       });
       if (dbErr) throw dbErr;
       

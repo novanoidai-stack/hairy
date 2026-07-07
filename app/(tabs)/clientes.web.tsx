@@ -344,7 +344,7 @@ function ClientesWeb() {
         .select('id, nombre, color')
         .eq('negocio_id', profile.negocio_id),
       supabase
-        .from('formulas_color')
+        .from('fichas_tecnicas_color')
         .select('*')
         .eq('negocio_id', profile.negocio_id)
         .order('created_at', { ascending: false }),
@@ -1634,7 +1634,7 @@ function NotasTab({ cliente, onUpdated, catalogoAlergias = [], onSaveToCatalog }
   );
 }
 
-// ── Tab: Color/Quimica (usa formulas_color + fallback a campos legacy en citas)
+// ── Tab: Color/Quimica (usa fichas_tecnicas_color + fallback a campos legacy en citas)
 function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, negocioId, onChanged, onGoToNotas }: { cliente: Cliente; citas: Cita[]; servicios: any[]; profesionales: any[]; fichasTecnicas: any[]; negocioId: string; onChanged: () => Promise<void>; onGoToNotas?: () => void; }) {
   const [editingFicha, setEditingFicha] = useState<any | null>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -1661,17 +1661,19 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
       const res = await r.json();
       
       const disclaimer = res.disclaimer || "orientativo, verifica con tu carta de color";
-      
-      const formulaNueva = [{ numero: res.tono || '', gramos: String(res.gramos || '') }];
-      
+
+      const oxNum = parseInt(String(res.oxidante ?? ''), 10);
+
+      // Se construye una ficha nueva (sin id) con las columnas reales de
+      // fichas_tecnicas_color. Se conserva ...ficha para heredar tipo_servicio
+      // (NOT NULL) y demas campos de la ficha origen.
       const nuevaFicha = {
         ...ficha,
         id: undefined,
-        producto: res.producto || marcaDestino,
-        tono: res.tono || '',
-        gramos: res.gramos ? parseFloat(res.gramos) : null,
-        oxidante: res.oxidante || null,
-        notas: `Traducción: ${res.formula_nueva}\n\nATENCIÓN: ${disclaimer}`,
+        marca_producto: res.producto || marcaDestino,
+        formula: [{ numero: res.tono || '', gramos: res.gramos ? String(res.gramos) : '' }],
+        oxidante_volumen: Number.isFinite(oxNum) ? oxNum : null,
+        resultado_notas: `Traducción: ${res.formula_nueva}\n\nATENCIÓN: ${disclaimer}`,
         cerrada: false
       };
       
@@ -1794,25 +1796,26 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
                   </div>
                 </div>
 
-                {/* Formula estructurada */}
-                {(ficha.tono || ficha.gramos) && (
+                {/* Formula estructurada (jsonb array de {numero, gramos}) */}
+                {formulaArr.length > 0 && (
                   <div style={{ background: TOKENS.bgCardHi, borderRadius: 8, padding: '8px 10px', marginBottom: 8, fontFamily: 'monospace' }}>
                     <div style={{ fontSize: 9, letterSpacing: 1, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 4 }}>Formula</div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text }}>
-                      {ficha.tono || '?'} {ficha.gramos ? `(${ficha.gramos}g)` : ''}
+                      {formulaArr.map((f: any) => `${f.numero || '?'}${f.gramos ? ` (${f.gramos}g)` : ''}`).join('  +  ')}
                     </div>
                   </div>
                 )}
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {ficha.producto && <FieldKV label="Marca" value={ficha.producto} />}
-                  {ficha.oxidante && <FieldKV label="Oxidante" value={ficha.oxidante} />}
-                  {ficha.tiempos && <FieldKV label="Tiempo" value={ficha.tiempos} />}
+                  {ficha.marca_producto && <FieldKV label="Marca" value={ficha.marca_producto} />}
+                  {ficha.oxidante_volumen != null && <FieldKV label="Oxidante" value={`${ficha.oxidante_volumen} vol`} />}
+                  {ficha.tiempo_exposicion_min != null && <FieldKV label="Tiempo" value={`${ficha.tiempo_exposicion_min} min`} />}
+                  {Array.isArray(ficha.tecnica_aplicacion) && ficha.tecnica_aplicacion.length > 0 && <FieldKV label="Tecnica" value={ficha.tecnica_aplicacion.join(', ')} />}
                 </div>
 
-                {ficha.notas && (
+                {ficha.resultado_notas && (
                   <div style={{ marginTop: 8, fontSize: 12, color: TOKENS.textSec, background: TOKENS.bgCardHi, padding: '6px 8px', borderRadius: 6, fontStyle: 'italic' }}>
-                    <span>{ficha.notas}</span>
+                    <span>{ficha.resultado_notas}</span>
                   </div>
                 )}
               </div>
@@ -1913,15 +1916,17 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
   const TECNICAS = ['Pincel', 'Peine', 'Mano', 'Papel meche', 'Gorro', 'Balayage libre', 'Foilyage'];
   const OXIDANTES_VOL = [10, 20, 30, 40];
 
-  const [marcaProducto, setMarcaProducto] = useState(ficha?.producto ?? '');
+  const [marcaProducto, setMarcaProducto] = useState(ficha?.marca_producto ?? '');
   const [formulaEntries, setFormulaEntries] = useState<{ numero: string; gramos: string }[]>(
-    ficha?.tono || ficha?.gramos
-      ? [{ numero: ficha.tono ?? '', gramos: ficha.gramos != null ? String(ficha.gramos) : '' }]
+    Array.isArray(ficha?.formula) && ficha.formula.length > 0
+      ? ficha.formula.map((f: any) => ({ numero: f.numero ?? '', gramos: f.gramos != null ? String(f.gramos) : '' }))
       : [{ numero: '', gramos: '' }]
   );
-  const [oxidanteVol, setOxidanteVol] = useState(ficha?.oxidante ?? '');
-  const [tiempoExp, setTiempoExp] = useState(ficha?.tiempos ?? '');
-  const [resultadoNotas, setResultadoNotas] = useState(ficha?.notas ?? '');
+  const [tipoServicio, setTipoServicio] = useState(ficha?.tipo_servicio ?? 'coloracion_global');
+  const [tecnicas, setTecnicas] = useState<string[]>(Array.isArray(ficha?.tecnica_aplicacion) ? ficha.tecnica_aplicacion : []);
+  const [oxidanteVol, setOxidanteVol] = useState(ficha?.oxidante_volumen != null ? String(ficha.oxidante_volumen) : '');
+  const [tiempoExp, setTiempoExp] = useState(ficha?.tiempo_exposicion_min != null ? String(ficha.tiempo_exposicion_min) : '');
+  const [resultadoNotas, setResultadoNotas] = useState(ficha?.resultado_notas ?? '');
   const [profesionalId, setProfesionalId] = useState(ficha?.profesional_id ?? '');
   const [citaId, setCitaId] = useState(ficha?.cita_id ?? '');
   const [loading, setLoading] = useState(false);
@@ -1984,7 +1989,7 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
 
   async function duplicarUltimaFormula() {
     const { data } = await supabase
-      .from('formulas_color')
+      .from('fichas_tecnicas_color')
       .select('*')
       .eq('cliente_id', clienteId)
       .eq('negocio_id', negocioId)
@@ -1994,14 +1999,16 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
 
     if (!data) { setError('No hay formulas anteriores para copiar'); return; }
 
-    setMarcaProducto(data.producto ?? '');
+    setMarcaProducto(data.marca_producto ?? '');
     setFormulaEntries(
-      data.tono || data.gramos
-        ? [{ numero: data.tono ?? '', gramos: data.gramos != null ? String(data.gramos) : '' }]
+      Array.isArray(data.formula) && data.formula.length > 0
+        ? data.formula.map((f: any) => ({ numero: f.numero ?? '', gramos: f.gramos != null ? String(f.gramos) : '' }))
         : [{ numero: '', gramos: '' }]
     );
-    setOxidanteVol(data.oxidante ?? '');
-    setTiempoExp(data.tiempos ?? '');
+    if (data.tipo_servicio) setTipoServicio(data.tipo_servicio);
+    setTecnicas(Array.isArray(data.tecnica_aplicacion) ? data.tecnica_aplicacion : []);
+    setOxidanteVol(data.oxidante_volumen != null ? String(data.oxidante_volumen) : '');
+    setTiempoExp(data.tiempo_exposicion_min != null ? String(data.tiempo_exposicion_min) : '');
     setError('');
   }
 
@@ -2011,27 +2018,32 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
     setLoading(true);
     setError('');
 
-    const tonos = formulaEntries.filter(f => f.numero.trim()).map(f => f.numero.trim()).join(' + ');
-    const gramosTotal = formulaEntries.reduce((acc, curr) => acc + (parseFloat(curr.gramos) || 0), 0);
+    // La formula se guarda como jsonb array de {numero, gramos} en la columna real `formula`.
+    const cleanEntries = formulaEntries
+      .filter(f => f.numero.trim() || f.gramos.trim())
+      .map(f => ({ numero: f.numero.trim(), gramos: f.gramos.trim() ? Number(f.gramos) : null }));
+    const oxNum = parseInt(oxidanteVol, 10);
+    const tNum = parseInt(tiempoExp, 10);
 
     const row: Record<string, any> = {
       negocio_id: negocioId,
       cliente_id: clienteId,
-      producto: marcaProducto.trim() || null,
-      tono: tonos || null,
-      gramos: gramosTotal > 0 ? gramosTotal : null,
-      oxidante: oxidanteVol.trim() || null,
-      tiempos: tiempoExp.trim() || null,
-      notas: resultadoNotas.trim() || null,
+      tipo_servicio: tipoServicio || 'otro', // NOT NULL en la tabla
+      marca_producto: marcaProducto.trim() || null,
+      formula: cleanEntries,
+      oxidante_volumen: Number.isFinite(oxNum) ? oxNum : null,
+      tiempo_exposicion_min: Number.isFinite(tNum) ? tNum : null,
+      tecnica_aplicacion: tecnicas,
+      resultado_notas: resultadoNotas.trim() || null,
       profesional_id: profesionalId || null,
       cita_id: citaId || null,
     };
 
     let err;
     if (mode === 'edit' && ficha?.id) {
-      ({ error: err } = await supabase.from('formulas_color').update(row).eq('id', ficha.id));
+      ({ error: err } = await supabase.from('fichas_tecnicas_color').update(row).eq('id', ficha.id));
     } else {
-      ({ error: err } = await supabase.from('formulas_color').insert(row));
+      ({ error: err } = await supabase.from('fichas_tecnicas_color').insert(row));
     }
     setLoading(false);
     if (err) { setError(mensajeDeError(err)); return; }
@@ -2042,7 +2054,7 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
     if (!ficha?.id) return;
     setLoading(true);
     setError('');
-    const { error: err } = await supabase.from('formulas_color').delete().eq('id', ficha.id);
+    const { error: err } = await supabase.from('fichas_tecnicas_color').delete().eq('id', ficha.id);
     setLoading(false);
     if (err) { setError(mensajeDeError(err)); return; }
     await onSaved();
@@ -2151,6 +2163,11 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
         {/* Seccion: Formula */}
         <SectionLabel>Formula</SectionLabel>
         <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
+          <Field label="Tipo de servicio">
+            <select value={tipoServicio} onChange={(e) => setTipoServicio(e.target.value)} style={selectStyle}>
+              {TIPOS_SERVICIO.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </select>
+          </Field>
           <Field label="Marca / producto"><Input value={marcaProducto} onChange={setMarcaProducto} placeholder="Ej. Wella Koleston, L'Oreal Majirel" /></Field>
           <Field label="Mezcla de color">
             {formulaEntries.map((entry, i) => (
@@ -2169,9 +2186,31 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
             </button>
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
-            <Field label="Oxidante (vol/%)"><Input value={oxidanteVol} onChange={setOxidanteVol} placeholder="Ej. 20 vol" /></Field>
+            <Field label="Oxidante (vol)"><Input value={oxidanteVol} onChange={setOxidanteVol} placeholder="Ej. 20" /></Field>
             <Field label="Tiempo (min)"><Input value={tiempoExp} onChange={setTiempoExp} placeholder="35" /></Field>
           </div>
+          <Field label="Tecnica de aplicacion">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {TECNICAS.map((t) => {
+                const active = tecnicas.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTecnicas(active ? tecnicas.filter((x) => x !== t) : [...tecnicas, t])}
+                    style={{
+                      padding: '5px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                      background: active ? 'rgba(244,80,30,0.12)' : TOKENS.bgCard,
+                      border: `1px solid ${active ? TOKENS.primary : TOKENS.border}`,
+                      color: active ? TOKENS.primaryHi : TOKENS.textSec,
+                    }}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
         </div>
 
         {/* Seccion: Notas */}
