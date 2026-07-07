@@ -1004,6 +1004,9 @@ function ClientesWeb() {
                 { l: 'Reservar cita', icon: 'calendar', p: true, action: () => router.push({ pathname: '/screens/nueva-cita', params: { clienteId: c.id } } as any) },
                 { l: 'Llamar', icon: 'phone', action: () => { if (c.telefono) window.location.href = `tel:${c.telefono}`; } },
                 { l: 'Ficha PDF', icon: 'download', action: () => { void exportFichaPDF(c, citas, servicios); } },
+                // Portabilidad RGPD (art. 20): descarga JSON con todos los datos de ESTA
+                // clienta. El RPC valida owner/admin en servidor (igual que anonimizar).
+                { l: 'Exportar (RGPD)', icon: 'download', action: () => { void exportDatosClienteJSON(c.id, c.nombre); } },
               ].map((a, i) => (
                 <button
                   key={i}
@@ -3730,6 +3733,30 @@ function FotosClienteSection({ cliente, negocioId, bare = false, gridRef }: { cl
       )}
     </div>
   );
+}
+
+// Portabilidad RGPD (art. 20) de UNA clienta: descarga un JSON con todos sus datos
+// (ficha, citas, cobros, presupuestos, fichas tecnicas, consentimientos, resenas,
+// lista de espera). El RPC exportar_datos_cliente valida el rol owner/admin en
+// servidor; para no-gestores devuelve un error que mostramos por alerta.
+async function exportDatosClienteJSON(clienteId: string, nombre?: string | null) {
+  type ExportResp = { ok: boolean; error?: string } & Record<string, unknown>;
+  const { data, error } = await supabase.rpc('exportar_datos_cliente', { p_cliente_id: clienteId });
+  const resp = (data ?? null) as ExportResp | null;
+  if (error || !resp?.ok) {
+    window.alert(error ? mensajeDeError(error, 'No se pudieron exportar los datos.') : (resp?.error || 'No se pudieron exportar los datos.'));
+    return;
+  }
+  const blob = new Blob([JSON.stringify(resp, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  const slug = String(nombre ?? 'cliente').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'cliente';
+  link.download = `mecha-cliente-${slug}-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 // Descarga la ficha del cliente como PDF (ventana imprimible con marca Mecha,
