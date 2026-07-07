@@ -55,11 +55,28 @@ function tieneSolapa(accion: unknown): boolean {
   return !!accion && typeof accion === 'object' && 'solapa' in accion && (accion as { solapa?: boolean }).solapa === true;
 }
 
-// Lista de citas afectadas por una accion batch (confirmar_citas). Vacia si no aplica.
+// Lista de citas afectadas por una accion batch (confirmar_citas u optimizar_agenda). Vacia si no aplica.
 function citasAfectadas(accion: unknown): { id: string; label: string }[] {
-  if (!accion || typeof accion !== 'object' || !('citas' in accion)) return [];
-  const c = (accion as { citas?: unknown }).citas;
-  return Array.isArray(c) ? (c as { id: string; label: string }[]) : [];
+  if (!accion || typeof accion !== 'object') return [];
+  if ('citas' in accion) {
+    const c = (accion as { citas?: unknown }).citas;
+    return Array.isArray(c) ? (c as { id: string; label: string }[]) : [];
+  }
+  if ('movimientos' in accion) {
+    const m = (accion as { movimientos?: any[] }).movimientos;
+    if (Array.isArray(m)) {
+      return m.map((mov) => {
+        try {
+          const t1 = new Date(mov.nuevo_inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+          const t2 = new Date(mov.nuevo_fin).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+          return { id: mov.cita_id, label: `${mov.cliente_nombre}: ${t1} - ${t2}` };
+        } catch {
+          return { id: mov.cita_id, label: mov.cliente_nombre };
+        }
+      });
+    }
+  }
+  return [];
 }
 
 export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar, onCancelar }: BloqueRendererProps) {

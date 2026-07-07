@@ -12,6 +12,12 @@ import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
 import BriefingAgenda from '@/components/agenda/BriefingAgenda';
 
+function triggerHaptic() {
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    try { navigator.vibrate(40); } catch (e) {}
+  }
+}
+
 // Chispa — panel conversacional de la capa de IA (web). Drawer lateral que se
 // abre desde una pestana fija en el borde derecho. Renderiza RESPUESTAS por
 // BLOQUES TIPADOS (texto / enlace / accion) mediante BloqueRenderer.
@@ -40,7 +46,7 @@ const PANEL_STYLES = `
 `;
 
 type Mensaje =
-  | { role: 'user'; content: string }
+  | { role: 'user'; content: string; imagenB64?: string }
   | { role: 'assistant'; bloques: Bloque[]; accionEstado: AccionEstado | null };
 
 export interface ChispaPanelProps {
@@ -56,6 +62,16 @@ function IconoCerrar({ size = 15, color = T.textSecondary }: { size?: number; co
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconoImagen({ size = 16, color = T.textSecondary }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <polyline points="21 15 16 10 5 21"/>
     </svg>
   );
 }
@@ -108,11 +124,12 @@ const BIENVENIDA: Mensaje = {
 export default function ChispaPanel({ negocioId, profile, onAgendaChanged, briefingActivo = true }: ChispaPanelProps) {
   const { isMobile } = useResponsive();
   const [abierto, setAbierto] = useState(false);
-  const [mensajes, setMensajes] = useState<Mensaje[]>([BIENVENIDA]);
-  const [cargando, setCargando] = useState(false);
+  const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [texto, setTexto] = useState('');
-  const listRef = useRef<HTMLDivElement>(null);
+  const [imagenB64, setImagenB64] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const stylesInjected = useRef(false);
 
   // Voz (Sesion 5): microfono + lectura en voz alta. Todo vive en el hook;
@@ -164,9 +181,20 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
   }, [abierto]);
 
   // Historial en texto plano para dar contexto al edge (los bloques se aplanan).
-  function historialParaEdge(msgs: Mensaje[]): { role: 'user' | 'assistant'; content: string }[] {
+  function historialParaEdge(msgs: Mensaje[]): { role: 'user' | 'assistant'; content: any }[] {
     return msgs.map((m) => {
-      if (m.role === 'user') return { role: 'user' as const, content: m.content };
+      if (m.role === 'user') {
+        if (m.imagenB64) {
+          return {
+            role: 'user' as const,
+            content: [
+              { type: 'text', text: m.content || 'Imagen adjunta' },
+              { type: 'image_url', image_url: { url: m.imagenB64 } }
+            ]
+          };
+        }
+        return { role: 'user' as const, content: m.content };
+      }
       const content = m.bloques
         .map((b) => {
           if (b.tipo === 'texto') return b.texto;
@@ -194,14 +222,15 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
 
   async function enviarMensaje(textoOverride?: string) {
     const t = (textoOverride ?? texto).trim();
-    if (!t || bloqueado) return;
+    if ((!t && !imagenB64) || bloqueado) return;
 
     // Guardrail demo: limite de mensajes por sesion (protege el coste del LLM en
     // la cuenta publica compartida). En cuentas reales no hay limite.
     if (IS_DEMO_MODE) {
       if (demoCount.current >= DEMO_LIMITE_MSGS) {
-        setMensajes((m) => [...m, { role: 'user', content: t }]);
+        setMensajes((m) => [...m, { role: 'user', content: t || '📸 Imagen adjunta' }]);
         setTexto('');
+        setImagenB64(null);
         pushAssistantTexto('Has alcanzado el limite de mensajes de esta demo. En una cuenta real de Mecha no hay limite: Chispa te acompana todo el dia.');
         return;
       }
@@ -209,10 +238,12 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
       try { sessionStorage.setItem(DEMO_COUNT_KEY, String(demoCount.current)); } catch { /* no critico */ }
     }
 
-    const nuevos: Mensaje[] = [...mensajes, { role: 'user', content: t }];
+    const nuevos: Mensaje[] = [...mensajes, { role: 'user', content: t || '📸 Imagen adjunta', imagenB64: imagenB64 || undefined }];
     setMensajes(nuevos);
     setTexto('');
+    setImagenB64(null);
     setCargando(true);
+    triggerHaptic();
 
     try {
       const { data, error } = await supabase.functions.invoke('agenda-asistente', {
@@ -258,6 +289,14 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
     });
   }
 
+  async function manejarImagen(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setImagenB64(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
   function setAccionEstado(msgIndex: number, estado: AccionEstado) {
     setMensajes((m) => m.map((msg, i) =>
       i === msgIndex && msg.role === 'assistant' ? { ...msg, accionEstado: estado } : msg,
@@ -279,6 +318,7 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
     const r = await ejecutarAccion(accion, profile.id);
     if (r.ok) {
       setAccionEstado(msgIndex, 'aplicada');
+      triggerHaptic();
       pushAssistantTexto(r.mensaje);
       onAgendaChanged();
     } else {
@@ -330,8 +370,9 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
 
           <div className="chispa-drawer" style={{
             position: 'fixed', top: 0, right: 0, height: '100%', width: drawerWidth, zIndex: 2147483000,
-            display: 'flex', flexDirection: 'column', background: T.bgPanel,
-            borderLeft: `1px solid ${T.border}`, boxShadow: '-18px 0 50px rgba(40,30,24,0.16)',
+            display: 'flex', flexDirection: 'column', 
+            background: 'rgba(255, 253, 251, 0.72)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+            borderLeft: `1px solid rgba(40,30,24,0.1)`, boxShadow: '-18px 0 50px rgba(40,30,24,0.16)',
             fontFamily: 'Inter, system-ui, sans-serif',
           }}>
             {/* Cabecera */}
@@ -426,7 +467,7 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
 
               {cargando && (
                 <div className="chispa-msg" style={{ display: 'flex', gap: 7, alignItems: 'flex-end' }}>
-                  <div style={{ flexShrink: 0 }}><ChispaMascota size={22} showLabel={false} /></div>
+                  <div style={{ flexShrink: 0 }}><ChispaMascota size={22} showLabel={false} mood="think" /></div>
                   <div style={{ padding: '9px 14px', borderRadius: '14px 14px 14px 4px', background: T.bgCard, border: `1px solid ${T.border}`, display: 'flex', gap: 4, alignItems: 'center' }}>
                     {[0, 1, 2].map((n) => (
                       <div key={n} style={{ width: 6, height: 6, borderRadius: 999, background: T.textMuted, animation: `chispaDot 1.2s ease-in-out ${n * 0.2}s infinite` }} />
@@ -438,6 +479,12 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
 
             {/* Input */}
             <div style={{ padding: '10px 12px 12px', borderTop: `1px solid ${T.border}`, flexShrink: 0 }}>
+              {imagenB64 && (
+                <div style={{ padding: '8px', marginBottom: '8px', background: T.bgCard, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                   <div style={{ fontSize: '12px', color: T.textSecondary }}>📸 Imagen adjuntada lista para enviar</div>
+                   <button onClick={() => setImagenB64(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: T.danger, fontSize: '12px', fontWeight: 600 }}>Quitar</button>
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', background: T.bgCard, border: `1.5px solid ${hayAccionPendiente ? T.border : T.borderHi}`, borderRadius: 14, padding: '8px 8px 8px 12px', transition: 'border-color 0.15s ease' }}>
                 <input
                   ref={inputRef}
@@ -449,6 +496,23 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
                   aria-label="Mensaje para Chispa"
                   style={{ flex: 1, border: 'none', background: 'transparent', color: T.text, fontSize: 13.5, fontFamily: 'Inter, system-ui, sans-serif', outline: 'none', lineHeight: 1.4, cursor: hayAccionPendiente ? 'not-allowed' : 'text' }}
                 />
+                
+                <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={manejarImagen} />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={bloqueado || !!imagenB64}
+                  aria-label="Adjuntar imagen"
+                  style={{
+                    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                    border: `1.5px solid ${T.border}`,
+                    background: imagenB64 ? T.primarySoft : T.bgPanel,
+                    cursor: bloqueado || !!imagenB64 ? 'default' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'border-color 0.15s ease, background 0.15s ease',
+                  }}>
+                  <IconoImagen size={16} color={imagenB64 ? T.primaryHi : T.textSecondary} />
+                </button>
+
                 <button
                   onClick={manejarClicMicro}
                   disabled={bloqueado && voz.estado === 'inactivo'}
@@ -465,9 +529,9 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
                   }}>
                   <IconoMicro size={16} color={voz.estado === 'escuchando' ? T.danger : T.textSecondary} />
                 </button>
-                <button onClick={() => enviarMensaje()} disabled={!texto.trim() || bloqueado} aria-label="Enviar mensaje"
-                  style={{ width: 34, height: 34, borderRadius: 10, border: 'none', background: !texto.trim() || bloqueado ? T.bgCardHi : FIRE, cursor: !texto.trim() || bloqueado ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s ease' }}>
-                  <IconoEnviar size={16} color={!texto.trim() || bloqueado ? T.textMuted : '#fff'} />
+                <button onClick={() => enviarMensaje()} disabled={(!texto.trim() && !imagenB64) || bloqueado} aria-label="Enviar mensaje"
+                  style={{ width: 34, height: 34, borderRadius: 10, border: 'none', background: (!texto.trim() && !imagenB64) || bloqueado ? T.bgCardHi : FIRE, cursor: (!texto.trim() && !imagenB64) || bloqueado ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s ease' }}>
+                  <IconoEnviar size={16} color={(!texto.trim() && !imagenB64) || bloqueado ? T.textMuted : '#fff'} />
                 </button>
               </div>
               {/* Estado de voz visible (accesibilidad: nunca escuchar/hablar en

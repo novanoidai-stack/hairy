@@ -11,6 +11,10 @@ export const manualMiJornada: ManualContent = {
       captura: '/manuals/mi-jornada/fichar.png',
     },
     {
+      titulo: 'Chispa (Briefing Proactivo)',
+      texto: 'Cada mañana, al abrir "Mi jornada", Chispa revisa tus citas y te muestra un resumen automático (citas clave, clientas VIP, posibles huecos o riesgos de impuntualidad) para que arranques el día con todo bajo control.',
+    },
+    {
       titulo: 'Cambiar de periodo y vista',
       texto: 'Los botones "Hoy", "Semana" y "Mes" cambian el rango de las estadísticas. Si eres propietario o dirección, el selector "Equipo" muestra el ranking de todo el personal en vez de solo el tuyo.',
     },

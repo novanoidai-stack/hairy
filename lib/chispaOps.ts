@@ -154,6 +154,13 @@ export type AccionPropuesta =
       dias_sin_venir: number;
       resumen: string;
     }
+  | {
+      tipo: 'optimizar_agenda';
+      negocio_id: string;
+      fecha: string;
+      movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[];
+      resumen: string;
+    }
   // --- Lista de espera (Sesion 8-B) ---
   | {
       // Aviso a candidata de lista de espera tras cancelar una cita: deja el
@@ -218,6 +225,9 @@ export async function ejecutarAccion(
   try {
     switch (a.tipo) {
       case 'crear_cita': {
+        if (new Date(a.inicio) >= new Date(a.fin)) {
+          return { ok: false, error: 'El inicio no puede ser posterior al fin.' };
+        }
         const { data, error } = await supabase
           .from('citas')
           .insert({
@@ -245,6 +255,9 @@ export async function ejecutarAccion(
       }
 
       case 'reagendar_cita': {
+        if (new Date(a.nuevo_inicio) >= new Date(a.nuevo_fin)) {
+          return { ok: false, error: 'El inicio no puede ser posterior al fin.' };
+        }
         // Estado previo para la traza (inicio/profesional).
         const { data: prev } = await supabase
           .from('citas')
@@ -309,6 +322,9 @@ export async function ejecutarAccion(
       }
 
       case 'bloquear_hueco': {
+        if (new Date(a.inicio) >= new Date(a.fin)) {
+          return { ok: false, error: 'El inicio no puede ser posterior al fin.' };
+        }
         const { error } = await supabase.from('bloqueos_profesional').insert({
           negocio_id: a.negocio_id,
           profesional_id: a.profesional_id,
@@ -398,6 +414,10 @@ export async function ejecutarAccion(
       }
 
       case 'crear_presupuesto': {
+        const hayNegativos = a.lineas.some((l) => l.precio_cents < 0 || l.cantidad < 0);
+        if (hayNegativos || a.total_cents < 0) {
+          return { ok: false, error: 'No se permiten precios o cantidades negativas.' };
+        }
         // Reutiliza el backend de Presupuestos (RLS + numeracion + total).
         const p = await guardarPresupuesto({
           negocioId: a.negocio_id,
@@ -451,6 +471,21 @@ export async function ejecutarAccion(
             ? `Ya habia una propuesta de vuelta pendiente para ${a.cliente_nombre ?? 'la clienta'}. El equipo la gestiona.`
             : `Propuesta de vuelta registrada para ${a.cliente_nombre ?? 'la clienta'}. El envio lo gestiona el equipo.`,
         };
+      }
+
+      case 'optimizar_agenda': {
+        // Ejecutar los movimientos del tetris
+        let exito = 0;
+        for (const mov of a.movimientos) {
+          const { error } = await supabase.from('citas').update({
+            inicio: mov.nuevo_inicio,
+            fin_activa: mov.nuevo_fin,
+            fin: mov.nuevo_fin,
+            confirmacion_enviada: false, // para que n8n vuelva a avisar
+          }).eq('id', mov.cita_id);
+          if (!error) exito++;
+        }
+        return { ok: true, mensaje: `Se han movido ${exito} citas correctamente. Se avisara a los clientes por WhatsApp.` };
       }
 
       case 'cambiar_config': {

@@ -28,5 +28,9 @@ export const manualConfiguracion: ManualContent = {
       titulo: 'Reserva online y notificaciones',
       texto: 'Activa el portal de reserva pública con su propio enlace, y configura qué recordatorios o avisos por WhatsApp se envían automáticamente a tus clientes.',
     },
+    {
+      titulo: 'Chispa (Asistente de IA)',
+      texto: 'Chispa es el asistente de inteligencia artificial que atiende dudas y reserva citas por WhatsApp 24/7. También te envía un "Briefing proactivo" cada mañana al abrir Mecha para ayudarte a organizar tu día.',
+    },
   ],
 };

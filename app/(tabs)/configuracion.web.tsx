@@ -3411,9 +3411,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         <FieldRow label="Idioma del portal" hint="Idioma por defecto en el que se muestra a las clientes.">
           <SSelect width={180} value={idioma} onChange={setIdioma} options={[
             { value: 'es', label: 'Espanol' },
-            { value: 'ca', label: 'Catala' },
             { value: 'en', label: 'English' },
-            { value: 'pt', label: 'Portugues' },
           ]} />
         </FieldRow>
       </Section>

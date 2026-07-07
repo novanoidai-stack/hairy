@@ -97,7 +97,6 @@ type AccionPropuesta =
       negocio_id: string; cliente_id: string; cliente_nombre: string | null;
       dias_sin_venir: number; resumen: string;
     }
-  // --- Lista de espera (Sesion 8-B) ---
   | {
       tipo: 'avisar_lista_espera_match';
       negocio_id: string;
@@ -108,6 +107,13 @@ type AccionPropuesta =
       profesional_nombre: string;
       inicio: string;
       fidelidad_citas: number;
+      resumen: string;
+    }
+  | {
+      tipo: 'optimizar_agenda';
+      negocio_id: string;
+      fecha: string;
+      movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[];
       resumen: string;
     };
 
@@ -450,10 +456,34 @@ const TOOLS = [
     description: 'Tras cancelar una cita, busca la mejor candidata en la lista de espera y propone avisarle por WhatsApp (la IA no envia nada, solo deja el registro). Chispa puede sugerirlo automaticamente tras una cancelacion si el usuario lo menciona. Devuelve la candidata con su prioridad, fidelidad y datos del hueco.',
     parameters: {
       type: 'object' as const,
-      properties: {
-        cita_id: { type: 'string', description: 'UUID de la cita cancelada (hueco liberado)' },
-      },
+      properties: { cita_id: { type: 'string', description: 'UUID de la cita que se acaba de cancelar' } },
       required: ['cita_id'],
+    },
+  },
+  // --- MODO TETRIS (OPTIMIZACION DE AGENDA) ---
+  {
+    name: 'optimizar_agenda',
+    description: 'Propone reorganizar en bloque varias citas de un dia para compactar huecos muertos (Modo Tetris). El profesional revisara y confirmara los movimientos propuestos. Antes debes leer la disponibilidad y decidir que citas encajan.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        fecha: { type: 'string', description: 'YYYY-MM-DD' },
+        movimientos: {
+          type: 'array',
+          description: 'Lista de citas a desplazar para eliminar los huecos muertos.',
+          items: {
+            type: 'object',
+            properties: {
+              cita_id: { type: 'string' },
+              nuevo_inicio: { type: 'string', description: 'ISO 8601' },
+              nuevo_fin: { type: 'string', description: 'ISO 8601' },
+              cliente_nombre: { type: 'string' },
+            },
+            required: ['cita_id', 'nuevo_inicio', 'nuevo_fin', 'cliente_nombre'],
+          },
+        },
+      },
+      required: ['fecha', 'movimientos'],
     },
   },
   // --- NAVEGACION (no escribe nada; anade un chip que lleva a otra pantalla) ---
@@ -639,6 +669,9 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     'ANTES de proponer una escritura: resuelve nombres a entidades reales con buscar_cliente e info_catalogo.',
     'Si hay ambiguedad (varios clientes con ese nombre, servicio no encontrado), PREGUNTA al usuario en vez de proponer con datos inciertos.',
     'Las propuestas de escritura NO se ejecutan automaticamente: el sistema mostrara una tarjeta de confirmacion al usuario.',
+    'EXPERTO COLORISTA (VISION): Si recibes una imagen adjunta de cabello (type: image_url), asume el rol de Maestro Colorista de marcas premium (LOréal, Wella). Analiza de forma proactiva la base, la altura de tono y el estado del cabello. Si el usuario te pide un objetivo (ej. "quiero esto"), formula una receta exacta (gramos, volumenes, matiz, tecnica). Acto seguido, llama automaticamente a crear_presupuesto para presupuestar los servicios necesarios.',
+    'MODO TETRIS (REORDENADOR): Si te piden "optimiza la agenda" o "junta mis citas", consulta la disponibilidad del dia, detecta huecos ineficientes (ej. 30 min sueltos entre dos citas de 1h) e invoca la tool optimizar_agenda proponiendo adelantar o atrasar citas (movimientos en array). Esto generara un bloque visual diff para el profesional.',
+    'PREDICCION FINANCIERA: Si te piden predicciones (ej. "¿que pasa si subo el precio del corte 2 euros?"), realiza un calculo estimativo usando sentido comun de retencion vs precio. Usa mostrar_grafica inyectando fechas futuras de los proximos 3 meses para dibujar la estimacion al alza en formato visual, y explica paso a paso la estimacion de elasticidad (asume una perdida leve de clientes, pero mayor ticket medio).',
     scopeMsg,
   ].join('\n') + '\n\n' + MAPA_CONFIG + '\n\n' + CONFIG_EDITABLE_TEXT;
 }
@@ -710,7 +743,7 @@ async function runAgente(
   userId: string,
   scope: 'all' | 'self' | 'none',
   _effort: string,
-  mensajes: { role: 'user' | 'assistant'; content: string }[],
+  mensajes: { role: 'user' | 'assistant'; content: string | any[] }[],
   userClient: typeof svc,
 ): Promise<{ bloques: Bloque[]; texto: string; accion_propuesta?: AccionPropuesta }> {
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }); // YYYY-MM-DD
@@ -2065,6 +2098,18 @@ async function construirPropuesta(
         inicio: m.cita_origen.inicio,
         fidelidad_citas: m.candidata.fidelidad_citas,
         resumen,
+      };
+    }
+
+    case 'optimizar_agenda': {
+      const arrayMovs = Array.isArray(inp.movimientos) ? inp.movimientos : [];
+      if (arrayMovs.length === 0) return { error: 'No has propuesto ningun movimiento de agenda.' };
+      return {
+        tipo: 'optimizar_agenda',
+        negocio_id: negocioId,
+        fecha: inp.fecha,
+        movimientos: arrayMovs as { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[],
+        resumen: `Optimizar agenda del ${inp.fecha} (${arrayMovs.length} movimientos). Avisaremos por WhatsApp.`,
       };
     }
 
