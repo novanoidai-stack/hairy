@@ -4,13 +4,19 @@ import { createPortal } from 'react-dom';
 import { useGlobalSearchParams } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { ejecutarAccion, type AccionPropuesta } from '@/lib/agendaOps';
-import { normalizarRespuesta, type Bloque } from '@/lib/chispaBloques';
+import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, type Bloque } from '@/lib/chispaBloques';
 import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
 import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
+import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import BriefingAgenda from '@/components/agenda/BriefingAgenda';
+import {
+  TEMA_ORDEN, TEMA_TITULO_SECCION, TEMA_DESTINO_MANUAL, TEMA_FALLBACK, HORARIO_PRESETS,
+  pedirPregunta, ejecutarAccion as ejecutarAccionOnboarding,
+  type TemaId, type ContextoEjecucion, type PerfilAgente, type ResultadoAccion,
+} from '@/lib/onboardingAgent';
 
 function triggerHaptic() {
   if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -30,6 +36,13 @@ const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
 const DEMO_LIMITE_MSGS = 15; // rate-limit por sesion en la demo compartida
 const DEMO_COUNT_KEY = 'mecha-chispa-demo-msgs';
 const FULLSCREEN_KEY = 'mecha-chispa-fullscreen'; // preferencia por navegador (Sesion 1)
+// Memoria de sesion (Sesion 2 V2): hilo completo por negocio+usuario. NUNCA en
+// demo (tenant compartido: guardar aqui filtraria conversacion entre visitantes).
+const HILO_KEY_PREFIX = 'mecha-chispa-hilo:';
+// Igual que el antiguo OnboardingAgentOverlay: el asistente de puesta en marcha
+// se ofrece una sola vez por navegador mientras el nucleo del negocio no este
+// completo. Retirado ese overlay (Sesion 2 V2): el flujo vive dentro de Chispa.
+const ONBOARDING_AUTO_KEY_PREFIX = 'mecha-chispa-onboarding-auto:';
 
 const PANEL_STYLES = `
   @keyframes chispaDrawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
@@ -68,6 +81,16 @@ export interface ChispaPanelProps {
   // Toggle Configuracion > Asistente de agenda (IA) > Briefing proactivo (Sesion 6).
   // Default true: una clave ausente en negocio_config no debe apagar el briefing.
   briefingActivo?: boolean;
+  // true cuando el asistente general (asistenteAgendaActivo) esta apagado y el
+  // panel se monto SOLO para que un gestor con el nucleo pendiente pueda llegar
+  // a "poner en marcha tu salon" (Sesion 2 V2, ver ChispaLauncher.web). En ese
+  // caso la pestana flotante permanece oculta mientras el panel esta cerrado.
+  soloOnboarding?: boolean;
+  // Contexto del negocio para pre-rellenar el formulario de datos_negocio y
+  // (via el edge onboarding-agent) enriquecer la pregunta de servicios con una
+  // estimacion de precio de mercado si hay codigo postal.
+  nombreNegocio?: string;
+  codigoPostal?: string;
 }
 
 function IconoCerrar({ size = 15, color = T.textSecondary }: { size?: number; color?: string }) {
@@ -145,7 +168,171 @@ const BIENVENIDA: Mensaje = {
   accionEstado: null,
 };
 
-export default function ChispaPanel({ negocioId, profile, onAgendaChanged, briefingActivo = true }: ChispaPanelProps) {
+// --- Config guiada (Sesion 2 V2): Chispa hospeda "configurame el salon". ---
+// Deteccion de intencion DETERMINISTA (sin LLM: "Determinista primero" del
+// plan V2) para no gastar una llamada al edge solo para clasificar el mensaje.
+function normalizarTexto(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+const FRASES_CONFIG_GUIADA = [
+  'configurame el salon', 'configurame mi salon', 'configura mi salon', 'configurar mi salon',
+  'configurame el negocio', 'configura mi negocio', 'configurar mi negocio', 'configurame todo',
+  'ponme en marcha', 'pon en marcha', 'poner en marcha mi salon', 'poner en marcha el salon',
+  'quiero configurar mi salon', 'quiero poner en marcha', 'empezar a configurar', 'ayudame a configurar',
+];
+
+function detectaIntencionConfigGuiada(texto: string): boolean {
+  const t = normalizarTexto(texto.trim());
+  return !!t && FRASES_CONFIG_GUIADA.some((f) => t.includes(f));
+}
+
+// Guardrail de demo (Sesion 2 V2): ninguna escritura de onboardingAgent.ejecutarAccion
+// se llama de verdad en el tenant compartido. El recibo debe sonar tan real como en
+// produccion, asi que se formatea igual que lib/onboardingAgent.ts (sin llamarlo).
+function resumenDemoOnboarding(tipo: string, args: Record<string, any>): string {
+  switch (tipo) {
+    case 'completar_datos_negocio': return `${args.nombre} · ${args.direccion} · ${args.telefono}`;
+    case 'crear_servicio': return `${args.nombre} · ${Number(args.precio).toFixed(2)} € · ${args.duracion_min} min`;
+    case 'crear_profesional': return `${args.nombre} · ${String(args.categoria).replace('_', ' ')}`;
+    case 'fijar_horario_salon': return 'Horario guardado.';
+    case 'activar_reserva_online': return args.activar ? 'Reserva online activada.' : 'Reserva online sin activar por ahora.';
+    case 'activar_notificaciones': return args.activar ? 'Recordatorios por WhatsApp activados.' : 'Recordatorios sin activar por ahora.';
+    default: return 'Hecho.';
+  }
+}
+
+const CATEGORIAS_EQUIPO = [
+  { valor: 'auxiliar', label: 'Auxiliar' },
+  { valor: 'oficial', label: 'Oficial' },
+  { valor: 'oficial_mayor', label: 'Oficial mayor' },
+  { valor: 'estilista_senior', label: 'Estilista senior' },
+  { valor: 'direccion', label: 'Dirección artística' },
+];
+
+function idPasoOnboarding(tema: TemaId, tag = ''): string {
+  return `onb-${tema}${tag}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+// Construye el paso INICIAL (formulario/opciones) de un tema del onboarding
+// como bloques tipados de Chispa, en vez del "campo de texto" del antiguo
+// overlay. El LLM (via pedirPregunta) solo aporta el titulo/subtitulo
+// contextual (p.ej. la estimacion de precio de servicios si hay codigo
+// postal) y el nombre del negocio ya conocido se pre-rellena en el acto: el
+// ORDEN y la EJECUCION siguen siendo deterministas, igual que antes.
+function construirPasoTema(
+  tema: TemaId,
+  pregunta: { titulo: string; subtitulo?: string; placeholder_ejemplo?: string },
+  perfil: PerfilAgente,
+): { id: string; previos: Bloque[]; interactivo: Bloque; kind: string } {
+  switch (tema) {
+    case 'datos_negocio': {
+      const id = idPasoOnboarding(tema);
+      return {
+        id,
+        previos: [{ tipo: 'texto', texto: pregunta.titulo }],
+        interactivo: {
+          tipo: 'formulario', id, titulo: TEMA_TITULO_SECCION[tema], enviarLabel: 'Guardar datos',
+          campos: [
+            { key: 'nombre', label: 'Nombre del negocio', tipo: 'texto', requerido: true, valor: perfil.nombreNegocio ?? '' },
+            { key: 'direccion', label: 'Dirección', tipo: 'texto', requerido: true },
+            { key: 'telefono', label: 'Teléfono', tipo: 'tel', requerido: true },
+          ],
+        },
+        kind: 'datos_negocio_form',
+      };
+    }
+    case 'servicios': {
+      const id = idPasoOnboarding(tema);
+      const previos: Bloque[] = [{ tipo: 'texto', texto: pregunta.titulo }];
+      if (pregunta.subtitulo) previos.push({ tipo: 'texto', texto: pregunta.subtitulo });
+      return {
+        id,
+        previos,
+        interactivo: {
+          tipo: 'formulario', id, titulo: 'Nuevo servicio', enviarLabel: 'Crear servicio',
+          campos: [
+            { key: 'nombre', label: 'Nombre del servicio', tipo: 'texto', requerido: true },
+            { key: 'precio', label: 'Precio', tipo: 'euro', requerido: true },
+            { key: 'duracion_min', label: 'Duración (min)', tipo: 'numero', requerido: true },
+          ],
+        },
+        kind: 'servicio_form',
+      };
+    }
+    case 'equipo': {
+      const id = idPasoOnboarding(tema);
+      return {
+        id,
+        previos: [{ tipo: 'texto', texto: pregunta.titulo }],
+        interactivo: {
+          tipo: 'formulario', id, titulo: 'Nuevo profesional', enviarLabel: 'Dar de alta',
+          campos: [
+            { key: 'nombre', label: 'Nombre del profesional', tipo: 'texto', requerido: true },
+            { key: 'categoria', label: 'Categoría', tipo: 'select', opciones: CATEGORIAS_EQUIPO, valor: 'oficial' },
+          ],
+        },
+        kind: 'equipo_form',
+      };
+    }
+    case 'horario_salon': {
+      const id = idPasoOnboarding(tema);
+      return {
+        id,
+        previos: [{ tipo: 'texto', texto: 'Elige el horario que más se parezca al tuyo (podrás afinarlo después en Ajustes).' }],
+        interactivo: {
+          tipo: 'opciones', id, titulo: TEMA_TITULO_SECCION[tema],
+          opciones: HORARIO_PRESETS.map((p, i) => ({ valor: String(i), label: p.label })),
+        },
+        kind: 'horario_opciones',
+      };
+    }
+    case 'reserva_online': {
+      const id = idPasoOnboarding(tema);
+      return {
+        id,
+        previos: [{ tipo: 'texto', texto: pregunta.titulo }],
+        interactivo: {
+          tipo: 'opciones', id,
+          opciones: [{ valor: 'si', label: 'Sí, activarla' }, { valor: 'no', label: 'Ahora no' }],
+        },
+        kind: 'reserva_opciones',
+      };
+    }
+    case 'fotos_servicios': {
+      const id = idPasoOnboarding(tema);
+      return {
+        id,
+        previos: [{ tipo: 'texto', texto: 'El portal funciona sin fotos, pero con ellas entra por los ojos y reserva más gente.' }],
+        interactivo: {
+          tipo: 'opciones', id,
+          opciones: [
+            { valor: 'ahora', label: 'Ir a subir fotos ahora', descripcion: 'Te llevo a Configuración → Servicios' },
+            { valor: 'despues', label: 'Más tarde' },
+          ],
+        },
+        kind: 'fotos_opciones',
+      };
+    }
+    case 'notificaciones': {
+      const id = idPasoOnboarding(tema);
+      return {
+        id,
+        previos: [{ tipo: 'texto', texto: pregunta.titulo }],
+        interactivo: {
+          tipo: 'opciones', id,
+          opciones: [{ valor: 'si', label: 'Sí, activarlos' }, { valor: 'no', label: 'Ahora no' }],
+        },
+        kind: 'notif_opciones',
+      };
+    }
+  }
+}
+
+export default function ChispaPanel({
+  negocioId, profile, onAgendaChanged, briefingActivo = true,
+  soloOnboarding = false, nombreNegocio, codigoPostal,
+}: ChispaPanelProps) {
   const { isMobile } = useResponsive();
   const [abierto, setAbierto] = useState(false);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
@@ -170,9 +357,26 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
   // ?chispatest=1 (mismo espiritu): manda un bloque de prueba con
   // 'formulario'+'opciones'+'progreso' sin llamar al edge, para verificar el
   // contrato de bloques interactivos end-to-end (Sesion 1 V2).
-  const { vozab, chispatest } = useGlobalSearchParams<{ vozab?: string; chispatest?: string }>();
+  // ?onboarding_ia=1: fuerza la config guiada una vez, sin tocar el flag de
+  // localStorage (previsualizacion manual, mismo criterio que el antiguo
+  // OnboardingAgentOverlay retirado en la Sesion 2 V2).
+  const { vozab, chispatest, onboarding_ia } = useGlobalSearchParams<{ vozab?: string; chispatest?: string; onboarding_ia?: string }>();
   const mostrarSelectorVoz = vozab === '1';
   const mostrarArnesPruebas = chispatest === '1';
+
+  // --- Config guiada (Sesion 2 V2): "configurame el salon" dentro de Chispa ---
+  const esGestorOnboarding = profile.role === 'owner' || profile.role === 'admin';
+  const perfilOnboarding: PerfilAgente = { nombreNegocio, codigoPostal };
+  const onbStatus = useOnboardingStatus(esGestorOnboarding ? negocioId : null, esGestorOnboarding);
+  const [configGuiada, setConfigGuiada] = useState(false);
+  const [temaIdx, setTemaIdx] = useState(0);
+  const ctxOnboardingRef = useRef<ContextoEjecucion>({ negocioId, profesionalesCreados: [], serviciosCreados: [], datosNegocioSesion: undefined });
+  // blockId -> a que tema/paso pertenece (formulario/opciones de la config
+  // guiada usan el MISMO callback onRespuestaInteractiva que el chat normal;
+  // este mapa es lo que distingue "hay que ejecutar un paso del onboarding" de
+  // "hay que reenviar esto como texto al chat general").
+  const bloqueDescriptorRef = useRef<Record<string, { tema: TemaId; kind: string }>>({});
+  const hiloCargado = useRef(false);
 
   const amplio = pantallaCompleta && !isMobile;
 
@@ -200,7 +404,11 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
   const hayAccionPendiente = mensajes.some(
     (m) => m.role === 'assistant' && m.accionEstado === 'pendiente',
   );
-  const bloqueado = cargando || hayAccionPendiente;
+  // La config guiada tambien bloquea el texto libre: es un asistente paso a
+  // paso (formularios/opciones en orden), no tiene sentido mezclar un mensaje
+  // suelto a mitad. "Saltar este paso"/"Salir" (mas abajo) son la valvula de
+  // escape, no el campo de texto.
+  const bloqueado = cargando || hayAccionPendiente || configGuiada;
 
   useEffect(() => {
     if (stylesInjected.current) return;
@@ -232,6 +440,78 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [abierto, pantallaCompleta]);
+
+  // Memoria de sesion (Sesion 2 V2): restaura el hilo (mensajes + estado de la
+  // config guiada) al montar, UNA vez. Nunca en demo: demo_salon_001 es un
+  // tenant compartido entre visitantes y guardar aqui filtraria conversacion
+  // de una persona a otra. "Opcional, no bloqueante": si falla (cuota de
+  // localStorage, JSON invalido...) simplemente se empieza de cero.
+  useEffect(() => {
+    if (IS_DEMO_MODE || hiloCargado.current || typeof localStorage === 'undefined') return;
+    hiloCargado.current = true;
+    try {
+      const raw = localStorage.getItem(`${HILO_KEY_PREFIX}${negocioId}:${profile.id}`);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as {
+        mensajes?: Mensaje[]; configGuiada?: boolean; temaIdx?: number;
+        ctx?: ContextoEjecucion; respuestas?: Record<string, unknown>;
+        descriptores?: Record<string, { tema: TemaId; kind: string }>;
+      };
+      if (Array.isArray(saved.mensajes) && saved.mensajes.length > 0) setMensajes(saved.mensajes);
+      if (saved.descriptores) bloqueDescriptorRef.current = saved.descriptores;
+      if (saved.respuestas) setRespuestasInteractivas(saved.respuestas);
+      if (saved.ctx) ctxOnboardingRef.current = saved.ctx;
+      if (typeof saved.temaIdx === 'number') setTemaIdx(saved.temaIdx);
+      if (saved.configGuiada) setConfigGuiada(true);
+    } catch { /* hilo no recuperable: se empieza de cero, no es un error visible */ }
+  }, [negocioId, profile.id]);
+
+  useEffect(() => {
+    if (IS_DEMO_MODE || !hiloCargado.current || typeof localStorage === 'undefined') return;
+    if (mensajes.length === 0) return;
+    try {
+      const payload = {
+        mensajes, configGuiada, temaIdx,
+        ctx: ctxOnboardingRef.current, respuestas: respuestasInteractivas,
+        descriptores: bloqueDescriptorRef.current,
+      };
+      localStorage.setItem(`${HILO_KEY_PREFIX}${negocioId}:${profile.id}`, JSON.stringify(payload));
+    } catch { /* cuota llena u otro fallo de storage: no debe romper el chat */ }
+  }, [mensajes, configGuiada, temaIdx, respuestasInteractivas, negocioId, profile.id]);
+
+  // Apertura desde fuera del panel: boton "Poner en marcha tu salon" de Avisos
+  // (evento global, ver CHISPA_CONFIG_GUIADA_EVENT) y previsualizacion manual
+  // ?onboarding_ia=1. Sin dependencias: siempre registra el cierre mas
+  // reciente para que iniciarConfigGuiada() vea el ultimo estado.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = () => { setAbierto(true); iniciarConfigGuiada(); };
+    window.addEventListener(CHISPA_CONFIG_GUIADA_EVENT, handler);
+    return () => window.removeEventListener(CHISPA_CONFIG_GUIADA_EVENT, handler);
+  });
+
+  useEffect(() => {
+    if (onboarding_ia !== '1' || !esGestorOnboarding || configGuiada) return;
+    setAbierto(true);
+    iniciarConfigGuiada();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onboarding_ia, esGestorOnboarding]);
+
+  // Disparo automatico UNA vez por navegador (mismo criterio que el antiguo
+  // OnboardingAgentOverlay: gestor, negocio real, nucleo pendiente). El guard
+  // de localStorage hace que sea seguro que este efecto se re-evalue varias
+  // veces mientras onbStatus va cargando.
+  useEffect(() => {
+    if (IS_DEMO_MODE || typeof window === 'undefined') return;
+    if (!esGestorOnboarding || !onbStatus.ready || onbStatus.coreDone) return;
+    if (abierto || configGuiada) return;
+    const key = `${ONBOARDING_AUTO_KEY_PREFIX}${negocioId}`;
+    if (window.localStorage.getItem(key)) return;
+    window.localStorage.setItem(key, '1');
+    setAbierto(true);
+    iniciarConfigGuiada();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [esGestorOnboarding, onbStatus.ready, onbStatus.coreDone, negocioId]);
 
   // Historial en texto plano para dar contexto al edge (los bloques se aplanan).
   function historialParaEdge(msgs: Mensaje[]): { role: 'user' | 'assistant'; content: any }[] {
@@ -304,6 +584,19 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
     if (t) void enviarMensaje(t);
   }
 
+  // Bifurcacion entre los DOS usos de 'formulario'/'opciones': si el bloque
+  // pertenece a un paso de la config guiada (registrado en bloqueDescriptorRef
+  // al construirlo), ejecuta el paso del onboarding; si no, es un bloque del
+  // chat general y se reenvia como texto (comportamiento de la Sesion 1).
+  function onRespuestaInteractivaUnificado(bloque: Bloque, payload: unknown) {
+    if (bloque.tipo !== 'formulario' && bloque.tipo !== 'opciones') return;
+    if (bloqueDescriptorRef.current[bloque.id]) {
+      void manejarRespuestaConfigGuiada(bloque, payload);
+      return;
+    }
+    manejarRespuestaInteractiva(bloque, payload);
+  }
+
   async function enviarMensaje(textoOverride?: string) {
     const t = (textoOverride ?? texto).trim();
     if ((!t && !imagenB64) || bloqueado) return;
@@ -343,6 +636,16 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
       ]);
       setTexto('');
       setImagenB64(null);
+      return;
+    }
+
+    // Deteccion de intencion de config guiada (texto o voz, que tambien pasa
+    // por aqui): determinista, sin llamar al edge solo para clasificar. Si ya
+    // esta en marcha no puede volver a dispararse (el input esta bloqueado).
+    if (!imagenB64 && detectaIntencionConfigGuiada(t)) {
+      setMensajes((m) => [...m, { role: 'user', content: t }]);
+      setTexto('');
+      iniciarConfigGuiada();
       return;
     }
 
@@ -455,12 +758,206 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
     pushAssistantTexto('Accion cancelada.');
   }
 
+  // ---- Config guiada (Sesion 2 V2): "Chispa hospeda configurame el salon" ----
+  // Reutiliza EXACTAMENTE los ejecutores de lib/onboardingAgent.ts (misma
+  // fuente de verdad que usaba el overlay retirado): el orden de temas, los
+  // presets de horario y las escrituras reales no se duplican aqui.
+
+  // pedirPregunta consume una llamada al edge onboarding-agent por tema. En la
+  // demo comparte el MISMO contador que el chat general (DEMO_LIMITE_MSGS):
+  // sin este guard, "configurame el salon" en la demo abriria una via de coste
+  // de LLM que antes no existia (el overlay viejo excluia la demo del todo).
+  async function pedirPreguntaConDemoLimite(tema: TemaId, estado: Record<TemaId, boolean>, perfil: PerfilAgente) {
+    if (IS_DEMO_MODE) {
+      if (demoCount.current >= DEMO_LIMITE_MSGS) return TEMA_FALLBACK[tema];
+      demoCount.current += 1;
+      try { sessionStorage.setItem(DEMO_COUNT_KEY, String(demoCount.current)); } catch { /* no critico */ }
+    }
+    return pedirPregunta(tema, estado, perfil);
+  }
+
+  // Punto UNICO por el que la config guiada escribe. En demo, guardrail: nunca
+  // toca el tenant compartido, simula un recibo con el mismo formato.
+  async function ejecutarPasoOnboarding(tipo: string, args: Record<string, any>): Promise<ResultadoAccion> {
+    setCargando(true);
+    try {
+      const resultado: ResultadoAccion = IS_DEMO_MODE
+        ? { ok: true, resumen: resumenDemoOnboarding(tipo, args) }
+        : await ejecutarAccionOnboarding(tipo, args, ctxOnboardingRef.current);
+      if (!IS_DEMO_MODE && tipo === 'completar_datos_negocio' && resultado.ok) {
+        ctxOnboardingRef.current.datosNegocioSesion = {
+          nombre: String(args.nombre), direccion: String(args.direccion), telefono: String(args.telefono),
+        };
+      }
+      pushAssistantTexto(IS_DEMO_MODE
+        ? `Hecho (demostración): ${resultado.resumen} En tu cuenta esto se guardaría de verdad.`
+        : resultado.resumen);
+      if (!IS_DEMO_MODE) onbStatus.refresh();
+      return resultado;
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  function iniciarConfigGuiada() {
+    if (!esGestorOnboarding) {
+      pushAssistantTexto('La puesta en marcha del salón la gestiona la propietaria o dirección de tu salón. Pídeselo a quien tenga ese acceso.');
+      return;
+    }
+    if (configGuiada) return; // ya en marcha: no reiniciar sobre un flujo activo
+    ctxOnboardingRef.current = { negocioId, profesionalesCreados: [], serviciosCreados: [], datosNegocioSesion: undefined };
+    setConfigGuiada(true);
+    pushAssistantTexto('Vale, vamos a poner en marcha tu salón. Te iré pidiendo lo básico paso a paso: puedes saltar cualquier paso cuando quieras.');
+    void avanzarTemaGuiado(0);
+  }
+
+  async function avanzarTemaGuiado(idx: number) {
+    if (idx >= TEMA_ORDEN.length) { finalizarConfigGuiada(); return; }
+    setTemaIdx(idx);
+    const tema = TEMA_ORDEN[idx];
+    setCargando(true);
+    const pregunta = await pedirPreguntaConDemoLimite(tema, onbStatus.done, perfilOnboarding);
+    setCargando(false);
+    const { id, previos, interactivo, kind } = construirPasoTema(tema, pregunta, perfilOnboarding);
+    bloqueDescriptorRef.current[id] = { tema, kind };
+    setMensajes((m) => [...m, {
+      role: 'assistant', accionEstado: null,
+      bloques: [{ tipo: 'progreso', paso: idx + 1, total: TEMA_ORDEN.length, etiqueta: TEMA_TITULO_SECCION[tema] }, ...previos, interactivo],
+    }]);
+  }
+
+  function finalizarConfigGuiada() {
+    setConfigGuiada(false);
+    pushAssistantTexto('Tu salón ya está configurado. Puedes revisar y afinar todo esto cuando quieras desde Ajustes.');
+    if (!IS_DEMO_MODE) onbStatus.refresh();
+  }
+
+  function saltarTema() {
+    const tema = TEMA_ORDEN[temaIdx];
+    pushAssistantTexto(`Paso omitido. ${TEMA_DESTINO_MANUAL[tema]}.`);
+    void avanzarTemaGuiado(temaIdx + 1);
+  }
+
+  function salirConfigGuiada() {
+    setConfigGuiada(false);
+    pushAssistantTexto('De acuerdo. Cuando quieras seguir, dime «configúrame el salón».');
+  }
+
+  // "¿Añades otro?" tras crear un servicio/profesional (mismo patron que el
+  // overlay retirado: con uno basta para operar, anadir mas es opcional).
+  function mostrarOtroPaso(tema: TemaId, kind: string, titulo: string) {
+    const id = idPasoOnboarding(tema, '-otro');
+    bloqueDescriptorRef.current[id] = { tema, kind };
+    setMensajes((m) => [...m, {
+      role: 'assistant', accionEstado: null,
+      bloques: [{ tipo: 'opciones', id, titulo, opciones: [{ valor: 'si', label: 'Sí, añadir otro' }, { valor: 'no', label: 'Continuar' }] }],
+    }]);
+  }
+
+  // activar_reserva_online(true) hace el salon publico al instante: mismo
+  // segundo paso de confirmacion explicita que tenia el overlay retirado.
+  function mostrarConfirmReserva() {
+    const id = idPasoOnboarding('reserva_online', '-confirm');
+    bloqueDescriptorRef.current[id] = { tema: 'reserva_online', kind: 'reserva_confirm' };
+    setMensajes((m) => [...m, {
+      role: 'assistant', accionEstado: null,
+      bloques: [{
+        tipo: 'opciones', id, titulo: 'Tu salón será visible y reservable públicamente ahora mismo. ¿Confirmas?',
+        opciones: [{ valor: 'si', label: 'Sí, adelante' }, { valor: 'no', label: 'Mejor no' }],
+      }],
+    }]);
+  }
+
+  async function manejarRespuestaConfigGuiada(bloque: Bloque, payload: unknown) {
+    if (bloque.tipo !== 'formulario' && bloque.tipo !== 'opciones') return;
+    const desc = bloqueDescriptorRef.current[bloque.id];
+    if (!desc) return;
+    setRespuestasInteractivas((prev) => ({ ...prev, [bloque.id]: payload }));
+
+    switch (desc.kind) {
+      case 'datos_negocio_form': {
+        const v = payload as Record<string, string | number>;
+        await ejecutarPasoOnboarding('completar_datos_negocio', {
+          nombre: String(v.nombre ?? ''), direccion: String(v.direccion ?? ''), telefono: String(v.telefono ?? ''),
+        });
+        void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+      case 'servicio_form': {
+        const v = payload as Record<string, string | number>;
+        const r = await ejecutarPasoOnboarding('crear_servicio', {
+          nombre: String(v.nombre ?? ''), precio: Number(v.precio), duracion_min: Number(v.duracion_min),
+        });
+        if (r.ok) mostrarOtroPaso('servicios', 'servicio_otro', '¿Añades otro servicio?');
+        else void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+      case 'servicio_otro': {
+        if ((payload as string[])[0] === 'si') void avanzarTemaGuiado(temaIdx);
+        else void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+      case 'equipo_form': {
+        const v = payload as Record<string, string | number>;
+        const r = await ejecutarPasoOnboarding('crear_profesional', {
+          nombre: String(v.nombre ?? ''), categoria: String(v.categoria ?? 'oficial'), quiere_invitar: false, email: '',
+        });
+        if (r.ok) mostrarOtroPaso('equipo', 'equipo_otro', '¿Añades otro profesional? (Podrás invitarles por email después, desde Equipo)');
+        else void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+      case 'equipo_otro': {
+        if ((payload as string[])[0] === 'si') void avanzarTemaGuiado(temaIdx);
+        else void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+      case 'horario_opciones': {
+        const preset = HORARIO_PRESETS[Number((payload as string[])[0])];
+        await ejecutarPasoOnboarding('fijar_horario_salon', { dias: preset?.dias ?? [] });
+        void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+      case 'reserva_opciones': {
+        if ((payload as string[])[0] === 'si') { mostrarConfirmReserva(); return; }
+        await ejecutarPasoOnboarding('activar_reserva_online', { activar: false });
+        void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+      case 'reserva_confirm': {
+        const activar = (payload as string[])[0] === 'si';
+        await ejecutarPasoOnboarding('activar_reserva_online', { activar });
+        void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+      case 'fotos_opciones': {
+        if ((payload as string[])[0] === 'ahora') {
+          setMensajes((m) => [...m, {
+            role: 'assistant', accionEstado: null,
+            bloques: [{ tipo: 'enlace', ruta: CHISPA_RUTAS.configuracion.ruta, label: 'Ir a Configuración → Servicios' }],
+          }]);
+        }
+        void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+      case 'notif_opciones': {
+        const activar = (payload as string[])[0] === 'si';
+        await ejecutarPasoOnboarding('activar_notificaciones', { activar });
+        void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+    }
+  }
+
   const drawerWidth = isMobile || amplio ? '100%' : 400;
 
   const contenido = (
     <>
-      {/* Pestana lanzadora (borde derecho) cuando esta cerrado */}
-      {!abierto && (
+      {/* Pestana lanzadora (borde derecho) cuando esta cerrado. Oculta si el
+          panel solo esta montado para la puesta en marcha (asistente general
+          apagado): no anadir una burbuja de chat permanente a un salon que no
+          la activo — se llega por el auto-disparo, el boton de Avisos o el
+          detector de intencion mientras ya esta abierto por otra via. */}
+      {!abierto && !soloOnboarding && (
         <button
           className="chispa-launch-tab"
           onClick={() => setAbierto(true)}
@@ -612,7 +1109,7 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
                             onCancelar={b.tipo === 'accion' ? () => cancelarAccion(i) : undefined}
                             anchoAmplio={amplio}
                             respuestasInteractivas={respuestasInteractivas}
-                            onRespuestaInteractiva={manejarRespuestaInteractiva}
+                            onRespuestaInteractiva={onRespuestaInteractivaUnificado}
                           />
                         ))}
                       </div>
@@ -633,6 +1130,19 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
               </div>
             </div>
 
+            {/* Config guiada: valvula de escape siempre visible (IA propone,
+                el profesional dispone — nunca un flujo obligatorio). */}
+            {configGuiada && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, padding: '0 12px 8px', flexShrink: 0 }}>
+                <button onClick={saltarTema} style={{ background: 'none', border: 'none', color: T.textTertiary, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+                  Saltar este paso
+                </button>
+                <button onClick={salirConfigGuiada} style={{ background: 'none', border: 'none', color: T.textTertiary, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+                  Salir de la configuración guiada
+                </button>
+              </div>
+            )}
+
             {/* Input */}
             <div style={{ padding: '10px 12px 12px', borderTop: `1px solid ${T.border}`, flexShrink: 0, display: 'flex', justifyContent: amplio ? 'center' : 'stretch' }}>
               <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined }}>
@@ -649,7 +1159,7 @@ export default function ChispaPanel({ negocioId, profile, onAgendaChanged, brief
                   onChange={(e) => setTexto(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje(); } }}
                   disabled={bloqueado}
-                  placeholder={hayAccionPendiente ? 'Confirma o cancela la accion primero...' : 'Escribe tu solicitud...'}
+                  placeholder={hayAccionPendiente ? 'Confirma o cancela la accion primero...' : configGuiada ? 'Responde arriba para continuar, o usa Saltar/Salir...' : 'Escribe tu solicitud...'}
                   aria-label="Mensaje para Chispa"
                   style={{ flex: 1, border: 'none', background: 'transparent', color: T.text, fontSize: 13.5, fontFamily: 'Inter, system-ui, sans-serif', outline: 'none', lineHeight: 1.4, cursor: hayAccionPendiente ? 'not-allowed' : 'text' }}
                 />

@@ -13,7 +13,6 @@ import { ThemeProvider } from '@/lib/themeContext';
 import { CalendarProvider } from '@/lib/calendarContext';
 import { PrivacyConsentProvider } from '@/lib/privacyConsentContext';
 import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
-import { OnboardingAgentOverlay } from '@/components/onboarding/OnboardingAgentOverlay';
 import { ChispaLauncher } from '@/components/chispa/ChispaLauncher';
 import { useTheme } from '@/lib/theme';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from '@expo-google-fonts/inter';
@@ -64,7 +63,6 @@ function ThemedRoot({ children }: { children: React.ReactNode }) {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <OfflineBanner />
       <PrivacyConsentModal />
-      <OnboardingAgentOverlay />
       <ChispaLauncher />
       {children}
     </GestureHandlerRootView>

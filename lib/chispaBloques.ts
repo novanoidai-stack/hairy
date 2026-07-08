@@ -33,6 +33,13 @@ export const CHISPA_RUTAS: Record<string, { ruta: string; label: string }> = {
 
 export type ChispaRutaKey = keyof typeof CHISPA_RUTAS;
 
+// Evento DOM global para abrir Chispa en modo "config guiada" (Sesion 2 V2)
+// desde fuera del panel (p.ej. el boton "Poner en marcha tu salon" de Avisos,
+// que vive en components/agenda/AgendaCalendar.web.tsx). Mismo patron ya usado
+// en app/_layout.tsx para el puente de navegacion de la demo (window.dispatchEvent
+// + addEventListener), sin acoplar ese componente al panel de Chispa.
+export const CHISPA_CONFIG_GUIADA_EVENT = 'mecha-chispa-config-guiada';
+
 // Bloque tipado. Union EXTENSIBLE: anadir nuevos tipos aqui + su caso en
 // BloqueRenderer, sin tocar el resto del flujo.
 // Unidad de un valor numerico de 'grafica'/'comparativa': determina formato y color.

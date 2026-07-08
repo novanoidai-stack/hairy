@@ -86,7 +86,7 @@ FÁCIL que hacerlo a mano; si tarda más que a mano, sobra.
 | # | Fase | Sesión | Modelo | Esfuerzo | Depende |
 |---|------|--------|--------|----------|---------|
 | 1 | A Fundación | Bloques interactivos + panel (fullscreen, micro, voz honesta) — **HECHA 8 jul** | Opus 4.8 | alto | — |
-| 2 | A Fundación | Chispa hospeda "Configúrame el salón" + rol + memoria opcional | Opus 4.8 | alto | 1 |
+| 2 | A Fundación | Chispa hospeda "Configúrame el salón" + rol + memoria opcional — **HECHA 8 jul** | Opus 4.8 | alto | 1 |
 | 3 | A Fundación | Config guiada completa + "actúa con mínima info" en el chatbot | Opus 4.8 | medio-alto | 1,2 |
 | 4 | B Por página | Motor "IA por página" sin fallos silenciosos (+ arreglar Mi Jornada) | Opus 4.8 | medio | 1 |
 | 5 | B Por página | Agenda: botón "Organizar mi agenda" real | Opus 4.8 | alto | 1,4 |
@@ -199,6 +199,37 @@ un profesional no ve el flujo de configuración del negocio; recargar no borra e
 
 Cierra con el Protocolo de cierre (verificación E2E del flujo escribiendo config real en un tenant de prueba).
 ```
+
+**Verificado 8 jul:** modo "config guiada" vive DENTRO de `ChispaPanel.web.tsx`
+(sin overlay aparte): deteccion determinista de intencion (`detectaIntencionConfigGuiada`, sin LLM) sobre el
+mensaje de texto/voz + boton "Que te ayude Chispa" nuevo en `OnboardingCard.web.tsx` (evento
+`CHISPA_CONFIG_GUIADA_EVENT` en `lib/chispaBloques.ts`) + auto-disparo una vez por navegador (mismo criterio que
+el overlay: gestor, negocio real, nucleo pendiente). Recorre `TEMA_ORDEN` de `lib/onboardingAgent.ts` pintando
+CADA tema como bloque `formulario`/`opciones` con `progreso` (Sesion 1); reutiliza `pedirPregunta` +
+`ejecutarAccion` de onboardingAgent.ts SIN duplicar escrituras (datos_negocio, servicios y equipo con formulario
++ bucle "¿anades otro?"; horario_salon con los 2 presets deterministas como opciones; reserva_online con
+confirmacion de riesgo en dos pasos, igual que el overlay retirado; fotos_servicios con enlace a Configuracion;
+notificaciones con si/no). `OnboardingAgentOverlay` (.web.tsx y su stub nativo) RETIRADO por completo (borrado +
+quitado de `app/_layout.tsx`): un solo camino. ROL: `esGestorOnboarding` (owner/admin) gatea el auto-disparo, el
+detector de intencion y el arranque manual; `ChispaLauncher.web.tsx` ahora monta el panel aunque
+`asistenteAgendaActivo` este apagado SI el negocio necesita onboarding (antes el overlay era independiente de
+ese toggle; se preserva ese comportamiento) — pestana flotante permanece oculta en ese modo hasta que se abre.
+MEMORIA: hilo completo (mensajes + estado de la config guiada) en `localStorage` por negocio+usuario, nunca en
+demo. Guardrail demo: `pedirPreguntaConDemoLimite` comparte el contador `DEMO_LIMITE_MSGS` ya existente (evita
+abrir una via de coste de LLM nueva en el tenant compartido) y `ejecutarPasoOnboarding` simula el recibo
+(`Hecho (demostración): ... En tu cuenta esto se guardaría de verdad.`) sin tocar la fila real.
+**E2E real (no demo):** logueado como gestor en el tenant de prueba `testeo4_03801` (negocio limpio, 0 filas en
+todas las tablas de onboarding), el auto-disparo abrio Chispa solo; se completaron los 7 temas end-to-end desde
+la UI y se verifico por SQL directo en Supabase que CADA paso escribio de verdad: `negocio_config.config`
+(nombre/direccion/telefono, pre-rellenado el nombre desde el perfil), `servicios` (1 fila), `profesionales`
+(1 fila) + `horarios_profesional` (cascada correcta del horario elegido), `negocio_horarios` (7 dias del preset
+"Lunes a viernes 9-20, sabado 9-14"), `negocio_portal` (portal activado tras el paso de confirmacion de riesgo),
+`negocio_config.config.notifRecordatorioActiva`. Recarga de pagina a mitad/al final: el hilo completo (incluida
+la ultima respuesta) se restauro identico desde `localStorage`. **E2E demo:** mismo flujo en
+`/demo.html?share=1` (iframe `?demo=1`) via texto libre "configurame el salon": recibo
+"Hecho (demostración): ... En tu cuenta esto se guardaría de verdad."; verificado por SQL que
+`negocio_config` de `demo_salon_001` NO cambio. `npx tsc --noEmit` y `npm run build:web` limpios. Sin
+migraciones ni edge functions nuevas/tocadas esta sesion (no aplica desplegar).
 
 ## Prompt Sesión 3 — Config guiada completa + "actúa con mínima info" (Opus 4.8, medio-alto)
 

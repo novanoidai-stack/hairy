@@ -1641,3 +1641,43 @@ aparecio correctamente al forzar (fetch interceptado) un fallo de `chispa-tts`. 
 de preview `getUserMedia` deniega y aparecio el mensaje claro con los pasos, antes de tocar Web Speech.
 `tsc --noEmit` y `build:web` limpios. Edge `agenda-asistente` redesplegado por CLI y verificado (curl sin
 auth -> 401; llamadas autenticadas reales de la demo -> 200).
+
+## Adenda — Capa IA "Chispa" V2 Sesion 2: Chispa hospeda "Configúrame el salón" — HECHA (8 jul)
+
+El flujo estrella del feedback de Jose: "configúrame el salón" (texto o voz) o el boton "Que te ayude
+Chispa" (nuevo, en la tarjeta "Pon en marcha tu salon" de Avisos) lanzan un asistente guiado VISUAL
+**dentro de Chispa** — se retira el overlay aparte (`OnboardingAgentOverlay.web.tsx` + su stub nativo,
+borrados; ya no se monta en `app/_layout.tsx`), un solo camino.
+
+- **Deteccion de intencion determinista** (`detectaIntencionConfigGuiada` en `ChispaPanel.web.tsx`, sin LLM)
+  sobre frases tipo "configurame el salon"/"pon en marcha"; si el rol no es owner/admin, respuesta clara
+  explicando que solo la propietaria/direccion pueden hacerlo (nunca silencioso).
+- **Recorre `TEMA_ORDEN`** de `lib/onboardingAgent.ts` (motor YA existente, reutilizado sin duplicar
+  escrituras) pintando cada tema como bloque `formulario`/`opciones` + `progreso` (paso X de 7), en vez del
+  campo de texto libre del overlay antiguo: datos_negocio (formulario, nombre pre-rellenado desde el
+  perfil), servicios y equipo (formulario + "¿anades otro?"), horario_salon (los 2 presets deterministas
+  como opciones, sin LLM), reserva_online (opciones + confirmacion de riesgo en dos pasos, portal publico
+  inmediato), fotos_servicios (enlace a Configuracion), notificaciones (si/no). "Saltar este paso" y "Salir
+  de la configuracion guiada" siempre visibles (IA propone, el profesional dispone).
+- **Rol:** `ChispaLauncher.web.tsx` ahora monta el panel aunque `asistenteAgendaActivo` este apagado SI el
+  negocio necesita onboarding (gestor + nucleo pendiente) — preserva el comportamiento del overlay retirado,
+  que nunca dependio de ese toggle; la pestana flotante permanece oculta hasta que se abre por auto-disparo
+  o por el boton de Avisos, para no anadir un chat-bubble permanente a salones que no activaron el asistente.
+- **Memoria de sesion:** hilo completo (mensajes + estado de la config guiada) en `localStorage` por
+  negocio+usuario; nunca en demo (tenant compartido).
+- **Guardrail demo:** `pedirPreguntaConDemoLimite` comparte el contador `DEMO_LIMITE_MSGS` ya existente del
+  chat general (evita abrir una via de coste de LLM nueva en el tenant compartido); las escrituras se
+  simulan (`Hecho (demostración): ... En tu cuenta esto se guardaría de verdad.`), nunca tocan
+  `demo_salon_001`.
+
+**Verificado E2E real (no demo):** logueado como gestor en el tenant de prueba `testeo4_03801` (negocio
+recien creado, cero filas en todas las tablas de onboarding), el auto-disparo abrio Chispa solo; se
+completaron los 7 temas desde la UI y se confirmo por SQL directo en Supabase que cada paso escribio de
+verdad: `negocio_config.config` (datos del negocio, nombre pre-rellenado desde el perfil), `servicios` (1
+fila), `profesionales` (1 fila) + `horarios_profesional` (cascada correcta), `negocio_horarios` (7 dias del
+preset elegido), `negocio_portal` (portal activado tras confirmar el riesgo), `notifRecordatorioActiva`.
+Recargar la pagina a mitad y al final del flujo restauro el hilo completo, identico, desde `localStorage`.
+**Verificado en demo:** mismo flujo por texto libre en `/demo.html?share=1` (iframe `?demo=1`): recibo de
+demostracion correcto y `negocio_config` de `demo_salon_001` sin cambios tras confirmarlo por SQL.
+`npx tsc --noEmit` y `npm run build:web` limpios. Sin migraciones ni edge functions nuevas/tocadas esta
+sesion.

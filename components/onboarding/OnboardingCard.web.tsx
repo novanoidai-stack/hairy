@@ -7,11 +7,15 @@ interface Props {
   isMobile: boolean;
   onOpen: () => void;
   onHide: () => void;
+  // Config guiada dentro de Chispa (Sesion 2 V2): segunda puerta de entrada,
+  // complementaria al checklist manual ("Ver los pasos"). Opcional para no
+  // romper otros usos futuros de esta tarjeta que no la necesiten.
+  onAbrirChispa?: () => void;
 }
 
 // Tarjeta destacada que vive arriba del desplegable de Avisos. No muestra los pasos:
 // es la puerta de entrada al panel (OnboardingPanel), con el progreso del nucleo.
-export function OnboardingCard({ coreCompletados, coreTotal, isMobile, onOpen, onHide }: Props) {
+export function OnboardingCard({ coreCompletados, coreTotal, isMobile, onOpen, onHide, onAbrirChispa }: Props) {
   const pct = coreTotal > 0 ? Math.round((coreCompletados / coreTotal) * 100) : 0;
   const faltan = Math.max(0, coreTotal - coreCompletados);
 
@@ -45,14 +49,26 @@ export function OnboardingCard({ coreCompletados, coreTotal, isMobile, onOpen, o
         <span style={{ fontSize: 11, fontWeight: 700, color: T.primaryHi, flexShrink: 0 }}>{coreCompletados}/{coreTotal}</span>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        {onAbrirChispa && (
+          <button
+            onClick={onAbrirChispa}
+            className="m-btn-primary"
+            title="Chispa te hace las preguntas y lo deja configurado"
+            style={{ flex: isMobile ? '1 1 100%' : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: isMobile ? '12px 12px' : '8px 12px', background: T.primary, border: 'none', borderRadius: 9, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+          >
+            Que te ayude Chispa
+            <OIcon name="arrowRight" size={15} color="#fff" />
+          </button>
+        )}
         <button
           onClick={onOpen}
-          className="m-btn-primary"
-          style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: isMobile ? '12px 12px' : '8px 12px', background: T.primary, border: 'none', borderRadius: 9, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+          style={onAbrirChispa
+            ? { flex: isMobile ? '1 1 auto' : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: isMobile ? '12px 12px' : '8px 12px', background: 'transparent', border: `1px solid ${T.primary}`, borderRadius: 9, color: T.primaryHi, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }
+            : { flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: isMobile ? '12px 12px' : '8px 12px', background: T.primary, border: 'none', borderRadius: 9, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
         >
           Ver los pasos
-          <OIcon name="arrowRight" size={15} color="#fff" />
+          <OIcon name="arrowRight" size={15} color={onAbrirChispa ? T.primaryHi : '#fff'} />
         </button>
         <button
           onClick={onHide}

@@ -23,6 +23,7 @@ import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import { OnboardingCard } from '@/components/onboarding/OnboardingCard.web';
 import OnboardingPanel from '@/components/onboarding/OnboardingPanel.web';
 import type { OnboardingStepId } from '@/lib/onboarding';
+import { CHISPA_CONFIG_GUIADA_EVENT } from '@/lib/chispaBloques';
 import { contarSinLeer } from '@/lib/bandeja';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualAgenda } from '@/lib/manuals/agenda';
@@ -995,6 +996,7 @@ export default function AgendaCalendar() {
                       isMobile={isMobile}
                       onOpen={() => { setShowNotif(false); onboarding.refresh(); setShowOnboardingPanel(true); }}
                       onHide={hideOnboarding}
+                      onAbrirChispa={() => { setShowNotif(false); window.dispatchEvent(new CustomEvent(CHISPA_CONFIG_GUIADA_EVENT)); }}
                     />
                   )}
                   {reposoGlobal && (

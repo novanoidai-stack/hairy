@@ -134,7 +134,7 @@ async function conTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
   ]).catch(() => null);
 }
 
-interface PerfilAgente {
+export interface PerfilAgente {
   codigoPostal?: string;
   nombreNegocio?: string;
 }
@@ -171,7 +171,7 @@ export async function interpretarRespuesta(
   return conTimeout(call, 6000);
 }
 
-interface ContextoEjecucion {
+export interface ContextoEjecucion {
   negocioId: string;
   profesionalesCreados: { id: string; nombre: string }[];
   serviciosCreados: string[];
