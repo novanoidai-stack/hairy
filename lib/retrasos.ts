@@ -200,8 +200,8 @@ export interface EstrategiasOpts {
   cierreMs?: number; // instante de cierre del dia (ms). Default: ultimo fin + 3h.
 }
 
-// ---- Modelo de fases en ms (interno) ----
-interface Fases {
+// ---- Modelo de fases en ms (compartido con lib/organizarAgenda.ts) ----
+export interface Fases {
   id: string;
   ini: number;
   finA: number; // fin fase activa 1
@@ -209,7 +209,7 @@ interface Fases {
   fin: number; // fin total (incluye 2a fase activa si la hay)
 }
 
-function fasesDe(c: CitaRetraso): Fases {
+export function fasesDe(c: CitaRetraso): Fases {
   const ini = +new Date(c.inicio);
   const fin = +new Date(c.fin);
   const finA = c.fin_activa ? +new Date(c.fin_activa) : fin;
@@ -230,14 +230,14 @@ function solapan(a: [number, number], b: [number, number]): boolean {
 }
 
 // Choque REAL: alguna ventana activa de a pisa alguna ventana activa de b.
-function chocaActivaActiva(a: Fases, b: Fases): boolean {
+export function chocaActivaActiva(a: Fases, b: Fases): boolean {
   if (a.id === b.id) return false;
   const wa = ventanasActivas(a);
   const wb = ventanasActivas(b);
   return wa.some((x) => wb.some((y) => solapan(x, y)));
 }
 
-function hayColision(fs: Fases[]): boolean {
+export function hayColision(fs: Fases[]): boolean {
   for (let i = 0; i < fs.length; i++) {
     for (let j = i + 1; j < fs.length; j++) {
       if (chocaActivaActiva(fs[i], fs[j])) return true;
@@ -247,12 +247,12 @@ function hayColision(fs: Fases[]): boolean {
 }
 
 // Reubica una cita a un nuevo inicio conservando la duracion de todas sus fases.
-function reubicar(f: Fases, nuevoIniMs: number): Fases {
+export function reubicar(f: Fases, nuevoIniMs: number): Fases {
   const d = nuevoIniMs - f.ini;
   return { id: f.id, ini: f.ini + d, finA: f.finA + d, finE: f.finE + d, fin: f.fin + d };
 }
 
-function toUpdate(orig: CitaRetraso, f: Fases): UpdateRetraso {
+export function toUpdate(orig: CitaRetraso, f: Fases): UpdateRetraso {
   const u: UpdateRetraso = {
     id: orig.id,
     inicio: new Date(f.ini).toISOString(),
@@ -285,7 +285,7 @@ function cierreDelta(citas: CitaRetraso[], updates: UpdateRetraso[]): number {
 // Busca el primer inicio (snap a slot) >= desdeMs donde `cita` no choca activa-activa
 // con ninguno de `obstaculos`. Si soloReposo, ademas exige que arranque dentro de un
 // reposo de algun obstaculo (tiempo muerto productivo).
-function buscarHueco(
+export function buscarHueco(
   citaFases: Fases,
   obstaculos: Fases[],
   desdeMs: number,

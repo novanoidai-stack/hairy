@@ -15,6 +15,7 @@ import { mensajeDeError } from '@/lib/errores';
 import { ejecutarAccion, type AccionPropuesta } from '@/lib/chispaOps';
 import { proponerRetrasoPorCita, construirUpdatesRetraso, calcularEstrategiasRetraso, mejorAlternativaSlot, duracionRealAprendida, type EstrategiaRetraso, type CitaRetraso, type CitaHistorial } from '@/lib/retrasos';
 import RetrasoEstrategiasModal from './RetrasoEstrategiasModal';
+import OrganizarAgendaPanel from './OrganizarAgendaPanel.web';
 import ListaEsperaPropuestaModal, { type CandidataListaEspera, type CitaOrigen } from './ListaEsperaPropuestaModal.web';
 import { RiesgoNoShowIndicator, type RiesgoNoShow } from '@/components/clientes/RiesgoNoShowIndicator.web';
 import { PhoneInput } from '@/components/ui/PhoneInput';
@@ -470,6 +471,9 @@ export default function AgendaCalendar() {
   const [showMobileCalendar, setShowMobileCalendar] = useState(false);
   // Hoja selectora de profesional en movil (un profesional a la vez)
   const [showProfPicker, setShowProfPicker] = useState(false);
+  // Panel "Organizar mi agenda" (Sesion 5, IA por pagina): detecta retrasos,
+  // solapes y huecos de HOY y los arregla de un clic. lib/organizarAgenda.ts.
+  const [showOrganizar, setShowOrganizar] = useState(false);
 
   useEffect(() => {
     async function cargar() {
@@ -1098,6 +1102,14 @@ export default function AgendaCalendar() {
               {!isTablet && (railCollapsed ? 'Mostrar lateral' : 'Pantalla completa')}
             </button>
           )}
+          <button
+            onClick={() => setShowOrganizar(true)}
+            title="Organizar mi agenda: detecta retrasos, solapes y huecos de hoy"
+            style={{ padding: isMobile ? '7px 8px' : '7px 12px', background: roleTheme.primarySoft, border: `1px solid ${roleTheme.primary}40`, color: roleTheme.primaryHi, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33 }}
+          >
+            <Icon name="sparkle" size={15} color={roleTheme.primaryHi} />
+            {!isMobile && 'Organizar'}
+          </button>
           <button className="m-btn-secondary" onClick={handleToday} title="Ir a hoy" style={{ padding: isMobile ? '7px 8px' : '7px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33 }}>
             <Icon name="calendar" size={15} color={TOKENS.text} />
             {!isMobile && 'Hoy'}
@@ -1892,6 +1904,23 @@ export default function AgendaCalendar() {
       </div>
 
       {showNewCita && <NewCitaModal onClose={() => { setShowNewCita(false); setNewCitaPrefill(null); }} onSaved={(nuevaCita: any) => { if (nuevaCita) setCitas(prev => [...prev, nuevaCita]); setShowNewCita(false); setNewCitaPrefill(null); }} selectedDate={selectedDateObj} prefillHora={newCitaPrefill?.hora} prefillProf={newCitaPrefill?.profId} />}
+      {showOrganizar && (
+        <OrganizarAgendaPanel
+          citas={citas}
+          profesionales={profesionales}
+          clientes={clientes}
+          servicios={servicios}
+          negocioId={negocioId}
+          isMobile={isMobile}
+          onClose={() => setShowOrganizar(false)}
+          onAplicado={(updates) => {
+            setCitas((prev: any[]) => prev.map((c) => {
+              const u = updates.find((x) => x.id === c.id);
+              return u ? { ...c, inicio: u.inicio, fin: u.fin, fin_activa: u.fin_activa ?? c.fin_activa, fin_espera: u.fin_espera ?? c.fin_espera } : c;
+            }));
+          }}
+        />
+      )}
       {showManualPanel && (
         <ManualPanel
           content={manualAgenda}

@@ -89,7 +89,7 @@ FÁCIL que hacerlo a mano; si tarda más que a mano, sobra.
 | 2 | A Fundación | Chispa hospeda "Configúrame el salón" + rol + memoria opcional — **HECHA 8 jul** | Opus 4.8 | alto | 1 |
 | 3 | A Fundación | Config guiada completa + "actúa con mínima info" en el chatbot — **HECHA 8 jul** (e84311dd9; verificada + fix rol 3f1b27f11) | Opus 4.8 | medio-alto | 1,2 |
 | 4 | B Por página | Motor "IA por página" sin fallos silenciosos (+ arreglar Mi Jornada) — **HECHA 8 jul** | Opus 4.8 | medio | 1 |
-| 5 | B Por página | Agenda: botón "Organizar mi agenda" real | Opus 4.8 | alto | 1,4 |
+| 5 | B Por página | Agenda: botón "Organizar mi agenda" real — **HECHA 8-9 jul** | Opus 4.8 | alto | 1,4 |
 | 6 | B Por página | Caja + Presupuestos proactivos | Sonnet 5 | medio | 4 |
 | 7 | B Por página | Clientes + Informes + Mi Jornada proactivos | Sonnet 5 | medio | 4 |
 | 8 | B Por página | Reseñas + Bandeja proactivas | Sonnet 5 | medio | 4 |
@@ -405,6 +405,43 @@ Verificado E2E en demo (escenario sembrado y revertido). tsc + build limpios.
 
 Cierra con el Protocolo de cierre.
 ```
+
+**Verificado 8-9 jul:** analizador determinista nuevo `lib/organizarAgenda.ts` (puro, sin BD/UI):
+`analizarAgendaDia()` agrupa las citas activas de HOY por profesional y prioriza 1) retraso real (cita
+cuyo fin ya paso y sigue abierta) 2) solape activa-activa (dato inconsistente) 3) huecos muertos/reposo
+desaprovechado (compactacion secuencial de citas futuras, excluye cadenas `grupo_id`) — para no proponer
+dos arreglos que se pisen sobre la misma cita, solo se buscan huecos en un profesional si no tiene ya un
+retraso o solape activo esa pasada (se vuelve a pulsar el boton tras aplicar para ver lo que quede).
+Reutiliza `calcularEstrategiasRetraso` tal cual para retrasos y las primitivas de fase de `lib/retrasos.ts`
+(exportadas sin tocar su logica) para solapes/huecos: nunca solapa activa-activa, siempre mueve las 4
+marcas juntas. 11 tests Deno nuevos (`lib/organizarAgenda.test.ts`, ejecutados junto a los 9 de
+`retrasos.test.ts`: 20/20 en verde) cubren cada tipo de problema, el umbral de ruido, el filtro al dia
+de "ahora" y la exclusion de cadenas. Panel nuevo `components/agenda/OrganizarAgendaPanel.web.tsx`: lista
+cada problema con su propuesta y un boton "Aplicar" (+ "Aplicar todos"); para retrasos con varias
+estrategias, "Ver opciones" reabre el `RetrasoEstrategiasModal` YA existente en vez de duplicar esa UI.
+Aplica via `chispaOps.ejecutarAccion({tipo:'optimizar_agenda'})` — el MISMO camino que usaria el chatbot —
+y se reanaliza solo tras cada aplicacion. Bug de la regla dura encontrado y arreglado en el ejecutor de
+`optimizar_agenda`: colapsaba `fin_espera` (`fin_activa = nuevo_fin` siempre) en CUALQUIER movimiento,
+chatbot incluido; ahora usa `nuevo_fin_activa`/`nuevo_fin_espera` cuando vienen (el boton siempre los
+manda) y cae al comportamiento previo solo si faltan (compat con el chatbot sin redesplegar). Se anadio
+tambien la auditoria en `citas_historial` (motivo "Reorganizada por Chispa") que faltaba en esa accion,
+para ambos caminos. Boton en la Agenda con icono chispa tintado por rol (`roleTheme`), visible en movil
+y escritorio. Arnes dev-only `?orgnow=<ISO>` (mismo patron que `?chispatest=1`/`?vozab=1`) para fijar la
+hora "ahora" del analisis sin depender del reloj real ni de la hora de cierre. **E2E real** (tenant
+`testeo4_03801`, cuenta owner provisionada para la sesion y borrada al terminar): sembradas 2 citas
+reales (retraso de 40 min en un profesional, hueco de 2h en otro) — el boton detecto AMBOS a la vez;
+"Aplicar" en cada uno escribio de verdad, verificado por SQL que las 4 marcas se movieron coherentes,
+`confirmacion_enviada` volvio a `false` y `citas_historial` quedo con el motivo exacto; tras aplicar
+ambos, "Tu agenda de hoy esta en orden". Se descubrio que `completarManual=false` (default) autocompleta
+citas pasadas al cargar la Agenda — la primera siembra se marco `completada` sola antes de poder
+verificarla; se ajusto el negocio de prueba y se reseto al terminar. **E2E demo:** en
+`/demo.html?share=1` (iframe con `?orgnow=` anadido a su `src`), "Aplicar" sobre un retraso sembrado
+mostro "Hecho (demostracion)... en la demo no se guardan cambios"; verificado por SQL que la fila real
+de `demo_salon_001` no cambio y no genero historial. Datos de prueba revertidos en ambos tenants.
+`npx tsc --noEmit` y `npm run build:web` limpios (se anadio `allowImportingTsExtensions` a
+`tsconfig.json` para el import `.ts` explicito que exige `deno test`). Sin migraciones ni edge functions
+nuevas/tocadas (el chatbot sigue con su propio criterio en `optimizar_agenda`; unificarlo es opcional
+segun este mismo plan).
 
 ## Prompt Sesión 6 — Caja + Presupuestos proactivos (Sonnet 5, medio)
 

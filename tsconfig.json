@@ -2,6 +2,10 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // Permite import ... from './x.ts' en modulos puros de lib/ que tambien se
+    // ejecutan con `deno test` (Deno exige extension explicita). No cambia el
+    // build de la app (noEmit ya viene activo desde expo/tsconfig.base).
+    "allowImportingTsExtensions": true,
     "paths": {
       "@/*": ["./*"]
     }

@@ -198,7 +198,11 @@ export type AccionPropuesta =
       tipo: 'optimizar_agenda';
       negocio_id: string;
       fecha: string;
-      movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[];
+      // nuevo_fin_activa/nuevo_fin_espera son opcionales: el boton "Organizar
+      // mi agenda" (Sesion 5) siempre las manda (desplaza las 4 marcas juntas,
+      // ver lib/organizarAgenda.ts); el chatbot (Modo Tetris) solo da
+      // inicio/fin, y el ejecutor completa fin_activa por compatibilidad.
+      movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; nuevo_fin_activa?: string; nuevo_fin_espera?: string; cliente_nombre: string }[];
       resumen: string;
     }
   // --- Lista de espera (Sesion 8-B) ---
@@ -528,16 +532,27 @@ export async function ejecutarAccion(
       }
 
       case 'optimizar_agenda': {
-        // Ejecutar los movimientos del tetris
+        // Ejecutar los movimientos (boton "Organizar mi agenda" o Modo Tetris
+        // del chatbot). Mueve las 4 marcas juntas cuando se dan (regla dura de
+        // fases activa/reposo); si el chatbot solo da inicio/fin, se mantiene
+        // el comportamiento previo (fin_activa = fin) para no romper ese camino.
         let exito = 0;
         for (const mov of a.movimientos) {
-          const { error } = await supabase.from('citas').update({
+          const { data: prev } = await supabase.from('citas').select('inicio').eq('id', mov.cita_id).maybeSingle();
+          const patch: Record<string, string | boolean> = {
             inicio: mov.nuevo_inicio,
-            fin_activa: mov.nuevo_fin,
             fin: mov.nuevo_fin,
+            fin_activa: mov.nuevo_fin_activa ?? mov.nuevo_fin,
             confirmacion_enviada: false, // para que n8n vuelva a avisar
-          }).eq('id', mov.cita_id);
-          if (!error) exito++;
+          };
+          if (mov.nuevo_fin_espera) patch.fin_espera = mov.nuevo_fin_espera;
+          const { error } = await supabase.from('citas').update(patch).eq('id', mov.cita_id);
+          if (!error) {
+            exito++;
+            await registrarHistorialIA(a.negocio_id, mov.cita_id, [
+              { campo: 'inicio', anterior: (prev?.inicio as string) ?? null, nuevo: mov.nuevo_inicio },
+            ], 'Reorganizada por Chispa');
+          }
         }
         return { ok: true, mensaje: `Se han movido ${exito} citas correctamente. Se avisara a los clientes por WhatsApp.` };
       }
