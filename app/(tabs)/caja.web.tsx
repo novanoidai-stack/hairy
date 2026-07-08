@@ -15,7 +15,9 @@ import { manualCaja } from '@/lib/manuals/caja';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
-import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
+import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
+import { elegirCandidatoUpsell } from '@/lib/upsellCandidato';
 
 // ─────────────────────────────────────────────────────────────────────────────────
 // Tokens (consistente con el resto de .web.tsx)
@@ -139,7 +141,7 @@ function CajaScreen() {
   const [reembolsando, setReembolsando] = useState<string | null>(null);
 
   // --- Venta rápida de productos ---
-  type ProductoVenta = { id: string; nombre: string; precio_cents: number };
+  type ProductoVenta = { id: string; nombre: string; precio_cents: number; categoria: string | null };
   type CarritoItem = ProductoVenta & { cantidad: number };
   const [showVentaProductos, setShowVentaProductos] = useState(false);
   const [showVentaBono, setShowVentaBono] = useState(false);
@@ -149,9 +151,11 @@ function CajaScreen() {
   const [ventaMetodo, setVentaMetodo] = useState<'efectivo' | 'datafono' | 'bizum'>('efectivo');
   const [ventaEnviando, setVentaEnviando] = useState(false);
 
-  // Sesión 9-A: Upsell IA
-  const chispa = useChispaSugerencia();
-  const [upsellSugerido, setUpsellSugerido] = useState<string | null>(null);
+  // Sesion 6 (V2): Upsell IA proactivo al cobrar. Determinista primero: el
+  // candidato (que producto sugerir) lo elige elegirCandidatoUpsell (sin LLM,
+  // por categoria del servicio); Chispa solo redacta la frase comercial sobre
+  // ESE candidato. Patron "AyudaIA por pagina" (Sesion 4): nunca fallo silencioso.
+  const upsellIA = useAyudaIA();
 
   // Totales de la selección
   const seleccion = useMemo(() => {
@@ -275,10 +279,10 @@ function CajaScreen() {
         .order('created_at', { ascending: true });
       setPresupuestosCobrables((presData || []) as PresupuestoCobrable[]);
 
-      // Cargar productos para Upsell IA
+      // Cargar productos para Upsell IA (categoria: entrada determinista del candidato)
       const { data: prods } = await supabase
         .from('productos')
-        .select('id, nombre, precio_cents')
+        .select('id, nombre, precio_cents, categoria')
         .eq('negocio_id', profile.negocio_id)
         .eq('activo', true)
         .order('nombre');
@@ -312,21 +316,24 @@ function CajaScreen() {
     }
   };
 
+  // Cita unica seleccionada (el upsell solo tiene sentido con 1 servicio claro).
+  const citaUpsell = selectedIds.size === 1
+    ? citas.find(c => c.id === Array.from(selectedIds)[0]) ?? null
+    : null;
+  // Candidato DETERMINISTA (sin LLM): que producto sugerir. Null si el servicio
+  // no encaja con ninguna categoria conocida o no hay producto de esa categoria.
+  const upsellCandidato = citaUpsell ? elegirCandidatoUpsell(citaUpsell.servicio_nombre, productosDisponibles) : null;
+
   useEffect(() => {
-    if (selectedIds.size === 1 && productosDisponibles.length > 0) {
-      const id = Array.from(selectedIds)[0];
-      const cita = citas.find(c => c.id === id);
-      if (cita && cita.servicio_nombre) {
-        const prods = productosDisponibles.map(p => p.nombre).join(', ');
-        const prompt = `El cliente ${cita.cliente_nombre || 'Cliente'} se ha hecho el servicio '${cita.servicio_nombre}'. Productos en catálogo: ${prods}. ¿Qué producto de este catálogo le ofrecerías venderle justo antes de cobrar? Responde con 1 sola frase corta y directa dirigida al peluquero. Ej: "Ofrécele la Mascarilla X para mantener su color vivo."`;
-        chispa.generar(prompt).then(res => setUpsellSugerido(res));
-      } else {
-        setUpsellSugerido(null);
-      }
+    if (upsellCandidato) {
+      const precio = (upsellCandidato.precio_cents / 100).toFixed(2);
+      const prompt = `El profesional va a cobrar el servicio "${citaUpsell?.servicio_nombre}". Sugiere en 1 frase corta (maximo 20 palabras), comercial y directa al profesional, por que ofrecer justo ahora "${upsellCandidato.nombre}" (${precio}€) antes de cobrar. No inventes propiedades ni precios distintos a los dados. No uses emojis.`;
+      upsellIA.analizar(prompt);
     } else {
-      setUpsellSugerido(null);
+      upsellIA.reset();
     }
-  }, [selectedIds, citas, productosDisponibles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [upsellCandidato?.id, citaUpsell?.id]);
 
   // Tras cobrar con exito desde el CobroSheet: recargar, avisar, cerrar.
   const handleCobroSuccess = async (cobroIds: string[]) => {
@@ -598,14 +605,6 @@ function CajaScreen() {
 
           {seleccion.count > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              {upsellSugerido && (
-                <div style={{ fontSize: 12, color: T.textSec, background: T.cardHi, padding: '8px 12px', borderRadius: 8, border: `1px dashed ${T.primary}66`, maxWidth: 220, fontStyle: 'italic', display: 'flex', gap: 6 }}>
-                  <span>✨</span> <span>{upsellSugerido}</span>
-                </div>
-              )}
-              {chispa.loading && selectedIds.size === 1 && (
-                <div style={{ fontSize: 12, color: T.textTer }}>Analizando oportunidad...</div>
-              )}
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 12, color: T.textSec }}>Pendiente</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: T.primary }}>
@@ -626,6 +625,41 @@ function CajaScreen() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Upsell IA (Sesion 6): candidato determinista + copy de Chispa. Vive en
+          el flujo normal (nunca fixed/absolute), como manda el patron de la
+          Sesion 4 — no compite con AvisosBell ni con ningun overlay. */}
+      {canSeeAll && upsellCandidato && (
+        <div style={{ marginBottom: 16 }}>
+          <TarjetaAyudaIA
+            titulo="Oportunidad de venta"
+            subtitulo="Sugerencia para este cobro"
+            estado={upsellIA.estado}
+            onAnalizar={() => upsellIA.reintentar()}
+            botonLabel="Repetir sugerencia"
+            mensajeVacio="Chispa no ha encontrado un motivo especial para sugerir esto ahora."
+            isMobile={isMobile}
+            resumenDeterminista={
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontWeight: 700, color: T.text }}>{upsellCandidato.nombre}</div>
+                  <div style={{ fontSize: 12, color: T.textSec }}>{(upsellCandidato.precio_cents / 100).toFixed(2)}€</div>
+                </div>
+                <button
+                  onClick={() => {
+                    setCarrito([{ ...upsellCandidato, cantidad: 1 }]);
+                    setShowVentaProductos(true);
+                  }}
+                  className="ca-btn"
+                  style={{ padding: '8px 14px', background: T.primary, color: '#fff', border: 'none', borderRadius: 9, fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap' }}
+                >
+                  Añadir al ticket
+                </button>
+              </div>
+            }
+          />
         </div>
       )}
 

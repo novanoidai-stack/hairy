@@ -18,8 +18,11 @@ import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web'
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
+import type { Bloque } from '@/lib/chispaBloques';
 import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
 import * as chispaOps from '@/lib/chispaOps';
+import type { AccionPropuesta } from '@/lib/chispaOps';
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
@@ -53,6 +56,7 @@ const ICONS: Record<string, string> = {
   doc: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
   whatsapp: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/>',
   search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  sparkles: '<path d="M12 3l1.8 5.6L19.5 10.4l-5.7 1.8L12 18l-1.8-5.8L4.5 10.4l5.7-1.8L12 3z"/>',
 };
 function Icon({ name, size = 16, color = T.text }: { name: string; size?: number; color?: string }) {
   return <span style={{ display: 'inline-flex', color, flexShrink: 0 }} dangerouslySetInnerHTML={{
@@ -74,13 +78,17 @@ interface Serv { id: string; nombre: string; precio: number; duracion_activa_min
 // ─────────────────────────────────────────────────────────────────────────────
 interface LineaDraft { concepto_id: string | null; nombre: string; precio: string; cantidad: number; guardar: boolean; }
 
-function EditorModal({ profile, salon, profesionales, servicios, conceptos, initial, onClose, onSaved, reloadConceptos }: {
+function EditorModal({ profile, salon, profesionales, servicios, conceptos, initial, origenIA, onClose, onSaved, reloadConceptos }: {
   profile: { negocio_id: string; id: string };
   salon: Salon;
   profesionales: Prof[];
   servicios: Serv[];
   conceptos: Concepto[];
   initial: Presupuesto | null;
+  // true si initial es un borrador sin guardar propuesto por Chispa (Sesion 6):
+  // initial.id === '' (sentinela de "nuevo", ver abrirEditorDesdeAccionIA). Solo
+  // cambia el texto de cabecera/badge; persistir() ya trata id='' como INSERT.
+  origenIA?: boolean;
   onClose: () => void;
   onSaved: (msg: string) => void;
   reloadConceptos: () => void;
@@ -250,9 +258,16 @@ function EditorModal({ profile, salon, profesionales, servicios, conceptos, init
       <div className="p-modal" onClick={e => e.stopPropagation()}
         style={{ background: T.panel, border: `1px solid ${T.borderHi}`, borderRadius: isMobile ? '16px 16px 0 0' : 16, padding: isMobile ? 18 : 24, width: '100%', maxWidth: 560, maxHeight: isMobile ? '94vh' : '92vh', overflowY: 'auto', boxShadow: '0 24px 70px rgba(40,30,24,0.35)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: T.text }}>{initial ? `Presupuesto P-${initial.numero}` : 'Nuevo presupuesto'}</h3>
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: T.text }}>{initial?.id ? `Presupuesto P-${initial.numero}` : 'Nuevo presupuesto'}</h3>
           <button onClick={onClose} className="p-btn" style={{ background: 'none', border: 'none', padding: 4 }}><Icon name="x" size={20} color={T.textTer} /></button>
         </div>
+
+        {origenIA && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, padding: '7px 11px', background: '#FFF7E6', border: '1px solid #FFD591', borderRadius: 8, fontSize: 11.5, color: '#874D00', fontWeight: 600 }}>
+            <Icon name="sparkles" size={13} color="#D48806" />
+            Borrador creado por Chispa (IA) · revisa los datos antes de guardar
+          </div>
+        )}
 
         {/* Contacto */}
         <label style={labelBase}>Cliente</label>
@@ -418,7 +433,7 @@ function PresupuestosScreen() {
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState<'todos' | PresupuestoEstado>('todos');
   const [busqueda, setBusqueda] = useState('');
-  const [editor, setEditor] = useState<{ open: boolean; initial: Presupuesto | null }>({ open: false, initial: null });
+  const [editor, setEditor] = useState<{ open: boolean; initial: Presupuesto | null; origenIA: boolean }>({ open: false, initial: null, origenIA: false });
   const [mensaje, setMensaje] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const reloadConceptos = useCallback(async () => {
@@ -458,7 +473,7 @@ function PresupuestosScreen() {
   const flash = (type: 'success' | 'error', text: string) => { setMensaje({ type, text }); setTimeout(() => setMensaje(null), 3500); };
 
   const onEditorSaved = async (msg: string) => {
-    setEditor({ open: false, initial: null });
+    setEditor({ open: false, initial: null, origenIA: false });
     flash('success', msg);
     if (profile?.negocio_id) {
       const { data } = await supabase.from('presupuestos').select('*').eq('negocio_id', profile.negocio_id).order('created_at', { ascending: false });
@@ -466,37 +481,110 @@ function PresupuestosScreen() {
     }
   };
 
-  // --- INYECCIÓN IA: PRESUPUESTOS ---
-  const { generar: generarSugerencia, cargando: chispaLoading, bloques: chispaBloques, limpiar: limpiarSugerencia } = useChispaSugerencia();
+  // Alerta proactiva "N dias sin respuesta" (Sesion 6) como tarjeta de PAGINA
+  // (no ya un aviso suelto por fila): agrega todos los presupuestos enviados
+  // que llevan >=3 dias sin aceptar/rechazar. El "reenvio" es real (correo, ya
+  // desplegado); WhatsApp real queda para Alexandro.
+  const pendientesSeguimiento = useMemo(() => presupuestos
+    .filter((p) => p.estado === 'enviado')
+    .map((p) => ({ p, dias: Math.floor((Date.now() - new Date(p.created_at).getTime()) / (1000 * 60 * 60 * 24)) }))
+    .filter((x) => x.dias >= 3)
+    .sort((a, b) => b.dias - a.dias)
+  , [presupuestos]);
+
+  const [reenviando, setReenviando] = useState<string | null>(null);
+  const reenviarPresupuesto = async (p: Presupuesto) => {
+    if (!p.contacto_email) { flash('error', 'Este presupuesto no tiene correo de contacto. Añádelo editando el presupuesto.'); return; }
+    setReenviando(p.id);
+    try {
+      await enviarPresupuestoPorCorreo(p.id);
+      flash('success', `Presupuesto P-${p.numero} reenviado a ${p.contacto_email}`);
+      if (profile?.negocio_id) {
+        const { data } = await supabase.from('presupuestos').select('*').eq('negocio_id', profile.negocio_id).order('created_at', { ascending: false });
+        setPresupuestos((data || []) as Presupuesto[]);
+      }
+    } catch (e) {
+      flash('error', mensajeDeError(e, 'No se pudo reenviar el presupuesto.'));
+    } finally {
+      setReenviando(null);
+    }
+  };
+
+  // --- Creador de presupuestos por lenguaje natural (Sesion 6) ---
+  // Patron "AyudaIA por pagina" (Sesion 4): idle/cargando/vacio/error(+reintentar)/
+  // listo, nunca fallo silencioso (useChispaSugerencia v1 se tragaba el error:
+  // en fallo no pintaba nada). El "formulario de revision" real es el propio
+  // EditorModal (ya tiene edicion de lineas/cliente/notas completa): al confirmar
+  // la propuesta de la IA NO se guarda directo, se abre el editor prellenado.
+  const ayudaPresupuestoIA = useAyudaIA();
   const [nlInput, setNlInput] = useState('');
+  const [ultimoNlInput, setUltimoNlInput] = useState('');
+  const [respuestasFormularioIA, setRespuestasFormularioIA] = useState<Record<string, unknown>>({});
 
   const handleNlSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!nlInput.trim()) return;
+    const texto = nlInput.trim();
+    if (!texto) return;
+    setUltimoNlInput(texto);
+    setRespuestasFormularioIA({});
     const cat = conceptos.map(c => `${c.nombre} (${eur(c.precio_cents)})`).join(', ');
-    generarSugerencia(`Crea un presupuesto con esta descripción: "${nlInput}". Utiliza este catálogo como referencia para los precios: ${cat}`);
+    ayudaPresupuestoIA.analizar(`Crea un presupuesto con esta descripción: "${texto}". Utiliza este catálogo como referencia para los precios: ${cat}`);
     setNlInput('');
   };
 
-  const procesarAccionChispa = async (accion: any) => {
+  // Bloque 'formulario' del edge (Sesion 3, "actua con minima info": precio que
+  // falta de algun concepto sin catalogar). Rellenarlo y enviarlo NO guarda nada:
+  // reenvia la descripcion original + los datos que faltaban para que la IA
+  // complete la propuesta (mismo one-shot, sin gestionar historial de turnos).
+  const onRespuestaFormularioPresupuestoIA = (bloque: Bloque, payload: unknown) => {
+    if (bloque.tipo !== 'formulario') return;
+    setRespuestasFormularioIA((prev) => ({ ...prev, [bloque.id]: payload }));
+    const valores = payload as Record<string, string | number>;
+    const detalle = bloque.campos.map((c) => `${c.label}: ${valores[c.key] ?? ''}`).join('; ');
+    ayudaPresupuestoIA.analizar(`${ultimoNlInput}. Datos que faltaban: ${detalle}.`);
+  };
+
+  // El bloque 'accion' (si lo hay) dentro de la respuesta ya normalizada del hook.
+  const bloqueAccionPresupuestoIA = ayudaPresupuestoIA.estado.tipo === 'listo'
+    ? ayudaPresupuestoIA.estado.bloques.find((b): b is Extract<Bloque, { tipo: 'accion' }> => b.tipo === 'accion')
+    : undefined;
+
+  // Abre el editor de verdad (Conceptos/cliente/notas editables) prellenado con
+  // lo que propuso la IA: la REVISION antes de guardar vive ahi, no en la tarjeta.
+  const abrirEditorDesdeAccionIA = (accion: Extract<AccionPropuesta, { tipo: 'crear_presupuesto' }>) => {
+    if (!profile) return;
+    const borrador: Presupuesto = {
+      id: '', negocio_id: profile.negocio_id, numero: null, estado: 'borrador',
+      cliente_id: accion.cliente_id, contacto_nombre: accion.cliente_nombre,
+      contacto_telefono: null, contacto_email: null, profesional_id: null,
+      titulo: accion.titulo, notas: null, total_cents: accion.total_cents, valido_hasta: null,
+      cita_id: null, cobro_id: null, token: '', pdf_path: null, whatsapp_solicitado: false,
+      enviado_email_at: null, enviado_whatsapp_at: null, aceptado_at: null,
+      created_at: new Date().toISOString(),
+      lineas: accion.lineas.map((l, i) => ({ concepto_id: null, nombre: l.nombre, precio_cents: l.precio_cents, cantidad: l.cantidad, orden: i })),
+    };
+    setEditor({ open: true, initial: borrador, origenIA: true });
+    ayudaPresupuestoIA.reset();
+    setRespuestasFormularioIA({});
+  };
+
+  const onConfirmarAccionPresupuestoIA = async () => {
+    const accion = bloqueAccionPresupuestoIA?.accion;
+    if (!accion) return;
+    if (accion.tipo === 'crear_presupuesto') { abrirEditorDesdeAccionIA(accion); return; }
+    // Defensivo: tool inesperada en este contexto (el prompt solo pide presupuestos).
     if (!profile?.id) return;
     const res = await chispaOps.ejecutarAccion(accion, profile.id);
-    if (res.ok) {
-      flash('success', res.mensaje);
-      limpiarSugerencia();
-      cargar();
-    } else {
-      flash('error', res.error);
-    }
+    if (res.ok) { flash('success', res.mensaje); ayudaPresupuestoIA.reset(); cargar(); }
+    else { flash('error', res.error); }
   };
-  // ----------------------------------
 
   const openEditor = async (p: Presupuesto | null) => {
     if (p) {
       const { data: lineas } = await supabase.from('presupuesto_lineas').select('*').eq('presupuesto_id', p.id).order('orden');
-      setEditor({ open: true, initial: { ...p, lineas: (lineas || []) as PresupuestoLinea[] } });
+      setEditor({ open: true, initial: { ...p, lineas: (lineas || []) as PresupuestoLinea[] }, origenIA: false });
     } else {
-      setEditor({ open: true, initial: null });
+      setEditor({ open: true, initial: null, origenIA: false });
     }
   };
 
@@ -588,26 +676,95 @@ function PresupuestosScreen() {
               placeholder="Ej: Presupuesto para María, balayage y corte de puntas..." 
               style={{ flex: 1, padding: '12px 16px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 14, color: T.text }} 
             />
-            <button 
-              type="submit" 
-              disabled={!nlInput.trim() || chispaLoading} 
-              className="p-btn" 
-              style={{ padding: '12px 20px', background: !nlInput.trim() || chispaLoading ? T.borderHi : T.primary, color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: !nlInput.trim() || chispaLoading ? 'not-allowed' : 'pointer' }}
+            <button
+              type="submit"
+              disabled={!nlInput.trim() || ayudaPresupuestoIA.estado.tipo === 'cargando'}
+              className="p-btn"
+              style={{ padding: '12px 20px', background: !nlInput.trim() || ayudaPresupuestoIA.estado.tipo === 'cargando' ? T.borderHi : T.primary, color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: !nlInput.trim() || ayudaPresupuestoIA.estado.tipo === 'cargando' ? 'not-allowed' : 'pointer' }}
             >
-              {chispaLoading ? <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : 'Crear'}
+              {ayudaPresupuestoIA.estado.tipo === 'cargando' ? <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : 'Crear'}
             </button>
           </form>
-          {chispaBloques.length > 0 && (
+          {/* Patron "AyudaIA por pagina" (Sesion 4): los 5 estados explicitos, nunca
+              en blanco. "Confirmar" en la propuesta de la IA NO guarda: abre el editor
+              (revision de lineas/cliente/notas) antes de escribir nada. */}
+          {ayudaPresupuestoIA.estado.tipo !== 'idle' && (
             <div style={{ marginTop: 16, borderTop: `1px solid ${T.border}`, paddingTop: 16 }}>
-              {chispaBloques.map((b, i) => (
-                <BloqueRenderer key={i} bloque={b} onConfirmar={procesarAccionChispa} isMobile={isMobile} />
-              ))}
-              <div style={{ textAlign: 'right', marginTop: 10 }}>
-                <button onClick={limpiarSugerencia} style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Ocultar sugerencia</button>
-              </div>
+              {ayudaPresupuestoIA.estado.tipo === 'cargando' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: T.textSec }}>
+                  <div style={{ width: 14, height: 14, border: `2px solid ${T.primary}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  Chispa está armando el presupuesto...
+                </div>
+              )}
+              {ayudaPresupuestoIA.estado.tipo === 'vacio' && (
+                <div style={{ fontSize: 13, color: T.textTer }}>
+                  Chispa no ha podido extraer líneas de esa descripción. Prueba a ser más concreto (servicios y, si no están en el catálogo, precio).
+                </div>
+              )}
+              {ayudaPresupuestoIA.estado.tipo === 'error' && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', borderRadius: 10, background: T.dangerSoft, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 13, color: T.danger }}>{ayudaPresupuestoIA.estado.mensaje}</span>
+                  <button onClick={() => ayudaPresupuestoIA.reintentar()} className="p-btn" style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${T.danger}`, background: 'transparent', color: T.danger, fontSize: 12.5, fontWeight: 700 }}>
+                    Reintentar
+                  </button>
+                </div>
+              )}
+              {ayudaPresupuestoIA.estado.tipo === 'listo' && (
+                <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {ayudaPresupuestoIA.estado.bloques.map((b, i) => (
+                      <BloqueRenderer
+                        key={i}
+                        bloque={b}
+                        isMobile={isMobile}
+                        onConfirmar={onConfirmarAccionPresupuestoIA}
+                        onCancelar={() => ayudaPresupuestoIA.reset()}
+                        respuestasInteractivas={respuestasFormularioIA}
+                        onRespuestaInteractiva={onRespuestaFormularioPresupuestoIA}
+                      />
+                    ))}
+                  </div>
+                  <div style={{ textAlign: 'right', marginTop: 10 }}>
+                    <button onClick={() => ayudaPresupuestoIA.reset()} style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Ocultar sugerencia</button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
+
+        {/* Alerta proactiva de seguimiento (Sesion 6): tarjeta de PAGINA, no aviso
+            suelto por fila. Reenviar es una accion real (correo); WhatsApp real
+            queda para Alexandro. */}
+        {pendientesSeguimiento.length > 0 && (
+          <div style={{ background: '#FFFBE6', border: '1px solid #FFD591', borderRadius: 16, padding: isMobile ? 14 : 18, marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <Icon name="sparkles" size={16} color="#D48806" />
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#874D00' }}>
+                {pendientesSeguimiento.length} presupuesto{pendientesSeguimiento.length === 1 ? '' : 's'} sin respuesta
+              </h3>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {pendientesSeguimiento.map(({ p, dias }) => (
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', background: '#fff', border: '1px solid #FFE7BA', borderRadius: 10, padding: '8px 12px' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>P-{p.numero} · {p.contacto_nombre || 'Sin nombre'}</span>
+                    <span style={{ fontSize: 12, color: '#874D00', marginLeft: 8 }}>Hace {dias} día{dias === 1 ? '' : 's'} sin respuesta</span>
+                  </div>
+                  <button
+                    onClick={() => reenviarPresupuesto(p)}
+                    disabled={reenviando === p.id || !p.contacto_email}
+                    className="p-btn"
+                    title={p.contacto_email ? undefined : 'Añade un correo de contacto editando el presupuesto'}
+                    style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: reenviando === p.id || !p.contacto_email ? T.borderHi : '#D48806', color: reenviando === p.id || !p.contacto_email ? T.textTer : '#fff', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}
+                  >
+                    {reenviando === p.id ? 'Enviando…' : p.contacto_email ? 'Reenviar' : 'Sin correo'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Filtros + búsqueda */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
@@ -647,11 +804,6 @@ function PresupuestosScreen() {
                       {p.titulo ? `${p.titulo} · ` : ''}{format(parseISO(p.created_at), "d MMM yyyy", { locale: es })}
                       {p.enviado_email_at ? ' · enviado por correo' : ''}
                     </div>
-                    {tocaSeguimiento && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, color: '#D48806', fontSize: 13, fontWeight: 600, background: '#FFFBE6', padding: '6px 10px', borderRadius: 6, width: 'fit-content' }}>
-                        <Icon name="sparkles" size={14} color="#D48806" /> Hace {dias} días sin respuesta. Sugerencia: Enviar recordatorio.
-                      </div>
-                    )}
                   </div>
                   <div style={{ fontSize: 17, fontWeight: 800, color: T.text, whiteSpace: 'nowrap', textAlign: isMobile ? 'left' : 'right' }}>{eur(p.total_cents)}</div>
                   <div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
@@ -668,7 +820,7 @@ function PresupuestosScreen() {
 
       {editor.open && profile && (
         <EditorModal profile={profile} salon={salon} profesionales={profesionales} servicios={servicios} conceptos={conceptos}
-          initial={editor.initial} onClose={() => setEditor({ open: false, initial: null })} onSaved={onEditorSaved} reloadConceptos={reloadConceptos} />
+          initial={editor.initial} origenIA={editor.origenIA} onClose={() => setEditor({ open: false, initial: null, origenIA: false })} onSaved={onEditorSaved} reloadConceptos={reloadConceptos} />
       )}
       {showManualPanel && (
         <ManualPanel
