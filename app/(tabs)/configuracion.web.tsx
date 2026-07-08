@@ -204,6 +204,9 @@ interface ConfigState {
   // Modo de fianza: cobrar la senal o retenerla (hold) y capturar solo en no-show
   depositoModoFianza: 'cobro' | 'hold';
   depositoNoShowCapturaAuto: boolean;
+  // Propinas en el pago del total (QR / enlace)
+  propinasActivo: boolean;
+  propinasSugeridas: number[];
   // Plantillas reutilizables (catalogos del salon)
   catalogoAlergias: string[];
   plantillasFormula: PlantillaTexto[];
@@ -295,6 +298,7 @@ const DEFAULT_CONFIG: ConfigState = {
   depositoDinamicoActivo: false, depositoModoClasificacion: 'ambos', depositoFactorRiesgo: 2,
   depositoUmbralFiableCompletadas: 3, depositoUmbralAltoNoShows: 2, depositoStaffExigir: false,
   depositoVipExento: true, depositoModoFianza: 'cobro', depositoNoShowCapturaAuto: true,
+  propinasActivo: false, propinasSugeridas: [5, 10, 15],
   catalogoAlergias: ['Parafenilendiamina (PPD)', 'Amoniaco', 'Resorcina', 'Persulfatos', 'Fragancias', 'Niquel', 'Latex'],
   plantillasFormula: [],
   plantillasNota: [],
@@ -3189,6 +3193,23 @@ function TabPoliticas({ config, setC }: { config: ConfigState; setC: (k: keyof C
         </FieldRow>
         <FieldRow label="Capturar la retencion automaticamente en no-show" hint="Al marcar una cita como no-show se captura la fianza retenida sin mas pasos. Desactivado, la retencion queda para que la captures tu manualmente. Las retenciones caducan a los ~7 dias.">
           <Toggle disabled={config.depositoModoFianza !== 'hold'} on={config.depositoNoShowCapturaAuto} onChange={v => setC('depositoNoShowCapturaAuto', v)} />
+        </FieldRow>
+      </Section>
+
+      <Section title="Propinas"
+        desc="Ofrece al cliente dejar propina al pagar por QR o enlace. Se suma al cobro y se atribuye al profesional que le atendio (aparece en Mi Jornada). Solo en el pago del total, no en la senal.">
+        <FieldRow label="Ofrecer propina al pagar" hint="Si esta activo, la pagina de pago muestra botones de propina sugerida y una opcion de otra cantidad.">
+          <Toggle on={config.propinasActivo} onChange={v => setC('propinasActivo', v)} />
+        </FieldRow>
+        <FieldRow label="Porcentajes sugeridos" hint="Los tres botones de propina que vera el cliente, calculados sobre el importe a pagar.">
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[0, 1, 2].map((i) => (
+              <NumberInput key={i} disabled={!config.propinasActivo}
+                value={config.propinasSugeridas[i] ?? 0}
+                onChange={(v) => { const arr = [...config.propinasSugeridas]; arr[i] = Number(v) || 0; setC('propinasSugeridas', arr); }}
+                unit="%" min={0} max={100} width={90} />
+            ))}
+          </div>
         </FieldRow>
       </Section>
 

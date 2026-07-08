@@ -208,7 +208,13 @@ profesional que atendió (→ "Mi Jornada"), y permitir **dividir** el pago (efe
 | S4.5 | Enganche con "Mi Jornada": la propina aparece en el panel del profesional | [C] sobre datos [A] | M |
 | S4.6 | UI de propina sugerida en el QR/mostrador + selección de a quién | [C] | M |
 
-**Estado:** diseño. Depende de S1 (enlace `total` + QR) como base.
+**Estado:** en curso. **S4.1 + S4.2 ✅ HECHO y en prod (8 jul 2026)**: la propina ya existía en
+`cobros.propina_cents`+`profesional_id` y en `requerir_pago_total_cita`; añadido que el **cliente**
+elija propina en el checkout del QR — edge `crear-checkout-cobro` v6 (acepta `propina_cents`,
+línea "Propina" separada, recálculo server-side), `pago_info_publica` devuelve la config,
+config `propinasActivo`+`propinasSugeridas` (5/10/15, OFF), selector en `app/pagar/[token]`.
+Concilia en `cobros.propina_cents` (atribuida al profesional). **Falta S4.3** (split
+efectivo+tarjeta) **y S4.4** (pago grupal). S4.5/S4.6 = UI de Carlos sobre estos datos.
 
 **Pendiente externo (tú):** ninguno técnico de terceros; decisión de negocio sobre porcentajes
 de propina sugeridos por defecto.

@@ -47,6 +47,7 @@ const euros = (cents: number) => (cents / 100).toLocaleString('es-ES', { style: 
 type Info = {
   ok: boolean; motivo?: string; tipo?: string; salon?: string; servicio?: string;
   inicio?: string; importe_cents?: number; estado?: string; cobrada?: boolean; requiere_datos?: boolean;
+  propinas_activo?: boolean; propinas_sugeridas?: number[];
 };
 
 export default function PagoTotalWeb() {
@@ -61,6 +62,9 @@ export default function PagoTotalWeb() {
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
   const [acepto, setAcepto] = useState(false);
+  // Propina (S4): seleccion del cliente (porcentaje sugerido, 'custom' o sin propina).
+  const [tipSel, setTipSel] = useState<number | 'custom' | null>(null);
+  const [tipCustom, setTipCustom] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -91,7 +95,10 @@ export default function PagoTotalWeb() {
       }
       const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.mechaa.es';
       const { data, error } = await supabase.functions.invoke('crear-checkout-cobro', {
-        body: { token, success_url: `${origin}/app/pago/ok`, cancel_url: window.location.href },
+        body: {
+          token, success_url: `${origin}/app/pago/ok`, cancel_url: window.location.href,
+          propina_cents: tipsActive ? propinaCents : undefined,
+        },
       });
       if (error) { setErr('No se pudo iniciar el pago. El enlace puede haber caducado.'); setBusy(false); return; }
       if ((data as any)?.ya_pagado) { setInfo({ ...(info as Info), estado: 'pagado' }); setBusy(false); return; }
@@ -106,6 +113,15 @@ export default function PagoTotalWeb() {
 
   const invalido = !token || !info || info.ok === false;
   const yaCobrada = info?.cobrada || info?.estado === 'pagado';
+
+  // Propina: solo en el pago del total y si el salon la ofrece. El % se calcula sobre el importe.
+  const tipsActive = !!info?.propinas_activo && info?.tipo === 'total';
+  const base = info?.importe_cents || 0;
+  const propinaCents = !tipsActive ? 0
+    : tipSel === 'custom' ? Math.max(0, Math.round((parseFloat(tipCustom.replace(',', '.')) || 0) * 100))
+    : typeof tipSel === 'number' ? Math.round(base * tipSel / 100)
+    : 0;
+  const totalCents = base + propinaCents;
 
   return (
     <Shell>
@@ -126,8 +142,27 @@ export default function PagoTotalWeb() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '14px 16px', background: T.cardHi, border: `1px solid ${T.border}`, borderRadius: 14, marginBottom: 18 }}>
               {!!info?.servicio && <Row k="Servicio" v={info.servicio} />}
-              <Row k="Total a pagar" v={euros(info?.importe_cents || 0)} strong />
+              {tipsActive && propinaCents > 0 && <Row k="Subtotal" v={euros(base)} />}
+              {tipsActive && propinaCents > 0 && <Row k="Propina" v={euros(propinaCents)} />}
+              <Row k="Total a pagar" v={euros(totalCents)} strong />
             </div>
+
+            {tipsActive && (
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 13, color: T.textSec, marginBottom: 8 }}>¿Añadir propina para el equipo?</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <TipBtn label="Sin propina" active={!tipSel} onClick={() => setTipSel(0)} />
+                  {(info?.propinas_sugeridas || [5, 10, 15]).map((p) => (
+                    <TipBtn key={p} label={`${p}%`} sub={euros(Math.round(base * p / 100))} active={tipSel === p} onClick={() => setTipSel(p)} />
+                  ))}
+                  <TipBtn label="Otra" active={tipSel === 'custom'} onClick={() => setTipSel('custom')} />
+                </div>
+                {tipSel === 'custom' && (
+                  <input className="pg-inp" style={{ marginTop: 8 }} placeholder="Importe de propina en €" inputMode="decimal"
+                    value={tipCustom} onChange={(e) => setTipCustom(e.target.value.replace(/[^0-9.,]/g, ''))} />
+                )}
+              </div>
+            )}
 
             {info?.requiere_datos && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
@@ -149,7 +184,7 @@ export default function PagoTotalWeb() {
 
             <button className="pg-cta" onClick={pagar} disabled={busy}
               style={{ width: '100%', padding: '15px 16px', borderRadius: 14, border: 'none', background: FIRE, color: '#fff', fontSize: 15.5, fontWeight: 800, boxShadow: '0 12px 30px rgba(192,38,10,0.28)', opacity: busy ? 0.65 : 1 }}>
-              {busy ? 'Redirigiendo a pago seguro…' : `Pagar ${euros(info?.importe_cents || 0)}`}
+              {busy ? 'Redirigiendo a pago seguro…' : `Pagar ${euros(totalCents)}`}
             </button>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 14, fontSize: 12, color: T.textTer }}>
               <Lock size={13} color={T.textTer} /> Pago seguro con Stripe · Bizum · Apple/Google Pay
@@ -167,6 +202,18 @@ function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
       <span style={{ fontSize: 13, color: T.textTer }}>{k}</span>
       <span style={{ fontSize: strong ? 20 : 14, fontWeight: strong ? 800 : 600, color: strong ? T.primaryHi : T.text }}>{v}</span>
     </div>
+  );
+}
+
+function TipBtn({ label, sub, active, onClick }: { label: string; sub?: string; active?: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="pg-cta"
+      style={{ flex: '1 1 auto', minWidth: 76, padding: '9px 10px', borderRadius: 12, textAlign: 'center',
+        border: `1.5px solid ${active ? T.primary : T.border}`, background: active ? T.primarySoft : '#fff',
+        color: active ? T.primaryHi : T.text, fontWeight: 700, fontSize: 13.5 }}>
+      <div>{label}</div>
+      {!!sub && <div style={{ fontSize: 11, fontWeight: 600, color: active ? T.primaryHi : T.textTer, marginTop: 1 }}>{sub}</div>}
+    </button>
   );
 }
 
