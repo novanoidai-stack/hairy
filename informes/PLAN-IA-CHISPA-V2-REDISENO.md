@@ -87,7 +87,7 @@ FÁCIL que hacerlo a mano; si tarda más que a mano, sobra.
 |---|------|--------|--------|----------|---------|
 | 1 | A Fundación | Bloques interactivos + panel (fullscreen, micro, voz honesta) — **HECHA 8 jul** | Opus 4.8 | alto | — |
 | 2 | A Fundación | Chispa hospeda "Configúrame el salón" + rol + memoria opcional — **HECHA 8 jul** | Opus 4.8 | alto | 1 |
-| 3 | A Fundación | Config guiada completa + "actúa con mínima info" en el chatbot | Opus 4.8 | medio-alto | 1,2 |
+| 3 | A Fundación | Config guiada completa + "actúa con mínima info" en el chatbot — **HECHA 8 jul** (e84311dd9; verificada + fix rol 3f1b27f11) | Opus 4.8 | medio-alto | 1,2 |
 | 4 | B Por página | Motor "IA por página" sin fallos silenciosos (+ arreglar Mi Jornada) | Opus 4.8 | medio | 1 |
 | 5 | B Por página | Agenda: botón "Organizar mi agenda" real | Opus 4.8 | alto | 1,4 |
 | 6 | B Por página | Caja + Presupuestos proactivos | Sonnet 5 | medio | 4 |
