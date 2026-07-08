@@ -1,0 +1,12 @@
+# Kokoro-FastAPI autoalojado para Chispa (Mecha). Uso previsto: VPS sin GPU.
+# Desplegar: docker compose -f docker-compose.kokoro.yml up -d
+# Prueba rapida: curl -X POST http://localhost:8880/v1/audio/speech \
+#   -H "Content-Type: application/json" \
+#   -d '{"model":"kokoro","input":"Hola, esto es una prueba","voice":"ef_dora","response_format":"mp3"}' \
+#   --output prueba.mp3
+services:
+  kokoro-tts:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
+    restart: unless-stopped
+    ports:
+      - "8880:8880"

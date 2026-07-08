@@ -28,6 +28,19 @@ supabase/.temp/
 .superpowers/
 scratch/
 
+# Prueba comparativa TTS (informes/PROMPT_CHISPA_TTS_TEST.md): audios, repos
+# clonados y checkpoints descargados -- no versionar (binarios grandes).
+scripts/tts-test/audios_prueba/
+scripts/tts-test/*.wav
+scripts/tts-test/*.mp3
+scripts/tts-test/reporte_comparativo.html
+scripts/tts-test/voices/
+scripts/tts-test/openvoice-repo/
+scripts/tts-test/fish-speech-repo/
+scripts/tts-test/styletts2-es/
+scripts/tts-test/reference_voice.wav
+scripts/tts-test/processed/
+
 # Python bytecode
 __pycache__/
 *.pyc
