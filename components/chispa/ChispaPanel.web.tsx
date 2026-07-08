@@ -642,7 +642,10 @@ export default function ChispaPanel({
     // Deteccion de intencion de config guiada (texto o voz, que tambien pasa
     // por aqui): determinista, sin llamar al edge solo para clasificar. Si ya
     // esta en marcha no puede volver a dispararse (el input esta bloqueado).
-    if (!imagenB64 && detectaIntencionConfigGuiada(t)) {
+    // Gateado por rol igual que el auto-disparo: solo el gestor (owner/admin)
+    // configura el negocio; un profesional que lo pida cae al chat normal (que
+    // es role-aware en el edge) en vez de entrar a un flujo que RLS le bloquearia.
+    if (!imagenB64 && esGestorOnboarding && detectaIntencionConfigGuiada(t)) {
       setMensajes((m) => [...m, { role: 'user', content: t }]);
       setTexto('');
       iniciarConfigGuiada();
