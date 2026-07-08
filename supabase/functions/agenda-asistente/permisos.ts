@@ -82,12 +82,20 @@ const ESCRITURA_AGENDA = new Set([
 // concreta (independiente del scope de agenda).
 const ESCRITURA_GESTION: Record<string, Capability> = {
   editar_servicio: 'servicios.editar',
+  // Crear servicio nuevo (Sesion 3 V2): misma capacidad que editarlo.
+  crear_servicio: 'servicios.editar',
   editar_horario: 'horarios.editar',
   crear_presupuesto: 'presupuestos.crear',
   enviar_mensaje_bandeja: 'bandeja.escribir',
   // Recuperacion de clienta en fuga (Sesion 7): deja el registro/borrador para el
   // motor de envio (WhatsApp real = Alexandro). Misma capacidad que la Bandeja.
   recuperar_cliente: 'bandeja.escribir',
+  // Catalogo curado de config (Sesion 3 V2): idioma del portal es un ajuste de
+  // negocio tan sensible como cambiar_config, mismo gate (solo propietario).
+  cambiar_idioma_portal: 'config.cambiar',
+  // Festivo/cierre de negocio: mismo rol que puede editar turnos (direccion/propietario),
+  // coherente con la RLS de cierres_negocio (owner/admin).
+  anadir_cierre_negocio: 'horarios.editar',
 };
 
 // Capacidad requerida por cada tool de LECTURA/NAVEGACION. null = cualquier rol.

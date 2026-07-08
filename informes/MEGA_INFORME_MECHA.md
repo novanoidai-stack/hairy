@@ -1681,3 +1681,39 @@ Recargar la pagina a mitad y al final del flujo restauro el hilo completo, ident
 demostracion correcto y `negocio_config` de `demo_salon_001` sin cambios tras confirmarlo por SQL.
 `npx tsc --noEmit` y `npm run build:web` limpios. Sin migraciones ni edge functions nuevas/tocadas esta
 sesion.
+
+## Adenda — Capa IA "Chispa" V2 Sesion 3: Config guiada completa + "actua con minima info" — HECHA (8 jul)
+
+**Verificado antes de construir** (grep + BD real): IVA, "politicas de cancelacion" (mockup deshabilitado,
+fase 4) y un interruptor GLOBAL de fidelizacion NO existen en el producto — se EXCLUYERON del catalogo en
+vez de fabricar ajustes falsos. "Senal/deposito" es real pero por SERVICIO
+(`servicios.prepago_requerido`/`prepago_cantidad_fija`), no un importe global; "idioma del portal" vive en
+`negocio_portal.idioma` y "festivos/cierres" en `cierres_negocio` — ninguno de los dos encaja en
+`set_negocio_config_key`.
+
+- **Catalogo de config ampliado:** `CONFIG_EDITABLE` del edge suma el deposito dinamico por riesgo
+  (`depositoDinamicoActivo`/`depositoFactorRiesgo`/`depositoVipExento`, ya vivia en `negocio_config` pero
+  Chispa no llegaba). `cambiar_config` acepta ahora `cambios` (array), permitiendo 1+ ajustes relacionados
+  en una sola confirmacion (nueva accion `cambiar_config_multiple`). Idioma del portal y festivos/cierres se
+  resolvieron como DOS acciones dedicadas nuevas (`cambiar_idioma_portal`, `crear_cierre_negocio`, esta
+  ultima con un tipo de campo nuevo `'fecha'`), mismo patron propone->confirma. `editar_servicio` suma
+  senal/deposito por servicio (`prepago_requerido`/`prepago_cantidad_fija`): hace real el ejemplo "activa la
+  senal de 10€" del plan.
+- **"Actua con minima info":** nuevo retorno `pedirInfo: Bloque` en el edge — si falta o es ambiguo un dato
+  requerido, corta el bucle del LLM y devuelve `formulario`/`opciones` PRE-RELLENADO en vez de dejar que el
+  LLM pregunte en texto. Aplicado a `crear_cita`, la tool nueva `crear_servicio`, `editar_servicio`
+  (resolucion de servicio por opciones + formulario de edicion pre-rellenado por defecto) y
+  `crear_presupuesto`. Regla de oro verificada en ambos sentidos: info completa -> accion directa; info
+  incompleta/ambigua -> formulario/opciones con solo lo que falta.
+- Tras probar en vivo, el modelo preferia preguntar en TEXTO en vez de llamar a la tool con un campo
+  vacio/ambiguo; se reforzo el system prompt con 3 ejemplos concretos y se re-verifico.
+
+**Verificado E2E real** contra el edge desplegado (curl autenticado como `demo.publico@mecha.app`, solo
+lecturas/propuestas, el edge nunca escribe): las 8 combinaciones falta-info/info-completa de
+`crear_servicio`, `editar_servicio` (incl. ambiguedad real "el corte" -> 2 candidatas), `crear_cita`,
+`crear_presupuesto`, `cambiar_config`, `cambiar_idioma_portal` y `anadir_cierre_negocio`. **En navegador
+real** (iframe de la demo, DOM nativo): "crea un servicio" mostro el formulario de 3 campos correcto;
+rellenar y enviar completo el turno y produjo la tarjeta de confirmacion, sin errores de consola. Esquema y
+RLS de las 3 tablas tocadas verificados contra la BD real antes de escribir codigo. `tsc --noEmit`,
+`build:web` y `deno check` del edge limpios; 22 tests Deno en verde. Edge redesplegado y verificado (curl
+sin auth -> 401). Sin migraciones nuevas.

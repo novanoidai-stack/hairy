@@ -112,6 +112,30 @@ Deno.test('Sesion 7: recuperar_cliente solo recepcion+ (misma capacidad que Band
   assertEquals(toolPermitida('recuperar_cliente', roleOf('owner'), 'all'), true);
 });
 
+Deno.test('Sesion 3 V2: crear_servicio sigue la misma capacidad que editar_servicio (direccion+)', () => {
+  const prof = roleOf('employee');
+  const rec = roleOf('recepcion');
+  const dir = roleOf('admin');
+  assertEquals(toolPermitida('crear_servicio', prof, 'self'), false);
+  assertEquals(toolPermitida('crear_servicio', rec, 'all'), false);
+  assertEquals(toolPermitida('crear_servicio', dir, 'all'), true);
+  assertEquals(toolPermitida('crear_servicio', roleOf('owner'), 'all'), true);
+});
+
+Deno.test('Sesion 3 V2: cambiar_idioma_portal solo propietario (misma capacidad que cambiar_config)', () => {
+  assertEquals(toolPermitida('cambiar_idioma_portal', roleOf('employee'), 'self'), false);
+  assertEquals(toolPermitida('cambiar_idioma_portal', roleOf('recepcion'), 'all'), false);
+  assertEquals(toolPermitida('cambiar_idioma_portal', roleOf('admin'), 'all'), false);
+  assertEquals(toolPermitida('cambiar_idioma_portal', roleOf('owner'), 'all'), true);
+});
+
+Deno.test('Sesion 3 V2: anadir_cierre_negocio solo direccion+ (misma capacidad que horarios)', () => {
+  assertEquals(toolPermitida('anadir_cierre_negocio', roleOf('employee'), 'self'), false);
+  assertEquals(toolPermitida('anadir_cierre_negocio', roleOf('recepcion'), 'all'), false);
+  assertEquals(toolPermitida('anadir_cierre_negocio', roleOf('admin'), 'all'), true);
+  assertEquals(toolPermitida('anadir_cierre_negocio', roleOf('owner'), 'all'), true);
+});
+
 Deno.test('tool desconocida: fail-closed (nunca se declara)', () => {
   for (const scope of ['all', 'self', 'none'] as WriteScope[]) {
     assertEquals(toolPermitida('exfiltrar_todo', roleOf('owner'), scope), false);

@@ -169,6 +169,9 @@ function CampoControl({ campo, valor, disabled, onChange }: {
   if (campo.tipo === 'hora') {
     return <TimeInput value={String(valor ?? '')} onChange={onChange} disabled={disabled} />;
   }
+  if (campo.tipo === 'fecha') {
+    return <STextInput value={String(valor ?? '')} onChange={onChange} disabled={disabled} mono placeholder="AAAA-MM-DD" width="100%" />;
+  }
   if (campo.tipo === 'numero' || campo.tipo === 'euro') {
     return (
       <NumberInput

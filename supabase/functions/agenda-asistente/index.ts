@@ -67,12 +67,30 @@ type AccionPropuesta =
       valor: boolean | number | string; valor_actual: boolean | number | string | null;
       resumen: string;
     }
+  // --- Catalogo curado de config (Sesion 3 V2) ---
+  | {
+      tipo: 'cambiar_config_multiple';
+      negocio_id: string;
+      cambios: { clave: string; label: string; valor: boolean | number | string; valor_actual: boolean | number | string | null }[];
+      resumen: string;
+    }
+  | { tipo: 'cambiar_idioma_portal'; negocio_id: string; idioma: string; idioma_actual: string | null; resumen: string }
+  | { tipo: 'crear_cierre_negocio'; negocio_id: string; fecha: string; motivo: string | null; resumen: string }
   // --- Acciones de gestion (Sesion 3) ---
   | { tipo: 'confirmar_citas'; negocio_id: string; citas: { id: string; label: string }[]; resumen: string }
   | {
       tipo: 'editar_servicio';
       negocio_id: string; servicio_id: string; servicio_nombre: string;
-      cambios: { precio?: number; nombre?: string; duracion_activa_min?: number; activo?: boolean };
+      cambios: {
+        precio?: number; nombre?: string; duracion_activa_min?: number; activo?: boolean;
+        prepago_requerido?: boolean; prepago_cantidad_fija?: number;
+      };
+      resumen: string;
+    }
+  | {
+      // Crea un servicio nuevo (Sesion 3 V2: "actua con minima info").
+      tipo: 'crear_servicio';
+      negocio_id: string; nombre: string; precio: number; duracion_activa_min: number;
       resumen: string;
     }
   | {
@@ -123,11 +141,12 @@ type AccionPropuesta =
 // ---------------------------------------------------------------------------
 type ChispaUnidad = 'eur' | 'citas' | 'pct';
 
-// Bloques de entrada (Sesion 1 V2 del plan): formulario/opciones/progreso. Este
-// edge NO los emite todavia (llegara en las Sesiones 2-3, config guiada y
-// "actua con minima info"); el tipo se mantiene espejado desde ya para que esas
-// sesiones no tengan que retocar este contrato.
-type CampoFormularioTipo = 'texto' | 'numero' | 'euro' | 'tel' | 'hora' | 'select';
+// Bloques de entrada (Sesion 1 V2 del plan): formulario/opciones/progreso.
+// Desde la Sesion 3 V2 este edge SI los emite: cuando construirPropuesta /
+// construirPropuestaConfig detectan que falta o es ambiguo un dato requerido,
+// devuelven un 'formulario'/'opciones' PRE-RELLENADO en vez de un texto
+// pidiendolo (ver PropuestaResultado / 'pedirInfo' mas abajo).
+type CampoFormularioTipo = 'texto' | 'numero' | 'euro' | 'tel' | 'hora' | 'fecha' | 'select';
 type CampoFormulario = {
   key: string;
   label: string;
@@ -311,16 +330,15 @@ const TOOLS = [
   // --- ESCRITURA (el LLM las invoca; la funcion NO las ejecuta) ---
   {
     name: 'crear_cita',
-    description: 'Propone crear una cita. Antes de invocarla resuelve cliente y profesional con las tools de lectura.',
+    description: 'Propone crear una cita. Antes de invocarla resuelve cliente y profesional con las tools de lectura. Llama a esta tool aunque falte el servicio, el profesional o la hora: deja esos campos vacios y el sistema los pedira con un formulario/opciones (no preguntes tu estos datos en texto).',
     parameters: {
       type: 'object' as const,
       properties: {
-        servicio: { type: 'string', description: 'Nombre del servicio' },
-        profesional: { type: 'string', description: 'Nombre del profesional' },
-        inicio: { type: 'string', description: 'ISO 8601 YYYY-MM-DDTHH:mm o lenguaje natural resuelto' },
+        servicio: { type: 'string', description: 'Nombre del servicio (vacio si no se ha dicho)' },
+        profesional: { type: 'string', description: 'Nombre del profesional (vacio si no se ha dicho)' },
+        inicio: { type: 'string', description: 'ISO 8601 YYYY-MM-DDTHH:mm o lenguaje natural resuelto (vacio si no se ha dicho)' },
         cliente: { type: 'string', description: 'Nombre o telefono del cliente (opcional para walk-in)' },
       },
-      required: ['servicio', 'profesional', 'inicio'],
     },
   },
   {
@@ -373,14 +391,36 @@ const TOOLS = [
   },
   {
     name: 'cambiar_config',
-    description: 'Propone cambiar un ajuste de la configuracion del salon (SOLO propietario). Usa la CLAVE exacta de la lista AJUSTES EDITABLES del system prompt.',
+    description: 'Propone cambiar uno o VARIOS ajustes de la configuracion del salon (SOLO propietario). Usa la CLAVE exacta de la lista AJUSTES EDITABLES del system prompt. Si el usuario pide cambiar varios ajustes RELACIONADOS en la misma frase (p.ej. "activa el recordatorio con 48h de antelacion" = notifRecordatorioActiva + notifRecordatorioHoras), pasalos TODOS juntos en el mismo array "cambios" para que se confirmen de una vez. Si falta el valor de algun ajuste, llama a la tool igual: el sistema pedira lo que falte con un formulario.',
     parameters: {
       type: 'object' as const,
       properties: {
-        clave: { type: 'string', description: 'Clave exacta del ajuste (de la lista AJUSTES EDITABLES)' },
-        valor: { type: 'string', description: 'Nuevo valor: activar/desactivar, un numero, una hora HH:MM, o una opcion del enum' },
+        cambios: {
+          type: 'array',
+          description: 'Lista de ajustes a cambiar',
+          items: {
+            type: 'object',
+            properties: {
+              clave: { type: 'string', description: 'Clave exacta del ajuste (de la lista AJUSTES EDITABLES)' },
+              valor: { type: 'string', description: 'Nuevo valor: activar/desactivar, un numero, una hora HH:MM, o una opcion del enum. Dejalo vacio si no lo sabes.' },
+            },
+            required: ['clave'],
+          },
+        },
       },
-      required: ['clave', 'valor'],
+      required: ['cambios'],
+    },
+  },
+  {
+    name: 'crear_servicio',
+    description: 'Propone crear un servicio NUEVO en el catalogo (nombre, precio en euros, duracion en minutos). Llama a esta tool en cuanto el usuario pida crear un servicio, aunque no te haya dado todos los datos todavia: deja vacio lo que no sepas y el sistema lo pedira con un formulario. No la uses para editar uno que ya existe (usa editar_servicio).',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        nombre: { type: 'string', description: 'Nombre del servicio nuevo' },
+        precio: { type: 'string', description: 'Precio en euros (ej. "15" o "15.50")' },
+        duracion_activa_min: { type: 'string', description: 'Duracion activa en minutos' },
+      },
     },
   },
   // --- GESTION (Sesion 3): la funcion NO ejecuta; devuelve accion_propuesta ---
@@ -398,17 +438,18 @@ const TOOLS = [
   },
   {
     name: 'editar_servicio',
-    description: 'Propone cambiar datos de un servicio del catalogo: precio (en euros), nombre, duracion activa (min) o activarlo/desactivarlo. Indica solo lo que cambia.',
+    description: 'Propone cambiar datos de un servicio del catalogo: precio (en euros), nombre, duracion activa (min), activarlo/desactivarlo, o su senal/deposito (activarla y su cantidad fija en euros). Indica solo lo que cambia. Llama a esta tool aunque no sepas el nombre exacto del servicio o no indiques ningun cambio todavia: el sistema te dejara elegir el servicio y/o pedira que cambiar con un formulario.',
     parameters: {
       type: 'object' as const,
       properties: {
-        servicio: { type: 'string', description: 'Nombre del servicio a editar' },
+        servicio: { type: 'string', description: 'Nombre del servicio a editar (puede ir vacio si no lo sabes)' },
         precio: { type: 'string', description: 'Nuevo precio en euros (ej. "15" o "15.50")' },
         nombre: { type: 'string', description: 'Nuevo nombre del servicio' },
         duracion_activa_min: { type: 'string', description: 'Nueva duracion activa en minutos' },
         activo: { type: 'string', description: 'activar o desactivar' },
+        senal_activa: { type: 'string', description: 'activar o desactivar la senal/deposito de este servicio' },
+        senal_importe: { type: 'string', description: 'Cantidad fija de la senal en euros (ej. "10")' },
       },
-      required: ['servicio'],
     },
   },
   {
@@ -471,6 +512,27 @@ const TOOLS = [
         cliente: { type: 'string', description: 'Nombre o telefono de la clienta a recuperar' },
       },
       required: ['cliente'],
+    },
+  },
+  {
+    name: 'cambiar_idioma_portal',
+    description: 'Propone cambiar el idioma del PORTAL PUBLICO de reserva online (lo que ven las clientes en /r/tu-salon). NO es el idioma de la interfaz del software (ese no lo puede cambiar Chispa). Llama a esta tool aunque no sepas el idioma exacto: el sistema ofrecera las opciones disponibles.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        idioma: { type: 'string', description: 'Idioma del portal: es (espanol) o en (ingles)' },
+      },
+    },
+  },
+  {
+    name: 'anadir_cierre_negocio',
+    description: 'Propone marcar un dia completo como festivo/cierre de TODO el salon (vacaciones, festivo local, dia suelto): la agenda lo pinta cerrado y el portal no ofrece huecos ese dia. Llama a esta tool aunque no sepas la fecha exacta todavia: el sistema la pedira con un formulario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        fecha: { type: 'string', description: 'Fecha del cierre en YYYY-MM-DD (resuelve "el 25 de diciembre", "el proximo lunes"...)' },
+        motivo: { type: 'string', description: 'Motivo opcional (ej. "Festivo local", "Vacaciones")' },
+      },
     },
   },
   // --- LISTA DE ESPERA (Sesion 8-B) ---
@@ -537,7 +599,7 @@ const MAPA_CONFIG = `MAPA DE CONFIGURACION DEL SOFTWARE (ruta siempre: Configura
 
 GRUPO NEGOCIO
 - General: "Datos del negocio" (nombre del salon, moneda, zona horaria); "Identidad visual" (logo, tema claro/oscuro).
-- Horarios: "Horario semanal" del salon por dias y franjas (con plantillas tipo "L-V con pausa"); "Slots y vista del calendario" (granularidad de los huecos, vista por defecto dia/semana/mes, primer dia de la semana).
+- Horarios: "Horario semanal" del salon por dias y franjas (con plantillas tipo "L-V con pausa"); "Slots y vista del calendario" (granularidad de los huecos, vista por defecto dia/semana/mes, primer dia de la semana); "Festivos y cierres del salon" (dias completos cerrados: festivo, vacaciones, dia suelto).
 
 GRUPO OPERATIVA
 - Servicios: catalogo de servicios (crear/editar/activar, precio, duraciones, precios y duraciones por profesional, variantes).
@@ -547,7 +609,7 @@ GRUPO OPERATIVA
 
 GRUPO COMUNICACION
 - Notificaciones: "Avisos automaticos al cliente" (activar/desactivar Confirmacion de cita, Recordatorio previo, Peticion de resena, Enlace de pago de senal, Aviso de retraso). OJO: el TEXTO de estos mensajes NO se puede editar; son plantillas fijas aprobadas por Meta y solo se rellenan los datos de cada cita. "Horario sin envios (no molestar)" (activar y franja horaria); "Lista de espera (avisos de hueco)" (ofrecer huecos automaticamente, ventana de respuesta, tiempo maximo de reserva del hueco, desde cuando cuenta el tope, antelacion minima del hueco, si la oferta pide senal, avisar si el hueco caduca); "Canal de envio" (hoy solo WhatsApp; SMS/email proximamente).
-- Politicas (proximamente): cancelacion y penalizacion, deposito/senal, limite de no-shows.
+- Politicas: "Deposito dinamico por riesgo del cliente" (activar, multiplicador para clientes con no-shows, exencion VIP) YA disponible. Cancelacion y penalizacion por cancelacion tardia: proximamente (fase 4, junto con el modulo de pagos).
 - Reserva online: "Portal publico" (activar, enlace de reserva, enlace de valoracion, idioma); "Datos publicos" (nombre, direccion, telefono, web); "Visibilidad" (mostrar precios, servicios visibles).
 
 GRUPO CUENTA
@@ -603,9 +665,14 @@ const CONFIG_EDITABLE: Record<string, ConfigMeta> = {
   slotInterval: { label: 'Granularidad de los huecos (min)', tipo: 'num', min: 5, max: 60 },
   defaultView: { label: 'Vista por defecto del calendario', tipo: 'enum', valores: ['dia', 'semana', 'mes'] },
   startOfWeek: { label: 'Primer dia de la semana', tipo: 'enum', valores: ['lun', 'dom'] },
+  // Deposito dinamico por riesgo (Sesion 3 V2): ya vivia en negocio_config.config
+  // (Configuracion > Politicas) pero Chispa no podia tocarlo todavia.
+  depositoDinamicoActivo: { label: 'Deposito dinamico segun riesgo del cliente', tipo: 'bool' },
+  depositoFactorRiesgo: { label: 'Multiplicador de senal para clientes con no-shows', tipo: 'num', min: 1, max: 5 },
+  depositoVipExento: { label: 'Clientes VIP exentos de senal', tipo: 'bool' },
 };
 
-const CONFIG_EDITABLE_TEXT = 'AJUSTES EDITABLES (solo propietario). Para cambiar uno, usa la tool cambiar_config con la CLAVE exacta de esta lista:\n' +
+const CONFIG_EDITABLE_TEXT = 'AJUSTES EDITABLES (solo propietario). Para cambiar uno o varios, usa la tool cambiar_config con la(s) CLAVE(s) exacta(s) de esta lista:\n' +
   Object.entries(CONFIG_EDITABLE).map(([k, m]) => {
     const t = m.tipo === 'enum' ? `opciones: ${(m.valores || []).join('/')}` : m.tipo === 'bool' ? 'activar/desactivar' : m.tipo === 'hora' ? 'HH:MM' : 'numero';
     return `- ${k}: ${m.label} (${t})`;
@@ -675,15 +742,16 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     'Eres Chispa, la asistente de IA del software de gestion del salon (Mecha): gestionas la agenda Y guias al usuario sobre como usar y configurar el software. Operas en espanol, con tono breve, calido y profesional. Si te preguntan que eres, di con naturalidad que eres una IA que ayuda con la gestion del salon.',
     `Hoy es ${hoyISO} (zona Europe/Madrid). Resuelve referencias relativas ("manana", "las 5", "el lunes") a fecha/hora concreta en hora LOCAL de Madrid, en formato YYYY-MM-DDTHH:mm SIN sufijo de zona (no pongas Z ni offset).`,
     'No uses emojis en tus respuestas.',
+    'ACTUA CON MINIMA INFO (REGLA ESTRICTA): para crear_cita, crear_servicio, editar_servicio, crear_presupuesto y cambiar_config, llama a la tool EN CUANTO identifiques la intencion, aunque falten datos: deja vacios/sin poner los campos que no sepas (NO los adivines ni los dejes de mandar por duda). Esta prohibido responder en texto plano pidiendo un dato que una de estas tools podria pedir por ti con un formulario: si dudas entre preguntar en texto o llamar a la tool con ese campo vacio, SIEMPRE llama a la tool. El sistema completara automaticamente lo que falte con un formulario o unas opciones para elegir, y al enviarlo se te reenviara la respuesta para que termines la propuesta. Esto incluye la AMBIGUEDAD: si el nombre de un servicio/profesional no es exacto o podria referirse a mas de uno (p.ej. "el corte" cuando hay "Corte caballero" y "Corte señora"), NO preguntes tu en texto cual es: llama a la tool igual con ese nombre tal cual lo dijo el usuario (aunque sepas por info_catalogo que hay varias coincidencias); el sistema le presentara las opciones exactas para elegir de un toque. Ejemplos: "sube las horas del recordatorio" sin decir el numero -> llama a cambiar_config con cambios:[{clave:"notifRecordatorioHoras"}] SIN poner "valor"; "activa la senal de 10 euros en el corte" (ambiguo) -> llama a editar_servicio con servicio:"corte", senal_activa:"activar", senal_importe:"10" IGUAL, sin preguntar antes cual de los dos es; "hazme un presupuesto con un tratamiento de keratina" (concepto que NO esta en el catalogo, sin precio) -> llama a crear_presupuesto con lineas:[{concepto:"tratamiento de keratina"}] SIN poner "precio", en vez de responder en texto pidiendolo tu. Si el usuario ya dio TODOS los datos sin ambiguedad en su misma frase, no hace falta nada mas: la tool devolvera directamente la tarjeta de confirmacion, sin formulario de por medio.',
     'GUIA DE CONFIGURACION: si el usuario pregunta como o donde configurar/personalizar algo, o que se puede ajustar de una funcion, responde con el MAPA DE CONFIGURACION del final: da la RUTA exacta (Configuracion > Pestana > Seccion) y enumera que se puede ajustar ahi. Cinete ESTRICTAMENTE al mapa: no inventes ajustes, opciones, valores de ejemplo ni rutas que no esten escritos en el (por ejemplo, no anadas "cada 15/30 min" ni "SMS/email" si el mapa no lo dice). Si te preguntan por algo que no esta en el mapa, dilo con franqueza en vez de suponer.',
-    'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar un ajuste (por ejemplo "activa los recordatorios" o "pon la antelacion minima en 4h"), usa la tool cambiar_config con la CLAVE exacta de la lista AJUSTES EDITABLES del final. Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
+    'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar uno o VARIOS ajustes relacionados en la misma frase (por ejemplo "activa los recordatorios con 48h de antelacion" junta notifRecordatorioActiva + notifRecordatorioHoras, o "pon la antelacion minima en 4h" es solo uno), usa la tool cambiar_config con la lista "cambios" (una entrada clave+valor por ajuste, CLAVE exacta de la lista AJUSTES EDITABLES del final). Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad, citas_hoy).',
     'Para responder sobre UNA clienta (su historial, cuanto gasta, cada cuanto viene, su etiquetas o su riesgo de no-show) usa ficha_cliente. REGLA DURA DE SALUD: nunca pidas, muestres ni deduzcas datos de salud, alergias, medicacion o notas medicas. Si ficha_cliente devuelve tiene_notas_salud=true, di UNICAMENTE que "hay notas en su ficha, revisalas alli" y ofrece un enlace a Clientes con sugerir_enlace; jamas inventes el contenido. Si la ficha no aparece (encontrado=false), di con naturalidad que no la encuentras: puede que no exista o que no haya dado su consentimiento para que la IA use sus datos.',
     'Menciona el riesgo de no-show de una clienta solo si es relevante (p.ej. el usuario pregunta si es fiable, o hay una cita suya sin confirmar), y siempre en tono neutro y sin juzgar: es una senal operativa, no una etiqueta sobre la persona.',
     'Si el usuario quiere recuperar a una clienta que lleva tiempo sin venir, puedes proponer recuperar_cliente (deja el registro para que el equipo le mande la propuesta de vuelta; tu no envias nada).',
     'Para el progreso de objetivos/metas usa metas_progreso (del equipo si eres direccion/propietario, o los tuyos si eres profesional); si no hay ninguno fijado, dilo con naturalidad y sugiere fijarlo en Equipo.',
     'Para proponer operaciones de agenda usa las tools de escritura (crear_cita, reagendar_cita, cancelar_cita, bloquear_hueco, liberar_hueco).',
-    'Tambien puedes proponer acciones de GESTION cuando tengas la tool disponible: confirmar_citas (confirmar en bloque las citas pendientes de un dia, p.ej. "confirmame las citas de manana"), editar_servicio (cambiar precio/nombre/duracion/activar de un servicio del catalogo), editar_horario (fijar el turno de un profesional un dia), crear_presupuesto (borrador con precios REALES del catalogo, nunca inventes precios) y enviar_mensaje_bandeja (guardar un borrador en el hilo de la Bandeja del cliente; NO envia el WhatsApp real, eso lo hace el equipo). Si una tool no esta disponible para el rol de este usuario, no la menciones como algo que puedas hacer: guia a la pantalla correspondiente.',
+    'Tambien puedes proponer acciones de GESTION cuando tengas la tool disponible: confirmar_citas (confirmar en bloque las citas pendientes de un dia, p.ej. "confirmame las citas de manana"), crear_servicio (dar de alta un servicio nuevo en el catalogo), editar_servicio (cambiar precio/nombre/duracion/activar/senal-deposito de un servicio del catalogo YA existente), editar_horario (fijar el turno de un profesional un dia), crear_presupuesto (borrador con precios REALES del catalogo, nunca inventes precios), enviar_mensaje_bandeja (guardar un borrador en el hilo de la Bandeja del cliente; NO envia el WhatsApp real, eso lo hace el equipo), cambiar_idioma_portal (idioma del portal PUBLICO de reserva online: es/en; distinto del idioma de la interfaz del software, ese no lo puedes cambiar) y anadir_cierre_negocio (marcar un dia completo como festivo/cierre de TODO el salon). Si una tool no esta disponible para el rol de este usuario, no la menciones como algo que puedas hacer: guia a la pantalla correspondiente.',
     'Todas estas acciones son PROPUESTAS: se muestran en una tarjeta y el usuario confirma; tu nunca las aplicas.',
     puedeInformes
       ? 'Para datos agregados de informes o facturacion (citas por estado, ingresos cobrados en un rango) usa resumen_informes; para dinero cobrado de verdad (efectivo/datafono/propinas) usa resumen_caja; para ocupacion del salon usa ocupacion. Cuando el usuario pida un resumen de un periodo ("resumeme el mes", "como va la semana") o la evolucion de una metrica, ANADE ademas mostrar_grafica (dia a dia) y, si tiene sentido comparar con el periodo anterior, mostrar_comparativa; luego ofrece sugerir_enlace hacia informes para el detalle completo. Nunca inventes cifras: usa solo las que devuelven estas tools, y si el rango tiene pocos datos dilo con franqueza en vez de sonar mas seguro de lo que permiten los datos.'
@@ -899,6 +967,18 @@ async function runAgente(
             scope as 'all' | 'self',
             userId,
           );
+
+      // "Actua con minima info" (Sesion 3 V2): falta o es ambiguo un dato
+      // requerido. En vez de un error de texto que el LLM convertiria en una
+      // pregunta libre, se corta aqui y se devuelve el formulario/opciones
+      // directamente (pre-rellenado con lo que ya se sabia).
+      if ('pedirInfo' in propuesta) {
+        await registrarConv(negocioId, userId, messages);
+        const bloques: Bloque[] = [];
+        if (msg.content && msg.content.trim()) bloques.push({ tipo: 'texto', texto: msg.content });
+        bloques.push(...bloquesExtra, propuesta.pedirInfo);
+        return { bloques, texto: msg.content || '' };
+      }
 
       if (!('error' in propuesta)) {
         await registrarConv(negocioId, userId, messages);
@@ -1555,31 +1635,107 @@ function parseInstante(s: string): Date {
 // ---------------------------------------------------------------------------
 // Construir propuesta de ESCRITURA (resuelve nombres→ids, calcula fines, marca solapa)
 // ---------------------------------------------------------------------------
-// Construye la propuesta de cambio de configuracion (valida clave + valor, lee el valor actual).
-async function construirPropuestaConfig(
-  inp: Record<string, string>,
-  negocioId: string,
-): Promise<AccionPropuesta | { error: string }> {
-  const clave = (inp.clave ?? '').trim();
-  const meta = CONFIG_EDITABLE[clave];
-  if (!meta) return { error: `"${clave}" no es un ajuste que pueda cambiar. Dime en palabras que quieres cambiar y te digo si se puede.` };
+// Construye el campo de 'formulario' adecuado para UNA clave de CONFIG_EDITABLE
+// dentro de un formulario con VARIOS campos (bool/enum se piden con un 'select'
+// dentro del propio formulario). Reutilizable para cualquier clave nueva que se
+// anada a CONFIG_EDITABLE (catalogo EXTENSIBLE, Sesion 3 V2).
+function campoParaClave(clave: string, meta: ConfigMeta, valorPrefill?: string): CampoFormulario {
+  if (meta.tipo === 'bool') {
+    return {
+      key: clave, label: meta.label, tipo: 'select', requerido: true,
+      opciones: [{ valor: 'activar', label: 'Activar' }, { valor: 'desactivar', label: 'Desactivar' }],
+    };
+  }
+  if (meta.tipo === 'enum') {
+    return { key: clave, label: meta.label, tipo: 'select', requerido: true, opciones: (meta.valores ?? []).map((v) => ({ valor: v, label: v })) };
+  }
+  if (meta.tipo === 'hora') return { key: clave, label: meta.label, tipo: 'hora', requerido: true, valor: valorPrefill };
+  return { key: clave, label: meta.label, tipo: meta.tipo === 'num' ? 'numero' : 'texto', requerido: true, valor: valorPrefill };
+}
 
-  const c = coerceConfigValor(meta, inp.valor ?? '');
-  if (!c.ok) return { error: c.error };
+type CambioConfigRaw = { clave?: string; valor?: string };
+
+// Construye la propuesta de cambio de configuracion. Acepta uno o VARIOS
+// cambios a la vez (Sesion 3 V2: "cambios" es un array; ver tool cambiar_config).
+// Si falta o es invalido el valor de alguna clave, en vez de un error de texto
+// devuelve un 'formulario'/'opciones' (pedirInfo) SOLO con lo que falta,
+// pre-rellenado con lo que ya se pudo interpretar.
+async function construirPropuestaConfig(
+  inpRaw: Record<string, unknown>,
+  negocioId: string,
+): Promise<AccionPropuesta | { error: string } | { pedirInfo: Bloque }> {
+  const cambiosIn: CambioConfigRaw[] = Array.isArray(inpRaw.cambios)
+    ? (inpRaw.cambios as CambioConfigRaw[]).filter((c) => c && typeof c === 'object')
+    : inpRaw.clave
+    ? [{ clave: String(inpRaw.clave), valor: inpRaw.valor != null ? String(inpRaw.valor) : undefined }]
+    : [];
+  if (cambiosIn.length === 0) return { error: 'Dime que ajuste quieres cambiar.' };
+
+  const metas: { clave: string; meta: ConfigMeta; raw?: string }[] = [];
+  for (const c of cambiosIn) {
+    const clave = (c.clave ?? '').trim();
+    const meta = CONFIG_EDITABLE[clave];
+    if (!meta) return { error: `"${clave}" no es un ajuste que pueda cambiar. Dime en palabras que quieres cambiar y te digo si se puede.` };
+    metas.push({ clave, meta, raw: c.valor != null ? String(c.valor) : undefined });
+  }
 
   const { data: cfgRow } = await svc.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle();
-  const actual = ((cfgRow?.config ?? {}) as Record<string, unknown>)[clave];
-  const fmt = (val: unknown): string =>
+  const cfgActual = (cfgRow?.config ?? {}) as Record<string, unknown>;
+  const fmt = (meta: ConfigMeta, val: unknown): string =>
     meta.tipo === 'bool' ? (val ? 'activado' : 'desactivado') : (val === undefined || val === null ? '(sin definir)' : String(val));
 
+  const resueltos: { clave: string; meta: ConfigMeta; valor: boolean | number | string; valorActual: boolean | number | string | null }[] = [];
+  const faltantes: { clave: string; meta: ConfigMeta; valorPrefill?: string }[] = [];
+  for (const { clave, meta, raw } of metas) {
+    const actual = (cfgActual[clave] ?? null) as boolean | number | string | null;
+    if (raw == null || raw.trim() === '') { faltantes.push({ clave, meta }); continue; }
+    const c = coerceConfigValor(meta, raw);
+    if (!c.ok) { faltantes.push({ clave, meta, valorPrefill: raw }); continue; }
+    resueltos.push({ clave, meta, valor: c.valor, valorActual: actual });
+  }
+
+  // Un UNICO ajuste faltante y de eleccion (bool/enum): 'opciones' standalone,
+  // se responde de un toque. El resto (varios, o un numero/hora/texto suelto)
+  // va en UN 'formulario'.
+  if (faltantes.length === 1 && (faltantes[0].meta.tipo === 'bool' || faltantes[0].meta.tipo === 'enum')) {
+    const { meta } = faltantes[0];
+    return {
+      pedirInfo: {
+        tipo: 'opciones', id: crypto.randomUUID(), titulo: meta.label,
+        opciones: meta.tipo === 'bool'
+          ? [{ valor: 'activar', label: 'Activar' }, { valor: 'desactivar', label: 'Desactivar' }]
+          : (meta.valores ?? []).map((v) => ({ valor: v, label: v })),
+      },
+    };
+  }
+  if (faltantes.length > 0) {
+    return {
+      pedirInfo: {
+        tipo: 'formulario', id: crypto.randomUUID(),
+        titulo: faltantes.length === 1 ? faltantes[0].meta.label : 'Completa estos ajustes',
+        campos: faltantes.map((f) => campoParaClave(f.clave, f.meta, f.valorPrefill)),
+        enviarLabel: 'Guardar',
+      },
+    };
+  }
+
+  if (resueltos.length === 1) {
+    const r = resueltos[0];
+    return {
+      tipo: 'cambiar_config',
+      negocio_id: negocioId,
+      clave: r.clave,
+      label: r.meta.label,
+      valor: r.valor,
+      valor_actual: r.valorActual,
+      resumen: `Cambiar "${r.meta.label}": ${fmt(r.meta, r.valorActual)} -> ${fmt(r.meta, r.valor)}`,
+    };
+  }
   return {
-    tipo: 'cambiar_config',
+    tipo: 'cambiar_config_multiple',
     negocio_id: negocioId,
-    clave,
-    label: meta.label,
-    valor: c.valor,
-    valor_actual: (actual ?? null) as boolean | number | string | null,
-    resumen: `Cambiar "${meta.label}": ${fmt(actual)} -> ${fmt(c.valor)}`,
+    cambios: resueltos.map((r) => ({ clave: r.clave, label: r.meta.label, valor: r.valor, valor_actual: r.valorActual })),
+    resumen: resueltos.map((r) => `"${r.meta.label}": ${fmt(r.meta, r.valorActual)} -> ${fmt(r.meta, r.valor)}`).join('; '),
   };
 }
 
@@ -1588,46 +1744,73 @@ async function construirPropuesta(
   negocioId: string,
   scope: 'all' | 'self',
   userId: string,
-): Promise<AccionPropuesta | { error: string }> {
+): Promise<AccionPropuesta | { error: string } | { pedirInfo: Bloque }> {
   const inp = (t.input ?? {}) as Record<string, string>;
 
   switch (t.name) {
     case 'crear_cita': {
-      // 1. Resolver servicio
-      const { data: servicios } = await svc
+      // 1-3. Resolver servicio/profesional/inicio "con minima info" (Sesion 3
+      // V2): si falta o es ambiguo, se pide con UN formulario/opciones (solo lo
+      // que falta) en vez de bloquear con un error de texto.
+      const { data: serviciosTodos } = await svc
         .from('servicios')
         .select('id, nombre, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min')
         .eq('negocio_id', negocioId)
-        .ilike('nombre', `%${inp.servicio}%`);
-
-      if (!servicios || servicios.length === 0)
-        return { error: `Servicio "${inp.servicio}" no encontrado. ¿Puedes precisar el nombre?` };
-      if (servicios.length > 1)
-        return { error: `Varios servicios coinciden con "${inp.servicio}": ${servicios.map((s: { nombre: string }) => s.nombre).join(', ')}. ¿Cual quieres?` };
-
-      const servicio = servicios[0];
-
-      // 2. Resolver profesional
-      const { data: profes } = await svc
-        .from('profesionales')
-        .select('id, nombre')
-        .eq('negocio_id', negocioId)
-        .eq('activo', true)
-        .ilike('nombre', `%${inp.profesional}%`);
-
-      if (!profes || profes.length === 0)
-        return { error: `Profesional "${inp.profesional}" no encontrado.` };
-      if (profes.length > 1)
-        return { error: `Varios profesionales coinciden con "${inp.profesional}": ${profes.map((p: { nombre: string }) => p.nombre).join(', ')}. ¿Cual quieres?` };
-
-      const profesional = profes[0];
-
-      // 3. Scope self: validar que es el profesional del caller
-      if (scope === 'self') {
-        const miProfId = await resolverProfesionalDelUsuario(negocioId, userId);
-        if (miProfId !== profesional.id)
-          return { error: 'Solo puedes operar tu propia agenda. Este profesional no es tu cuenta.' };
+        .eq('activo', true);
+      const listaServicios = (serviciosTodos ?? []) as {
+        id: string; nombre: string; duracion_activa_min: number | null;
+        duracion_espera_min: number | null; duracion_activa_extra_min: number | null;
+      }[];
+      let servicio: (typeof listaServicios)[number] | null = null;
+      let opcionesServicio: { valor: string; label: string }[] = [];
+      if (!inp.servicio?.trim()) {
+        opcionesServicio = listaServicios.map((s) => ({ valor: s.nombre, label: s.nombre }));
+      } else {
+        const coincidencias = listaServicios.filter((s) => s.nombre.toLowerCase().includes(inp.servicio.toLowerCase()));
+        if (coincidencias.length === 1) servicio = coincidencias[0];
+        else opcionesServicio = (coincidencias.length > 1 ? coincidencias : listaServicios).map((s) => ({ valor: s.nombre, label: s.nombre }));
       }
+
+      const { data: profesTodos } = await svc
+        .from('profesionales').select('id, nombre').eq('negocio_id', negocioId).eq('activo', true);
+      const listaProfes = (profesTodos ?? []) as { id: string; nombre: string }[];
+      let profesional: { id: string; nombre: string } | null = null;
+      let opcionesProfesional: { valor: string; label: string }[] = [];
+      if (scope === 'self') {
+        // Un profesional solo puede citarse a si mismo: se resuelve directo,
+        // sin preguntar (menos info a pedir) y sin exponer nombres de otros.
+        const miProfId = await resolverProfesionalDelUsuario(negocioId, userId);
+        const mio = listaProfes.find((p) => p.id === miProfId);
+        if (!mio) return { error: 'Tu cuenta de profesional no esta vinculada a ningun perfil de la agenda. Contacta con direccion.' };
+        profesional = mio;
+      } else if (!inp.profesional?.trim()) {
+        opcionesProfesional = listaProfes.map((p) => ({ valor: p.nombre, label: p.nombre }));
+      } else {
+        const coincidencias = listaProfes.filter((p) => p.nombre.toLowerCase().includes(inp.profesional.toLowerCase()));
+        if (coincidencias.length === 1) profesional = coincidencias[0];
+        else opcionesProfesional = (coincidencias.length > 1 ? coincidencias : listaProfes).map((p) => ({ valor: p.nombre, label: p.nombre }));
+      }
+
+      const inicioTxt = (inp.inicio ?? '').trim();
+      const inicioParseado = inicioTxt ? parseInstante(inicioTxt) : null;
+      const inicioValido = !!inicioParseado && !isNaN(inicioParseado.getTime());
+
+      const totalFaltan = [!servicio, !profesional, !inicioValido].filter(Boolean).length;
+      if (totalFaltan === 1 && !servicio) {
+        return { pedirInfo: { tipo: 'opciones', id: crypto.randomUUID(), titulo: '¿Que servicio?', opciones: opcionesServicio } };
+      }
+      if (totalFaltan === 1 && !profesional) {
+        return { pedirInfo: { tipo: 'opciones', id: crypto.randomUUID(), titulo: '¿Con quien?', opciones: opcionesProfesional } };
+      }
+      if (totalFaltan > 0) {
+        const campos: CampoFormulario[] = [];
+        if (!servicio) campos.push({ key: 'servicio', label: 'Servicio', tipo: 'select', requerido: true, opciones: opcionesServicio });
+        if (!profesional) campos.push({ key: 'profesional', label: 'Profesional', tipo: 'select', requerido: true, opciones: opcionesProfesional });
+        if (!inicioValido) campos.push({ key: 'inicio', label: 'Fecha y hora', tipo: 'texto', requerido: true, valor: inicioTxt || undefined });
+        return { pedirInfo: { tipo: 'formulario', id: crypto.randomUUID(), titulo: 'Completa la cita', campos, enviarLabel: 'Continuar' } };
+      }
+      if (!servicio || !profesional || !inicioParseado) return { error: 'No se pudo resolver la cita.' };
+      const inicio = inicioParseado;
 
       // 4. Resolver cliente (opcional)
       let clienteId: string | null = null;
@@ -1652,10 +1835,7 @@ async function construirPropuesta(
         clienteNombre = clientes[0].nombre;
       }
 
-      // 5. Calcular fines
-      const inicio = parseInstante(inp.inicio);
-      if (isNaN(inicio.getTime())) return { error: `Hora de inicio no valida: "${inp.inicio}"` };
-
+      // 5. Calcular fines (inicio ya resuelto arriba)
       const durActiva: number = servicio.duracion_activa_min ?? 0;
       const durEspera: number = servicio.duracion_espera_min ?? 0;
       const durExtra: number = servicio.duracion_activa_extra_min ?? 0;
@@ -1918,14 +2098,32 @@ async function construirPropuesta(
     }
 
     case 'editar_servicio': {
-      const { data: servicios } = await svc
-        .from('servicios').select('id, nombre, precio, duracion_activa_min, activo')
-        .eq('negocio_id', negocioId).ilike('nombre', `%${inp.servicio}%`);
-      if (!servicios || servicios.length === 0) return { error: `Servicio "${inp.servicio}" no encontrado.` };
-      if (servicios.length > 1) return { error: `Varios servicios coinciden con "${inp.servicio}": ${servicios.map((s: { nombre: string }) => s.nombre).join(', ')}. ¿Cual?` };
-      const s = servicios[0];
+      // Resolver servicio "con minima info": si falta/es ambiguo/no se
+      // encuentra, se pide con 'opciones' en vez de un error de texto.
+      const { data: serviciosTodos } = await svc
+        .from('servicios').select('id, nombre, precio, duracion_activa_min, activo, prepago_requerido, prepago_cantidad_fija')
+        .eq('negocio_id', negocioId).eq('activo', true);
+      const listaServicios = (serviciosTodos ?? []) as {
+        id: string; nombre: string; precio: number | null; duracion_activa_min: number | null;
+        activo: boolean; prepago_requerido: boolean | null; prepago_cantidad_fija: number | null;
+      }[];
+      let s: (typeof listaServicios)[number] | null = null;
+      let opcionesServicio: { valor: string; label: string }[] = [];
+      if (!inp.servicio?.trim()) {
+        opcionesServicio = listaServicios.map((x) => ({ valor: x.nombre, label: x.nombre }));
+      } else {
+        const coincidencias = listaServicios.filter((x) => x.nombre.toLowerCase().includes(inp.servicio.toLowerCase()));
+        if (coincidencias.length === 1) s = coincidencias[0];
+        else opcionesServicio = (coincidencias.length > 1 ? coincidencias : listaServicios).map((x) => ({ valor: x.nombre, label: x.nombre }));
+      }
+      if (!s) {
+        return { pedirInfo: { tipo: 'opciones', id: crypto.randomUUID(), titulo: '¿Que servicio quieres editar?', opciones: opcionesServicio } };
+      }
 
-      const cambios: { precio?: number; nombre?: string; duracion_activa_min?: number; activo?: boolean } = {};
+      const cambios: {
+        precio?: number; nombre?: string; duracion_activa_min?: number; activo?: boolean;
+        prepago_requerido?: boolean; prepago_cantidad_fija?: number;
+      } = {};
       const partes: string[] = [];
       if (inp.precio != null && String(inp.precio).trim() !== '') {
         const n = Number(String(inp.precio).replace(',', '.').replace(/[^0-9.]/g, ''));
@@ -1947,7 +2145,36 @@ async function construirPropuesta(
         if (!activar && !desactivar) return { error: 'Para "activo" indica activar o desactivar.' };
         cambios.activo = activar; partes.push(activar ? 'activar' : 'desactivar');
       }
-      if (Object.keys(cambios).length === 0) return { error: 'Dime que cambiar del servicio (precio, nombre, duracion o activar/desactivar).' };
+      if (inp.senal_activa != null && String(inp.senal_activa).trim() !== '') {
+        const v = String(inp.senal_activa).trim().toLowerCase();
+        const activar = ['activar', 'activado', 'activa', 'si', 'sí', 'true', 'on', '1'].includes(v);
+        const desactivar = ['desactivar', 'desactivado', 'desactiva', 'no', 'false', 'off', '0'].includes(v);
+        if (!activar && !desactivar) return { error: 'Para la senal indica activar o desactivar.' };
+        cambios.prepago_requerido = activar;
+        partes.push(`senal ${s.prepago_requerido ? 'activada' : 'desactivada'} -> ${activar ? 'activada' : 'desactivada'}`);
+      }
+      if (inp.senal_importe != null && String(inp.senal_importe).trim() !== '') {
+        const n = Number(String(inp.senal_importe).replace(',', '.').replace(/[^0-9.]/g, ''));
+        if (isNaN(n) || n < 0) return { error: `Importe de senal no valido: "${inp.senal_importe}".` };
+        cambios.prepago_cantidad_fija = n;
+        if (cambios.prepago_requerido == null) cambios.prepago_requerido = true;
+        partes.push(`senal ${s.prepago_cantidad_fija ?? '-'}€ -> ${n}€`);
+      }
+
+      if (Object.keys(cambios).length === 0) {
+        // Nada que cambiar todavia: formulario de edicion pre-rellenado con
+        // los valores actuales (Sesion 3 V2, "actua con minima info").
+        return {
+          pedirInfo: {
+            tipo: 'formulario', id: crypto.randomUUID(), titulo: `Editar ${s.nombre}`, enviarLabel: 'Guardar cambios',
+            campos: [
+              { key: 'nombre', label: 'Nombre', tipo: 'texto', requerido: true, valor: s.nombre },
+              { key: 'precio', label: 'Precio', tipo: 'euro', requerido: true, valor: s.precio ?? undefined },
+              { key: 'duracion_activa_min', label: 'Duracion (min)', tipo: 'numero', requerido: true, valor: s.duracion_activa_min ?? undefined },
+            ],
+          },
+        };
+      }
 
       return {
         tipo: 'editar_servicio',
@@ -1956,6 +2183,67 @@ async function construirPropuesta(
         servicio_nombre: s.nombre,
         cambios,
         resumen: `${s.nombre}: ${partes.join(', ')}`,
+      };
+    }
+
+    case 'crear_servicio': {
+      const nombre = String(inp.nombre ?? '').trim();
+      const precioRaw = String(inp.precio ?? '').trim();
+      const duracionRaw = String(inp.duracion_activa_min ?? '').trim();
+      const precioNum = precioRaw ? Number(precioRaw.replace(',', '.').replace(/[^0-9.]/g, '')) : NaN;
+      const duracionNum = duracionRaw ? parseInt(duracionRaw.replace(/[^0-9]/g, ''), 10) : NaN;
+      const nombreOk = nombre.length > 0;
+      const precioOk = !isNaN(precioNum) && precioNum > 0;
+      const duracionOk = !isNaN(duracionNum) && duracionNum > 0;
+
+      if (nombreOk && precioOk && duracionOk) {
+        return {
+          tipo: 'crear_servicio', negocio_id: negocioId, nombre, precio: precioNum, duracion_activa_min: duracionNum,
+          resumen: `${nombre} · ${precioNum.toFixed(2)}€ · ${duracionNum} min`,
+        };
+      }
+
+      const campos: CampoFormulario[] = [];
+      if (!nombreOk) campos.push({ key: 'nombre', label: 'Nombre del servicio', tipo: 'texto', requerido: true, valor: nombre || undefined });
+      if (!precioOk) campos.push({ key: 'precio', label: 'Precio', tipo: 'euro', requerido: true, valor: precioRaw || undefined });
+      if (!duracionOk) campos.push({ key: 'duracion_activa_min', label: 'Duracion (min)', tipo: 'numero', requerido: true, valor: duracionRaw || undefined });
+      return { pedirInfo: { tipo: 'formulario', id: crypto.randomUUID(), titulo: 'Nuevo servicio', campos, enviarLabel: 'Crear servicio' } };
+    }
+
+    case 'cambiar_idioma_portal': {
+      const IDIOMAS_PORTAL = [{ valor: 'es', label: 'Espanol' }, { valor: 'en', label: 'English' }];
+      const idioma = String(inp.idioma ?? '').trim().toLowerCase();
+      const valido = IDIOMAS_PORTAL.find((o) => o.valor === idioma);
+      if (!valido) {
+        return { pedirInfo: { tipo: 'opciones', id: crypto.randomUUID(), titulo: 'Idioma del portal de reserva', opciones: IDIOMAS_PORTAL } };
+      }
+      const { data: portal } = await svc.from('negocio_portal').select('idioma').eq('negocio_id', negocioId).maybeSingle();
+      if (!portal) return { error: 'Primero activa el portal de reserva en Configuracion > Reserva online.' };
+      const actual = (portal.idioma as string) ?? 'es';
+      if (actual === idioma) return { error: `El portal ya esta en ${valido.label}.` };
+      return {
+        tipo: 'cambiar_idioma_portal', negocio_id: negocioId, idioma, idioma_actual: actual,
+        resumen: `Cambiar idioma del portal: ${actual} -> ${idioma}`,
+      };
+    }
+
+    case 'anadir_cierre_negocio': {
+      const fecha = (inp.fecha ?? '').trim();
+      const motivo = (inp.motivo ?? '').trim() || null;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        return {
+          pedirInfo: {
+            tipo: 'formulario', id: crypto.randomUUID(), titulo: 'Festivo / cierre del salon', enviarLabel: 'Anadir cierre',
+            campos: [
+              { key: 'fecha', label: 'Fecha', tipo: 'fecha', requerido: true, valor: fecha || undefined },
+              { key: 'motivo', label: 'Motivo (opcional)', tipo: 'texto', valor: motivo ?? undefined },
+            ],
+          },
+        };
+      }
+      return {
+        tipo: 'crear_cierre_negocio', negocio_id: negocioId, fecha, motivo,
+        resumen: `Marcar el ${fecha} como festivo/cierre${motivo ? ` (${motivo})` : ''}`,
       };
     }
 
@@ -1997,6 +2285,7 @@ async function construirPropuesta(
       const catalogo = new Map((servs ?? []).map((s: { nombre: string; precio: number | null }) => [String(s.nombre).toLowerCase(), Number(s.precio) || 0]));
 
       const lineas: { nombre: string; precio_cents: number; cantidad: number }[] = [];
+      const faltanPrecio: { nombre: string; cantidad: number }[] = [];
       for (const l of lineasRaw) {
         const nombre = String((l.concepto ?? l.nombre ?? '')).trim();
         if (!nombre) continue;
@@ -2009,9 +2298,23 @@ async function construirPropuesta(
           const cat = catalogo.get(nombre.toLowerCase());
           if (cat != null) euros = cat;
         }
-        if (euros == null) return { error: `No tengo precio para "${nombre}" y no esta en el catalogo. Dime su precio.` };
         const cantidad = Math.max(1, parseInt(String(l.cantidad ?? '1').replace(/[^0-9]/g, ''), 10) || 1);
+        if (euros == null) { faltanPrecio.push({ nombre, cantidad }); continue; }
         lineas.push({ nombre, precio_cents: Math.round(euros * 100), cantidad });
+      }
+
+      // "Actua con minima info" (Sesion 3 V2): en vez de bloquear con un error
+      // de texto pidiendo el precio de UNA linea, se pide con UN formulario
+      // (una linea por precio que falte, aunque falten varias a la vez).
+      if (faltanPrecio.length > 0) {
+        return {
+          pedirInfo: {
+            tipo: 'formulario', id: crypto.randomUUID(),
+            titulo: faltanPrecio.length === 1 ? `Precio de "${faltanPrecio[0].nombre}"` : 'Completa los precios que faltan',
+            enviarLabel: 'Continuar',
+            campos: faltanPrecio.map((f, i) => ({ key: `precio_${i}`, label: `Precio de "${f.nombre}"`, tipo: 'euro' as const, requerido: true })),
+          },
+        };
       }
       if (lineas.length === 0) return { error: 'No pude construir ninguna linea valida del presupuesto.' };
 

@@ -47,7 +47,7 @@ export type ChispaUnidad = 'eur' | 'citas' | 'pct';
 
 // Tipo de campo de un bloque 'formulario'. Determina que control se renderiza
 // (ver CampoControl en BloqueRenderer.web.tsx).
-export type CampoFormularioTipo = 'texto' | 'numero' | 'euro' | 'tel' | 'hora' | 'select';
+export type CampoFormularioTipo = 'texto' | 'numero' | 'euro' | 'tel' | 'hora' | 'fecha' | 'select';
 
 export interface CampoFormulario {
   key: string;

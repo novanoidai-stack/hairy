@@ -87,6 +87,33 @@ export type AccionPropuesta =
       valor_actual: boolean | number | string | null;
       resumen: string;
     }
+  | {
+      // Cambia VARIOS ajustes de negocio_config a la vez (Sesion 3 V2: p.ej.
+      // "activa el recordatorio con 48h de antelacion" = 2 claves relacionadas
+      // en una sola confirmacion). Cada clave se aplica con set_negocio_config_key.
+      tipo: 'cambiar_config_multiple';
+      negocio_id: string;
+      cambios: { clave: string; label: string; valor: boolean | number | string; valor_actual: boolean | number | string | null }[];
+      resumen: string;
+    }
+  | {
+      // Idioma del PORTAL PUBLICO de reserva (negocio_portal.idioma). Distinto
+      // de negocio_config: fuera del alcance de set_negocio_config_key.
+      tipo: 'cambiar_idioma_portal';
+      negocio_id: string;
+      idioma: string;
+      idioma_actual: string | null;
+      resumen: string;
+    }
+  | {
+      // Festivo/cierre de dia completo a nivel de todo el negocio (tabla
+      // cierres_negocio, Sesion 15). Insercion, no cambio de config.
+      tipo: 'crear_cierre_negocio';
+      negocio_id: string;
+      fecha: string;
+      motivo: string | null;
+      resumen: string;
+    }
   // --- Acciones de gestion (Sesion 3) ---
   | {
       // Batch: confirma varias citas pendientes de una sola vez ("confirmame las
@@ -107,7 +134,20 @@ export type AccionPropuesta =
         nombre?: string;
         duracion_activa_min?: number;
         activo?: boolean;
+        // Señal/deposito del servicio (Sesion 3 V2): cantidad fija en euros.
+        prepago_requerido?: boolean;
+        prepago_cantidad_fija?: number;
       };
+      resumen: string;
+    }
+  | {
+      // Crea un servicio nuevo del catalogo (Sesion 3 V2: "actua con minima
+      // info"). Complementa editar_servicio (que solo edita existentes).
+      tipo: 'crear_servicio';
+      negocio_id: string;
+      nombre: string;
+      precio: number;
+      duracion_activa_min: number;
       resumen: string;
     }
   | {
@@ -378,6 +418,8 @@ export async function ejecutarAccion(
         if (a.cambios.nombre != null) patch.nombre = a.cambios.nombre;
         if (a.cambios.duracion_activa_min != null) patch.duracion_activa_min = a.cambios.duracion_activa_min;
         if (a.cambios.activo != null) patch.activo = a.cambios.activo;
+        if (a.cambios.prepago_requerido != null) patch.prepago_requerido = a.cambios.prepago_requerido;
+        if (a.cambios.prepago_cantidad_fija != null) patch.prepago_cantidad_fija = a.cambios.prepago_cantidad_fija;
         if (Object.keys(patch).length === 0) return { ok: false, error: 'No hay cambios que aplicar al servicio.' };
 
         const { error } = await supabase
@@ -387,6 +429,18 @@ export async function ejecutarAccion(
           .eq('negocio_id', a.negocio_id);
         if (error) return { ok: false, error: error.message };
         return { ok: true, mensaje: `Servicio actualizado: ${a.resumen}` };
+      }
+
+      case 'crear_servicio': {
+        const { error } = await supabase.from('servicios').insert({
+          negocio_id: a.negocio_id,
+          nombre: a.nombre,
+          precio: a.precio,
+          duracion_activa_min: a.duracion_activa_min,
+          activo: true,
+        });
+        if (error) return { ok: false, error: error.message };
+        return { ok: true, mensaje: `Servicio creado: ${a.resumen}` };
       }
 
       case 'editar_horario': {
@@ -496,6 +550,55 @@ export async function ejecutarAccion(
           p_valor: a.valor,
         });
         if (error) return { ok: false, error: error.message };
+        return { ok: true, mensaje: `Hecho: ${a.resumen}` };
+      }
+
+      case 'cambiar_config_multiple': {
+        // Igual que 'cambiar_config' pero para VARIAS claves relacionadas a la
+        // vez. set_negocio_config_key ya es un merge atomico por clave; aqui
+        // simplemente se llama una vez por clave (no transaccional entre si,
+        // igual que editar_horario: si una falla, se informa y las anteriores
+        // ya aplicadas quedan aplicadas).
+        for (const c of a.cambios) {
+          const { error } = await supabase.rpc('set_negocio_config_key', {
+            p_negocio_id: a.negocio_id,
+            p_clave: c.clave,
+            p_valor: c.valor,
+          });
+          if (error) return { ok: false, error: `${c.label}: ${error.message}` };
+        }
+        return { ok: true, mensaje: `Hecho: ${a.resumen}` };
+      }
+
+      case 'cambiar_idioma_portal': {
+        const { data: portal } = await supabase
+          .from('negocio_portal')
+          .select('negocio_id')
+          .eq('negocio_id', a.negocio_id)
+          .maybeSingle();
+        if (!portal) {
+          return { ok: false, error: 'Activa primero el portal de reserva en Configuracion -> Reserva online.' };
+        }
+        const { error } = await supabase
+          .from('negocio_portal')
+          .update({ idioma: a.idioma })
+          .eq('negocio_id', a.negocio_id);
+        if (error) return { ok: false, error: error.message };
+        return { ok: true, mensaje: `Hecho: ${a.resumen}` };
+      }
+
+      case 'crear_cierre_negocio': {
+        const { error } = await supabase.from('cierres_negocio').insert({
+          negocio_id: a.negocio_id,
+          fecha: a.fecha,
+          motivo: a.motivo,
+        });
+        if (error) {
+          if ((error as { code?: string }).code === '23505') {
+            return { ok: false, error: 'Ese dia ya estaba marcado como cierre.' };
+          }
+          return { ok: false, error: error.message };
+        }
         return { ok: true, mensaje: `Hecho: ${a.resumen}` };
       }
 

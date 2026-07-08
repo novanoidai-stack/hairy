@@ -264,6 +264,63 @@ campos, no un interrogatorio. Verificado E2E. tsc + build limpios; edge desplega
 Cierra con el Protocolo de cierre.
 ```
 
+**Verificado 8 jul:** **Investigado antes de construir** (grep + BD real via MCP Supabase) que
+IVA, "politicas de cancelacion" (fase 4, `SoonBanner`/`Section soon disabled` con valores
+hardcodeados, `configuracion.web.tsx:3179-3197`) y un interruptor GLOBAL de fidelizacion NO
+existen en el producto (fidelizacion vive por fila `activo=true` en `recompensas`/`logros`, sin
+flag maestro) — se EXCLUYERON del catalogo en vez de fabricar ajustes falsos (regla "sin claims
+falsos"). "Senal/deposito" es real pero por SERVICIO (`servicios.prepago_requerido` +
+`prepago_cantidad_fija`, `migrations/pagos.sql`), no un importe global; "idioma del portal" vive
+en `negocio_portal.idioma` (no en `negocio_config`); "festivos/cierres" vive en `cierres_negocio`
+(insercion, no cambio de config). Diseno resultante:
+1. **Catalogo curado real:** `CONFIG_EDITABLE` del edge suma `depositoDinamicoActivo` +
+   `depositoFactorRiesgo` + `depositoVipExento` (el sistema de deposito dinamico por riesgo ya
+   vivia en `negocio_config` pero Chispa no llegaba). `cambiar_config` pasa de {clave,valor}
+   plano a `cambios: {clave,valor}[]` (permite 1+ ajustes relacionados en una sola confirmacion,
+   p.ej. activar recordatorio + fijar sus horas = accion `cambiar_config_multiple` nueva). Idioma
+   del portal y festivos/cierres, al no encajar en `set_negocio_config_key`, se implementaron
+   como DOS acciones dedicadas nuevas con el MISMO patron propone->confirma:
+   `cambiar_idioma_portal` (`negocio_portal.idioma`, es/en) y `crear_cierre_negocio`
+   (`cierres_negocio`, con un tipo de campo NUEVO `'fecha'` espejo de `'hora'`). `editar_servicio`
+   suma `prepago_requerido`/`prepago_cantidad_fija` (esto hace REAL el ejemplo "activa la senal de
+   10€" del plan, que antes no tenia ningun camino).
+2. **"Actua con minima info":** nuevo tipo de retorno `pedirInfo: Bloque` en
+   `construirPropuesta`/`construirPropuestaConfig` del edge — si falta o es ambiguo un dato
+   requerido, corta el bucle del LLM y devuelve un `'formulario'`/`'opciones'` PRE-RELLENADO en
+   vez de dejar que el LLM lo pida en texto. Aplicado a `crear_cita` (servicio/profesional
+   resueltos por nombre real o listados como opciones si faltan/son ambiguos; `scope=self` se
+   auto-resuelve al propio profesional sin preguntar), la tool NUEVA `crear_servicio` (antes solo
+   existia dentro del onboarding, no para el chat general), `editar_servicio` (resolucion de
+   servicio por opciones + formulario de edicion PRE-RELLENADO con los valores actuales cuando no
+   se indica ningun cambio) y `crear_presupuesto` (un campo de precio por cada linea sin precio,
+   no un interrogatorio). Regla de oro verificada en ambos sentidos para cada tool: info completa
+   -> tarjeta de confirmacion directa; info incompleta/ambigua -> formulario/opciones con SOLO lo
+   que falta.
+3. **Ajuste de prompt tras probar en vivo:** el modelo inicialmente prefería preguntar en TEXTO en
+   vez de llamar a la tool con un campo vacio/ambiguo (visto en `cambiar_config` sin valor,
+   `editar_servicio` con nombre ambiguo "el corte", `crear_presupuesto` con concepto sin precio).
+   Se reforzo el system prompt con la regla explicita + 3 ejemplos concretos worked-example; tras
+   redesplegar, los 3 casos pasaron a llamar la tool y devolver el formulario/opciones correcto.
+**E2E real** contra el edge YA desplegado (curl autenticado como `demo.publico@mecha.app`,
+lecturas/propuestas reales, sin escribir nada — el edge nunca ejecuta escrituras): verificadas las
+8 combinaciones (falta info -> formulario/opciones vs. info completa -> accion directa) de
+`crear_servicio`, `editar_servicio` (incl. senal y ambiguedad "el corte" -> opciones con las 2
+candidatas reales), `crear_cita` (bare -> formulario con selects reales del catalogo; 1 campo
+faltante -> opciones), `crear_presupuesto`, `cambiar_config` (single/multi-clave), 
+`cambiar_idioma_portal` y `anadir_cierre_negocio`. **En navegador real** (iframe de
+`/demo.html?share=1`, mismo origen, manipulado por DOM nativo porque los selectores CSS no
+atraviesan el iframe): "crea un servicio" mostro el formulario de 3 campos con las etiquetas
+correctas; rellenar y enviar completo el turno con el LLM y produjo la tarjeta de confirmacion
+(Confirmar/Cancelar) sin errores de consola. Esquema/RLS de `servicios.prepago_*`,
+`negocio_portal.idioma` y `cierres_negocio` verificados contra la BD real antes de escribir
+codigo (MCP Supabase), no asumidos. `npx tsc --noEmit`, `npm run build:web` y `deno check` del
+edge limpios; 22 tests Deno en verde (19 previos + 3 nuevos de permisos para las tools añadidas).
+Edge `agenda-asistente` redesplegado 3 veces (funcionalidad + 2 ajustes de prompt) y verificado
+(curl sin auth -> 401). Sin migraciones nuevas (todo el esquema ya existia). Nota: los ejemplos
+literales de ACEPTACION citaban "sube el IVA" (no existe como ajuste real hoy; se verifico con
+otro ajuste real del catalogo, p.ej. deposito/recordatorio) y "activa la senal de 10€" (se hizo
+real via `editar_servicio`, no como clave global).
+
 ## Prompt Sesión 4 — Motor "IA por página" sin fallos silenciosos (Opus 4.8, medio)
 
 ```
