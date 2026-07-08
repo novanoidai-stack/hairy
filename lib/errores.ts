@@ -62,6 +62,48 @@ function columnaDe(e: ErrLike): string | undefined {
   return undefined;
 }
 
+// Codigos tecnicos snake_case que lanzan las RPC/edges (raise exception '...') -> frase
+// legible. Lo no listado se humaniza igualmente (ver humanizarCodigo), asi que ningun codigo
+// crudo con guiones bajos llega a la UI.
+const CODIGOS: Record<string, string> = {
+  cita_ya_cobrada: 'Esta cita ya esta cobrada.',
+  cita_no_encontrada: 'No se encuentra la cita.',
+  cita_not_found: 'No se encuentra la cita.',
+  cita_futura: 'La cita aun no ha pasado.',
+  estado_no_valido: 'La cita no esta en un estado valido para esto.',
+  no_autorizado: 'No tienes permiso para hacer esto.',
+  cross_tenant: 'No tienes permiso para hacer esto.',
+  sin_perfil: 'Tu usuario no tiene un negocio asignado.',
+  no_es_pago_online: 'Ese cobro no es online; no se puede reembolsar desde aqui.',
+  sin_pago_stripe: 'No hay un pago con tarjeta asociado a este cobro.',
+  sin_payment_intent: 'No hay un pago con tarjeta asociado.',
+  cobro_no_reembolsable: 'Este cobro no se puede reembolsar.',
+  cobro_no_encontrado: 'No se encuentra el cobro.',
+  no_reembolsable: 'Este cobro no se puede reembolsar.',
+  hold_no_encontrado: 'No hay ninguna retencion (fianza) para esta cita.',
+  no_es_hold: 'Este pago no es una retencion.',
+  no_capturable: 'No se puede capturar la retencion.',
+  no_liberable: 'No se puede liberar la retencion.',
+  importe_invalido: 'El importe no es valido.',
+};
+
+// Convierte un codigo snake_case ("cita_ya_cobrada") en texto legible ("Cita ya cobrada.").
+// Solo actua sobre identificadores en minusculas con guiones bajos; un texto normal (con
+// espacios o mayusculas) no coincide y se deja intacto.
+function humanizarCodigo(s: string): string | null {
+  if (!/^[a-z][a-z0-9]*(_[a-z0-9]+)+$/.test(s)) return null;
+  const txt = s.replace(/_/g, ' ').trim();
+  return txt.charAt(0).toUpperCase() + txt.slice(1) + '.';
+}
+
+// Traduce un posible codigo tecnico a frase legible: mapa conocido primero, si no, humanizado.
+// Devuelve null si no parece un codigo (es un texto normal que hay que respetar).
+function textoDeCodigo(msg: string): string | null {
+  const key = msg.trim();
+  if (CODIGOS[key]) return CODIGOS[key];
+  return humanizarCodigo(key);
+}
+
 /**
  * Devuelve un mensaje claro en español para un error de Supabase/Postgres/JS.
  * @param fallback mensaje si no se reconoce el error (personalizalo por contexto,
@@ -103,7 +145,7 @@ export function mensajeDeError(error: unknown, fallback = 'No se pudo completar 
     case '22001': return `El texto de ${etiqueta(columnaDe(e))} es demasiado largo.`;
     case '22P02': return 'Hay un valor con formato incorrecto. Revisa los campos.';
     case '42501': return 'No tienes permisos para hacer esto.';
-    case 'P0001': return msg || fallback; // raise_exception: las RPC ya lanzan mensajes en español
+    case 'P0001': return textoDeCodigo(msg) ?? (msg || fallback); // raise_exception: RPC en español, o codigo snake_case humanizado
     case '23P01': return 'Ese horario se solapa con otra reserva. Elige otro hueco.';
   }
 
@@ -113,6 +155,10 @@ export function mensajeDeError(error: unknown, fallback = 'No se pudo completar 
   if (/violates not-null|null value in column/i.test(msg)) return `Falta rellenar ${etiqueta(columnaDe(e))}.`;
   if (/violates check constraint/i.test(msg)) return `El valor de ${etiqueta(columnaDe(e))} no es valido.`;
   if (/violates foreign key/i.test(msg)) return 'No se puede: este dato esta vinculado a otros (por ejemplo, citas).';
+
+  // Codigo tecnico snake_case sin traducir (p.ej. 'cita_ya_cobrada' de una RPC/edge): humanizar.
+  const porCodigo = textoDeCodigo(msg);
+  if (porCodigo) return porCodigo;
 
   // Si el mensaje ya viene en español legible (tipico de RPC con raise), usarlo.
   if (msg && msg.length < 180 && /[áéíóúñ¿¡]| no | el | la | ya /i.test(msg)) return msg;
