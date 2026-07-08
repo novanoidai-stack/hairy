@@ -6,10 +6,8 @@
 // que el panel (lib/hooks/useChispaVoz.web.ts) interpreta degradando solo al
 // speechSynthesis del navegador, sin romper la conversacion.
 //
-// KOKORO_TTS_URL / KOKORO_TTS_SECRET deberian vivir en Supabase secrets; aqui
-// llevan de momento un default de codigo (mismo patron que VOICE_ID) porque
-// no habia forma de fijarlos como secret desde esta sesion -- pendiente
-// moverlos a `supabase secrets set` cuando se pueda.
+// KOKORO_TTS_URL, KOKORO_TTS_SECRET y (opcional) KOKORO_VOICE viven en
+// Supabase secrets -- el secreto NUNCA debe tener default en el codigo.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -23,8 +21,8 @@ const json = (b: unknown, status = 200) =>
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 
-const KOKORO_TTS_URL = Deno.env.get('KOKORO_TTS_URL') || 'http://76.13.45.164:8880';
-const KOKORO_TTS_SECRET = Deno.env.get('KOKORO_TTS_SECRET') || 'd16f8a4751202a35bc26d50183dee4f45204685e2ee4eecd';
+const KOKORO_TTS_URL = Deno.env.get('KOKORO_TTS_URL') ?? '';
+const KOKORO_TTS_SECRET = Deno.env.get('KOKORO_TTS_SECRET') ?? '';
 const KOKORO_VOICE = Deno.env.get('KOKORO_VOICE') || 'ef_dora';
 
 const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY') ?? '';
@@ -37,6 +35,7 @@ const MODEL_ID = 'eleven_multilingual_v2';
 const MAX_CHARS = 700;
 
 async function generarConKokoro(texto: string): Promise<ArrayBuffer | null> {
+  if (!KOKORO_TTS_URL || !KOKORO_TTS_SECRET) return null;
   try {
     const r = await fetch(`${KOKORO_TTS_URL}/v1/audio/speech`, {
       method: 'POST',
