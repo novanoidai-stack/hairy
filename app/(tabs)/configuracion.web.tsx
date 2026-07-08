@@ -201,6 +201,9 @@ interface ConfigState {
   depositoUmbralAltoNoShows: number;
   depositoStaffExigir: boolean;
   depositoVipExento: boolean;
+  // Modo de fianza: cobrar la senal o retenerla (hold) y capturar solo en no-show
+  depositoModoFianza: 'cobro' | 'hold';
+  depositoNoShowCapturaAuto: boolean;
   // Plantillas reutilizables (catalogos del salon)
   catalogoAlergias: string[];
   plantillasFormula: PlantillaTexto[];
@@ -291,7 +294,7 @@ const DEFAULT_CONFIG: ConfigState = {
   listaEsperaOfertaPideSenal: false, listaEsperaAvisarCaducado: false,
   depositoDinamicoActivo: false, depositoModoClasificacion: 'ambos', depositoFactorRiesgo: 2,
   depositoUmbralFiableCompletadas: 3, depositoUmbralAltoNoShows: 2, depositoStaffExigir: false,
-  depositoVipExento: true,
+  depositoVipExento: true, depositoModoFianza: 'cobro', depositoNoShowCapturaAuto: true,
   catalogoAlergias: ['Parafenilendiamina (PPD)', 'Amoniaco', 'Resorcina', 'Persulfatos', 'Fragancias', 'Niquel', 'Latex'],
   plantillasFormula: [],
   plantillasNota: [],
@@ -3173,6 +3176,19 @@ function TabPoliticas({ config, setC }: { config: ConfigState; setC: (k: keyof C
         </FieldRow>
         <FieldRow label="Pedir senal tambien en reservas del mostrador" hint="Si el staff reserva a un cliente de riesgo, se ofrece pedir la senal: la cita queda pendiente y se confirma al pagar (no se auto-cancela). Desactivado, las reservas del staff se confirman al momento como siempre.">
           <Toggle disabled={!on} on={config.depositoStaffExigir} onChange={v => setC('depositoStaffExigir', v)} />
+        </FieldRow>
+      </Section>
+
+      <Section title="Fianza: cobrar o retener (hold)"
+        desc="Con 'Retener', la senal no se cobra: se deja una retencion (autorizacion) en la tarjeta del cliente. Si asiste, se libera; si no se presenta, se captura como penalizacion. Menos friccion para el cliente, misma proteccion anti no-show. El importe es el que ya calcula el deposito segun riesgo.">
+        <FieldRow label="Como se toma la senal" hint="Cobrar: se carga al momento (y se devuelve si procede). Retener: se autoriza sin cobrar y solo se captura si hay no-show.">
+          <Segmented value={config.depositoModoFianza} onChange={v => setC('depositoModoFianza', v)} options={[
+            { value: 'cobro', label: 'Cobrar' },
+            { value: 'hold', label: 'Retener (hold)' },
+          ]} />
+        </FieldRow>
+        <FieldRow label="Capturar la retencion automaticamente en no-show" hint="Al marcar una cita como no-show se captura la fianza retenida sin mas pasos. Desactivado, la retencion queda para que la captures tu manualmente. Las retenciones caducan a los ~7 dias.">
+          <Toggle disabled={config.depositoModoFianza !== 'hold'} on={config.depositoNoShowCapturaAuto} onChange={v => setC('depositoNoShowCapturaAuto', v)} />
         </FieldRow>
       </Section>
 

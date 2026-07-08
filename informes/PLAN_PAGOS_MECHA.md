@@ -65,7 +65,7 @@ semanas o bloqueado por terceros.
 |---|---|---|---|---|
 | **S1** ✅ | Cobro en el local ("pago después") + QR de mostrador | Pilar 2 (QR) | L | — |
 | **S2** ✅ | Reembolsos + robustez del webhook | Ciclo de vida | M | — |
-| **S3** | Holds / pre-autorizaciones (completa Pilar 3) | Pilar 3 | M | — |
+| **S3** ✅ | Holds / pre-autorizaciones (completa Pilar 3) | Pilar 3 | M | — |
 | **S4** | Propinas + pago dividido / grupal | Pilar 4 | L | — |
 | **S5** | Mecha Pay + Stripe Connect (modelo de tasas) | Pilar 1 | XL | KYC Stripe Connect |
 | **S6** | BYOP: Bizum + Redsýs (Fase 2) | Pilar 1 / Fase 2 | XL | Credenciales Redsýs del salón |
@@ -176,7 +176,14 @@ fricción para el cliente, misma protección anti no-show. Es el punto que le fa
 | S3.4 | Enganche con el motor de no-show: al marcar `no_presentada` → captura automática del hold (o propuesta "IA sugiere") | [A] | M |
 | S3.5 | Webhook: eventos de PaymentIntent (`amount_capturable_updated`, `canceled`) | [A] | S |
 
-**Estado:** diseño. Depende de que S1/S2 hayan generalizado el manejo de PaymentIntent y eventos.
+**Estado:** ✅ HECHO y en prod (7 jul 2026). Migración `s3-holds-preautorizaciones.sql`
+(estados `retenido`/`liberado` + RPCs `registrar_hold_colocado`, `iniciar_captura_hold`,
+`iniciar_liberacion_hold`, `registrar_captura_hold`, `registrar_liberacion_hold`); edge
+`crear-checkout-senal` v14 (capture_method manual si `depositoModoFianza='hold'`); edge
+`stripe-webhook` v16 (nuevos eventos PaymentIntent); edges nuevas `capturar-hold` + `liberar-hold`
+(staff, patrón S2). Config en Políticas (`depositoModoFianza` + `depositoNoShowCapturaAuto`).
+No-show engine (`marcar_cita_no_show` devuelve el hold + captura auto). Verificado E2E a nivel BD
+en tenant aislado; typecheck + build OK.
 
 **Pendiente externo (tú):** confirmar disponibilidad de pre-autorizaciones en la cuenta Stripe
 (holds tienen caducidad ~7 días; definir política si la cita es a >7 días).
@@ -338,7 +345,9 @@ Lo que tienes que resolver TÚ (fuera del código) para desbloquear cada sesión
 - [ ] **S1**: activar Bizum + Apple/Google Pay como métodos en el dashboard de Stripe.
 - [ ] **S2**: suscribir eventos `charge.refunded`, `payment_intent.payment_failed`,
       `checkout.session.expired` en el webhook de Stripe.
-- [ ] **S3**: confirmar pre-autorizaciones habilitadas + política para citas a >7 días.
+- [ ] **S3**: confirmar pre-autorizaciones habilitadas en Stripe + política para citas a >7 días;
+      suscribir en el webhook los eventos `payment_intent.amount_capturable_updated` y
+      `payment_intent.canceled` (código ya desplegado).
 - [ ] **S4**: decidir % de propina sugeridos por defecto.
 - [ ] **S5**: decisión mono-cuenta vs Connect; si Connect → KYC plataforma + verificación por salón.
 - [ ] **S6**: credenciales de comercio Redsýs del salón (FUC, terminal, clave) + alta Bizum banco.

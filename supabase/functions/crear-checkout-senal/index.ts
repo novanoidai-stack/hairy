@@ -33,27 +33,39 @@ Deno.serve(async (req) => {
     if (!pago || !pago.importe_cents || pago.importe_cents <= 0) {
       return json({ error: 'Esta cita no requiere senal' }, 400);
     }
-    if (pago.estado === 'pagado') return json({ ya_pagado: true });
+    if (pago.estado === 'pagado' || pago.estado === 'retenido') return json({ ya_pagado: true });
+
+    // Modo de fianza del negocio: 'cobro' (default) cobra la senal por adelantado; 'hold' la
+    // RETIENE (autorizacion con captura manual) para capturarla solo si hay no-show. El importe
+    // ya viene modulado por perfil de riesgo desde requerir_senal_cita.
+    const { data: cfg } = await supabase
+      .from('negocio_config').select('config').eq('negocio_id', pago.negocio_id).maybeSingle();
+    const esHold = ((cfg?.config as Record<string, unknown> | null)?.depositoModoFianza ?? 'cobro') === 'hold';
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: [{
         price_data: {
           currency: (pago.moneda ?? 'eur').toLowerCase(),
-          product_data: { name: 'Senal de tu cita' },
+          product_data: { name: esHold ? 'Fianza de tu cita (retencion)' : 'Senal de tu cita' },
           unit_amount: pago.importe_cents,
         },
         quantity: 1,
       }],
+      // En modo hold: autorizar sin cobrar (capture_method manual). El pago_id/cita_id viajan
+      // tambien en el PaymentIntent para poder conciliar en amount_capturable_updated/canceled.
+      ...(esHold
+        ? { payment_intent_data: { capture_method: 'manual', metadata: { pago_id: pago.id, cita_id: citaId, fianza_modo: 'hold' } } }
+        : {}),
       success_url: success_url ?? 'https://www.mechaa.es/app/pago/ok',
       cancel_url: cancel_url ?? 'https://www.mechaa.es/app/pago/cancelado',
       client_reference_id: pago.id,
-      metadata: { pago_id: pago.id, cita_id: citaId },
+      metadata: { pago_id: pago.id, cita_id: citaId, ...(esHold ? { fianza_modo: 'hold' } : {}) },
     });
 
     await supabase.from('pagos').update({ pasarela: 'stripe', pasarela_ref: session.id }).eq('id', pago.id);
 
-    return json({ checkout_url: session.url, pago_id: pago.id, importe_cents: pago.importe_cents });
+    return json({ checkout_url: session.url, pago_id: pago.id, importe_cents: pago.importe_cents, modo: esHold ? 'hold' : 'cobro' });
   } catch (e) {
     return json({ error: String((e as Error)?.message ?? e) }, 500);
   }

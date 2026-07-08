@@ -292,6 +292,7 @@ export default function AgendaCalendar() {
   const [recolocarRetraso, setRecolocarRetraso] = useState(true); // toggle de Configuracion (negocio_config.config)
   const [avisarRetraso, setAvisarRetraso] = useState(true); // notifRetrasoActiva (negocio_config.config)
   const [completarManual, setCompletarManual] = useState(false); // completarManual (negocio_config); false = autocompletar + sin boton
+  const [capturaHoldAuto, setCapturaHoldAuto] = useState(true); // depositoNoShowCapturaAuto: capturar la fianza retenida al marcar no-show
   const [negocioId, setNegocioId] = useState(NEGOCIO_ID_FALLBACK);
   const [userProfile, setUserProfile] = useState<any | null>(null);
   const [dayViewType, setDayViewType] = useState<'grid' | 'list'>('grid');
@@ -498,6 +499,7 @@ export default function AgendaCalendar() {
         setRecolocarRetraso(cfg.recolocarRetraso !== false);
         setAvisarRetraso(cfg.notifRetrasoActiva !== false);
         setCompletarManual(cfg.completarManual === true);
+        setCapturaHoldAuto(cfg.depositoNoShowCapturaAuto !== false);
         setNegocioId(negocioId);
         setUserProfile(profile || null);
 
@@ -2003,6 +2005,10 @@ export default function AgendaCalendar() {
         async function marcarNoShow() {
           await supabase.from('citas').update({ estado: 'no_presentada' }).eq('id', c.id);
           setCitas((prev) => prev.map((x) => x.id === c.id ? { ...x, estado: 'no_presentada' } : x));
+          // Fianza en modo hold: si el negocio captura en auto, capturar la retencion (no-op si no hay hold).
+          if (capturaHoldAuto) {
+            supabase.functions.invoke('capturar-hold', { body: { cita_id: c.id } }).catch(() => {});
+          }
           setShowClientaTarde(null);
           triggerRefresh();
         }
@@ -5500,7 +5506,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
     setErrMsg('');
     try {
       const { data, error } = await supabase.rpc('marcar_cita_no_show', { p_cita_id: cita.id });
-      const res = (data ?? {}) as { ok?: boolean; error?: string };
+      const res = (data ?? {}) as { ok?: boolean; error?: string; hold_pago_id?: string | null; capturar_auto?: boolean };
       if (error || !res.ok) {
         const map: Record<string, string> = {
           no_autorizado: 'No tienes permiso para marcar ausencias.',
@@ -5510,6 +5516,10 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
         setErrMsg(error?.message || map[res.error ?? ''] || 'No se pudo marcar la ausencia.');
         setGuardando(false);
         return;
+      }
+      // Fianza en modo hold: si el negocio captura en auto y hay retencion, capturarla ahora.
+      if (res.capturar_auto && res.hold_pago_id) {
+        try { await supabase.functions.invoke('capturar-hold', { body: { pago_id: res.hold_pago_id } }); } catch { /* no bloquear el no-show */ }
       }
       onSaved?.();
       triggerRefresh?.();
