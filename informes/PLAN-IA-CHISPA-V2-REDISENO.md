@@ -90,7 +90,7 @@ FÁCIL que hacerlo a mano; si tarda más que a mano, sobra.
 | 3 | A Fundación | Config guiada completa + "actúa con mínima info" en el chatbot — **HECHA 8 jul** (e84311dd9; verificada + fix rol 3f1b27f11) | Opus 4.8 | medio-alto | 1,2 |
 | 4 | B Por página | Motor "IA por página" sin fallos silenciosos (+ arreglar Mi Jornada) — **HECHA 8 jul** | Opus 4.8 | medio | 1 |
 | 5 | B Por página | Agenda: botón "Organizar mi agenda" real — **HECHA 8-9 jul** | Opus 4.8 | alto | 1,4 |
-| 6 | B Por página | Caja + Presupuestos proactivos | Sonnet 5 | medio | 4 |
+| 6 | B Por página | Caja + Presupuestos proactivos — **HECHA 9 jul** | Sonnet 5 | medio | 4 |
 | 7 | B Por página | Clientes + Informes + Mi Jornada proactivos | Sonnet 5 | medio | 4 |
 | 8 | B Por página | Reseñas + Bandeja proactivas | Sonnet 5 | medio | 4 |
 | 9 | D Descubrir | Hub "Qué hace la IA" + manuales IA + quitar import CSV | Sonnet 5 | medio | — |
@@ -467,6 +467,53 @@ revisa antes de guardar; la alerta de seguimiento se ve. Estados visibles, sin c
 
 Cierra con el Protocolo de cierre.
 ```
+
+**Verificado 9 jul (commit `1970dd6bd`):** **Investigado antes de construir** (lectura completa de
+`caja.web.tsx`/`presupuestos.web.tsx`/`useChispaSugerencia`/`BloqueRenderer`): la v1 (Sesión 9) SÍ estaba rota
+como avisaba el prompt — Caja mostraba un emoji `✨` suelto y dejaba que el LLM eligiera libremente el producto
+del catálogo completo (nada determinista); el creador de presupuestos por NL se tragaba el error en silencio
+(`useChispaSugerencia` no actualiza `bloques` si `generar()` falla) y su bloque `'formulario'` de precio
+faltante (Sesión 3, `pedirInfo`) tenía el botón muerto (`onRespuestaInteractiva` nunca se pasaba a
+`BloqueRenderer`); la cabecera del icono "Crear presupuesto rápido" usaba `Icon name="sparkles"` sin esa
+entrada en el mapa → svg vacío.
+1. **Candidato de upsell determinista:** `lib/upsellCandidato.ts` (+ `lib/upsellCandidato.test.ts`, 6 casos,
+   `deno test` verde) — `elegirCandidatoUpsell(servicioNombre, productos)` mapea palabras clave del servicio
+   (color/tinte/mecha/balayage → categoria `color`; keratina/tratamiento/mascarilla → `tratamiento`;
+   corte/peinado → `shampoo`) a `productos.categoria`, sin LLM; si no hay match o no hay producto de esa
+   categoria, no sugiere nada (mejor callar que inventar). Sin tabla nueva de relación servicio-producto
+   (no existía; heurística por nombre es lo proporcionado al esfuerzo de la sesión).
+2. **Caja:** reemplazado el bloque `useChispaSugerencia` por `useAyudaIA` + `TarjetaAyudaIA` (patrón Sesión 4):
+   al seleccionar 1 cita con servicio reconocido, se auto-dispara `analizar()` con el candidato ya elegido;
+   `resumenDeterminista` (producto + precio) SIEMPRE visible con botón "Añadir al ticket" que preselecciona el
+   carrito de "Venta rápida" YA EXISTENTE (`crear_cobro_walkin`) — cero cambios a tablas/lógica fiscal ("NO
+   improvisar"), dos tickets separados (servicio vía `crear_cobro_desde_cita`, producto vía el carrito). La
+   frase comercial la escribe el LLM sobre el candidato ya fijado, nunca lo elige.
+3. **Presupuestos:** el creador NL pasa a `useAyudaIA` (5 estados explícitos, arregla el fallo silencioso);
+   se cablea `onRespuestaInteractiva` para el `'formulario'` de precio faltante (reenvía la descripción
+   original + los datos que faltaban como texto, sin gestionar historial de turnos). "Confirmar" sobre la
+   propuesta YA NO llama a `chispaOps.ejecutarAccion` directo (guardaba sin revisión): abre el `EditorModal`
+   YA EXISTENTE prellenado (líneas/cliente/notas editables, no un formulario plano nuevo — reutiliza la UI de
+   revisión más completa que ya había) con badge "Borrador creado por Chispa (IA) · revisa los datos antes de
+   guardar"; fix del ternario de cabecera (`initial?.id` en vez de `initial`, para no mostrar "P-null" en un
+   borrador sin guardar). Alerta "N días sin respuesta" migrada de texto suelto por fila a tarjeta de PÁGINA
+   con botón "Reenviar" REAL (`enviarPresupuestoPorCorreo`, ya desplegado); WhatsApp real sigue siendo de
+   Alexandro. Fix icono `sparkles` indefinido (añadido al mapa local).
+**E2E real en demo** (`demo_salon_001`, datos sembrados vía SQL y revertidos al terminar — no había ni un solo
+producto en el catálogo demo, hubo que sembrar uno): sembrada 1 cita de HOY con servicio "Mechas completas" +
+1 producto "categoria=color"; al seleccionarla, la tarjeta mostró el producto correcto con su precio
+determinista al instante, y tras la llamada real al edge una frase de Chispa genuina y no inventada ("Es el
+momento ideal para añadir la Mascarilla Protectora Color (16 €) y prolongar el resultado de las mechas recién
+aplicadas."); "Añadir al ticket" abrió el modal de Venta rápida con el producto ya en el carrito (cantidad 1,
+total 16,00€). Presupuestos: "Presupuesto para Sofia Muñoz: corte caballero y barba" produjo una propuesta con
+los precios REALES del catálogo (Corte caballero 18€ + Barba 12€ = 30,00€, sin inventar nada); "Confirmar" abrió
+el editor con el badge de IA, la clienta ya vinculada a su ficha y las 2 líneas editables — verificado por SQL
+que NO se escribió ninguna fila hasta cerrar sin guardar (conteo de `presupuestos` sin cambiar); "Reenviar"
+sobre un presupuesto real sin `pdf_path` disparó la llamada real a `enviar-presupuesto` (400 `sin_pdf`,
+comportamiento correcto — nunca se llega a intentar el envío SMTP) con el botón recuperándose sin quedarse
+colgado. Cero errores de consola en todo el flujo. `npx tsc --noEmit` y `npm run build:web` limpios (el único
+ruido de `tsc` es preexistente en `scripts/tts-test/fish-speech-repo/`, un vendored ajeno a esta sesión). Sin
+migraciones ni edge functions nuevas/tocadas (todo el trabajo es cliente; el edge `agenda-asistente` ya tenía
+`crear_presupuesto`+`pedirInfo` de la Sesión 3).
 
 ## Prompt Sesión 7 — Clientes + Informes + Mi Jornada proactivos (Sonnet 5, medio)
 

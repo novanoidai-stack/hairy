@@ -1811,3 +1811,36 @@ y `npm run build:web` limpios (se anadio `allowImportingTsExtensions` a `tsconfi
 sin afectar el bundler de la app). Sin migraciones ni edge functions nuevas/tocadas esta sesion (el edge
 `agenda-asistente` no se toco: el chatbot sigue con su propio criterio, la unificacion es opcional segun
 el plan).
+
+## Adenda — Capa IA "Chispa" V2 Sesion 6: Caja + Presupuestos proactivos — HECHA (9 jul, commit `1970dd6bd`)
+
+IA proactiva de verdad (no un boton que llama al chatbot) en las dos pantallas de dinero. La v1 (Sesion 9)
+estaba efectivamente rota como avisaba el prompt: Caja mostraba un emoji suelto y dejaba que el LLM eligiera
+libremente el producto de TODO el catalogo (nada determinista); el creador de presupuestos por NL se tragaba
+el error en silencio y su formulario de precio faltante tenia el boton muerto (`onRespuestaInteractiva` nunca
+se pasaba a `BloqueRenderer`).
+
+- **`lib/upsellCandidato.ts`** (nuevo, puro, + 6 tests Deno): elige el producto candidato por PALABRAS CLAVE
+  del servicio vs. `productos.categoria` (color/tinte/mecha → `color`, keratina/tratamiento → `tratamiento`,
+  corte/peinado → `shampoo`), sin LLM; sin match razonable, no sugiere nada.
+- **Caja:** `useAyudaIA` + `TarjetaAyudaIA` (patron Sesion 4) sustituye al `useChispaSugerencia` de la v1;
+  auto-dispara al seleccionar 1 cita con servicio reconocido; el producto+precio SIEMPRE visible (determinista)
+  con boton "Añadir al ticket" que preselecciona el carrito de "Venta rapida" YA EXISTENTE
+  (`crear_cobro_walkin`) — cero cambios a tablas/logica fiscal, dos tickets separados (servicio + producto).
+- **Presupuestos:** creador NL migrado a `useAyudaIA` (5 estados, arregla el fallo silencioso) +
+  `onRespuestaInteractiva` cableado de verdad para el formulario de precio faltante. "Confirmar" la propuesta
+  de la IA YA NO guarda directo: abre el `EditorModal` YA EXISTENTE prellenado (revision completa de
+  lineas/cliente/notas, no un formulario plano nuevo) con badge "Borrador creado por Chispa (IA)". Alerta
+  "N dias sin respuesta" pasa de texto suelto por fila a tarjeta de PAGINA con "Reenviar" REAL
+  (`enviarPresupuestoPorCorreo`, ya desplegado; WhatsApp real sigue siendo de Alexandro).
+
+**E2E real en demo** (`demo_salon_001`, datos sembrados por SQL y revertidos: no habia ni un producto en el
+catalogo demo): sembrada 1 cita "Mechas completas" + 1 producto `categoria=color` — la tarjeta sugirio ese
+producto exacto con una frase de Chispa real y no inventada, y "Añadir al ticket" abrio Venta rapida con el
+carrito ya prellenado. Presupuestos: "Presupuesto para Sofia Muñoz: corte caballero y barba" uso los precios
+REALES del catalogo (18+12=30€); "Confirmar" abrio el editor con el badge de IA y la clienta ya vinculada a su
+ficha — verificado por SQL que no se escribio ninguna fila hasta cerrar sin guardar; "Reenviar" sobre un
+presupuesto real sin `pdf_path` disparo la llamada real al edge (400 `sin_pdf`, sin fallo silencioso, boton
+recuperado). Cero errores de consola. `npx tsc --noEmit` y `npm run build:web` limpios. Sin migraciones ni
+edge functions nuevas/tocadas (el edge `agenda-asistente` ya tenia `crear_presupuesto`+`pedirInfo` desde la
+Sesion 3).
