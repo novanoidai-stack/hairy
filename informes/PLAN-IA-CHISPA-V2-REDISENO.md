@@ -88,7 +88,7 @@ FÁCIL que hacerlo a mano; si tarda más que a mano, sobra.
 | 1 | A Fundación | Bloques interactivos + panel (fullscreen, micro, voz honesta) — **HECHA 8 jul** | Opus 4.8 | alto | — |
 | 2 | A Fundación | Chispa hospeda "Configúrame el salón" + rol + memoria opcional — **HECHA 8 jul** | Opus 4.8 | alto | 1 |
 | 3 | A Fundación | Config guiada completa + "actúa con mínima info" en el chatbot — **HECHA 8 jul** (e84311dd9; verificada + fix rol 3f1b27f11) | Opus 4.8 | medio-alto | 1,2 |
-| 4 | B Por página | Motor "IA por página" sin fallos silenciosos (+ arreglar Mi Jornada) | Opus 4.8 | medio | 1 |
+| 4 | B Por página | Motor "IA por página" sin fallos silenciosos (+ arreglar Mi Jornada) — **HECHA 8 jul** | Opus 4.8 | medio | 1 |
 | 5 | B Por página | Agenda: botón "Organizar mi agenda" real | Opus 4.8 | alto | 1,4 |
 | 6 | B Por página | Caja + Presupuestos proactivos | Sonnet 5 | medio | 4 |
 | 7 | B Por página | Clientes + Informes + Mi Jornada proactivos | Sonnet 5 | medio | 4 |
@@ -349,6 +349,31 @@ y consistente; el determinista funciona aunque el LLM falle. tsc + build limpios
 
 Cierra con el Protocolo de cierre.
 ```
+
+**Verificado 8 jul:** patrón nuevo `lib/hooks/useAyudaIA.ts` (estado explícito idle/cargando/vacío/
+error+reintentar/listo sobre `invocarChispa`, extraída de `useChispaSugerencia.ts` para no duplicar la
+llamada al edge) + `components/chispa/TarjetaAyudaIA.web.tsx` (tarjeta única y consistente, icono SVG sin
+emoji — corrige el `✨` que llevaba la tarjeta vieja —, en flujo normal, nunca `position: fixed/absolute`,
+para no chocar con `AvisosBell`/dashboard de la Sesión 10). Documentado para las Sesiones 5-8 en
+`informes/PATRON-IA-POR-PAGINA.md` (dónde va la tarjeta, cómo se gatea por rol, cómo se degrada, tabla de
+"determinista candidato" por página). De paso se encontró y arregló un bug gemelo en
+`useChispaSugerencia.ts`: `setBloques` nunca se llamaba (una constante local tapaba el estado del mismo
+nombre), así que **Equipo, Inventario y Presupuestos tenían su sugerencia de IA invisible desde que se
+escribió** (Sesión 9 v1 del plan v1) — corregido sin tocar el contrato público del hook (los 4 consumidores
+existentes siguen igual). Bug gemelo del de Mi Jornada detectado en `bandeja.web.tsx` `proponerAccionIA`
+(mismo `if (!err && data)` que traga el error): documentado para que la Sesión 8 lo repare al adoptar el
+patrón, no arreglado aquí por estar fuera de alcance. Mi Jornada: resumen determinista (citas/horas/
+comisión, respeta `puede_ver_comision` server-side) siempre visible + "Analizar mi día" añade la lectura del
+LLM encima vía `useAyudaIA`; prompt ajustado tras probar en vivo (ya no invita a `crear_cita` con datos
+incompletos, que producía un `formulario` no rellenable en esta tarjeta — eso es del panel guiado, no de
+esta superficie). **E2E real en la demo** (`/demo.html?share=1`, iframe `/app/mi-jornada?demo=1`, DOM nativo
+por el iframe): estado cargando→listo con respuestas REALES del LLM en vivo en varias ejecuciones (texto +
+bloque `enlace` "Ver clientas para reactivar", y solo `enlace` en otra pasada); error forzado (fetch de
+`agenda-asistente` interceptado para rechazar) → mensaje legible + botón "Reintentar", con el resumen
+determinista siempre visible; "Reintentar" repitió el mismo fallo de forma estable (sin crash ni cuelgue);
+tras restaurar el fetch, "Analizar"/"Reintentar" recuperó `listo` con una respuesta nueva. Cero errores de
+consola en todo el flujo. `npx tsc --noEmit` y `npm run build:web` limpios. Sin migraciones ni edge
+functions nuevas/tocadas esta sesión (no aplica desplegar).
 
 ## Prompt Sesión 5 — Agenda: botón "Organizar mi agenda" (Opus 4.8, alto)
 

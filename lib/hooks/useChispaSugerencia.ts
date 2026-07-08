@@ -5,6 +5,28 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { normalizarRespuesta, type Bloque } from '@/lib/chispaBloques';
 
+export type ResultadoChispa = { ok: true; bloques: Bloque[] } | { ok: false; error: string };
+
+// Invoca el edge agenda-asistente y normaliza la respuesta a bloques tipados.
+// Funcion pura (no-hook) para que otros hooks (p.ej. useAyudaIA, Sesion 4 del
+// plan V2) reutilicen la MISMA logica de llamada sin duplicarla.
+export async function invocarChispa(prompt: string, contexto?: Record<string, unknown>): Promise<ResultadoChispa> {
+  try {
+    const { data, error } = await supabase.functions.invoke('agenda-asistente', {
+      body: {
+        mensajes: [{ role: 'user', content: prompt }],
+        contexto, // opcional: datos adicionales de la superficie
+      },
+    });
+    if (error || !data) {
+      return { ok: false, error: error?.message || 'Error al conectar con Chispa' };
+    }
+    return { ok: true, bloques: normalizarRespuesta(data) };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
 interface SugerenciaChispa {
   loading: boolean;
   error: string | null;
@@ -26,29 +48,25 @@ export function useChispaSugerencia(): SugerenciaChispa {
     setError(null);
 
     try {
-      const { data, error: err } = await supabase.functions.invoke('agenda-asistente', {
-        body: {
-          mensajes: [{ role: 'user', content: prompt }],
-          contexto, // opcional: datos adicionales de la superficie
-        },
-      });
-
-      if (err || !data) {
-        setError(err?.message || 'Error al conectar con Chispa');
+      const res = await invocarChispa(prompt, contexto);
+      if (!res.ok) {
+        setError(res.error);
         return null;
       }
 
-      const bloques = normalizarRespuesta(data);
+      // Bug corregido (Sesion 4 V2): antes se calculaba `bloques` en una const
+      // local que tapaba el estado del mismo nombre y nunca se llamaba a
+      // setBloques, asi que el `bloques` devuelto por el hook se quedaba
+      // siempre en [] (Equipo/Inventario/Presupuestos nunca mostraban nada).
+      setBloques(res.bloques);
+
       // Extraer solo los bloques de texto (ignorar acciones, enlaces, etc.)
-      const textos = bloques
+      const textos = res.bloques
         .filter((b): b is Extract<Bloque, { tipo: 'texto' }> => b.tipo === 'texto')
         .map((b) => b.texto)
         .join('\n\n');
 
       return textos || null;
-    } catch (e) {
-      setError(String(e));
-      return null;
     } finally {
       setLoading(false);
     }

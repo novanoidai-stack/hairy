@@ -13,9 +13,10 @@ import { manualMiJornada } from '@/lib/manuals/mi-jornada';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
-import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
-import { normalizarRespuesta, type Bloque } from '@/lib/chispaBloques';
-import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
+import type { Bloque } from '@/lib/chispaBloques';
+import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
+import type { AccionEstado } from '@/components/chispa/BloqueRenderer.web';
 import { ejecutarAccion } from '@/lib/chispaOps';
 
 const T = DESIGN_TOKENS;
@@ -141,6 +142,20 @@ function fmtHoras(h: number): string {
 const eur = (cents?: number) => `${((cents || 0) / 100).toFixed(2)}€`;
 const fmtPct = (n: number) => `${Math.round(n)}%`;
 
+// Resumen determinista (sin LLM) de la tarjeta "Resumen de tu día": citas,
+// horas y comisión ya cargados en `resumen`. Patron Sesion 4 (V2): esto se ve
+// SIEMPRE, aunque el LLM falle o tarde — el LLM solo anade una lectura encima.
+function resumenIADeterminista(r: Resumen, periodo: Periodo): string {
+  const prefijo = periodo === 'hoy' ? 'Hoy' : periodo === 'semana' ? 'Esta semana' : 'Este mes';
+  if (r.citas_completadas === 0) return `${prefijo} aún no tienes citas completadas.`;
+  const partes = [
+    `${r.citas_completadas} cita${r.citas_completadas === 1 ? '' : 's'} completada${r.citas_completadas === 1 ? '' : 's'}`,
+    `${fmtHoras(r.horas)} trabajadas`,
+  ];
+  if (r.puede_ver_comision && (r.comision_cents ?? 0) > 0) partes.push(`${eur(r.comision_cents)} de comisión`);
+  return `${prefijo}: ${partes.join(' · ')}.`;
+}
+
 function MetricRow({ icon, label, value, sub, color = T.primary }: { icon: string; label: string; value: string; sub?: string; color?: string }) {
   return (
     <div style={{
@@ -206,44 +221,35 @@ function MiJornadaScreen() {
   const [nuevaAusencia, setNuevaAusencia] = useState<{tipo: string; inicio: string; fin: string; motivo: string}>({ tipo: 'vacaciones', inicio: '', fin: '', motivo: '' });
   const [guardandoAusencia, setGuardandoAusencia] = useState(false);
 
-  // Sesión 9-A: Chispa Mi Jornada
-  const [textoIA, setTextoIA] = useState('');
-  const [bloqueIA, setBloqueIA] = useState<Bloque | null>(null);
-  const [cargandoIA, setCargandoIA] = useState(false);
+  // Sesión 4 (V2): patron "AyudaIA por pagina" — idle/cargando/vacio/
+  // error(+reintentar)/listo, nunca se queda en blanco (lib/hooks/useAyudaIA.ts).
+  const ayudaIA = useAyudaIA();
   const [accionEstadoIA, setAccionEstadoIA] = useState<AccionEstado>('pendiente');
 
-  const analizarDiaIA = async () => {
-    setCargandoIA(true);
-    setTextoIA('');
-    setBloqueIA(null);
+  const analizarDiaIA = () => {
     setAccionEstadoIA('pendiente');
-    try {
-      const prompt = `Analiza el día del profesional ${resumen?.profesional.nombre}.
+    const prompt = `Analiza el día del profesional ${resumen?.profesional.nombre}.
 Tiene ${resumen?.citas_completadas} citas en este periodo.
 Citas: ${JSON.stringify(resumen?.citas_lista || [])}.
 Horas: ${resumen?.horas}.
 Comisión estimada: ${(resumen?.comision_cents || 0) / 100}€.
-Haz un breve resumen amistoso y motivador. Si ves que tiene huecos o pocas citas, sugiérele proponer citas y añade un bloque de acción 'crear_cita' o algo similar.`;
-      const { data, error: err } = await supabase.functions.invoke('agenda-asistente', {
-        body: { mensajes: [{ role: 'user', content: prompt }] },
-      });
-      if (!err && data) {
-        const bloques = normalizarRespuesta(data);
-        const text = bloques.filter(b => b.tipo === 'texto').map(b => (b as Extract<Bloque, { tipo: 'texto' }>).texto).join('\n\n');
-        setTextoIA(text);
-        const accion = bloques.find(b => b.tipo === 'accion');
-        if (accion) setBloqueIA(accion);
-      }
-    } finally {
-      setCargandoIA(false);
-    }
+Haz un breve resumen amistoso y motivador (2-3 frases). Si ves huecos o pocas citas,
+sugiérelo en el propio texto (p.ej. contactar clientas que llevan tiempo sin venir).
+No propongas crear una cita nueva: no tienes los datos (servicio, profesional, hora)
+para proponerla completa, así que no llames a esa herramienta.`;
+    ayudaIA.analizar(prompt);
   };
 
+  // El bloque 'accion' (si lo hay) dentro de la respuesta ya normalizada del hook.
+  const bloqueAccionIA = ayudaIA.estado.tipo === 'listo'
+    ? ayudaIA.estado.bloques.find((b): b is Extract<Bloque, { tipo: 'accion' }> => b.tipo === 'accion')
+    : undefined;
+
   const confirmarAccionIA = async () => {
-    if (!bloqueIA || bloqueIA.tipo !== 'accion') return;
+    if (!bloqueAccionIA) return;
     setAccionEstadoIA('aplicando');
     const user = await getUserProfile();
-    const res = await ejecutarAccion(bloqueIA.accion, user?.id || '');
+    const res = await ejecutarAccion(bloqueAccionIA.accion, user?.id || '');
     if (res.ok) {
       setAccionEstadoIA('aplicada');
     } else {
@@ -820,35 +826,22 @@ Haz un breve resumen amistoso y motivador. Si ves que tiene huecos o pocas citas
           )}
         </div>
 
-        {/* Analisis IA */}
-        <div className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.primary}40`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 18 }}>✨</span>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Resumen IA de tu día</div>
-                <div style={{ fontSize: 12, color: T.textSec }}>Descubre oportunidades o huecos libres</div>
-              </div>
-            </div>
-            <button onClick={analizarDiaIA} disabled={cargandoIA} className="mj-btn" style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 700, cursor: cargandoIA ? 'not-allowed' : 'pointer' }}>
-              {cargandoIA ? 'Analizando...' : 'Analizar mi día'}
-            </button>
-          </div>
-          {textoIA && (
-            <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${T.border}`, fontSize: 13.5, color: T.text, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-              {textoIA}
-            </div>
-          )}
-          {bloqueIA && (
-            <div style={{ marginTop: 12 }}>
-              <BloqueRenderer 
-                bloque={bloqueIA} 
-                accionEstado={accionEstadoIA} 
-                onConfirmar={confirmarAccionIA} 
-                onCancelar={() => setBloqueIA(null)} 
-              />
-            </div>
-          )}
+        {/* Resumen de tu día: patron "AyudaIA por pagina" (Sesion 4 V2). El
+            resumen determinista se ve siempre; "Analizar mi día" solo anade
+            una lectura del LLM encima y nunca deja la tarjeta en blanco. */}
+        <div className="mj-row" style={{ marginBottom: 16 }}>
+          <TarjetaAyudaIA
+            titulo="Resumen de tu día"
+            subtitulo="Descubre oportunidades o huecos libres"
+            estado={ayudaIA.estado}
+            onAnalizar={analizarDiaIA}
+            botonLabel="Analizar mi día"
+            mensajeVacio="Chispa no ha encontrado nada que destacar en tu día."
+            resumenDeterminista={resumen ? resumenIADeterminista(resumen, periodo) : null}
+            accionEstado={accionEstadoIA}
+            onConfirmarAccion={confirmarAccionIA}
+            onCancelarAccion={() => setAccionEstadoIA('cancelada')}
+          />
         </div>
 
         {/* Selector de SubTabs en Móvil */}

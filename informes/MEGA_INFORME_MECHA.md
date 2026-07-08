@@ -1717,3 +1717,45 @@ rellenar y enviar completo el turno y produjo la tarjeta de confirmacion, sin er
 RLS de las 3 tablas tocadas verificados contra la BD real antes de escribir codigo. `tsc --noEmit`,
 `build:web` y `deno check` del edge limpios; 22 tests Deno en verde. Edge redesplegado y verificado (curl
 sin auth -> 401). Sin migraciones nuevas.
+
+## Adenda — Capa IA "Chispa" V2 Sesion 4: Motor "IA por pagina" sin fallos silenciosos — HECHA (8 jul)
+
+Bug confirmado en el diagnostico del plan: `mi-jornada.web.tsx` `analizarDiaIA` llamaba al edge a mano y
+tragaba el error (`if (!err && data)`) — si fallaba, la tarjeta se quedaba en blanco sin avisar. Esta sesion
+construye el PATRON reutilizable para que eso sea estructuralmente imposible en cualquier pagina.
+
+- **`lib/hooks/useAyudaIA.ts`** (nuevo): estado EXPLICITO `idle | cargando | vacio | error | listo` sobre
+  `invocarChispa` (extraida de `useChispaSugerencia.ts`, mismo edge `agenda-asistente`, sin logica
+  duplicada). `reintentar()` repite exactamente la ultima peticion; `error` lleva mensaje humanizado con
+  `mensajeDeError` (nunca un `err.message` crudo).
+- **`components/chispa/TarjetaAyudaIA.web.tsx`** (nuevo): tarjeta unica y consistente para los 5 estados
+  (icono SVG propio, sin emoji — corrige el `✨` que llevaba la tarjeta vieja, contrario a la regla del
+  sistema de diseno), con un slot `resumenDeterminista` que se ve SIEMPRE, y passthrough al `BloqueRenderer`
+  para bloques `accion`. Vive siempre en flujo normal (sin `position: fixed/absolute`) para no competir en
+  z-index con `AvisosBell`/dashboard (Sesion 10). Documentado para las Sesiones 5-8 en
+  `informes/PATRON-IA-POR-PAGINA.md` (donde va la tarjeta, cómo se gatea por rol, cómo se degrada, y una
+  tabla de "determinista candidato" por pagina).
+- **Bug gemelo encontrado y arreglado de paso** en `useChispaSugerencia.ts`: el hook declaraba un estado
+  `bloques` pero nunca llamaba a `setBloques` (una constante local tapaba el nombre) — `bloques` devuelto
+  por el hook estaba SIEMPRE en `[]`. Consecuencia real: **Equipo, Inventario y Presupuestos llevaban con su
+  sugerencia de IA (`chispaBloques.length > 0 && ...`) completamente invisible** desde que se escribieron
+  (Sesion 9 v1 del plan v1). Corregido sin tocar el contrato publico del hook (los 4 consumidores existentes
+  siguen igual).
+  - Bug gemelo del de Mi Jornada, PENDIENTE (documentado para que la Sesion 8 lo repare al adoptar el
+    patron, no arreglado aqui por estar fuera de alcance): `bandeja.web.tsx` `proponerAccionIA` tiene el
+    mismo `if (!err && data)`.
+- **Mi Jornada arreglada:** el "Resumen de tu día" ahora siempre muestra una linea determinista (citas/
+  horas/comisión, calculada en cliente desde `resumen`, respeta `puede_ver_comision` server-side) aunque el
+  LLM falle o tarde; "Analizar mi día" solo añade la lectura del LLM encima via `useAyudaIA`. Prompt
+  ajustado tras probar en vivo: pedia "añade un bloque de accion crear_cita" pero el edge (con "actua con
+  minima info" de la Sesion 3) respondia con un `formulario` de cita incompleto que esta tarjeta no esta
+  pensada para rellenar (eso es del panel guiado) — se cambio a pedir la sugerencia solo en texto.
+
+**Verificado E2E real en la demo** (`/demo.html?share=1`, iframe `/app/mi-jornada?demo=1`, DOM nativo por el
+iframe): estado `cargando` -> `listo` con respuestas REALES del LLM en vivo (no mock), en distintas
+ejecuciones vino texto + bloque `enlace` ("Ver clientas para reactivar") y solo `enlace`, ambos renderizados
+correctamente. Error forzado (fetch de `agenda-asistente` interceptado para rechazar) -> mensaje legible +
+boton "Reintentar", con el resumen determinista siguiendo visible; "Reintentar" repitio el mismo fallo de
+forma estable (sin crash ni cuelgue); tras restaurar el fetch, "Analizar"/"Reintentar" recupero `listo` con
+una respuesta nueva. Cero errores de consola en todo el flujo. `npx tsc --noEmit` y `npm run build:web`
+limpios. Sin migraciones ni edge functions nuevas/tocadas esta sesion (no aplica desplegar).
