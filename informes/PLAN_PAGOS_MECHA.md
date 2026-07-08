@@ -66,7 +66,7 @@ semanas o bloqueado por terceros.
 | **S1** ✅ | Cobro en el local ("pago después") + QR de mostrador | Pilar 2 (QR) | L | — |
 | **S2** ✅ | Reembolsos + robustez del webhook | Ciclo de vida | M | — |
 | **S3** ✅ | Holds / pre-autorizaciones (completa Pilar 3) | Pilar 3 | M | — |
-| **S4** | Propinas + pago dividido / grupal | Pilar 4 | L | — |
+| **S4** ✅ | Propinas + pago dividido / grupal | Pilar 4 | L | — |
 | **S5** | Mecha Pay + Stripe Connect (modelo de tasas) | Pilar 1 | XL | KYC Stripe Connect |
 | **S6** | BYOP: Bizum + Redsýs (Fase 2) | Pilar 1 / Fase 2 | XL | Credenciales Redsýs del salón |
 | **S7** | Datáfono virtual: Tap to Pay (Fase 3) | Pilar 2 / Fase 3 | XL | App nativa + elegibilidad Stripe Terminal |
@@ -213,8 +213,16 @@ profesional que atendió (→ "Mi Jornada"), y permitir **dividir** el pago (efe
 elija propina en el checkout del QR — edge `crear-checkout-cobro` v6 (acepta `propina_cents`,
 línea "Propina" separada, recálculo server-side), `pago_info_publica` devuelve la config,
 config `propinasActivo`+`propinasSugeridas` (5/10/15, OFF), selector en `app/pagar/[token]`.
-Concilia en `cobros.propina_cents` (atribuida al profesional). **Falta S4.3** (split
-efectivo+tarjeta) **y S4.4** (pago grupal). S4.5/S4.6 = UI de Carlos sobre estos datos.
+Concilia en `cobros.propina_cents` (atribuida al profesional).
+
+**S4.3 ✅ (split efectivo+tarjeta, 8 jul):** `crear_cobro_desde_cita` acepta `p_efectivo_cents`/
+`p_datafono_cents` con `metodo='mixto'` (validan que sumen el total); método "Dividir" en
+`CobroSheet` (solo cobro de 1 cita) con reparto efectivo/datáfono. **S4.4 ✅ (pago grupal, 8 jul):**
+`registrar_cobro_online` detecta grupo → crea un cobro por cita (importe y propina repartidos
+proporcionalmente al precio, remanente a la última), atribuido a cada profesional, y marca todas
+cobradas; idempotente. El enlace de grupo ya lo genera `iniciar_cobro_online` sobre cualquier cita
+del grupo (vía `requerir_pago_total_cita`). **Toda la parte [A] de S4 está HECHA.** S4.5/S4.6
+(propina en Mi Jornada + refinado UI) = de Carlos, sobre estos datos.
 
 **Pendiente externo (tú):** ninguno técnico de terceros; decisión de negocio sobre porcentajes
 de propina sugeridos por defecto.

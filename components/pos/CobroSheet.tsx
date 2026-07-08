@@ -5,7 +5,7 @@ import { getUserProfile } from '@/lib/auth';
 import { mensajeDeError } from '@/lib/errores';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 
-export type CobroMetodo = 'efectivo' | 'datafono' | 'bizum';
+export type CobroMetodo = 'efectivo' | 'datafono' | 'bizum' | 'mixto';
 
 interface CobroSheetCitaProps {
   mode: 'cita';
@@ -67,6 +67,7 @@ export function CobroSheet(props: CobroSheetProps) {
   const isWalkin = props.mode === 'walkin';
 
   const [metodo, setMetodo] = useState<CobroMetodo>('efectivo');
+  const [efectivoSplit, setEfectivoSplit] = useState(''); // parte en efectivo cuando metodo='mixto'
   const [descuento, setDescuento] = useState('');
   const [propina, setPropina] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -194,6 +195,10 @@ export function CobroSheet(props: CobroSheetProps) {
     ? Math.min(trTarjeta.saldo_actual_cents, netoCents)
     : 0;
   const totalCents = usarBono ? propinaCents : (netoCents - trAplicadoCents) + propinaCents;
+  // Split efectivo+datafono (solo cobro de 1 cita). El datafono es el resto: siempre cuadra.
+  const puedeMixto = props.mode === 'cita' && props.citaIds.length === 1;
+  const efectivoSplitCents = Math.min(Math.max(0, Math.round(aEntero(efectivoSplit) * 100)), totalCents);
+  const datafonoSplitCents = Math.max(0, totalCents - efectivoSplitCents);
 
   // Tras completar un cobro, si se uso tarjeta regalo, descontar saldo y registrar movimiento.
   const aplicarTarjetaRegalo = async (cobroId: string) => {
@@ -264,6 +269,9 @@ export function CobroSheet(props: CobroSheetProps) {
                 p_metodo: metodo,
                 p_propina_cents: propinaCents,
                 p_descuento_cents: descuentoCents,
+                ...(metodo === 'mixto'
+                  ? { p_efectivo_cents: efectivoSplitCents, p_datafono_cents: datafonoSplitCents }
+                  : {}),
               })
             )
           );
@@ -487,14 +495,33 @@ export function CobroSheet(props: CobroSheetProps) {
         ) : (
           <>
             <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Método</div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
               {METODOS.map(([k, lbl]) => {
                 const on = metodo === k;
                 return (
                   <button key={k} onClick={() => setMetodo(k)} style={{ flex: 1, padding: '10px 0', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: on ? T.successSoft : T.bgCard, border: `1px solid ${on ? T.success : T.border}`, color: on ? T.success : T.textSec }}>{lbl}</button>
                 );
               })}
+              {puedeMixto && (
+                <button key="mixto" onClick={() => setMetodo('mixto')} style={{ flex: 1, minWidth: 80, padding: '10px 0', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: metodo === 'mixto' ? T.successSoft : T.bgCard, border: `1px solid ${metodo === 'mixto' ? T.success : T.border}`, color: metodo === 'mixto' ? T.success : T.textSec }}>Dividir</button>
+              )}
             </div>
+
+            {metodo === 'mixto' && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, color: T.textSec, marginBottom: 8 }}>Reparte los {(totalCents / 100).toFixed(2)} € entre efectivo y datáfono:</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <label style={{ flex: 1, fontSize: 11.5, color: T.textTer }}>Efectivo (€)
+                    <input value={efectivoSplit} inputMode="decimal"
+                      onChange={(e) => setEfectivoSplit(e.target.value.replace(/[^0-9.,]/g, ''))}
+                      style={{ width: '100%', boxSizing: 'border-box', marginTop: 4, padding: '9px 10px', borderRadius: 8, border: `1px solid ${T.border}`, fontSize: 13, color: T.text }} />
+                  </label>
+                  <div style={{ flex: 1, fontSize: 11.5, color: T.textTer }}>Datáfono (€)
+                    <div style={{ marginTop: 4, padding: '9px 10px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, fontSize: 13, fontWeight: 700, color: T.text }}>{(datafonoSplitCents / 100).toFixed(2)}</div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {error && <div style={{ fontSize: 12, color: T.danger, marginBottom: 12 }}>{error}</div>}
 
@@ -512,7 +539,7 @@ export function CobroSheet(props: CobroSheetProps) {
             )}
 
             <p style={{ fontSize: 11, color: T.textTer, marginTop: 12, margin: '12px 0 0', textAlign: 'center' }}>
-              {metodo === 'datafono' ? 'El cliente pagará con tarjeta en el datáfono físico.' : metodo === 'bizum' ? 'El cliente pagará por Bizum.' : 'El cliente pagará en efectivo.'}
+              {metodo === 'datafono' ? 'El cliente pagará con tarjeta en el datáfono físico.' : metodo === 'bizum' ? 'El cliente pagará por Bizum.' : metodo === 'mixto' ? 'Parte en efectivo y parte con tarjeta en el datáfono.' : 'El cliente pagará en efectivo.'}
             </p>
           </>
         )}
