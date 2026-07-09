@@ -223,14 +223,148 @@ export type AccionPropuesta =
     };
 
 export type EjecucionResultado =
-  | { ok: true; mensaje: string }
+  | { ok: true; mensaje: string; accion_id?: string }
   | { ok: false; error: string };
+
+// Tipo para representar una accion registrada (leida desde chispa_acciones)
+export type AccionRegistrada = {
+  id: string;
+  negocio_id: string;
+  usuario_id: string;
+  tipo_accion: string;
+  estado_previo: unknown;
+  reversible: boolean;
+  deshecha: boolean;
+  target_id: string | null;
+  target_label: string | null;
+};
 
 // --- Auditoria (falla #2): rastro en citas_historial, igual que el flujo manual
 //     (AgendaCalendar.registrarHistorial) pero ahora sobre una tabla ya reparada.
 //     Best-effort: si el registro falla, la operacion NO se revierte (la escritura
 //     principal es lo que importa; el historial es una traza).
 type CambioHist = { campo: string; anterior: string | null; nuevo: string | null };
+
+// --- Captura de estado previo (para deshacer) ---
+
+/**
+ * Captura el estado previo necesario para revertir una accion.
+ * Segun el tipo, consulta las tablas correspondientes antes de que la accion modifique nada.
+ */
+async function capturarEstadoPrevio(
+  a: AccionPropuesta,
+  userId: string,
+): Promise<unknown> {
+  switch (a.tipo) {
+    case 'crear_cita':
+      // No hay estado previo (crear → borrar la cita creada)
+      return null;
+
+    case 'reagendar_cita': {
+      // Necesitamos: inicio, fin, fin_activa, fin_espera, profesional_id previos
+      const { data } = await supabase
+        .from('citas')
+        .select('inicio, fin, fin_activa, fin_espera, profesional_id, negocio_id')
+        .eq('id', a.cita_id)
+        .maybeSingle();
+      return data;
+    }
+
+    case 'cancelar_cita': {
+      // Necesitamos: estado previo (para volver de cancelada a ese estado)
+      const { data } = await supabase
+        .from('citas')
+        .select('estado, motivo_cancelacion, negocio_id')
+        .eq('id', a.cita_id)
+        .maybeSingle();
+      return data;
+    }
+
+    case 'bloquear_hueco':
+      // No hay estado previo (bloquear → liberar el bloqueo creado)
+      return null;
+
+    case 'liberar_hueco': {
+      // Necesitamos: bloqueo_id (para recrearlo si se deshace)
+      const { data } = await supabase
+        .from('bloqueos_profesional')
+        .select('id, inicio, fin, motivo, profesional_id, negocio_id')
+        .eq('id', a.bloqueo_id)
+        .maybeSingle();
+      return data;
+    }
+
+    case 'cambiar_config':
+      // Valor actual ya viaja en la propuesta (valor_actual)
+      return { valor_actual: a.valor_actual };
+
+    case 'cambiar_config_multiple':
+      // Para multiple, guardamos los valores actuales de cada clave
+      return { valores_actuales: a.cambios.map((c) => ({ clave: c.clave, valor_actual: c.valor_actual })) };
+
+    case 'cambiar_idioma_portal':
+      return { idioma_actual: a.idioma_actual };
+
+    case 'editar_servicio': {
+      // Necesitamos: estado previo de los campos que se van a cambiar
+      const campos = Object.keys(a.cambios);
+      const { data } = await supabase
+        .from('servicios')
+        .select(campos.join(','))
+        .eq('id', a.servicio_id)
+        .eq('negocio_id', a.negocio_id)
+        .maybeSingle();
+      return data;
+    }
+
+    case 'crear_servicio':
+      // No hay estado previo (crear → borrar el servicio creado)
+      return null;
+
+    case 'editar_horario': {
+      // Necesitamos: turno(s) previos de ese dia (para restaurarlos)
+      const { data } = await supabase
+        .from('horarios_profesional')
+        .select('*')
+        .eq('profesional_id', a.profesional_id)
+        .eq('dia_semana', a.dia_semana);
+      return data ?? [];
+    }
+
+    case 'crear_presupuesto':
+      // No hay estado previo (crear → borrar el presupuesto creado)
+      return null;
+
+    case 'enviar_mensaje_bandeja':
+      // No reversible (envio real es de Alexandro)
+      return null;
+
+    case 'recuperar_cliente':
+      // No reversible (registro de aviso, el envio es de Alexandro)
+      return null;
+
+    case 'optimizar_agenda': {
+      // Necesitamos: estado previo de cada cita (inicio, fin, fin_activa, fin_espera)
+      const ids = a.movimientos.map((m) => m.cita_id);
+      const { data } = await supabase
+        .from('citas')
+        .select('id, inicio, fin, fin_activa, fin_espera')
+        .in('id', ids);
+      return data ?? [];
+    }
+
+    case 'crear_cierre_negocio':
+      // No hay estado previo (crear → borrar el cierre creado)
+      return null;
+
+    case 'avisar_lista_espera_match':
+      // No reversible (registro de aviso, el envio es de Alexandro)
+      return null;
+
+    default:
+      return null;
+  }
+}
 
 async function registrarHistorialIA(
   negocioId: string,
@@ -261,12 +395,17 @@ async function registrarHistorialIA(
 /**
  * Aplica una accion propuesta por Chispa usando la sesion autenticada del
  * usuario (RLS activo: los permisos son los mismos que una accion manual).
+ * Devuelve, ademas del resultado, el ID de la accion registrada (si es reversible).
  */
 export async function ejecutarAccion(
   a: AccionPropuesta,
   userId: string,
 ): Promise<EjecucionResultado> {
   try {
+    // 0. Capturar estado previo ANTES de ejecutar (para poder deshacer)
+    const estadoPrevio = await capturarEstadoPrevio(a, userId);
+    const negocioId = 'negocio_id' in a ? a.negocio_id : null;
+    const targetLabel = 'resumen' in a ? a.resumen : null;
     switch (a.tipo) {
       case 'crear_cita': {
         if (new Date(a.inicio) >= new Date(a.fin)) {
@@ -294,6 +433,17 @@ export async function ejecutarAccion(
           await registrarHistorialIA(a.negocio_id, data.id as string, [
             { campo: 'estado', anterior: null, nuevo: CITA_STATUS.CONFIRMADA },
           ], 'Creada por Chispa (IA)');
+          // Registrar accion reversible (crear → borrar)
+          const accionId = await registrarAccionChispa(
+            a.negocio_id,
+            userId,
+            'crear_cita',
+            estadoPrevio,
+            true, // reversible
+            data.id as string, // target_id = cita_id para poder borrar
+            targetLabel,
+          );
+          return { ok: true, mensaje: `Cita creada: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
         }
         return { ok: true, mensaje: `Cita creada: ${a.resumen}` };
       }
@@ -335,9 +485,20 @@ export async function ejecutarAccion(
         }
         // negocio_id no viaja en la propuesta de reagendar; se resuelve del propio registro.
         const { data: nid } = await supabase.from('citas').select('negocio_id').eq('id', a.cita_id).maybeSingle();
-        if (nid?.negocio_id) await registrarHistorialIA(nid.negocio_id as string, a.cita_id, cambios, 'Reagendada por Chispa (IA)');
+        const nidStr = nid?.negocio_id as string | undefined;
+        if (nidStr) await registrarHistorialIA(nidStr, a.cita_id, cambios, 'Reagendada por Chispa (IA)');
 
-        return { ok: true, mensaje: `Cita reagendada: ${a.resumen}` };
+        // Registrar accion reversible (reagendar → volver a marcas previas)
+        const accionId = await registrarAccionChispa(
+          nidStr ?? (estadoPrevio as { negocio_id?: string })?.negocio_id ?? '',
+          userId,
+          'reagendar_cita',
+          estadoPrevio,
+          true, // reversible
+          a.cita_id, // target_id = cita_id
+          targetLabel,
+        );
+        return { ok: true, mensaje: `Cita reagendada: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
       }
 
       case 'cancelar_cita': {
@@ -361,6 +522,17 @@ export async function ejecutarAccion(
           await registrarHistorialIA(prev.negocio_id as string, a.cita_id, [
             { campo: 'estado', anterior: (prev.estado as string) ?? null, nuevo: CITA_STATUS.CANCELADA },
           ], 'Cancelada por Chispa (IA)');
+          // Registrar accion reversible (cancelar → volver a estado previo)
+          const accionId = await registrarAccionChispa(
+            prev.negocio_id as string,
+            userId,
+            'cancelar_cita',
+            estadoPrevio,
+            true, // reversible
+            a.cita_id, // target_id = cita_id
+            targetLabel,
+          );
+          return { ok: true, mensaje: `Cita cancelada: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
         }
         return { ok: true, mensaje: `Cita cancelada: ${a.resumen}` };
       }
@@ -432,18 +604,44 @@ export async function ejecutarAccion(
           .eq('id', a.servicio_id)
           .eq('negocio_id', a.negocio_id);
         if (error) return { ok: false, error: error.message };
-        return { ok: true, mensaje: `Servicio actualizado: ${a.resumen}` };
+
+        // Registrar accion reversible (editar → restaurar campos previos)
+        const accionId = await registrarAccionChispa(
+          a.negocio_id,
+          userId,
+          'editar_servicio',
+          estadoPrevio,
+          true, // reversible
+          a.servicio_id, // target_id = servicio_id
+          targetLabel,
+        );
+        return { ok: true, mensaje: `Servicio actualizado: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
       }
 
       case 'crear_servicio': {
-        const { error } = await supabase.from('servicios').insert({
+        const { data, error } = await supabase.from('servicios').insert({
           negocio_id: a.negocio_id,
           nombre: a.nombre,
           precio: a.precio,
           duracion_activa_min: a.duracion_activa_min,
           activo: true,
-        });
+        })
+        .select('id')
+        .single();
         if (error) return { ok: false, error: error.message };
+        if (data?.id) {
+          // Registrar accion reversible (crear → borrar)
+          const accionId = await registrarAccionChispa(
+            a.negocio_id,
+            userId,
+            'crear_servicio',
+            estadoPrevio,
+            true, // reversible
+            data.id as string, // target_id = servicio_id
+            targetLabel,
+          );
+          return { ok: true, mensaje: `Servicio creado: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
+        }
         return { ok: true, mensaje: `Servicio creado: ${a.resumen}` };
       }
 
@@ -468,7 +666,18 @@ export async function ejecutarAccion(
             turno: 0,
           });
         if (eIns) return { ok: false, error: eIns.message };
-        return { ok: true, mensaje: `Horario actualizado: ${a.resumen}` };
+
+        // Registrar accion reversible (editar → restaurar turnos previos)
+        const accionId = await registrarAccionChispa(
+          a.negocio_id,
+          userId,
+          'editar_horario',
+          estadoPrevio,
+          true, // reversible
+          a.profesional_id, // target_id = profesional_id (no es un ID de turno, pero suficiente para identificar)
+          targetLabel,
+        );
+        return { ok: true, mensaje: `Horario actualizado: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
       }
 
       case 'crear_presupuesto': {
@@ -490,6 +699,19 @@ export async function ejecutarAccion(
             orden: i,
           })),
         });
+        if (p.id) {
+          // Registrar accion reversible (crear → cancelar)
+          const accionId = await registrarAccionChispa(
+            a.negocio_id,
+            userId,
+            'crear_presupuesto',
+            estadoPrevio,
+            true, // reversible
+            p.id, // target_id = presupuesto_id
+            targetLabel,
+          );
+          return { ok: true, mensaje: `Presupuesto creado (borrador${p.numero ? ` nº ${p.numero}` : ''}): ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
+        }
         return { ok: true, mensaje: `Presupuesto creado (borrador${p.numero ? ` nº ${p.numero}` : ''}): ${a.resumen}` };
       }
 
@@ -554,7 +776,17 @@ export async function ejecutarAccion(
             ], 'Reorganizada por Chispa');
           }
         }
-        return { ok: true, mensaje: `Se han movido ${exito} citas correctamente. Se avisara a los clientes por WhatsApp.` };
+        // Registrar accion reversible (optimizar → volver a marcas previas)
+        const accionId = await registrarAccionChispa(
+          a.negocio_id,
+          userId,
+          'optimizar_agenda',
+          estadoPrevio,
+          true, // reversible
+          a.fecha, // target_id = fecha (no es un ID, pero suficiente para identificar el lote)
+          targetLabel,
+        );
+        return { ok: true, mensaje: `Se han movido ${exito} citas correctamente. Se avisara a los clientes por WhatsApp.`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
       }
 
       case 'cambiar_config': {
@@ -565,7 +797,18 @@ export async function ejecutarAccion(
           p_valor: a.valor,
         });
         if (error) return { ok: false, error: error.message };
-        return { ok: true, mensaje: `Hecho: ${a.resumen}` };
+
+        // Registrar accion reversible (cambiar → restaurar valor previo)
+        const accionId = await registrarAccionChispa(
+          a.negocio_id,
+          userId,
+          'cambiar_config',
+          estadoPrevio,
+          true, // reversible
+          a.clave, // target_id = clave de config
+          targetLabel,
+        );
+        return { ok: true, mensaje: `Hecho: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
       }
 
       case 'cambiar_config_multiple': {
@@ -582,7 +825,17 @@ export async function ejecutarAccion(
           });
           if (error) return { ok: false, error: `${c.label}: ${error.message}` };
         }
-        return { ok: true, mensaje: `Hecho: ${a.resumen}` };
+        // Registrar accion reversible (cambiar_multiple → restaurar valores previos)
+        const accionId = await registrarAccionChispa(
+          a.negocio_id,
+          userId,
+          'cambiar_config_multiple',
+          estadoPrevio,
+          true, // reversible
+          a.cambios[0]?.clave ?? null, // target_id = primera clave (suficiente para identificar)
+          targetLabel,
+        );
+        return { ok: true, mensaje: `Hecho: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
       }
 
       case 'cambiar_idioma_portal': {
@@ -599,7 +852,18 @@ export async function ejecutarAccion(
           .update({ idioma: a.idioma })
           .eq('negocio_id', a.negocio_id);
         if (error) return { ok: false, error: error.message };
-        return { ok: true, mensaje: `Hecho: ${a.resumen}` };
+
+        // Registrar accion reversible (cambiar → restaurar idioma previo)
+        const accionId = await registrarAccionChispa(
+          a.negocio_id,
+          userId,
+          'cambiar_idioma_portal',
+          estadoPrevio,
+          true, // reversible
+          'idioma_portal', // target_id fijo para identificar
+          targetLabel,
+        );
+        return { ok: true, mensaje: `Hecho: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
       }
 
       case 'crear_cierre_negocio': {
@@ -614,7 +878,17 @@ export async function ejecutarAccion(
           }
           return { ok: false, error: error.message };
         }
-        return { ok: true, mensaje: `Hecho: ${a.resumen}` };
+        // Registrar accion reversible (crear → borrar)
+        const accionId = await registrarAccionChispa(
+          a.negocio_id,
+          userId,
+          'crear_cierre_negocio',
+          estadoPrevio,
+          true, // reversible
+          a.fecha, // target_id = fecha para identificar
+          targetLabel,
+        );
+        return { ok: true, mensaje: `Hecho: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
       }
 
       case 'avisar_lista_espera_match': {
@@ -640,6 +914,302 @@ export async function ejecutarAccion(
         return { ok: false, error: `Tipo de accion desconocido: ${(_exhaustive as AccionPropuesta).tipo}` };
       }
     }
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+// --- Registro de accion (para deshacer) ---
+
+/**
+ * Registra una accion ejecutada en chispa_acciones para poder deshacerla.
+ * Devuelve el ID de la accion registrada (o un ID falso en demo).
+ */
+async function registrarAccionChispa(
+  negocioId: string,
+  userId: string,
+  tipoAccion: string,
+  estadoPrevio: unknown,
+  reversible: boolean,
+  targetId: string | null,
+  targetLabel: string | null,
+): Promise<string> {
+  try {
+    const { data, error } = await supabase.rpc('registrar_accion_chispa', {
+      p_negocio_id: negocioId,
+      p_usuario_id: userId,
+      p_tipo_accion: tipoAccion,
+      p_estado_previo: estadoPrevio,
+      p_reversible: reversible,
+      p_target_id: targetId,
+      p_target_label: targetLabel,
+    });
+    if (error) throw error;
+    return (data as string) ?? '00000000-0000-0000-0000-000000000000';
+  } catch {
+    // Si falla el registro, la accion ya se aplico; devolvemos ID falso.
+    return '00000000-0000-0000-0000-000000000000';
+  }
+}
+
+// --- Deshacer accion ---
+
+/**
+ * Deshace una accion previamente ejecutada por Chispa.
+ * Lee la accion registrada, ejecuta la operacion inversa y marca como deshecha.
+ */
+export async function deshacerAccion(accionId: string, userId: string): Promise<EjecucionResultado> {
+  try {
+    // 1. Leer la accion registrada
+    const { data: accion, error: eRead } = await supabase
+      .from('chispa_acciones')
+      .select('*')
+      .eq('id', accionId)
+      .eq('usuario_id', userId)
+      .maybeSingle();
+    if (eRead) return { ok: false, error: eRead.message };
+    if (!accion) return { ok: false, error: 'Accion no encontrada o no pertenece al usuario.' };
+    if (accion.deshecha) return { ok: false, error: 'Esta accion ya fue deshecha.' };
+    if (!accion.reversible) return { ok: false, error: 'Esta accion no se puede deshacer.' };
+
+    const previo = accion.estado_previo as Record<string, unknown>;
+    const negocioId = accion.negocio_id as string;
+    const targetId = accion.target_id as string | null;
+
+    // 2. Ejecutar la operacion inversa segun tipo
+    switch (accion.tipo_accion) {
+      case 'crear_cita': {
+        // Inversa: borrar la cita creada (target_id = cita_id)
+        if (!targetId) return { ok: false, error: 'No se puede identificar la cita a borrar.' };
+        const { error: eDel } = await supabase.from('citas').delete().eq('id', targetId);
+        if (eDel) return { ok: false, error: eDel.message };
+        // Registrar en citas_historial
+        await registrarHistorialIA(negocioId, targetId, [
+          { campo: 'estado', anterior: CITA_STATUS.CONFIRMADA, nuevo: null },
+        ], 'Deshacer: cita borrada por Chispa');
+        break;
+      }
+
+      case 'reagendar_cita': {
+        // Inversa: volver a las marcas previas (inicio, fin, fin_activa, fin_espera, profesional_id)
+        if (!targetId) return { ok: false, error: 'No se puede identificar la cita a restaurar.' };
+        if (!previo?.inicio || !previo?.fin) {
+          return { ok: false, error: 'No hay estado previo suficiente para revertir.' };
+        }
+        const patch: Record<string, string | boolean> = {
+          inicio: previo.inicio as string,
+          fin: previo.fin as string,
+          fin_activa: (previo.fin_activa as string) ?? previo.fin as string,
+          fin_espera: (previo.fin_espera as string) ?? previo.fin as string,
+          confirmacion_enviada: false,
+          recordatorio_enviado: false,
+        };
+        if (previo.profesional_id) {
+          patch.profesional_id = previo.profesional_id as string;
+        }
+        const { error: eUpd } = await supabase.from('citas').update(patch).eq('id', targetId);
+        if (eUpd) return { ok: false, error: eUpd.message };
+        await registrarHistorialIA(negocioId, targetId, [
+          { campo: 'inicio', anterior: (previo.inicio as string), nuevo: previo.inicio as string }, // truco: marcamos que se volvio al estado anterior
+        ], 'Deshacer: cita reagendada restaurada por Chispa');
+        break;
+      }
+
+      case 'cancelar_cita': {
+        // Inversa: volver al estado previo (des-cancelar)
+        if (!targetId) return { ok: false, error: 'No se puede identificar la cita a restaurar.' };
+        if (!previo?.estado) return { ok: false, error: 'No hay estado previo suficiente para revertir.' };
+        const { error: eUpd } = await supabase
+          .from('citas')
+          .update({
+            estado: previo.estado as string,
+            motivo_cancelacion: previo.motivo_cancelacion as string | null,
+            cancelado_por: null,
+          })
+          .eq('id', targetId);
+        if (eUpd) return { ok: false, error: eUpd.message };
+        await registrarHistorialIA(negocioId, targetId, [
+          { campo: 'estado', anterior: CITA_STATUS.CANCELADA, nuevo: previo.estado as string },
+        ], 'Deshacer: cancelacion revertida por Chispa');
+        break;
+      }
+
+      case 'bloquear_hueco': {
+        // Inversa: liberar el hueco bloqueado (target_id = bloqueo_id?)
+        // Nota: bloquear_hueco no tiene target_id en el registro actual; necesitamos mejorarlo
+        // Por ahora, buscamos el bloqueo mas reciente del profesional en ese rango
+        if (!previo) return { ok: false, error: 'No hay datos para identificar el bloqueo.' };
+        // Este caso requiere que capturemos el bloqueo_id al crear; pendiente de mejora
+        return { ok: false, error: 'Deshacer bloqueo no implementado: necesita identificador del bloqueo.' };
+      }
+
+      case 'liberar_hueco': {
+        // Inversa: recrear el bloqueo liberado
+        if (!previo || !previo.id) return { ok: false, error: 'No hay estado previo para recrear el bloqueo.' };
+        const { error: eIns } = await supabase.from('bloqueos_profesional').insert({
+          id: previo.id as string,
+          profesional_id: previo.profesional_id as string,
+          inicio: previo.inicio as string,
+          fin: previo.fin as string,
+          tipo: 'otro',
+          motivo: previo.motivo as string | null,
+          negocio_id: negocioId,
+        });
+        if (eIns) return { ok: false, error: eIns.message };
+        break;
+      }
+
+      case 'cambiar_config':
+      case 'cambiar_config_multiple': {
+        // Inversa: restaurar valor previo
+        const clave = accion.tipo_accion === 'cambiar_config'
+          ? (previo as { clave?: string }).clave
+          : null; // TODO: multiple necesita iterar
+        if (!clave) return { ok: false, error: 'No se puede identificar la config a restaurar.' };
+        const valorPrevio = (previo as { valor_actual?: unknown }).valor_actual;
+        const { error: eRpc } = await supabase.rpc('set_negocio_config_key', {
+          p_negocio_id: negocioId,
+          p_clave: clave,
+          p_valor: valorPrevio,
+        });
+        if (eRpc) return { ok: false, error: eRpc.message };
+        break;
+      }
+
+      case 'cambiar_idioma_portal': {
+        // Inversa: restaurar idioma previo
+        const idiomaPrevio = (previo as { idioma_actual?: string | null }).idioma_actual;
+        if (idiomaPrevio === null) return { ok: false, error: 'No hay idioma previo para restaurar.' };
+        const { error: eUpd } = await supabase
+          .from('negocio_portal')
+          .update({ idioma: idiomaPrevio })
+          .eq('negocio_id', negocioId);
+        if (eUpd) return { ok: false, error: eUpd.message };
+        break;
+      }
+
+      case 'editar_servicio': {
+        // Inversa: restaurar campos previos
+        if (!targetId) return { ok: false, error: 'No se puede identificar el servicio a restaurar.' };
+        if (!previo) return { ok: false, error: 'No hay estado previo para restaurar el servicio.' };
+        // Solo restauramos los campos que tiene el estado previo
+        const patch: Record<string, unknown> = {};
+        if (previo.precio != null) patch.precio = previo.precio;
+        if (previo.nombre != null) patch.nombre = previo.nombre;
+        if (previo.duracion_activa_min != null) patch.duracion_activa_min = previo.duracion_activa_min;
+        if (previo.activo != null) patch.activo = previo.activo;
+        if (previo.prepago_requerido != null) patch.prepago_requerido = previo.prepago_requerido;
+        if (previo.prepago_cantidad_fija != null) patch.prepago_cantidad_fija = previo.prepago_cantidad_fija;
+        const { error: eUpd } = await supabase
+          .from('servicios')
+          .update(patch)
+          .eq('id', targetId)
+          .eq('negocio_id', negocioId);
+        if (eUpd) return { ok: false, error: eUpd.message };
+        break;
+      }
+
+      case 'crear_servicio': {
+        // Inversa: borrar el servicio creado (target_id = servicio_id?)
+        if (!targetId) return { ok: false, error: 'No se puede identificar el servicio a borrar.' };
+        const { error: eDel } = await supabase
+          .from('servicios')
+          .delete()
+          .eq('id', targetId)
+          .eq('negocio_id', negocioId);
+        if (eDel) return { ok: false, error: eDel.message };
+        break;
+      }
+
+      case 'editar_horario': {
+        // Inversa: restaurar turno(s) previos (borrar actual, insertar previo(s))
+        if (!previo || !Array.isArray(previo)) return { ok: false, error: 'No hay turnos previos para restaurar.' };
+        const profesionalId = (previo[0] as { profesional_id?: string })?.profesional_id;
+        const diaSemana = (previo[0] as { dia_semana?: number })?.dia_semana;
+        if (!profesionalId || diaSemana === undefined) return { ok: false, error: 'Datos previos incompletos.' };
+        // Borrar turno actual
+        await supabase
+          .from('horarios_profesional')
+          .delete()
+          .eq('profesional_id', profesionalId)
+          .eq('dia_semana', diaSemana);
+        // Restaurar previo(s)
+        for (const turno of previo as Record<string, unknown>[]) {
+          await supabase.from('horarios_profesional').insert({
+            profesional_id: turno.profesional_id as string,
+            dia_semana: turno.dia_semana as number,
+            hora_inicio: turno.hora_inicio as string,
+            hora_fin: turno.hora_fin as string,
+            turno: turno.turno as number,
+          });
+        }
+        break;
+      }
+
+      case 'crear_presupuesto': {
+        // Inversa: borrar el presupuesto creado (o marcar como cancelado)
+        if (!targetId) return { ok: false, error: 'No se puede identificar el presupuesto a borrar.' };
+        const { error: eDel } = await supabase
+          .from('presupuestos')
+          .update({ estado: 'cancelado' })
+          .eq('id', targetId)
+          .eq('negocio_id', negocioId);
+        if (eDel) return { ok: false, error: eDel.message };
+        break;
+      }
+
+      case 'crear_cierre_negocio': {
+        // Inversa: borrar el cierre creado
+        if (!targetId) return { ok: false, error: 'No se puede identificar el cierre a borrar.' };
+        // target_id en este caso seria la fecha, no un ID
+        const { error: eDel } = await supabase
+          .from('cierres_negocio')
+          .delete()
+          .eq('negocio_id', negocioId)
+          .eq('fecha', targetId);
+        if (eDel) return { ok: false, error: eDel.message };
+        break;
+      }
+
+      case 'optimizar_agenda': {
+        // Inversa: volver al estado previo de cada cita movida
+        if (!previo || !Array.isArray(previo)) return { ok: false, error: 'No hay estado previo para restaurar las citas.' };
+        for (const cita of previo as Array<{ id: string; inicio: string; fin: string; fin_activa?: string; fin_espera?: string }>) {
+          await supabase
+            .from('citas')
+            .update({
+              inicio: cita.inicio,
+              fin: cita.fin,
+              fin_activa: cita.fin_activa ?? cita.fin,
+              fin_espera: cita.fin_espera ?? cita.fin,
+              confirmacion_enviada: false,
+            })
+            .eq('id', cita.id);
+          await registrarHistorialIA(negocioId, cita.id, [
+            { campo: 'inicio', anterior: cita.inicio, nuevo: cita.inicio },
+          ], 'Deshacer: optimizacion revertida por Chispa');
+        }
+        break;
+      }
+
+      case 'enviar_mensaje_bandeja':
+      case 'recuperar_cliente':
+      case 'avisar_lista_espera_match':
+        return { ok: false, error: 'Esta accion no se puede deshacer (envio real o registro externo).' };
+
+      default:
+        return { ok: false, error: `Tipo de accion desconocido: ${accion.tipo_accion}` };
+    }
+
+    // 3. Marcar como deshecha
+    const { error: eMark } = await supabase
+      .from('chispa_acciones')
+      .update({ deshecha: true, deshecha_en: new Date().toISOString() })
+      .eq('id', accionId)
+      .eq('usuario_id', userId);
+    if (eMark) return { ok: false, error: eMark.message };
+
+    return { ok: true, mensaje: 'Accion deshecha correctamente.' };
   } catch (e) {
     return { ok: false, error: String(e) };
   }

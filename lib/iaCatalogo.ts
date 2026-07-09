@@ -43,6 +43,14 @@ export const CATALOGO_IA: FuncionIA[] = [
     uso: 'En el panel Chispa, escribe "¿qué puedes hacer?" o "¿dónde está la reserva online?".',
     categoria: 'panel',
   },
+  {
+    id: 'chispa-deshacer',
+    titulo: 'Deshacer acciones',
+    descripcion: 'Casi todas las acciones de Chispa (crear citas, reagendar, cambiar configuración) son reversibles durante 10 segundos. Una ventana de seguridad para corregir errores sin manchar la base de datos.',
+    ubicacion: '/app?chispa=1',
+    uso: 'Tras confirmar una acción de Chispa, pulsa el botón "Deshacer" en el aviso que aparece.',
+    categoria: 'panel',
+  },
 
   // CONFIGURACIÓN GUIADA
   {

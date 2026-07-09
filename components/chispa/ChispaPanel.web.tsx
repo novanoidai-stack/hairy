@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useGlobalSearchParams } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
-import { ejecutarAccion, type AccionPropuesta } from '@/lib/agendaOps';
+import { ejecutarAccion, deshacerAccion, type AccionPropuesta } from '@/lib/agendaOps';
 import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, type Bloque } from '@/lib/chispaBloques';
 import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
 import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
@@ -382,6 +382,9 @@ export default function ChispaPanel({
   const onbStatus = useOnboardingStatus(esGestorOnboarding ? negocioId : null, esGestorOnboarding);
   const [configGuiada, setConfigGuiada] = useState(false);
   const [temaIdx, setTemaIdx] = useState(0);
+  // S05: ultima accion reversible con timestamp para deshacer (ventana de 10s)
+  const [ultimaAccion, setUltimaAccion] = useState<{ id: string; label: string; ts: number } | null>(null);
+  const [deshaciendo, setDeshaciendo] = useState(false);
   const ctxOnboardingRef = useRef<ContextoEjecucion>({ negocioId, profesionalesCreados: [], serviciosCreados: [], datosNegocioSesion: undefined });
   // blockId -> a que tema/paso pertenece (formulario/opciones de la config
   // guiada usan el MISMO callback onRespuestaInteractiva que el chat normal;
@@ -524,6 +527,32 @@ export default function ChispaPanel({
     iniciarConfigGuiada();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [esGestorOnboarding, onbStatus.ready, onbStatus.coreDone, negocioId]);
+
+  // S05: ventana temporal para deshacer (10s). Pasado ese tiempo, la opcion desaparece.
+  useEffect(() => {
+    if (!ultimaAccion) return;
+    const timer = setTimeout(() => setUltimaAccion(null), 10000);
+    return () => clearTimeout(timer);
+  }, [ultimaAccion]);
+
+  // S05: deshacer la ultima accion reversible
+  async function deshacerUltimaAccion() {
+    if (!ultimaAccion || deshaciendo) return;
+    setDeshaciendo(true);
+    try {
+      const r = await deshacerAccion(ultimaAccion.id, profile.id);
+      if (r.ok) {
+        setUltimaAccion(null);
+        pushAssistantTexto(`Accion deshecha: ${ultimaAccion.label}. ${r.mensaje}`);
+        onAgendaChanged();
+        triggerHaptic();
+      } else {
+        pushAssistantTexto(`No se pudo deshacer: ${r.error}`);
+      }
+    } finally {
+      setDeshaciendo(false);
+    }
+  }
 
   // Historial en texto plano para dar contexto al edge (los bloques se aplanan).
   function historialParaEdge(msgs: Mensaje[]): { role: 'user' | 'assistant'; content: any }[] {
@@ -762,6 +791,10 @@ export default function ChispaPanel({
       triggerHaptic();
       pushAssistantTexto(r.mensaje);
       onAgendaChanged();
+      // S05: registrar accion reversible para deshacer
+      if (r.accion_id) {
+        setUltimaAccion({ id: r.accion_id, label: accion.resumen, ts: Date.now() });
+      }
     } else {
       // Fallo: la tarjeta queda resuelta y se explica; el usuario puede volver a pedirlo.
       setAccionEstado(msgIndex, 'cancelada');
@@ -1205,6 +1238,55 @@ export default function ChispaPanel({
                   <button onClick={salirConfigGuiada}
                     style={{ padding: '7px 12px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bgCard, color: T.danger, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                     Salir
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* S05 V3 - Toast de deshacer accion reversible.
+                Aparece tras una accion exitosa reversible (crear/reagendar/cambiar
+                config, etc.) y ofrece deshacerla durante 10 segundos. El estado
+                reversible se captura ANTES de ejecutar la accion. */}
+            {ultimaAccion && (
+              <div style={{
+                margin: '0 12px 8px', padding: '10px 12px', flexShrink: 0,
+                background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10,
+                display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              }}>
+                <div style={{ flex: 1, minWidth: 150 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: T.text }}>
+                    {ultimaAccion.label}
+                  </div>
+                  <div style={{ fontSize: 11, color: T.textMuted, marginTop: 1 }}>
+                    Acción completada
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'center' }}>
+                  <button
+                    onClick={deshacerUltimaAccion}
+                    disabled={deshaciendo}
+                    style={{
+                      padding: '6px 12px', borderRadius: 8,
+                      border: 'none',
+                      background: deshaciendo ? T.bgCardHi : T.primary,
+                      color: deshaciendo ? T.textMuted : '#fff',
+                      fontSize: 12, fontWeight: 600, cursor: deshaciendo ? 'default' : 'pointer',
+                      transition: 'background 0.15s ease, opacity 0.15s ease',
+                      opacity: deshaciendo ? 0.7 : 1,
+                    }}
+                  >
+                    {deshaciendo ? 'Deshaciendo...' : 'Deshacer'}
+                  </button>
+                  <button
+                    onClick={() => setUltimaAccion(null)}
+                    style={{
+                      padding: '6px 10px', borderRadius: 8,
+                      border: 'none', background: 'transparent',
+                      color: T.textMuted, fontSize: 12, cursor: 'pointer',
+                    }}
+                  >
+                    ✕
                   </button>
                 </div>
               </div>
