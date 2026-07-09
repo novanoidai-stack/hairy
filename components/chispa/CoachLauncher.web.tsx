@@ -16,11 +16,11 @@
 //     nunca senala un elemento inexistente. Si no queda ninguno, se cierra.
 //   - Accesible: role dialog, foco al abrir/cambiar de paso, Esc cierra,
 //     respeta prefers-reduced-motion. Movil primero (burbuja como hoja inferior).
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { useRouter, useSegments } from 'expo-router';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
-import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
+import { CoachMark, type Rect } from '@/components/chispa/CoachMark.web';
 import {
   CHISPA_COACH_EVENT,
   guiaParaPagina,
@@ -28,10 +28,6 @@ import {
   type CoachGuia,
   type CoachPaso,
 } from '@/lib/coachGuias';
-
-type Rect = { top: number; left: number; width: number; height: number };
-
-const BUBBLE_W = 320;
 
 function prefiereMenosMovimiento(): boolean {
   if (typeof window === 'undefined' || !window.matchMedia) return false;
@@ -52,7 +48,6 @@ export function CoachLauncher() {
     typeof window !== 'undefined' && window.innerWidth < 768,
   );
   const reduce = useRef(prefiereMenosMovimiento());
-  const ctaRef = useRef<HTMLButtonElement | null>(null);
   const rafRef = useRef(0);
 
   useEffect(() => {
@@ -132,11 +127,9 @@ export function CoachLauncher() {
       rafRef.current = requestAnimationFrame(medir);
     };
     medir();
-    // Foco al CTA para que teclado/lector lo anuncien.
-    const tf = setTimeout(() => ctaRef.current?.focus(), 120);
+    // El foco al boton de avance lo gestiona CoachMark al cambiar de paso.
     return () => {
       cancelAnimationFrame(rafRef.current);
-      clearTimeout(tf);
     };
   }, [paso, idx, guia, primerPasoVisible, cerrar]);
 
@@ -163,156 +156,38 @@ export function CoachLauncher() {
     return false;
   })();
 
-  const pad = 8;
-  const ringTop = rect.top - pad;
-  const ringLeft = rect.left - pad;
-  const ringW = rect.width + pad * 2;
-  const ringH = rect.height + pad * 2;
-
-  const trans = reduce.current
-    ? undefined
-    : 'top 0.32s cubic-bezier(0.34,1.56,0.64,1), left 0.32s cubic-bezier(0.34,1.56,0.64,1), width 0.28s ease, height 0.28s ease';
-
-  // Colocacion de la burbuja. Movil: hoja inferior fija (por encima del tab bar).
-  // Escritorio: debajo del elemento si cabe, si no encima; centrada en su ancho
-  // y siempre dentro del viewport.
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 1024;
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 768;
-
-  let bubbleStyle: CSSProperties;
-  if (isMobile) {
-    bubbleStyle = {
-      position: 'fixed',
-      left: 12,
-      right: 12,
-      bottom: 92,
-      maxWidth: 520,
-      margin: '0 auto',
-    };
-  } else {
-    const debajo = ringTop + ringH + 12 + 190 < vh; // ~190 alto estimado burbuja
-    const top = debajo ? ringTop + ringH + 12 : Math.max(12, ringTop - 12 - 190);
-    let left = rect.left + rect.width / 2 - BUBBLE_W / 2;
-    left = Math.max(12, Math.min(left, vw - BUBBLE_W - 12));
-    bubbleStyle = { position: 'fixed', top, left, width: BUBBLE_W };
-  }
+  // Puntos de progreso (solo si hay mas de un paso).
+  const progreso = total > 1 ? (
+    <div style={{ display: 'flex', gap: 5 }}>
+      {guia.pasos.map((_, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          style={{
+            width: i === idx ? 18 : 6, height: 6, borderRadius: 999,
+            background: i === idx ? T.primary : T.border,
+            transition: reduce.current ? undefined : 'width 0.25s ease, background 0.25s ease',
+          }}
+        />
+      ))}
+    </div>
+  ) : undefined;
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 2147483200, pointerEvents: 'none' }}
-    >
-      {/* Anillo de resalte (no bloquea clics: puedes usar el elemento) */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          top: ringTop,
-          left: ringLeft,
-          width: ringW,
-          height: ringH,
-          borderRadius: 14,
-          border: `2px solid ${T.primary}`,
-          boxShadow: '0 0 0 3px rgba(244,80,30,0.18), 0 0 28px 6px rgba(244,80,30,0.34)',
-          transition: trans,
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Burbuja de Chispa: explica el elemento in-situ */}
-      <div
-        role="dialog"
-        aria-label={`Chispa te ensena: ${paso.titulo}`}
-        style={{
-          ...bubbleStyle,
-          pointerEvents: 'auto',
-          background: T.bgPanel,
-          border: `1px solid ${T.border}`,
-          borderRadius: 16,
-          boxShadow: '0 20px 50px rgba(20,12,6,0.30)',
-          padding: 16,
-          fontFamily: 'Inter, system-ui, sans-serif',
-          animation: reduce.current ? undefined : 'coach-in 0.28s cubic-bezier(0.16,1,0.3,1)',
-        }}
-      >
-        <style>{'@keyframes coach-in { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }'}</style>
-
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-          <div style={{ flexShrink: 0 }}>
-            <ChispaMascota size={34} showLabel={false} animar={!reduce.current} mood="wave" />
-          </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700 }}>
-                Chispa te ensena
-              </span>
-              <button
-                type="button"
-                onClick={cerrar}
-                aria-label="Cerrar la guia"
-                style={{ border: 'none', background: 'transparent', color: T.textTertiary, cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 2 }}
-              >
-                &times;
-              </button>
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginTop: 2, lineHeight: 1.2 }}>{paso.titulo}</div>
-            <div style={{ fontSize: 13, color: T.textSecondary, lineHeight: 1.5, marginTop: 4 }}>{paso.cuerpo}</div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
-              {paso.cta?.ruta && (
-                <button
-                  type="button"
-                  onClick={() => { const r = paso.cta!.ruta!; cerrar(); router.push(r as never); }}
-                  style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
-                >
-                  {paso.cta.label}
-                </button>
-              )}
-              {hayAnterior && (
-                <button
-                  type="button"
-                  onClick={retroceder}
-                  style={{ padding: '8px 12px', borderRadius: 10, border: `1px solid ${T.border}`, background: 'transparent', color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-                >
-                  Anterior
-                </button>
-              )}
-              <button
-                ref={ctaRef}
-                type="button"
-                onClick={avanzar}
-                style={{
-                  padding: '8px 16px', borderRadius: 10, border: 'none',
-                  background: paso.cta?.ruta ? 'transparent' : T.primary,
-                  color: paso.cta?.ruta ? T.primaryHi : '#fff',
-                  boxShadow: paso.cta?.ruta ? `inset 0 0 0 1px ${T.border}` : undefined,
-                  fontSize: 13, fontWeight: 700, cursor: 'pointer', marginLeft: 'auto',
-                }}
-              >
-                {esUltimo ? 'Entendido' : 'Siguiente'}
-              </button>
-            </div>
-
-            {total > 1 && (
-              <div style={{ display: 'flex', gap: 5, marginTop: 12 }}>
-                {guia.pasos.map((_, i) => (
-                  <span
-                    key={i}
-                    aria-hidden="true"
-                    style={{
-                      width: i === idx ? 18 : 6,
-                      height: 6,
-                      borderRadius: 999,
-                      background: i === idx ? T.primary : T.border,
-                      transition: reduce.current ? undefined : 'width 0.25s ease, background 0.25s ease',
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    <CoachMark
+      rect={rect}
+      etiqueta="Chispa te ensena"
+      titulo={paso.titulo}
+      cuerpo={paso.cuerpo}
+      isMobile={isMobile}
+      reduce={reduce.current}
+      onClose={cerrar}
+      onNext={avanzar}
+      nextLabel={esUltimo ? 'Entendido' : 'Siguiente'}
+      onPrev={hayAnterior ? retroceder : undefined}
+      cta={paso.cta?.ruta ? { label: paso.cta.label, onClick: () => { const r = paso.cta!.ruta!; cerrar(); router.push(r as never); } } : undefined}
+      progreso={progreso}
+    />
   );
 }
 

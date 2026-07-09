@@ -169,7 +169,7 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 - [x] [S14 · Avisos de Chispa + urgentes (envío = Alexandro)](fase-d-proactiva/S14-avisos-urgentes.md)
 - [x] [S15 · Iniciativa / próxima mejor acción](fase-d-proactiva/S15-iniciativa-proxima-accion.md)
 - [x] [S16 · Coach intra-página que te sigue](fase-d-proactiva/S16-coach-intrapagina.md)
-- [S17 · Tours y redirecciones guiadas](fase-d-proactiva/S17-tours-redirecciones.md)
+- [x] [S17 · Tours y redirecciones guiadas](fase-d-proactiva/S17-tours-redirecciones.md)
 
 ### Fase E · Completar el salón
 - [S18 · Salón al 100% (arreglar "seguir onboarding")](fase-e-completar/S18-salon-100.md)

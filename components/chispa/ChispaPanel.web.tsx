@@ -6,6 +6,7 @@ import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { ejecutarAccion, deshacerAccion, type AccionPropuesta } from '@/lib/agendaOps';
 import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, type Bloque } from '@/lib/chispaBloques';
 import { lanzarCoach } from '@/lib/coachGuias';
+import { TOURS, lanzarTour, reanudarTour, leerProgresoTour, tourPorId } from '@/lib/tours';
 import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
 import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
@@ -1193,6 +1194,33 @@ export default function ChispaPanel({
                     <BriefingAgenda negocioId={negocioId} profile={profile} onClose={() => setAbierto(false)} />
                   </div>
                 )}
+                {/* Tours guiados (S17): entrada determinista a los recorridos
+                    multi-pantalla. Solo al inicio de la conversacion, para no
+                    estorbar en un chat en curso ni durante la config guiada. */}
+                {!configGuiada && !soloOnboarding && mensajes.length <= 2 && (() => {
+                  const prog = leerProgresoTour();
+                  const tourEnCurso = prog ? tourPorId(prog.id) : undefined;
+                  const pill = { padding: '7px 11px', borderRadius: 999, border: `1px solid ${T.border}`, background: T.bgCard, color: T.textSecondary, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' } as const;
+                  return (
+                    <div style={{ marginBottom: 10, padding: '11px 12px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12 }}>
+                      <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700, marginBottom: 8 }}>Tours guiados</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {tourEnCurso && (
+                          <button type="button" onClick={() => { setAbierto(false); setTimeout(() => reanudarTour(), 60); }}
+                            style={{ ...pill, border: 'none', background: T.primary, color: '#fff' }}>
+                            Reanudar: {tourEnCurso.titulo}
+                          </button>
+                        )}
+                        {TOURS.map((tr) => (
+                          <button key={tr.id} type="button" title={tr.descripcion}
+                            onClick={() => { setAbierto(false); setTimeout(() => lanzarTour(tr.id), 60); }} style={pill}>
+                            {tr.titulo}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
                 {/* Turnos con AUTOR + hora. Mensajes consecutivos del mismo
                     autor se agrupan (avatar y cabecera solo en el primero);
                     entre turnos distintos hay mas aire. Asi se distingue de un

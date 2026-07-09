@@ -39,6 +39,10 @@ export const manualChispa: ManualContent = {
       texto: 'Chispa no solo te redirige y te suelta: puede acompañarte donde ya estás. Pulsa el botón "Enséñame esta pantalla" en la cabecera del panel (icono de diana) y Chispa aparece flotando, resalta un elemento real de la pantalla, te lo explica en el sitio y encadena varias explicaciones ("y aquí...") sin sacarte de donde estás. La guía no bloquea la página (puedes seguir usándola mientras te explica), se cierra sin fricción y respeta el teclado y la preferencia de menos movimiento. También puedes lanzarla desde la tarjeta de iniciativa ("Enséñame la pantalla").',
     },
     {
+      titulo: 'Tours guiados entre pantallas',
+      texto: 'Además de explicarte la pantalla en la que estás, Chispa puede llevarte de la mano por un flujo completo que pasa por varias pantallas. En el panel, al empezar una conversación, verás "Tours guiados" con recorridos como "Primeros pasos en Mecha" o "Haz tu primer cobro": Chispa te navega a cada pantalla, resalta qué mirar y avanza contigo con una barra de progreso. Puedes salir en cualquier momento (botón cerrar o Escape) y el tour queda guardado para reanudarlo justo donde lo dejaste ("Reanudar" aparece en el panel). Funciona en móvil y escritorio.',
+    },
+    {
       titulo: 'Configuración guiada',
       texto: 'Si eres gestor, Chispa puede configurar tu salón paso a paso. Di "configúrame el salón" o pulsa el botón "Poner en marcha tu salón" desde Avisos. Chispa te guiará por datos del negocio, servicios, equipo, horarios y notificaciones con formularios pre‑rellenados.',
       captura: '/manuals/chispa/config-guiada.png',

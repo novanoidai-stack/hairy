@@ -80,6 +80,15 @@ export const CATALOGO_IA: FuncionIA[] = [
     categoria: 'panel',
   },
 
+  {
+    id: 'chispa-tours-guiados',
+    titulo: 'Tours guiados entre pantallas',
+    descripcion: 'Recorridos paso a paso que pasan por varias pantallas: Chispa te navega a cada una, resalta qué mirar con el coach mark y avanza contigo con barra de progreso. Curados para los flujos de más valor ("Primeros pasos en Mecha", "Haz tu primer cobro"). Se puede salir en cualquier momento (cerrar o Escape) y el tour queda guardado para reanudarlo donde lo dejaste. No bloquea la página; móvil y escritorio.',
+    ubicacion: '/app',
+    uso: 'En el panel Chispa, al inicio de la conversación, pulsa un tour en "Tours guiados" (o "Reanudar" si dejaste uno a medias).',
+    categoria: 'panel',
+  },
+
   // CONFIGURACIÓN GUIADA
   {
     id: 'chispa-config-guiada',
