@@ -2103,20 +2103,10 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
     setLoading(true);
     setDictadoWarn('');
     try {
-      const { data: sesion } = await supabase.auth.getSession();
-      const token = sesion.session?.access_token;
-      if (!token) throw new Error('Sin sesion');
-      const r = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/color-formula-parser`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ texto }),
+      const { data: parsed, error: fnError } = await supabase.functions.invoke('color-formula-parser', {
+        body: { texto },
       });
-      if (!r.ok) throw new Error('Error al parsear formula');
-      const parsed = await r.json();
+      if (fnError) throw fnError;
 
       if (parsed.health_warning) {
         setDictadoWarn('Las notas de salud van en su ficha, a mano. No se ha guardado información médica.');

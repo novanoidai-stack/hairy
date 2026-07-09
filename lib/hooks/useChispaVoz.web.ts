@@ -51,7 +51,7 @@ function speechRecognitionCtor(): SpeechRecognitionConstructor | undefined {
   return w.SpeechRecognition || w.webkitSpeechRecognition;
 }
 
-export function useChispaVoz() {
+export function useChispaVoz(configVozId: string = 'ef_dora') {
   const [estado, setEstado] = useState<EstadoVoz>('inactivo');
   const [errorVoz, setErrorVoz] = useState<string | null>(null);
   // Se apaga solo (y para toda la sesion de la pestana) si el edge responde que
@@ -265,7 +265,8 @@ export function useChispaVoz() {
     }
 
     try {
-      let url = cacheAudioTts.get(limpio);
+      const cacheKey = `${configVozId}|${limpio}`;
+      let url = cacheAudioTts.get(cacheKey);
       if (!url) {
         const { data: sesion } = await supabase.auth.getSession();
         const token = sesion.session?.access_token;
@@ -273,7 +274,7 @@ export function useChispaVoz() {
         const r = await fetch(`${SUPABASE_URL}/functions/v1/chispa-tts`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ texto: limpio }),
+          body: JSON.stringify({ texto: limpio, voice_id: configVozId }),
         });
         if (r.status === 501) {
           // Sin ELEVENLABS_API_KEY configurada en Supabase secrets: se apaga el
@@ -289,7 +290,7 @@ export function useChispaVoz() {
         }
         const blob = await r.blob();
         url = URL.createObjectURL(blob);
-        cacheAudioTts.set(limpio, url);
+        cacheAudioTts.set(cacheKey, url);
       }
       // Llegar hasta aqui (cache o fetch fresco) significa que ElevenLabs
       // respondio bien: la voz deja de estar degradada.

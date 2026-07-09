@@ -26,6 +26,7 @@ export function ChispaLauncher() {
   // (que por defecto es false). Una clave ausente en negocio_config NO debe
   // apagar el briefing ya en produccion para salones existentes.
   const [briefingActivo, setBriefingActivo] = useState(true);
+  const [chispaVozId, setChispaVozId] = useState('ef_dora');
 
   // Mismo criterio de rutas publicas que app/_layout.tsx: en ellas no hay
   // sesion de staff y la IA de gestion no debe aparecer.
@@ -54,6 +55,7 @@ export function ChispaLauncher() {
       });
       setActivo(cfg.asistenteAgendaActivo === true);
       setBriefingActivo(cfg.briefingProactivoActivo !== false);
+      setChispaVozId((cfg.chispaVozId as string) || 'ef_dora');
     }
 
     void cargar();
@@ -87,6 +89,7 @@ export function ChispaLauncher() {
       soloOnboarding={!activo}
       nombreNegocio={perfil.nombreNegocio}
       codigoPostal={perfil.codigoPostal}
+      chispaVozId={chispaVozId}
     />
   );
 }

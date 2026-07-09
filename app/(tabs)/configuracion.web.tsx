@@ -9,6 +9,7 @@ import { TabPresupuestoConceptos } from '@/components/config/TabPresupuestoConce
 import { MiPerfilProfesional } from '@/components/config/MiPerfilProfesional';
 import { TabMigracionMagica } from '@/components/config/TabMigracionMagica';
 import { TabRecompensas } from '@/components/config/TabRecompensas.web';
+import { TabVoz } from '@/components/config/TabVoz';
 import { HubIA } from '@/components/config/HubIA';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -182,6 +183,7 @@ interface ConfigState {
   asistenteAgendaActivo: boolean;
   asistenteProfesionalEscribe: boolean;
   asistenteEffort: 'low' | 'medium' | 'high';
+  chispaVozId: string;
   // Briefing proactivo de Chispa (Sesion 6 PLAN-IA-CHISPA): default ON para no
   // apagar por sorpresa el briefing ya en produccion (ver ChispaLauncher.web.tsx).
   briefingProactivoActivo: boolean;
@@ -250,7 +252,8 @@ const TABS: TabDef[] = [
   { id: 'presupuestos',   label: 'Presupuestos',   icon: 'copy',      section: 'Operativa' },
   { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
   { id: 'migracion_magica', label: 'Migración Mágica', icon: 'zap', section: 'Operativa' },
-  { id: 'hub_ia',         label: 'Qué hace la IA',    icon: 'sparkles', section: 'Cuenta' },
+  { id: 'voz',            label: 'Voz de Chispa',  icon: 'mic',       section: 'Cuenta' },
+  { id: 'hub_ia',         label: 'Qué hace la IA', icon: 'sparkles',  section: 'Cuenta' },
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion' },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion' },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
@@ -290,7 +293,7 @@ const DEFAULT_CONFIG: ConfigState = {
   notifResenaActiva: true, notifSenalActiva: true, notifRetrasoActiva: true,
   notifCumpleanosActiva: false, notifCumpleanosDescuentoPct: 0,
   notifNoMolestar: false, notifNoMolestarInicio: '22:00', notifNoMolestarFin: '08:00',
-  asistenteAgendaActivo: false, asistenteProfesionalEscribe: false, asistenteEffort: 'medium',
+  asistenteAgendaActivo: false, asistenteProfesionalEscribe: false, asistenteEffort: 'medium', chispaVozId: 'ef_dora',
   briefingProactivoActivo: true,
   listaEsperaMatchingActivo: false, listaEsperaVentanaMin: 30, listaEsperaMaxBloqueoHoras: 2,
   listaEsperaAntelacionMinHoras: 4, listaEsperaDesbloqueoDesde: 'primer_aviso',
@@ -1163,6 +1166,9 @@ export default function ConfiguracionWeb() {
             )}
             {tab === 'migracion_magica' && (
               <TabMigracionMagica negocioId={negocioId} />
+            )}
+            {tab === 'voz' && (
+              <TabVoz config={config} setC={setC} />
             )}
             {tab === 'hub_ia' && (
               <HubIA negocioId={negocioId} rolStr={account?.role} />

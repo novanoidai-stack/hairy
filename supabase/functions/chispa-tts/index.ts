@@ -34,7 +34,7 @@ const MODEL_ID = 'eleven_multilingual_v2';
 // esto para transmitir la idea; se recorta en vez de rechazar.
 const MAX_CHARS = 700;
 
-async function generarConKokoro(texto: string): Promise<ArrayBuffer | null> {
+async function generarConKokoro(texto: string, voiceId?: string): Promise<ArrayBuffer | null> {
   if (!KOKORO_TTS_URL || !KOKORO_TTS_SECRET) return null;
   try {
     const r = await fetch(`${KOKORO_TTS_URL}/v1/audio/speech`, {
@@ -43,7 +43,7 @@ async function generarConKokoro(texto: string): Promise<ArrayBuffer | null> {
       body: JSON.stringify({
         model: 'kokoro',
         input: texto,
-        voice: KOKORO_VOICE,
+        voice: voiceId || KOKORO_VOICE,
         response_format: 'mp3',
         speed: 1.0,
       }),
@@ -90,11 +90,12 @@ Deno.serve(async (req) => {
 
   const body = await req.json().catch(() => ({}));
   const texto = String((body as { texto?: unknown })?.texto ?? '').trim();
+  const voiceId = String((body as { voice_id?: unknown })?.voice_id ?? '').trim();
   if (!texto) return json({ error: 'Falta texto' }, 400);
   const textoRecortado = texto.slice(0, MAX_CHARS);
 
   const audio =
-    (await generarConKokoro(textoRecortado)) ?? (await generarConElevenLabs(textoRecortado));
+    (await generarConKokoro(textoRecortado, voiceId)) ?? (await generarConElevenLabs(textoRecortado));
 
   if (!audio) return json({ error: 'tts_no_configurado' }, 501);
 

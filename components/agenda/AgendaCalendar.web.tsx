@@ -467,6 +467,7 @@ export default function AgendaCalendar() {
   const [kpisCollapsed, setKpisCollapsed] = useState(false);
   const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
   const [profsCollapsed, setProfsCollapsed] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState<'hoy' | 'confirmadas' | 'mes' | 'canceladas' | null>(null);
   // Modal del calendario en movil
   const [showMobileCalendar, setShowMobileCalendar] = useState(false);
   // Hoja selectora de profesional en movil (un profesional a la vez)
@@ -871,12 +872,13 @@ export default function AgendaCalendar() {
     return map;
   }, [citasHoy]);
 
-  const totalCitasMes = useMemo(() => {
+  const citasMes = useMemo(() => {
     return citas.filter((c) => {
       const d = new Date(c.inicio);
       return d.getMonth() === month && d.getFullYear() === year;
-    }).length;
+    });
   }, [citas, month, year]);
+  const totalCitasMes = citasMes.length;
 
   const ocupacionMes = useMemo(() => {
     return Math.round((totalCitasMes / OCUPACION_MAX_PER_MES) * 100);
@@ -1019,7 +1021,7 @@ export default function AgendaCalendar() {
                         <>
                           <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6 }}>Sin confirmar (proximas 48h)</div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {sinConfirmarList.slice(0, 8).map((c: any) => {
+                            {sinConfirmarList.map((c: any) => {
                               const ini = new Date(c.inicio);
                               const cli = clienteMap?.get(c.cliente_id);
                               return (
@@ -1065,7 +1067,7 @@ export default function AgendaCalendar() {
                         <>
                           <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: (sinConfirmar48h > 0 || mensajesSinLeer > 0 || clientesFugaCount > 0) ? 12 : 0 }}>Cumpleanos (proximos 7 dias)</div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {cumplesProximos.slice(0, 8).map((b: any) => {
+                            {cumplesProximos.map((b: any) => {
                               const fechaFmt = b.fecha.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' });
                               const cuando = b.diff === 0 ? 'Hoy' : b.diff === 1 ? 'Manana' : `En ${b.diff} dias`;
                               return (
@@ -1518,16 +1520,16 @@ export default function AgendaCalendar() {
             {!kpisCollapsed && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, animation: 'slideInUp 0.3s ease both' }}>
               <div style={{ animation: 'slideInUp 0.5s ease 0.1s both' }}>
-                <StatCard label="HOY" value={totalCitasHoy} sub="citas" tone={TOKENS.primary} />
+                <StatCard label="HOY" value={totalCitasHoy} sub="citas" tone={TOKENS.primary} onClick={() => setShowStatsModal('hoy')} />
               </div>
               <div style={{ animation: 'slideInUp 0.5s ease 0.2s both' }}>
-                <StatCard label="CONFIRMADAS" value={confirmadasHoy} sub={`de ${totalCitasHoy} hoy`} tone={TOKENS.success} />
+                <StatCard label="CONFIRMADAS" value={confirmadasHoy} sub={`de ${totalCitasHoy} hoy`} tone={TOKENS.success} onClick={() => setShowStatsModal('confirmadas')} />
               </div>
               <div style={{ animation: 'slideInUp 0.5s ease 0.3s both' }}>
-                <StatCard label="MES" value={`${totalCitasMes}`} sub={`citas / ${OCUPACION_MAX_PER_MES}`} tone={TOKENS.warning} progress={ocupacionMes / 100} />
+                <StatCard label="MES" value={`${totalCitasMes}`} sub="citas este mes" tone={TOKENS.warning} onClick={() => setShowStatsModal('mes')} />
               </div>
               <div style={{ animation: 'slideInUp 0.5s ease 0.4s both' }}>
-                <StatCard label="OCUPACIÓN" value={`${ocupacionMes}%`} sub="este mes" tone={TOKENS.violet} progress={ocupacionMes / 100} />
+                <StatCard label="CANCEL/NO-SHOW" value={`${citas.filter(c => (c.estado === CITA_STATUS.CANCELADA || c.estado === CITA_STATUS.NO_PRESENTADA) && new Date(c.inicio).getMonth() === month).length}`} sub="este mes" tone={TOKENS.violet} onClick={() => setShowStatsModal('canceladas')} />
               </div>
             </div>
             )}
@@ -1608,7 +1610,7 @@ export default function AgendaCalendar() {
                             height: 3,
                             width: cnt > 5 ? 14 : cnt > 2 ? 9 : 4,
                             borderRadius: 999,
-                            background: isToday ? 'rgba(255,255,255,0.85)' : TOKENS.primaryHi,
+                            background: isToday ? 'rgba(255,255,255,0.85)' : (cnt > 5 ? TOKENS.danger : cnt > 2 ? TOKENS.warning : TOKENS.success),
                           }}
                         />
                       )}
@@ -2341,7 +2343,7 @@ export default function AgendaCalendar() {
                             height: 3,
                             width: cnt > 5 ? 14 : cnt > 2 ? 9 : 4,
                             borderRadius: 999,
-                            background: isToday ? 'rgba(255,255,255,0.85)' : TOKENS.primaryHi,
+                            background: isToday ? 'rgba(255,255,255,0.85)' : (cnt > 5 ? TOKENS.danger : cnt > 2 ? TOKENS.warning : TOKENS.success),
                           }}
                         />
                       )}
@@ -2422,13 +2424,70 @@ export default function AgendaCalendar() {
           </div>
         </div>
       )}
+
+      {showStatsModal && (
+        <div className="m-overlay-enter" onClick={() => setShowStatsModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(11,18,32,0.65)', backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', zIndex: 10000, padding: 24 }}>
+          <div className="m-modal-enter" onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: '100%', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${TOKENS.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: TOKENS.bgCard }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: TOKENS.text }}>
+                {showStatsModal === 'hoy' ? 'Citas de Hoy' :
+                 showStatsModal === 'confirmadas' ? 'Citas Confirmadas de Hoy' :
+                 showStatsModal === 'mes' ? 'Citas del Mes' : 'Canceladas / No presentadas (Mes)'}
+              </div>
+              <button className="m-btn-icon-close" onClick={() => setShowStatsModal(null)} style={{ width: 32, height: 32, borderRadius: 8, background: 'transparent', border: 'none', color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+                <Icon name="x" size={16} color={TOKENS.textSec} />
+              </button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {(() => {
+                let list: any[] = [];
+                if (showStatsModal === 'hoy') list = citasHoy;
+                else if (showStatsModal === 'confirmadas') list = citasHoy.filter(c => c.estado === CITA_STATUS.CONFIRMADA);
+                else if (showStatsModal === 'mes') list = citasMes;
+                else list = citasMes.filter(c => c.estado === CITA_STATUS.CANCELADA || c.estado === CITA_STATUS.NO_PRESENTADA);
+
+                if (list.length === 0) return <div style={{ fontSize: 13, color: TOKENS.textTer, textAlign: 'center', padding: 20 }}>No hay citas en esta categoría.</div>;
+
+                return list.map(c => {
+                  const ini = new Date(c.inicio);
+                  const cli = clienteMap?.get(c.cliente_id);
+                  const srv = servicioMap?.get(c.servicio_id);
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => {
+                        const d = new Date(c.inicio);
+                        setSelectedDate(d.getDate());
+                        setCurrentMonth(new Date(d.getFullYear(), d.getMonth()));
+                        setView('day');
+                        setShowStatsModal(null);
+                        setSelectedCitaEdit(c);
+                        setShowEditCita(true);
+                      }}
+                      style={{ textAlign: 'left', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '10px 12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4 }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text }}>{cli?.nombre || 'Cliente'}</span>
+                        <span style={{ fontSize: 11, color: TOKENS.textSec }}>
+                          {ini.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' })} · {ini.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 11, color: TOKENS.textSec }}>{srv?.nombre || 'Servicio'}</div>
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function StatCard({ label, value, sub, tone, progress }: any) {
+function StatCard({ label, value, sub, tone, progress, onClick }: any) {
   return (
-    <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: 14, position: 'relative', overflow: 'hidden', transition: 'all 0.3s ease', transform: 'scale(1)', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.borderColor = TOKENS.borderHi; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.borderColor = TOKENS.border; }}>
+    <div onClick={onClick} style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 14, padding: 14, position: 'relative', overflow: 'hidden', transition: 'all 0.3s ease', transform: 'scale(1)', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.borderColor = TOKENS.borderHi; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.borderColor = TOKENS.border; }}>
       <div style={{ fontSize: 10, letterSpacing: 1.2, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 700, color: TOKENS.text, marginTop: 4, letterSpacing: -0.3 }}>{value}</div>
       <div style={{ fontSize: 11, color: TOKENS.textSec, marginTop: 2 }}>{sub}</div>
@@ -3172,15 +3231,18 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         const addonsStr = addonsNames.length > 0 ? '+ ' + addonsNames.join(', ') : '';
 
                         if (narrow) {
+                          const superNarrow = height <= 20;
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', height: '100%' }}>
-                              <span style={{ fontSize: 10, fontWeight: 600, color: TOKENS.textTer, flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                {timeStrCompact}
-                                {catIcon && <span style={{ display: 'inline-flex', opacity: 0.8 }} title={catName}>{catIcon}</span>}
-                              </span>
                               <span style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancelada ? 'line-through' : 'none' }}>
-                                {nombreCliente}{nombreServicio ? ` · ${nombreServicio}` : ''}{addonsStr ? ` ${addonsStr}` : ''}
+                                {nombreCliente}{!superNarrow && nombreServicio ? ` · ${nombreServicio}` : ''}{!superNarrow && addonsStr ? ` ${addonsStr}` : ''}
                               </span>
+                              {!superNarrow && (
+                                <span style={{ fontSize: 10, fontWeight: 600, color: TOKENS.textTer, flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  {timeStrCompact}
+                                  {catIcon && <span style={{ display: 'inline-flex', opacity: 0.8 }} title={catName}>{catIcon}</span>}
+                                </span>
+                              )}
                               {chainBadge}
                               {icon}
                             </div>

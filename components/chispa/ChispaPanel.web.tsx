@@ -10,7 +10,7 @@ import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { MotionStyles } from '@/lib/motion';
 import { useResponsive } from '@/lib/hooks/useResponsive';
-import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
+import { useChispaVoz } from '@/lib/hooks/useChispaVoz';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import BriefingAgenda from '@/components/agenda/BriefingAgenda';
 import {
@@ -99,6 +99,7 @@ export interface ChispaPanelProps {
   // estimacion de precio de mercado si hay codigo postal.
   nombreNegocio?: string;
   codigoPostal?: string;
+  chispaVozId?: string;
 }
 
 function IconoCerrar({ size = 15, color = T.textSecondary }: { size?: number; color?: string }) {
@@ -341,7 +342,7 @@ function construirPasoTema(
 
 export default function ChispaPanel({
   negocioId, profile, onAgendaChanged, briefingActivo = true,
-  soloOnboarding = false, nombreNegocio, codigoPostal,
+  soloOnboarding = false, nombreNegocio, codigoPostal, chispaVozId = 'ef_dora'
 }: ChispaPanelProps) {
   const { isMobile } = useResponsive();
   // Nombre corto para etiquetar los turnos del usuario en el hilo (S03 V3).
@@ -362,7 +363,7 @@ export default function ChispaPanel({
 
   // Voz (Sesion 5): microfono + lectura en voz alta. Todo vive en el hook;
   // aqui solo se conecta a los puntos donde se anaden mensajes.
-  const voz = useChispaVoz();
+  const voz = useChispaVoz(chispaVozId);
   // Modo comparacion A/B (solo dev/decision, no para clientas): ?vozab=1 en la
   // URL muestra el selector de motor de voz para decidir si compensa el plan
   // de pago de ElevenLabs frente al speechSynthesis gratis del navegador.

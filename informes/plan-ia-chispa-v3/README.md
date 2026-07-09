@@ -152,7 +152,7 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 - [S03 · Rediseño panel + chat](fase-a-experiencia/S03-rediseno-panel-chat.md)
 - [S04 · Solo UI/diseño de la capa IA](fase-a-experiencia/S04-ui-diseno-capa-ia.md)
 - [x] [S05 · Deshacer / revertir acciones](fase-a-experiencia/S05-deshacer-acciones.md)
-- [S06 · Voz neural + voces + micro + ortografía](fase-a-experiencia/S06-voz-neural.md)
+- [x] [S06 · Voz neural + voces + micro + ortografía](fase-a-experiencia/S06-voz-neural.md)
 
 ### Fase B · Superficies IA por página
 - [S07 · IA por página universal + Config (optimiza/ahorra tiempo)](fase-b-superficies/S07-ia-por-pagina-universal.md)
