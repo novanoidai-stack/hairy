@@ -55,6 +55,8 @@ const PANEL_STYLES = `
     50% { box-shadow: 0 8px 32px rgba(244,80,30,0.52), 0 0 16px rgba(255,140,66,0.3); }
   }
   @keyframes chispaTypewriter { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes chispaStatusPulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(15,157,107,0.14); } 50% { box-shadow: 0 0 0 3px rgba(15,157,107,0.28), 0 0 6px rgba(15,157,107,0.4); } }
+  .chispa-status-dot { animation: chispaStatusPulse 2.4s ease-in-out infinite; }
   .chispa-msg { animation: chispaMsgIn 0.3s cubic-bezier(0.16,1,0.3,1); }
   .chispa-drawer { animation: chispaDrawerIn 0.30s cubic-bezier(0.16,1,0.3,1); }
   .chispa-backdrop { animation: chispaBackdropIn 0.25s ease; }
@@ -66,17 +68,22 @@ const PANEL_STYLES = `
   .chispa-text-bubble ul, .chispa-text-bubble ol { margin: 4px 0; padding-left: 18px; }
   .chispa-text-bubble li { margin-bottom: 2px; }
   @media (prefers-reduced-motion: reduce) {
-    .chispa-msg, .chispa-drawer, .chispa-backdrop, .chispa-launch-tab, .chispa-typewriter-word { animation: none !important; }
+    .chispa-msg, .chispa-drawer, .chispa-backdrop, .chispa-launch-tab, .chispa-typewriter-word, .chispa-status-dot { animation: none !important; }
   }
 `;
 
+// ts: momento de creacion del mensaje (epoch ms). Se sella al crearlo para
+// mostrar la hora del turno y separar "quien dijo que y cuando" (S03 V3).
+// Opcional por retrocompatibilidad con hilos persistidos antes de S03.
 type Mensaje =
-  | { role: 'user'; content: string; imagenB64?: string }
-  | { role: 'assistant'; bloques: Bloque[]; accionEstado: AccionEstado | null };
+  | { role: 'user'; content: string; imagenB64?: string; ts?: number }
+  | { role: 'assistant'; bloques: Bloque[]; accionEstado: AccionEstado | null; ts?: number };
 
 export interface ChispaPanelProps {
   negocioId: string;
-  profile: { id: string; role?: string | null };
+  // nombre: nombre del usuario del equipo, para etiquetar "quien habla" en el
+  // hilo (S03 V3). Opcional: si falta se muestra "Tu".
+  profile: { id: string; role?: string | null; nombre?: string };
   onAgendaChanged: () => void;
   // Toggle Configuracion > Asistente de agenda (IA) > Briefing proactivo (Sesion 6).
   // Default true: una clave ausente en negocio_config no debe apagar el briefing.
@@ -159,14 +166,16 @@ function IconoPantallaCompleta({ activo, size = 15, color = T.textSecondary }: {
   );
 }
 
-const BIENVENIDA: Mensaje = {
-  role: 'assistant',
-  bloques: [{
-    tipo: 'texto',
-    texto: '¡Hola! 👋 Soy **Chispa**, la IA de tu salón.\n\nPuedo ayudarte con:\n• **Agenda** — crear, reagendar, cancelar o confirmar citas en bloque\n• **Catálogo** — cambiar precios de servicios\n• **Presupuestos** — preparar presupuestos al instante\n• **Navegación** — llevarte a la pantalla que necesites\n\nYo propongo y **tú confirmas**. ¿Qué hacemos?',
-  }],
-  accionEstado: null,
-};
+// Sella el momento de creacion de un mensaje. Un solo punto para que TODO
+// mensaje nuevo lleve hora (S03 V3), sin repetir Date.now() en cada push.
+function ahora(): number { return Date.now(); }
+
+// Hora corta del turno (HH:MM) para la cabecera de cada grupo de mensajes.
+function fmtHora(ts?: number): string {
+  if (!ts) return '';
+  try { return new Date(ts).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); }
+  catch { return ''; }
+}
 
 // --- Config guiada (Sesion 2 V2): Chispa hospeda "configurame el salon". ---
 // Deteccion de intencion DETERMINISTA (sin LLM: "Determinista primero" del
@@ -334,6 +343,8 @@ export default function ChispaPanel({
   soloOnboarding = false, nombreNegocio, codigoPostal,
 }: ChispaPanelProps) {
   const { isMobile } = useResponsive();
+  // Nombre corto para etiquetar los turnos del usuario en el hilo (S03 V3).
+  const nombreUsuario = profile.nombre?.trim().split(/\s+/)[0] || 'Tú';
   const [abierto, setAbierto] = useState(false);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [texto, setTexto] = useState('');
@@ -545,7 +556,7 @@ export default function ChispaPanel({
   }
 
   function pushAssistantTexto(t: string) {
-    setMensajes((m) => [...m, { role: 'assistant', bloques: [{ tipo: 'texto', texto: t }], accionEstado: null }]);
+    setMensajes((m) => [...m, { role: 'assistant', bloques: [{ tipo: 'texto', texto: t }], accionEstado: null, ts: ahora() }]);
     if (voz.vozActiva) void voz.hablar(t);
   }
 
@@ -608,10 +619,11 @@ export default function ChispaPanel({
     if (mostrarArnesPruebas && t === '/testbloques') {
       setMensajes((m) => [
         ...m,
-        { role: 'user', content: t },
+        { role: 'user', content: t, ts: ahora() },
         {
           role: 'assistant',
           accionEstado: null,
+          ts: ahora(),
           bloques: [
             { tipo: 'progreso', paso: 1, total: 2, etiqueta: 'Datos del servicio' },
             {
@@ -646,7 +658,7 @@ export default function ChispaPanel({
     // configura el negocio; un profesional que lo pida cae al chat normal (que
     // es role-aware en el edge) en vez de entrar a un flujo que RLS le bloquearia.
     if (!imagenB64 && esGestorOnboarding && detectaIntencionConfigGuiada(t)) {
-      setMensajes((m) => [...m, { role: 'user', content: t }]);
+      setMensajes((m) => [...m, { role: 'user', content: t, ts: ahora() }]);
       setTexto('');
       iniciarConfigGuiada();
       return;
@@ -656,7 +668,7 @@ export default function ChispaPanel({
     // la cuenta publica compartida). En cuentas reales no hay limite.
     if (IS_DEMO_MODE) {
       if (demoCount.current >= DEMO_LIMITE_MSGS) {
-        setMensajes((m) => [...m, { role: 'user', content: t || '📸 Imagen adjunta' }]);
+        setMensajes((m) => [...m, { role: 'user', content: t || 'Imagen adjunta', ts: ahora() }]);
         setTexto('');
         setImagenB64(null);
         pushAssistantTexto('Has alcanzado el limite de mensajes de esta demo. En una cuenta real de Mecha no hay limite: Chispa te acompana todo el dia.');
@@ -666,7 +678,7 @@ export default function ChispaPanel({
       try { sessionStorage.setItem(DEMO_COUNT_KEY, String(demoCount.current)); } catch { /* no critico */ }
     }
 
-    const nuevos: Mensaje[] = [...mensajes, { role: 'user', content: t || '📸 Imagen adjunta', imagenB64: imagenB64 || undefined }];
+    const nuevos: Mensaje[] = [...mensajes, { role: 'user', content: t || 'Imagen adjunta', imagenB64: imagenB64 || undefined, ts: ahora() }];
     setMensajes(nuevos);
     setTexto('');
     setImagenB64(null);
@@ -689,7 +701,7 @@ export default function ChispaPanel({
 
       const bloques = normalizarRespuesta(data);
       const tieneAccion = bloques.some((b) => b.tipo === 'accion');
-      setMensajes((m) => [...m, { role: 'assistant', bloques, accionEstado: tieneAccion ? 'pendiente' : null }]);
+      setMensajes((m) => [...m, { role: 'assistant', bloques, accionEstado: tieneAccion ? 'pendiente' : null, ts: ahora() }]);
       if (voz.vozActiva) {
         const paraHablar = textoDeBloques(bloques);
         if (paraHablar) void voz.hablar(paraHablar);
@@ -824,7 +836,7 @@ export default function ChispaPanel({
     const { id, previos, interactivo, kind } = construirPasoTema(tema, pregunta, perfilOnboarding);
     bloqueDescriptorRef.current[id] = { tema, kind };
     setMensajes((m) => [...m, {
-      role: 'assistant', accionEstado: null,
+      role: 'assistant', accionEstado: null, ts: ahora(),
       bloques: [{ tipo: 'progreso', paso: idx + 1, total: TEMA_ORDEN.length, etiqueta: TEMA_TITULO_SECCION[tema] }, ...previos, interactivo],
     }]);
   }
@@ -852,7 +864,7 @@ export default function ChispaPanel({
     const id = idPasoOnboarding(tema, '-otro');
     bloqueDescriptorRef.current[id] = { tema, kind };
     setMensajes((m) => [...m, {
-      role: 'assistant', accionEstado: null,
+      role: 'assistant', accionEstado: null, ts: ahora(),
       bloques: [{ tipo: 'opciones', id, titulo, opciones: [{ valor: 'si', label: 'Sí, añadir otro' }, { valor: 'no', label: 'Continuar' }] }],
     }]);
   }
@@ -863,7 +875,7 @@ export default function ChispaPanel({
     const id = idPasoOnboarding('reserva_online', '-confirm');
     bloqueDescriptorRef.current[id] = { tema: 'reserva_online', kind: 'reserva_confirm' };
     setMensajes((m) => [...m, {
-      role: 'assistant', accionEstado: null,
+      role: 'assistant', accionEstado: null, ts: ahora(),
       bloques: [{
         tipo: 'opciones', id, titulo: 'Tu salón será visible y reservable públicamente ahora mismo. ¿Confirmas?',
         opciones: [{ valor: 'si', label: 'Sí, adelante' }, { valor: 'no', label: 'Mejor no' }],
@@ -935,7 +947,7 @@ export default function ChispaPanel({
       case 'fotos_opciones': {
         if ((payload as string[])[0] === 'ahora') {
           setMensajes((m) => [...m, {
-            role: 'assistant', accionEstado: null,
+            role: 'assistant', accionEstado: null, ts: ahora(),
             bloques: [{ tipo: 'enlace', ruta: CHISPA_RUTAS.configuracion.ruta, label: 'Ir a Configuración → Servicios' }],
           }]);
         }
@@ -992,18 +1004,23 @@ export default function ChispaPanel({
 
           <div className="chispa-drawer" style={{
             position: 'fixed', top: 0, right: 0, height: '100%', width: drawerWidth, zIndex: 2147483000,
-            display: 'flex', flexDirection: 'column', 
+            display: 'flex', flexDirection: 'column',
             background: 'rgba(255, 253, 251, 0.72)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
             borderLeft: `1px solid rgba(40,30,24,0.1)`, boxShadow: '-18px 0 50px rgba(40,30,24,0.16)',
             fontFamily: 'Inter, system-ui, sans-serif',
+            // Transicion suave al entrar/salir de pantalla completa (desktop).
+            transition: isMobile ? undefined : 'width 0.32s cubic-bezier(0.16,1,0.3,1)',
           }}>
             {/* Cabecera */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
-              <ChispaMascota size={30} showLabel={false} animar={false} />
+              <ChispaMascota size={30} showLabel={false} animar />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>Chispa</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: T.text, lineHeight: 1.15, letterSpacing: -0.2 }}>Chispa</div>
                 <div style={{ fontSize: 11, color: T.textTertiary, marginTop: 1, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                  <span>IA · asistente del salon</span>
+                  {/* Punto de estado "en linea" con glow: senal discreta de que la
+                      IA esta activa (detalle de producto, no decoracion vacia). */}
+                  <span aria-hidden="true" className="chispa-status-dot" style={{ width: 6, height: 6, borderRadius: 999, background: T.success, boxShadow: `0 0 0 2px ${T.successSoft}`, flexShrink: 0 }} />
+                  <span>IA de tu salón</span>
                   {/* Voz honesta (Sesion 1 V2): indicador discreto y persistente
                       mientras la voz este degradada a la del navegador. Nunca se
                       finge que es la voz premium de ElevenLabs. */}
@@ -1078,16 +1095,34 @@ export default function ChispaPanel({
                 columna con mas aire para que formularios/graficas no se
                 aplasten a lo ancho de todo el viewport. */}
             <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: amplio ? '20px 0' : '12px 14px', display: 'flex', flexDirection: 'column', alignItems: amplio ? 'center' : 'stretch' }}>
-              <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined, display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {briefingActivo && (
-                  <BriefingAgenda negocioId={negocioId} profile={profile} onClose={() => setAbierto(false)} />
+                  <div style={{ marginBottom: 4 }}>
+                    <BriefingAgenda negocioId={negocioId} profile={profile} onClose={() => setAbierto(false)} />
+                  </div>
                 )}
+                {/* Turnos con AUTOR + hora. Mensajes consecutivos del mismo
+                    autor se agrupan (avatar y cabecera solo en el primero);
+                    entre turnos distintos hay mas aire. Asi se distingue de un
+                    vistazo quien dijo que y cuando (S03 V3). */}
                 {mensajes.map((msg, i) => {
+                  const prev = mensajes[i - 1];
+                  const primeroDelGrupo = !prev || prev.role !== msg.role;
+                  const margenSup = i === 0 ? 0 : primeroDelGrupo ? 14 : 4;
+                  const hora = fmtHora(msg.ts);
+
                   if (msg.role === 'user') {
                     return (
-                      <div key={i} className="chispa-msg" style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'flex-end' }}>
+                      <div key={i} className="chispa-msg" style={{ marginTop: margenSup, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        {primeroDelGrupo && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, paddingRight: 3 }}>
+                            <span style={{ fontSize: 11.5, fontWeight: 700, color: T.textSecondary }}>{nombreUsuario}</span>
+                            {hora ? <span style={{ fontSize: 10.5, color: T.textMuted }}>{hora}</span> : null}
+                          </div>
+                        )}
                         <div style={{
-                          maxWidth: '80%', padding: '9px 12px', borderRadius: '14px 14px 4px 14px',
+                          maxWidth: '80%', padding: '9px 12px',
+                          borderRadius: primeroDelGrupo ? '14px 14px 4px 14px' : '14px 4px 4px 14px',
                           background: T.primary, fontSize: 13.5, color: '#fff', lineHeight: 1.5,
                           wordBreak: 'break-word', whiteSpace: 'pre-wrap',
                         }}>
@@ -1096,13 +1131,20 @@ export default function ChispaPanel({
                       </div>
                     );
                   }
-                  // Assistant: avatar + columna de bloques
+                  // Chispa: gutter con avatar (solo en el primero del grupo) +
+                  // columna con cabecera (autor + hora) y sus bloques.
                   return (
-                    <div key={i} className="chispa-msg" style={{ display: 'flex', gap: 7, alignItems: 'flex-start' }}>
-                      <div style={{ flexShrink: 0, marginTop: 2 }}>
-                        <ChispaMascota size={22} showLabel={false} animar={false} />
+                    <div key={i} className="chispa-msg" style={{ marginTop: margenSup, display: 'flex', gap: 7, alignItems: 'flex-start' }}>
+                      <div style={{ flexShrink: 0, width: 22 }}>
+                        {primeroDelGrupo ? <ChispaMascota size={22} showLabel={false} animar={false} /> : null}
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, maxWidth: amplio ? '100%' : '84%' }}>
+                        {primeroDelGrupo && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 1 }}>
+                            <span style={{ fontSize: 11.5, fontWeight: 700, color: T.primaryHi }}>Chispa</span>
+                            {hora ? <span style={{ fontSize: 10.5, color: T.textMuted }}>{hora}</span> : null}
+                          </div>
+                        )}
                         {msg.bloques.map((b, j) => (
                           <BloqueRenderer
                             key={j}
@@ -1121,28 +1163,49 @@ export default function ChispaPanel({
                 })}
 
                 {cargando && (
-                  <div className="chispa-msg" style={{ display: 'flex', gap: 7, alignItems: 'flex-end' }}>
-                    <div style={{ flexShrink: 0 }}><ChispaMascota size={22} showLabel={false} mood="think" /></div>
-                    <div style={{ padding: '9px 14px', borderRadius: '14px 14px 14px 4px', background: T.bgCard, border: `1px solid ${T.border}`, display: 'flex', gap: 4, alignItems: 'center' }}>
-                      {[0, 1, 2].map((n) => (
-                        <div key={n} style={{ width: 6, height: 6, borderRadius: 999, background: T.textMuted, animation: `chispaDot 1.2s ease-in-out ${n * 0.2}s infinite` }} />
-                      ))}
+                  <div className="chispa-msg" style={{ marginTop: 14, display: 'flex', gap: 7, alignItems: 'flex-start' }}>
+                    <div style={{ flexShrink: 0, width: 22 }}><ChispaMascota size={22} showLabel={false} mood="think" /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                      <span style={{ fontSize: 11.5, fontWeight: 700, color: T.primaryHi }}>Chispa</span>
+                      <div style={{ padding: '9px 14px', borderRadius: '14px 14px 14px 4px', background: T.bgCard, border: `1px solid ${T.border}`, display: 'flex', gap: 4, alignItems: 'center', alignSelf: 'flex-start' }}>
+                        {[0, 1, 2].map((n) => (
+                          <div key={n} style={{ width: 6, height: 6, borderRadius: 999, background: T.textMuted, animation: `chispaDot 1.2s ease-in-out ${n * 0.2}s infinite` }} />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Config guiada: valvula de escape siempre visible (IA propone,
-                el profesional dispone — nunca un flujo obligatorio). */}
+            {/* Conflicto onboarding-vs-chat (S03 V3): durante la configuracion
+                guiada el chat libre se PAUSA a proposito (es un asistente paso a
+                paso, en orden). Para que el estado nunca sea ambiguo, este banner
+                siempre visible declara que esta en curso y ofrece las dos salidas
+                (saltar paso / salir) como botones claros — nunca un input
+                bloqueado "en silencio". Al terminar o salir, el chat se reanuda. */}
             {configGuiada && (
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, padding: '0 12px 8px', flexShrink: 0 }}>
-                <button onClick={saltarTema} style={{ background: 'none', border: 'none', color: T.textTertiary, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
-                  Saltar este paso
-                </button>
-                <button onClick={salirConfigGuiada} style={{ background: 'none', border: 'none', color: T.textTertiary, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
-                  Salir de la configuración guiada
-                </button>
+              <div style={{
+                margin: '0 12px 8px', padding: '10px 12px', flexShrink: 0,
+                background: T.primarySoft, border: `1px solid ${T.primary}`, borderRadius: 12,
+                display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+              }}>
+                <div style={{ flex: 1, minWidth: 150 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: T.primaryHi }}>Configuración guiada en curso</div>
+                  <div style={{ fontSize: 11, color: T.textSecondary, marginTop: 1, lineHeight: 1.35 }}>
+                    Responde arriba para continuar. El chat libre se reanuda al terminar o al salir.
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                  <button onClick={saltarTema}
+                    style={{ padding: '7px 12px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bgCard, color: T.textSecondary, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                    Saltar paso
+                  </button>
+                  <button onClick={salirConfigGuiada}
+                    style={{ padding: '7px 12px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bgCard, color: T.danger, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                    Salir
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1151,7 +1214,7 @@ export default function ChispaPanel({
               <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined }}>
               {imagenB64 && (
                 <div style={{ padding: '8px', marginBottom: '8px', background: T.bgCard, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                   <div style={{ fontSize: '12px', color: T.textSecondary }}>📸 Imagen adjuntada lista para enviar</div>
+                   <div style={{ fontSize: '12px', color: T.textSecondary }}>Imagen adjuntada lista para enviar</div>
                    <button onClick={() => setImagenB64(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: T.danger, fontSize: '12px', fontWeight: 600 }}>Quitar</button>
                 </div>
               )}

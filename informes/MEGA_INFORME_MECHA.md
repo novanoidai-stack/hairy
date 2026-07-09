@@ -52,6 +52,8 @@ camino de importación. Manuales + `iaCatalogo` + `especificaciones.html` al dí
 
 **S02 HECHA (9 jul):** marco de **razonamiento universal** — procedimiento fijo por turno (clasificar intención → mínima info → mejor superficie → proponer → confirmar) en el prompt del edge (`PROCEDIMIENTO_UNIVERSAL`) + red de seguridad determinista `garantizarSuperficie()` en `finalizar()` que convierte la doctrina "casi nunca texto plano" en garantía: ninguna respuesta queda en texto seco ni en cuelgue (fallback = menú de acciones rápidas por rol, no "no te he entendido"). Doc `RAZONAMIENTO-UNIVERSAL.md`, módulo en el manifiesto, manuales/specs al día. Verificado E2E con ~15 intenciones variadas (todas con superficie útil).
 
+**S03 HECHA (9 jul):** rediseño del **panel + chat** de Chispa — se ve de un vistazo **quién habla y cuándo** (autor + hora por turno, mensajes agrupados por autor, separación clara entre turnos, avatar solo en el primero del grupo), **identidad** con punto de estado "en línea" + "IA de tu salón", animaciones cuidadas (typing con cabecera, pulso de estado, transición de pantalla completa, todo bajo `prefers-reduced-motion`), y el conflicto **onboarding-vs-chat** resuelto sin ambigüedad (banner siempre visible "Configuración guiada en curso" + Saltar/Salir; el chat se reanuda al salir). Limpieza de emojis y de `BIENVENIDA` muerto. Solo cliente (no toca edge). Verificado E2E en la demo (móvil+escritorio); manuales/`iaCatalogo`/specs al día.
+
 ## Adenda — Capa IA "Chispa" v2 VERIFICADA E2E (Sesión 10, cierre) (9 jul 2026, Carlos + Claude)
 
 Cerrada la **Fase E (QA)** del rediseño v2 (`informes/PLAN-IA-CHISPA-V2-REDISENO.md`). Documento con evidencia punto

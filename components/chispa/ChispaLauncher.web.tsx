@@ -14,7 +14,7 @@ import ChispaPanel from '@/components/chispa/ChispaPanel.web';
 
 type PerfilChispa = {
   id: string; role?: string | null; negocio_id: string;
-  nombreNegocio?: string; codigoPostal?: string;
+  nombre?: string; nombreNegocio?: string; codigoPostal?: string;
 };
 
 export function ChispaLauncher() {
@@ -50,7 +50,7 @@ export function ChispaLauncher() {
       const cfg = (cfgRow?.config ?? {}) as Record<string, unknown>;
       setPerfil({
         id: p.id, role: p.role, negocio_id: p.negocio_id,
-        nombreNegocio: p.nombre_negocio, codigoPostal: p.codigo_postal,
+        nombre: p.nombre, nombreNegocio: p.nombre_negocio, codigoPostal: p.codigo_postal,
       });
       setActivo(cfg.asistenteAgendaActivo === true);
       setBriefingActivo(cfg.briefingProactivoActivo !== false);

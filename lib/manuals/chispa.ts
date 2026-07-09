@@ -12,7 +12,11 @@ export const manualChispa: ManualContent = {
     },
     {
       titulo: 'Panel Chispa (chatbot)',
-      texto: 'El panel de Chispa (pestaña con icono de estrella) es tu asistente conversacional. Puedes preguntarle cualquier cosa en voz o texto: crear citas, servicios, presupuestos, consultar datos de clientas o pedirle que organice tu agenda. Soporta formularios visuales para no tener que escribir.',
+      texto: 'El panel de Chispa (pestaña con icono de estrella) es tu asistente conversacional. Puedes preguntarle cualquier cosa en voz o texto: crear citas, servicios, presupuestos, consultar datos de clientas o pedirle que organice tu agenda. Soporta formularios visuales para no tener que escribir. En la conversación siempre ves de un vistazo quién habla y cuándo: cada turno lleva el nombre (tú o Chispa) y la hora, los mensajes seguidos de la misma persona se agrupan y hay separación clara entre turnos. Puedes abrirlo a pantalla completa (icono en la cabecera) para trabajar con más espacio.',
+    },
+    {
+      titulo: 'Configuración guiada sin ambigüedad',
+      texto: 'Cuando pides "configúrame el salón", Chispa te lleva paso a paso con formularios y el chat libre se pausa a propósito (es un flujo en orden). Mientras dura, un aviso siempre visible te lo recuerda y te ofrece dos botones claros: "Saltar paso" y "Salir". Al terminar o al salir, el chat normal se reanuda al instante. Nunca te quedas con un campo bloqueado sin saber por qué.',
     },
     {
       titulo: 'Siempre en la mejor superficie',

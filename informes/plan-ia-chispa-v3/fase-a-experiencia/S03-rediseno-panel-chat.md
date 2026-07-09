@@ -46,4 +46,32 @@ de qué pasa si el usuario escribe durante un flujo guiado.
 [ ] commit+push  [ ] S03 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA (9 jul 2026). Commit `feat(chispa): S03 V3 - rediseno panel + chat (quien habla, identidad, onboarding sin ambiguedad)`.
+
+**Qué se construyó (elevando lo existente, sin romper el contrato de bloques):**
+- **Quién habla:** `Mensaje` gana `ts` (sellado al crear). Render agrupado por autor: cabecera
+  con nombre (`Chispa` / nombre corto del usuario, hilo desde `ChispaLauncher`) + hora por turno;
+  avatar de Chispa solo en el primero del grupo; separación de 14px entre turnos vs 4px dentro del
+  grupo; radio de burbuja distinto en mensajes agrupados. La distinción acción/propuesta vs texto ya
+  la daba `BloqueRenderer` (tarjeta con botones vs burbuja), se conserva.
+- **Identidad/logo:** cabecera con avatar animado + `Chispa` (peso 800) + punto de estado "en línea"
+  con glow (pulso `chispaStatusPulse`, respeta reduced-motion) + "IA de tu salón".
+- **Animaciones:** se conservan entradas de mensaje/typing/drawer; añadido typing indicator con
+  cabecera "Chispa", pulso del punto de estado y transición de ancho al entrar/salir de pantalla
+  completa (desktop). Todo bajo `prefers-reduced-motion`.
+- **Conflicto onboarding-vs-chat (definido, sin ambigüedad):** durante `configGuiada` el chat libre
+  se **pausa a propósito**; un **banner siempre visible** ("Configuración guiada en curso" +
+  "Saltar paso" / "Salir") declara el estado y da las dos salidas; al terminar o salir el chat se
+  **reanuda**. Sustituye a los enlaces subrayados finos (estado antes poco visible).
+- Limpieza: emojis fuera de UI (👋 y 📸), `BIENVENIDA` muerto eliminado.
+
+**Verificado E2E** en `/demo.html?share=1` (iframe `?demo=1`), **móvil (375) y escritorio**:
+cabecera con identidad + punto de estado; turno de usuario "Demo · HH:MM" y de Chispa "Chispa · HH:MM"
+con separación clara; banner de config guiada con input pausado y botones Saltar/Salir; "Salir"
+reanuda el chat (input habilitado, placeholder restaurado); móvil sin overflow ni aplastes; consola
+sin errores. `tsc` limpio (sólo ruido pre-existente de `scripts/tts-test` y `supabase/functions`) +
+`build:web` OK. Manuales (`lib/manuals/chispa.ts`), `lib/iaCatalogo.ts` y specs
+(`web/especificaciones.html`) actualizados. Sesión de cliente: no toca edge, no aplica desplegar.
+
+Checklist: `[x] tsc  [x] build  [x] E2E demo (móvil+escritorio)  [x] manuales+iaCatalogo
+[x] specs landing  [x] commit+push  [x] S03 marcada`
