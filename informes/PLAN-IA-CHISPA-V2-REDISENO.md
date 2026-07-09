@@ -91,7 +91,7 @@ FÁCIL que hacerlo a mano; si tarda más que a mano, sobra.
 | 4 | B Por página | Motor "IA por página" sin fallos silenciosos (+ arreglar Mi Jornada) — **HECHA 8 jul** | Opus 4.8 | medio | 1 |
 | 5 | B Por página | Agenda: botón "Organizar mi agenda" real — **HECHA 8-9 jul** | Opus 4.8 | alto | 1,4 |
 | 6 | B Por página | Caja + Presupuestos proactivos — **HECHA 9 jul** | Sonnet 5 | medio | 4 |
-| 7 | B Por página | Clientes + Informes + Mi Jornada proactivos | Sonnet 5 | medio | 4 |
+| 7 | B Por página | Clientes + Informes + Mi Jornada proactivos — **HECHA 9 jul** | Sonnet 5 | medio | 4 |
 | 8 | B Por página | Reseñas + Bandeja proactivas | Sonnet 5 | medio | 4 |
 | 9 | D Descubrir | Hub "Qué hace la IA" + manuales IA + quitar import CSV | Sonnet 5 | medio | — |
 | 10 | E QA | Bugs + QA visual + verificación E2E de toda la capa IA | Opus 4.8 | medio-alto | 1-9 |
@@ -539,6 +539,77 @@ ACEPTACIÓN: desde una ficha en riesgo se recupera/avisa de un clic; Informes mu
 
 Cierra con el Protocolo de cierre.
 ```
+
+**Verificado 9 jul (commit `6c731b667`):** sin migraciones ni edge functions nuevas/tocadas (todo
+cliente; `ficha_cliente`/`recuperar_cliente`/`mostrar_grafica`/`mostrar_comparativa` ya existian desde
+Sesiones 6-7 de v1 y 6 de v1-analitica).
+1. **Clientes — pastilla accionable:** "Recuperar" (fuga) construye la MISMA `AccionPropuesta
+   recuperar_cliente` que usaria el chatbot y llama a `chispaOps.ejecutarAccion` directo (sin pasar por
+   el LLM: el pill ya es la propuesta) — cero tools nuevas. "Avisar" (riesgo de no-show) es una accion
+   NUEVA en el cliente (no una tool del edge): busca la proxima cita confirmada de la clienta y resetea
+   `confirmacion_enviada`/`recordatorio_enviado` a `false`, el MISMO mecanismo ya usado al reagendar
+   (`modificar_cita_publica`) y al reorganizar agenda (Sesion 5) para que el motor real de WhatsApp
+   (n8n) la reenvie; si no hay cita proxima lo dice con franqueza ("No tiene ninguna cita proxima a la
+   que reforzar el aviso") en vez de fingir que hizo algo. Ambas acciones tienen guardrail de demo
+   client-side (simulan con "Hecho (demostracion)...") ademas del guardrail server-side ya existente en
+   `registrar_aviso_fuga`. Se añadio tambien la pastilla "Fuga · Xd" a la ficha (antes solo estaba en la
+   fila de la lista). Q&A de ficha: input libre + `useAyudaIA`, con el id de la clienta EMBEBIDO en el
+   texto del prompt ("Su id EXACTO es... usa ficha_cliente con id=...") para que se resuelva sin
+   ambiguedad sin tocar el edge (que hoy no lee el campo `contexto` que ya viaja en el body).
+2. **Informes — informe narrado:** primera tarjeta de IA de esta pagina (antes no tenia ninguna).
+   `resumenDeterminista` (citas/ingresos/no-shows YA cargados, sin LLM) siempre visible; "Analizar
+   periodo" pide al LLM narrar interpretando esas cifras Y llamar a `mostrar_grafica` +
+   `mostrar_comparativa` (calculo real server-side, Sesion 6 de v1) para contrastar con el periodo
+   anterior equivalente.
+3. **Mi Jornada — coaching de huecos:** `lib/organizarAgenda.ts` exporta `UMBRAL_HUECO_MIN_DEFAULT`
+   (antes interno) para no duplicar el umbral de "hueco que merece mencionarse". Nueva consulta
+   (solo si periodo=hoy y vista=personal) de las citas de HOY del profesional vinculado; `fasesDe` de
+   `lib/retrasos.ts` (reusada tal cual, misma primitiva que "Organizar mi agenda") separa huecos de
+   REPOSO (el profesional libre mientras un tinte actua, aunque el servicio siga abierto) de huecos
+   ENTRE CITAS. El mas proximo se anade al resumen determinista; la lista completa se pasa al prompt de
+   "Analizar mi dia" para que la sugerencia (contactar a una clienta, descansar...) este anclada a
+   huecos REALES en vez de que el LLM adivine si los hay (antes solo veia `citas_lista`, que son citas
+   YA completadas — nunca podia ver huecos futuros).
+4. **Hallazgo corregido en vivo (Informes):** el primer intento del prompt narrado (pedia narrar Y
+   llamar a 2 tools en la misma respuesta) hacia que el LLM escribiera el texto en un turno intermedio y
+   cerrara con una llamada a `sugerir_enlace` en el turno FINAL — como `runAgente` solo toma el texto de
+   la ULTIMA respuesta (los bloques visuales SI se acumulan entre turnos), el informe narrado llegaba
+   vacio (grafica+comparativa sin una sola frase). Se reforzo el prompt (orden explicito 1-tools,
+   2-texto-en-la-ultima-respuesta, "NO uses sugerir_enlace aqui, ya estamos en Informes") sin tocar el
+   edge — mismo tipo de ajuste que la Sesion 3 V2, pero en el prompt de ESTA superficie, no en el system
+   prompt compartido. Verificado tras el ajuste: informe narrado real (interpreta las cifras, no las
+   repite) + grafica + comparativa juntos, sin enlace redundante.
+5. **Nota para Sesion 8/10:** el mismo patron "texto + tool de cierre en el turno final vacio" puede
+   reproducirse en cualquier superficie que combine narrativa con `sugerir_enlace` (se vio tambien en
+   una prueba de la Q&A de ficha con "cuanto gasta de media" sobre Pedro Sanchez: la respuesta rica del
+   turno intermedio se perdio igual). No se toco el `runAgente` compartido (fuera de alcance, riesgo de
+   regresion en Sesiones 1-6 ya verificadas); si se repite en Sesion 8 (Reseñas/Bandeja), aplicar el
+   mismo ajuste de prompt (pedir explicitamente que el texto vaya en la ultima respuesta y evitar
+   `sugerir_enlace` cuando ya se esta en la pantalla de destino) en vez de encadenar tools+narrativa sin
+   guiar el orden.
+**E2E real en demo** (`demo_salon_001`, datos sembrados por SQL y revertidos al terminar — ninguna
+clienta tenia riesgo de fuga/no-show ni Maria Garcia (profesional vinculada a `demo.publico`) citas
+HOY): sembrado 1 `no_show` pasado para Elena Moreno (score 35, nivel medio) + su proxima cita
+confirmada, y 2 citas de HOY para Maria Garcia (Corte caballero sin reposo + Color raiz con 30 min de
+reposo) separadas por un hueco de 45 min. Clientes: "Riesgo de ausencia medio" + boton "Avisar" en la
+ficha de Elena → clic → "Hecho (demostracion): en tu cuenta esto reforzaria el aviso de confirmacion de
+su cita del 10 jul, 02:05" (verificado por SQL que `confirmacion_enviada`/`recordatorio_enviado` de esa
+cita NO cambiaron, demo intacta). Pedro Sanchez calificaba de forma NATURAL para "Fuga · 9d" (sin
+sembrar nada: `ultima_visita`/`frecuencia_dias` reales ya cumplian el umbral de `clientes_en_riesgo_fuga`
+`> frecuencia*1.4`) → "Recuperar" → mismo mensaje de demostracion (verificado que no se creo fila en
+`fuga_clientas_avisos`). Q&A: "¿Cada cuánto viene y cuánto gasta de media?" sobre Pedro Sanchez → el
+edge llamo a `ficha_cliente` con el id exacto (confirmado leyendo `conversaciones_ia.transcripcion`) →
+`tiene_notas_salud:true` manejado correctamente (nunca broto contenido de salud) → respuesta final con
+texto + enlace a Clientes, sin error de consola. Mi Jornada: resumen determinista mostro "Tienes 45 min
+libres a partir de las 02:27 antes de tu siguiente cita" (coincide exacto con el hueco sembrado);
+"Analizar mi dia" sugirio contactar a una clienta para recuperarla, apoyandose en el hueco real. Informes:
+tarjeta "Informe narrado" con el resumen determinista ("4 citas · 87 EUR estimados") siempre visible +
+tras el ajuste de prompt, informe narrado real interpretando las cifras + grafica de ingresos + comparativa
+"ultimos 30 dias +100%" (dato real server-side, ventana distinta al mes calendario mostrado arriba — no
+contradictorio). Capturas de pantalla de las 3 superficies sin overlaps con AvisosBell/dashboard (tarjetas
+siempre en flujo normal). Cero errores de consola nuevos en todo el flujo (el unico ruido son los
+"Font loading error" y el 404 de `rpc_clientes_toca_recompra`, ambos preexistentes y ajenos a esta
+sesion). `npx tsc --noEmit` y `npm run build:web` limpios.
 
 ## Prompt Sesión 8 — Reseñas + Bandeja proactivas (Sonnet 5, medio)
 

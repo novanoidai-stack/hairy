@@ -1844,3 +1844,39 @@ presupuesto real sin `pdf_path` disparo la llamada real al edge (400 `sin_pdf`, 
 recuperado). Cero errores de consola. `npx tsc --noEmit` y `npm run build:web` limpios. Sin migraciones ni
 edge functions nuevas/tocadas (el edge `agenda-asistente` ya tenia `crear_presupuesto`+`pedirInfo` desde la
 Sesion 3).
+
+## Adenda — Capa IA "Chispa" V2 Sesion 7: Clientes + Informes + Mi Jornada proactivos — HECHA (9 jul, commit `6c731b667`)
+
+Sin migraciones ni edge functions nuevas/tocadas (todo cliente; reutiliza `ficha_cliente`,
+`recuperar_cliente`, `mostrar_grafica` y `mostrar_comparativa`, ya desplegados desde sesiones anteriores).
+
+- **Clientes:** la pastilla de riesgo ahora actua. "Recuperar" (fuga) construye la misma `AccionPropuesta
+  recuperar_cliente` que usaria el chatbot y la ejecuta directo, sin pasar por el LLM. "Avisar" (riesgo de
+  no-show) es nuevo: busca la proxima cita confirmada de la clienta y resetea `confirmacion_enviada`/
+  `recordatorio_enviado`, el mismo mecanismo que ya usan el reagendado y "Organizar mi agenda" para que el
+  motor real de WhatsApp la reenvie; si no hay cita proxima, lo dice con franqueza en vez de simular un
+  envio. Ambas con guardrail de demo y estados de exito/error siempre visibles. Se sumo tambien un Q&A de
+  ficha (pregunta libre sobre la clienta abierta) que reutiliza `useAyudaIA`, con el id embebido en el
+  prompt para resolverla sin ambiguedad — la regla dura de salud la sigue aplicando el edge/tool, sin logica
+  nueva en el cliente.
+- **Informes:** primera tarjeta de IA de la pagina ("Informe narrado"): resumen determinista (citas/
+  ingresos/no-shows ya cargados) siempre visible + lectura del LLM apoyada en `mostrar_grafica`/
+  `mostrar_comparativa` reales. Se encontro y corrigio en vivo que pedir narrar Y llamar a 2 tools en la
+  misma respuesta hacia que el texto se escribiera en un turno intermedio que se perdia (el edge solo
+  conserva el texto del ULTIMO turno); se reforzo el prompt de ESTA pantalla (orden explicito + "no uses
+  sugerir_enlace aqui") sin tocar el edge compartido. Mismo riesgo detectado de pasada en la Q&A de
+  Clientes — documentado para que la Sesion 8 (Reseñas/Bandeja) aplique el mismo ajuste si le pasa.
+- **Mi Jornada:** coaching de huecos aprovechables hoy (reposo de un tinte vs. hueco muerto entre citas),
+  calculado con la MISMA primitiva de fases (`fasesDe`, `lib/retrasos.ts`) que usa "Organizar mi agenda" —
+  antes el resumen solo veia citas YA completadas y no podia saber si habia huecos reales. El hueco mas
+  proximo se suma al resumen determinista; la lista completa alimenta el prompt de "Analizar mi dia".
+
+**E2E real en demo** (`demo_salon_001`, datos sembrados por SQL y revertidos): sembrado 1 no-show pasado
+para Elena Moreno (riesgo medio) + su proxima cita, y 2 citas de HOY para Maria Garcia con un hueco de 45
+min entre ellas. "Avisar" sobre Elena y "Recuperar" sobre Pedro Sanchez (que ya calificaba de forma
+natural para fuga, sin sembrar nada) mostraron el mensaje de demostracion correcto sin escribir en la BD
+real (verificado por SQL). La Q&A resolvio a Pedro Sanchez por id exacto y respeto la regla de salud
+(`tiene_notas_salud:true` sin fugar contenido). Mi Jornada mostro "Tienes 45 min libres a partir de las
+02:27 antes de tu siguiente cita" (coincide con el hueco sembrado) y una sugerencia de la IA anclada a ese
+hueco real. Informes mostro, tras el ajuste de prompt, un informe narrado real + grafica + comparativa
+juntos. Cero errores de consola nuevos. `npx tsc --noEmit` y `npm run build:web` limpios.
