@@ -91,7 +91,36 @@ export type Bloque =
   // Indicador de paso dentro de un flujo guiado (config guiada, Sesion 2+). No es interactivo.
   | { tipo: 'progreso'; paso: number; total: number; etiqueta?: string }
   // Bloque para busqueda y recuerdo temporal (S11)
-  | { tipo: 'timeline'; titulo: string; eventos: { id: string; fecha: string; titulo: string; descripcion: string; icono?: string; color?: string }[] };
+  | { tipo: 'timeline'; titulo: string; eventos: { id: string; fecha: string; titulo: string; descripcion: string; icono?: string; color?: string }[] }
+  // --- S19: libreria de datos ampliada. Cifras SIEMPRE server-side (nunca las
+  // inventa el LLM). El sistema elige el formato segun la pregunta:
+  //   cifra suelta -> kpi · reparto por categoria -> barras · listado/historico -> tabla ---
+  // KPI: una o varias "tarjetas de cifra" (label + valor real). delta opcional
+  // (variacion vs periodo anterior, ya calculada). Ideal para "cuanto/cuantos".
+  | {
+      tipo: 'kpi';
+      titulo?: string;
+      tarjetas: {
+        label: string;
+        valor: number;
+        unidad: ChispaUnidad;
+        // Variacion ya calculada server-side (porcentaje). Signo => color/icono.
+        deltaPct?: number;
+        nota?: string;
+      }[];
+    }
+  // BARRAS: reparto de UNA medida entre categorias (ingresos por servicio,
+  // citas por profesional...). Un solo tono (magnitud), valores etiquetados.
+  | { tipo: 'barras'; titulo: string; unidad: ChispaUnidad; datos: { etiqueta: string; valor: number }[] }
+  // TABLA: listado/historico con columnas tipadas. 'unidad' por columna formatea
+  // los numeros; 'total' es una fila de cierre opcional (sumatorios).
+  | {
+      tipo: 'tabla';
+      titulo?: string;
+      columnas: { key: string; label: string; alinear?: 'izq' | 'der'; unidad?: ChispaUnidad }[];
+      filas: Record<string, string | number>[];
+      total?: Record<string, string | number>;
+    };
 
 export interface ChispaRespuesta {
   bloques: Bloque[];

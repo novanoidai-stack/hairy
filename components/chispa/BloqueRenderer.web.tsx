@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import type { Bloque, ChispaUnidad, CampoFormulario } from '@/lib/chispaBloques';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { LineChartMini } from '@/components/charts/LineChartMini.web';
+import { BarChartMini } from '@/components/charts/BarChartMini.web';
 import { STextInput, SSelect, NumberInput, TimeInput } from '@/components/ui/SettingsAtoms';
 
 // Gradiente fuego: usar T.fireGradient en todo el archivo
@@ -408,6 +409,99 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
             <div style={{ fontSize: 14, fontWeight: 600, color: T.textSecondary }}>{fmt(anterior.valor)}</div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // --- KPI: una o varias tarjetas de cifra real (S19). Ideal para "cuanto/cuantos". ---
+  if (bloque.tipo === 'kpi') {
+    const tarjetas = bloque.tarjetas ?? [];
+    return (
+      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px 14px' }}>
+        {bloque.titulo && <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>}
+        <div style={{ display: 'grid', gridTemplateColumns: tarjetas.length > 1 ? 'repeat(auto-fit, minmax(120px, 1fr))' : '1fr', gap: 10 }}>
+          {tarjetas.map((k, i) => {
+            const fmt = fmtUnidad(k.unidad);
+            const tieneDelta = typeof k.deltaPct === 'number' && k.deltaPct !== 0;
+            const sube = (k.deltaPct ?? 0) > 0;
+            const colorDelta = !tieneDelta ? T.textTertiary : sube ? T.success : T.danger;
+            return (
+              <div key={i} style={{ background: T.bgCardHi, borderRadius: 12, padding: '10px 12px', minWidth: 0 }}>
+                <div style={{ fontSize: 10.5, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k.label}</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: T.text, lineHeight: 1.1 }}>{fmt(k.valor)}</div>
+                {(tieneDelta || k.nota) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+                    {tieneDelta && (
+                      <span aria-label={sube ? 'sube' : 'baja'} style={{ fontSize: 11.5, fontWeight: 700, color: colorDelta }}>
+                        {sube ? '▲' : '▼'} {Math.abs(Math.round(k.deltaPct as number))}%
+                      </span>
+                    )}
+                    {k.nota && <span style={{ fontSize: 11, color: T.textTertiary }}>{k.nota}</span>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // --- BARRAS: reparto de una medida entre categorias (S19). Un solo tono. ---
+  if (bloque.tipo === 'barras') {
+    const fmt = fmtUnidad(bloque.unidad);
+    return (
+      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px 14px' }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>
+        <BarChartMini datos={bloque.datos} color={colorUnidad(bloque.unidad)} fmt={fmt} />
+      </div>
+    );
+  }
+
+  // --- TABLA: listado/historico con columnas tipadas (S19) ---
+  if (bloque.tipo === 'tabla') {
+    const cols = bloque.columnas ?? [];
+    const fmtCol = (key: string, v: string | number): string => {
+      const col = cols.find((c) => c.key === key);
+      if (col?.unidad && typeof v === 'number') return fmtUnidad(col.unidad)(v);
+      return v == null ? '' : String(v);
+    };
+    const alignOf = (key: string): 'left' | 'right' =>
+      (cols.find((c) => c.key === key)?.alinear === 'der' ? 'right' : 'left');
+    return (
+      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px 14px', overflowX: 'auto' }}>
+        {bloque.titulo && <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>}
+        {bloque.filas.length === 0 ? (
+          <div style={{ fontSize: 13, color: T.textTertiary, fontStyle: 'italic' }}>No hay filas que mostrar.</div>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+            <thead>
+              <tr>
+                {cols.map((c) => (
+                  <th key={c.key} style={{ textAlign: alignOf(c.key), padding: '4px 8px', fontSize: 10.5, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.3, borderBottom: `1px solid ${T.borderHi}`, whiteSpace: 'nowrap' }}>{c.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {bloque.filas.map((fila, ri) => (
+                <tr key={ri}>
+                  {cols.map((c) => (
+                    <td key={c.key} style={{ textAlign: alignOf(c.key), padding: '6px 8px', color: T.textSecondary, borderBottom: `1px solid ${T.border}`, fontVariantNumeric: 'tabular-nums' }}>{fmtCol(c.key, fila[c.key])}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+            {bloque.total && (
+              <tfoot>
+                <tr>
+                  {cols.map((c) => (
+                    <td key={c.key} style={{ textAlign: alignOf(c.key), padding: '6px 8px', color: T.text, fontWeight: 700, borderTop: `1.5px solid ${T.borderHi}`, fontVariantNumeric: 'tabular-nums' }}>{bloque.total?.[c.key] != null ? fmtCol(c.key, bloque.total[c.key]) : ''}</td>
+                  ))}
+                </tr>
+              </tfoot>
+            )}
+          </table>
+        )}
       </div>
     );
   }

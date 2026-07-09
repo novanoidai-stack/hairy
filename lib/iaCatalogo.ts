@@ -201,6 +201,14 @@ export const CATALOGO_IA: FuncionIA[] = [
     categoria: 'pagina',
   },
   {
+    id: 'chispa-datos-formato',
+    titulo: 'Respuestas con datos en su mejor formato',
+    descripcion: 'Cuando preguntas por cifras del negocio, Chispa elige sola el formato: indicador (KPI) con variación para una cifra, barras para un reparto por categoría, gráfica de línea para una evolución, tabla con totales para un listado y línea de tiempo para un histórico. Cifras siempre reales.',
+    ubicacion: '/app',
+    uso: 'Pregunta a Chispa por datos ("¿cuánto he hecho hoy?", "ingresos por servicio", "mis mejores clientas").',
+    categoria: 'panel',
+  },
+  {
     id: 'informes-narrado',
     titulo: 'Informe narrado (Informes)',
     descripcion: 'Resumen en lenguaje natural de la evolución del periodo (citas, ingresos, no‑shows) con comparativa frente al periodo anterior y gráficas incrustadas.',

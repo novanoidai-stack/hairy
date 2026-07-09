@@ -23,6 +23,10 @@ export const manualChispa: ManualContent = {
       texto: 'Chispa casi nunca te responde con un muro de texto. Ante cualquier petición sigue siempre los mismos pasos: entiende qué quieres, y te lo devuelve en la forma más útil: una acción de un clic, una gráfica, unas opciones para elegir, un enlace a la pantalla o un formulario si le falta algún dato (solo te pide lo justo, ya pre-rellenado). Si no acaba de entenderte, en vez de un "no te he entendido" te ofrece un menú con lo más probable. Nunca te deja con la duda de "¿y ahora qué?".',
     },
     {
+      titulo: 'Respuestas con datos en su mejor formato',
+      texto: 'Cuando le preguntas por cifras de tu negocio, Chispa elige sola el formato que mejor las cuenta: una cifra suelta ("¿cuánto he hecho hoy?") aparece como un indicador grande con su variación respecto al periodo anterior; un reparto por categoría ("ingresos por servicio") como barras; una evolución en el tiempo ("la caja de la última semana") como una gráfica de línea; un listado o histórico ("mis mejores clientas") como una tabla con totales; y el recorrido de una clienta como una línea de tiempo. Todas las cifras son reales de tu negocio, nunca inventadas.',
+    },
+    {
       titulo: 'Pregúntale qué sabe hacer',
       texto: 'Chispa se conoce a sí misma. Si no sabes por dónde empezar, pregúntale "¿qué sabes hacer?" o "¿dónde configuro la reserva online?": te enumerará las funciones de IA disponibles y te ofrecerá un enlace directo a cada pantalla. Nunca inventa funciones que no existan.',
     },

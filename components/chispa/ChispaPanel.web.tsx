@@ -5,6 +5,7 @@ import { useGlobalSearchParams } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { ejecutarAccion, deshacerAccion, type AccionPropuesta } from '@/lib/agendaOps';
 import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, type Bloque } from '@/lib/chispaBloques';
+import { elegirFormatoDatos } from '@/lib/chispaFormato';
 import { lanzarCoach } from '@/lib/coachGuias';
 import { TOURS, lanzarTour, reanudarTour, leerProgresoTour, tourPorId } from '@/lib/tours';
 import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
@@ -724,6 +725,54 @@ export default function ChispaPanel({
             },
           ],
         },
+      ]);
+      setTexto('');
+      setImagenB64(null);
+      return;
+    }
+
+    // Arnes S19: '/testdatos' pasa una bateria de descriptores de datos por el
+    // selector de formato (elegirFormatoDatos) para verificar de punta a punta
+    // que cada clase cae en su bloque (kpi/barras/grafica/comparativa/tabla/
+    // timeline) y que los renderers nuevos pintan bien. Datos de ejemplo (no
+    // reales): solo prueba el contrato de formato+render, no consulta la BD.
+    if (mostrarArnesPruebas && t === '/testdatos') {
+      const hoy = new Date();
+      const dia = (n: number) => new Date(hoy.getTime() - n * 86400000).toISOString().slice(0, 10);
+      const bloques = elegirFormatoDatos([
+        { clase: 'cifras', titulo: 'Hoy de un vistazo', tarjetas: [
+          { label: 'Caja de hoy', valor: 540.5, unidad: 'eur', deltaPct: 12 },
+          { label: 'Citas', valor: 14, unidad: 'citas', deltaPct: -8 },
+          { label: 'Ocupacion', valor: 82, unidad: 'pct' },
+        ] },
+        { clase: 'reparto', titulo: 'Ingresos por servicio (7 dias)', unidad: 'eur', datos: [
+          { etiqueta: 'Color', valor: 1240 }, { etiqueta: 'Corte', valor: 860 },
+          { etiqueta: 'Mechas', valor: 540 }, { etiqueta: 'Peinado', valor: 210 },
+        ] },
+        { clase: 'evolucion', titulo: 'Caja ultimos 7 dias', unidad: 'eur', serie: [
+          { fecha: dia(6), valor: 320 }, { fecha: dia(5), valor: 410 }, { fecha: dia(4), valor: 380 },
+          { fecha: dia(3), valor: 520 }, { fecha: dia(2), valor: 470 }, { fecha: dia(1), valor: 610 }, { fecha: dia(0), valor: 540 },
+        ] },
+        { clase: 'comparativa', titulo: 'Esta semana vs anterior', unidad: 'eur',
+          actual: { label: 'Esta semana', valor: 3250 }, anterior: { label: 'Anterior', valor: 2980 } },
+        { clase: 'listado', titulo: 'Top clientas por gasto', columnas: [
+          { key: 'cliente', label: 'Clienta', alinear: 'izq' },
+          { key: 'visitas', label: 'Visitas', alinear: 'der' },
+          { key: 'gasto', label: 'Gasto', alinear: 'der', unidad: 'eur' },
+        ], filas: [
+          { cliente: 'Ana Ruiz', visitas: 12, gasto: 640 },
+          { cliente: 'Marta Gil', visitas: 9, gasto: 520 },
+          { cliente: 'Lucia Paz', visitas: 7, gasto: 410 },
+        ], total: { cliente: 'Total', visitas: 28, gasto: 1570 } },
+        { clase: 'cronologia', titulo: 'Historial de Ana Ruiz', eventos: [
+          { id: '1', fecha: dia(90), titulo: 'Color + corte', descripcion: 'Tinte 6.0, 62 EUR' },
+          { id: '2', fecha: dia(30), titulo: 'Mechas', descripcion: 'Babylights, 85 EUR' },
+        ] },
+      ]);
+      setMensajes((m) => [
+        ...m,
+        { role: 'user', content: t, ts: ahora() },
+        { role: 'assistant', accionEstado: null, ts: ahora(), bloques },
       ]);
       setTexto('');
       setImagenB64(null);
