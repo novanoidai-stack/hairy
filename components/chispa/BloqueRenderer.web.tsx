@@ -515,6 +515,50 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
     );
   }
 
+  // --- TIMELINE: linea de tiempo de eventos historicos (Sesion 11) ---
+  if (bloque.tipo === 'timeline') {
+    return (
+      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '16px', position: 'relative' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 16 }}>{bloque.titulo}</div>
+        
+        {bloque.eventos.length === 0 ? (
+          <div style={{ fontSize: 13, color: T.textTertiary, fontStyle: 'italic' }}>No se encontraron eventos en este periodo.</div>
+        ) : (
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Linea vertical de fondo */}
+            <div style={{ position: 'absolute', left: 7, top: 4, bottom: 4, width: 2, background: T.borderHi, borderRadius: 2 }} />
+            
+            {bloque.eventos.map((ev, i) => (
+              <div key={ev.id || i} style={{ position: 'relative', paddingLeft: 24 }}>
+                {/* Marcador circular */}
+                <div style={{ 
+                  position: 'absolute', left: 3, top: 4, width: 10, height: 10, 
+                  borderRadius: 999, background: ev.color || T.primary,
+                  boxShadow: `0 0 0 3px ${T.bgCard}` 
+                }} />
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    {ev.fecha}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>
+                    {ev.icono && <span style={{ marginRight: 6 }}>{ev.icono}</span>}
+                    {ev.titulo}
+                  </div>
+                  {ev.descripcion && (
+                    <div style={{ fontSize: 12.5, color: T.textSecondary, lineHeight: 1.4, marginTop: 2 }}>
+                      {ev.descripcion}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Tipo no reconocido (respuesta de una version futura del edge): no romper.
   return null;
 }

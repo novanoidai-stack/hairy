@@ -39,8 +39,15 @@ texto de Chispa **sin faltas ni tildes perdidas** para que el TTS suene natural.
 - El texto hablado va con tildes/ortografía correctas.
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] edge desplegada+probada  [ ] E2E demo (voz+micro)  [ ] manuales+iaCatalogo
-[ ] specs landing  [ ] commit+push  [ ] S06 marcada`
+`[x] tsc  [x] build  [x] edge desplegada+probada  [x] E2E demo (voz+micro)  [x] manuales+iaCatalogo
+[x] specs landing  [x] commit+push  [x] S06 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA (2026-07-09). Implementación verificada:
+- Selector de voces completamente implementado en la pestaña "Voz de Chispa" (`components/config/TabVoz.web.tsx` y `app/(tabs)/configuracion.web.tsx`).
+- Soporta múltiples voces de Kokoro (`ef_dora`, `ef_rufo`, `em_alex`, `am_adam`, `af_bella`) con botón "Escuchar" para preview de audio directo.
+- La voz seleccionada se persiste en `negocio_config` (clave `chispaVozId`) mediante el upsert general de la página de Configuración.
+- La voz guardada es cargada por `ChispaLauncher.web.tsx`, enviada a `ChispaPanel.web.tsx`, y aplicada por el hook `useChispaVoz(chispaVozId)` al invocar la función de Edge `chispa-tts`.
+- La función de Edge `chispa-tts` procesa el parámetro `voice_id` y realiza la síntesis con Kokoro (o ElevenLabs como fallback).
+- El micrófono en `useChispaVoz.web.ts` tiene control nativo de permisos, feedback de estados y corte limpio.
+- Ortografía impecable dictada por las reglas de voz del prompt de Chispa.

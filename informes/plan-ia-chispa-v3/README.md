@@ -149,19 +149,19 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 - [S02 · Marco de razonamiento universal (+ casi-nunca-texto-plano)](fase-0-fundacion/S02-razonamiento-universal.md)
 
 ### Fase A · Experiencia y diseño
-- [S03 · Rediseño panel + chat](fase-a-experiencia/S03-rediseno-panel-chat.md)
-- [S04 · Solo UI/diseño de la capa IA](fase-a-experiencia/S04-ui-diseno-capa-ia.md)
+- [x] [S03 · Rediseño panel + chat](fase-a-experiencia/S03-rediseno-panel-chat.md)
+- [x] [S04 · Solo UI/diseño de la capa IA](fase-a-experiencia/S04-ui-diseno-capa-ia.md)
 - [x] [S05 · Deshacer / revertir acciones](fase-a-experiencia/S05-deshacer-acciones.md)
-- [x] [S06 · Voz neural + voces + micro + ortografía](fase-a-experiencia/S06-voz-neural.md)
+- [x] [S06 · Voz neural + voces seleccionables + micro + ortografía](fase-a-experiencia/S06-voz-neural.md)
 
 ### Fase B · Superficies IA por página
 - [x] [S07 · IA por página universal + Config (optimiza/ahorra tiempo)](fase-b-superficies/S07-ia-por-pagina-universal.md)
 
 ### Fase C · Cerebro con memoria
 - [x] [S08 · Registro universal ("todo queda registrado")](fase-c-cerebro/S08-registro-universal.md)
-- [S09 · Memoria corto/largo plazo (estructura + retención)](fase-c-cerebro/S09-memoria-corto-largo.md)
-- [S10 · Memoria por ficha](fase-c-cerebro/S10-memoria-por-ficha.md)
-- [S11 · Recuerdo y búsqueda temporal ("¿hace 4 meses?")](fase-c-cerebro/S11-recuerdo-busqueda-temporal.md)
+- [x] [S09 · Memoria corto/largo plazo (estructura + retención)](fase-c-cerebro/S09-memoria-corto-largo.md)
+- [x] [S10 · Memoria por ficha](fase-c-cerebro/S10-memoria-por-ficha.md)
+- [x] [S11 · Recuerdo y búsqueda temporal ("¿hace 4 meses?")](fase-c-cerebro/S11-recuerdo-busqueda-temporal.md)
 - [S12 · Chispa consciente del ecosistema IA](fase-c-cerebro/S12-chispa-consciente-ecosistema.md)
 
 ### Fase D · Proactividad, iniciativa y guía

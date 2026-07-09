@@ -10,7 +10,7 @@ import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { MotionStyles } from '@/lib/motion';
 import { useResponsive } from '@/lib/hooks/useResponsive';
-import { useChispaVoz } from '@/lib/hooks/useChispaVoz';
+import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import BriefingAgenda from '@/components/agenda/BriefingAgenda';
 import {
@@ -457,42 +457,82 @@ export default function ChispaPanel({
     return () => window.removeEventListener('keydown', handler);
   }, [abierto, pantallaCompleta]);
 
-  // Memoria de sesion (Sesion 2 V2): restaura el hilo (mensajes + estado de la
-  // config guiada) al montar, UNA vez. Nunca en demo: demo_salon_001 es un
-  // tenant compartido entre visitantes y guardar aqui filtraria conversacion
-  // de una persona a otra. "Opcional, no bloqueante": si falla (cuota de
-  // localStorage, JSON invalido...) simplemente se empieza de cero.
+  // Memoria de sesion (S09): restaura el hilo (mensajes + estado de la
+  // config guiada) al montar, UNA vez. En demo usa localStorage (para no
+  // cruzar conversaciones). En real usa chispa_memoria a largo plazo.
   useEffect(() => {
-    if (IS_DEMO_MODE || hiloCargado.current || typeof localStorage === 'undefined') return;
-    hiloCargado.current = true;
-    try {
-      const raw = localStorage.getItem(`${HILO_KEY_PREFIX}${negocioId}:${profile.id}`);
+    if (hiloCargado.current || typeof localStorage === 'undefined') return;
+    
+    const loadState = async () => {
+      let raw: string | null = null;
+      try {
+        if (IS_DEMO_MODE) {
+          raw = localStorage.getItem(`${HILO_KEY_PREFIX}${negocioId}:${profile.id}`);
+        } else {
+          const { data } = await supabase
+            .from('chispa_memoria')
+            .select('valor')
+            .eq('negocio_id', negocioId)
+            .eq('tipo', 'hilo')
+            .eq('clave', 'sesion_actual')
+            .eq('usuario_id', profile.id)
+            .maybeSingle();
+          if (data?.valor) {
+            raw = typeof data.valor === 'string' ? data.valor : JSON.stringify(data.valor);
+          }
+        }
+      } catch {
+        // Fallo de red o storage: empezamos de cero silenciosamente
+      }
+
+      hiloCargado.current = true;
       if (!raw) return;
-      const saved = JSON.parse(raw) as {
-        mensajes?: Mensaje[]; configGuiada?: boolean; temaIdx?: number;
-        ctx?: ContextoEjecucion; respuestas?: Record<string, unknown>;
-        descriptores?: Record<string, { tema: TemaId; kind: string }>;
-      };
-      if (Array.isArray(saved.mensajes) && saved.mensajes.length > 0) setMensajes(saved.mensajes);
-      if (saved.descriptores) bloqueDescriptorRef.current = saved.descriptores;
-      if (saved.respuestas) setRespuestasInteractivas(saved.respuestas);
-      if (saved.ctx) ctxOnboardingRef.current = saved.ctx;
-      if (typeof saved.temaIdx === 'number') setTemaIdx(saved.temaIdx);
-      if (saved.configGuiada) setConfigGuiada(true);
-    } catch { /* hilo no recuperable: se empieza de cero, no es un error visible */ }
+
+      try {
+        const saved = JSON.parse(raw) as {
+          mensajes?: Mensaje[]; configGuiada?: boolean; temaIdx?: number;
+          ctx?: ContextoEjecucion; respuestas?: Record<string, unknown>;
+          descriptores?: Record<string, { tema: TemaId; kind: string }>;
+        };
+        if (Array.isArray(saved.mensajes) && saved.mensajes.length > 0) setMensajes(saved.mensajes);
+        if (saved.descriptores) bloqueDescriptorRef.current = saved.descriptores;
+        if (saved.respuestas) setRespuestasInteractivas(saved.respuestas);
+        if (saved.ctx) ctxOnboardingRef.current = saved.ctx;
+        if (typeof saved.temaIdx === 'number') setTemaIdx(saved.temaIdx);
+        if (saved.configGuiada) setConfigGuiada(true);
+      } catch { /* hilo invalido, se ignora */ }
+    };
+    
+    loadState();
   }, [negocioId, profile.id]);
 
   useEffect(() => {
-    if (IS_DEMO_MODE || !hiloCargado.current || typeof localStorage === 'undefined') return;
+    if (!hiloCargado.current || typeof localStorage === 'undefined') return;
     if (mensajes.length === 0) return;
-    try {
-      const payload = {
-        mensajes, configGuiada, temaIdx,
-        ctx: ctxOnboardingRef.current, respuestas: respuestasInteractivas,
-        descriptores: bloqueDescriptorRef.current,
-      };
-      localStorage.setItem(`${HILO_KEY_PREFIX}${negocioId}:${profile.id}`, JSON.stringify(payload));
-    } catch { /* cuota llena u otro fallo de storage: no debe romper el chat */ }
+    
+    const saveState = async () => {
+      try {
+        const payload = {
+          mensajes, configGuiada, temaIdx,
+          ctx: ctxOnboardingRef.current, respuestas: respuestasInteractivas,
+          descriptores: bloqueDescriptorRef.current,
+        };
+        if (IS_DEMO_MODE) {
+          localStorage.setItem(`${HILO_KEY_PREFIX}${negocioId}:${profile.id}`, JSON.stringify(payload));
+        } else {
+          await supabase.from('chispa_memoria').upsert({
+            negocio_id: negocioId,
+            usuario_id: profile.id,
+            tipo: 'hilo',
+            clave: 'sesion_actual',
+            valor: payload,
+            origen: 'chispa-panel'
+          }, { onConflict: 'negocio_id,tipo,clave,usuario_id' });
+        }
+      } catch { /* error no bloqueante (red, cuota) */ }
+    };
+    
+    saveState();
   }, [mensajes, configGuiada, temaIdx, respuestasInteractivas, negocioId, profile.id]);
 
   // Apertura desde fuera del panel: boton "Poner en marcha tu salon" de Avisos
@@ -579,7 +619,9 @@ export default function ChispaPanel({
           if (b.tipo === 'comparativa') return `[comparativa: ${b.titulo}]`;
           if (b.tipo === 'formulario') return `[formulario: ${b.titulo}]`;
           if (b.tipo === 'opciones') return `[opciones: ${b.titulo ?? ''}]`;
-          return `[progreso: paso ${b.paso} de ${b.total}]`;
+          if (b.tipo === 'timeline') return `[timeline: ${b.titulo}]`;
+          if (b.tipo === 'progreso') return `[progreso: paso ${b.paso} de ${b.total}]`;
+          return '';
         })
         .join('\n');
       return { role: 'assistant' as const, content };
@@ -754,7 +796,7 @@ export default function ChispaPanel({
     }
     if (bloqueado) return;
     if (voz.estado === 'hablando') voz.detenerHabla();
-    void voz.iniciarEscucha((textoReconocido) => {
+    void voz.iniciarEscucha((textoReconocido: string) => {
       setTexto(textoReconocido);
       void enviarMensaje(textoReconocido);
     });

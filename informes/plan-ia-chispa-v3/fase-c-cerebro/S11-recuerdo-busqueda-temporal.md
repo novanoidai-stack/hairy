@@ -32,8 +32,8 @@ real, con **línea de tiempo / tabla / cifras** consultando el Registro universa
 - Rango sin datos → respuesta honesta, sin inventar. RLS impide ver otro tenant.
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] edge desplegada+probada  [ ] E2E demo  [ ] manuales+iaCatalogo
-[ ] specs landing  [ ] commit+push  [ ] S11 marcada`
+`[x] tsc  [x] build  [x] edge desplegada+probada  [x] E2E demo  [x] manuales+iaCatalogo
+[x] specs landing  [x] commit+push  [x] S11 marcada`
 
 ## Estado
-PENDIENTE.
+HECHO.

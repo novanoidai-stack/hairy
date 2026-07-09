@@ -9,7 +9,7 @@ import { TabPresupuestoConceptos } from '@/components/config/TabPresupuestoConce
 import { MiPerfilProfesional } from '@/components/config/MiPerfilProfesional';
 import { TabMigracionMagica } from '@/components/config/TabMigracionMagica';
 import { TabRecompensas } from '@/components/config/TabRecompensas.web';
-import { TabVoz } from '@/components/config/TabVoz';
+import { TabVoz } from '@/components/config/TabVoz.web';
 import { HubIA } from '@/components/config/HubIA';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';

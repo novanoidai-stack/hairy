@@ -8,6 +8,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 // Seguridad de la capa IA (Sesion 2): RBAC de tools + regla dura de salud.
 import { can, roleOf, toolPermitida, esEscritura, type Role } from './permisos.ts';
 import { assertSinCamposProhibidos, proyectarClienteIA } from './whitelist.ts';
+import { CATALOGO_IA } from '../../../lib/iaCatalogo.ts';
 
 // ---------------------------------------------------------------------------
 // CORS + helper
@@ -35,6 +36,8 @@ const openai = new OpenAI({
 });
 // Slug de OpenRouter para Claude Sonnet (confirmar contra la lista de modelos de OpenRouter).
 const MODEL = 'anthropic/claude-sonnet-4.6';
+// Tenant demo compartido entre visitantes: NO se persiste memoria cross-visitante (constraint #8).
+const DEMO_NEGOCIO_ID = 'demo_salon_001';
 
 // ---------------------------------------------------------------------------
 // Tipos de accion (deben coincidir con lib/agendaOps.ts)
@@ -176,7 +179,8 @@ type Bloque =
       opciones: { valor: string; label: string; descripcion?: string }[];
       multiple?: boolean;
     }
-  | { tipo: 'progreso'; paso: number; total: number; etiqueta?: string };
+  | { tipo: 'progreso'; paso: number; total: number; etiqueta?: string }
+  | { tipo: 'timeline'; titulo: string; eventos: { id: string; fecha: string; titulo: string; descripcion: string; icono?: string; color?: string }[] };
 
 // Allowlist de rutas para bloques 'enlace' (espejo de CHISPA_RUTAS del cliente).
 // El LLM elige una CLAVE; el edge valida y adjunta la ruta/label real.
@@ -212,6 +216,20 @@ const TOOLS = [
       type: 'object' as const,
       properties: { texto: { type: 'string', description: 'Nombre o telefono parcial' } },
       required: ['texto'],
+    },
+  },
+  // --- S11: Busqueda temporal y recuerdos ---
+  {
+    name: 'buscar_recuerdos',
+    description: 'Busca eventos historicos en el registro universal del negocio. Usalo para responder "¿que paso hace X tiempo?" o "¿que hicimos en marzo?". TAMBIEN usalo para auditar la IA de la aplicacion (ej. "¿por que me salio este upsell?", "¿que optimizacion me recomendo la IA ayer?"), ya que las ejecuciones de los helpers visuales se guardan aqui.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        desde: { type: 'string', description: 'YYYY-MM-DD' },
+        hasta: { type: 'string', description: 'YYYY-MM-DD' },
+        entidad_o_tema: { type: 'string', description: 'Nombre de cliente, profesional, o tema a buscar (opcional)' }
+      },
+      required: ['desde', 'hasta'],
     },
   },
   {
@@ -587,6 +605,20 @@ const TOOLS = [
       required: ['destino'],
     },
   },
+  {
+    name: 'guardar_recuerdo',
+    description: 'Guarda un hecho aprendido sobre el negocio, el usuario, o un CLIENTE específico en la memoria a largo plazo. Úsalo cuando detectes una preferencia explícita (ej. "Suelo cerrar los lunes", "A María le gusta el café"). Sé conciso.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        clave: { type: 'string', description: 'Identificador breve del hecho (ej. "cierre_habitual", "horario_preferido")' },
+        valor: { type: 'string', description: 'El hecho a recordar en texto plano' },
+        cliente_id: { type: 'string', description: 'ID del cliente si el hecho es sobre un cliente específico (opcional)' },
+        confianza: { type: 'number', description: 'Nivel de confianza del hecho de 0.0 a 1.0 (default 1.0)' },
+      },
+      required: ['clave', 'valor'],
+    },
+  },
 ];
 
 // La deteccion de tools de escritura vive en permisos.ts (esEscritura): cubre
@@ -730,24 +762,12 @@ function normalizaHora(raw: string): string | null {
   return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
 }
 
-// AUTO-CONOCIMIENTO DE CHISPA (Sesion S01, plan V3). Proyeccion COMPACTA de las
-// superficies de IA de cara al usuario. Canonico: lib/ia/manifiestoIA.ts
-// (SUPERFICIES_IA, derivadas de lib/iaCatalogo.ts). El edge (Deno) no puede
-// importar @/, por eso se mantiene aqui esta copia compacta en sync a mano.
-// Permite a Chispa responder "que se hacer" y "donde esta X funcion de IA".
-const AUTOCONOCIMIENTO_IA = `AUTO-CONOCIMIENTO (que sabe hacer Chispa y donde). Si el usuario pregunta que puedes hacer, que sabes hacer, en que le ayudas o donde esta/como se usa una funcion de IA, responde SOLO desde esta lista (no inventes funciones que no esten aqui) y, para cada funcion relevante, ofrece un chip con sugerir_enlace hacia su pantalla. Sé conciso: agrupa y ofrece los enlaces, no sueltes un parrafo largo.
-- Panel Chispa (este chat, pestana con estrella): asistente conversacional por voz o texto; crea citas, servicios y presupuestos, consulta datos y organiza la agenda con formularios visuales.
-- Voz de Chispa (este panel): lee sus respuestas en voz alta.
-- Configuracion guiada del salon [solo gestor] (destino configuracion): "configurame el salon" paso a paso, con formularios pre-rellenados.
-- Organizador de agenda (destino agenda, boton "Organizar mi agenda"): detecta retrasos, huecos muertos y solapes y propone arreglos de un clic.
-- Coaching de huecos (destino mi-jornada, "Analizar mi dia"): como aprovechar los huecos libres del dia.
-- Sugerencia de producto en Caja (destino caja): al cobrar, propone un producto complementario segun el servicio.
-- Presupuestos desde lenguaje natural (destino presupuestos, "Crear presupuesto rapido") y aviso de presupuestos sin respuesta.
-- Riesgo de no-show y de fuga de clientas, y preguntas/respuestas sobre una clienta (destino clientes, en su ficha).
-- Informe narrado del periodo con graficas (destino informes, "Analizar periodo").
-- Borrador de respuesta a resenas y resumen de temas recurrentes (destino resenas).
-- Triaje y borrador de respuesta de mensajes (destino bandeja).
-- Migracion Magica [solo gestor] (destino configuracion): importa datos desde Booksy/Fresha (CSV) o desde fotos de precios/albaranes.`;
+// --- S12: Catálogo inyectado dinámicamente ---
+const AUTOCONOCIMIENTO_IA = `AUTO-CONOCIMIENTO ECOSISTEMA IA:
+Esta es la lista completa de todas las IAs, automatizaciones y helpers visuales que operan en Mecha:
+${CATALOGO_IA.map((f: { id: string; titulo: string; descripcion: string; uso: string }) => `- [${f.id}] ${f.titulo}: ${f.descripcion} (Uso: ${f.uso})`).join('\n')}
+
+CONSCIENCIA DEL ECOSISTEMA: Tienes a tu disposicion el catalogo anterior. Si el usuario te pregunta por que aparecio una sugerencia en la pantalla o como funciona alguna IA de la app, usa la tool buscar_recuerdos para auditar que IA se ejecuto recientemente y explicaselo basandote en este catalogo. No inventes funciones que no esten aqui. Para cada funcion relevante, ofrece un chip con sugerir_enlace hacia su pantalla.`;
 
 // Marco de razonamiento universal (Sesion S02, plan V3). Gobierna COMO afronta
 // Chispa cualquier peticion: una taxonomia de intencion, un procedimiento fijo
@@ -762,7 +782,7 @@ const PROCEDIMIENTO_UNIVERSAL = `PROCEDIMIENTO UNIVERSAL (rige SIEMPRE, sobre to
 CASI NUNCA TEXTO PLANO: una cifra -> grafica/comparativa; una lista para elegir -> opciones; un dato que falta -> formulario; "ve a X"/"esto se configura en X" -> enlace con la ruta; una operacion -> tarjeta de accion. Ofrece SIEMPRE el siguiente paso accionable; no dejes al usuario con "¿y ahora que?".
 SI NO RECONOCES LA INTENCION: no digas "no te he entendido"; ofrece las acciones mas probables (con sugerir_enlace o proponiendo lo mas util) como un menu accionable.`;
 
-function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puedeInformes: boolean): string {
+function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puedeInformes: boolean, hechosMemoria: string = ''): string {
   const scopeMsg =
     scope === 'none'
       ? 'Este usuario SOLO puede consultar la agenda. Si pide operar (crear/mover/cancelar/bloquear), explica amablemente que no tiene permiso.'
@@ -773,6 +793,7 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
   return [
     'Eres Chispa, la asistente de IA del software de gestion del salon (Mecha): gestionas la agenda Y guias al usuario sobre como usar y configurar el software. Operas en espanol, con tono breve, calido y profesional. Si te preguntan que eres, di con naturalidad que eres una IA que ayuda con la gestion del salon.',
     PROCEDIMIENTO_UNIVERSAL,
+    hechosMemoria ? `HECHOS Y PREFERENCIAS APRENDIDAS (Memoria a largo plazo):\n${hechosMemoria}\nTen en cuenta obligatoriamente esta informacion al razonar y responder.` : '',
     'REGLA DE VOZ: Usa una ortografía impecable, con todas las tildes, signos de puntuación de apertura (¿, ¡) y comas necesarias, para que el sistema de voz Text-to-Speech te lea con naturalidad. Evita abreviaturas no pronunciables.',
     `Hoy es ${hoyISO} (zona Europe/Madrid). Resuelve referencias relativas ("manana", "las 5", "el lunes") a fecha/hora concreta en hora LOCAL de Madrid, en formato YYYY-MM-DDTHH:mm SIN sufijo de zona (no pongas Z ni offset).`,
     'No uses emojis en tus respuestas.',
@@ -787,7 +808,8 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     'Para el progreso de objetivos/metas usa metas_progreso (del equipo si eres direccion/propietario, o los tuyos si eres profesional); si no hay ninguno fijado, dilo con naturalidad y sugiere fijarlo en Equipo.',
     'Para proponer operaciones de agenda usa las tools de escritura (crear_cita, reagendar_cita, cancelar_cita, bloquear_hueco, liberar_hueco).',
     'Tambien puedes proponer acciones de GESTION cuando tengas la tool disponible: confirmar_citas (confirmar en bloque las citas pendientes de un dia, p.ej. "confirmame las citas de manana"), crear_servicio (dar de alta un servicio nuevo en el catalogo), editar_servicio (cambiar precio/nombre/duracion/activar/senal-deposito de un servicio del catalogo YA existente), editar_horario (fijar el turno de un profesional un dia), crear_presupuesto (borrador con precios REALES del catalogo, nunca inventes precios), enviar_mensaje_bandeja (guardar un borrador en el hilo de la Bandeja del cliente; NO envia el WhatsApp real, eso lo hace el equipo), cambiar_idioma_portal (idioma del portal PUBLICO de reserva online: es/en; distinto del idioma de la interfaz del software, ese no lo puedes cambiar) y anadir_cierre_negocio (marcar un dia completo como festivo/cierre de TODO el salon). Si una tool no esta disponible para el rol de este usuario, no la menciones como algo que puedas hacer: guia a la pantalla correspondiente.',
-    'Todas estas acciones son PROPUESTAS: se muestran en una tarjeta y el usuario confirma; tu nunca las aplicas.',
+    'Cuando el usuario te comente explícitamente una preferencia o hecho operativo sobre el negocio, un profesional o UNA CLIENTA (ej. "A María le gusta el café", "Suele llegar 10 minutos tarde"), utiliza la tool guardar_recuerdo para persistirlo (pasando el cliente_id si aplica). NUNCA guardes datos médicos o de salud.',
+    'Todas estas acciones son PROPUESTAS (excepto guardar_recuerdo que es interna): se muestran en una tarjeta y el usuario confirma; tu nunca las aplicas.',
     puedeInformes
       ? 'Para datos agregados de informes o facturacion (citas por estado, ingresos cobrados en un rango) usa resumen_informes; para dinero cobrado de verdad (efectivo/datafono/propinas) usa resumen_caja; para ocupacion del salon usa ocupacion. Cuando el usuario pida un resumen de un periodo ("resumeme el mes", "como va la semana") o la evolucion de una metrica, ANADE ademas mostrar_grafica (dia a dia) y, si tiene sentido comparar con el periodo anterior, mostrar_comparativa; luego ofrece sugerir_enlace hacia informes para el detalle completo. Nunca inventes cifras: usa solo las que devuelven estas tools, y si el rango tiene pocos datos dilo con franqueza en vez de sonar mas seguro de lo que permiten los datos.'
       : 'NO tienes acceso a informes, caja agregada, ocupacion ni graficas de negocio con el rol de este usuario. Si te preguntan por ingresos totales, facturacion, cuanto se ha ganado, estadisticas o informes del negocio, explica con naturalidad que no tienes acceso a esos datos con su rol y que lo consulten con direccion o el propietario. NUNCA inventes cifras.',
@@ -918,9 +940,22 @@ async function runAgente(
   const rolCanon = roleOf(role);
   const puedeInformes = can(rolCanon, 'informes.ver');
 
+  // S09: Recuperar hechos de memoria a largo plazo
+  const { data: hechos } = await svc
+    .from('chispa_memoria')
+    .select('clave, valor')
+    .eq('negocio_id', negocioId)
+    .eq('tipo', 'hecho')
+    .order('actualizado_en', { ascending: false })
+    .limit(50);
+  
+  const memoriaTexto = (hechos ?? [])
+    .map((h: { clave: string; valor: unknown }) => `- ${h.clave}: ${typeof h.valor === 'string' ? h.valor : JSON.stringify(h.valor)}`)
+    .join('\n');
+
   // OpenAI-compatible (OpenRouter): el system va como primer mensaje.
   const messages: any[] = [
-    { role: 'system', content: buildSystemPrompt(hoy, scope, puedeInformes) },
+    { role: 'system', content: buildSystemPrompt(hoy, scope, puedeInformes, memoriaTexto) },
     ...mensajes.map((m) => ({ role: m.role, content: m.content })),
   ];
 
@@ -972,6 +1007,36 @@ async function runAgente(
     if (name === 'sugerir_enlace') return procesarEnlace(inp);
     if (name === 'mostrar_grafica') return await procesarGrafica(inp, negocioId, bloquesExtra);
     if (name === 'mostrar_comparativa') return await procesarComparativa(inp, negocioId, bloquesExtra);
+    if (name === 'buscar_recuerdos') return await procesarRecuerdos(inp, negocioId, bloquesExtra);
+    if (name === 'guardar_recuerdo') {
+      const clave = (inp.clave ?? '').trim();
+      const valor = (inp.valor ?? '').trim();
+      const clienteId = (inp.cliente_id ?? '').trim();
+      const confianza = Number(inp.confianza) || 1.0;
+      if (!clave || !valor) return 'Faltan clave o valor para guardar el recuerdo.';
+
+      // Demo: tenant compartido; no se persiste memoria cross-visitante (#8).
+      if (negocioId === DEMO_NEGOCIO_ID) {
+        return 'Anotado durante esta sesion (en la demo no se guarda de forma permanente).';
+      }
+
+      const claveFinal = clienteId ? `cliente:${clienteId}:${clave}` : clave;
+
+      // upsert: reafirmar un hecho ya conocido actualiza su valor/confianza en
+      // vez de fallar por la UNIQUE (negocio_id, tipo, clave, usuario_id).
+      // valor es jsonb: se guarda el string tal cual (sin doble-serializar).
+      const { error } = await svc.from('chispa_memoria').upsert({
+        negocio_id: negocioId,
+        usuario_id: userId || '',
+        tipo: 'hecho',
+        clave: claveFinal,
+        valor,
+        confianza,
+        origen: 'agenda-asistente'
+      }, { onConflict: 'negocio_id,tipo,clave,usuario_id' });
+      if (error) return `Error al guardar recuerdo: ${error.message}`;
+      return 'Hecho guardado correctamente en la memoria a largo plazo.';
+    }
     return await serializarLectura(name, inp);
   };
 
@@ -1203,6 +1268,22 @@ async function ejecutarLectura(
       const { data: rk } = await userClient.rpc('riesgo_no_show_cliente', { p_cliente_id: clienteId });
       if (rk) riesgo = rk;
 
+      // S10: Memoria semántica del cliente (excluye salud)
+      const { data: hechosCliente } = await svc
+        .from('chispa_memoria')
+        .select('clave, valor')
+        .eq('negocio_id', negocioId)
+        .eq('tipo', 'hecho')
+        .like('clave', `cliente:${clienteId}:%`)
+        .order('actualizado_en', { ascending: false })
+        .limit(20);
+        
+      const memoria_ia = (hechosCliente ?? []).map(h => {
+        const keyParts = h.clave.split(':');
+        const nombreClave = keyParts.length > 2 ? keyParts.slice(2).join(':') : h.clave;
+        return `${nombreClave}: ${typeof h.valor === 'string' ? h.valor : JSON.stringify(h.valor)}`;
+      });
+
       // Proyeccion final: lista blanca de operativos + agregados NO sensibles.
       const base = proyectarClienteIA(row);
       return {
@@ -1213,6 +1294,7 @@ async function ejecutarLectura(
         etiquetas,
         tiene_notas_salud: tieneNotasSalud,
         riesgo_no_show: riesgo,
+        memoria_ia,
       };
     }
 
@@ -1603,6 +1685,53 @@ async function procesarGrafica(inp: Record<string, string>, negocioId: string, b
     serie,
   });
   return 'Grafica anadida a la respuesta con los datos reales del rango.';
+}
+
+// S11: Busca en eventos_negocio e inyecta un bloque timeline
+async function procesarRecuerdos(inp: Record<string, string>, negocioId: string, bloques: Bloque[]): Promise<string> {
+  const desde = inp.desde;
+  const hasta = inp.hasta;
+  const tema = (inp.entidad_o_tema ?? '').trim().toLowerCase();
+  
+  if (!desde || !hasta || !/^\d{4}-\d{2}-\d{2}$/.test(desde) || !/^\d{4}-\d{2}-\d{2}$/.test(hasta)) {
+    return 'Necesito fechas desde/hasta validas (YYYY-MM-DD) para buscar recuerdos.';
+  }
+
+  // Consultar eventos_negocio (S08) limitando a los 50 mas recientes del rango
+  let q = svc.from('eventos_negocio').select('id, creado_en, tipo, entidad, resumen')
+             .eq('negocio_id', negocioId)
+             .gte('creado_en', `${desde}T00:00:00Z`)
+             .lte('creado_en', `${hasta}T23:59:59Z`)
+             .order('creado_en', { ascending: false })
+             .limit(50);
+             
+  if (tema) {
+    q = q.or(`resumen.ilike.%${tema}%,entidad.ilike.%${tema}%`);
+  }
+  
+  const { data: eventos, error } = await q;
+  if (error) return `Error interno al consultar eventos: ${error.message}`;
+
+  if (!eventos || eventos.length === 0) {
+    return 'No he encontrado ningun evento ni recuerdo en ese rango de fechas' + (tema ? ` sobre "${tema}"` : '') + '.';
+  }
+
+  // Formatear a eventos timeline
+  const evs = eventos.map(e => ({
+    id: e.id,
+    fecha: new Date(e.creado_en).toISOString().split('T')[0],
+    titulo: (e.tipo || 'Evento').replace(/_/g, ' ').toUpperCase(),
+    descripcion: e.resumen || '',
+    icono: (e.tipo || '').includes('cita') ? '📅' : (e.tipo || '').includes('caja') ? '💶' : '📌'
+  }));
+
+  bloques.push({
+    tipo: 'timeline',
+    titulo: `Recuerdos: ${desde} a ${hasta}${tema ? ` (${tema})` : ''}`,
+    eventos: evs,
+  });
+
+  return `Se han encontrado ${evs.length} recuerdos y se ha inyectado un timeline en la respuesta. Diles que aqui esta el resumen visual.`;
 }
 
 // Rangos actual/anterior para la comparativa: ventanas MOVILES (ultimos N dias

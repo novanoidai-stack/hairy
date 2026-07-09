@@ -309,9 +309,24 @@ export default function AgendaCalendar() {
 
   const handleAnalizarAgenda = () => {
     // Collect contextual data for the deterministic summary
-    const bloquesGrid = generateGridBlocks(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDate);
-    const slotsTotales = bloquesGrid.length;
-    const slotsOcupados = bloquesGrid.filter((b: any) => b.citas.length > 0).length;
+    const slots = generarSlotsHorarios();
+    const slotsTotales = slots.length;
+    
+    // Un slot esta ocupado si alguna cita se solapa con el
+    const slotsOcupados = slots.filter((slotTime) => {
+      const [sh, sm] = slotTime.split(':').map(Number);
+      return citasHoy.some((c: any) => {
+        if (c.estado === 'cancelada') return false;
+        const cInicio = new Date(c.inicio);
+        const cFin = new Date(c.fin);
+        
+        // Creamos una fecha para el slot en base al dia de la cita
+        const slotDate = new Date(cInicio);
+        slotDate.setHours(sh, sm, 0, 0);
+        return slotDate >= cInicio && slotDate < cFin;
+      });
+    }).length;
+
     const ocupacion = slotsTotales > 0 ? (slotsOcupados / slotsTotales) * 100 : 0;
     
     const entrada = {

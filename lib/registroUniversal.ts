@@ -4,12 +4,12 @@ export type AccionRegistroUniversal = {
   usuario_id: string;
   funcion_ia: string; // ej. 'analizar_equipo', 'optimizar_config'
   cuando: string; // timestamp ISO
-  entrada: any; // contexto con el que se llamó a la IA
-  resultado: any; // bloques devueltos, o error
+  entrada: unknown; // contexto con el que se llamó a la IA
+  resultado: unknown; // bloques devueltos, o error
   por_que: string; // motivación o trigger de la llamada
 };
 
-import { supabase } from '@/lib/supabase';
+import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 
 export async function registrarEventoIA(evento: Omit<AccionRegistroUniversal, 'id' | 'cuando'>) {
   const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
@@ -19,6 +19,10 @@ export async function registrarEventoIA(evento: Omit<AccionRegistroUniversal, 'i
     cuando: new Date().toISOString(),
     ...evento
   });
+
+  // Demo: tenant compartido entre visitantes; no acumulamos el registro de
+  // cada visitante en el negocio de demostracion (constraint #8).
+  if (IS_DEMO_MODE) return;
 
   // Guardar en la tabla eventos_negocio de supabase
   // Si los datos contienen info sensible, el caller deberia filtrarlos (S08 dicta sin datos de salud)

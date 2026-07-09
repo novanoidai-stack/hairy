@@ -35,8 +35,14 @@ Chispa la use.
 - Chispa usa un hecho aprendido en una respuesta posterior (verificado E2E). En demo no persiste.
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] edge desplegada+probada  [ ] migración+advisors  [ ] E2E demo
-[ ] manuales+iaCatalogo  [ ] specs landing  [ ] commit+push  [ ] S09 marcada`
+`[x] tsc  [x] build  [x] edge desplegada+probada  [x] migración+advisors  [x] E2E demo
+[x] manuales+iaCatalogo  [x] specs landing  [x] commit+push  [x] S09 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA (Implementada y verificada, con soporte para recuperar hilos persistentes y recordar hechos con `guardar_recuerdo`).
+- Auditoría V3 (9 jul): la tabla `chispa_memoria` estaba definida pero **no aplicada en remoto** y con
+  RLS frágil (`current_setting(jwt)`). Corregido y desplegado a producción: tabla creada + **RLS
+  homogeneizada** al patrón estándar `profiles.negocio_id` (coherente con `eventos_negocio`/`chispa_acciones`),
+  trigger con `SET search_path`. Guardrail de demo en `guardar_recuerdo` (no persiste cross-visitante) +
+  `upsert` para reafirmar hechos sin romper la UNIQUE + fin del doble-encoding jsonb. Edge desplegada
+  (`agenda-asistente`) y verificada (401 sin auth, tablas presentes). Advisors en verde.

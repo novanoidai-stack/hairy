@@ -112,6 +112,7 @@ export default function InventarioScreen() {
   // ────────────────────────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState<Producto[]>([]);
+  const criticos = useMemo(() => productos.filter(p => p.stock_bajo), [productos]);
   const [filtroCategoria, setFiltroCategoria] = useState<string>('todas');
   const [busqueda, setBusqueda] = useState('');
   const [alertasCount, setAlertasCount] = useState(0);
@@ -153,7 +154,6 @@ export default function InventarioScreen() {
   }, []);
 
   const handlePrediccionStock = () => {
-    const criticos = productos.filter(p => p.stock_bajo);
     if (criticos.length === 0) return;
     const entrada = criticos.map(c => ({
       id: c.id, nombre: c.nombre, stock_actual: c.stock_actual, stock_minimo: c.stock_minimo

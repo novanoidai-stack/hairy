@@ -42,3 +42,7 @@ resultado, por qué}.
 
 ## Estado
 COMPLETADO.
+- Auditoría V3 (9 jul): la migración `eventos_negocio` estaba committeada pero **no se había
+  aplicado en remoto** (la tabla no existía → `registrarEventoIA` fallaba en silencio). Aplicada a
+  producción el 9 jul + RPC `rpc_borrar_eventos_rgpd` endurecida (`SET search_path` + solo owner/admin)
+  + guardrail de demo en `registrarEventoIA` (no acumula el registro del tenant compartido). Advisors en verde.

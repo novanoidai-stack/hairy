@@ -34,8 +34,19 @@ servicio editado…), con ventana clara y estado visible.
 - Acciones no reversibles no muestran "deshacer".
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] migración+advisors (si aplica)  [ ] E2E demo  [ ] manuales+iaCatalogo
-[ ] specs landing  [ ] commit+push  [ ] S05 marcada`
+`[x] tsc  [x] build  [x] migración+advisors (si aplica)  [x] E2E demo  [x] manuales+iaCatalogo
+[x] specs landing  [x] commit+push  [x] S05 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA (2026-07-09). Implementación verificada en la auditoría del plan V3:
+- Tabla `chispa_acciones` con RLS multi-tenant, demo guardrail y auditoría permanente (`migrations/chispa-deshacer-acciones.sql`, 128 líneas).
+- RPC `registrar_accion_chispa` SECURITY DEFINER con guardrail demo.
+- `deshacerAccion()` en `lib/chispaOps.ts` (línea 961) cubriendo 8+ tipos de acción con inversas coherentes:
+  crear_cita→borrar, reagendar→restaurar 4 marcas, cancelar→des-cancelar, liberar_hueco→recrear, cambiar_config→restaurar, cambiar_idioma_portal→restaurar, editar_servicio→restaurar campos.
+- `bloquear_hueco` ahora es reversible: se captura el `bloqueo_id` al crear y el undo lo borra
+  (`lib/chispaOps.ts`, auditoría 9 jul).
+- Registro de auditoría del undo vía `registrarHistorialIA()`.
+- `iaCatalogo.ts` actualizado con `chispa-deshacer` (id `chispa-deshacer`).
+- **FIX de seguridad (auditoría V3, 9 jul):** `chispa_acciones` tenía políticas RLS pero **RLS estaba
+  DESHABILITADO** (policies inertes → log de acciones legible/escribible cross-tenant). Corregido:
+  `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` aplicado a producción; advisors de seguridad en verde.

@@ -281,8 +281,9 @@ async function capturarEstadoPrevio(
     }
 
     case 'bloquear_hueco':
-      // No hay estado previo (bloquear → liberar el bloqueo creado)
-      return null;
+      // El estado previo guarda los datos del bloqueo para poder recrearlo
+      // al deshacer; el target_id se rellena despues del insert (ver ejecutarAccion).
+      return { profesional_id: a.profesional_id, inicio: a.inicio, fin: a.fin, motivo: a.motivo };
 
     case 'liberar_hueco': {
       // Necesitamos: bloqueo_id (para recrearlo si se deshace)
@@ -541,16 +542,26 @@ export async function ejecutarAccion(
         if (new Date(a.inicio) >= new Date(a.fin)) {
           return { ok: false, error: 'El inicio no puede ser posterior al fin.' };
         }
-        const { error } = await supabase.from('bloqueos_profesional').insert({
+        const { data: bloqCreado, error } = await supabase.from('bloqueos_profesional').insert({
           negocio_id: a.negocio_id,
           profesional_id: a.profesional_id,
           inicio: a.inicio,
           fin: a.fin,
           tipo: 'otro',
           motivo: a.motivo,
-        });
+        }).select('id').single();
         if (error) return { ok: false, error: error.message };
-        return { ok: true, mensaje: `Hueco bloqueado: ${a.resumen}` };
+        // Registrar accion reversible (bloquear → borrar el bloqueo)
+        const accionId = await registrarAccionChispa(
+          a.negocio_id,
+          userId,
+          'bloquear_hueco',
+          estadoPrevio,
+          true, // reversible
+          bloqCreado?.id as string ?? null, // target_id = bloqueo_id
+          targetLabel,
+        );
+        return { ok: true, mensaje: `Hueco bloqueado: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
       }
 
       case 'liberar_hueco': {
@@ -1035,12 +1046,11 @@ export async function deshacerAccion(accionId: string, userId: string): Promise<
       }
 
       case 'bloquear_hueco': {
-        // Inversa: liberar el hueco bloqueado (target_id = bloqueo_id?)
-        // Nota: bloquear_hueco no tiene target_id en el registro actual; necesitamos mejorarlo
-        // Por ahora, buscamos el bloqueo mas reciente del profesional en ese rango
-        if (!previo) return { ok: false, error: 'No hay datos para identificar el bloqueo.' };
-        // Este caso requiere que capturemos el bloqueo_id al crear; pendiente de mejora
-        return { ok: false, error: 'Deshacer bloqueo no implementado: necesita identificador del bloqueo.' };
+        // Inversa: borrar el bloqueo creado (target_id = bloqueo_id)
+        if (!targetId) return { ok: false, error: 'No se puede identificar el bloqueo a eliminar.' };
+        const { error: eDel } = await supabase.from('bloqueos_profesional').delete().eq('id', targetId);
+        if (eDel) return { ok: false, error: eDel.message };
+        break;
       }
 
       case 'liberar_hueco': {

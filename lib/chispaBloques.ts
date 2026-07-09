@@ -89,7 +89,9 @@ export type Bloque =
       multiple?: boolean;
     }
   // Indicador de paso dentro de un flujo guiado (config guiada, Sesion 2+). No es interactivo.
-  | { tipo: 'progreso'; paso: number; total: number; etiqueta?: string };
+  | { tipo: 'progreso'; paso: number; total: number; etiqueta?: string }
+  // Bloque para busqueda y recuerdo temporal (S11)
+  | { tipo: 'timeline'; titulo: string; eventos: { id: string; fecha: string; titulo: string; descripcion: string; icono?: string; color?: string }[] };
 
 export interface ChispaRespuesta {
   bloques: Bloque[];

@@ -32,8 +32,8 @@ salud/alergias/medicación**.
 - Ficha sin `consiente_ia` no alimenta memoria IA.
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] edge desplegada+probada (si aplica)  [ ] migración+advisors (si aplica)
-[ ] E2E demo  [ ] manuales+iaCatalogo  [ ] specs landing  [ ] commit+push  [ ] S10 marcada`
+`[x] tsc  [x] build  [x] edge desplegada+probada (si aplica)  [x] migración+advisors (si aplica)
+[x] E2E demo  [x] manuales+iaCatalogo  [x] specs landing  [x] commit+push  [x] S10 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA (Implementada y verificada. La memoria semántica se asocia mediante `cliente_id` en `guardar_recuerdo` e inyecta dinámicamente en `ficha_cliente` sin revelar datos de salud).
