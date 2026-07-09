@@ -163,19 +163,27 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
     setErrorVoz(null);
     onResultadoRef.current = onResultado;
 
-    // Provoca el prompt NATIVO de permiso del navegador (getUserMedia) ANTES de
-    // intentar Web Speech: el permiso interno de SpeechRecognition no es fiable
-    // en todos los navegadores, y esto asegura un dialogo claro en el primer uso
-    // en vez de un fallo silencioso o un mensaje generico de "activalo a mano".
+    let streamInicial: MediaStream | null = null;
     try {
-      const permiso = await navigator.mediaDevices.getUserMedia({ audio: true });
-      permiso.getTracks().forEach((t) => t.stop());
+      const getAudio = () => {
+        if (navigator.mediaDevices?.getUserMedia) {
+          return navigator.mediaDevices.getUserMedia({ audio: true });
+        }
+        const legacy = (navigator as any).getUserMedia || (navigator as any).webkitGetUserMedia || (navigator as any).mozGetUserMedia;
+        if (legacy) {
+          return new Promise<MediaStream>((res, rej) => legacy.call(navigator, { audio: true }, res, rej));
+        }
+        return Promise.reject(new Error('NotSupportedError'));
+      };
+      streamInicial = await getAudio();
     } catch (err) {
-      const nombre = (err as { name?: string } | undefined)?.name ?? '';
+      const nombre = (err as { name?: string } | undefined)?.name ?? (err as Error)?.message ?? '';
       if (nombre === 'NotAllowedError' || nombre === 'PermissionDeniedError') {
         setErrorVoz('El microfono esta bloqueado para este sitio. Haz clic en el candado de la barra de direcciones, entra en Permisos, pon Microfono en Permitir, y vuelve a pulsar el microfono.');
       } else if (nombre === 'NotFoundError' || nombre === 'DevicesNotFoundError') {
         setErrorVoz('No se ha encontrado ningun microfono conectado a este dispositivo.');
+      } else if (nombre === 'NotSupportedError') {
+        setErrorVoz('Tu navegador no soporta el acceso al microfono o la conexion no es segura (HTTPS).');
       } else {
         setErrorVoz('No se pudo acceder al microfono. Comprueba los permisos del navegador para este sitio.');
       }
@@ -184,6 +192,8 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
 
     const SR = speechRecognitionCtor();
     if (soportaReconocimientoNativo && SR) {
+      // El motor nativo gestiona su propia pista de audio. Paramos la nuestra.
+      streamInicial.getTracks().forEach((t) => t.stop());
       const rec = new SR();
       rec.lang = 'es-ES';
       rec.interimResults = false;
@@ -221,7 +231,7 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
     // Fallback (Safari/iPad y demas navegadores sin Web Speech): grabar y
     // mandar el audio al edge de transcripcion server-side.
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = streamInicial;
       streamRef.current = stream;
       const mime = typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported('audio/webm')
         ? 'audio/webm' : '';
@@ -237,7 +247,8 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
       mr.start();
       setEstado('escuchando');
     } catch {
-      setErrorVoz('No se pudo acceder al micrófono. Ve a los ajustes del navegador y permite el acceso al micrófono para este sitio.');
+      streamInicial.getTracks().forEach((t) => t.stop());
+      setErrorVoz('No se pudo iniciar la grabacion. Ve a los ajustes del navegador y permite el acceso al micrófono para este sitio.');
       setEstado('inactivo');
     }
   }, [estado, soportaReconocimientoNativo, transcribirServidor]);

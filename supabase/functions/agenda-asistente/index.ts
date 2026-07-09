@@ -29,13 +29,15 @@ const json = (b: unknown, status = 200) =>
 // ---------------------------------------------------------------------------
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const svc = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
-// Claude Sonnet via OpenRouter (OpenAI-compatible).
+// Claude (Anthropic) via OpenRouter (OpenAI-compatible).
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: Deno.env.get('OPENROUTER_API_KEY') ?? '',
 });
-// Slug de OpenRouter para Claude Sonnet (confirmar contra la lista de modelos de OpenRouter).
-const MODEL = 'anthropic/claude-sonnet-4.6';
+// Modelo: Haiku 4.5 (~3x mas barato que Sonnet 4.6, misma familia Anthropic para no
+// degradar el tool-calling). Cambiar aqui si se quiere subir a Sonnet para intenciones
+// complejas. Se puede sobrescribir por config del negocio via OPENROUTER_MODEL (secret).
+const MODEL = Deno.env.get('OPENROUTER_MODEL') ?? 'anthropic/claude-haiku-4.5';
 // Tenant demo compartido entre visitantes: NO se persiste memoria cross-visitante (constraint #8).
 const DEMO_NEGOCIO_ID = 'demo_salon_001';
 
