@@ -37,8 +37,8 @@ Chispa la conozca (S12).
 - Cada ejecución produce el evento normalizado (aunque el registro real se conecte en S08).
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] E2E demo (varias páginas)  [ ] manuales+iaCatalogo  [ ] specs landing
-[ ] commit+push  [ ] S07 marcada`
+`[x] tsc  [x] build  [x] E2E demo (varias páginas)  [x] manuales+iaCatalogo  [x] specs landing
+[x] commit+push  [x] S07 marcada`
 
 ## Estado
-PENDIENTE.
+COMPLETADO.

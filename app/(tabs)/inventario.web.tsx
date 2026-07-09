@@ -13,7 +13,9 @@ import { manualInventario } from '@/lib/manuals/inventario';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
-import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
+import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
+import { registrarEventoIA } from '@/lib/registroUniversal';
 import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
 import * as chispaOps from '@/lib/chispaOps';
 
@@ -141,7 +143,7 @@ export default function InventarioScreen() {
   });
 
   // --- INYECCIÓN IA: INVENTARIO ---
-  const { generar: generarPrediccion, cargando: chispaLoading, bloques: chispaBloques, limpiar: limpiarPrediccion } = useChispaSugerencia();
+  const ayudaIA = useAyudaIA();
   const [profileData, setProfileData] = useState<{ id: string; negocio_id: string } | null>(null);
 
   useEffect(() => {
@@ -153,8 +155,22 @@ export default function InventarioScreen() {
   const handlePrediccionStock = () => {
     const criticos = productos.filter(p => p.stock_bajo);
     if (criticos.length === 0) return;
+    const entrada = criticos.map(c => ({
+      id: c.id, nombre: c.nombre, stock_actual: c.stock_actual, stock_minimo: c.stock_minimo
+    }));
     const desc = criticos.map(c => `${c.nombre} (Stock: ${c.stock_actual}, Mín: ${c.stock_minimo})`).join(', ');
-    generarPrediccion(`Analiza estos productos con stock crítico en mi salón de belleza: ${desc}. Basado en un consumo típico, sugiere un pedido de reposición razonable en formato de lista (usa bloques de texto) y proporciona un bloque de acción para "Generar pedido sugerido" para estos productos (asumiendo que será un borrador).`);
+    const prompt = `Analiza estos productos con stock crítico en mi salón de belleza: ${desc}. Basado en un consumo típico, sugiere un pedido de reposición razonable en formato de lista (usa bloques de texto) y proporciona un bloque de acción para "Generar pedido sugerido" para estos productos (asumiendo que será un borrador).`;
+    
+    ayudaIA.analizar(prompt, { productosCriticos: entrada }).then(() => {
+      registrarEventoIA({
+        negocio_id: profileData?.negocio_id ?? '',
+        usuario_id: profileData?.id ?? '',
+        funcion_ia: 'prediccion_stock',
+        entrada,
+        resultado: 'Completado',
+        por_que: 'Solicitud manual de predicción de pedido de inventario',
+      });
+    });
   };
 
   const procesarAccionChispa = async (accion: any) => {
@@ -162,7 +178,7 @@ export default function InventarioScreen() {
     const res = await chispaOps.ejecutarAccion(accion, profileData.id);
     if (res.ok) {
       alert('Pedido generado. ' + res.mensaje);
-      limpiarPrediccion();
+      ayudaIA.reset();
       cargarInventario();
     } else {
       alert('Error: ' + res.error);
@@ -892,39 +908,26 @@ export default function InventarioScreen() {
               >
                 {soloStockBajo ? t('inv_mostrar_todos') : t('inv_ver_criticos')}
               </button>
-              <button 
-                style={{
-                  ...styles.alertBannerBtn,
-                  background: '#1A1A1A',
-                  color: '#FFF',
-                  borderColor: '#1A1A1A',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6
-                }}
-                onClick={handlePrediccionStock}
-                disabled={chispaLoading}
-              >
-                {chispaLoading ? <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : <Icon name="sparkles" size={14} color="#FFF" />}
-                {chispaLoading ? 'Analizando...' : 'Predicción de Pedido'}
-              </button>
             </div>
           </div>
           
-          {chispaBloques.length > 0 && (
-            <div style={{ background: '#FFFBE6', border: '1px solid #FFE58F', borderRadius: 12, padding: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Icon name="sparkles" size={16} color="#FA8C16" />
-                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#D46B08' }}>Sugerencia de Reposición</h4>
-              </div>
-              {chispaBloques.map((b, i) => (
-                <BloqueRenderer key={i} bloque={b} onConfirmar={procesarAccionChispa} isMobile={isMobile} />
-              ))}
-              <div style={{ textAlign: 'right', marginTop: 10 }}>
-                <button onClick={limpiarPrediccion} style={{ background: 'none', border: 'none', color: TOKENS.textTer, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Ocultar sugerencia</button>
-              </div>
-            </div>
-          )}
+          <div style={{ marginTop: 16 }}>
+            <TarjetaAyudaIA
+              titulo="Predicción de Pedido"
+              subtitulo="IA: Sugerencia de reposición inteligente"
+              estado={ayudaIA.estado}
+              onAnalizar={handlePrediccionStock}
+              onReintentar={ayudaIA.reintentar}
+              botonLabel="Predicción de Pedido"
+              resumenDeterminista={
+                <div>
+                  Tienes <span style={{fontWeight: 600, color: TOKENS.danger}}>{criticos.length} productos</span> por debajo del stock mínimo.
+                </div>
+              }
+              onConfirmarAccion={procesarAccionChispa}
+              isMobile={isMobile}
+            />
+          </div>
         </div>
       )}
 

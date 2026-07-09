@@ -32,6 +32,9 @@ import { mensajeDeError } from '@/lib/errores';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { useAppLang } from '@/lib/hooks/useAppLang';
 import { APP_LANGS, type AppLang } from '@/lib/appI18n';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
+import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
+import { registrarEventoIA } from '@/lib/registroUniversal';
 
 const T = DESIGN_TOKENS;
 
@@ -449,6 +452,46 @@ export default function ConfiguracionWeb() {
 
   // Bloqueo counts for Agenda tab summary
   const [bloqueoCounts, setBloqueoCounts] = useState<Record<string, number>>({});
+
+  // --- INYECCIÓN IA: CONFIGURACIÓN ---
+  const ayudaIA = useAyudaIA();
+  
+  const handleAnalizarConfiguracion = () => {
+    // Basic analysis of missing pieces
+    let completado = 0;
+    let total = 0;
+    
+    // Check if critical items exist
+    const tieneNegocio = config.nombre && config.nombre.trim() !== '';
+    const tieneServicios = services.length > 0;
+    const tieneProfesionales = profesionales.length > 0;
+    
+    if (tieneNegocio) completado++; total++;
+    if (tieneServicios) completado++; total++;
+    if (tieneProfesionales) completado++; total++;
+    
+    const prompt = `Analiza el estado de configuración de mi salón de belleza. 
+    Estado actual:
+    - Datos del negocio: ${tieneNegocio ? 'Completos' : 'Faltan'}
+    - Servicios creados: ${services.length}
+    - Profesionales activos: ${profesionales.length}
+    - Reserva online: ${config.permitirMismoDia ? 'Activa el mismo día' : 'Requiere antelación'}
+    - Avisos por WhatsApp: ${config.notifConfirmacionActiva || config.notifRecordatorioActiva ? 'Sí' : 'No'}
+    
+    Dame sugerencias prácticas para mejorar la configuración de mi salón para ahorrar tiempo (ej: activar avisos si están apagados, añadir servicios si faltan) en formato de lista. Usa bloques de texto.`;
+
+    ayudaIA.analizar(prompt, { config: { nombre: config.nombre, servicios: services.length, profesionales: profesionales.length } }).then(() => {
+      registrarEventoIA({
+        negocio_id: negocioId ?? '',
+        usuario_id: userId ?? '',
+        funcion_ia: 'auditoria_configuracion',
+        entrada: { config: { nombre: config.nombre, servicios: services.length, profesionales: profesionales.length } },
+        resultado: 'Completado',
+        por_que: 'Solicitud manual de auditoría de configuración',
+      });
+    });
+  };
+  // -----------------------------------
 
   // Dirty tracking
   const dirty = useMemo(() => {
@@ -1110,6 +1153,26 @@ export default function ConfiguracionWeb() {
         {/* Content */}
         <div key={tab || 'none'} style={{ display: (isMobile && tab === null) ? 'none' : 'block', overflowY: 'auto', padding: isMobile ? '16px 16px 60px' : '24px 28px 60px' }}>
           <div ref={contentRef} style={{ maxWidth: 1080, margin: '0 auto' }}>
+            
+            {/* IA Helper */}
+            {tab === 'general' && (
+              <div style={{ marginBottom: 24 }}>
+                <TarjetaAyudaIA
+                  titulo="Auditoría de Configuración"
+                  subtitulo="IA: Descubre qué te falta para sacar el máximo partido a Mecha"
+                  estado={ayudaIA.estado}
+                  onAnalizar={handleAnalizarConfiguracion}
+                  onReintentar={ayudaIA.reintentar}
+                  botonLabel="Auditar Configuración"
+                  resumenDeterminista={
+                    <div>
+                      Tu negocio tiene <b>{services.length}</b> servicios y <b>{profesionales.length}</b> profesionales configurados.
+                    </div>
+                  }
+                />
+              </div>
+            )}
+
             {tab === 'general' && (
               <>
                 <button

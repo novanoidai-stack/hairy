@@ -155,7 +155,7 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 - [x] [S06 · Voz neural + voces + micro + ortografía](fase-a-experiencia/S06-voz-neural.md)
 
 ### Fase B · Superficies IA por página
-- [S07 · IA por página universal + Config (optimiza/ahorra tiempo)](fase-b-superficies/S07-ia-por-pagina-universal.md)
+- [x] [S07 · IA por página universal + Config (optimiza/ahorra tiempo)](fase-b-superficies/S07-ia-por-pagina-universal.md)
 
 ### Fase C · Cerebro con memoria
 - [S08 · Registro universal ("todo queda registrado")](fase-c-cerebro/S08-registro-universal.md)

@@ -32,6 +32,9 @@ import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web'
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
 import { FichaColorModal } from '@/app/(tabs)/clientes.web';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
+import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
+import { registrarEventoIA } from '@/lib/registroUniversal';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -297,6 +300,49 @@ export default function AgendaCalendar() {
   const [negocioId, setNegocioId] = useState(NEGOCIO_ID_FALLBACK);
   const [userProfile, setUserProfile] = useState<any | null>(null);
   const [dayViewType, setDayViewType] = useState<'grid' | 'list'>('grid');
+  
+  // userId (extracted explicitly for event tracking)
+  const userId = userProfile?.id || '';
+
+  // --- INYECCIÓN IA: AGENDA ---
+  const ayudaIA = useAyudaIA();
+
+  const handleAnalizarAgenda = () => {
+    // Collect contextual data for the deterministic summary
+    const bloquesGrid = generateGridBlocks(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDate);
+    const slotsTotales = bloquesGrid.length;
+    const slotsOcupados = bloquesGrid.filter((b: any) => b.citas.length > 0).length;
+    const ocupacion = slotsTotales > 0 ? (slotsOcupados / slotsTotales) * 100 : 0;
+    
+    const entrada = {
+      citasHoy: citasHoy.length,
+      huecosLibres: slotsTotales - slotsOcupados,
+      ocupacion: ocupacion.toFixed(0) + '%',
+      profesionales: visibleProfs.length,
+      fecha: currentMonth.toISOString()
+    };
+    
+    const prompt = `Analiza el estado de mi agenda para el día seleccionado. 
+    Estado actual:
+    - Citas hoy: ${entrada.citasHoy}
+    - Profesionales disponibles: ${entrada.profesionales}
+    - Ocupación de agenda: ${entrada.ocupacion}
+    - Hay huecos libres: ${entrada.huecosLibres > 0 ? 'Sí' : 'No'}
+    
+    Identifica cuellos de botella (muchas citas simultáneas) o tiempos muertos importantes (huecos largos sin citas) y sugiere acciones para optimizar la ocupación (como avisar a clientes en espera o reasignar descansos). Usa bloques de texto.`;
+
+    ayudaIA.analizar(prompt, entrada).then(() => {
+      registrarEventoIA({
+        negocio_id: negocioId ?? '',
+        usuario_id: userId ?? '',
+        funcion_ia: 'analizar_agenda_dia',
+        entrada,
+        resultado: 'Completado',
+        por_que: 'Solicitud manual de análisis de agenda',
+      });
+    });
+  };
+  // -----------------------------------
 
   const roleTheme = useMemo(() => {
     const role = userProfile?.role;
@@ -1729,6 +1775,23 @@ export default function AgendaCalendar() {
                     {toolbarCollapsed ? 'Filtros' : 'Ocultar'}
                   </button>
                 </div>
+              </div>
+
+              {/* IA Helper Card */}
+              <div style={{ margin: isMobile ? '0 12px 12px' : '0 14px 14px' }}>
+                <TarjetaAyudaIA
+                  titulo="Optimización de Agenda"
+                  subtitulo="IA: Reduce tiempos muertos y mejora la ocupación del salón"
+                  estado={ayudaIA.estado}
+                  onAnalizar={handleAnalizarAgenda}
+                  onReintentar={ayudaIA.reintentar}
+                  botonLabel="Analizar jornada"
+                  resumenDeterminista={
+                    <div>
+                      Hay <b>{citasHoy.length}</b> citas programadas para el día seleccionado.
+                    </div>
+                  }
+                />
               </div>
 
               {/* Selector de profesional en movil: UNO a la vez (switcher con flechas

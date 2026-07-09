@@ -12,8 +12,10 @@ import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web'
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { roleOf } from '@/lib/permissions';
-import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
+import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
+import { registrarEventoIA } from '@/lib/registroUniversal';
 import * as chispaOps from '@/lib/chispaOps';
 
 // Iconos SVG simples
@@ -167,7 +169,7 @@ export default function EquipoWeb() {
   const [editingProf, setEditingProf] = useState<Profesional | null>(null);
 
   // --- INYECCIÓN IA: EQUIPO ---
-  const { generar: generarResumen, cargando: chispaLoading, bloques: chispaBloques, limpiar: limpiarResumen } = useChispaSugerencia();
+  const ayudaIA = useAyudaIA();
   const [profileData, setProfileData] = useState<{ id: string; negocio_id: string } | null>(null);
 
   useEffect(() => {
@@ -177,13 +179,17 @@ export default function EquipoWeb() {
   }, []);
 
   useEffect(() => {
-    limpiarResumen();
+    ayudaIA.reset();
   }, [selected]);
 
   const profSel = profesionales.find((p) => p.id === selected);
 
   const handleAnalizarProfesional = () => {
     if (!profSel) return;
+    const entrada = {
+      nombre: profSel.nombre, citas: profSel.citas, ocupacion: profSel.ocupacion,
+      ingresos: profSel.ingresos, ticketMedio: profSel.ticketMedio, comisiones: profSel.comisionesDevengadas
+    };
     const desc = `Analiza el rendimiento del mes de ${profSel.nombre}: 
     - ${profSel.citas} citas
     - Ocupación: ${profSel.ocupacion}%
@@ -192,7 +198,17 @@ export default function EquipoWeb() {
     - Comisiones: ${profSel.comisionesDevengadas}€
     
     Dame un resumen NL de su rendimiento, comisiones, e identifica si hay sobrecarga (>85% ocupación) o demasiados huecos (<40% ocupación) con acciones sugeridas para solucionarlo. Usa bloques de texto.`;
-    generarResumen(desc);
+    
+    ayudaIA.analizar(desc, entrada).then(() => {
+       registrarEventoIA({
+         negocio_id: profileData?.negocio_id ?? '',
+         usuario_id: profileData?.id ?? '',
+         funcion_ia: 'analizar_rendimiento_equipo',
+         entrada,
+         resultado: 'Completado',
+         por_que: 'Solicitud manual de análisis de rendimiento',
+       });
+    });
   };
 
   const procesarAccionChispa = async (accion: any) => {
@@ -766,37 +782,26 @@ export default function EquipoWeb() {
               </div>
             )}
 
+            {/* IA Helper */}
+            <div style={{ marginBottom: 24 }}>
+              <TarjetaAyudaIA
+                titulo="Análisis de Rendimiento"
+                subtitulo={`IA: Analiza la productividad de ${profSel.nombre}`}
+                estado={ayudaIA.estado}
+                onAnalizar={handleAnalizarProfesional}
+                onReintentar={ayudaIA.reintentar}
+                botonLabel="Analizar rendimiento"
+                resumenDeterminista={
+                  <div>
+                    <span style={{fontWeight: 600}}>Ocupación actual:</span> {profSel.activo ? `${profSel.ocupacion}%` : '—'} 
+                    (Citas: {profSel.citas}, Ingresos: {profSel.ingresos}€)
+                  </div>
+                }
+              />
+            </div>
+
             {/* Metricas del mes */}
             <Section title="Métricas del mes">
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-                <button 
-                  style={{
-                    background: '#1A1A1A', color: '#FFF', border: 'none', padding: '6px 12px',
-                    borderRadius: 8, fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
-                    cursor: 'pointer'
-                  }}
-                  onClick={handleAnalizarProfesional}
-                  disabled={chispaLoading}
-                >
-                  {chispaLoading ? <div style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : <Icon name="sparkles" size={12} color="#FFF" />}
-                  {chispaLoading ? 'Analizando...' : 'Analizar Rendimiento'}
-                </button>
-              </div>
-
-              {chispaBloques.length > 0 && (
-                <div style={{ background: '#FFFBE6', border: '1px solid #FFE58F', borderRadius: 12, padding: 16, marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <Icon name="sparkles" size={16} color="#FA8C16" />
-                    <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#D46B08' }}>Resumen Inteligente de Chispa</h4>
-                  </div>
-                  {chispaBloques.map((b, i) => (
-                    <BloqueRenderer key={i} bloque={b} onConfirmar={procesarAccionChispa} isMobile={isMobile} />
-                  ))}
-                  <div style={{ textAlign: 'right', marginTop: 10 }}>
-                    <button onClick={limpiarResumen} style={{ background: 'none', border: 'none', color: TOKENS.textTer, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Ocultar resumen</button>
-                  </div>
-                </div>
-              )}
 
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 8 }}>
                 <MetricCard label="Citas" value={String(profSel.citas ?? 0)} color={TOKENS.primary} />
