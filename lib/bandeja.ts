@@ -114,6 +114,18 @@ export async function responderConversacion(conversacionId: string, cuerpo: stri
   }
 }
 
+// Guarda un borrador de respuesta en el hilo SIN enviar por correo (Sesion 8).
+// Útil para que el salón pueda guardar un borrador generado por IA y revisarlo
+// antes de enviarlo realmente. El mensaje queda con enviado_email_at = null.
+export async function guardarBorradorConversacion(conversacionId: string, cuerpo: string): Promise<void> {
+  const limpio = cuerpo.trim();
+  if (!limpio) throw new Error('El borrador no puede estar vacío.');
+  const { error } = await supabase
+    .from('mensajes_conversacion')
+    .insert({ conversacion_id: conversacionId, autor: 'salon', tipo: 'mensaje', cuerpo: `[BORRADOR] ${limpio}` });
+  if (error) throw error;
+}
+
 // ── Páginas públicas (anónimas, vía RPC security definer) ──
 
 export async function presupuestoEnviarMensajePublico(

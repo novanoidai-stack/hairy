@@ -4,7 +4,7 @@ import { getUserProfile } from '@/lib/auth';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
 import { useResponsive } from '@/lib/hooks/useResponsive';
-import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { PageLoader } from '@/components/ui/DesignComponents';
@@ -14,6 +14,7 @@ import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web'
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
+import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import type { Bloque } from '@/lib/chispaBloques';
 
 const TOKENS = {
@@ -181,39 +182,44 @@ function ResenasScreen() {
   const [fScope, setFScope] = useState<ScopeKey>('all');
   const [fSearch, setFSearch] = useState('');
 
-  // Sugerencia de respuesta con Chispa (Sesion 9-A)
+  // IA: Borrador de respuesta (Sesion 8 - patron useAyudaIA)
   const [resenaEnEdicion, setResenaEnEdicion] = useState<Resena | null>(null);
   const [borradorRespuesta, setBorradorRespuesta] = useState('');
   const [mostrarModalRespuesta, setMostrarModalRespuesta] = useState(false);
   const [guardandoRespuesta, setGuardandoRespuesta] = useState(false);
   const [respuestaGuardada, setRespuestaGuardada] = useState(false);
-  const chispa = useChispaSugerencia();
+  const iaBorrador = useAyudaIA();
 
-  // Chispa: Resumen de temas recurrentes
-  const [generandoResumen, setGenerandoResumen] = useState(false);
-  const [resumenTemas, setResumenTemas] = useState<Bloque | null>(null);
+  // IA: Resumen de temas recurrentes (Sesion 8 - patron useAyudaIA)
+  const iaTemas = useAyudaIA();
+
+  // Efecto: actualizar borradorRespuesta cuando iaBorrador devuelve resultado
+  useEffect(() => {
+    if (iaBorrador.estado.tipo === 'listo' && mostrarModalRespuesta) {
+      // Extraer texto de los bloques (puede venir como bloques de texto)
+      const texto = iaBorrador.estado.bloques
+        .filter((b): b is Extract<Bloque, { tipo: 'texto' }> => b.tipo === 'texto')
+        .map((b) => b.texto)
+        .join('\n\n');
+      if (texto) {
+        setBorradorRespuesta(texto);
+      }
+    }
+  }, [iaBorrador.estado, mostrarModalRespuesta]);
 
   const generarResumenTemas = async () => {
     if (filtradas.length === 0) return;
-    setGenerandoResumen(true);
-    try {
-      const comentarios = filtradas
-        .map(r => `[${r.puntuacion}/5]: ${r.comentario || r.mecha_mejora_comentario || 'Sin comentario'}`)
-        .join('\n');
-      
-      const prompt = `Analiza estas valoraciones de clientes y resume los temas recurrentes. 
+    const comentarios = filtradas
+      .map(r => `[${r.puntuacion}/5]: ${r.comentario || r.mecha_mejora_comentario || 'Sin comentario'}`)
+      .join('\n');
+
+    const prompt = `Analiza estas valoraciones de clientes y resume los temas recurrentes.
 Destaca los puntos fuertes más mencionados y las quejas o áreas de mejora principales.
 Formato: una lista de puntos clara y concisa.
 Valoraciones:
 ${comentarios}`;
-      
-      const texto = await chispa.generar(prompt);
-      if (texto) {
-        setResumenTemas({ tipo: 'texto', texto });
-      }
-    } finally {
-      setGenerandoResumen(false);
-    }
+
+    await iaTemas.analizar(prompt);
   };
 
   const cargar = async () => {
@@ -254,13 +260,12 @@ ${comentarios}`;
     await supabase.from('resenas').delete().eq('id', id);
   };
 
-  // Sesion 9-A: generar sugerencia de respuesta con Chispa
+  // Sesion 8: generar sugerencia de respuesta con Chispa (patron useAyudaIA)
   const generarSugerenciaRespuesta = async (resena: Resena) => {
     setResenaEnEdicion(resena);
     setMostrarModalRespuesta(true);
     setRespuestaGuardada(false);
 
-    // Prompt especifico para generar respuesta a reseña
     const prompt = `Genera una respuesta educada y profesional para esta reseña de cliente.
 Cliente: ${resena.autor_nombre || 'Anónimo'}
 Valoración: ${resena.puntuacion}/5
@@ -277,26 +282,19 @@ Instrucciones:
 
 Responde solo con el texto de la respuesta, sin explicaciones previas.`;
 
-    const sugerencia = await chispa.generar(prompt);
-    if (sugerencia) {
-      setBorradorRespuesta(sugerencia);
-    }
+    await iaBorrador.analizar(prompt);
   };
 
-  // Guardar borrador de respuesta (visible para Alexandro -> envío real por WhatsApp)
+  // Guardar borrador de respuesta en la reseña (Sesion 8)
   const guardarBorradorRespuesta = async () => {
     if (!resenaEnEdicion || !borradorRespuesta.trim()) return;
     setGuardandoRespuesta(true);
 
     try {
-      // Guardar en tabla de respuestas_borrador (nueva tabla para Sesion 9-A)
-      const { error } = await supabase.from('respuestas_borrador').insert({
-        negocio_id: (await getUserProfile())?.negocio_id || NEGOCIO_ID_FALLBACK,
-        resena_id: resenaEnEdicion.id,
-        borrador: borradorRespuesta,
-        estado: 'pendiente_envio', // pendiente de que Alexandro lo envie
-        creado_por: (await getUserProfile())?.id,
-      });
+      const { error } = await supabase
+        .from('resenas')
+        .update({ respuesta_borrador: borradorRespuesta })
+        .eq('id', resenaEnEdicion.id);
 
       if (error) throw error;
 
@@ -316,7 +314,7 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
     setResenaEnEdicion(null);
     setBorradorRespuesta('');
     setRespuestaGuardada(false);
-    chispa.reset();
+    iaBorrador.reset();
   };
 
   // --- Filtrado ---
@@ -550,24 +548,16 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
                   </div>
                 </div>
 
-                {/* Resumen de temas (Chispa) */}
+                {/* Resumen de temas recurrentes (IA) - Sesion 8 */}
                 <div style={{ marginTop: 14 }}>
-                  {!resumenTemas && !generandoResumen && (
-                    <button onClick={generarResumenTemas} disabled={chispa.loading || filtradas.length === 0} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: TOKENS.primarySoft, color: TOKENS.primaryHi, border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                      <Icon name="spark" size={16} /> Resumir temas recurrentes (IA)
-                    </button>
-                  )}
-                  {generandoResumen && (
-                    <div style={{ fontSize: 13, color: TOKENS.textSec, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span className="chispa-loader" style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${TOKENS.primary}`, borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-                      Analizando reseñas con Chispa...
-                    </div>
-                  )}
-                  {resumenTemas && (
-                    <div style={{ marginTop: 8 }}>
-                      <BloqueRenderer bloque={resumenTemas} />
-                    </div>
-                  )}
+                  <TarjetaAyudaIA
+                    titulo="Temas recurrentes"
+                    estado={iaTemas.estado}
+                    botonLabel="Resumir temas (IA)"
+                    onAnalizar={generarResumenTemas}
+                    mensajeVacio="No hay suficientes reseñas para detectar temas recurrentes."
+                    isMobile={isMobile}
+                  />
                 </div>
               </div>
             )}
@@ -775,21 +765,27 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
                 <button onClick={cerrarModalRespuesta} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: TOKENS.textTer }}>×</button>
               </div>
               <div style={{ padding: 24 }}>
-                {chispa.loading ? (
+                {iaBorrador.estado.tipo === 'cargando' ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 30 }}>
                     <span className="chispa-loader" style={{ width: 24, height: 24, borderRadius: '50%', border: `3px solid ${TOKENS.primary}`, borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
                     <span style={{ fontSize: 14, color: TOKENS.textSec }}>Generando sugerencia...</span>
                     <style dangerouslySetInnerHTML={{ __html: '@keyframes spin { 100% { transform: rotate(360deg); } }' }} />
                   </div>
+                ) : iaBorrador.estado.tipo === 'error' ? (
+                  <div style={{ textAlign: 'center', padding: 20 }}>
+                    <div style={{ color: TOKENS.danger, fontSize: 14, marginBottom: 12 }}>{iaBorrador.estado.mensaje}</div>
+                    <button onClick={() => iaBorrador.reintentar()} style={{ padding: '8px 16px', background: TOKENS.primarySoft, color: TOKENS.primaryHi, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      Reintentar
+                    </button>
+                  </div>
                 ) : (
                   <>
-                    <textarea 
-                      value={borradorRespuesta} 
+                    <textarea
+                      value={borradorRespuesta}
                       onChange={(e) => setBorradorRespuesta(e.target.value)}
                       style={{ width: '100%', height: 120, padding: 12, borderRadius: 10, border: `1px solid ${TOKENS.borderHi}`, fontSize: 14, fontFamily: 'inherit', resize: 'none' }}
                       placeholder="Escribe aquí la respuesta..."
                     />
-                    {chispa.error && <div style={{ color: TOKENS.danger, fontSize: 13, marginTop: 8 }}>{chispa.error}</div>}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 20 }}>
                       <button onClick={cerrarModalRespuesta} style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: TOKENS.bgCardHi, color: TOKENS.textSec, fontWeight: 600, cursor: 'pointer' }}>
                         Cancelar

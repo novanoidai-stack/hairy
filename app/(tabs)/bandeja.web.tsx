@@ -9,14 +9,14 @@ import { format, parseISO, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
   type Conversacion, type MensajeConversacion, TIPO_META,
-  cargarConversaciones, cargarMensajes, marcarLeida, marcarEstado, responderConversacion,
+  cargarConversaciones, cargarMensajes, marcarLeida, marcarEstado, responderConversacion, guardarBorradorConversacion,
 } from '@/lib/bandeja';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualBandeja } from '@/lib/manuals/bandeja';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
-import { useChispaSugerencia } from '@/lib/hooks/useChispaSugerencia';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { normalizarRespuesta, type Bloque } from '@/lib/chispaBloques';
 import { ejecutarAccion } from '@/lib/chispaOps';
 import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
@@ -80,19 +80,49 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
   const [cambiandoEstado, setCambiandoEstado] = useState(false);
+  const [guardandoBorrador, setGuardandoBorrador] = useState(false);
+  const [borradorGuardado, setBorradorGuardado] = useState(false);
 
-  // Sesión 9-A: Chispa (borrador y acciones)
-  const chispa = useChispaSugerencia();
+  // Sesión 8: IA (borrador y acciones - patron useAyudaIA)
+  const iaBorrador = useAyudaIA();
   const [bloqueIA, setBloqueIA] = useState<Bloque | null>(null);
   const [accionEstado, setAccionEstado] = useState<AccionEstado>('pendiente');
   const [loadingAccion, setLoadingAccion] = useState(false);
+  const [borradorRespuesta, setBorradorRespuesta] = useState('');
 
+  // Efecto: actualizar respuesta cuando iaBorrador devuelve resultado
+  useEffect(() => {
+    if (iaBorrador.estado.tipo === 'listo') {
+      const texto = iaBorrador.estado.bloques
+        .filter((b): b is Extract<Bloque, { tipo: 'texto' }> => b.tipo === 'texto')
+        .map((b) => b.texto)
+        .join('\n\n');
+      if (texto) setRespuesta(texto);
+    }
+  }, [iaBorrador.estado]);
+
+
+  // Triage automático mejorado (Sesion 8): patrones más inteligentes que palabras clave
   const triageSugerido = useMemo(() => {
     if (mensajes.length === 0) return null;
     const txt = mensajes.map(m => m.cuerpo.toLowerCase()).join(' ');
-    if (txt.includes('urgente') || txt.includes('ayuda') || txt.includes('ya') || txt.includes('pronto')) return { label: 'Urgente', color: T.danger };
-    if (txt.includes('precio') || txt.includes('cuanto') || txt.includes('cita') || txt.includes('reserva')) return { label: 'Consulta', color: T.primary };
-    if (txt.includes('gratis') || txt.includes('oferta') || txt.includes('seo')) return { label: 'Spam/Promo', color: T.textTer };
+
+    // Patrones con regex para mejor deteccion
+    const patrones = {
+      urgente: /(?:urgente|ya|pronto|cuanto antes|lo antes posible|emergency)/i,
+      cita: /(?:cita|reservar|reserva|hora dispon|hueco|cuando tengo|apunta)/i,
+      precio: /(?:precio|cuanto|cuesta|vale|tarifa|coste)/i,
+      oferta: /(?:gratis|oferta|promocion|descuento|seo|publi)/i,
+      presupuesto: /(?:presupuesto|cotiz|presupuest)/i,
+      queja: /(?:problema|error|mal|funciona|no funciona|queja|reclamac)/i,
+    };
+
+    if (patrones.urgente.test(txt)) return { label: 'Urgente', color: T.danger };
+    if (patrones.presupuesto.test(txt)) return { label: 'Presupuesto', color: T.primary };
+    if (patrones.cita.test(txt)) return { label: 'Cita', color: T.primary };
+    if (patrones.precio.test(txt)) return { label: 'Consulta precio', color: T.primary };
+    if (patrones.queja.test(txt)) return { label: 'Queja', color: T.warning };
+    if (patrones.oferta.test(txt)) return { label: 'Spam/Promo', color: T.textTer };
     return null;
   }, [mensajes]);
 
@@ -100,8 +130,7 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
     if (mensajes.length === 0) return;
     const txt = mensajes.map(m => `${m.autor}: ${m.cuerpo}`).join('\n');
     const prompt = `El cliente ${conv.contacto_nombre} escribió esto:\n${txt}\nPropón una respuesta educada y breve desde el salón.`;
-    const borrador = await chispa.generar(prompt);
-    if (borrador) setRespuesta(borrador);
+    await iaBorrador.analizar(prompt);
   };
 
   const proponerAccionIA = async (tipoAccion: 'cita' | 'presupuesto') => {
@@ -147,6 +176,16 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
   }, [conv.id]);
 
   useEffect(() => { cargar(); }, [cargar]);
+
+  const guardarBorrador = async () => {
+    if (!respuesta.trim()) { setError('Escribe una respuesta.'); return; }
+    setGuardandoBorrador(true); setError('');
+    try {
+      await guardarBorradorConversacion(conv.id, respuesta);
+      setBorradorGuardado(true);
+    } catch (e) { setError(mensajeDeError(e)); }
+    finally { setGuardandoBorrador(false); }
+  };
 
   const enviar = async () => {
     if (!respuesta.trim()) { setError('Escribe una respuesta.'); return; }
@@ -224,15 +263,18 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={generarBorradorIA} disabled={chispa.loading || enviando} className="b-btn" style={{ padding: '6px 10px', background: T.primarySoft, color: T.primaryHi, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={generarBorradorIA} disabled={iaBorrador.estado.tipo === 'cargando' || enviando} className="b-btn" style={{ padding: '6px 10px', background: T.primarySoft, color: T.primaryHi, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon name="spark" size={14} />
-              {chispa.loading ? '...' : 'Sugerir borrador'}
+              {iaBorrador.estado.tipo === 'cargando' ? '...' : 'Sugerir borrador'}
             </button>
             <button onClick={() => proponerAccionIA('cita')} disabled={loadingAccion || enviando} className="b-btn" style={{ padding: '6px 10px', background: T.cardHi, color: T.textSec, border: `1px solid ${T.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
               Cita (IA)
             </button>
             <button onClick={() => proponerAccionIA('presupuesto')} disabled={loadingAccion || enviando} className="b-btn" style={{ padding: '6px 10px', background: T.cardHi, color: T.textSec, border: `1px solid ${T.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
               Presupuesto (IA)
+            </button>
+            <button onClick={guardarBorrador} disabled={guardandoBorrador || !respuesta.trim() || borradorGuardado} className="b-btn" style={{ padding: '6px 10px', background: borradorGuardado ? T.successSoft : T.cardHi, color: borradorGuardado ? T.success : T.textSec, border: `1px solid ${T.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
+              {guardandoBorrador ? '...' : borradorGuardado ? 'Borrador guardado' : 'Guardar borrador'}
             </button>
           </div>
         </div>
