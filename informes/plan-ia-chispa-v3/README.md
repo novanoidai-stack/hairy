@@ -158,7 +158,7 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 - [x] [S07 · IA por página universal + Config (optimiza/ahorra tiempo)](fase-b-superficies/S07-ia-por-pagina-universal.md)
 
 ### Fase C · Cerebro con memoria
-- [S08 · Registro universal ("todo queda registrado")](fase-c-cerebro/S08-registro-universal.md)
+- [x] [S08 · Registro universal ("todo queda registrado")](fase-c-cerebro/S08-registro-universal.md)
 - [S09 · Memoria corto/largo plazo (estructura + retención)](fase-c-cerebro/S09-memoria-corto-largo.md)
 - [S10 · Memoria por ficha](fase-c-cerebro/S10-memoria-por-ficha.md)
 - [S11 · Recuerdo y búsqueda temporal ("¿hace 4 meses?")](fase-c-cerebro/S11-recuerdo-busqueda-temporal.md)

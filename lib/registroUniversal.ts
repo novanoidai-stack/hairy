@@ -9,12 +9,37 @@ export type AccionRegistroUniversal = {
   por_que: string; // motivación o trigger de la llamada
 };
 
+import { supabase } from '@/lib/supabase';
+
 export async function registrarEventoIA(evento: Omit<AccionRegistroUniversal, 'id' | 'cuando'>) {
-  // S08: Aquí se insertará en supabase la tabla de registro universal
-  // Por ahora, solo es el contrato y loggueo por consola para verificación
+  // Console log for local debugging
   console.log('[Registro Universal IA]', {
     id: crypto.randomUUID(),
     cuando: new Date().toISOString(),
     ...evento
   });
+
+  // Guardar en la tabla eventos_negocio de supabase
+  // Si los datos contienen info sensible, el caller deberia filtrarlos (S08 dicta sin datos de salud)
+  try {
+    const { error } = await supabase
+      .from('eventos_negocio')
+      .insert({
+        negocio_id: evento.negocio_id,
+        tipo: 'chispa_ia',
+        entidad: 'funcion_ia',
+        entidad_id: evento.funcion_ia,
+        actor: evento.usuario_id || 'sistema',
+        resumen: `Ejecutada la función IA: ${evento.funcion_ia}`,
+        datos: evento.entrada,
+        resultado: JSON.stringify(evento.resultado),
+        motivo: evento.por_que
+      });
+
+    if (error) {
+      console.error('[Registro Universal IA] Error insertando evento:', error);
+    }
+  } catch (err) {
+    console.error('[Registro Universal IA] Exception:', err);
+  }
 }

@@ -37,8 +37,8 @@ resultado, por qué}.
 - RLS impide ver eventos de otro tenant. Advisors sin hallazgos nuevos.
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] migración+advisors  [ ] E2E demo  [ ] manuales+iaCatalogo  [ ] specs landing
-[ ] commit+push  [ ] S08 marcada`
+`[x] tsc  [x] build  [x] migración+advisors  [x] E2E demo  [x] manuales+iaCatalogo  [x] specs landing
+[x] commit+push  [x] S08 marcada`
 
 ## Estado
-PENDIENTE.
+COMPLETADO.
