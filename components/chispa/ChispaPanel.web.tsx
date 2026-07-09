@@ -394,6 +394,10 @@ export default function ChispaPanel({
   // este mapa es lo que distingue "hay que ejecutar un paso del onboarding" de
   // "hay que reenviar esto como texto al chat general").
   const bloqueDescriptorRef = useRef<Record<string, { tema: TemaId; kind: string }>>({});
+  // S18: snapshot de los temas ya completados en el momento de iniciar la config
+  // guiada. Sirve para RETOMAR (saltar lo hecho) en vez de reiniciar desde el
+  // primer tema. Congelado al arrancar para no reaccionar a refrescos a mitad.
+  const omitidosOnboardingRef = useRef<Record<string, boolean>>({});
   const hiloCargado = useRef(false);
 
   const amplio = pantallaCompleta && !isMobile;
@@ -900,15 +904,34 @@ export default function ChispaPanel({
     }
     if (configGuiada) return; // ya en marcha: no reiniciar sobre un flujo activo
     ctxOnboardingRef.current = { negocioId, profesionalesCreados: [], serviciosCreados: [], datosNegocioSesion: undefined };
+    // S18: RETOMAR, no reiniciar. En un tenant real congelamos el estado real
+    // (que temas ya estan hechos) para saltarlos y arrancar en el primer tema
+    // pendiente. En la demo las escrituras son simuladas, asi que se muestra
+    // siempre el recorrido completo desde el principio (showcase).
+    const doneSnapshot: Record<string, boolean> = IS_DEMO_MODE ? {} : { ...onbStatus.done };
+    omitidosOnboardingRef.current = doneSnapshot;
+    const primerPendiente = TEMA_ORDEN.findIndex((t) => !doneSnapshot[t]);
+    if (primerPendiente === -1) {
+      pushAssistantTexto('Tu salón ya está configurado al 100%. Si quieres cambiar algo, dime qué y lo ajustamos, o revísalo cuando quieras desde Ajustes.');
+      return;
+    }
     setConfigGuiada(true);
-    pushAssistantTexto('Vale, vamos a poner en marcha tu salón. Te iré pidiendo lo básico paso a paso: puedes saltar cualquier paso cuando quieras.');
-    void avanzarTemaGuiado(0);
+    const faltan = TEMA_ORDEN.filter((t) => !doneSnapshot[t]).length;
+    pushAssistantTexto(primerPendiente === 0
+      ? 'Vale, vamos a poner en marcha tu salón. Te iré pidiendo lo básico paso a paso: puedes saltar cualquier paso cuando quieras.'
+      : `Retomamos donde lo dejaste: saltaré lo que ya tienes hecho. Te ${faltan === 1 ? 'queda 1 paso' : `quedan ${faltan} pasos`}.`);
+    void avanzarTemaGuiado(primerPendiente);
   }
 
   async function avanzarTemaGuiado(idx: number) {
-    if (idx >= TEMA_ORDEN.length) { finalizarConfigGuiada(); return; }
-    setTemaIdx(idx);
-    const tema = TEMA_ORDEN[idx];
+    // S18: saltar los temas ya completados al arrancar (snapshot congelado), para
+    // no repetir lo que el salon ya tiene configurado ("seguir" continua, no repite).
+    const omit = omitidosOnboardingRef.current;
+    let i = idx;
+    while (i < TEMA_ORDEN.length && omit[TEMA_ORDEN[i]]) i++;
+    if (i >= TEMA_ORDEN.length) { finalizarConfigGuiada(); return; }
+    setTemaIdx(i);
+    const tema = TEMA_ORDEN[i];
     setCargando(true);
     const pregunta = await pedirPreguntaConDemoLimite(tema, onbStatus.done, perfilOnboarding);
     setCargando(false);
@@ -916,7 +939,7 @@ export default function ChispaPanel({
     bloqueDescriptorRef.current[id] = { tema, kind };
     setMensajes((m) => [...m, {
       role: 'assistant', accionEstado: null, ts: ahora(),
-      bloques: [{ tipo: 'progreso', paso: idx + 1, total: TEMA_ORDEN.length, etiqueta: TEMA_TITULO_SECCION[tema] }, ...previos, interactivo],
+      bloques: [{ tipo: 'progreso', paso: i + 1, total: TEMA_ORDEN.length, etiqueta: TEMA_TITULO_SECCION[tema] }, ...previos, interactivo],
     }]);
   }
 

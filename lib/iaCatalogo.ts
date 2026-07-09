@@ -93,7 +93,7 @@ export const CATALOGO_IA: FuncionIA[] = [
   {
     id: 'chispa-config-guiada',
     titulo: 'Configuración guiada del salón',
-    descripcion: 'Asistente visual que configura tu salón paso a paso: datos del negocio, servicios, equipo, horarios, reserva online y notificaciones. Todo con formularios pre‑rellenados, sin escribir.',
+    descripcion: 'Asistente visual que configura tu salón paso a paso: datos del negocio, servicios, equipo, horarios, reserva online y notificaciones. Todo con formularios pre‑rellenados, sin escribir. Retoma donde lo dejaste (salta lo ya hecho) y te lleva hasta dejar el salón al 100%, no solo a lo mínimo.',
     ubicacion: '/app/configuracion',
     uso: 'Di "configúrame el salón" a Chispa o pulsa el botón "Poner en marcha tu salón" desde Avisos.',
     categoria: 'config',

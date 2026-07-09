@@ -23,7 +23,7 @@ import { CobroSheet } from '@/components/pos/CobroSheet';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import { OnboardingCard } from '@/components/onboarding/OnboardingCard.web';
 import OnboardingPanel from '@/components/onboarding/OnboardingPanel.web';
-import type { OnboardingStepId } from '@/lib/onboarding';
+import { ONBOARDING_STEPS, type OnboardingStepId } from '@/lib/onboarding';
 import { CHISPA_CONFIG_GUIADA_EVENT } from '@/lib/chispaBloques';
 import { contarSinLeer } from '@/lib/bandeja';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
@@ -513,8 +513,18 @@ export default function AgendaCalendar() {
     setShowEditCita(true);
   }, [obParams?.cita, citas]);
 
-  // La tarjeta aparece mientras el nucleo no este completo y no se haya ocultado.
-  const onboardingPending = onboardingEligible && onboarding.ready && !onboarding.coreDone && !obHidden;
+  // Completitud "al 100%" (S18): mas alla del nucleo, la tarjeta sigue guiando
+  // hasta completar TODOS los pasos, contando solo los no omitidos por el gestor
+  // (los recomendados omitidos no cuentan como pendientes). Los esenciales no
+  // tienen "Omitir", asi que siempre mantienen viva la tarjeta hasta hacerlos.
+  const obPendientes = ONBOARDING_STEPS.filter(
+    (s) => !onboarding.done[s.id] && !obSkipped.includes(s.id),
+  ).length;
+  const obConsiderados = ONBOARDING_STEPS.length - obSkipped.filter((id) => !onboarding.done[id]).length;
+  const obCompletados = ONBOARDING_STEPS.filter((s) => onboarding.done[s.id]).length;
+  // La tarjeta aparece mientras quede algun paso pendiente (no omitido) y no se
+  // haya ocultado en esta sesion.
+  const onboardingPending = onboardingEligible && onboarding.ready && obPendientes > 0 && !obHidden;
   const [dropServicioOpen, setDropServicioOpen] = useState(false);
   const [dropEstadoOpen, setDropEstadoOpen] = useState(false);
   // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral.
@@ -1062,6 +1072,9 @@ export default function AgendaCalendar() {
                     <OnboardingCard
                       coreCompletados={onboarding.coreCompletados}
                       coreTotal={onboarding.coreTotal}
+                      coreDone={onboarding.coreDone}
+                      completados={obCompletados}
+                      total={obConsiderados}
                       isMobile={isMobile}
                       onOpen={() => { setShowNotif(false); onboarding.refresh(); setShowOnboardingPanel(true); }}
                       onHide={hideOnboarding}

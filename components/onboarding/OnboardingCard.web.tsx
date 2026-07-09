@@ -4,6 +4,11 @@ import { OIcon } from './OnboardingIcons';
 interface Props {
   coreCompletados: number;
   coreTotal: number;
+  // Completitud total "al 100%" (S18): una vez operativo (nucleo hecho), la
+  // tarjeta sigue guiando hasta completar todos los pasos no omitidos.
+  coreDone: boolean;
+  completados: number;
+  total: number;
   isMobile: boolean;
   onOpen: () => void;
   onHide: () => void;
@@ -14,10 +19,17 @@ interface Props {
 }
 
 // Tarjeta destacada que vive arriba del desplegable de Avisos. No muestra los pasos:
-// es la puerta de entrada al panel (OnboardingPanel), con el progreso del nucleo.
-export function OnboardingCard({ coreCompletados, coreTotal, isMobile, onOpen, onHide, onAbrirChispa }: Props) {
-  const pct = coreTotal > 0 ? Math.round((coreCompletados / coreTotal) * 100) : 0;
-  const faltan = Math.max(0, coreTotal - coreCompletados);
+// es la puerta de entrada al panel (OnboardingPanel). Antes de estar operativo
+// muestra el progreso del nucleo; una vez operativo, el camino al 100%.
+export function OnboardingCard({ coreCompletados, coreTotal, coreDone, completados, total, isMobile, onOpen, onHide, onAbrirChispa }: Props) {
+  // Fase 1 (no operativo): progreso del nucleo. Fase 2 (operativo): progreso total.
+  const num = coreDone ? completados : coreCompletados;
+  const den = coreDone ? total : coreTotal;
+  const pct = den > 0 ? Math.round((num / den) * 100) : 0;
+  const faltan = Math.max(0, den - num);
+  const subtitulo = !coreDone
+    ? (faltan === 0 ? 'Ultimo repaso para dejarlo operativo' : `Te faltan ${faltan} ${faltan === 1 ? 'paso' : 'pasos'} para estar operativo`)
+    : (faltan === 0 ? 'Salon completo al 100%' : `Ya operas. Te ${faltan === 1 ? 'falta 1 paso' : `faltan ${faltan} pasos`} para tenerlo al 100%`);
 
   return (
     <div
@@ -34,19 +46,17 @@ export function OnboardingCard({ coreCompletados, coreTotal, isMobile, onOpen, o
           <OIcon name="rocket" size={16} color="#fff" />
         </span>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>Pon en marcha tu salon</div>
-          <div style={{ fontSize: 11.5, color: T.textSec, marginTop: 1 }}>
-            {faltan === 0 ? 'Ultimo repaso para dejarlo listo' : `Te faltan ${faltan} ${faltan === 1 ? 'paso' : 'pasos'} para estar operativo`}
-          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>{coreDone ? 'Deja tu salon al 100%' : 'Pon en marcha tu salon'}</div>
+          <div style={{ fontSize: 11.5, color: T.textSec, marginTop: 1 }}>{subtitulo}</div>
         </div>
       </div>
 
-      {/* Barra de progreso del nucleo */}
+      {/* Barra de progreso (nucleo antes de operar; total una vez operativo) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <div style={{ flex: 1, height: 6, borderRadius: 999, background: 'rgba(40,30,24,0.10)', overflow: 'hidden' }}>
           <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, background: T.primary, transition: 'width 0.4s cubic-bezier(0.16,1,0.3,1)' }} />
         </div>
-        <span style={{ fontSize: 11, fontWeight: 700, color: T.primaryHi, flexShrink: 0 }}>{coreCompletados}/{coreTotal}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: T.primaryHi, flexShrink: 0 }}>{num}/{den}</span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>

@@ -37,4 +37,30 @@ el estado real, no empieza de cero.
 [ ] specs landing  [ ] commit+push  [ ] S18 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA (10 jul).
+
+**Qué se construyó**
+- **Bug "reinicia de 0" arreglado** (`components/chispa/ChispaPanel.web.tsx`): `iniciarConfigGuiada`
+  congela un snapshot del estado real (`useOnboardingStatus.done`) y arranca en el **primer tema
+  pendiente**; `avanzarTemaGuiado` salta los temas ya hechos de ese snapshot. Así "seguir onboarding"
+  (evento `mecha-chispa-config-guiada` desde Avisos, o «configúrame el salón») **retoma** en vez de
+  repetir. Si todo está hecho, no reinicia: avisa "ya está al 100%". En la **demo** (escrituras
+  simuladas) se fuerza snapshot vacío para conservar el recorrido completo del showcase.
+- **Guía hasta el 100%, no solo el mínimo** (`components/agenda/AgendaCalendar.web.tsx` +
+  `components/onboarding/OnboardingCard.web.tsx`): la tarjeta de Avisos ya no desaparece al completar
+  el núcleo; sigue mientras quede algún paso **no omitido** (los recomendados omitidos con "Omitir" no
+  cuentan). Fase 1 (no operativo) muestra progreso del núcleo; fase 2 (operativo) el progreso total
+  "al 100%". La checklist ampliada = los 8 pasos ya existentes derivados de datos reales (sin migración).
+- Manuales (`lib/manuals/chispa.ts`), `lib/iaCatalogo.ts` y specs landing
+  (`web/especificaciones.html`, nuevo ítem "Te configura el salón paso a paso") al día.
+
+**Verificado**
+- `tsc --noEmit` limpio · `npm run build:web` OK · demo `/demo.html?share=1`: `mecha-chispa-config-guiada`
+  abre Chispa y arranca la config guiada en el paso 1/7 (datos de negocio, progreso 14%, form +
+  Saltar/Salir) sin regresión · specs landing sirve el ítem nuevo (200, menciona 100% y "retoma").
+- **No E2E aquí:** el flujo "retomar en tenant real con onboarding parcial" es lógica cliente
+  determinista (tsc+build); no se pudo conducir con una cuenta real parcial desde esta sesión
+  (sin credenciales de tenant de pruebas). Sin edge/migración nuevas. Envíos/pagos = Alexandro.
+
+`[x] tsc  [x] build  [ ] edge (n/a)  [ ] migración (n/a)  [x] E2E demo (machinery)  [x] manuales+iaCatalogo
+[x] specs landing  [ ] commit+push master  [x] S18 marcada`

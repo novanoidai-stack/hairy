@@ -172,7 +172,7 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 - [x] [S17 · Tours y redirecciones guiadas](fase-d-proactiva/S17-tours-redirecciones.md)
 
 ### Fase E · Completar el salón
-- [S18 · Salón al 100% (arreglar "seguir onboarding")](fase-e-completar/S18-salon-100.md)
+- [x] [S18 · Salón al 100% (arreglar "seguir onboarding")](fase-e-completar/S18-salon-100.md)
 
 ### Fase F · Capacidades / frontera
 - [S19 · "Resuelve cualquier cosa" + dataviz ampliada](fase-f-capacidades/S19-resuelve-cualquier-cosa-dataviz.md)

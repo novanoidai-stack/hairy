@@ -44,7 +44,7 @@ export const manualChispa: ManualContent = {
     },
     {
       titulo: 'Configuración guiada',
-      texto: 'Si eres gestor, Chispa puede configurar tu salón paso a paso. Di "configúrame el salón" o pulsa el botón "Poner en marcha tu salón" desde Avisos. Chispa te guiará por datos del negocio, servicios, equipo, horarios y notificaciones con formularios pre‑rellenados.',
+      texto: 'Si eres gestor, Chispa puede configurar tu salón paso a paso. Di "configúrame el salón" o pulsa el botón "Poner en marcha tu salón" desde Avisos. Chispa te guiará por datos del negocio, servicios, equipo, horarios y notificaciones con formularios pre‑rellenados. Si ya tienes cosas hechas, retoma justo donde lo dejaste (salta lo ya configurado, no empieza de cero), y no para en lo mínimo: te acompaña hasta dejar el salón al 100%.',
       captura: '/manuals/chispa/config-guiada.png',
     },
     {
