@@ -17,6 +17,11 @@ todo. Máximo resultado con mínimo contexto.
 2. **Solo el archivo de TU sesión** (`fase-*/S##-*.md`).
 3. Si tocas UI: carga las skills `hairy-design-system` y `hairy-ui-craft` (agenda → además
    `hairy-agenda-rules`; datos/dominio → `hairy-domain-data`). No leas las otras sesiones.
+4. **NO leas `informes/MEGA_INFORME_MECHA.md` entero.** Esta RAÍZ ya destila el contexto de la capa
+   IA que necesitas (aunque `CLAUDE.md` lo declare "fuente de verdad del producto", para estas
+   sesiones la RAÍZ lo sustituye). Si te falta un dato puntual del producto, usa `grep`; leerlo
+   completo malgasta contexto y va contra el diseño en árbol. Solo se **toca** al cerrar (append de
+   UNA línea marcando la sesión); la reconciliación global del MEGA_INFORME se hace en **S27**.
 
 **Cómo trabajar (regla de oro):**
 - **Prima el RESULTADO DESEADO y la LIMPIEZA sobre la astucia.** Ante la duda, elige lo simple,
@@ -127,7 +132,8 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 5. **Actualizar manuales** (`lib/manuals/` + `lib/iaCatalogo.ts`) **y specs landing**
    (`web/especificaciones.html`) con lo nuevo/cambiado.
 6. Commit `feat:`/`fix:` + push a `master`.
-7. **Marcar la sesión HECHA** en su `S##-*.md` (commit + qué se verificó) y actualizar el MEGA_INFORME.
+7. **Marcar la sesión HECHA** en su `S##-*.md` (commit + qué se verificó). En el MEGA_INFORME, como
+   mucho un **append de una línea** (no lo reescribas ni lo leas entero: la reconciliación global es S27).
 8. Envíos reales (WhatsApp/correo) y pagos quedan **siempre abiertos para Alexandro**.
 
 **Definición de HECHA (checklist mínima, cópiala al cerrar):**
