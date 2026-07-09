@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
-import { getUserProfile } from '@/lib/auth';
+import { getUserProfile, invalidateAuthCache } from '@/lib/auth';
 
 // Aviso de primera visita a una pagina + reapertura del manual bajo demanda. El estado
 // de "visto" vive en profiles.paginas_manual_vistas (por persona, cruza dispositivos).
@@ -41,7 +41,8 @@ export function usePaginaManualVista(pageKey: string): PaginaManualVista {
     const actualizadas = { ...vistas, [pageKey]: new Date().toISOString() };
     setVisto(true);
     setVistas(actualizadas);
-    supabase.from('profiles').update({ paginas_manual_vistas: actualizadas }).eq('id', userId).then();
+    supabase.from('profiles').update({ paginas_manual_vistas: actualizadas }).eq('id', userId)
+      .then(() => invalidateAuthCache());
   }, [userId, pageKey, visto, vistas]);
 
   return { loading, visto, marcarVisto };

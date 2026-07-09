@@ -137,17 +137,28 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
     setLoadingAccion(true);
     setBloqueIA(null);
     setAccionEstado('pendiente');
+    setError('');
     try {
       const txt = mensajes.map(m => `${m.autor}: ${m.cuerpo}`).join('\n');
       const prompt = `Analiza esta conversación con ${conv.contacto_nombre}. Genera un bloque de acción de tipo '${tipoAccion === 'cita' ? 'crear_cita' : 'crear_presupuesto'}' con los datos que puedas extraer. Si faltan datos, usa valores por defecto lógicos.\nConversación:\n${txt}`;
       const { data, error: err } = await supabase.functions.invoke('agenda-asistente', {
         body: { mensajes: [{ role: 'user', content: prompt }] },
       });
-      if (!err && data) {
-        const bloques = normalizarRespuesta(data);
-        const accion = bloques.find(b => b.tipo === 'accion');
-        if (accion) setBloqueIA(accion);
+      // Sesion 10: nunca fallar en silencio. Cada camino deja un estado visible
+      // (error / sin datos / propuesta), no "el boton deja de girar y no pasa nada".
+      if (err) {
+        setError('Chispa no pudo generar la propuesta ahora mismo. Vuelve a intentarlo.');
+        return;
       }
+      const bloques = normalizarRespuesta(data);
+      const accion = bloques.find(b => b.tipo === 'accion');
+      if (accion) {
+        setBloqueIA(accion);
+      } else {
+        setError(`Chispa no encontro datos suficientes en la conversacion para proponer una ${tipoAccion === 'cita' ? 'cita' : 'presupuesto'}. Revisa el hilo o creala a mano.`);
+      }
+    } catch (e) {
+      setError(mensajeDeError(e));
     } finally {
       setLoadingAccion(false);
     }

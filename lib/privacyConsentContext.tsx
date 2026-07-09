@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
-import { getUserProfile, type UserProfile } from '@/lib/auth';
+import { getUserProfile, invalidateAuthCache, type UserProfile } from '@/lib/auth';
 import { CURRENT_PRIVACY_POLICY_VERSION } from '@/lib/legal';
 
 // Consentimiento de politica de privacidad del STAFF que usa el software (no
@@ -91,6 +91,9 @@ export function PrivacyConsentProvider({ children }: { children: React.ReactNode
       .update({ privacy_accepted_at: now, privacy_policy_version: CURRENT_PRIVACY_POLICY_VERSION })
       .eq('id', user.id);
     if (error) throw error;
+    // El perfil acaba de cambiar: invalida el cache para que otras superficies no
+    // lean un privacy_accepted_at rancio dentro de la ventana del cache.
+    invalidateAuthCache();
     setProfile((prev) => prev ? { ...prev, privacy_accepted_at: now, privacy_policy_version: CURRENT_PRIVACY_POLICY_VERSION } : prev);
     setModalOpen(false);
     setGateReason(null);

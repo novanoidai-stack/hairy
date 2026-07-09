@@ -37,6 +37,34 @@
 
 ---
 
+## Adenda — Capa IA "Chispa" v2 VERIFICADA E2E (Sesión 10, cierre) (9 jul 2026, Carlos + Claude)
+
+Cerrada la **Fase E (QA)** del rediseño v2 (`informes/PLAN-IA-CHISPA-V2-REDISENO.md`). Documento con evidencia punto
+por punto en **`informes/VERIFICACION-IA-2026-07-09.md`**. Con esto, **las 10 sesiones del plan v2 quedan HECHAS y la
+capa de IA v2 verificada de verdad** (no solo "compila"):
+
+- **Cero solapes avisos/dashboard (bug estrella de Jose, RESUELTO).** Reproducido en la demo: los tooltips "i" del
+  dashboard de Informes quedaban tapados. Causa raíz: `.kpi-card`/`.section-card` retienen un `transform` (animación de
+  entrada con fill `both` + hover-lift) que crea stacking context y atrapaba el z-index del tooltip. Fix: `InfoDot`
+  renderiza ahora el tooltip en un **portal a `document.body`**. Verificado por DOM + captura en móvil y desktop.
+- **Pestañas más rápidas.** Las 12 pestañas ya mostraban loader instantáneo (unificado el único plano, lista-espera).
+  Medición real: el coste de conexión lo dominaban las llamadas redundantes a `/auth/v1/user` (un `auth.getUser()` de red
+  por cada `getUserProfile()`, en cada pestaña + hooks). Cache de sesión/perfil en `lib/auth.ts` (TTL 8s + coalescing,
+  invalidado en cambios de sesión y mutación de perfil): **88 → 26 peticiones Supabase** en la carga de Informes,
+  `/auth/v1/user` 12+ → 1. (El bundle monolítico de 6.3 MB queda documentado como coste de código; code-splitting fuera
+  de alcance de QA.)
+- **E2E de toda la capa IA:** 11/11 edge functions de IA desplegadas (curl 401/400, nunca 404) + llamada autenticada real
+  por cada una con la cuenta demo; panel de Chispa (mensaje real → respuesta con datos reales, pantalla completa, micro,
+  briefing, voz honesta con ElevenLabs sano); IA por página (organizador de agenda, Mi Jornada, Caja, Presupuestos,
+  Clientes, Informes, Reseñas, Bandeja) con estados visibles; hub "Qué hace la IA" (Configuración) con catálogo de 17
+  funciones.
+- **Bug extra cazado:** `bandeja.web.tsx` `proponerAccionIA` tragaba el error en silencio (`if (!err && data)`) — arreglado
+  para dejar estado visible en cada camino (error/sin datos/propuesta).
+- `tsc` + `build:web` limpios; advisors seguridad **140 lints / 0 ERROR** (sin migraciones ni edge functions nuevas esta
+  sesión). Envío real WhatsApp/correo y agente de voz/teléfono siguen abiertos para Alexandro.
+
+---
+
 ## Adenda — Capa IA Superficies (Sesión 9-A) (6 jul 2026, Carlos + Claude)
 
 Se han completado las inyecciones de IA en las superficies (Reseñas, Bandeja, Mi Jornada y Caja) según el plan de Chispa:

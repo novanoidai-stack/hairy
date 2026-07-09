@@ -94,7 +94,7 @@ FÁCIL que hacerlo a mano; si tarda más que a mano, sobra.
 | 7 | B Por página | Clientes + Informes + Mi Jornada proactivos — **HECHA 9 jul** | Sonnet 5 | medio | 4 |
 | 8 | B Por página | Reseñas + Bandeja proactivas — **HECHA 9 jul** (547dd08aa; estaba sin commitear, verificada y cerrada 9 jul) | Sonnet 5 | medio | 4 |
 | 9 | D Descubrir | Hub "Qué hace la IA" + manuales IA + quitar import CSV | Sonnet 5 | medio | — |
-| 10 | E QA | Bugs + QA visual + verificación E2E de toda la capa IA | Opus 4.8 | medio-alto | 1-9 |
+| 10 | E QA | Bugs + QA visual + verificación E2E de toda la capa IA — **HECHA 9 jul** | Opus 4.8 | medio-alto | 1-9 |
 
 Orden recomendado: 1→2→3 en cadena (fundación). Desde la 4 se puede paralelizar B (4 antes que 5-8).
 La 9 es independiente (se puede colar cuando convenga). La 10 cierra. Cuidado con conflictos git multi-sesión
@@ -714,6 +714,35 @@ evidencia. tsc + build; migraciones/advisors si aplica.
 
 Cierra con el Protocolo de cierre + actualizar MEGA_INFORME marcando la capa IA v2 como verificada.
 ```
+
+**Verificado 9 jul:** documento completo con evidencia en `informes/VERIFICACION-IA-2026-07-09.md`.
+1. **Solape avisos/dashboard (RESUELTO):** reproducido en la demo con diagnóstico DOM. Causa raíz: `.kpi-card` y
+   `.section-card` de Informes llevan `animation: ... both`, cuyo keyframe final retiene un `transform` (identidad
+   `translateY(0)`/`scale(1)` — sigue creando stacking context); el hover-lift hace lo mismo. Eso atrapaba el z-index de
+   los tooltips "i" (`InfoDot`, z:60) y los tapaba la tarjeta/sección siguiente. Fix: `InfoDot` reescrito para renderizar
+   el tooltip en un **portal a `document.body`** (`position: fixed` del rect del ancla, clamping al viewport, flecha
+   reposicionada, reposición ante scroll/resize). Verificado por DOM (`elementFromPoint`, 3/3 puntos por encima) + captura
+   en **móvil y desktop** (incl. tarjeta forzada en hover = peor caso, y KPI del borde derecho = clamping). Confirmado que
+   las `TarjetaAyudaIA` de S4/6/7/8 viven en flujo normal y no las rompe ningún padre.
+2. **Rendimiento por pestaña (MEDIDO+REDUCIDO):** auditadas las 12 pestañas — todas muestran loader instantáneo
+   (`loading=true` inicial); unificado el único plano (lista-espera → `PageLoader`). Medición real de la carga de Informes:
+   el coste dominante de conexión eran las llamadas redundantes a `/auth/v1/user` (`getUserProfile` en cada pestaña + hooks,
+   cada `auth.getUser()` es red). Fix: cache de sesión/perfil en `lib/auth.ts` (TTL 8s + coalescing in-flight, no cachea
+   nulos/errores, invalidado en `onAuthStateChange` y tras mutar el perfil). Resultado medido: **`/auth/v1/user` 12+→1,
+   total Supabase 88→26** en la misma carga. El bundle monolítico de 6.3 MB (code-splitting) se documenta como coste de
+   CÓDIGO conocido, no se toca (riesgo alto en sesión de QA).
+3. **E2E toda la capa IA (PASADO):** 11/11 edge functions de IA desplegadas (curl sin auth → 401/400, nunca 404; control
+   inexistente → 404) + una llamada autenticada real por cada una con el JWT de `demo.publico` (200 completos en
+   agenda-asistente, chispa-tts con MP3 real, chispa-landing, color-formula-parser; el resto 400/502 de validación propia =
+   auth pasó). Panel de Chispa E2E (mensaje real "¿cuántas citas tengo hoy?" → respuesta con datos reales), pantalla
+   completa, micro, briefing, voz honesta (indicador oculto con ElevenLabs sano). IA por página verificada en vivo:
+   organizador de agenda (panel + "agenda en orden"), Mi Jornada, Caja, Presupuestos, Clientes, Informes, Reseñas, Bandeja.
+   Hub "Qué hace la IA" (Configuración) accesible con el catálogo de 17 funciones.
+4. **Bug extra cazado y arreglado:** `bandeja.web.tsx` `proponerAccionIA` seguía con el `if (!err && data)` que tragaba el
+   error (la S8 solo arregló el borrador, no esta función) → ahora cada camino deja estado visible (error/sin datos/propuesta).
+`npx tsc --noEmit` y `npm run build:web` limpios (ruido preexistente de `scripts/tts-test/`, Deno). Advisors seguridad
+140 lints / **0 ERROR** (idéntico al baseline; sin migraciones ni edge functions nuevas/tocadas esta sesión).
+**Con esto, la Fase E cierra y la capa de IA v2 (Sesiones 1-10) queda verificada E2E y estabilizada.**
 
 ---
 

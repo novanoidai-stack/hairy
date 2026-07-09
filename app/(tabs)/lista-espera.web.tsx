@@ -8,6 +8,7 @@ import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
 import { SSelect, STextInput } from '@/components/ui/SettingsAtoms';
 import { PhoneInput } from '@/components/ui/PhoneInput';
+import { PageLoader } from '@/components/ui/DesignComponents';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualListaEspera } from '@/lib/manuals/lista-espera';
@@ -181,7 +182,9 @@ function ListaEsperaScreen() {
   };
 
   if (loading) {
-    return <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.textTer }}>Cargando…</div>;
+    // Loader consistente con el resto de pestañas (spinner + aviso si tarda),
+    // en vez de un texto plano que puede parecer que la pantalla se colgó.
+    return <PageLoader message="Cargando lista de espera..." />;
   }
   if (accessDenied) {
     return <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.textSec, padding: 24, textAlign: 'center' }}>No tienes permiso para ver la lista de espera.</div>;
