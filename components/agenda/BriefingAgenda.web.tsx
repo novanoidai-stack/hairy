@@ -17,7 +17,6 @@ import {
 // lo que requiere atencion. Determinista: la deteccion viene del RPC agenda_briefing
 // + clientes_en_riesgo_fuga + useOnboardingStatus (ver lib/briefing.ts).
 
-const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
 // Hex exactos del sistema de diseno (danger / warning / textTertiary).
 const COLOR_SEV: Record<SeveridadSenal, string> = { alta: '#e23b34', media: '#e08a00', baja: '#736658' };
 
@@ -101,7 +100,7 @@ export default function BriefingAgenda({ negocioId, profile, onClose }: Briefing
                   padding: '6px 12px',
                   borderRadius: 9,
                   border: 'none',
-                  background: FIRE,
+                  background: T.fireGradient,
                   color: '#fff',
                   fontSize: 12.5,
                   fontWeight: 700,

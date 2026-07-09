@@ -9,7 +9,8 @@ import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { LineChartMini } from '@/components/charts/LineChartMini.web';
 import { STextInput, SSelect, NumberInput, TimeInput } from '@/components/ui/SettingsAtoms';
 
-const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
+// Gradiente fuego: usar T.fireGradient en todo el archivo
+
 
 // Convierte markdown ligero (bold, newlines, bullets) a HTML con animacion
 // de entrada word-by-word para que el texto se sienta dinamico.
@@ -242,7 +243,7 @@ function BloqueFormulario({ bloque, respondido, anchoAmplio, onEnviar }: {
           disabled={faltaRequerido}
           style={{
             width: '100%', padding: '10px 0', borderRadius: 10, border: 'none',
-            background: faltaRequerido ? T.bgCardHi : FIRE,
+            background: faltaRequerido ? T.bgCardHi : T.fireGradient,
             color: faltaRequerido ? T.textMuted : '#fff',
             fontSize: 13.5, fontWeight: 700, cursor: faltaRequerido ? 'not-allowed' : 'pointer',
             boxShadow: faltaRequerido ? 'none' : '0 6px 18px rgba(192,38,10,0.22)',
@@ -310,7 +311,7 @@ function BloqueOpciones({ bloque, respondido, onEnviar }: {
           disabled={seleccion.length === 0}
           style={{
             width: '100%', padding: '9px 0', borderRadius: 10, border: 'none',
-            background: seleccion.length === 0 ? T.bgCardHi : FIRE,
+            background: seleccion.length === 0 ? T.bgCardHi : T.fireGradient,
             color: seleccion.length === 0 ? T.textMuted : '#fff',
             fontSize: 13, fontWeight: 700, cursor: seleccion.length === 0 ? 'not-allowed' : 'pointer',
           }}
@@ -453,7 +454,7 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
         </div>
         <div style={{ height: 6, borderRadius: 999, background: T.bgCardHi, overflow: 'hidden' }}>
           <div style={{
-            width: `${pct}%`, height: '100%', background: FIRE, borderRadius: 999,
+            width: `${pct}%`, height: '100%', background: T.fireGradient, borderRadius: 999,
             transition: 'width 0.3s cubic-bezier(0.16,1,0.3,1)',
           }} />
         </div>
@@ -505,7 +506,7 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
               Cancelar
             </button>
             <button onClick={onConfirmar} disabled={aplicando}
-              style={{ flex: 2, padding: '9px 0', borderRadius: 10, border: 'none', background: FIRE, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: aplicando ? 'default' : 'pointer', opacity: aplicando ? 0.7 : 1, boxShadow: '0 6px 18px rgba(192,38,10,0.22)' }}>
+              style={{ flex: 2, padding: '9px 0', borderRadius: 10, border: 'none', background: T.fireGradient, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: aplicando ? 'default' : 'pointer', opacity: aplicando ? 0.7 : 1, boxShadow: '0 6px 18px rgba(192,38,10,0.22)' }}>
               {aplicando ? 'Aplicando...' : 'Confirmar'}
             </button>
           </div>

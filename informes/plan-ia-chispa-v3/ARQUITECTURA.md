@@ -1,5 +1,6 @@
 # ARQUITECTURA de la capa IA (Chispa) — fuente de verdad
 
+
 > Salida de la **Sesión S01** (plan V3, árbol). Este documento **delimita** la capa IA
 > (módulos, contratos, flujo de datos, límites), la deja **óptima** (un solo camino por
 > responsabilidad) y define su **auto-conocimiento** (lo que Chispa sabe de sí misma).

@@ -30,6 +30,37 @@ export const DESIGN_TOKENS = {
   bgCard: '#ffffff',    // tarjetas limpias
   bgCardHi: '#fbf6f0',  // tarjeta elevada / hover (crema sutil)
 
+  // Gradiente fuego (CTAs, badges, highlights IA) — UNICA fuente de verdad
+  fireGradient: 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)',
+
+  // Tokens específicos de la capa IA (superficies Chispa)
+  ia: {
+    // Bloques del panel (burbujas, tarjetas de acción, formularios)
+    bloqueBorder: 'rgba(40,30,24,0.08)',
+    bloqueBorderHi: 'rgba(40,30,24,0.14)',
+    bloqueRadius: 14,
+    bloquePadding: '12px 14px',
+
+    // Mensaje de usuario (burbuja derecha)
+    mensajeUserBg: '#f4501e',
+    mensajeUserRadius: 14,
+    mensajeUserPadding: '9px 12px',
+
+    // Estados de carga/vacío/error
+    vacioColor: '#b3a89d',
+    errorBackground: 'rgba(226,59,52,0.14)',
+    errorBorder: 'rgba(226,59,52,0.55)',
+
+    // Drawer del panel
+    drawerBackdrop: 'rgba(8,6,4,0.40)',
+    drawerShadow: '-18px 0 50px rgba(40,30,24,0.16)',
+    drawerBorder: 'rgba(40,30,24,0.1)',
+
+    // Botón flotante (pestana lanzadora)
+    launcherShadow: '0 8px 24px rgba(192,38,10,0.32)',
+    launcherPadding: '12px 8px 14px',
+  },
+
   // Borders — tinte cálido oscuro para que se vean sobre blanco/crema
   border: 'rgba(40,30,24,0.08)',
   borderHi: 'rgba(40,30,24,0.14)',
@@ -56,7 +87,6 @@ export const DESIGN_TOKENS = {
   warningSoft: 'rgba(224,138,0,0.16)',
   danger: '#e23b34',
   dangerSoft: 'rgba(226,59,52,0.14)',
-  fireGradient: 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)',
 
   // Additional
   violet: '#c0260a',

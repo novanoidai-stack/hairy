@@ -8,6 +8,7 @@ import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, type Blo
 import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
 import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
+import { MotionStyles } from '@/lib/motion';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
@@ -32,7 +33,7 @@ function triggerHaptic() {
 // Voz (Sesion 5): microfono (Web Speech + fallback STT server-side) y lectura
 // en voz alta de las respuestas (ElevenLabs con fallback a speechSynthesis).
 
-const FIRE = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
+// T.fireGradient ahora vive en designTokens.ts como T.fireGradient — UNICA fuente de verdad
 const DEMO_LIMITE_MSGS = 15; // rate-limit por sesion en la demo compartida
 const DEMO_COUNT_KEY = 'mecha-chispa-demo-msgs';
 const FULLSCREEN_KEY = 'mecha-chispa-fullscreen'; // preferencia por navegador (Sesion 1)
@@ -980,8 +981,8 @@ export default function ChispaPanel({
           style={{
             position: 'fixed', top: '50%', right: 0, transform: 'translateY(-50%)',
             zIndex: 2147483000, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-            padding: '12px 8px 14px', border: 'none', borderRadius: '14px 0 0 14px',
-            background: FIRE, color: '#fff', boxShadow: '0 8px 24px rgba(192,38,10,0.32)', cursor: 'pointer',
+            padding: T.ia.launcherPadding, border: 'none', borderRadius: '14px 0 0 14px',
+            background: T.fireGradient, color: '#fff', boxShadow: T.ia.launcherShadow, cursor: 'pointer',
             transition: 'padding 0.15s ease',
           }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.paddingRight = '12px'; }}
@@ -999,14 +1000,14 @@ export default function ChispaPanel({
         <>
           {isMobile && (
             <div className="chispa-backdrop" onClick={() => setAbierto(false)}
-              style={{ position: 'fixed', inset: 0, zIndex: 2147482999, background: 'rgba(8,6,4,0.40)' }} />
+              style={{ position: 'fixed', inset: 0, zIndex: 2147482999, background: T.ia.drawerBackdrop }} />
           )}
 
           <div className="chispa-drawer" style={{
             position: 'fixed', top: 0, right: 0, height: '100%', width: drawerWidth, zIndex: 2147483000,
             display: 'flex', flexDirection: 'column',
             background: 'rgba(255, 253, 251, 0.72)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-            borderLeft: `1px solid rgba(40,30,24,0.1)`, boxShadow: '-18px 0 50px rgba(40,30,24,0.16)',
+            borderLeft: `1px solid ${T.ia.drawerBorder}`, boxShadow: T.ia.drawerShadow,
             fontFamily: 'Inter, system-ui, sans-serif',
             // Transicion suave al entrar/salir de pantalla completa (desktop).
             transition: isMobile ? undefined : 'width 0.32s cubic-bezier(0.16,1,0.3,1)',
@@ -1040,7 +1041,7 @@ export default function ChispaPanel({
               </div>
               {voz.estado === 'hablando' && (
                 <button onClick={voz.detenerHabla} aria-label="Detener la voz de Chispa"
-                  style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: FIRE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: T.fireGradient, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <IconoStop size={11} color="#fff" />
                 </button>
               )}
@@ -1263,7 +1264,7 @@ export default function ChispaPanel({
                   <IconoMicro size={16} color={voz.estado === 'escuchando' ? T.danger : T.textSecondary} />
                 </button>
                 <button onClick={() => enviarMensaje()} disabled={(!texto.trim() && !imagenB64) || bloqueado} aria-label="Enviar mensaje"
-                  style={{ width: 34, height: 34, borderRadius: 10, border: 'none', background: (!texto.trim() && !imagenB64) || bloqueado ? T.bgCardHi : FIRE, cursor: (!texto.trim() && !imagenB64) || bloqueado ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s ease' }}>
+                  style={{ width: 34, height: 34, borderRadius: 10, border: 'none', background: (!texto.trim() && !imagenB64) || bloqueado ? T.bgCardHi : T.fireGradient, cursor: (!texto.trim() && !imagenB64) || bloqueado ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s ease' }}>
                   <IconoEnviar size={16} color={(!texto.trim() && !imagenB64) || bloqueado ? T.textMuted : '#fff'} />
                 </button>
               </div>
