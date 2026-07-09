@@ -72,6 +72,8 @@ const ICON_MAP: Record<string, string> = {
   reorderFour: 'reorder-four-outline',
   pricetag: 'pricetag-outline',
   chevronBack: 'chevron-back',
+  sparkles: 'star-outline',
+  zap: 'flash-outline',
 };
 
 export function SettingsIcon({ name, size = 16, color }: { name: string; size?: number; color?: string }) {

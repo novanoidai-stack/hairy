@@ -7,9 +7,9 @@ import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { CATEGORY_COLOR_TOKENS, categoryColorHex, type CategoryColorToken } from '@/lib/categoryColors';
 import { TabPresupuestoConceptos } from '@/components/config/TabPresupuestoConceptos';
 import { MiPerfilProfesional } from '@/components/config/MiPerfilProfesional';
-import { TabImportarCitas } from '@/components/config/TabImportarCitas';
 import { TabMigracionMagica } from '@/components/config/TabMigracionMagica';
 import { TabRecompensas } from '@/components/config/TabRecompensas.web';
+import { HubIA } from '@/components/config/HubIA';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -249,8 +249,8 @@ const TABS: TabDef[] = [
   { id: 'comisiones',     label: 'Comisiones',     icon: 'percent',   section: 'Operativa' },
   { id: 'presupuestos',   label: 'Presupuestos',   icon: 'copy',      section: 'Operativa' },
   { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
-  { id: 'importar',       label: 'Importar CSV',       icon: 'upload',    section: 'Operativa' },
   { id: 'migracion_magica', label: 'Migración Mágica', icon: 'zap', section: 'Operativa' },
+  { id: 'hub_ia',         label: 'Qué hace la IA',    icon: 'sparkles', section: 'Cuenta' },
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion' },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion' },
   { id: 'reserva',        label: 'Reserva online', icon: 'globe',     section: 'Comunicacion' },
@@ -1161,11 +1161,11 @@ export default function ConfiguracionWeb() {
             {tab === 'plantillas' && (
               <TabPlantillas config={config} setC={setC} />
             )}
-            {tab === 'importar' && (
-              <TabImportarCitas negocioId={negocioId} />
-            )}
             {tab === 'migracion_magica' && (
               <TabMigracionMagica negocioId={negocioId} />
+            )}
+            {tab === 'hub_ia' && (
+              <HubIA negocioId={negocioId} rolStr={account?.role} />
             )}
             {tab === 'notificaciones' && <TabNotificaciones config={config} setC={setC} />}
             {tab === 'politicas' && <TabPoliticas config={config} setC={setC} />}
