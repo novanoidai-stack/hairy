@@ -7,21 +7,22 @@ from pathlib import Path
 
 AUDIOS_DIR = Path(__file__).parent / "audios_prueba"
 
+# Ordenado de mas a menos natural/humana al oido (juicio propio al generarlas).
 # metadata: prefijo -> (nombre, licencia, espanol, comercial_ok, notas)
 TECNOLOGIAS = [
-    ("14_edge_tts", "edge-tts", "API no oficial de Microsoft Edge", "Nativo", "Zona gris (API no documentada oficialmente)", ""),
-    ("05_piper", "Piper", "MIT", "Nativo (es_ES/es_MX)", "Si", ""),
+    ("07_coqui_xtts", "Coqui XTTS v2", "CPML (pesos)", "Nativo, la mas humana del lote", "Ignorado por decision expresa -- CPML es no comercial y Coqui cerro en 2024 (sin via de pagar licencia)", ""),
+    ("09_openvoice", "OpenVoice V2", "MIT (desde abr-2024)", "Nativo + clona la voz actual de ElevenLabs", "Si", ""),
     ("06_melotts", "MeloTTS", "MIT", "Nativo (ES)", "Si", ""),
-    ("06b_kokoro", "Kokoro-82M (pip directo)", "Apache-2.0", "Nativo (1F/2M, menos datos que EN)", "Si", ""),
-    ("09_openvoice", "OpenVoice V2", "MIT (desde abr-2024)", "Nativo + voice cloning", "Si", ""),
-    ("07_coqui_xtts", "Coqui XTTS v2", "CPML (pesos)", "Nativo, mejor calidad", "NO -- no comercial, sin via de compra (Coqui cerro 2024)", ""),
-    ("08_yourtts", "YourTTS", "CC-BY-NC", "Nativo", "NO -- no comercial", ""),
-    ("10_mms", "MMS (Meta)", "CC-BY-NC-4.0", "Nativo (checkpoint dedicado es)", "NO -- no comercial", ""),
-    ("09b_bark", "Bark (Suno)", "MIT (codigo)", "Nativo, muy expresivo", "Revisar pesos", ""),
+    ("06b_kokoro", "Kokoro-82M (desplegado en VPS)", "Apache-2.0", "Nativo (1F/2M, menos datos que EN)", "Si -- EN PRODUCCION", ""),
+    ("05_piper", "Piper", "MIT", "Nativo (es_ES/es_MX)", "Si", ""),
+    ("14_edge_tts", "edge-tts", "API no oficial de Microsoft Edge", "Nativo", "Zona gris (API no documentada oficialmente)", ""),
+    ("08_yourtts", "YourTTS", "CC-BY-NC", "NO soportado -- el checkpoint publico solo trae en/fr-fr/pt-br", "Descartada por idioma ademas de licencia", ""),
+    ("10_mms", "MMS (Meta)", "CC-BY-NC-4.0", "Nativo (checkpoint dedicado es)", "Ignorado por decision expresa (aun asi CC-BY-NC)", ""),
+    ("09b_bark", "Bark (Suno)", "MIT (codigo)", "Nativo, muy expresivo", "No se completo (descarga de pesos sin terminar)", ""),
     ("11b_chattts", "ChatTTS", "-", "NO soportado (solo ZH/EN)", "Descartada por idioma", ""),
     ("11_speecht5", "SpeechT5 (Microsoft)", "MIT", "NO soportado oficialmente (solo EN)", "Descartada por idioma", ""),
-    ("12_styletts2", "StyleTTS2", "MIT (codigo)", "Solo via fine-tune comunitario no oficial", "Incierto (checkpoint comunitario)", ""),
-    ("13_fishspeech", "fish-speech / OpenAudio", "CC-BY-NC-SA-4.0", "Generico multi-idioma", "NO -- no comercial sin licencia de pago", ""),
+    ("12_styletts2", "StyleTTS2", "MIT (codigo)", "Checkpoint comunitario incompatible (torch.load bloqueado)", "No se completo", ""),
+    ("13_fishspeech", "fish-speech / OpenAudio", "CC-BY-NC-SA-4.0", "Generico multi-idioma", "No se intento (pipeline manual de 3 pasos, prioridad baja)", ""),
     ("15_indextts", "index-tts", "-", "NO soportado (EN/ZH; ES solo en v2.5 no liberada)", "Descartada por idioma", ""),
 ]
 
@@ -51,7 +52,12 @@ def audio_row(prefix: str, nombre: str, licencia: str, espanol: str, comercial: 
             f'<span class="size">{humanize_size(path)}</span>'
         )
 
-    comercial_class = "ok" if comercial == "Si" else ("bad" if comercial.startswith("NO") else "warn")
+    if comercial.startswith("Si"):
+        comercial_class = "ok"
+    elif comercial.startswith("Descartada") or comercial.startswith("No se"):
+        comercial_class = "bad"
+    else:
+        comercial_class = "warn"
     return f"""
     <tr>
       <td>{nombre}</td>
