@@ -18,6 +18,9 @@ import type { Bloque } from '@/lib/chispaBloques';
 import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import type { AccionEstado } from '@/components/chispa/BloqueRenderer.web';
 import { ejecutarAccion } from '@/lib/chispaOps';
+import { fasesDe, type CitaRetraso } from '@/lib/retrasos';
+import { UMBRAL_HUECO_MIN_DEFAULT } from '@/lib/organizarAgenda';
+import { CITA_STATUS, CITA_STATUS_ACTIVOS } from '@/lib/constants';
 
 const T = DESIGN_TOKENS;
 
@@ -156,6 +159,53 @@ function resumenIADeterminista(r: Resumen, periodo: Periodo): string {
   return `${prefijo}: ${partes.join(' · ')}.`;
 }
 
+// Coaching de huecos (Sesion 7 V2): hueco real y aprovechable HOY para el
+// profesional, calculado con las MISMAS primitivas de fase que el boton
+// "Organizar mi agenda" (lib/retrasos.ts fasesDe) para no reinventar la regla
+// dura activa/reposo/transicion. Dos tipos: 'reposo' (el profesional queda
+// libre durante el tinte/permanente de un cliente, aunque el servicio siga
+// abierto) y 'entre_citas' (hueco muerto entre el fin real de una cita y el
+// inicio de la siguiente). Solo cuentan huecos que no hayan pasado ya.
+interface HuecoHoy {
+  tipo: 'reposo' | 'entre_citas';
+  inicioMs: number;
+  minutos: number;
+  cliente: string | null;
+}
+
+function calcularHuecosHoy(citas: CitaRetraso[], ahoraMs: number, umbralMin = UMBRAL_HUECO_MIN_DEFAULT): HuecoHoy[] {
+  const fases = citas.map((c) => ({ f: fasesDe(c), cliente: c.cliente ?? null })).sort((a, b) => a.f.ini - b.f.ini);
+  const huecos: HuecoHoy[] = [];
+
+  for (const { f, cliente } of fases) {
+    if (f.finE > f.finA && f.finE > ahoraMs) {
+      const minutos = Math.round((f.finE - f.finA) / 60000);
+      if (minutos >= umbralMin) huecos.push({ tipo: 'reposo', inicioMs: f.finA, minutos, cliente });
+    }
+  }
+  for (let i = 0; i < fases.length - 1; i++) {
+    const actual = fases[i].f;
+    const siguiente = fases[i + 1].f;
+    if (siguiente.ini <= actual.fin || siguiente.ini <= ahoraMs) continue;
+    const minutos = Math.round((siguiente.ini - actual.fin) / 60000);
+    if (minutos >= umbralMin) huecos.push({ tipo: 'entre_citas', inicioMs: actual.fin, minutos, cliente: null });
+  }
+
+  return huecos.sort((a, b) => a.inicioMs - b.inicioMs);
+}
+
+function fmtHoraHueco(ms: number): string {
+  return new Date(ms).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+
+function textoHueco(h: HuecoHoy): string {
+  const hora = fmtHoraHueco(h.inicioMs);
+  if (h.tipo === 'reposo') {
+    return `Tienes ${h.minutos} min libres a partir de las ${hora} mientras ${h.cliente ? `el servicio de ${h.cliente}` : 'un servicio'} está en reposo.`;
+  }
+  return `Tienes ${h.minutos} min libres a partir de las ${hora} antes de tu siguiente cita.`;
+}
+
 function MetricRow({ icon, label, value, sub, color = T.primary }: { icon: string; label: string; value: string; sub?: string; color?: string }) {
   return (
     <div style={{
@@ -226,15 +276,55 @@ function MiJornadaScreen() {
   const ayudaIA = useAyudaIA();
   const [accionEstadoIA, setAccionEstadoIA] = useState<AccionEstado>('pendiente');
 
+  // Coaching de huecos (Sesion 7 V2): solo tiene sentido en la vista de HOY,
+  // sobre la agenda propia. Se calcula aparte del RPC mi_jornada_resumen
+  // (que solo trae citas YA completadas) porque necesita las citas futuras
+  // del dia para detectar huecos aprovechables.
+  const [huecosHoy, setHuecosHoy] = useState<HuecoHoy[]>([]);
+  useEffect(() => {
+    const profId = resumen?.profesional?.id;
+    if (periodo !== 'hoy' || vista !== 'personal' || !resumen?.profesional?.vinculado || !profId) {
+      setHuecosHoy([]);
+      return;
+    }
+    let cancelado = false;
+    (async () => {
+      const profile = await getUserProfile();
+      if (!profile?.negocio_id) return;
+      const hoy0 = startOfDay(new Date());
+      const { data } = await supabase
+        .from('citas')
+        .select('id, inicio, fin, fin_activa, fin_espera, clientes(nombre)')
+        .eq('negocio_id', profile.negocio_id)
+        .eq('profesional_id', profId)
+        .gte('inicio', hoy0.toISOString())
+        .lt('inicio', addDays(hoy0, 1).toISOString())
+        .in('estado', [...CITA_STATUS_ACTIVOS, CITA_STATUS.COMPLETADA]);
+      if (cancelado) return;
+      const citasFases: CitaRetraso[] = ((data as any[]) ?? []).map((c) => {
+        const clienteRow = Array.isArray(c.clientes) ? c.clientes[0] : c.clientes;
+        return { id: c.id, inicio: c.inicio, fin: c.fin, fin_activa: c.fin_activa, fin_espera: c.fin_espera, cliente: clienteRow?.nombre ?? null };
+      });
+      setHuecosHoy(calcularHuecosHoy(citasFases, Date.now()));
+    })();
+    return () => { cancelado = true; };
+  }, [periodo, vista, resumen?.profesional?.id, resumen?.profesional?.vinculado]);
+
   const analizarDiaIA = () => {
     setAccionEstadoIA('pendiente');
+    const huecosTexto = huecosHoy.length > 0
+      ? `Huecos libres REALES detectados hoy (no inventes otros ni cambies estos): ${huecosHoy.map((h) => `${h.minutos} min a las ${fmtHoraHueco(h.inicioMs)}${h.tipo === 'reposo' ? ' (reposo de un servicio en curso)' : ''}`).join('; ')}.`
+      : 'Sin huecos libres relevantes detectados hoy.';
     const prompt = `Analiza el día del profesional ${resumen?.profesional.nombre}.
 Tiene ${resumen?.citas_completadas} citas en este periodo.
 Citas: ${JSON.stringify(resumen?.citas_lista || [])}.
 Horas: ${resumen?.horas}.
 Comisión estimada: ${(resumen?.comision_cents || 0) / 100}€.
-Haz un breve resumen amistoso y motivador (2-3 frases). Si ves huecos o pocas citas,
-sugiérelo en el propio texto (p.ej. contactar clientas que llevan tiempo sin venir).
+${huecosTexto}
+Haz un breve resumen amistoso y motivador (2-3 frases). Si hay huecos libres reales (los de
+arriba), sugiere una forma concreta de aprovecharlos (contactar a una clienta que lleva tiempo
+sin venir, adelantar una tarea, o simplemente descansar si el día ha sido intenso); si no hay
+ninguno, no inventes que los hay.
 No propongas crear una cita nueva: no tienes los datos (servicio, profesional, hora)
 para proponerla completa, así que no llames a esa herramienta.`;
     ayudaIA.analizar(prompt);
@@ -837,7 +927,12 @@ para proponerla completa, así que no llames a esa herramienta.`;
             onAnalizar={analizarDiaIA}
             botonLabel="Analizar mi día"
             mensajeVacio="Chispa no ha encontrado nada que destacar en tu día."
-            resumenDeterminista={resumen ? resumenIADeterminista(resumen, periodo) : null}
+            resumenDeterminista={resumen ? (
+              <>
+                {resumenIADeterminista(resumen, periodo)}
+                {huecosHoy.length > 0 && <div style={{ marginTop: 6 }}>{textoHueco(huecosHoy[0])}</div>}
+              </>
+            ) : null}
             accionEstado={accionEstadoIA}
             onConfirmarAccion={confirmarAccionIA}
             onCancelarAccion={() => setAccionEstadoIA('cancelada')}

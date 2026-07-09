@@ -39,7 +39,7 @@ import { HORARIO_CIERRE } from './constants.ts';
 const MIN = 60000;
 const UMBRAL_RETRASO_MIN = 10; // por debajo, no merece abrir el flujo de retraso
 const MAX_RETRASO_MIN = 240; // citas "olvidadas" de hace horas no cuentan como retraso activo
-const UMBRAL_HUECO_MIN_DEFAULT = 20; // huecos menores no merecen una propuesta
+export const UMBRAL_HUECO_MIN_DEFAULT = 20; // huecos menores no merecen una propuesta
 
 export type TipoProblemaAgenda = 'retraso' | 'solape' | 'hueco_muerto' | 'reposo_desaprovechado';
 

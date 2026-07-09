@@ -19,6 +19,10 @@ import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web'
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { LineChartMini } from '@/components/charts/LineChartMini.web';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
+import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
+import type { AccionEstado } from '@/components/chispa/BloqueRenderer.web';
+import { ejecutarAccion } from '@/lib/chispaOps';
 
 // ---------------------------------------------------------------------------
 // SVG Icons
@@ -800,6 +804,64 @@ function InformesScreen() {
   ];
 
   // -------------------------------------------------------------------------
+  // Informe narrado (Sesion 7 V2): patron "AyudaIA por pagina" (useAyudaIA +
+  // TarjetaAyudaIA, informes/PATRON-IA-POR-PAGINA.md). El resumen determinista
+  // usa SOLO cifras YA cargadas en esta pantalla (nunca inventadas); el LLM
+  // anade la lectura narrada y pide al edge mostrar_grafica/mostrar_comparativa
+  // (calculo real server-side, Sesion 6 de PLAN-IA-CHISPA) para contrastar con
+  // el periodo anterior equivalente.
+  // -------------------------------------------------------------------------
+  const informeIA = useAyudaIA();
+  const [accionEstadoInformeIA, setAccionEstadoInformeIA] = useState<AccionEstado>('pendiente');
+
+  const resumenInformeDeterminista = useMemo(() => {
+    const partes = [
+      `${totalCitas} citas`,
+      hayCobros ? `${fmtEur(totalCobrado)} EUR cobrados` : `${fmtEur(totalIngresos)} EUR estimados`,
+    ];
+    if (noShows.length > 0) partes.push(`${noShows.length} no-shows (${fmtPct(tasaNoShow)})`);
+    return `${periodoLabel}: ${partes.join(' · ')}.`;
+  }, [periodoLabel, totalCitas, hayCobros, totalCobrado, totalIngresos, noShows.length, tasaNoShow]);
+
+  const analizarInformeIA = () => {
+    setAccionEstadoInformeIA('pendiente');
+    // La tool mostrar_comparativa solo admite 'semana'|'mes'; los periodos mas
+    // largos (3meses/anio) piden la comparativa mensual, la granularidad mas
+    // cercana disponible.
+    const periodoComparativa = periodo === 'semana' ? 'semana' : 'mes';
+    // Orden explicito + prohibicion de sugerir_enlace (redundante, ya estamos en
+    // Informes): probado en vivo que sin esto el texto narrado se escribe en un
+    // turno intermedio (tras llamar a mostrar_grafica/mostrar_comparativa) y luego
+    // una llamada de cierre a sugerir_enlace deja el turno FINAL vacio — el patron
+    // useAyudaIA solo usa el texto de la ULTIMA respuesta, así que el informe
+    // narrado se perdia (bloques visuales sin texto). Mismo tipo de ajuste de
+    // prompt que la Sesion 3 V2 (probar en vivo, reforzar con regla explicita).
+    const prompt = `Necesito un informe narrado del periodo ${periodoLabel}. Sigue este orden EXACTO:
+1) Llama a mostrar_grafica con metrica "ingresos" desde "${format(desde, 'yyyy-MM-dd')}" hasta "${format(hasta, 'yyyy-MM-dd')}",
+   y a mostrar_comparativa con metrica "ingresos" y periodo "${periodoComparativa}" para contrastar con el periodo anterior equivalente.
+2) En cuanto termines esas llamadas, tu SIGUIENTE respuesta (sin mas llamadas a tools) tiene que ser el INFORME:
+   3-4 frases en tono profesional y directo interpretando estas cifras YA CALCULADAS (no inventes otras): ${totalCitas} citas,
+   ${hayCobros ? `${totalCobrado.toFixed(2)}€ cobrados de verdad` : `${totalIngresos.toFixed(2)}€ estimados (aun sin cobros registrados)`},
+   ocupacion media ${Math.round(ocupacionGlobal * 10) / 10} citas/profesional, ${noShows.length} no-shows (${Math.round(tasaNoShow)}%).
+   No repitas estos numeros tal cual (ya se ven en el panel de arriba): interpreta que significan para el negocio. Si la
+   comparativa muestra una caida relevante (mas de 10%), señalalo con franqueza como alerta; si sube, celebralo brevemente.
+   No inventes cifras que no te haya dado o que no devuelvan las tools.
+NO uses sugerir_enlace en esta respuesta (ya estamos en Informes, un enlace aqui es redundante). Tu ULTIMA respuesta
+SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia sin el texto.`;
+    informeIA.analizar(prompt);
+  };
+
+  const confirmarAccionInformeIA = async () => {
+    if (informeIA.estado.tipo !== 'listo') return;
+    const bloqueAccion = informeIA.estado.bloques.find((b) => b.tipo === 'accion');
+    if (!bloqueAccion || bloqueAccion.tipo !== 'accion') return;
+    setAccionEstadoInformeIA('aplicando');
+    const profile = await getUserProfile();
+    const res = await ejecutarAccion(bloqueAccion.accion, profile?.id || '');
+    setAccionEstadoInformeIA(res.ok ? 'aplicada' : 'pendiente');
+  };
+
+  // -------------------------------------------------------------------------
   // Export PDF — informe imprimible con marca (ventana nueva -> Guardar como PDF)
   // -------------------------------------------------------------------------
   const exportPDF = useCallback(() => {
@@ -1284,6 +1346,25 @@ function InformesScreen() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* ============================================================= */}
+            {/* Sesion 7 V2: informe narrado proactivo (patron TarjetaAyudaIA) */}
+            {/* ============================================================= */}
+            <div style={{ marginBottom: isMobile ? 10 : 14 }}>
+              <TarjetaAyudaIA
+                titulo="Informe narrado"
+                subtitulo="Lectura de Chispa sobre este periodo"
+                estado={informeIA.estado}
+                onAnalizar={analizarInformeIA}
+                botonLabel="Analizar periodo"
+                mensajeVacio="Chispa no ha encontrado nada que destacar en este periodo."
+                resumenDeterminista={resumenInformeDeterminista}
+                accionEstado={accionEstadoInformeIA}
+                onConfirmarAccion={confirmarAccionInformeIA}
+                onCancelarAccion={() => setAccionEstadoInformeIA('cancelada')}
+                isMobile={isMobile}
+              />
             </div>
 
             {/* ============================================================= */}

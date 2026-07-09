@@ -8,10 +8,13 @@ import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
-import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA } from '@/lib/constants';
+import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA, CITA_STATUS_ACTIVOS } from '@/lib/constants';
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { RiesgoNoShowIndicator, type RiesgoNoShow } from '@/components/clientes/RiesgoNoShowIndicator.web';
+import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
+import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
+import { ejecutarAccion, type AccionPropuesta } from '@/lib/chispaOps';
 import * as XLSX from 'xlsx';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualClientes } from '@/lib/manuals/clientes';
@@ -303,6 +306,99 @@ function ClientesWeb() {
   // Demo guiada: si la guia pide abrir una ficha antes de que carguen los clientes,
   // dejamos la peticion pendiente y la resolvemos en cuanto haya datos.
   const demoFichaPending = useRef(false);
+
+  // Sesion 7 V2: pastilla de riesgo/fuga ACCIONABLE (Recuperar/Avisar de un
+  // clic) + Q&A de ficha. Estado por ficha abierta; se resetea al cambiar de
+  // clienta para no arrastrar la respuesta de la anterior.
+  const [estadoRecuperar, setEstadoRecuperar] = useState<{ tipo: 'idle' | 'cargando' | 'ok' | 'error'; mensaje?: string }>({ tipo: 'idle' });
+  const [estadoAvisar, setEstadoAvisar] = useState<{ tipo: 'idle' | 'cargando' | 'ok' | 'error' | 'sin_citas'; mensaje?: string }>({ tipo: 'idle' });
+  const [preguntaFicha, setPreguntaFicha] = useState('');
+  const ayudaFichaIA = useAyudaIA();
+  const [accionEstadoFichaIA, setAccionEstadoFichaIA] = useState<AccionEstado>('pendiente');
+
+  useEffect(() => {
+    setEstadoRecuperar({ tipo: 'idle' });
+    setEstadoAvisar({ tipo: 'idle' });
+    setPreguntaFicha('');
+    ayudaFichaIA.reset();
+    setAccionEstadoFichaIA('pendiente');
+    // Reset intencional SOLO al cambiar de clienta (no en cada render de ayudaFichaIA).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
+
+  // "Recuperar" (fuga): registra la propuesta de vuelta REAL via el mismo
+  // ejecutor que usa el chatbot (chispaOps.ejecutarAccion + RPC
+  // registrar_aviso_fuga), sin pasar por el LLM: el pill YA es la propuesta.
+  const recuperarClienteUnClic = async (cl: Cliente) => {
+    setEstadoRecuperar({ tipo: 'cargando' });
+    if (negocioId === 'demo_salon_001') {
+      setEstadoRecuperar({ tipo: 'ok', mensaje: 'Hecho (demostración): en tu cuenta esto registraría una propuesta de vuelta real para el equipo.' });
+      return;
+    }
+    const profile = await getUserProfile();
+    const accion: AccionPropuesta = {
+      tipo: 'recuperar_cliente',
+      negocio_id: negocioId,
+      cliente_id: cl.id,
+      cliente_nombre: cl.nombre,
+      dias_sin_venir: cl.diasFugaRetraso ?? 0,
+      resumen: `Recuperar a ${cl.nombre}, sin volver hace ${cl.diasFugaRetraso ?? '?'} dias.`,
+    };
+    const res = await ejecutarAccion(accion, profile?.id || '');
+    setEstadoRecuperar(res.ok ? { tipo: 'ok', mensaje: res.mensaje } : { tipo: 'error', mensaje: mensajeDeError({ message: res.error }) });
+  };
+
+  // "Avisar" (riesgo de no-show): busca la PROXIMA cita confirmada de la
+  // clienta y resetea sus flags de notificacion para que el motor real de
+  // WhatsApp (n8n cron-pull) la reenvie de verdad — mismo mecanismo ya usado
+  // al reagendar/reorganizar (ver modificar_cita_publica y "Organizar mi
+  // agenda"). Sin cita proxima, no hay nada que reforzar: se dice con franqueza.
+  const avisarRiesgoNoShowUnClic = async (cl: Cliente) => {
+    setEstadoAvisar({ tipo: 'cargando' });
+    const { data, error } = await supabase
+      .from('citas')
+      .select('id, inicio')
+      .eq('negocio_id', negocioId)
+      .eq('cliente_id', cl.id)
+      .in('estado', CITA_STATUS_ACTIVOS)
+      .gt('inicio', new Date().toISOString())
+      .order('inicio', { ascending: true })
+      .limit(1);
+    if (error) { setEstadoAvisar({ tipo: 'error', mensaje: mensajeDeError(error) }); return; }
+    const proxima = (data ?? [])[0] as { id: string; inicio: string } | undefined;
+    if (!proxima) { setEstadoAvisar({ tipo: 'sin_citas' }); return; }
+    const fechaFmt = new Date(proxima.inicio).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    if (negocioId === 'demo_salon_001') {
+      setEstadoAvisar({ tipo: 'ok', mensaje: `Hecho (demostración): en tu cuenta esto reforzaría el aviso de confirmación de su cita del ${fechaFmt}.` });
+      return;
+    }
+    const { error: updErr } = await supabase.from('citas').update({ confirmacion_enviada: false, recordatorio_enviado: false }).eq('id', proxima.id);
+    if (updErr) { setEstadoAvisar({ tipo: 'error', mensaje: mensajeDeError(updErr) }); return; }
+    setEstadoAvisar({ tipo: 'ok', mensaje: `Se reforzará el aviso de confirmación de su cita del ${fechaFmt}.` });
+  };
+
+  // Q&A de ficha: el id de la clienta viaja en el propio texto (ver
+  // FichaPreguntaIA) para que ficha_cliente la resuelva sin ambiguedad.
+  const preguntarFichaIA = (cl: Cliente) => {
+    const texto = preguntaFicha.trim();
+    if (!texto) return;
+    setAccionEstadoFichaIA('pendiente');
+    ayudaFichaIA.analizar(
+      `Pregunta del equipo sobre una clienta concreta. Su id EXACTO es "${cl.id}" (nombre: "${cl.nombre}"). ` +
+      `Usa la tool ficha_cliente con id="${cl.id}" para consultarla (no busques por nombre, ya tienes el id exacto). ` +
+      `Pregunta: ${texto}`,
+    );
+  };
+
+  const confirmarAccionFichaIA = async () => {
+    if (ayudaFichaIA.estado.tipo !== 'listo') return;
+    const bloqueAccion = ayudaFichaIA.estado.bloques.find((b) => b.tipo === 'accion');
+    if (!bloqueAccion || bloqueAccion.tipo !== 'accion') return;
+    setAccionEstadoFichaIA('aplicando');
+    const profile = await getUserProfile();
+    const res = await ejecutarAccion(bloqueAccion.accion, profile?.id || '');
+    setAccionEstadoFichaIA(res.ok ? 'aplicada' : 'pendiente');
+  };
 
   const eliminarClienteDirecto = async (cli: Cliente) => {
     if (!window.confirm(`¿Seguro que quieres eliminar al cliente "${cli.nombre}"? Si tiene citas asociadas, no se podrá eliminar.`)) return;
@@ -885,8 +981,42 @@ function ClientesWeb() {
                         {c.actividad === 'Inactiva' && <Pill color={TOKENS.textTer} title="Sin visitas recientes. Informativo (util para campanas de recuperacion).">Inactiva</Pill>}
                         {c.actividad === 'Riesgo abandono' && <Pill color={TOKENS.warning} title="Hace tiempo que no viene. Informativo.">Riesgo abandono</Pill>}
                         {/* Riesgo de no-show (Sesion 7): score neutro derivado del historial
-                            (ausencias, cancelaciones tardias, antiguedad). Solo medio/alto. */}
+                            (ausencias, cancelaciones tardias, antiguedad). Solo medio/alto.
+                            Sesion 7 V2: ahora ACCIONABLE de un clic ("Avisar" refuerza el
+                            recordatorio de su proxima cita via el motor real de WhatsApp). */}
                         <RiesgoNoShowIndicator riesgo={c.riesgoNoShow} />
+                        {c.riesgoNoShow && c.riesgoNoShow.nivel !== 'bajo' && (
+                          <button
+                            title="Refuerza el aviso de confirmacion de su proxima cita (lo reenvia el motor real de WhatsApp)."
+                            onClick={() => avisarRiesgoNoShowUnClic(c)}
+                            disabled={estadoAvisar.tipo === 'cargando'}
+                            style={{ padding: '3px 10px', borderRadius: 999, border: `1px solid rgba(224,138,0,0.40)`, background: 'transparent', color: TOKENS.warning, fontSize: 11, fontWeight: 600, cursor: estadoAvisar.tipo === 'cargando' ? 'default' : 'pointer' }}
+                          >
+                            {estadoAvisar.tipo === 'cargando' ? 'Avisando...' : 'Avisar'}
+                          </button>
+                        )}
+                        {/* Fuga (Sesion 7 V2): antes solo se veia en la lista, no en la ficha.
+                            "Recuperar" registra la propuesta de vuelta real (mismo camino que el chatbot). */}
+                        {c.enRiesgoFuga && (
+                          <>
+                            <Pill
+                              color={TOKENS.cyan}
+                              title={c.recompensaFugaNombre
+                                ? `Sin volver hace ${c.diasFugaRetraso} dias (su media es ${c.frecuencia_dias}). Oferta sugerida: ${c.recompensaFugaNombre}`
+                                : `Sin volver hace ${c.diasFugaRetraso} dias (su media es ${c.frecuencia_dias})`}
+                            >
+                              Fuga · {c.diasFugaRetraso}d
+                            </Pill>
+                            <button
+                              title="Registra una propuesta de vuelta para que el equipo se la mande."
+                              onClick={() => recuperarClienteUnClic(c)}
+                              disabled={estadoRecuperar.tipo === 'cargando'}
+                              style={{ padding: '3px 10px', borderRadius: 999, border: `1px solid rgba(8,145,178,0.40)`, background: 'transparent', color: TOKENS.cyan, fontSize: 11, fontWeight: 600, cursor: estadoRecuperar.tipo === 'cargando' ? 'default' : 'pointer' }}
+                            >
+                              {estadoRecuperar.tipo === 'cargando' ? 'Recuperando...' : 'Recuperar'}
+                            </button>
+                          </>
+                        )}
                         {c.tocaRecompra && <Pill color="#8b5cf6" title="Ciclo habitual superado. Es probable que necesite agendar de nuevo.">Oportunidad Recompra</Pill>}
                         {c.bloqueado && <Pill color={TOKENS.danger} title="No puede reservar online. Se gestiona con el boton Bloquear.">Bloqueado</Pill>}
                         <button
@@ -902,6 +1032,18 @@ function ClientesWeb() {
                           {c.bloqueado ? 'Desbloquear' : 'Bloquear'}
                         </button>
                       </div>
+                      {/* Resultado visible de Recuperar/Avisar (Sesion 7 V2): nunca un fallo
+                          silencioso — siempre texto de exito o error, nunca solo un toast que desaparece. */}
+                      {estadoRecuperar.tipo !== 'idle' && estadoRecuperar.tipo !== 'cargando' && (
+                        <div style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6, color: estadoRecuperar.tipo === 'ok' ? TOKENS.success : TOKENS.danger }}>
+                          {estadoRecuperar.mensaje}
+                        </div>
+                      )}
+                      {estadoAvisar.tipo !== 'idle' && estadoAvisar.tipo !== 'cargando' && (
+                        <div style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6, color: estadoAvisar.tipo === 'ok' ? TOKENS.success : estadoAvisar.tipo === 'sin_citas' ? TOKENS.textTer : TOKENS.danger }}>
+                          {estadoAvisar.tipo === 'sin_citas' ? 'No tiene ninguna cita proxima a la que reforzar el aviso.' : estadoAvisar.mensaje}
+                        </div>
+                      )}
                       {/* Deposito segun tipo de cliente (senal al reservar online). Se configura en Ajustes > Politicas. */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                         <span title="Cuanto paga de senal este cliente al reservar online. 'Automatico' lo decide su historial (no-shows / citas completadas); las demas opciones lo fuerzan a mano. El comportamiento global se ajusta en Ajustes > Politicas." style={{ fontSize: 12, fontWeight: 600, color: TOKENS.textSec }}>Deposito (senal):</span>
@@ -1037,6 +1179,27 @@ function ClientesWeb() {
                 </button>
               ))}
             </div>
+
+            {/* Q&A de ficha (Sesion 7 V2): pregunta libre sobre ESTA clienta, con
+                el id embebido en el prompt (ficha_cliente la resuelve sin ambiguedad).
+                Regla dura de salud: la aplica el edge/tool, no hay logica aqui. */}
+            {c.consiente_ia === false ? (
+              <div style={{ background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: '12px 16px', marginBottom: 14, fontSize: 12.5, color: TOKENS.textTer }}>
+                Esta clienta no ha dado consentimiento para que la IA use sus datos.
+              </div>
+            ) : (
+              <FichaPreguntaIA
+                nombreCliente={c.nombre}
+                pregunta={preguntaFicha}
+                onChangePregunta={setPreguntaFicha}
+                onPreguntar={() => preguntarFichaIA(c)}
+                estado={ayudaFichaIA.estado}
+                onReintentar={ayudaFichaIA.reintentar}
+                accionEstado={accionEstadoFichaIA}
+                onConfirmarAccion={confirmarAccionFichaIA}
+                onCancelarAccion={() => setAccionEstadoFichaIA('cancelada')}
+              />
+            )}
 
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: panelExpanded ? 14 : 8, marginBottom: panelExpanded ? 18 : 14 }}>
@@ -3387,6 +3550,92 @@ function MiniStat({ label, value, tone, big }: any) {
     }}>
       <div style={{ fontSize: big ? 10 : 9, letterSpacing: 1, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
       <div style={{ fontSize: big ? 26 : 16, fontWeight: 700, color: tone, marginTop: big ? 6 : 2, letterSpacing: -0.5 }}>{value}</div>
+    </div>
+  );
+}
+
+// Q&A de ficha (Sesion 7 V2): caja de pregunta libre sobre UNA clienta concreta.
+// Reutiliza useAyudaIA (mismo patron "AyudaIA por pagina") + BloqueRenderer;
+// el id de la clienta viaja embebido en el propio texto del prompt para que
+// ficha_cliente la resuelva directo (sin ambiguedad de nombre) sin tener que
+// tocar el edge (que hoy no lee "contexto"). La regla dura de salud la aplica
+// el edge/tool (lista blanca + assertSinCamposProhibidos); aqui no hay logica
+// de salud que reimplementar.
+function FichaPreguntaIA({
+  nombreCliente,
+  pregunta,
+  onChangePregunta,
+  onPreguntar,
+  estado,
+  onReintentar,
+  accionEstado,
+  onConfirmarAccion,
+  onCancelarAccion,
+}: {
+  nombreCliente: string;
+  pregunta: string;
+  onChangePregunta: (v: string) => void;
+  onPreguntar: () => void;
+  estado: ReturnType<typeof useAyudaIA>['estado'];
+  onReintentar: () => void;
+  accionEstado: AccionEstado;
+  onConfirmarAccion: () => void;
+  onCancelarAccion: () => void;
+}) {
+  const cargando = estado.tipo === 'cargando';
+  return (
+    <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.primary}40`, borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
+      <style>{'@keyframes fpia-spin { to { transform: rotate(360deg) } }'}</style>
+      <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, marginBottom: 8 }}>Pregúntale a Chispa sobre {nombreCliente}</div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <input
+          value={pregunta}
+          onChange={(e) => onChangePregunta(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !cargando && pregunta.trim()) onPreguntar(); }}
+          placeholder="¿Cada cuánto viene? ¿Cuánto gasta de media?"
+          style={{ flex: 1, minWidth: 180, padding: '9px 12px', borderRadius: 9, border: `1px solid ${TOKENS.border}`, fontSize: 13, fontFamily: 'inherit', outline: 'none', color: TOKENS.text }}
+        />
+        <button
+          type="button"
+          onClick={onPreguntar}
+          disabled={cargando || !pregunta.trim()}
+          style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: TOKENS.primarySoft, color: TOKENS.primaryHi, fontSize: 13, fontWeight: 700, cursor: cargando ? 'not-allowed' : 'pointer', flexShrink: 0 }}
+        >
+          {cargando ? 'Preguntando...' : 'Preguntar'}
+        </button>
+      </div>
+      {estado.tipo !== 'idle' && (
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${TOKENS.border}` }}>
+          {estado.tipo === 'cargando' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: TOKENS.textSec }}>
+              <span style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${TOKENS.primary}`, borderTopColor: 'transparent', flexShrink: 0, animation: 'fpia-spin 0.8s linear infinite' }} />
+              Consultando la ficha...
+            </div>
+          )}
+          {estado.tipo === 'vacio' && <div style={{ fontSize: 13, color: TOKENS.textTer }}>Chispa no ha encontrado nada que responder.</div>}
+          {estado.tipo === 'error' && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', borderRadius: 8, background: TOKENS.dangerSoft, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 13, color: TOKENS.danger }}>{estado.mensaje}</span>
+              <button type="button" onClick={onReintentar} style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${TOKENS.danger}`, background: 'transparent', color: TOKENS.danger, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+                Reintentar
+              </button>
+            </div>
+          )}
+          {estado.tipo === 'listo' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {estado.bloques.map((b, i) => (
+                <BloqueRenderer
+                  key={i}
+                  bloque={b}
+                  accionEstado={b.tipo === 'accion' ? accionEstado : undefined}
+                  onConfirmar={onConfirmarAccion}
+                  onCancelar={onCancelarAccion}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
