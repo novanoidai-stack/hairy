@@ -151,7 +151,7 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 ### Fase A · Experiencia y diseño
 - [S03 · Rediseño panel + chat](fase-a-experiencia/S03-rediseno-panel-chat.md)
 - [S04 · Solo UI/diseño de la capa IA](fase-a-experiencia/S04-ui-diseno-capa-ia.md)
-- [S05 · Deshacer / revertir acciones](fase-a-experiencia/S05-deshacer-acciones.md)
+- [x] [S05 · Deshacer / revertir acciones](fase-a-experiencia/S05-deshacer-acciones.md)
 - [S06 · Voz neural + voces + micro + ortografía](fase-a-experiencia/S06-voz-neural.md)
 
 ### Fase B · Superficies IA por página
