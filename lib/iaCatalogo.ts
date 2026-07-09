@@ -38,9 +38,9 @@ export const CATALOGO_IA: FuncionIA[] = [
   {
     id: 'chispa-autoconocimiento',
     titulo: 'Pregúntale a Chispa qué sabe hacer',
-    descripcion: 'Chispa se conoce a sí misma: pregúntale "¿qué sabes hacer?" o "¿dónde configuro X?" y te enumera las funciones de IA disponibles con un enlace directo a cada pantalla.',
+    descripcion: 'Chispa se conoce a sí misma y conoce todo el ecosistema de IA: pregúntale "¿qué sabes hacer?", "¿qué funciones de IA hay en esta pantalla?" o "¿dónde configuro X?" y enumera las funciones disponibles con enlace directo. Además audita el registro para explicar ejecuciones concretas ("¿por qué me salió este upsell?", "¿cuándo se analizó mi día?") mostrando su resultado y su motivo en una línea de tiempo.',
     ubicacion: '/app?chispa=1',
-    uso: 'En el panel Chispa, escribe "¿qué puedes hacer?" o "¿dónde está la reserva online?".',
+    uso: 'En el panel Chispa, escribe "¿qué puedes hacer?", "¿qué IA hay en Clientes?" o "¿por qué apareció esa sugerencia?".',
     categoria: 'panel',
   },
   {

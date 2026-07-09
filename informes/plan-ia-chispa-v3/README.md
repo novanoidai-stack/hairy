@@ -162,7 +162,7 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 - [x] [S09 · Memoria corto/largo plazo (estructura + retención)](fase-c-cerebro/S09-memoria-corto-largo.md)
 - [x] [S10 · Memoria por ficha](fase-c-cerebro/S10-memoria-por-ficha.md)
 - [x] [S11 · Recuerdo y búsqueda temporal ("¿hace 4 meses?")](fase-c-cerebro/S11-recuerdo-busqueda-temporal.md)
-- [S12 · Chispa consciente del ecosistema IA](fase-c-cerebro/S12-chispa-consciente-ecosistema.md)
+- [x] [S12 · Chispa consciente del ecosistema IA](fase-c-cerebro/S12-chispa-consciente-ecosistema.md) (E2E LLM bloqueada por 402 OpenRouter — créditos, Alexandro)
 
 ### Fase D · Proactividad, iniciativa y guía
 - [S13 · Motor de escaneo 24/7](fase-d-proactiva/S13-escaneo-24-7.md)

@@ -31,8 +31,21 @@ Z, se ejecutó hace un rato y dio este resultado por esta razón".
   porqué, leídos del registro (verificado E2E tras ejecutar un helper).
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] edge desplegada+probada  [ ] E2E demo  [ ] manuales+iaCatalogo
-[ ] specs landing  [ ] commit+push  [ ] S12 marcada`
+`[x] tsc  [x] build  [x] edge desplegada+probada  [~] E2E demo (bloqueada por 402)  [x] manuales+iaCatalogo
+[ ] specs landing  [x] commit+push  [x] S12 marcada`
 
 ## Estado
-PENDIENTE.
+IMPLEMENTADA y DESPLEGADA (2026-07-09) — verificación E2E del LLM bloqueada por un 402 de OpenRouter (créditos).
+- **Consciencia estática (por página):** el catálogo se inyecta al edge de forma compacta incluyendo la
+  `pantalla` de cada helper, para poder responder "¿qué IA hay en Clientes/Agenda/…?" enumerando solo las
+  de esa ruta + un chip `sugerir_enlace` a cada una.
+- **Consciencia dinámica (ejecuciones):** `buscar_recuerdos` audita `eventos_negocio` (S08) y ahora
+  devuelve **motivo (el porqué) y resultado**; el bloque `timeline` muestra el motivo y marca en color fuego
+  las ejecuciones de IA. Fechas opcionales (por defecto, últimos 30 días). El prompt obliga a auditar el
+  registro antes de responder "por qué apareció X / cuándo se ejecutó X" (no responder solo desde catálogo).
+- `iaCatalogo.ts` (`chispa-autoconocimiento`) actualizado con la nueva capacidad. `tsc`/`build` limpios.
+- **BLOQUEO externo (Alexandro):** el edge devuelve `402 Prompt tokens limit exceeded (10134 > 6300)` de
+  OpenRouter por **créditos agotados** — esto tumba TODO el chat de Chispa en producción, no solo S12. Se
+  compactó la inyección del catálogo (~-850 tokens) pero el prompt no baja de 6300 sin recortar tools. Requiere
+  recargar créditos o cambiar de modelo/tier (decisión de IA de terceros = Alexandro). Verificado que el
+  plumbing determinista (evento con motivo/resultado → timeline) es correcto vía SQL.

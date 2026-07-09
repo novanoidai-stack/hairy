@@ -221,15 +221,14 @@ const TOOLS = [
   // --- S11: Busqueda temporal y recuerdos ---
   {
     name: 'buscar_recuerdos',
-    description: 'Busca eventos historicos en el registro universal del negocio. Usalo para responder "¿que paso hace X tiempo?" o "¿que hicimos en marzo?". TAMBIEN usalo para auditar la IA de la aplicacion (ej. "¿por que me salio este upsell?", "¿que optimizacion me recomendo la IA ayer?"), ya que las ejecuciones de los helpers visuales se guardan aqui.',
+    description: 'Audita el registro universal (eventos_negocio) para responder sobre el PASADO. DEBES usarla, no respondas de memoria, cuando pregunten "¿que paso hace X tiempo?", "¿que hicimos en marzo?" o cuando pregunten por que aparecio o cuando se ejecuto una funcion de IA (ej. "¿por que me salio este upsell?", "¿cuando se analizo mi dia?", "¿que me recomendo la IA?"): las ejecuciones de los helpers visuales se guardan aqui con su motivo y resultado. Si no indican fechas, deja desde/hasta vacios (por defecto busca los ultimos 30 dias).',
     parameters: {
       type: 'object' as const,
       properties: {
-        desde: { type: 'string', description: 'YYYY-MM-DD' },
-        hasta: { type: 'string', description: 'YYYY-MM-DD' },
+        desde: { type: 'string', description: 'YYYY-MM-DD (opcional; por defecto hace 30 dias)' },
+        hasta: { type: 'string', description: 'YYYY-MM-DD (opcional; por defecto hoy)' },
         entidad_o_tema: { type: 'string', description: 'Nombre de cliente, profesional, o tema a buscar (opcional)' }
       },
-      required: ['desde', 'hasta'],
     },
   },
   {
@@ -762,12 +761,21 @@ function normalizaHora(raw: string): string | null {
   return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
 }
 
-// --- S12: Catálogo inyectado dinámicamente ---
+// --- S12: Catálogo inyectado dinámicamente (con pantalla para agrupar por página) ---
+// Inyeccion COMPACTA (presupuesto de tokens): titulo + pantalla + descripcion.
+// El "uso"/categoria detallados viven en el Hub IA y los manuales, no aqui.
 const AUTOCONOCIMIENTO_IA = `AUTO-CONOCIMIENTO ECOSISTEMA IA:
-Esta es la lista completa de todas las IAs, automatizaciones y helpers visuales que operan en Mecha:
-${CATALOGO_IA.map((f: { id: string; titulo: string; descripcion: string; uso: string }) => `- [${f.id}] ${f.titulo}: ${f.descripcion} (Uso: ${f.uso})`).join('\n')}
+Todas las IAs y helpers visuales de Mecha, con la pantalla donde viven (para listar "las IA de esta pagina"):
+${CATALOGO_IA.map((f: { titulo: string; descripcion: string; ubicacion: string }) => `- ${f.titulo} [${f.ubicacion}]: ${f.descripcion}`).join('\n')}
 
-CONSCIENCIA DEL ECOSISTEMA: Tienes a tu disposicion el catalogo anterior. Si el usuario te pregunta por que aparecio una sugerencia en la pantalla o como funciona alguna IA de la app, usa la tool buscar_recuerdos para auditar que IA se ejecuto recientemente y explicaselo basandote en este catalogo. No inventes funciones que no esten aqui. Para cada funcion relevante, ofrece un chip con sugerir_enlace hacia su pantalla.`;
+CONSCIENCIA DEL ECOSISTEMA (S12): Tienes a tu disposicion el catalogo anterior.
+- Si preguntan "que funciones de IA hay en esta pantalla / en Clientes / en la Agenda", enumera solo
+  las cuyo campo pantalla coincide, con un chip sugerir_enlace a cada una.
+- Si preguntan "por que aparecio esta sugerencia" / "que me recomendo la IA" / "cuando se ejecuto/analizo X",
+  DEBES llamar PRIMERO a buscar_recuerdos para auditar la ejecucion real en el registro (no expliques solo
+  desde el catalogo): luego explica su resultado y su MOTIVO (el porque) leidos del evento. Si no das fechas
+  la tool busca los ultimos 30 dias. No inventes: si no hay evento, dilo con franqueza.
+- No inventes funciones que no esten aqui. Para cada funcion relevante, ofrece un chip con sugerir_enlace.`;
 
 // Marco de razonamiento universal (Sesion S02, plan V3). Gobierna COMO afronta
 // Chispa cualquier peticion: una taxonomia de intencion, un procedimiento fijo
@@ -1689,26 +1697,28 @@ async function procesarGrafica(inp: Record<string, string>, negocioId: string, b
 
 // S11: Busca en eventos_negocio e inyecta un bloque timeline
 async function procesarRecuerdos(inp: Record<string, string>, negocioId: string, bloques: Bloque[]): Promise<string> {
-  const desde = inp.desde;
-  const hasta = inp.hasta;
   const tema = (inp.entidad_o_tema ?? '').trim().toLowerCase();
-  
-  if (!desde || !hasta || !/^\d{4}-\d{2}-\d{2}$/.test(desde) || !/^\d{4}-\d{2}-\d{2}$/.test(hasta)) {
-    return 'Necesito fechas desde/hasta validas (YYYY-MM-DD) para buscar recuerdos.';
-  }
+  // Fechas opcionales: por defecto, ventana de los ultimos 30 dias (S12: el usuario
+  // suele preguntar "¿por que aparecio X?" sin dar fechas).
+  const iso = (d: Date) => d.toISOString().split('T')[0];
+  const valida = (s: string | undefined): s is string => !!s && /^\d{4}-\d{2}-\d{2}$/.test(s);
+  const hasta = valida(inp.hasta) ? inp.hasta : iso(new Date());
+  const desde = valida(inp.desde) ? inp.desde : iso(new Date(Date.now() - 30 * 86_400_000));
 
-  // Consultar eventos_negocio (S08) limitando a los 50 mas recientes del rango
-  let q = svc.from('eventos_negocio').select('id, creado_en, tipo, entidad, resumen')
+  // Consultar eventos_negocio (S08) limitando a los 50 mas recientes del rango.
+  // S12: tambien traemos motivo (el "por que" del trigger) y resultado para poder
+  // explicar una ejecucion concreta de la IA, no solo listarla.
+  let q = svc.from('eventos_negocio').select('id, creado_en, tipo, entidad, resumen, motivo, resultado')
              .eq('negocio_id', negocioId)
              .gte('creado_en', `${desde}T00:00:00Z`)
              .lte('creado_en', `${hasta}T23:59:59Z`)
              .order('creado_en', { ascending: false })
              .limit(50);
-             
+
   if (tema) {
     q = q.or(`resumen.ilike.%${tema}%,entidad.ilike.%${tema}%`);
   }
-  
+
   const { data: eventos, error } = await q;
   if (error) return `Error interno al consultar eventos: ${error.message}`;
 
@@ -1716,14 +1726,28 @@ async function procesarRecuerdos(inp: Record<string, string>, negocioId: string,
     return 'No he encontrado ningun evento ni recuerdo en ese rango de fechas' + (tema ? ` sobre "${tema}"` : '') + '.';
   }
 
-  // Formatear a eventos timeline
-  const evs = eventos.map(e => ({
-    id: e.id,
-    fecha: new Date(e.creado_en).toISOString().split('T')[0],
-    titulo: (e.tipo || 'Evento').replace(/_/g, ' ').toUpperCase(),
-    descripcion: e.resumen || '',
-    icono: (e.tipo || '').includes('cita') ? '📅' : (e.tipo || '').includes('caja') ? '💶' : '📌'
-  }));
+  // Recorta texto largo (el resultado puede ser un JSON de bloques) para no
+  // inundar ni el timeline ni el presupuesto de tokens del LLM.
+  const corto = (v: unknown, n: number): string => {
+    if (v == null) return '';
+    const s = typeof v === 'string' ? v : JSON.stringify(v);
+    return s.length > n ? `${s.slice(0, n)}…` : s;
+  };
+  const esIA = (e: { tipo?: string; entidad?: string }) =>
+    (e.tipo || '').includes('chispa') || (e.tipo || '').includes('ia') || (e.entidad || '').includes('funcion_ia');
+
+  // Formatear a eventos timeline (motivo visible; ejecuciones de IA en color fuego).
+  const evs = eventos.map(e => {
+    const motivo = corto(e.motivo, 140);
+    return {
+      id: e.id,
+      fecha: new Date(e.creado_en).toISOString().split('T')[0],
+      titulo: (e.tipo || 'Evento').replace(/_/g, ' ').toUpperCase(),
+      descripcion: (e.resumen || '') + (motivo ? ` — Motivo: ${motivo}` : ''),
+      icono: (e.tipo || '').includes('cita') ? '📅' : (e.tipo || '').includes('caja') ? '💶' : '📌',
+      color: esIA(e) ? '#f4501e' : undefined,
+    };
+  });
 
   bloques.push({
     tipo: 'timeline',
@@ -1731,7 +1755,16 @@ async function procesarRecuerdos(inp: Record<string, string>, negocioId: string,
     eventos: evs,
   });
 
-  return `Se han encontrado ${evs.length} recuerdos y se ha inyectado un timeline en la respuesta. Diles que aqui esta el resumen visual.`;
+  // Detalle compacto de vuelta al LLM para que explique el resultado y el porque
+  // de cada ejecucion (S12), sin volcar el JSON entero.
+  const detalle = eventos.slice(0, 12).map(e => {
+    const f = new Date(e.creado_en).toISOString().split('T')[0];
+    const motivo = corto(e.motivo, 140);
+    const res = corto(e.resultado, 160);
+    return `- ${f} · ${e.resumen || e.tipo}${motivo ? ` · Motivo: ${motivo}` : ''}${res ? ` · Resultado: ${res}` : ''}`;
+  }).join('\n');
+
+  return `Se han encontrado ${evs.length} eventos y se ha inyectado un timeline visual. Detalle para explicar su resultado y su porque (no lo repitas entero, resume lo relevante a lo que preguntaron):\n${detalle}`;
 }
 
 // Rangos actual/anterior para la comparativa: ventanas MOVILES (ultimos N dias
