@@ -36,8 +36,30 @@ hallazgos** con severidad y acción sugerida.
   correctos con severidad (verificado por SQL); re-ejecutar no duplica.
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] edge/cron desplegada+probada  [ ] migración+advisors  [ ] E2E demo
-[ ] manuales+iaCatalogo  [ ] specs landing  [ ] commit+push  [ ] S13 marcada`
+`[x] tsc  [x] build  [x] cron desplegada+probada  [x] migración+advisors  [x] E2E SQL
+[x] manuales+iaCatalogo  [x] specs landing  [x] commit+push  [x] S13 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA (9 jul).
+- Migración `sesion13-escaneo-proactivo-hallazgos.sql` aplicada en remoto (vtrggiogjrhqtwbhbgia)
+  vía MCP. Tabla `hallazgos_ia` (cola, RLS SELECT propio negocio, índice único parcial
+  `uq_hallazgos_ia_abierto` para idempotencia). No introduce advisor nuevo: las 3 RPCs de
+  cliente caen en `authenticated_security_definer_function_executable`, el patrón aceptado del
+  proyecto (gate por `auth.uid()` dentro), como el resto de RPCs `obtener_*`/`clientes_en_riesgo_fuga`.
+- **Detectores deterministas** (SQL, reutilizando condiciones ya existentes, sin duplicar la lógica
+  de agenda): `senal_sin_pagar`, `cita_sin_confirmar` (48h), `bandeja_sin_responder`,
+  `presupuesto_sin_respuesta` (>3d), `stock_bajo`, `fuga_clienta` (reusa `fuga_clientas_avisos`).
+  Forma de hallazgo = mismo contrato que `lib/briefing.ts` (tipo/familia/severidad/count/items/accion).
+  `config_incompleta` se queda en cliente (ya cubierto por señales `setup_*` del briefing; no se
+  duplica `ONBOARDING_STEPS` en SQL).
+- **Motor:** `procesar_hallazgos_negocio(p_negocio)` (upsert idempotente + auto-descarte cuando deja
+  de aplicar + registro en `eventos_negocio` S08) · `procesar_hallazgos_todos()` (recorre todos los
+  negocios, excluye demo) · **pg_cron `mecha_hallazgos_ia` cada 15 min** (activo, verificado).
+- **RPCs cliente:** `hallazgos_del_negocio`, `escanear_hallazgos_ahora`, `marcar_hallazgo`.
+  Cliente: `lib/hallazgos.ts` + barrido al abrir en `ChispaLauncher.web.tsx` (fire-and-forget,
+  demo exenta). La **surface accionable rica en Avisos es S14**; aquí solo el substrato.
+- **Verificado E2E por SQL** (tenant desechable, luego limpiado): detección=1, no duplica al
+  re-ejecutar (idempotencia), y auto-descarte al reponer stock (abiertos 0 / descartados 1).
+- Docs: `lib/iaCatalogo.ts` (`chispa-vigilancia-24-7`) + `lib/manuals/chispa.ts` +
+  `web/especificaciones.html` (item "Vigilancia proactiva 24/7", Disponible).
+- **Abierto para Alexandro (S14):** el envío urgente real (WhatsApp/correo) de los hallazgos.

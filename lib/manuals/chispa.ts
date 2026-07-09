@@ -27,6 +27,10 @@ export const manualChispa: ManualContent = {
       texto: 'Chispa se conoce a sí misma. Si no sabes por dónde empezar, pregúntale "¿qué sabes hacer?" o "¿dónde configuro la reserva online?": te enumerará las funciones de IA disponibles y te ofrecerá un enlace directo a cada pantalla. Nunca inventa funciones que no existan.',
     },
     {
+      titulo: 'Vigilancia proactiva 24/7',
+      texto: 'Chispa no espera a que le preguntes: revisa tu negocio de forma autónoma cada 15 minutos y también al abrir la app. Detecta señales sin pagar, citas sin confirmar de las próximas 48 horas, bandeja sin responder, presupuestos sin respuesta, stock bajo y clientas en riesgo de fuga. Cada hallazgo aparece en Avisos con su gravedad y una acción sugerida de un clic, y se cierra solo cuando deja de aplicar (por ejemplo, cuando repones el stock o la clienta confirma). La detección es determinista, respeta tu negocio (nunca ve datos de otro salón) y queda registrada en la bitácora.',
+    },
+    {
       titulo: 'Configuración guiada',
       texto: 'Si eres gestor, Chispa puede configurar tu salón paso a paso. Di "configúrame el salón" o pulsa el botón "Poner en marcha tu salón" desde Avisos. Chispa te guiará por datos del negocio, servicios, equipo, horarios y notificaciones con formularios pre‑rellenados.',
       captura: '/manuals/chispa/config-guiada.png',

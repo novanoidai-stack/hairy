@@ -165,7 +165,7 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 - [x] [S12 · Chispa consciente del ecosistema IA](fase-c-cerebro/S12-chispa-consciente-ecosistema.md) (E2E LLM bloqueada por 402 OpenRouter — créditos, Alexandro)
 
 ### Fase D · Proactividad, iniciativa y guía
-- [S13 · Motor de escaneo 24/7](fase-d-proactiva/S13-escaneo-24-7.md)
+- [x] [S13 · Motor de escaneo 24/7](fase-d-proactiva/S13-escaneo-24-7.md)
 - [S14 · Avisos de Chispa + urgentes (envío = Alexandro)](fase-d-proactiva/S14-avisos-urgentes.md)
 - [S15 · Iniciativa / próxima mejor acción](fase-d-proactiva/S15-iniciativa-proxima-accion.md)
 - [S16 · Coach intra-página que te sigue](fase-d-proactiva/S16-coach-intrapagina.md)

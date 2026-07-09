@@ -1925,3 +1925,5 @@ real (verificado por SQL). La Q&A resolvio a Pedro Sanchez por id exacto y respe
 02:27 antes de tu siguiente cita" (coincide con el hueco sembrado) y una sugerencia de la IA anclada a ese
 hueco real. Informes mostro, tras el ajuste de prompt, un informe narrado real + grafica + comparativa
 juntos. Cero errores de consola nuevos. `npx tsc --noEmit` y `npm run build:web` limpios.
+
+- **IA Chispa V3 · S13 (escaneo proactivo 24/7) — HECHA (9 jul):** tabla-cola `hallazgos_ia` + detectores SQL deterministas (señal sin pagar, cita sin confirmar 48h, bandeja, presupuesto sin respuesta, stock bajo, fuga) reutilizando la lógica existente; motor `procesar_hallazgos_*` idempotente con auto-descarte + `pg_cron` cada 15 min + barrido al abrir; registrado en `eventos_negocio`. Verificado E2E por SQL. La surface accionable en Avisos y el envío urgente real (WhatsApp) son S14/Alexandro.

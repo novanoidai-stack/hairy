@@ -10,6 +10,7 @@ import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
+import { escanearHallazgosAhora } from '@/lib/hallazgos';
 import ChispaPanel from '@/components/chispa/ChispaPanel.web';
 
 type PerfilChispa = {
@@ -56,6 +57,15 @@ export function ChispaLauncher() {
       setActivo(cfg.asistenteAgendaActivo === true);
       setBriefingActivo(cfg.briefingProactivoActivo !== false);
       setChispaVozId((cfg.chispaVozId as string) || 'ef_dora');
+
+      // Barrido proactivo al abrir (S13): refresca la cola de hallazgos del
+      // negocio para que Avisos (S14) los tenga al dia sin esperar al cron.
+      // Fire-and-forget, idempotente en servidor, exento en la demo compartida.
+      if (!IS_DEMO_MODE && p.negocio_id !== 'demo_salon_001') {
+        void escanearHallazgosAhora().catch((e) =>
+          console.error('[Chispa] barrido de hallazgos al abrir fallo:', e),
+        );
+      }
     }
 
     void cargar();
