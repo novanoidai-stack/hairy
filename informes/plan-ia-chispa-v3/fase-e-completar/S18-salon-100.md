@@ -55,12 +55,16 @@ HECHA (10 jul).
   (`web/especificaciones.html`, nuevo ítem "Te configura el salón paso a paso") al día.
 
 **Verificado**
-- `tsc --noEmit` limpio · `npm run build:web` OK · demo `/demo.html?share=1`: `mecha-chispa-config-guiada`
-  abre Chispa y arranca la config guiada en el paso 1/7 (datos de negocio, progreso 14%, form +
-  Saltar/Salir) sin regresión · specs landing sirve el ítem nuevo (200, menciona 100% y "retoma").
-- **No E2E aquí:** el flujo "retomar en tenant real con onboarding parcial" es lógica cliente
-  determinista (tsc+build); no se pudo conducir con una cuenta real parcial desde esta sesión
-  (sin credenciales de tenant de pruebas). Sin edge/migración nuevas. Envíos/pagos = Alexandro.
+- `tsc --noEmit` limpio · `npm run build:web` OK · specs landing sirve el ítem nuevo (200, menciona 100% y "retoma").
+- **E2E retomar en tenant REAL parcial** (cuenta de prueba `chispa.test.s18@mecha.app`, tenant vacío
+  propio `test_s18_e6d9d`, owner/full): con el salón a cero, la config guiada arranca en paso 1/7
+  (datos de negocio, 14%). Tras completar datos de negocio (guardado real en `negocio_config`) y salir,
+  al **re-disparar** `mecha-chispa-config-guiada` responde *"Retomamos donde lo dejaste: saltaré lo que
+  ya tienes hecho. Te quedan 6 pasos"* y arranca en **Tus servicios (29%, paso 2)** — NO reinicia en el
+  paso 1. Confirma AC1. El edge `onboarding-agent` (LLM) funcionó (enriqueció la pregunta con estimación
+  por zona + disclaimer honesto), señal de que la key de OpenRouter rotada está operativa.
+- Demo `/demo.html?share=1`: sin regresión (arranca el recorrido completo desde paso 1 con escrituras simuladas).
+- Sin edge/migración nuevas. Envíos/pagos = Alexandro.
 
-`[x] tsc  [x] build  [ ] edge (n/a)  [ ] migración (n/a)  [x] E2E demo (machinery)  [x] manuales+iaCatalogo
-[x] specs landing  [ ] commit+push master  [x] S18 marcada`
+`[x] tsc  [x] build  [ ] edge (n/a)  [ ] migración (n/a)  [x] E2E (tenant real parcial + demo)  [x] manuales+iaCatalogo
+[x] specs landing  [x] commit+push master  [x] S18 marcada`
