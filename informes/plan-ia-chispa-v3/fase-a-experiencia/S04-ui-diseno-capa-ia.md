@@ -38,8 +38,12 @@ coherentes; nada "de IA genérica"; cero formatos rotos.
 - Cero formatos rotos / textos que se salen / aplastes en móvil.
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] E2E demo (varias pantallas, móvil+escritorio)  [ ] manuales (si cambió algo)
-[ ] specs landing  [ ] commit+push  [ ] S04 marcada`
+`[x] tsc  [x] build  [x] E2E demo (varias pantallas, móvil+escritorio)  [x] manuales (solo tokens IA)
+[x] specs landing  [x] commit+push  [x] S04 marcada`
 
 ## Estado
-PENDIENTE.
+**HECHA** (2026-07-09). Commit `aba51d1de`.
+- Tokens IA añadidos: `ia.bloqueBorder`, `ia.mensajeUserBg`, `ia.drawerBackdrop`, etc.
+- `IAStates.tsx` creado: `EstadoVacio`, `EstadoCargando`, `EstadoError` (reutilizables)
+- Gradiente fuego unificado: `T.fireGradient` en ChispaPanel, BloqueRenderer, BriefingAgenda
+- Typecheck limpio, build OK, push a master.
