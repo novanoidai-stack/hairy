@@ -49,4 +49,25 @@ párrafo seco ni un cuelgue.
 [ ] manuales+iaCatalogo  [ ] specs landing (si cambió algo visible)  [ ] commit+push  [ ] S02 marcada`
 
 ## Estado
-PENDIENTE.
+**HECHA** (2026-07-09). Verificado E2E contra el edge real (demo `demo.publico`) con una
+batería de ~15 intenciones variadas: acción sin datos → `formulario`; acción ambigua → `opciones`;
+consulta/analítica → `grafica`+`comparativa`; config/navegación → `enlace`; charla/ayuda →
+auto-conocimiento con `enlace`; y peticiones raras/sin intención clara ("color favorito",
+"cuéntame un chiste", "gracias", memoria sin datos) → siempre `opciones`/`enlace` (red de
+seguridad). **Ninguna** respuesta salió en texto seco ni con cuelgue. Salud fuera del LLM
+respetada (no fuga de alergias).
+
+**Qué se construyó:**
+- `informes/plan-ia-chispa-v3/RAZONAMIENTO-UNIVERSAL.md`: taxonomía de intención (6 clases),
+  árbol de decisión, procedimiento fijo por turno y doctrina "casi nunca texto plano".
+- `supabase/functions/agenda-asistente/index.ts`: constante `PROCEDIMIENTO_UNIVERSAL` inyectada
+  como primera instrucción del prompt + red de seguridad determinista `garantizarSuperficie()`
+  (con `accionesRapidas()` por rol) aplicada en `finalizar()`. **Desplegada** (401 sin auth).
+- Manifiesto (`lib/ia/manifiestoIA.ts`, módulo `razonamiento-universal`) + `ARQUITECTURA.md` (§5-bis).
+- Manuales (`lib/manuals/chispa.ts`, `lib/iaCatalogo.ts`) + landing (`web/especificaciones.html`).
+
+**Checklist:** `[x] tsc  [x] build  [x] edge desplegada+probada  [x] E2E demo (batería)
+[x] manuales+iaCatalogo  [x] specs landing  [x] commit+push  [x] S02 marcada`
+
+**Abierto para Alexandro:** envíos reales (WhatsApp/correo) y pagos siguen como
+propuesta/borrador; la red de seguridad no envía nada.

@@ -156,6 +156,17 @@ export const MODULOS_IA: ModuloIA[] = [
     estado: 'activo',
   },
   {
+    id: 'razonamiento-universal',
+    titulo: 'Marco de razonamiento universal',
+    queHace: 'Procedimiento fijo por turno (clasificar intencion -> minima info -> mejor superficie -> proponer -> confirmar) + doctrina "casi nunca texto plano" con red de seguridad determinista que garantiza una superficie util (nunca texto seco ni cuelgue).',
+    donde: 'supabase/functions/agenda-asistente/index.ts (PROCEDIMIENTO_UNIVERSAL + garantizarSuperficie) <- informes/plan-ia-chispa-v3/RAZONAMIENTO-UNIVERSAL.md',
+    capa: 'edge-llm',
+    entradas: 'cualquier mensaje del usuario',
+    salidas: 'Bloque[] siempre con una superficie accionable',
+    rol: 'sistema',
+    estado: 'activo',
+  },
+  {
     id: 'auto-conocimiento',
     titulo: 'Auto-conocimiento de Chispa',
     queHace: 'Resumen compacto de las superficies de IA inyectado en el prompt para responder "que se hacer / donde configuro X" con enlaces.',

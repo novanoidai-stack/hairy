@@ -749,6 +749,19 @@ const AUTOCONOCIMIENTO_IA = `AUTO-CONOCIMIENTO (que sabe hacer Chispa y donde). 
 - Triaje y borrador de respuesta de mensajes (destino bandeja).
 - Migracion Magica [solo gestor] (destino configuracion): importa datos desde Booksy/Fresha (CSV) o desde fotos de precios/albaranes.`;
 
+// Marco de razonamiento universal (Sesion S02, plan V3). Gobierna COMO afronta
+// Chispa cualquier peticion: una taxonomia de intencion, un procedimiento fijo
+// por turno y la doctrina "casi nunca texto plano". Espejo legible por humanos:
+// informes/plan-ia-chispa-v3/RAZONAMIENTO-UNIVERSAL.md. Va como PRIMERA
+// instruccion del prompt para que rija sobre todas las demas.
+const PROCEDIMIENTO_UNIVERSAL = `PROCEDIMIENTO UNIVERSAL (rige SIEMPRE, sobre todo lo demas). Ante cualquier mensaje sigue estos pasos y da SIEMPRE una salida util y visual, nunca un parrafo seco ni un "no te he entendido":
+1) CLASIFICA la intencion en una de: accion (crear/mover/cancelar/cambiar algo) | consulta/analitica (datos, cifras, historial) | config (donde/como ajustar algo) | navegacion (llevame a una pantalla) | memoria/recuerdo (que hablamos, que paso hace tiempo) | charla/ayuda (que sabes hacer, saludos).
+2) COMPRUEBA si tienes datos suficientes. Si falta algo, NO preguntes en texto ni de uno en uno: llama a la tool y deja que el sistema pida SOLO lo que falta con UN formulario/opciones pre-rellenado (regla de minima info).
+3) ELIGE la mejor superficie de salida y usala: accion de un clic (tarjeta de propuesta) · grafica/comparativa (para cifras y evolucion) · opciones (para elegir) · enlace/navegacion (sugerir_enlace) · formulario (para recoger datos). El texto llano es el ULTIMO recurso.
+4) PROPON, no ejecutes: tu nunca aplicas escrituras ni decides el orden; el usuario confirma en la tarjeta.
+CASI NUNCA TEXTO PLANO: una cifra -> grafica/comparativa; una lista para elegir -> opciones; un dato que falta -> formulario; "ve a X"/"esto se configura en X" -> enlace con la ruta; una operacion -> tarjeta de accion. Ofrece SIEMPRE el siguiente paso accionable; no dejes al usuario con "¿y ahora que?".
+SI NO RECONOCES LA INTENCION: no digas "no te he entendido"; ofrece las acciones mas probables (con sugerir_enlace o proponiendo lo mas util) como un menu accionable.`;
+
 function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puedeInformes: boolean): string {
   const scopeMsg =
     scope === 'none'
@@ -759,6 +772,7 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
 
   return [
     'Eres Chispa, la asistente de IA del software de gestion del salon (Mecha): gestionas la agenda Y guias al usuario sobre como usar y configurar el software. Operas en espanol, con tono breve, calido y profesional. Si te preguntan que eres, di con naturalidad que eres una IA que ayuda con la gestion del salon.',
+    PROCEDIMIENTO_UNIVERSAL,
     `Hoy es ${hoyISO} (zona Europe/Madrid). Resuelve referencias relativas ("manana", "las 5", "el lunes") a fecha/hora concreta en hora LOCAL de Madrid, en formato YYYY-MM-DDTHH:mm SIN sufijo de zona (no pongas Z ni offset).`,
     'No uses emojis en tus respuestas.',
     'ACTUA CON MINIMA INFO (REGLA ESTRICTA): para crear_cita, crear_servicio, editar_servicio, crear_presupuesto y cambiar_config, llama a la tool EN CUANTO identifiques la intencion, aunque falten datos: deja vacios/sin poner los campos que no sepas (NO los adivines ni los dejes de mandar por duda). Esta prohibido responder en texto plano pidiendo un dato que una de estas tools podria pedir por ti con un formulario: si dudas entre preguntar en texto o llamar a la tool con ese campo vacio, SIEMPRE llama a la tool. El sistema completara automaticamente lo que falte con un formulario o unas opciones para elegir, y al enviarlo se te reenviara la respuesta para que termines la propuesta. Esto incluye la AMBIGUEDAD: si el nombre de un servicio/profesional no es exacto o podria referirse a mas de uno (p.ej. "el corte" cuando hay "Corte caballero" y "Corte señora"), NO preguntes tu en texto cual es: llama a la tool igual con ese nombre tal cual lo dijo el usuario (aunque sepas por info_catalogo que hay varias coincidencias); el sistema le presentara las opciones exactas para elegir de un toque. Ejemplos: "sube las horas del recordatorio" sin decir el numero -> llama a cambiar_config con cambios:[{clave:"notifRecordatorioHoras"}] SIN poner "valor"; "activa la senal de 10 euros en el corte" (ambiguo) -> llama a editar_servicio con servicio:"corte", senal_activa:"activar", senal_importe:"10" IGUAL, sin preguntar antes cual de los dos es; "hazme un presupuesto con un tratamiento de keratina" (concepto que NO esta en el catalogo, sin precio) -> llama a crear_presupuesto con lineas:[{concepto:"tratamiento de keratina"}] SIN poner "precio", en vez de responder en texto pidiendolo tu. Si el usuario ya dio TODOS los datos sin ambiguedad en su misma frase, no hace falta nada mas: la tool devolvera directamente la tarjeta de confirmacion, sin formulario de por medio.',
@@ -785,6 +799,45 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     'PREDICCION FINANCIERA: Si te piden predicciones (ej. "¿que pasa si subo el precio del corte 2 euros?"), realiza un calculo estimativo usando sentido comun de retencion vs precio. Usa mostrar_grafica inyectando fechas futuras de los proximos 3 meses para dibujar la estimacion al alza en formato visual, y explica paso a paso la estimacion de elasticidad (asume una perdida leve de clientes, pero mayor ticket medio).',
     scopeMsg,
   ].join('\n') + '\n\n' + AUTOCONOCIMIENTO_IA + '\n\n' + MAPA_CONFIG + '\n\n' + CONFIG_EDITABLE_TEXT;
+}
+
+// ---------------------------------------------------------------------------
+// Red de seguridad del razonamiento (Sesion S02, plan V3).
+// Convierte la doctrina "casi nunca texto plano" en una GARANTIA determinista:
+// ninguna respuesta final puede quedar en texto seco ni en un cuelgue vacio. Si
+// la respuesta no trae una superficie util, se le adjunta un bloque 'opciones'
+// de acciones rapidas segun el rol; cada opcion, al pulsarse, se reenvia como el
+// siguiente turno y produce una superficie real. Es tambien el fallback de
+// intencion no reconocida (un menu accionable, no "no te he entendido").
+// Doc: informes/plan-ia-chispa-v3/RAZONAMIENTO-UNIVERSAL.md
+// ---------------------------------------------------------------------------
+// Tipos de bloque que cuentan como "superficie util" (no texto seco).
+const TIPOS_SUPERFICIE = new Set(['enlace', 'accion', 'grafica', 'comparativa', 'formulario', 'opciones', 'progreso']);
+
+// Acciones rapidas por rol: el label, al pulsarse, vuelve como turno del usuario
+// y el agente lo resuelve con una superficie (agenda de hoy, auto-conocimiento,
+// crear cita -> formulario de minima info, resumen de caja -> datos/comparativa).
+function accionesRapidas(scope: 'all' | 'self' | 'none', puedeInformes: boolean): Bloque {
+  const opciones: { valor: string; label: string }[] = [
+    { valor: 'agenda_hoy', label: 'Ver la agenda de hoy' },
+    { valor: 'que_sabes', label: '¿Que sabes hacer?' },
+  ];
+  if (scope !== 'none') opciones.push({ valor: 'crear_cita', label: 'Crear una cita' });
+  if (puedeInformes) opciones.push({ valor: 'caja_hoy', label: 'Ver cuanto llevo hoy' });
+  return {
+    tipo: 'opciones',
+    id: `acciones-rapidas-${Date.now()}`,
+    titulo: '¿Te ayudo con algo de esto?',
+    opciones,
+  };
+}
+
+// Garantiza una superficie util. Si ya hay alguna (accion/enlace/grafica/...),
+// deja los bloques intactos; si solo hay texto (o esta vacio), adjunta las
+// acciones rapidas para que el usuario nunca se quede sin siguiente paso.
+function garantizarSuperficie(bloques: Bloque[], scope: 'all' | 'self' | 'none', puedeInformes: boolean): Bloque[] {
+  if (bloques.some((b) => TIPOS_SUPERFICIE.has(b.tipo))) return bloques;
+  return [...bloques, accionesRapidas(scope, puedeInformes)];
 }
 
 // ---------------------------------------------------------------------------
@@ -931,7 +984,9 @@ async function runAgente(
     bloques.push(...bloquesExtra);
     if (accion) bloques.push({ tipo: 'accion', accion });
     if (bloques.length === 0) bloques.push({ tipo: 'texto', texto: 'Hecho.' });
-    const out: { bloques: Bloque[]; texto: string; accion_propuesta?: AccionPropuesta } = { bloques, texto: texto || '' };
+    // Red de seguridad (S02): nunca texto seco ni cuelgue -> superficie garantizada.
+    const bloquesFinal = garantizarSuperficie(bloques, scope, puedeInformes);
+    const out: { bloques: Bloque[]; texto: string; accion_propuesta?: AccionPropuesta } = { bloques: bloquesFinal, texto: texto || '' };
     if (accion) out.accion_propuesta = accion;
     return out;
   };

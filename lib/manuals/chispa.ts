@@ -15,6 +15,10 @@ export const manualChispa: ManualContent = {
       texto: 'El panel de Chispa (pestaña con icono de estrella) es tu asistente conversacional. Puedes preguntarle cualquier cosa en voz o texto: crear citas, servicios, presupuestos, consultar datos de clientas o pedirle que organice tu agenda. Soporta formularios visuales para no tener que escribir.',
     },
     {
+      titulo: 'Siempre en la mejor superficie',
+      texto: 'Chispa casi nunca te responde con un muro de texto. Ante cualquier petición sigue siempre los mismos pasos: entiende qué quieres, y te lo devuelve en la forma más útil: una acción de un clic, una gráfica, unas opciones para elegir, un enlace a la pantalla o un formulario si le falta algún dato (solo te pide lo justo, ya pre-rellenado). Si no acaba de entenderte, en vez de un "no te he entendido" te ofrece un menú con lo más probable. Nunca te deja con la duda de "¿y ahora qué?".',
+    },
+    {
       titulo: 'Pregúntale qué sabe hacer',
       texto: 'Chispa se conoce a sí misma. Si no sabes por dónde empezar, pregúntale "¿qué sabes hacer?" o "¿dónde configuro la reserva online?": te enumerará las funciones de IA disponibles y te ofrecerá un enlace directo a cada pantalla. Nunca inventa funciones que no existan.',
     },

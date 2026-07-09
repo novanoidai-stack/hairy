@@ -52,6 +52,7 @@ Cada entrada existe de verdad (verificada). Detalle tipado y contrato en `lib/ia
 |---|---|---|
 | `agenda-asistente` | `supabase/functions/agenda-asistente/index.ts` (+ `permisos.ts`, `whitelist.ts`) | `POST { mensajes } + Authorization` → `{ bloques, texto, accion_propuesta? }` |
 | Auto-conocimiento (S01) | `AUTOCONOCIMIENTO_IA` dentro de `index.ts` (proyección de `manifiestoIA.ts`) | inyectado en el system prompt; responde "qué sé hacer / dónde está X" con chips `sugerir_enlace` |
+| Razonamiento universal (S02) | `PROCEDIMIENTO_UNIVERSAL` (prompt) + `garantizarSuperficie()` (en `finalizar()`) en `index.ts` | procedimiento fijo por turno + doctrina "casi nunca texto plano"; **garantiza** una superficie útil (nunca texto seco/cuelgue). Doc: `RAZONAMIENTO-UNIVERSAL.md` |
 
 El prompt lo arma `buildSystemPrompt()`: instrucciones + **AUTOCONOCIMIENTO_IA** + `MAPA_CONFIG` +
 `CONFIG_EDITABLE_TEXT`. Las tools de escritura se detectan en `permisos.ts` (`esEscritura`), no se
@@ -139,6 +140,20 @@ Firmas de tabla **propuestas** (contrato, no crear aquí):
   catálogo). Nada de capacidades inventadas.
 
 ---
+
+## 5-bis. Razonamiento universal (S02) — cómo afronta Chispa cualquier petición
+
+- **Procedimiento fijo por turno** (en el prompt, `PROCEDIMIENTO_UNIVERSAL`): clasificar la
+  intención (acción · consulta/analítica · config · navegación · memoria · charla) → comprobar
+  datos suficientes (si faltan, **un** formulario/opciones pre-rellenado, mínima info) → elegir
+  la **mejor superficie** → proponer → confirmar (PR-12) → registrar (paso planificado, Fase C).
+- **Doctrina "casi nunca texto plano":** cifra → gráfica/comparativa; lista → opciones; dato
+  que falta → formulario; navegación/config → enlace; operación → tarjeta de acción.
+- **Red de seguridad determinista** (`garantizarSuperficie()` en `finalizar()`): si la respuesta
+  final no trae ninguna superficie útil, se le adjunta un bloque `opciones` de acciones rápidas
+  según el rol. Convierte la doctrina en una garantía verificable: **nunca** texto seco ni cuelgue,
+  y el fallback de intención no reconocida es un menú accionable, no "no te he entendido".
+- Detalle completo (taxonomía + árbol de decisión): `RAZONAMIENTO-UNIVERSAL.md`.
 
 ## 6. Deriva resuelta en S01
 
