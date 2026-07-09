@@ -92,7 +92,7 @@ FÁCIL que hacerlo a mano; si tarda más que a mano, sobra.
 | 5 | B Por página | Agenda: botón "Organizar mi agenda" real — **HECHA 8-9 jul** | Opus 4.8 | alto | 1,4 |
 | 6 | B Por página | Caja + Presupuestos proactivos — **HECHA 9 jul** | Sonnet 5 | medio | 4 |
 | 7 | B Por página | Clientes + Informes + Mi Jornada proactivos — **HECHA 9 jul** | Sonnet 5 | medio | 4 |
-| 8 | B Por página | Reseñas + Bandeja proactivas | Sonnet 5 | medio | 4 |
+| 8 | B Por página | Reseñas + Bandeja proactivas — **HECHA 9 jul** (547dd08aa; estaba sin commitear, verificada y cerrada 9 jul) | Sonnet 5 | medio | 4 |
 | 9 | D Descubrir | Hub "Qué hace la IA" + manuales IA + quitar import CSV | Sonnet 5 | medio | — |
 | 10 | E QA | Bugs + QA visual + verificación E2E de toda la capa IA | Opus 4.8 | medio-alto | 1-9 |
 
@@ -633,6 +633,33 @@ borrador. Sin cuelgues. tsc + build; E2E en demo.
 
 Cierra con el Protocolo de cierre.
 ```
+
+**Verificación retroactiva de Fase B (9 jul):** las Sesiones 4-7 ya estaban commiteadas; se re-verificó cada
+una en código real (no solo se leyó el registro de cada sesión): `lib/hooks/useAyudaIA.ts` (máquina de estados
+idle/cargando/vacio/error/listo, sin ningún camino silencioso, `reintentar()` guarda la última llamada) +
+`components/chispa/TarjetaAyudaIA.web.tsx` (pinta los 5 estados, layout en flujo normal sin position
+fixed/absolute — no compite con AvisosBell) son reales y Mi Jornada los usa de verdad (`analizarDiaIA`
+→ `ayudaIA.estado`). `lib/organizarAgenda.ts` (Sesión 5): módulo puro, botón real en la toolbar de
+`AgendaCalendar.web.tsx` (`showOrganizar` → `OrganizarAgendaPanel`), aplica vía `chispaOps.ejecutarAccion`
+(auditoría ya cubierta); **11/11 tests Deno verdes** (`deno test lib/organizarAgenda.test.ts`). Sesión 6:
+`elegirCandidatoUpsell` determinista + `useAyudaIA` en Caja; presupuesto NL con formulario de revisión en
+Presupuestos. Sesión 7: pastilla de riesgo ACCIONABLE en Clientes (`avisarRiesgoNoShowUnClic`,
+`recuperarClienteUnClic`, botones de un clic, no solo informativa), Q&A de ficha por id embebido (sin
+ambigüedad de nombre), informe narrado real en Informes (`mostrar_grafica`/`mostrar_comparativa` vía
+`useAyudaIA`), coaching de huecos en Mi Jornada reutilizando `UMBRAL_HUECO_MIN_DEFAULT` de la Sesión 5
+(coherencia entre sesiones). **Bug encontrado y arreglado** en la Fase A (no B): el camino MANUAL de
+"config guiada" (S2) no comprobaba el rol como sí lo hacía el auto-disparo — un profesional podía entrar a
+configurar el negocio. Gateado (`esGestorOnboarding`) y desplegado, commit `3f1b27f11`.
+**Sesión 8 (Reseñas + Bandeja): estaba CODIFICADA pero sin commitear** (working tree sucio: 3 archivos
+modificados + migración SQL sin trackear). Se verificó que ya usaba correctamente el patrón `useAyudaIA`
+(no una implementación provisional), la migración `resenas.respuesta_borrador` ya estaba aplicada en
+remoto, `guardarBorradorConversacion` reutiliza el mismo shape de insert que `responderConversacion`
+(ya cubierto por RLS) sin disparar el envío real; se descartó fuga a vistas públicas (`/app/contacto/[slug]`
+no toca `mensajes_conversacion`). `npx tsc --noEmit` y `npm run build:web` limpios con el diff incluido.
+Advisors: 140 lints (137→140; el delta +3 es del tipo ya aceptado `authenticated_security_definer_function_executable`
+y viene de trabajo paralelo no relacionado en `pagos/`, no de esta migración). Commiteado y desplegado
+(`547dd08aa`). Envío real WhatsApp/correo de los borradores sigue abierto para Alexandro.
+**Fase B (Sesiones 4-8) queda verificada y cerrada 9 jul.**
 
 ## Prompt Sesión 9 — Hub "Qué hace la IA" + manuales IA + quitar import CSV (Sonnet 5, medio)
 
