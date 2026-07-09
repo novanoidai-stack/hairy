@@ -28,7 +28,7 @@ export const manualChispa: ManualContent = {
     },
     {
       titulo: 'Vigilancia proactiva 24/7',
-      texto: 'Chispa no espera a que le preguntes: revisa tu negocio de forma autónoma cada 15 minutos y también al abrir la app. Detecta señales sin pagar, citas sin confirmar de las próximas 48 horas, bandeja sin responder, presupuestos sin respuesta, stock bajo y clientas en riesgo de fuga. Cada hallazgo aparece en Avisos con su gravedad y una acción sugerida de un clic, y se cierra solo cuando deja de aplicar (por ejemplo, cuando repones el stock o la clienta confirma). La detección es determinista, respeta tu negocio (nunca ve datos de otro salón) y queda registrada en la bitácora.',
+      texto: 'Chispa no espera a que le preguntes: revisa tu negocio de forma autónoma cada 15 minutos y también al abrir la app. Detecta señales sin pagar, citas sin confirmar de las próximas 48 horas, bandeja sin responder, presupuestos sin respuesta, stock bajo y clientas en riesgo de fuga. En la campana de Avisos, bajo "Chispa está vigilando", cada hallazgo aparece con su gravedad y tres acciones de un clic: verlo en su pantalla, marcarlo como resuelto o descartarlo. Los hallazgos se cierran solos cuando dejan de aplicar (por ejemplo, cuando repones el stock o la clienta confirma). Lo urgente (una cita en menos de 12 horas que sigue sin confirmar) se marca además para avisarte por WhatsApp. La detección es determinista, respeta tu negocio (nunca ve datos de otro salón) y queda registrada en la bitácora.',
     },
     {
       titulo: 'Configuración guiada',

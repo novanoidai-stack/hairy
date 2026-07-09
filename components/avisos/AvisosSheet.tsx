@@ -24,6 +24,25 @@ export function AvisosSheet({ visible, onClose, avisos }: Props) {
     router.push(path as never);
   };
 
+  const sevColor = (sev: string): { fg: string; bg: string } => {
+    if (sev === 'urgente') return { fg: tokens.danger, bg: tokens.dangerSoft };
+    if (sev === 'alta') return { fg: '#fb923c', bg: 'rgba(251,146,60,0.14)' };
+    if (sev === 'media') return { fg: tokens.cyan, bg: tokens.cyanSoft };
+    return { fg: tokens.textTertiary, bg: tokens.bgCardHi };
+  };
+
+  const rutaHallazgo = (tipo: string, payload?: Record<string, unknown>): string => {
+    const destino = (payload?.destino as string) || '';
+    const mapa: Record<string, string> = {
+      agenda: '/(tabs)/', bandeja: '/(tabs)/bandeja', presupuestos: '/(tabs)/presupuestos',
+      inventario: '/(tabs)/inventario', clientes: '/(tabs)/clientes',
+    };
+    if (destino && mapa[destino]) return mapa[destino];
+    if (tipo === 'presupuesto_sin_respuesta') return '/(tabs)/presupuestos';
+    if (tipo === 'stock_bajo') return '/(tabs)/inventario';
+    return '/(tabs)/';
+  };
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={s.backdrop} onPress={onClose} />
@@ -86,6 +105,43 @@ export function AvisosSheet({ visible, onClose, avisos }: Props) {
                   <TText style={[s.itemTitle, { flex: 1 }]}>{avisos.clientesFuga} {avisos.clientesFuga === 1 ? 'clienta en riesgo de fuga' : 'clientas en riesgo de fuga'}</TText>
                   <Ionicons name="chevron-forward" size={16} color={tokens.textTertiary} />
                 </TouchableOpacity>
+              </>
+            )}
+
+            {avisos.hallazgos.length > 0 && (
+              <>
+                <TText style={s.sectionLabel}>CHISPA ESTA VIGILANDO</TText>
+                {avisos.hallazgos.map((h) => {
+                  const c = sevColor(h.severidad);
+                  const cnt = h.datos?.count ?? 0;
+                  return (
+                    <View key={h.id} style={s.hallazgoRow}>
+                      <TouchableOpacity
+                        style={[s.item, { flex: 1, marginBottom: 0, borderLeftWidth: 3, borderLeftColor: c.fg }]}
+                        activeOpacity={0.7}
+                        onPress={() => go(rutaHallazgo(h.tipo, h.accion_sugerida?.payload as Record<string, unknown>))}
+                      >
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <TText style={[s.itemTitle, { flexShrink: 1 }]} numberOfLines={1}>{h.resumen}</TText>
+                            {h.severidad === 'urgente' && (
+                              <View style={[s.urgBadge, { backgroundColor: c.bg }]}>
+                                <TText style={[s.urgBadgeText, { color: c.fg }]}>URGENTE</TText>
+                              </View>
+                            )}
+                          </View>
+                          <TText style={s.itemSub}>{cnt > 0 ? `${cnt} ${cnt === 1 ? 'caso' : 'casos'}` : h.detalle}</TText>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={s.hallazgoBtn} activeOpacity={0.7} onPress={() => { void avisos.resolverHallazgo(h.id, 'resuelto'); }}>
+                        <Ionicons name="checkmark" size={18} color={tokens.success} />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={s.hallazgoBtn} activeOpacity={0.7} onPress={() => { void avisos.resolverHallazgo(h.id, 'descartado'); }}>
+                        <Ionicons name="close" size={18} color={tokens.textTertiary} />
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
               </>
             )}
 
@@ -202,5 +258,30 @@ const s = StyleSheet.create({
     fontSize: tokens.fontSize.xs,
     color: tokens.textSecondary,
     marginTop: 1,
+  },
+  hallazgoRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 6,
+    marginBottom: 6,
+  },
+  hallazgoBtn: {
+    width: 40,
+    borderRadius: tokens.radius.lg,
+    backgroundColor: tokens.bgCard,
+    borderWidth: 1,
+    borderColor: tokens.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  urgBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  urgBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.4,
   },
 } as any);

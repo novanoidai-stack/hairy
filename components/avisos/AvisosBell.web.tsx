@@ -26,8 +26,31 @@ export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
     router.push(path as never);
   };
 
-  const dotColor = avisos.sinConfirmar.length > 0 ? T.danger : '#fb923c';
+  const hayUrgente = avisos.hallazgos.some((h) => h.severidad === 'urgente');
+  const dotColor = (avisos.sinConfirmar.length > 0 || hayUrgente) ? T.danger : '#fb923c';
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  // Color por severidad de hallazgo (mismos tokens de la paleta fuego/semantica).
+  const sevColor = (sev: string): { fg: string; bg: string } => {
+    if (sev === 'urgente') return { fg: T.danger, bg: T.dangerSoft };
+    if (sev === 'alta') return { fg: '#fb923c', bg: 'rgba(251,146,60,0.14)' };
+    if (sev === 'media') return { fg: T.cyan, bg: T.cyanSoft };
+    return { fg: T.textTertiary, bg: T.bgCardHi };
+  };
+
+  // Ruta destino de un hallazgo segun su accion sugerida (o por tipo como fallback).
+  const rutaHallazgo = (tipo: string, payload?: Record<string, unknown>): string => {
+    const destino = (payload?.destino as string) || '';
+    const mapa: Record<string, string> = {
+      agenda: '/(tabs)/', bandeja: '/(tabs)/bandeja', presupuestos: '/(tabs)/presupuestos',
+      inventario: '/(tabs)/inventario', clientes: '/(tabs)/clientes',
+    };
+    if (destino && mapa[destino]) return mapa[destino];
+    if (tipo === 'senal_sin_pagar') return '/(tabs)/';
+    if (tipo === 'presupuesto_sin_respuesta') return '/(tabs)/presupuestos';
+    if (tipo === 'stock_bajo') return '/(tabs)/inventario';
+    return '/(tabs)/';
+  };
 
   const btnWidth = mode === 'header' ? 32 : (collapsed ? 32 : 26);
   const btnHeight = mode === 'header' ? 32 : (collapsed ? 32 : 26);
@@ -131,9 +154,52 @@ export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
                   </>
                 )}
 
+                {avisos.hallazgos.length > 0 && (
+                  <>
+                    <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700, marginBottom: 6, marginTop: (avisos.sinConfirmar.length > 0 || avisos.mensajesSinLeer > 0 || avisos.clientesFuga > 0) ? 10 : 0 }}>Chispa esta vigilando</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 4 }}>
+                      {avisos.hallazgos.map((h) => {
+                        const c = sevColor(h.severidad);
+                        const cnt = h.datos?.count ?? 0;
+                        return (
+                          <div key={h.id} style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
+                            <button
+                              onClick={() => go(rutaHallazgo(h.tipo, h.accion_sugerida?.payload as Record<string, unknown>))}
+                              title={h.detalle || h.resumen}
+                              style={{ flex: 1, minWidth: 0, textAlign: 'left', background: T.bgCard, border: `1px solid ${T.border}`, borderLeft: `3px solid ${c.fg}`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2 }}
+                            >
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span style={{ fontSize: 12.5, fontWeight: 700, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.resumen}</span>
+                                {h.severidad === 'urgente' && (
+                                  <span style={{ flexShrink: 0, fontSize: 9, fontWeight: 800, letterSpacing: 0.4, color: c.fg, background: c.bg, borderRadius: 999, padding: '1px 6px' }}>URGENTE</span>
+                                )}
+                              </span>
+                              <span style={{ fontSize: 11, color: T.textSecondary }}>{cnt > 0 ? `${cnt} ${cnt === 1 ? 'caso' : 'casos'}` : h.detalle}</span>
+                            </button>
+                            <button
+                              onClick={() => { void avisos.resolverHallazgo(h.id, 'resuelto'); }}
+                              title="Marcar como resuelto"
+                              style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 30, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.success, cursor: 'pointer', padding: 0 }}
+                            >
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                            </button>
+                            <button
+                              onClick={() => { void avisos.resolverHallazgo(h.id, 'descartado'); }}
+                              title="Descartar este aviso"
+                              style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 30, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.textTertiary, cursor: 'pointer', padding: 0 }}
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
                 {avisos.cumples.length > 0 && (
                   <>
-                    <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700, marginBottom: 6, marginTop: (avisos.sinConfirmar.length > 0 || avisos.mensajesSinLeer > 0 || avisos.clientesFuga > 0) ? 10 : 0 }}>Cumpleanos (proximos 7 dias)</div>
+                    <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700, marginBottom: 6, marginTop: (avisos.sinConfirmar.length > 0 || avisos.mensajesSinLeer > 0 || avisos.clientesFuga > 0 || avisos.hallazgos.length > 0) ? 10 : 0 }}>Cumpleanos (proximos 7 dias)</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {avisos.cumples.map((b) => {
                         const cuando = b.diff === 0 ? 'Hoy' : b.diff === 1 ? 'Manana' : `En ${b.diff} dias`;

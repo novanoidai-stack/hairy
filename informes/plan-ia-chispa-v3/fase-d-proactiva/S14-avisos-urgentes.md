@@ -32,8 +32,38 @@ encolado/etiquetado para notificación externa (stub claro para Alexandro).
 - Lo urgente entra en la cola de notificación con el contrato documentado (sin enviar).
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] migración+advisors (si aplica)  [ ] E2E demo  [ ] manuales+iaCatalogo
-[ ] specs landing  [ ] commit+push  [ ] S14 marcada  [ ] stub de envío documentado para Alexandro`
+`[x] tsc  [x] build  [x] migración+advisors  [x] E2E SQL  [x] manuales+iaCatalogo
+[x] specs landing (ya cubierto en S13)  [x] commit+push  [x] S14 marcada  [x] stub de envío documentado`
 
 ## Estado
-PENDIENTE.
+HECHA (9 jul).
+- Integración en Avisos elegida **aditiva** (acuerdo con Carlos): se mantienen las secciones nativas
+  (sin confirmar con nombre/hora, mensajes, fuga, cumpleaños) y se añade una sección
+  **"Chispa está vigilando"** con los hallazgos que hoy NO se veían (señal sin pagar, presupuesto sin
+  respuesta, stock bajo). Los tipos ya nativos (cita_sin_confirmar, bandeja, fuga) se excluyen de la
+  sección para no duplicar (`HALLAZGOS_YA_NATIVOS` en `useAvisos`).
+- **UI:** `useAvisos` carga `hallazgos` (RPC `hallazgos_del_negocio`, demo devuelve []) + `resolverHallazgo`
+  (optimista). Sección con color por severidad + acciones de un clic **Ver / Resolver / Descartar** en
+  `AvisosBell.web.tsx` (web) y `AvisosSheet.tsx` (móvil/tablet, paridad). Marca **URGENTE** y el punto de
+  la campana se pone en rojo si hay urgentes. Sin fallo silencioso.
+- **Cierre del bucle:** `marcar_hallazgo` (resuelto/descartado) actualiza estado + cancela la
+  notificación pendiente asociada.
+- **Migración `sesion14-avisos-notificaciones-urgentes.sql`** (aplicada en remoto, advisors sin clase nueva):
+  outbox `hallazgos_notificaciones` (RLS SELECT propio negocio, único parcial 1 pendiente/hallazgo).
+  Regla de urgencia determinista: `cita_sin_confirmar` con una cita en <12h → severidad `urgente`.
+  `procesar_hallazgos_negocio` encola urgentes + reconcilia (cancela pendientes que dejan de aplicar).
+  Detectores de citas excluyen `oculta_en_calendario` (alineado con `useAvisos`).
+- **Verificado E2E por SQL** (tenant desechable): cita <12h → urgente + notif encolada; al confirmar,
+  hallazgo cerrado + notif reconciliada a descartado. UI: smoke test en demo, campana abre sin errores
+  (la sección sale vacía en demo por diseño). tsc + build limpios.
+
+### STUB DE ENVÍO PARA ALEXANDRO (contrato)
+El **envío real** (WhatsApp/correo al gestor) NO está implementado — es tuyo. Contrato listo:
+- **Pull:** `select public.notificaciones_hallazgos_pendientes(p_limit int default 50)` (service_role) →
+  jsonb array de `{ notificacion_id, hallazgo_id, negocio_id, tipo, resumen, canal, creado_en }`.
+- **Ack:** `select public.marcar_notificacion_hallazgo_enviada(p_id uuid, p_canal text default 'whatsapp')`
+  (service_role) → marca `enviado`.
+- El cliente cancela solo las notificaciones cuyo hallazgo se resuelve/deja de ser urgente (estado
+  `descartado`), así que no envíes las que ya no estén `pendiente`.
+- Patrón idéntico a `presupuestos_pendientes_envio` / `marcar_presupuesto_enviado` (mismo workflow n8n
+  cron-pull). Falta: enganchar el teléfono del gestor del negocio y el texto del mensaje.

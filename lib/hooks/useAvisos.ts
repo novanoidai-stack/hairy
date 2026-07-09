@@ -3,6 +3,11 @@ import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { CITA_STATUS } from '@/lib/constants';
 import { contarSinLeer } from '@/lib/bandeja';
+import { cargarHallazgos, marcarHallazgo, type Hallazgo, type EstadoHallazgo } from '@/lib/hallazgos';
+
+// Hallazgos (S13/S14) que YA se muestran como su propia seccion nativa de Avisos:
+// se excluyen de la seccion "Chispa esta vigilando" para no duplicar.
+const HALLAZGOS_YA_NATIVOS = new Set(['cita_sin_confirmar', 'bandeja_sin_responder', 'fuga_clienta']);
 
 // Avisos globales del negocio (campana). Misma logica que el panel de la agenda,
 // pero autocontenida para poder montarse en cualquier pagina (Sidebar / tab bar):
@@ -27,9 +32,14 @@ export interface AvisosData {
   cumples: AvisoCumple[];
   mensajesSinLeer: number;
   clientesFuga: number;
+  // Hallazgos del escaneo proactivo (S13) que no tienen ya seccion nativa
+  // (senal sin pagar, presupuesto sin respuesta, stock bajo).
+  hallazgos: Hallazgo[];
   total: number;
   loading: boolean;
   refresh: () => void;
+  // Resolver/descartar un hallazgo desde Avisos (cierra el bucle: estado + notif).
+  resolverHallazgo: (id: string, estado: Extract<EstadoHallazgo, 'resuelto' | 'descartado'>) => Promise<void>;
 }
 
 export function useAvisos(enabled = true): AvisosData {
@@ -37,10 +47,21 @@ export function useAvisos(enabled = true): AvisosData {
   const [cumples, setCumples] = useState<AvisoCumple[]>([]);
   const [mensajesSinLeer, setMensajesSinLeer] = useState(0);
   const [clientesFuga, setClientesFuga] = useState(0);
+  const [hallazgos, setHallazgos] = useState<Hallazgo[]>([]);
   const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
 
   const refresh = useCallback(() => setTick((t) => t + 1), []);
+
+  const resolverHallazgo = useCallback(
+    async (id: string, estado: Extract<EstadoHallazgo, 'resuelto' | 'descartado'>) => {
+      // Optimista: quita el hallazgo de la lista al instante; refresh reconcilia.
+      setHallazgos((prev) => prev.filter((h) => h.id !== id));
+      await marcarHallazgo(id, estado);
+      setTick((t) => t + 1);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!enabled) return;
@@ -55,7 +76,7 @@ export function useAvisos(enabled = true): AvisosData {
         const en48h = new Date(ahora.getTime() + 48 * 3600000);
         const esGestor = profile?.role === 'owner' || profile?.role === 'admin';
 
-        const [citasRes, clientesRes, mensajes, fugaRes] = await Promise.all([
+        const [citasRes, clientesRes, mensajes, fugaRes, hallazgosRes] = await Promise.all([
           supabase
             .from('citas')
             .select('id, inicio, cliente_id')
@@ -72,6 +93,9 @@ export function useAvisos(enabled = true): AvisosData {
           esGestor && !IS_DEMO_MODE && negocioId !== 'demo_salon_001'
             ? supabase.rpc('clientes_en_riesgo_fuga')
             : Promise.resolve({ data: [], error: null } as any),
+          // Hallazgos del escaneo proactivo (S13). El RPC deriva el negocio del auth.uid();
+          // en demo devuelve [] (el motor no persiste el tenant compartido).
+          IS_DEMO_MODE || negocioId === 'demo_salon_001' ? Promise.resolve([]) : cargarHallazgos().catch(() => []),
         ]);
         if (!alive) return;
 
@@ -103,6 +127,7 @@ export function useAvisos(enabled = true): AvisosData {
 
         setMensajesSinLeer(mensajes || 0);
         setClientesFuga(fugaRes?.error ? 0 : (fugaRes?.data ?? []).length);
+        setHallazgos(((hallazgosRes as Hallazgo[]) ?? []).filter((h) => !HALLAZGOS_YA_NATIVOS.has(h.tipo)));
         setLoading(false);
       } catch {
         if (alive) setLoading(false);
@@ -111,6 +136,6 @@ export function useAvisos(enabled = true): AvisosData {
     return () => { alive = false; };
   }, [enabled, tick]);
 
-  const total = sinConfirmar.length + cumples.length + mensajesSinLeer + clientesFuga;
-  return { sinConfirmar, cumples, mensajesSinLeer, clientesFuga, total, loading, refresh };
+  const total = sinConfirmar.length + cumples.length + mensajesSinLeer + clientesFuga + hallazgos.length;
+  return { sinConfirmar, cumples, mensajesSinLeer, clientesFuga, hallazgos, total, loading, refresh, resolverHallazgo };
 }

@@ -55,9 +55,9 @@ export const CATALOGO_IA: FuncionIA[] = [
   {
     id: 'chispa-vigilancia-24-7',
     titulo: 'Vigilancia proactiva 24/7',
-    descripcion: 'Chispa revisa tu negocio de forma autónoma cada 15 minutos (y al abrir la app) y detecta problemas y oportunidades: señales sin pagar, citas sin confirmar de las próximas 48h, bandeja sin responder, presupuestos sin respuesta, stock bajo y clientas en riesgo de fuga. Cada hallazgo lleva su gravedad y una acción sugerida de un clic, y se cierra solo cuando deja de aplicar. Detección determinista (sin LLM), multi-tenant y registrada en la bitácora del negocio.',
+    descripcion: 'Chispa revisa tu negocio de forma autónoma cada 15 minutos (y al abrir la app) y detecta problemas y oportunidades: señales sin pagar, citas sin confirmar de las próximas 48h, bandeja sin responder, presupuestos sin respuesta, stock bajo y clientas en riesgo de fuga. En la campana de Avisos aparecen con su gravedad y acciones de un clic: verlo en su pantalla, marcarlo resuelto o descartarlo. Los hallazgos se cierran solos cuando dejan de aplicar. Lo urgente (una cita en menos de 12h sin confirmar) se encola además para aviso externo por WhatsApp. Detección determinista (sin LLM), multi-tenant y registrada en la bitácora del negocio.',
     ubicacion: '/app/avisos',
-    uso: 'Los hallazgos aparecen en Avisos con su acción. No hay que hacer nada para activarlo: vigila solo.',
+    uso: 'Abre la campana de Avisos: en "Chispa está vigilando" verás los hallazgos con sus botones ver/resolver/descartar. Vigila solo, sin activar nada.',
     categoria: 'panel',
     soloGestor: true,
   },
