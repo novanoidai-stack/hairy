@@ -15,6 +15,10 @@ export const manualChispa: ManualContent = {
       texto: 'El panel de Chispa (pestaña con icono de estrella) es tu asistente conversacional. Puedes preguntarle cualquier cosa en voz o texto: crear citas, servicios, presupuestos, consultar datos de clientas o pedirle que organice tu agenda. Soporta formularios visuales para no tener que escribir.',
     },
     {
+      titulo: 'Pregúntale qué sabe hacer',
+      texto: 'Chispa se conoce a sí misma. Si no sabes por dónde empezar, pregúntale "¿qué sabes hacer?" o "¿dónde configuro la reserva online?": te enumerará las funciones de IA disponibles y te ofrecerá un enlace directo a cada pantalla. Nunca inventa funciones que no existan.',
+    },
+    {
       titulo: 'Configuración guiada',
       texto: 'Si eres gestor, Chispa puede configurar tu salón paso a paso. Di "configúrame el salón" o pulsa el botón "Poner en marcha tu salón" desde Avisos. Chispa te guiará por datos del negocio, servicios, equipo, horarios y notificaciones con formularios pre‑rellenados.',
       captura: '/manuals/chispa/config-guiada.png',

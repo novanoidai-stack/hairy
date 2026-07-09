@@ -76,4 +76,27 @@ y cómo se conectan. Sin esto, cada sesión posterior improvisaría su propia es
 [ ] commit+push master  [ ] S01 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA — 2026-07-09.
+
+**Qué se construyó:**
+- `informes/plan-ia-chispa-v3/ARQUITECTURA.md`: fuente de verdad de la capa IA (módulos por
+  capa + contratos + flujo E2E + modelo de memoria con firmas de tabla propuestas para Fase C +
+  límites). Verificado contra repo/BD, nada inventado; memoria/registro marcados `planificado`.
+- `lib/ia/manifiestoIA.ts`: manifiesto tipado (sin `any`, sin secretos). `MODULOS_IA` (arquitectura
+  interna, cada uno verificado real o `estado:'planificado'`) + `SUPERFICIES_IA` **derivadas** de
+  `CATALOGO_IA` (una sola fuente de verdad catálogo↔manifiesto, imposible divergir por
+  construcción) + `resumenAutoconocimiento()`.
+- Auto-conocimiento en el edge `agenda-asistente/index.ts`: constante `AUTOCONOCIMIENTO_IA`
+  (proyección compacta de las superficies) inyectada en `buildSystemPrompt` + instrucción para
+  responder "¿qué sabes hacer? / ¿dónde está X?" con chips `sugerir_enlace`.
+- Deriva resuelta: **retirado `components/config/TabImportarCitas.tsx`** (huérfano, sin ningún
+  import; Migración Mágica lo supersede con `agenda_booksy_fresha`). Un solo camino de importación.
+- Coherencia: nueva superficie en `lib/iaCatalogo.ts` (`chispa-autoconocimiento`) + sección en
+  `lib/manuals/chispa.ts` + item en `web/especificaciones.html`.
+
+**Verificado:**
+`[x] tsc (limpio en lib/, ruido preexistente solo en scripts/tts-test)  [x] build:web OK
+[x] edge desplegada (401 sin auth) + probada autenticada con la demo (demo.publico): "¿qué sabes
+hacer?" → texto conciso + 5 chips de enlace a pantallas reales; "¿dónde está X?" → chip a la
+pantalla correcta  [x] E2E demo (llamada real al tenant demo vía edge desplegado)
+[x] manuales+iaCatalogo coherentes con el manifiesto  [x] specs landing  [x] commit+push master`

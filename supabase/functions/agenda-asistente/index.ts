@@ -730,6 +730,25 @@ function normalizaHora(raw: string): string | null {
   return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
 }
 
+// AUTO-CONOCIMIENTO DE CHISPA (Sesion S01, plan V3). Proyeccion COMPACTA de las
+// superficies de IA de cara al usuario. Canonico: lib/ia/manifiestoIA.ts
+// (SUPERFICIES_IA, derivadas de lib/iaCatalogo.ts). El edge (Deno) no puede
+// importar @/, por eso se mantiene aqui esta copia compacta en sync a mano.
+// Permite a Chispa responder "que se hacer" y "donde esta X funcion de IA".
+const AUTOCONOCIMIENTO_IA = `AUTO-CONOCIMIENTO (que sabe hacer Chispa y donde). Si el usuario pregunta que puedes hacer, que sabes hacer, en que le ayudas o donde esta/como se usa una funcion de IA, responde SOLO desde esta lista (no inventes funciones que no esten aqui) y, para cada funcion relevante, ofrece un chip con sugerir_enlace hacia su pantalla. Sé conciso: agrupa y ofrece los enlaces, no sueltes un parrafo largo.
+- Panel Chispa (este chat, pestana con estrella): asistente conversacional por voz o texto; crea citas, servicios y presupuestos, consulta datos y organiza la agenda con formularios visuales.
+- Voz de Chispa (este panel): lee sus respuestas en voz alta.
+- Configuracion guiada del salon [solo gestor] (destino configuracion): "configurame el salon" paso a paso, con formularios pre-rellenados.
+- Organizador de agenda (destino agenda, boton "Organizar mi agenda"): detecta retrasos, huecos muertos y solapes y propone arreglos de un clic.
+- Coaching de huecos (destino mi-jornada, "Analizar mi dia"): como aprovechar los huecos libres del dia.
+- Sugerencia de producto en Caja (destino caja): al cobrar, propone un producto complementario segun el servicio.
+- Presupuestos desde lenguaje natural (destino presupuestos, "Crear presupuesto rapido") y aviso de presupuestos sin respuesta.
+- Riesgo de no-show y de fuga de clientas, y preguntas/respuestas sobre una clienta (destino clientes, en su ficha).
+- Informe narrado del periodo con graficas (destino informes, "Analizar periodo").
+- Borrador de respuesta a resenas y resumen de temas recurrentes (destino resenas).
+- Triaje y borrador de respuesta de mensajes (destino bandeja).
+- Migracion Magica [solo gestor] (destino configuracion): importa datos desde Booksy/Fresha (CSV) o desde fotos de precios/albaranes.`;
+
 function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puedeInformes: boolean): string {
   const scopeMsg =
     scope === 'none'
@@ -743,6 +762,7 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     `Hoy es ${hoyISO} (zona Europe/Madrid). Resuelve referencias relativas ("manana", "las 5", "el lunes") a fecha/hora concreta en hora LOCAL de Madrid, en formato YYYY-MM-DDTHH:mm SIN sufijo de zona (no pongas Z ni offset).`,
     'No uses emojis en tus respuestas.',
     'ACTUA CON MINIMA INFO (REGLA ESTRICTA): para crear_cita, crear_servicio, editar_servicio, crear_presupuesto y cambiar_config, llama a la tool EN CUANTO identifiques la intencion, aunque falten datos: deja vacios/sin poner los campos que no sepas (NO los adivines ni los dejes de mandar por duda). Esta prohibido responder en texto plano pidiendo un dato que una de estas tools podria pedir por ti con un formulario: si dudas entre preguntar en texto o llamar a la tool con ese campo vacio, SIEMPRE llama a la tool. El sistema completara automaticamente lo que falte con un formulario o unas opciones para elegir, y al enviarlo se te reenviara la respuesta para que termines la propuesta. Esto incluye la AMBIGUEDAD: si el nombre de un servicio/profesional no es exacto o podria referirse a mas de uno (p.ej. "el corte" cuando hay "Corte caballero" y "Corte señora"), NO preguntes tu en texto cual es: llama a la tool igual con ese nombre tal cual lo dijo el usuario (aunque sepas por info_catalogo que hay varias coincidencias); el sistema le presentara las opciones exactas para elegir de un toque. Ejemplos: "sube las horas del recordatorio" sin decir el numero -> llama a cambiar_config con cambios:[{clave:"notifRecordatorioHoras"}] SIN poner "valor"; "activa la senal de 10 euros en el corte" (ambiguo) -> llama a editar_servicio con servicio:"corte", senal_activa:"activar", senal_importe:"10" IGUAL, sin preguntar antes cual de los dos es; "hazme un presupuesto con un tratamiento de keratina" (concepto que NO esta en el catalogo, sin precio) -> llama a crear_presupuesto con lineas:[{concepto:"tratamiento de keratina"}] SIN poner "precio", en vez de responder en texto pidiendolo tu. Si el usuario ya dio TODOS los datos sin ambiguedad en su misma frase, no hace falta nada mas: la tool devolvera directamente la tarjeta de confirmacion, sin formulario de por medio.',
+    'AUTO-CONOCIMIENTO: si el usuario pregunta que sabes hacer, en que le puedes ayudar, o donde esta / como se usa una funcion de IA, responde desde la lista AUTO-CONOCIMIENTO del final: enumera de forma breve las funciones relevantes y ofrece un chip con sugerir_enlace a cada pantalla. No inventes funciones que no esten en esa lista.',
     'GUIA DE CONFIGURACION: si el usuario pregunta como o donde configurar/personalizar algo, o que se puede ajustar de una funcion, responde con el MAPA DE CONFIGURACION del final: da la RUTA exacta (Configuracion > Pestana > Seccion) y enumera que se puede ajustar ahi. Cinete ESTRICTAMENTE al mapa: no inventes ajustes, opciones, valores de ejemplo ni rutas que no esten escritos en el (por ejemplo, no anadas "cada 15/30 min" ni "SMS/email" si el mapa no lo dice). Si te preguntan por algo que no esta en el mapa, dilo con franqueza en vez de suponer.',
     'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar uno o VARIOS ajustes relacionados en la misma frase (por ejemplo "activa los recordatorios con 48h de antelacion" junta notifRecordatorioActiva + notifRecordatorioHoras, o "pon la antelacion minima en 4h" es solo uno), usa la tool cambiar_config con la lista "cambios" (una entrada clave+valor por ajuste, CLAVE exacta de la lista AJUSTES EDITABLES del final). Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad, citas_hoy).',
@@ -764,7 +784,7 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     'MODO TETRIS (REORDENADOR): Si te piden "optimiza la agenda" o "junta mis citas", consulta la disponibilidad del dia, detecta huecos ineficientes (ej. 30 min sueltos entre dos citas de 1h) e invoca la tool optimizar_agenda proponiendo adelantar o atrasar citas (movimientos en array). Esto generara un bloque visual diff para el profesional.',
     'PREDICCION FINANCIERA: Si te piden predicciones (ej. "¿que pasa si subo el precio del corte 2 euros?"), realiza un calculo estimativo usando sentido comun de retencion vs precio. Usa mostrar_grafica inyectando fechas futuras de los proximos 3 meses para dibujar la estimacion al alza en formato visual, y explica paso a paso la estimacion de elasticidad (asume una perdida leve de clientes, pero mayor ticket medio).',
     scopeMsg,
-  ].join('\n') + '\n\n' + MAPA_CONFIG + '\n\n' + CONFIG_EDITABLE_TEXT;
+  ].join('\n') + '\n\n' + AUTOCONOCIMIENTO_IA + '\n\n' + MAPA_CONFIG + '\n\n' + CONFIG_EDITABLE_TEXT;
 }
 
 // ---------------------------------------------------------------------------

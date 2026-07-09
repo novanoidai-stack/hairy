@@ -37,6 +37,19 @@
 
 ---
 
+## Adenda — Capa IA "Chispa" V3, Sesión S01 (arquitectura + auto-conocimiento) (9 jul 2026, Carlos + Claude)
+
+Arranca el **plan V3** (árbol de 27 sesiones, `informes/plan-ia-chispa-v3/`). **S01 HECHA:** se fija la
+**fuente de verdad de la arquitectura de la capa IA** en `informes/plan-ia-chispa-v3/ARQUITECTURA.md`
+(módulos por capa + contratos + flujo E2E + modelo de memoria con firmas de tabla propuestas para la
+Fase C, marcadas `planificado`) y su espejo tipado legible por máquina en `lib/ia/manifiestoIA.ts`
+(sin `any`, sin secretos; las superficies de usuario se **derivan** de `lib/iaCatalogo.ts` → una sola
+fuente de verdad, imposible divergir). **Chispa ahora se auto-conoce:** el edge `agenda-asistente`
+lleva `AUTOCONOCIMIENTO_IA` inyectado en el prompt y ante "¿qué sabes hacer? / ¿dónde está X?" responde
+con superficie visual (chips `sugerir_enlace` a la pantalla real), verificado E2E con la cuenta demo.
+**Deriva limpiada:** retirado `TabImportarCitas.tsx` (huérfano; Migración Mágica lo supersede) → un solo
+camino de importación. Manuales + `iaCatalogo` + `especificaciones.html` al día.
+
 ## Adenda — Capa IA "Chispa" v2 VERIFICADA E2E (Sesión 10, cierre) (9 jul 2026, Carlos + Claude)
 
 Cerrada la **Fase E (QA)** del rediseño v2 (`informes/PLAN-IA-CHISPA-V2-REDISENO.md`). Documento con evidencia punto
