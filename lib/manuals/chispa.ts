@@ -31,6 +31,10 @@ export const manualChispa: ManualContent = {
       texto: 'Chispa no espera a que le preguntes: revisa tu negocio de forma autónoma cada 15 minutos y también al abrir la app. Detecta señales sin pagar, citas sin confirmar de las próximas 48 horas, bandeja sin responder, presupuestos sin respuesta, stock bajo y clientas en riesgo de fuga. En la campana de Avisos, bajo "Chispa está vigilando", cada hallazgo aparece con su gravedad y tres acciones de un clic: verlo en su pantalla, marcarlo como resuelto o descartarlo. Los hallazgos se cierran solos cuando dejan de aplicar (por ejemplo, cuando repones el stock o la clienta confirma). Lo urgente (una cita en menos de 12 horas que sigue sin confirmar) se marca además para avisarte por WhatsApp. La detección es determinista, respeta tu negocio (nunca ve datos de otro salón) y queda registrada en la bitácora.',
     },
     {
+      titulo: 'Próxima mejor acción (iniciativa)',
+      texto: 'Chispa no solo espera a que le preguntes: toma la iniciativa con tacto. Según la pantalla en la que estés y lo que ha detectado el escaneo 24/7, te propone de forma discreta —una tarjeta pequeña abajo— la acción más valiosa en ese momento: recuperar una clienta en fuga cuando estás en Clientes, confirmar las citas de mañana en la Agenda, reponer stock en Inventario, dar un empujón a un presupuesto... Pulsa la acción para hacerlo de un clic, o "Ahora no" para posponerla (la silencia 24 horas). La elección es determinista y aprende de tus descartes: no repite lo que ya has apartado ni te satura.',
+    },
+    {
       titulo: 'Configuración guiada',
       texto: 'Si eres gestor, Chispa puede configurar tu salón paso a paso. Di "configúrame el salón" o pulsa el botón "Poner en marcha tu salón" desde Avisos. Chispa te guiará por datos del negocio, servicios, equipo, horarios y notificaciones con formularios pre‑rellenados.',
       captura: '/manuals/chispa/config-guiada.png',

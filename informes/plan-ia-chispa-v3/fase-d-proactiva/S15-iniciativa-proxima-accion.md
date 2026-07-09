@@ -31,8 +31,26 @@ Que en cada página/momento Chispa sugiera de forma proactiva y oportuna la acci
   correcta, aceptable de un clic; "ahora no" la silencia un tiempo (verificado E2E).
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] edge (si aplica)  [ ] E2E demo  [ ] manuales+iaCatalogo  [ ] specs landing
-[ ] commit+push  [ ] S15 marcada`
+`[x] tsc  [x] build  [x] sin edge (determinista)  [x] test selector + smoke demo  [x] manuales+iaCatalogo
+[x] specs landing  [x] commit+push  [x] S15 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA (9 jul).
+- **Selector determinista** `lib/proximaAccion.ts`: dado {página, hallazgos S13, silenciadas} elige la
+  acción más valiosa para esa pantalla (mapa relevancia por página + prioridad por severidad). **Sin LLM**
+  (se evalúa en cada carga → no puede depender de una llamada al modelo: coste/latencia/spam); copy
+  determinista con tacto. Verificado con test unitario (6/6: relevancia, prioridad urgente>alta, snooze,
+  página irrelevante, count 0, copy/ruta).
+- **Silenciado durable** `lib/sugerenciaSnooze.ts`: reutiliza `chispa_memoria` (S09) como KV por usuario
+  (tipo='hecho', clave='snooze:<clave>', valor={hasta}). "Ahora no" silencia 24h y persiste (aprende del
+  descarte). **Sin migración nueva.** Demo no persiste.
+- **UI** `components/chispa/ProximaAccionLauncher.web.tsx` (+ stub nativo): montaje GLOBAL en
+  `app/_layout.tsx` (1 fichero + 1 línea, evita editar cada página → menos colisión con sesiones
+  paralelas). Tarjeta discreta fija abajo-centro, no intrusiva, z-index 120 (bajo el panel de Chispa),
+  con "Hacer" (1 clic, navega) y "Ahora no". Solo en rutas (tabs); una vez por sesión y clave
+  (`manejadasSesion`) para no repetir al navegar.
+- **Verificado:** test del selector 6/6 + tsc + build + smoke en demo (monta y corre su efecto sin errores
+  de consola; el nudge sale inerte en demo por no haber hallazgos, misma limitación que S13/S14 — el
+  aspecto visual del nudge requiere un tenant con hallazgos reales).
+- Docs: `iaCatalogo` (chispa-proxima-accion) + manual chispa + especificaciones.html.
+- Nota reparto: S16 (coach intra-página) y S17 (tours) son la continuación natural de la iniciativa.

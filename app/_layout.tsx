@@ -14,6 +14,7 @@ import { CalendarProvider } from '@/lib/calendarContext';
 import { PrivacyConsentProvider } from '@/lib/privacyConsentContext';
 import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
 import { ChispaLauncher } from '@/components/chispa/ChispaLauncher';
+import { ProximaAccionLauncher } from '@/components/chispa/ProximaAccionLauncher';
 import { useTheme } from '@/lib/theme';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
@@ -64,6 +65,7 @@ function ThemedRoot({ children }: { children: React.ReactNode }) {
       <OfflineBanner />
       <PrivacyConsentModal />
       <ChispaLauncher />
+      <ProximaAccionLauncher />
       {children}
     </GestureHandlerRootView>
   );

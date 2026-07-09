@@ -62,6 +62,15 @@ export const CATALOGO_IA: FuncionIA[] = [
     soloGestor: true,
   },
 
+  {
+    id: 'chispa-proxima-accion',
+    titulo: 'Próxima mejor acción (iniciativa)',
+    descripcion: 'Chispa toma la iniciativa con tacto: según la pantalla en la que estés y lo que ha detectado el escaneo 24/7, te propone de forma discreta la acción más valiosa en ese momento (recuperar una clienta en fuga en Clientes, confirmar citas en Agenda, reponer stock en Inventario...). Un clic para hacerlo o "Ahora no" para posponerlo 24h. Elección determinista (sin LLM); aprende de tus descartes y no repite ni molesta.',
+    ubicacion: '/app',
+    uso: 'Aparece sola, abajo, cuando hay algo relevante en la pantalla en la que estás. Pulsa la acción o "Ahora no".',
+    categoria: 'panel',
+  },
+
   // CONFIGURACIÓN GUIADA
   {
     id: 'chispa-config-guiada',

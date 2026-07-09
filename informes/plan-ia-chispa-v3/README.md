@@ -167,7 +167,7 @@ Chispa deja de ser "un chat con superficies" y pasa a ser un **empleado digital 
 ### Fase D · Proactividad, iniciativa y guía
 - [x] [S13 · Motor de escaneo 24/7](fase-d-proactiva/S13-escaneo-24-7.md)
 - [x] [S14 · Avisos de Chispa + urgentes (envío = Alexandro)](fase-d-proactiva/S14-avisos-urgentes.md)
-- [S15 · Iniciativa / próxima mejor acción](fase-d-proactiva/S15-iniciativa-proxima-accion.md)
+- [x] [S15 · Iniciativa / próxima mejor acción](fase-d-proactiva/S15-iniciativa-proxima-accion.md)
 - [S16 · Coach intra-página que te sigue](fase-d-proactiva/S16-coach-intrapagina.md)
 - [S17 · Tours y redirecciones guiadas](fase-d-proactiva/S17-tours-redirecciones.md)
 
