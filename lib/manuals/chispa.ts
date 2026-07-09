@@ -35,6 +35,10 @@ export const manualChispa: ManualContent = {
       texto: 'Chispa no solo espera a que le preguntes: toma la iniciativa con tacto. Según la pantalla en la que estés y lo que ha detectado el escaneo 24/7, te propone de forma discreta —una tarjeta pequeña abajo— la acción más valiosa en ese momento: recuperar una clienta en fuga cuando estás en Clientes, confirmar las citas de mañana en la Agenda, reponer stock en Inventario, dar un empujón a un presupuesto... Pulsa la acción para hacerlo de un clic, o "Ahora no" para posponerla (la silencia 24 horas). La elección es determinista y aprende de tus descartes: no repite lo que ya has apartado ni te satura.',
     },
     {
+      titulo: 'Coach que te sigue en la pantalla',
+      texto: 'Chispa no solo te redirige y te suelta: puede acompañarte donde ya estás. Pulsa el botón "Enséñame esta pantalla" en la cabecera del panel (icono de diana) y Chispa aparece flotando, resalta un elemento real de la pantalla, te lo explica en el sitio y encadena varias explicaciones ("y aquí...") sin sacarte de donde estás. La guía no bloquea la página (puedes seguir usándola mientras te explica), se cierra sin fricción y respeta el teclado y la preferencia de menos movimiento. También puedes lanzarla desde la tarjeta de iniciativa ("Enséñame la pantalla").',
+    },
+    {
       titulo: 'Configuración guiada',
       texto: 'Si eres gestor, Chispa puede configurar tu salón paso a paso. Di "configúrame el salón" o pulsa el botón "Poner en marcha tu salón" desde Avisos. Chispa te guiará por datos del negocio, servicios, equipo, horarios y notificaciones con formularios pre‑rellenados.',
       captura: '/manuals/chispa/config-guiada.png',

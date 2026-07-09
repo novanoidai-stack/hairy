@@ -119,7 +119,7 @@ export function MobileTabBar({ state }: TabBarProps) {
         style={s.tab}
         onPress={() => go(item)}
         activeOpacity={0.7}
-        {...({ accessibilityRole: 'button', accessibilityLabel: t(item.labelKey) || item.label } as any)}
+        {...({ accessibilityRole: 'button', accessibilityLabel: t(item.labelKey) || item.label, dataSet: { coach: `nav-${item.name === 'index' ? 'agenda' : item.name}` } } as any)}
       >
         <Ionicons name={(active ? item.icon : `${item.icon}-outline`) as any} size={23} color={color} />
         <TText style={[s.tabLabel, { color }]} numberOfLines={1}>{t(item.labelKey) || item.label}</TText>

@@ -13,6 +13,7 @@ import { getUserProfile } from '@/lib/auth';
 import { cargarHallazgos } from '@/lib/hallazgos';
 import { elegirProximaAccion, type SugerenciaProxima } from '@/lib/proximaAccion';
 import { sugerenciasSilenciadas, silenciarSugerencia } from '@/lib/sugerenciaSnooze';
+import { lanzarCoach } from '@/lib/coachGuias';
 
 // Claves ya atendidas/descartadas en ESTA sesión: no re-molestar al navegar.
 const manejadasSesion = new Set<string>();
@@ -120,6 +121,15 @@ export function ProximaAccionLauncher() {
               style={{ padding: '8px 12px', borderRadius: 9, border: `1px solid ${T.border}`, background: 'transparent', color: T.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
             >
               Ahora no
+            </button>
+            {/* Coach intra-pagina (S16): en vez de irte, Chispa te explica esta
+                pantalla in-situ. Entrada proactiva desde la iniciativa (S15). */}
+            <button
+              type="button"
+              onClick={() => { manejadasSesion.add(sugerencia.clave); setSugerencia(null); lanzarCoach(); }}
+              style={{ padding: '8px 12px', borderRadius: 9, border: 'none', background: 'transparent', color: T.primaryHi, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+            >
+              Enseñame la pantalla
             </button>
           </div>
         </div>

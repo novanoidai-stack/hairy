@@ -36,4 +36,30 @@ estás.
 [ ] S16 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA (10 jul 2026). Coach intra-pagina que sigue al elemento y explica in-situ sin redirigir.
+
+**Que se construyo:**
+- `lib/coachGuias.ts`: contrato de datos — evento `CHISPA_COACH_EVENT`, tipos `CoachPaso`/`CoachGuia`,
+  registro de guias (universal `orientacion` con `pagina:'*'` + por pagina `agenda`/`clientes`),
+  helpers `guiaParaPagina`/`guiaPorId`/`lanzarCoach()`.
+- `components/chispa/CoachLauncher.web.tsx` (+ stub nativo `.tsx`): motor global montado en
+  `app/_layout.tsx`. Ancla una burbuja de Chispa a un elemento REAL por selector, con anillo de
+  resalte NO bloqueante (capa `pointer-events:none`, los clics pasan al elemento), sigue al target
+  con rAF (aguanta scroll/resize), encadena pasos, salta anclas inexistentes (rol/movil) y respeta
+  `prefers-reduced-motion`. Accesible (role dialog, foco al CTA, Esc cierra). Movil = hoja inferior;
+  escritorio = burbuja anclada (320px).
+- Anclas `data-coach`: nav lateral (`Sidebar`) + tab bar (`MobileTabBar`) con `nav-<slug>`, y burbuja
+  cerrada de Chispa (`chispa-bubble`, ancla siempre presente).
+- Disparadores: boton "Ensename esta pantalla" (icono diana) en la cabecera del panel, y entrada
+  proactiva "Ensename la pantalla" en la tarjeta de iniciativa (S15).
+- Docs: `lib/manuals/chispa.ts`, `lib/iaCatalogo.ts` (`chispa-coach-intrapagina`) y
+  `web/especificaciones.html`.
+
+**Verificado E2E** en `/demo.html?share=1` (iframe `?demo=1`): anclas presentes; el evento lanza la
+guia de la pagina (Agenda); anillo envuelve la pestana Agenda (top/left/width correctos) sobre capa
+no bloqueante; "Siguiente" encadena al paso "Aqui me tienes siempre"; "Entendido" cierra y retira la
+capa; rama movil (hoja inferior <768) y escritorio (burbuja 320px, iframe ensanchado a 1200px);
+boton del panel presente; sin errores de consola. Screenshot adjunto en la sesion.
+
+**Checklist:** [x] tsc  [x] build  [x] E2E demo  [x] manuales+iaCatalogo  [x] specs landing
+[ ] commit+push (a continuacion)  [x] S16 marcada

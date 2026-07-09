@@ -15,6 +15,7 @@ import { PrivacyConsentProvider } from '@/lib/privacyConsentContext';
 import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
 import { ChispaLauncher } from '@/components/chispa/ChispaLauncher';
 import { ProximaAccionLauncher } from '@/components/chispa/ProximaAccionLauncher';
+import { CoachLauncher } from '@/components/chispa/CoachLauncher';
 import { useTheme } from '@/lib/theme';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
@@ -66,6 +67,7 @@ function ThemedRoot({ children }: { children: React.ReactNode }) {
       <PrivacyConsentModal />
       <ChispaLauncher />
       <ProximaAccionLauncher />
+      <CoachLauncher />
       {children}
     </GestureHandlerRootView>
   );

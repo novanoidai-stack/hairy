@@ -5,6 +5,7 @@ import { useGlobalSearchParams } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { ejecutarAccion, deshacerAccion, type AccionPropuesta } from '@/lib/agendaOps';
 import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, type Bloque } from '@/lib/chispaBloques';
+import { lanzarCoach } from '@/lib/coachGuias';
 import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
 import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
@@ -1054,6 +1055,8 @@ export default function ChispaPanel({
           className="chispa-launch-tab"
           onClick={() => setAbierto(true)}
           aria-label="Abrir Chispa, la IA del salon"
+          // Ancla para el coach intra-pagina (S16): siempre presente en la app.
+          data-coach="chispa-bubble"
           style={{
             position: 'fixed', top: '50%', right: 0, transform: 'translateY(-50%)',
             zIndex: 2147483000, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
@@ -1133,6 +1136,18 @@ export default function ChispaPanel({
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 }}>
                 <IconoAltavoz size={15} color={voz.vozActiva ? T.primaryHi : T.textSecondary} activo={voz.vozActiva} />
+              </button>
+              {/* Coach intra-pagina (S16): cierra el panel y resalta los
+                  elementos de la pantalla actual explicandolos in-situ. */}
+              <button
+                onClick={() => { setAbierto(false); setTimeout(() => lanzarCoach(), 60); }}
+                aria-label="Ensename esta pantalla"
+                title="Que Chispa te ensene esta pantalla"
+                style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" stroke={T.textSecondary} strokeWidth="1.7" />
+                  <circle cx="12" cy="12" r="3.2" fill={T.primary} />
+                </svg>
               </button>
               {!isMobile && (
                 <button

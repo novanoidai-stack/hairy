@@ -71,6 +71,15 @@ export const CATALOGO_IA: FuncionIA[] = [
     categoria: 'panel',
   },
 
+  {
+    id: 'chispa-coach-intrapagina',
+    titulo: 'Coach que te enseña la pantalla',
+    descripcion: 'Chispa no solo te redirige: puede acompañarte donde ya estás. Aparece flotando, resalta un elemento real de la pantalla, te lo explica en el sitio y encadena varias explicaciones sin sacarte de donde estás. La guía no bloquea la página (puedes usarla mientras te explica), se cierra sin fricción, respeta el teclado y la preferencia de menos movimiento, y funciona en móvil y escritorio.',
+    ubicacion: '/app',
+    uso: 'Pulsa "Enséñame esta pantalla" (icono de diana) en la cabecera del panel Chispa, o "Enséñame la pantalla" en la tarjeta de iniciativa.',
+    categoria: 'panel',
+  },
+
   // CONFIGURACIÓN GUIADA
   {
     id: 'chispa-config-guiada',

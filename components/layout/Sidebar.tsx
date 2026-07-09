@@ -197,6 +197,8 @@ export function Sidebar() {
           {...{
             onMouseEnter: () => { hoverIn(hoverAnim); setHoveredIdx(idx); },
             onMouseLeave: () => { hoverOut(hoverAnim); setHoveredIdx(null); },
+            // Ancla para el coach intra-pagina (S16): data-coach="nav-<slug>".
+            dataSet: { coach: `nav-${item.href === '/(tabs)' ? 'agenda' : hrefSlug}` },
             ...webTitle(t(item.labelKey) || item.label)
           } as any}
         >
