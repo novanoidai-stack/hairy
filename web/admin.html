@@ -246,6 +246,8 @@
     <button class="ad-tab" id="tabRef" data-view="referidos">Referidos<span class="badge" id="badgeRef">0</span></button>
     <button class="ad-tab" id="tabRes" data-view="resenas">Reseñas Mecha<span class="badge" id="badgeRes">0</span></button>
     <button class="ad-tab" id="tabStf" data-view="staff">Staff / Equipo<span class="badge" id="badgeStf">0</span></button>
+    <button class="ad-tab" id="tabAud" data-view="auditoria_ia">Auditoría IA<span class="badge" id="badgeAud">0</span></button>
+    <button class="ad-tab" id="tabMov" data-view="movimientos">Movimientos<span class="badge" id="badgeMov">0</span></button>
   </div>
 
   <!-- VISTA: RESEÑAS MECHA -->
@@ -420,6 +422,79 @@
     <div class="ad-count" id="countStf">Cargando miembros del staff...</div>
     <div class="ad-msg" id="stfMsg" style="margin-bottom:14px"></div>
     <div class="ad-list" id="listStf"></div>
+  </div>
+
+  <!-- VISTA: AUDITORÍA IA (tokens y costes) -->
+  <div id="view-auditoria_ia" style="display:none">
+    <div class="ad-stats" id="statsAud">
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statAudEjecuciones">0</div><div class="l">Ejecuciones IA</div></div>
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statAudTokens">0</div><div class="l">Tokens totales</div></div>
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statAudCoste">$0</div><div class="l">Coste total (USD)</div></div>
+    </div>
+
+    <p style="font-size:12.5px; color:var(--text-sec); margin:-2px 0 16px; line-height:1.5; max-width:760px;">
+      Auditoría de ejecuciones de IA (Chispa): tokens consumidos, modelos usados y coste en dinero.
+      Puedes ver el gasto agregado por negocio o desglosado por usuario individualmente.
+    </p>
+
+    <div class="ad-tools">
+      <div class="ad-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+        <input type="search" id="qAud" placeholder="Buscar por negocio, usuario, función o modelo..." />
+      </div>
+      <select class="ad-sel" id="fDias">
+        <option value="7">Últimos 7 días</option>
+        <option value="30" selected>Últimos 30 días</option>
+        <option value="90">Últimos 90 días</option>
+      </select>
+      <button class="ad-refresh" id="refreshAudBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
+        Actualizar
+      </button>
+    </div>
+
+    <div class="ad-count" id="countAud">Cargando estadísticas de IA...</div>
+    <div class="ad-msg" id="audMsg" style="margin-bottom:14px"></div>
+    <div class="ad-list" id="listAud"><div class="ad-loading">Cargando estadísticas de IA...</div></div>
+  </div>
+
+  <!-- VISTA: MOVIMIENTOS (registro completo del negocio) -->
+  <div id="view-movimientos" style="display:none">
+    <div class="ad-stats" id="statsMov">
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statMovEventos">0</div><div class="l">Eventos</div></div>
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statMovAcciones">0</div><div class="l">Acciones Chispa</div></div>
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statMovIA">0</div><div class="l">Auditoría IA</div></div>
+    </div>
+
+    <p style="font-size:12.5px; color:var(--text-sec); margin:-2px 0 16px; line-height:1.5; max-width:760px;">
+      Registro unificado de todos los movimientos de un negocio: eventos, acciones de IA y ejecuciones con tokens.
+      Selecciona un negocio para ver su actividad completa.
+    </p>
+
+    <div class="ad-tools">
+      <select class="ad-sel" id="selNegocioMov" style="min-width:250px; flex:1;">
+        <option value="">Selecciona un negocio...</option>
+      </select>
+      <select class="ad-sel" id="fTipoMov">
+        <option value="">Todos los tipos</option>
+        <option value="evento">Eventos</option>
+        <option value="accion_chispa">Acciones Chispa</option>
+        <option value="auditoria_ia">Auditoría IA</option>
+      </select>
+      <select class="ad-sel" id="fDiasMov">
+        <option value="7">Últimos 7 días</option>
+        <option value="30" selected>Últimos 30 días</option>
+        <option value="90">Últimos 90 días</option>
+      </select>
+      <button class="ad-refresh" id="refreshMovBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
+        Actualizar
+      </button>
+    </div>
+
+    <div class="ad-count" id="countMov">Selecciona un negocio para ver sus movimientos</div>
+    <div class="ad-msg" id="movMsg" style="margin-bottom:14px"></div>
+    <div class="ad-list" id="listMov"></div>
   </div>
 </div>
 
@@ -660,6 +735,27 @@
   var staffEmails = {};
   var cuentasLoaded = false;
 
+  // Función global para toggle de subcuentas (llamada desde onclick)
+  window.toggleSubs = function(event, nid, count) {
+    event.stopPropagation();
+    var wrap = $('subs-wrap-' + nid);
+    var arrow = $('arrow-' + nid);
+    if (wrap) {
+      if (wrap.style.display === 'none' || !wrap.style.display) {
+        wrap.style.display = 'block';
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
+        // Actualizar también los botones de toggle si existen
+        var btn = document.querySelector('.btn-toggle-subs[data-nid="' + nid + '"]');
+        if (btn) btn.textContent = 'Ocultar subcuentas';
+      } else {
+        wrap.style.display = 'none';
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+        var btn = document.querySelector('.btn-toggle-subs[data-nid="' + nid + '"]');
+        if (btn) btn.textContent = 'Ver subcuentas (' + count + ')';
+      }
+    }
+  };
+
   function isStaffAccount(p) { return !!(p && p.email && staffEmails[String(p.email).toLowerCase()]); }
   // Clasificacion de la cuenta: equipo (staff) > con acceso (full) > demo (free).
   function accountKind(p) {
@@ -795,9 +891,16 @@
 
     var nombreFull = (esc(p.nombre) || 'Sin nombre') + (p.apellido ? (' ' + esc(p.apellido)) : '');
 
-    return '<div class="card-row" data-pid="' + esc(p.id) + '">' +
-      '<div class="r-head">' +
+    // Cabecera clickable si hay subcuentas
+    var headerClickable = subaccountsCount > 0 ? 'cursor:pointer; ' : '';
+    var expandIcon = subaccountsCount > 0
+      ? '<svg style="width:16px;height:16px;color:var(--text-sec);transition:transform 0.2s;" id="arrow-' + esc(p.negocio_id) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>'
+      : '';
+
+    return '<div class="card-row" data-pid="' + esc(p.id) + '" data-nid="' + esc(p.negocio_id) + '" data-has-subs="' + (subaccountsCount > 0 ? '1' : '0') + '">' +
+      '<div class="r-head" style="' + headerClickable + '"' + (subaccountsCount > 0 ? ' onclick="toggleSubs(event, \'' + esc(p.negocio_id) + '\', ' + subaccountsCount + ')"' : '') + '>' +
         '<div class="r-id">' +
+          expandIcon +
           (isStaffAccount(p) ? '<span class="plan staff">equipo</span>' : '') +
           '<span class="plan ' + planClass + '">' + (plan === 'full' ? 'con acceso' : esc(plan)) + '</span>' +
           getRoleBadgeHtml(p.role) +
@@ -809,7 +912,7 @@
       '</div>' +
       '<div class="r-grid">' + grid + '</div>' +
       '<div class="r-foot">' + action + '</div>' +
-      (subaccountsCount > 0 ? 
+      (subaccountsCount > 0 ?
         '<div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px;">' +
           '<div id="subs-wrap-' + esc(p.negocio_id) + '" style="display:none; transition: all 0.25s ease;">' +
             '<!--SUB_ACCOUNTS_HERE-->' +
@@ -1616,29 +1719,303 @@
     var ref = view === 'referidos';
     var res = view === 'resenas';
     var stf = view === 'staff';
+    var aud = view === 'auditoria_ia';
+    var mov = view === 'movimientos';
 
     $('tabSol').classList.toggle('active', sol);
     $('tabCue').classList.toggle('active', cue);
     $('tabRef').classList.toggle('active', ref);
     $('tabRes').classList.toggle('active', res);
     $('tabStf').classList.toggle('active', stf);
+    $('tabAud').classList.toggle('active', aud);
+    $('tabMov').classList.toggle('active', mov);
 
     $('view-solicitudes').style.display = sol ? 'block' : 'none';
     $('view-cuentas').style.display = cue ? 'block' : 'none';
     $('view-referidos').style.display = ref ? 'block' : 'none';
     $('view-resenas').style.display = res ? 'block' : 'none';
     $('view-staff').style.display = stf ? 'block' : 'none';
+    $('view-auditoria_ia').style.display = aud ? 'block' : 'none';
+    $('view-movimientos').style.display = mov ? 'block' : 'none';
 
     if (cue && !cuentasLoaded) loadCuentas();
     if (ref && !referidosLoaded) loadReferidos();
     if (res && !resenasLoaded) loadResenas();
     if (stf && !staffLoaded) loadStaff();
+    if (aud && !auditoriaLoaded) loadAuditoriaIA();
+    if (mov && !movimientosLoaded) loadMovimientos();
   }
   var ts = $('tabSol'); if (ts) ts.addEventListener('click', function () { switchView('solicitudes'); });
   var tc = $('tabCue'); if (tc) tc.addEventListener('click', function () { switchView('cuentas'); });
   var tr = $('tabRef'); if (tr) tr.addEventListener('click', function () { switchView('referidos'); });
   var tres = $('tabRes'); if (tres) tres.addEventListener('click', function () { switchView('resenas'); });
   var tstf = $('tabStf'); if (tstf) tstf.addEventListener('click', function () { switchView('staff'); });
+  var taux = $('tabAud'); if (taux) taux.addEventListener('click', function () { switchView('auditoria_ia'); });
+  var tmov = $('tabMov'); if (tmov) tmov.addEventListener('click', function () { switchView('movimientos'); });
+
+  // ---------- AUDITORÍA IA ----------
+  var auditoriaData = [];
+  var auditoriaLoaded = false;
+
+  function loadAuditoriaIA() {
+    var listEl = $('listAud');
+    listEl.innerHTML = '<div class="ad-loading">Cargando estadísticas de IA...</div>';
+    clearMsg($('audMsg'));
+
+    var dias = parseInt($('fDias').value, 10) || 30;
+
+    api.client.rpc('staff_auditoria_tokens', { p_dias: dias }).then(function (res) {
+      if (res.error) {
+        listEl.innerHTML = '';
+        msg($('audMsg'), 'err', 'No se pudieron cargar las estadísticas: ' + (res.error.message || ''));
+        return;
+      }
+      auditoriaData = res.data || [];
+      auditoriaLoaded = true;
+      renderAuditoriaIA();
+    });
+  }
+
+  function renderAuditoriaIA() {
+    var q = ($('qAud').value || '').trim().toLowerCase();
+    var filtered = auditoriaData.filter(function (row) {
+      if (!q) return true;
+      var hay = [row.negocio_id, row.negocio_nombre, row.usuario_email, row.usuario_nombre, row.funcion_ia, row.modelo].join(' ').toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
+
+    // Calcular totales
+    var totalEjecuciones = 0, totalTokens = 0, totalCoste = 0;
+    filtered.forEach(function (row) {
+      totalEjecuciones += row.ejecuciones || 0;
+      totalTokens += row.tokens_total || 0;
+      totalCoste += parseFloat(row.coste_total_usd || 0);
+    });
+
+    $('statAudEjecuciones').textContent = totalEjecuciones.toLocaleString('es-ES');
+    $('statAudTokens').textContent = (totalTokens / 1000).toFixed(1) + 'K';
+    $('statAudCoste').textContent = '$' + totalCoste.toFixed(2);
+    $('badgeAud').textContent = filtered.length;
+
+    $('countAud').textContent = filtered.length + ' registros de auditoría';
+
+    if (!filtered.length) {
+      $('listAud').innerHTML = '<div class="ad-empty">No hay datos de auditoría de IA que coincidan con el filtro.</div>';
+      return;
+    }
+
+    // Agrupar por negocio para mostrar jerarquía
+    var grupos = {};
+    filtered.forEach(function (row) {
+      if (!grupos[row.negocio_id]) {
+        grupos[row.negocio_id] = {
+          nombre: row.negocio_nombre || row.negocio_id,
+          usuarios: {}
+        };
+      }
+      var key = (row.usuario_email || 'sistema') + '|||' + (row.usuario_nombre || 'Desconocido');
+      if (!grupos[row.negocio_id].usuarios[key]) {
+        grupos[row.negocio_id].usuarios[key] = {
+          email: row.usuario_email,
+          nombre: row.usuario_nombre,
+          filas: []
+        };
+      }
+      grupos[row.negocio_id].usuarios[key].filas.push(row);
+    });
+
+    var html = '';
+    for (var nid in grupos) {
+      var grp = grupos[nid];
+      html += '<div class="card-row" style="margin-bottom:16px;">';
+      html += '<div class="r-head"><div class="r-id"><span class="r-name">' + esc(grp.nombre) + '</span></div></div>';
+
+      for (var uid in grp.usuarios) {
+        var u = grp.usuarios[uid];
+        html += '<div style="margin:12px 0 8px; padding:10px 14px; background:rgba(255,255,255,0.02); border:1px dashed var(--border); border-radius:10px;">';
+        html += '<div style="font-size:13px; font-weight:600; color:var(--text); margin-bottom:8px;">';
+        html += (u.email ? esc(u.email) : 'Sistema') + (u.nombre ? ' (' + esc(u.nombre) + ')' : '');
+        html += '</div>';
+
+        u.filas.forEach(function (row) {
+          html += '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid rgba(255,255,255,0.04); font-size:12.5px;">';
+          html += '<div><span style="color:var(--text-sec);">' + esc(row.funcion_ia) + '</span>';
+          html += '<span style="color:var(--text-ter); font-size:11px; margin-left:8px;">(' + esc(row.modelo) + ')</span></div>';
+          html += '<div style="display:flex; gap:16px; text-align:right;">';
+          html += '<div><span style="color:var(--text-sec);">Ejecuciones:</span> ' + row.ejecuciones + '</div>';
+          html += '<div><span style="color:var(--text-sec);">Tokens:</span> ' + (row.tokens_total || 0).toLocaleString('es-ES') + '</div>';
+          html += '<div style="color:#f59e0b; font-weight:600;">$' + (row.coste_total_usd || 0).toFixed(4) + '</div>';
+          html += '</div></div>';
+        });
+
+        html += '</div>';
+      }
+
+      html += '</div>';
+    }
+
+    $('listAud').innerHTML = html;
+  }
+
+  var rba = $('refreshAudBtn');
+  if (rba) rba.addEventListener('click', loadAuditoriaIA);
+  var qa = $('qAud');
+  if (qa) qa.addEventListener('input', renderAuditoriaIA);
+  var fd = $('fDias');
+  if (fd) fd.addEventListener('change', loadAuditoriaIA);
+
+  // ---------- MOVIMIENTOS (registro completo) ----------
+  var movimientosData = [];
+  var movimientosLoaded = false;
+  var negociosParaMovimientos = [];
+
+  function loadMovimientos() {
+    // Primero cargar la lista de negocios para el selector
+    if (negociosParaMovimientos.length === 0) {
+      api.client.from('profiles').select('negocio_id, nombre_negocio').in('role', 'owner').then(function (res) {
+        if (!res.error && res.data) {
+          var uniq = {};
+          res.data.forEach(function (p) {
+            if (p.negocio_id && !uniq[p.negocio_id]) {
+              uniq[p.negocio_id] = p.nombre_negocio || p.negocio_id;
+            }
+          });
+          negociosParaMovimientos = Object.keys(uniq).map(function (nid) {
+            return { id: nid, nombre: uniq[nid] };
+          }).sort(function (a, b) { return a.nombre.localeCompare(b.nombre); });
+
+          var sel = $('selNegocioMov');
+          sel.innerHTML = '<option value="">Selecciona un negocio...</option>';
+          negociosParaMovimientos.forEach(function (n) {
+            sel.innerHTML += '<option value="' + esc(n.id) + '">' + esc(n.nombre) + '</option>';
+          });
+        }
+      });
+    }
+    $('listMov').innerHTML = '<div class="ad-empty">Selecciona un negocio para ver sus movimientos</div>';
+    movimientosLoaded = true;
+  }
+
+  function loadMovimientosForNegocio(negocioId, dias, tipoFiltro) {
+    var listEl = $('listMov');
+    listEl.innerHTML = '<div class="ad-loading">Cargando movimientos...</div>';
+    clearMsg($('movMsg'));
+
+    api.client.rpc('staff_auditoria_completa', {
+      p_negocio_id: negocioId,
+      p_dias: dias
+    }).then(function (res) {
+      if (res.error) {
+        listEl.innerHTML = '';
+        msg($('movMsg'), 'err', 'No se pudieron cargar los movimientos: ' + (res.error.message || ''));
+        return;
+      }
+      movimientosData = res.data || [];
+
+      // Filtrar por tipo si se seleccionó
+      if (tipoFiltro) {
+        movimientosData = movimientosData.filter(function (m) { return m.tipo_fuente === tipoFiltro; });
+      }
+
+      // Ordenar por fecha descendente
+      movimientosData.sort(function (a, b) { return new Date(b.fecha) - new Date(a.fecha); });
+
+      renderMovimientos();
+    });
+  }
+
+  function renderMovimientos() {
+    var listEl = $('listMov');
+
+    // Calcular stats
+    var stats = { evento: 0, accion_chispa: 0, auditoria_ia: 0 };
+    movimientosData.forEach(function (m) {
+      if (stats[m.tipo_fuente] !== undefined) stats[m.tipo_fuente]++;
+    });
+
+    $('statMovEventos').textContent = stats.evento;
+    $('statMovAcciones').textContent = stats.accion_chispa;
+    $('statMovIA').textContent = stats.auditoria_ia;
+    $('badgeMov').textContent = movimientosData.length;
+
+    $('countMov').textContent = movimientosData.length + ' movimientos';
+
+    if (!movimientosData.length) {
+      listEl.innerHTML = '<div class="ad-empty">No hay movimientos para este negocio en el periodo seleccionado.</div>';
+      return;
+    }
+
+    var html = '<div class="ad-table-wrap"><table class="ad-table">';
+    html += '<thead><tr><th>Fecha</th><th>Tipo</th><th>Usuario</th><th>Acción</th><th>Detalles</th></tr></thead><tbody>';
+
+    movimientosData.forEach(function (m) {
+      var tipoIcon = '';
+      if (m.tipo_fuente === 'evento') tipoIcon = '<span class="tag signup">Evento</span>';
+      else if (m.tipo_fuente === 'accion_chispa') tipoIcon = '<span class="tag demo">Chispa</span>';
+      else if (m.tipo_fuente === 'auditoria_ia') tipoIcon = '<span class="tag" style="color:#a855f7;background:rgba(168,85,247,0.12);border-color:rgba(168,85,247,0.3)">IA</span>';
+
+      var detalles = '';
+      if (m.tipo_fuente === 'auditoria_ia' && m.detalles) {
+        var d = m.detalles;
+        detalles = 'Tokens: ' + (d.tokens_total || 0) + ' | Coste: $' + ((d.coste_usd || 0).toFixed(4));
+      } else if (m.resumen) {
+        detalles = m.resumen.substring(0, 60) + (m.resumen.length > 60 ? '...' : '');
+      }
+
+      html += '<tr>';
+      html += '<td>' + fmtDate(m.fecha) + '</td>';
+      html += '<td>' + tipoIcon + '</td>';
+      html += '<td>' + esc(m.usuario_email || 'Sistema') + '</td>';
+      html += '<td>' + esc(m.accion || '-') + '</td>';
+      html += '<td style="white-space:normal;max-width:250px">' + esc(detalles) + '</td>';
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    listEl.innerHTML = html;
+  }
+
+  var selMov = $('selNegocioMov');
+  if (selMov) {
+    selMov.addEventListener('change', function () {
+      var nid = selMov.value;
+      if (!nid) {
+        $('listMov').innerHTML = '<div class="ad-empty">Selecciona un negocio para ver sus movimientos</div>';
+        return;
+      }
+      var dias = parseInt($('fDiasMov').value, 10) || 30;
+      var tipo = $('fTipoMov').value || null;
+      loadMovimientosForNegocio(nid, dias, tipo);
+    });
+  }
+
+  var rm = $('refreshMovBtn');
+  if (rm) rm.addEventListener('click', function () {
+    var nid = $('selNegocioMov').value;
+    if (nid) {
+      var dias = parseInt($('fDiasMov').value, 10) || 30;
+      var tipo = $('fTipoMov').value || null;
+      loadMovimientosForNegocio(nid, dias, tipo);
+    }
+  });
+
+  var ftm = $('fTipoMov');
+  if (ftm) ftm.addEventListener('change', function () {
+    var nid = $('selNegocioMov').value;
+    if (nid) {
+      var dias = parseInt($('fDiasMov').value, 10) || 30;
+      loadMovimientosForNegocio(nid, dias, ftm.value || null);
+    }
+  });
+
+  var fdm = $('fDiasMov');
+  if (fdm) fdm.addEventListener('change', function () {
+    var nid = $('selNegocioMov').value;
+    if (nid) {
+      var tipo = $('fTipoMov').value || null;
+      loadMovimientosForNegocio(nid, parseInt(fdm.value, 10) || 30, tipo);
+    }
+  });
 })();
 </script>
 
