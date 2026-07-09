@@ -12,9 +12,10 @@ export type AccionRegistroUniversal = {
 import { supabase } from '@/lib/supabase';
 
 export async function registrarEventoIA(evento: Omit<AccionRegistroUniversal, 'id' | 'cuando'>) {
+  const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
   // Console log for local debugging
   console.log('[Registro Universal IA]', {
-    id: crypto.randomUUID(),
+    id: safeId,
     cuando: new Date().toISOString(),
     ...evento
   });
