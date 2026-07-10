@@ -24,7 +24,7 @@ import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import { OnboardingCard } from '@/components/onboarding/OnboardingCard.web';
 import OnboardingPanel from '@/components/onboarding/OnboardingPanel.web';
 import { ONBOARDING_STEPS, type OnboardingStepId } from '@/lib/onboarding';
-import { CHISPA_CONFIG_GUIADA_EVENT } from '@/lib/chispaBloques';
+import { CHISPA_CONFIG_GUIADA_EVENT, CHISPA_ORGANIZAR_EVENT, CHISPA_ORGANIZAR_FLAG } from '@/lib/chispaBloques';
 import { contarSinLeer } from '@/lib/bandeja';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualAgenda } from '@/lib/manuals/agenda';
@@ -546,6 +546,21 @@ export default function AgendaCalendar() {
   // Panel "Organizar mi agenda" (Sesion 5, IA por pagina): detecta retrasos,
   // solapes y huecos de HOY y los arregla de un clic. lib/organizarAgenda.ts.
   const [showOrganizar, setShowOrganizar] = useState(false);
+
+  // Puente chat->panel: mientras la Agenda esta montada, avisa a Chispa de que
+  // el organizador determinista (con varias estrategias visuales) esta
+  // disponible y escucha su evento para abrirlo. Asi "optimiza mi agenda" en el
+  // chat abre este panel en vez de una propuesta unica de texto del LLM.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    (window as unknown as Record<string, boolean>)[CHISPA_ORGANIZAR_FLAG] = true;
+    const abrir = () => setShowOrganizar(true);
+    window.addEventListener(CHISPA_ORGANIZAR_EVENT, abrir);
+    return () => {
+      (window as unknown as Record<string, boolean>)[CHISPA_ORGANIZAR_FLAG] = false;
+      window.removeEventListener(CHISPA_ORGANIZAR_EVENT, abrir);
+    };
+  }, []);
 
   useEffect(() => {
     async function cargar() {

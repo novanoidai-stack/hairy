@@ -41,6 +41,15 @@ export type ChispaRutaKey = keyof typeof CHISPA_RUTAS;
 // + addEventListener), sin acoplar ese componente al panel de Chispa.
 export const CHISPA_CONFIG_GUIADA_EVENT = 'mecha-chispa-config-guiada';
 
+// Evento DOM global para que el chat de Chispa abra el panel determinista
+// "Organizar mi agenda" (con VARIAS estrategias visuales por problema, ver
+// components/agenda/OrganizarAgendaPanel.web.tsx) en vez de pedirle al LLM una
+// propuesta unica en texto. Solo tiene efecto si la Agenda esta montada (es
+// quien tiene los datos de citas): AgendaCalendar marca su disponibilidad en
+// CHISPA_ORGANIZAR_DISPONIBLE y escucha este evento. Si no, el chat cae al LLM.
+export const CHISPA_ORGANIZAR_EVENT = 'mecha-chispa-organizar-agenda';
+export const CHISPA_ORGANIZAR_FLAG = '__mechaOrganizarDisponible';
+
 // Bloque tipado. Union EXTENSIBLE: anadir nuevos tipos aqui + su caso en
 // BloqueRenderer, sin tocar el resto del flujo.
 // Unidad de un valor numerico de 'grafica'/'comparativa': determina formato y color.

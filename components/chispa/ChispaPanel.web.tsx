@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useGlobalSearchParams, usePathname } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { ejecutarAccion, deshacerAccion, type AccionPropuesta } from '@/lib/agendaOps';
-import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, type Bloque } from '@/lib/chispaBloques';
+import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, CHISPA_ORGANIZAR_EVENT, CHISPA_ORGANIZAR_FLAG, type Bloque } from '@/lib/chispaBloques';
 import { estructurarBloques } from '@/lib/chispaEstructura';
 import { elegirFormatoDatos } from '@/lib/chispaFormato';
 import { lanzarCoach } from '@/lib/coachGuias';
@@ -201,6 +201,28 @@ const FRASES_CONFIG_GUIADA = [
 function detectaIntencionConfigGuiada(texto: string): boolean {
   const t = normalizarTexto(texto.trim());
   return !!t && FRASES_CONFIG_GUIADA.some((f) => t.includes(f));
+}
+
+// Intencion de "organizar/optimizar la agenda de hoy": se resuelve con el panel
+// determinista (varias estrategias visuales) en vez de con el LLM. Incluye los
+// prompts exactos de los chips "Optimizar agenda" y "Verificar retrasos".
+const FRASES_ORGANIZAR = [
+  'optimiza mi agenda', 'optimizar mi agenda', 'optimiza la agenda', 'optimizar la agenda',
+  'optimiza mi dia', 'organiza mi agenda', 'organizar mi agenda', 'organiza mi dia',
+  'compactar los huecos', 'compacta mi agenda', 'junta mis citas', 'evitar retrasos',
+  'compactar huecos', 'hay retrasos previstos', 'estrategias para mitigarlos',
+  'sugerencias para compactar', 'reorganiza mi agenda',
+];
+
+function detectaIntencionOrganizar(texto: string): boolean {
+  const t = normalizarTexto(texto.trim());
+  return !!t && FRASES_ORGANIZAR.some((f) => t.includes(f));
+}
+
+// ¿Esta la Agenda montada (unico sitio con los datos de citas) para poder abrir
+// el organizador determinista?
+function organizadorDisponible(): boolean {
+  return typeof window !== 'undefined' && !!(window as unknown as Record<string, boolean>)[CHISPA_ORGANIZAR_FLAG];
 }
 
 // Guardrail de demo (Sesion 2 V2): ninguna escritura de onboardingAgent.ejecutarAccion
@@ -695,6 +717,17 @@ export default function ChispaPanel({
       .map((b) => b.texto).join(' ').trim();
   }
 
+  // Voz: no narra la parrafada entera (lenta y pesada). Lee un adelanto de 1-2
+  // frases; el detalle se VE en los bloques. Recorta a ~220 caracteres en un
+  // limite de frase para que suene natural y llegue rapido.
+  function resumenParaVoz(texto: string): string {
+    const limpio = texto.replace(/\s+/g, ' ').trim();
+    if (limpio.length <= 220) return limpio;
+    const corte = limpio.slice(0, 220);
+    const fin = Math.max(corte.lastIndexOf('. '), corte.lastIndexOf('? '), corte.lastIndexOf('! '));
+    return (fin > 80 ? corte.slice(0, fin + 1) : corte).trim();
+  }
+
   // Resume el payload de un bloque interactivo respondido en una frase legible
   // para reinyectarla como el siguiente turno del usuario (mismo camino que
   // escribir a mano, sin que el usuario tenga que teclear nada).
@@ -840,6 +873,20 @@ export default function ChispaPanel({
       return;
     }
 
+    // Intencion de organizar/optimizar agenda: abre el panel determinista con
+    // VARIAS estrategias visuales (mejor que una propuesta unica del LLM). Solo
+    // si la Agenda esta montada (tiene los datos); si no, cae al chat normal.
+    if (!imagenB64 && detectaIntencionOrganizar(t) && organizadorDisponible()) {
+      setMensajes((m) => [
+        ...m,
+        { role: 'user', content: t, ts: ahora() },
+        { role: 'assistant', bloques: [{ tipo: 'texto', texto: 'Te abro el organizador de agenda con las opciones de hoy: revisa cada retraso, solape o hueco y aplica la estrategia que prefieras.' }], accionEstado: null, ts: ahora() },
+      ]);
+      setTexto('');
+      window.dispatchEvent(new CustomEvent(CHISPA_ORGANIZAR_EVENT));
+      return;
+    }
+
     // Guardrail demo: limite de mensajes por sesion (protege el coste del LLM en
     // la cuenta publica compartida). En cuentas reales no hay limite.
     if (IS_DEMO_MODE) {
@@ -879,7 +926,7 @@ export default function ChispaPanel({
       const tieneAccion = bloques.some((b) => b.tipo === 'accion');
       setMensajes((m) => [...m, { role: 'assistant', bloques, accionEstado: tieneAccion ? 'pendiente' : null, ts: ahora() }]);
       if (voz.vozActiva) {
-        const paraHablar = textoDeBloques(bloques);
+        const paraHablar = resumenParaVoz(textoDeBloques(bloques));
         if (paraHablar) void voz.hablar(paraHablar);
       }
     } finally {

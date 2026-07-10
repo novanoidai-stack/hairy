@@ -47,7 +47,10 @@ async function generarConKokoro(texto: string, voiceId?: string): Promise<ArrayB
         response_format: 'mp3',
         speed: 1.0,
       }),
-      signal: AbortSignal.timeout(12000),
+      // Timeout ajustado (antes 12s): TTS de <700 chars en Kokoro-FastAPI es de
+      // ~1-2s; 6s deja margen sin que un VPS caido haga esperar al usuario
+      // ("la voz tarda mucho en llegar") antes de degradar al respaldo.
+      signal: AbortSignal.timeout(6000),
     });
     if (!r.ok) return null;
     return await r.arrayBuffer();
