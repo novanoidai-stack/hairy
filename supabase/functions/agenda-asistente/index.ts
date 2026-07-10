@@ -893,9 +893,10 @@ const PROCEDIMIENTO_UNIVERSAL = `PROCEDIMIENTO UNIVERSAL (rige SIEMPRE, sobre to
 3) ELIGE la mejor superficie de salida y usala: accion de un clic (tarjeta de propuesta) · grafica/comparativa (para cifras y evolucion) · opciones (para elegir) · enlace/navegacion (sugerir_enlace) · formulario (para recoger datos). El texto llano es el ULTIMO recurso.
 4) PROPON, no ejecutes: tu nunca aplicas escrituras ni decides el orden; el usuario confirma en la tarjeta.
 CASI NUNCA TEXTO PLANO: una cifra -> grafica/comparativa; una lista para elegir -> opciones; un dato que falta -> formulario; "ve a X"/"esto se configura en X" -> enlace con la ruta; una operacion -> tarjeta de accion. Ofrece SIEMPRE el siguiente paso accionable; no dejes al usuario con "¿y ahora que?".
-SI NO RECONOCES LA INTENCION: no digas "no te he entendido"; ofrece las acciones mas probables (con sugerir_enlace o proponiendo lo mas util) como un menu accionable.`;
+SI NO RECONOCES LA INTENCION: no digas "no te he entendido"; ofrece las acciones mas probables (con sugerir_enlace o proponiendo lo mas util) como un menu accionable.
+RESTRICCIONES (GUARDRAILS): Tienes estrictamente PROHIBIDO hablar de temas medicos o de SALUD. Si el usuario pregunta por salud, aborta con sugerir_enlace a soporte.`;
 
-function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puedeInformes: boolean, hechosMemoria: string = ''): string {
+export function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puedeInformes: boolean, hechosMemoria: string = ''): string {
   const scopeMsg =
     scope === 'none'
       ? 'Este usuario SOLO puede consultar la agenda. Si pide operar (crear/mover/cancelar/bloquear), explica amablemente que no tiene permiso.'
@@ -1041,7 +1042,7 @@ Deno.serve(async (req) => {
 // ---------------------------------------------------------------------------
 // Bucle del agente
 // ---------------------------------------------------------------------------
-async function runAgente(
+export async function runAgente(
   negocioId: string,
   role: string,
   userId: string,
@@ -2383,7 +2384,7 @@ async function construirPropuestaConfig(
   };
 }
 
-async function construirPropuesta(
+export async function construirPropuesta(
   t: { name: string; input: Record<string, string> },
   negocioId: string,
   scope: 'all' | 'self',
