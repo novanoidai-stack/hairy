@@ -24,7 +24,7 @@ export default function PagoOkWeb() {
         </div>
         <div style={{ fontFamily: SERIF, fontSize: 36, color: T.text, lineHeight: 1.02, marginBottom: 10 }}>¡Pago recibido!</div>
         <div style={{ fontSize: 15.5, color: T.textSec, lineHeight: 1.5 }}>
-          Tu señal está confirmada y tu cita queda reservada. Te esperamos. Puedes cerrar esta ventana.
+          Tu pago se ha registrado correctamente. ¡Gracias! Puedes cerrar esta ventana.
         </div>
       </div>
     </div>

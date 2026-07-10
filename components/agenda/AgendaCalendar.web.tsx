@@ -5677,6 +5677,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
   // Riesgo de no-show de la clienta (Sesion 7): score neutro derivado del historial,
   // solo para el equipo. Se pide a la RPC al abrir; null si es baja o sin clienta.
   const [riesgoCliente, setRiesgoCliente] = useState<RiesgoNoShow | null>(null);
+  const [holdPagoId, setHoldPagoId] = useState<string | null>(null); // fianza retenida (hold) de esta cita, si la hay
 
   // ¿La cita ya paso y sigue en un estado que admite marcarla como no-show?
   const citaPasada = new Date(cita.inicio) < new Date();
@@ -5709,6 +5710,51 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
     } catch (e) {
       setErrMsg(String(e));
       setGuardando(false);
+    }
+  }
+
+  // Fianza retenida (hold): detectarla para ofrecer captura/liberacion manual desde la ficha.
+  useEffect(() => {
+    let cancel = false;
+    supabase.from('pagos').select('id').eq('cita_id', cita.id).eq('tipo', 'senal').eq('estado', 'retenido')
+      .maybeSingle().then(({ data }: any) => { if (!cancel) setHoldPagoId(data?.id ?? null); });
+    return () => { cancel = true; };
+  }, [cita.id]);
+
+  async function gestionarFianza(accion: 'capturar' | 'liberar') {
+    if (guardando || !holdPagoId) return;
+    setGuardando(true); setErrMsg('');
+    try {
+      const fn = accion === 'capturar' ? 'capturar-hold' : 'liberar-hold';
+      const { data, error } = await supabase.functions.invoke(fn, { body: { pago_id: holdPagoId } });
+      if (error || !(data as any)?.ok) throw new Error('fallo');
+      setHoldPagoId(null);
+      onSaved?.(); triggerRefresh?.(); onClose?.();
+    } catch {
+      setErrMsg(accion === 'capturar' ? 'No se pudo capturar la fianza (puede que ya se procesara).' : 'No se pudo liberar la fianza (puede que ya se procesara).');
+      setGuardando(false);
+    }
+  }
+
+  async function anularCobro() {
+    if (guardando) return;
+    if (typeof window !== 'undefined' && !window.confirm('¿Anular este cobro? La cita volvera a estar sin cobrar.')) return;
+    setGuardando(true); setErrMsg('');
+    try {
+      const { data, error } = await supabase.rpc('anular_cobro', { p_cita_id: cita.id });
+      const res = (data ?? {}) as { ok?: boolean; error?: string };
+      if (error || !res.ok) {
+        const map: Record<string, string> = {
+          no_autorizado: 'No tienes permiso para anular cobros.',
+          cobro_no_encontrado: 'No se encuentra el cobro.',
+          usa_reembolso: 'Este cobro es online: anulalo con Reembolsar en Caja.',
+        };
+        setErrMsg(error?.message || map[res.error ?? ''] || 'No se pudo anular el cobro.');
+        setGuardando(false); return;
+      }
+      onSaved?.(); triggerRefresh?.(); onClose?.();
+    } catch (e) {
+      setErrMsg(String(e)); setGuardando(false);
     }
   }
 
@@ -7531,6 +7577,27 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
                 </div>
               )}
             </div>
+          )}
+          {holdPagoId && (
+            <>
+              <button onClick={() => gestionarFianza('capturar')} disabled={guardando}
+                title="Cobrar la fianza retenida (penalizacion por no presentarse)."
+                style={{ padding: '9px 14px', background: 'rgba(226,59,52,0.10)', color: '#b91c1c', border: '1px solid rgba(226,59,52,0.5)', borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+                Capturar fianza
+              </button>
+              <button onClick={() => gestionarFianza('liberar')} disabled={guardando}
+                title="Liberar la retencion (el cliente asistio, no se cobra)."
+                style={{ padding: '9px 14px', background: TOKENS.bgCard, color: TOKENS.text, border: `1px solid ${TOKENS.border}`, borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+                Liberar fianza
+              </button>
+            </>
+          )}
+          {cobrada && (
+            <button onClick={anularCobro} disabled={guardando}
+              title="Anular este cobro (efectivo/datafono). La cita vuelve a estar sin cobrar."
+              style={{ padding: '9px 14px', background: TOKENS.bgCard, color: '#b91c1c', border: '1px solid rgba(226,59,52,0.5)', borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+              Anular cobro
+            </button>
           )}
           {puedeMarcarNoShow && (
             <button
