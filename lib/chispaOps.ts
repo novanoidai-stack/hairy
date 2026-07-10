@@ -225,6 +225,23 @@ export type AccionPropuesta =
       inicio: string;
       fidelidad_citas: number;
       resumen: string;
+    }
+  | {
+      tipo: 'bulk_editar_horarios';
+      negocio_id: string;
+      dia: string;
+      dia_semana: number;
+      hora_inicio: string;
+      hora_fin: string;
+      profesionales: { id: string; nombre: string }[];
+      resumen: string;
+    }
+  | {
+      tipo: 'bulk_editar_comisiones';
+      negocio_id: string;
+      comision_pct: number;
+      profesionales: { id: string; nombre: string }[];
+      resumen: string;
     };
 
 export type EjecucionResultado =
@@ -717,6 +734,49 @@ export async function ejecutarAccion(
           targetLabel,
         );
         return { ok: true, mensaje: `Horario actualizado: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
+      }
+
+      case 'bulk_editar_horarios': {
+        const profs = a.profesionales;
+        if (!profs || profs.length === 0) return { ok: false, error: 'No hay profesionales a los que cambiar el horario.' };
+
+        for (const p of profs) {
+          const { error: eDel } = await supabase
+            .from('horarios_profesional')
+            .delete()
+            .eq('profesional_id', p.id)
+            .eq('dia_semana', a.dia_semana);
+          if (eDel) return { ok: false, error: `Error al limpiar horario previo de ${p.nombre}: ${eDel.message}` };
+
+          const { error: eIns } = await supabase
+            .from('horarios_profesional')
+            .insert({
+              profesional_id: p.id,
+              dia_semana: a.dia_semana,
+              hora_inicio: a.hora_inicio,
+              hora_fin: a.hora_fin,
+              turno: 0,
+            });
+          if (eIns) return { ok: false, error: `Error al guardar nuevo horario de ${p.nombre}: ${eIns.message}` };
+        }
+
+        return { ok: true, mensaje: `Horarios establecidos correctamente para ${profs.length} profesionales.` };
+      }
+
+      case 'bulk_editar_comisiones': {
+        const profs = a.profesionales;
+        if (!profs || profs.length === 0) return { ok: false, error: 'No hay profesionales a los que cambiar la comision.' };
+
+        for (const p of profs) {
+          const { error } = await supabase
+            .from('profesionales')
+            .update({ comision_pct: a.comision_pct })
+            .eq('id', p.id)
+            .eq('negocio_id', a.negocio_id);
+          if (error) return { ok: false, error: `Error al actualizar comision de ${p.nombre}: ${error.message}` };
+        }
+
+        return { ok: true, mensaje: `Comisiones base actualizadas al ${a.comision_pct}% para ${profs.length} profesionales.` };
       }
 
       case 'crear_presupuesto': {

@@ -276,6 +276,22 @@ export const CATALOGO_IA: FuncionIA[] = [
     categoria: 'migracion',
     soloGestor: true,
   },
+  {
+    id: 'chispa-biblioteca-prompts',
+    titulo: 'Biblioteca de Prompts Prefabricados',
+    descripcion: 'Una mini-biblioteca con prompts útiles categorizados (Agenda, Clientes, Gestión, Marketing) al iniciar el chat, además de chips dinámicos de un toque recomendados según la página en la que te encuentres.',
+    ubicacion: '/app?chispa=1',
+    uso: 'Abre el chat de Chispa. En el estado vacío verás la biblioteca por pestañas; en el chat activo verás los chips de sugerencia encima de la caja de texto.',
+    categoria: 'panel',
+  },
+  {
+    id: 'chispa-consejos-carga',
+    titulo: 'Consejos de carga explicativos',
+    descripcion: 'Mientras Chispa piensa o procesa una solicitud en el chat o en las páginas del salón, te mostrará pequeños consejos aleatorios enseñándote qué más puede hacer por ti.',
+    ubicacion: '/app',
+    uso: 'Aparecen automáticamente en el bocadillo de carga de Chispa y en las tarjetas de ayuda de la página cuando la IA está analizando.',
+    categoria: 'panel',
+  },
 ];
 
 // Agrupación por categoría para el Hub

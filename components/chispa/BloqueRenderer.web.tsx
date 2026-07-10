@@ -578,6 +578,44 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
             ))}
           </ul>
         )}
+        
+        {/* Bulk Horarios (bulk_editar_horarios) */}
+        {accion.tipo === 'bulk_editar_horarios' && !resuelta && (
+          <div style={{ margin: '8px 0 12px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4 }}>Horario propuesto:</div>
+            <div style={{ fontSize: 13, color: T.primaryHi, fontWeight: 700, marginBottom: 8 }}>
+              {accion.dia} de {accion.hora_inicio} a {accion.hora_fin}
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4 }}>Profesionales:</div>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {(accion.profesionales || []).map((p: any) => (
+                <li key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: T.textSecondary }}>
+                  <span style={{ width: 5, height: 5, borderRadius: 999, background: T.primary, flexShrink: 0 }} />
+                  <span>{p.nombre}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {/* Bulk Comisiones (bulk_editar_comisiones) */}
+        {accion.tipo === 'bulk_editar_comisiones' && !resuelta && (
+          <div style={{ margin: '8px 0 12px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4 }}>Comisión propuesta:</div>
+            <div style={{ fontSize: 13, color: T.primaryHi, fontWeight: 700, marginBottom: 8 }}>
+              {accion.comision_pct}%
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4 }}>Profesionales:</div>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {(accion.profesionales || []).map((p: any) => (
+                <li key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: T.textSecondary }}>
+                  <span style={{ width: 5, height: 5, borderRadius: 999, background: T.primary, flexShrink: 0 }} />
+                  <span>{p.nombre}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {tieneSolapa(accion) && !resuelta && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', background: T.warningSoft, borderRadius: 8, marginBottom: 10 }}>
             <IconoAdvertencia size={14} color={T.warning} />

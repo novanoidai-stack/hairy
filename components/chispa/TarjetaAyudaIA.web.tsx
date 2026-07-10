@@ -7,10 +7,11 @@
 // Regla de layout: esta tarjeta vive SIEMPRE en el flujo normal de la pagina
 // (sin position fixed/absolute) para no competir en z-index con AvisosBell ni
 // con el dashboard (ver Sesion 10 del plan).
-import type { ReactNode } from 'react';
+import { type ReactNode, useState, useEffect } from 'react';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { BloqueRenderer, type BloqueRendererProps } from '@/components/chispa/BloqueRenderer.web';
 import type { EstadoAyudaIA } from '@/lib/hooks/useAyudaIA';
+import { obtenerTipCarga } from '@/lib/chispaPrompts';
 
 const SPIN_KEYFRAMES = '@keyframes taia-spin { to { transform: rotate(360deg) } }';
 
@@ -22,11 +23,24 @@ function IconoChispa({ size = 18, color = T.primary }: { size?: number; color?: 
   );
 }
 
-function FilaCargando() {
+function FilaCargando({ tip }: { tip: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 2px', fontSize: 13, color: T.textSecondary }}>
-      <span style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${T.primary}`, borderTopColor: 'transparent', flexShrink: 0, animation: 'taia-spin 0.8s linear infinite' }} />
-      Analizando...
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 2px', fontSize: 13, color: T.textSecondary }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${T.primary}`, borderTopColor: 'transparent', flexShrink: 0, animation: 'taia-spin 0.8s linear infinite' }} />
+        <span>Analizando...</span>
+      </div>
+      {tip ? (
+        <div style={{
+          fontSize: 11.5, color: T.textSecondary, lineHeight: 1.45,
+          fontStyle: 'italic', marginTop: 4, background: T.bgPanel,
+          padding: '8px 10px', borderRadius: 8, border: `1px dashed ${T.border}`,
+          display: 'flex', flexDirection: 'column', gap: 2
+        }}>
+          <span style={{ fontWeight: 700, color: T.primaryHi, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 0.3 }}>💡 Tip de Chispa</span>
+          <span>{tip}</span>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -87,6 +101,13 @@ export function TarjetaAyudaIA({
   isMobile,
 }: TarjetaAyudaIAProps) {
   const cargando = estado.tipo === 'cargando';
+  const [tipCarga, setTipCarga] = useState('');
+
+  useEffect(() => {
+    if (estado.tipo === 'cargando') {
+      setTipCarga(obtenerTipCarga());
+    }
+  }, [estado.tipo]);
 
   return (
     <div className="glass-panel magic-border" style={{ borderRadius: 18, padding: '16px 20px', marginBottom: 16 }}>
@@ -117,7 +138,7 @@ export function TarjetaAyudaIA({
 
       {estado.tipo !== 'idle' && (
         <div style={{ marginTop: resumenDeterminista ? 8 : 14, paddingTop: resumenDeterminista ? 0 : 14, borderTop: resumenDeterminista ? 'none' : `1px solid ${T.border}` }}>
-          {estado.tipo === 'cargando' && <FilaCargando />}
+          {estado.tipo === 'cargando' && <FilaCargando tip={tipCarga} />}
           {estado.tipo === 'vacio' && <FilaVacio mensaje={mensajeVacio} />}
           {estado.tipo === 'error' && <FilaError mensaje={estado.mensaje} onReintentar={onReintentar ?? onAnalizar} />}
           {estado.tipo === 'listo' && (

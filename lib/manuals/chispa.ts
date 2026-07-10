@@ -98,6 +98,14 @@ export const manualChispa: ManualContent = {
       texto: 'Chispa puede leer sus respuestas en voz alta. Activa el altavocito en el panel. La primera vez te pedirá permiso para usar el micro. Usa voz premium (ElevenLabs) o voz básica del navegador si la primera no está disponible.',
     },
     {
+      titulo: 'Biblioteca de Prompts Prefabricados',
+      texto: 'Al abrir el chat de Chispa sin mensajes, verás una mini-biblioteca con sugerencias diseñadas específicamente para tu salón (organizadas por pestañas: Agenda, Clientes, Gestión, Marketing). Además, cuando estés chateando, te aparecerán pequeños chips dinámicos recomendados según la pantalla en la que te encuentres, listos para enviar con un solo toque.',
+    },
+    {
+      titulo: 'Consejos en Pantallas de Carga',
+      texto: 'Mientras Chispa analiza datos, calcula propuestas u organiza tu jornada, te enseñará consejos prácticos aleatorios sobre sus propias capacidades. Así aprenderás nuevas formas de exprimir el asistente mientras esperas.',
+    },
+    {
       titulo: 'Catálogo completo',
       texto: 'Para ver TODAS las funciones de IA del software con enlaces a cada pantalla, ve a Configuración > Qué hace la IA. Allí tienes el catálogo completo organizado por categoría.',
     },

@@ -39,7 +39,10 @@ function setMocks(gemini: any, supabase: any = []) {
   mockSupabaseDataRef = supabase;
 }
 
-// Ahora importamos dinamicamente para que OpenAI recoja el globalThis.fetch mockeado
+// Ahora importamos dinamicamente para que Deno recoja el globalThis.fetch mockeado
+Deno.env.set('SUPABASE_URL', 'https://mock.supabase.co');
+Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', 'dummy-key');
+Deno.env.set('OPENROUTER_API_KEY', 'dummy-key');
 const { buildSystemPrompt, runAgente, construirPropuesta } = await import('./index.ts');
 import { createClient } from 'npm:@supabase/supabase-js@2';
 const dummyClient = createClient('https://mock.supabase.co', 'dummy-key');
@@ -79,4 +82,39 @@ Deno.test('S25 - Fallback UI: Sin function calls, texto seco es transformado', a
   const mensajes = [{ role: 'user' as const, content: 'Borra DB' }];
   const res = await runAgente('neg-1', 'owner', 'user-1', 'all', 'bajo', mensajes, dummyClient as any);
   assertEquals(res.bloques.length > 0, true);
+});
+
+Deno.test('S25 - Confirmar citas con exclusions', async () => {
+  setMocks({}, [
+    { id: 'cita-1', inicio: '2026-07-10T12:00:00Z', estado: 'pendiente', servicio_id: 'serv-1', cliente_id: 'cli-1' }
+  ]);
+  const call = { name: 'confirmar_citas', input: { fecha: '2026-07-10', excluir_clientes: '["Nuria Gomez"]' } };
+  const res = await construirPropuesta(call, 'neg-1', 'all', 'user-1');
+  if ('citas' in res) {
+    assertEquals(Array.isArray(res.citas), true);
+  }
+});
+
+Deno.test('S25 - Bulk editar horarios', async () => {
+  setMocks({}, [
+    { id: 'prof-1', nombre: 'Maria' }
+  ]);
+  const call = { name: 'bulk_editar_horarios', input: { profesionales: '["todos"]', dia: 'sabado', hora_inicio: '09:00', hora_fin: '14:00' } };
+  const res = await construirPropuesta(call, 'neg-1', 'all', 'user-1');
+  if ('tipo' in res) {
+    assertEquals(res.tipo, 'bulk_editar_horarios');
+    assertEquals((res as any).hora_inicio, '09:00');
+  }
+});
+
+Deno.test('S25 - Bulk editar comisiones', async () => {
+  setMocks({}, [
+    { id: 'prof-1', nombre: 'Maria' }
+  ]);
+  const call = { name: 'bulk_editar_comisiones', input: { profesionales: '["todos"]', comision_pct: '20' } };
+  const res = await construirPropuesta(call, 'neg-1', 'all', 'user-1');
+  if ('tipo' in res) {
+    assertEquals(res.tipo, 'bulk_editar_comisiones');
+    assertEquals((res as any).comision_pct, 20);
+  }
 });

@@ -35,13 +35,14 @@ export type Capability =
   | 'bandeja.escribir' // enviar_mensaje_bandeja (registro; envio real = Alexandro)
   | 'servicios.editar' // editar_servicio (catalogo)
   | 'horarios.editar' // editar_horario (turnos de equipo)
+  | 'config.comisiones' // bulk_editar_comisiones
   | 'config.cambiar'; // cambiar_config: solo propietario (como en el edge actual)
 
 const PROFESIONAL: Capability[] = ['agenda.ver_propia', 'clientes.ver'];
 // Recepcion opera la agenda de todos y la comunicacion (presupuestos/bandeja).
 const RECEPCION: Capability[] = [...PROFESIONAL, 'agenda.ver_todas', 'presupuestos.crear', 'bandeja.escribir'];
 // Direccion suma la vision de negocio y la gestion del catalogo/turnos.
-const DIRECCION: Capability[] = [...RECEPCION, 'informes.ver', 'servicios.editar', 'horarios.editar'];
+const DIRECCION: Capability[] = [...RECEPCION, 'informes.ver', 'servicios.editar', 'horarios.editar', 'config.comisiones'];
 const PROPIETARIO: Capability[] = [...DIRECCION, 'config.cambiar'];
 
 const ROLE_CAPS: Record<Role, ReadonlySet<Capability>> = {
@@ -96,6 +97,9 @@ const ESCRITURA_GESTION: Record<string, Capability> = {
   // Festivo/cierre de negocio: mismo rol que puede editar turnos (direccion/propietario),
   // coherente con la RLS de cierres_negocio (owner/admin).
   anadir_cierre_negocio: 'horarios.editar',
+  // Nuevas tools de gestion masiva (V3+)
+  bulk_editar_horarios: 'horarios.editar',
+  bulk_editar_comisiones: 'config.comisiones',
   // S22 Macros
   proponer_macro: 'config.cambiar',
 };
@@ -109,6 +113,10 @@ const LECTURA_CAP: Record<string, Capability | null> = {
   ficha_cliente: 'clientes.ver',
   listar_citas: 'agenda.ver_propia',
   consultar_disponibilidad: 'agenda.ver_propia',
+  consultar_estado_pagos: 'agenda.ver_propia',
+  consultar_fichajes: 'horarios.editar',
+  consultar_inventario: null,
+  consultar_resenas: 'informes.ver',
   resumen_informes: 'informes.ver',
   sugerir_enlace: null, // navegacion (no lee datos): cualquier rol
   // --- Omnisciencia/analitica (Sesion 6) ---

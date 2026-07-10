@@ -157,3 +157,21 @@ Deno.test('tool desconocida: fail-closed (nunca se declara)', () => {
     assertEquals(toolPermitida('exfiltrar_todo', roleOf('owner'), scope), false);
   }
 });
+
+Deno.test('Nuevas tools emergentes V3+: permisos de fichajes, inventario y resenas', () => {
+  // consultar_inventario es publico
+  for (const valor of ['employee', 'recepcion', 'admin', 'owner']) {
+    assertEquals(toolPermitida('consultar_inventario', roleOf(valor), 'all'), true);
+  }
+  // consultar_fichajes requiere horarios.editar (admin/owner)
+  assertEquals(toolPermitida('consultar_fichajes', roleOf('employee'), 'self'), false);
+  assertEquals(toolPermitida('consultar_fichajes', roleOf('recepcion'), 'all'), false);
+  assertEquals(toolPermitida('consultar_fichajes', roleOf('admin'), 'all'), true);
+  assertEquals(toolPermitida('consultar_fichajes', roleOf('owner'), 'all'), true);
+
+  // consultar_resenas requiere informes.ver (admin/owner)
+  assertEquals(toolPermitida('consultar_resenas', roleOf('employee'), 'self'), false);
+  assertEquals(toolPermitida('consultar_resenas', roleOf('recepcion'), 'all'), false);
+  assertEquals(toolPermitida('consultar_resenas', roleOf('admin'), 'all'), true);
+  assertEquals(toolPermitida('consultar_resenas', roleOf('owner'), 'all'), true);
+});

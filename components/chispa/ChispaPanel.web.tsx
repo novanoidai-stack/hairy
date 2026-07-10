@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 // @ts-ignore react-dom no tiene @types instalado en este proyecto; createPortal existe en runtime.
 import { createPortal } from 'react-dom';
-import { useGlobalSearchParams } from 'expo-router';
+import { useGlobalSearchParams, usePathname } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { ejecutarAccion, deshacerAccion, type AccionPropuesta } from '@/lib/agendaOps';
 import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, type Bloque } from '@/lib/chispaBloques';
@@ -21,6 +21,7 @@ import {
   pedirPregunta, ejecutarAccion as ejecutarAccionOnboarding,
   type TemaId, type ContextoEjecucion, type PerfilAgente, type ResultadoAccion,
 } from '@/lib/onboardingAgent';
+import { BIBLIOTECA_PROMPTS, obtenerTipCarga, normalizarPathname, type PromptBiblioteca } from '@/lib/chispaPrompts';
 
 function triggerHaptic() {
   if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -364,6 +365,11 @@ export default function ChispaPanel({
   const listRef = useRef<HTMLDivElement>(null);
   const stylesInjected = useRef(false);
 
+  // Prompts prefabricados y tips de carga
+  const pathname = usePathname();
+  const [tipCarga, setTipCarga] = useState('');
+  const [promptCat, setPromptCat] = useState<'recomendados' | 'agenda' | 'clientes' | 'gestion' | 'marketing' | 'general' | 'todos'>('recomendados');
+
   // Voz (Sesion 5): microfono + lectura en voz alta. Todo vive en el hook;
   // aqui solo se conecta a los puntos donde se anaden mensajes.
   const voz = useChispaVoz(chispaVozId);
@@ -402,6 +408,39 @@ export default function ChispaPanel({
   const hiloCargado = useRef(false);
 
   const amplio = pantallaCompleta && !isMobile;
+
+  const esGestor = profile.role === 'owner' || profile.role === 'admin';
+  const pathNormalizado = normalizarPathname(pathname);
+
+  // Filtrar los prompts de la biblioteca que puede ver el usuario
+  const promptsVisibles = BIBLIOTECA_PROMPTS.filter(p => {
+    if (p.soloGestor && !esGestor) return false;
+    return true;
+  });
+
+  // Prompts específicos para la página actual
+  const promptsDeEstaPagina = promptsVisibles.filter(p => p.paginas && p.paginas.includes(pathNormalizado));
+
+  // Determinar la categoría inicial/defecto de la biblioteca de prompts
+  useEffect(() => {
+    if (promptsDeEstaPagina.length > 0) {
+      setPromptCat('recomendados');
+    } else {
+      setPromptCat('todos');
+    }
+  }, [pathname, promptsDeEstaPagina.length]);
+
+  // Sugerencias rápidas arriba del input
+  const chipsSugeridos = [
+    ...promptsDeEstaPagina,
+    ...promptsVisibles.filter(p => !p.paginas || !p.paginas.includes(pathNormalizado))
+  ].slice(0, 5);
+
+  useEffect(() => {
+    if (cargando) {
+      setTipCarga(obtenerTipCarga());
+    }
+  }, [cargando]);
 
   useEffect(() => {
     try { setPantallaCompleta(localStorage.getItem(FULLSCREEN_KEY) === '1'); } catch { /* no critico */ }
@@ -1293,13 +1332,98 @@ export default function ChispaPanel({
                   );
                 })()}
 
-                {/* S23: Empty state cuando no hay mensajes */}
+                {/* S23: Empty state con biblioteca de prompts cuando no hay mensajes */}
                 {!configGuiada && mensajes.length === 0 && (
-                  <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '30px 20px 40px', textAlign: 'center', opacity: 0.8 }}>
-                    <ChispaMascota size={56} showLabel={false} animar={!cargando} />
-                    <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginTop: 16 }}>¡Hola! Soy Chispa ✨</div>
-                    <div style={{ fontSize: 13, color: T.textSecondary, marginTop: 8, lineHeight: 1.5, maxWidth: 280 }}>
-                      Estoy lista para ayudarte. Pregúntame sobre la agenda, pide un resumen del día, o pídemelo directamente.
+                  <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', padding: '16px 4px 24px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 20 }}>
+                      <ChispaMascota size={48} showLabel={false} animar={!cargando} />
+                      <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginTop: 10 }}>¡Hola! Soy Chispa ✨</div>
+                      <div style={{ fontSize: 12.5, color: T.textSecondary, marginTop: 4, lineHeight: 1.45, maxWidth: 300 }}>
+                        Tu asistente inteligente. Selecciona una sugerencia o escribe lo que necesites:
+                      </div>
+                    </div>
+
+                    {/* Selector de pestañas de la biblioteca */}
+                    <div style={{ display: 'flex', gap: 4, overflowX: 'auto', marginBottom: 12, paddingBottom: 4, scrollbarWidth: 'none' }} className="chispa-scroll-hide">
+                      {(
+                        [
+                          ...(promptsDeEstaPagina.length > 0 ? [{ id: 'recomendados', label: '📍 En esta pantalla' }] : []),
+                          { id: 'todos', label: '📖 Todos' },
+                          { id: 'agenda', label: '📅 Agenda' },
+                          { id: 'clientes', label: '👥 Clientes' },
+                          { id: 'gestion', label: '💰 Gestión' },
+                          { id: 'marketing', label: '📢 Marketing' },
+                        ] as const
+                      ).map((cat) => {
+                        const activo = promptCat === cat.id;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setPromptCat(cat.id as 'recomendados' | 'agenda' | 'clientes' | 'gestion' | 'marketing' | 'general' | 'todos')}
+                            style={{
+                              whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: 20,
+                              border: `1.5px solid ${activo ? T.primary : T.border}`,
+                              background: activo ? T.primarySoft : T.bgCard,
+                              color: activo ? T.primaryHi : T.textSecondary,
+                              fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                              fontFamily: 'Inter, system-ui, sans-serif',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            {cat.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Lista de prompts correspondientes a la pestaña activa */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {(() => {
+                        const filtrados = promptsVisibles.filter((p) => {
+                          if (promptCat === 'todos') return true;
+                          if (promptCat === 'recomendados') return p.paginas && p.paginas.includes(pathNormalizado);
+                          return p.categoria === promptCat;
+                        });
+
+                        if (filtrados.length === 0) {
+                          return (
+                            <div style={{ padding: '16px', textAlign: 'center', color: T.textTertiary, fontSize: 12.5, fontStyle: 'italic' }}>
+                              No hay sugerencias en esta categoría.
+                            </div>
+                          );
+                        }
+
+                        return filtrados.map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => enviarMensaje(p.prompt)}
+                            className="btn-interactive glass-panel magic-border"
+                            style={{
+                              textAlign: 'left', padding: '12px 14px', borderRadius: 14,
+                              display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
+                              border: `1px solid ${T.border}`, background: '#fff',
+                              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              const el = e.currentTarget as HTMLButtonElement;
+                              el.style.transform = 'translateY(-1px)';
+                              el.style.boxShadow = '0 6px 16px rgba(0,0,0,0.04)';
+                            }}
+                            onMouseLeave={(e) => {
+                              const el = e.currentTarget as HTMLButtonElement;
+                              el.style.transform = 'none';
+                              el.style.boxShadow = 'none';
+                            }}
+                          >
+                            <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{p.icono}</span>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text }}>{p.label}</div>
+                              <div style={{ fontSize: 11.5, color: T.textSecondary, marginTop: 2, lineHeight: 1.45 }}>{p.descripcion}</div>
+                            </div>
+                          </button>
+                        ));
+                      })()}
                     </div>
                   </div>
                 )}
@@ -1368,13 +1492,24 @@ export default function ChispaPanel({
                 {cargando && (
                   <div className="chispa-msg animate-fade-in-up" style={{ marginTop: 14, display: 'flex', gap: 7, alignItems: 'flex-start' }}>
                     <div style={{ flexShrink: 0, width: 22 }}><ChispaMascota size={22} showLabel={false} mood="think" /></div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, maxWidth: '80%' }}>
                       <span style={{ fontSize: 11.5, fontWeight: 700, color: T.primaryHi }}>Chispa</span>
                       <div style={{ padding: '9px 14px', borderRadius: '14px 14px 14px 4px', background: T.bgCard, border: `1px solid ${T.border}`, display: 'flex', gap: 4, alignItems: 'center', alignSelf: 'flex-start' }}>
                         {[0, 1, 2].map((n) => (
                           <div key={n} style={{ width: 6, height: 6, borderRadius: 999, background: T.textMuted, animation: `chispaDot 1.2s ease-in-out ${n * 0.2}s infinite` }} />
                         ))}
                       </div>
+                      {tipCarga ? (
+                        <div style={{
+                          marginTop: 4, padding: '8px 12px', borderRadius: 10,
+                          background: T.bgPanel, border: `1px dashed ${T.border}`,
+                          fontSize: 11.5, color: T.textSecondary, lineHeight: 1.45,
+                          fontStyle: 'italic', display: 'flex', flexDirection: 'column', gap: 3
+                        }}>
+                          <span style={{ fontWeight: 700, color: T.primaryHi, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 0.3 }}>💡 Tip de Chispa</span>
+                          <span>{tipCarga}</span>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 )}
@@ -1457,6 +1592,38 @@ export default function ChispaPanel({
                   >
                     ✕
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Chips de sugerencias de prompts */}
+            {!bloqueado && mensajes.length > 0 && (
+              <div style={{
+                display: 'flex', gap: 8, overflowX: 'auto', padding: '8px 16px 4px',
+                scrollbarWidth: 'none', msOverflowStyle: 'none', flexShrink: 0,
+                alignSelf: 'center', width: '100%', maxWidth: amplio ? 760 : undefined,
+              }}>
+                <style>{`.chispa-scroll-hide::-webkit-scrollbar { display: none; }`}</style>
+                <div className="chispa-scroll-hide" style={{ display: 'flex', gap: 6, overflowX: 'auto', width: '100%', padding: '2px 0' }}>
+                  {chipsSugeridos.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => enviarMensaje(p.prompt)}
+                      className="btn-interactive"
+                      style={{
+                        whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 5,
+                        padding: '6px 12px', borderRadius: 99, border: `1px solid ${T.border}`,
+                        background: T.bgCard, color: T.textSecondary, fontSize: 11.5,
+                        fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                        transition: 'transform 0.15s ease, background 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = T.primarySoft; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = T.bgCard; }}
+                    >
+                      <span>{p.icono}</span>
+                      <span>{p.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
             )}

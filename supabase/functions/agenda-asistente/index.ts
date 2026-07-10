@@ -144,6 +144,23 @@ type AccionPropuesta =
       fecha: string;
       movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[];
       resumen: string;
+    }
+  | {
+      tipo: 'bulk_editar_horarios';
+      negocio_id: string;
+      dia: string;
+      dia_semana: number;
+      hora_inicio: string;
+      hora_fin: string;
+      profesionales: { id: string; nombre: string }[];
+      resumen: string;
+    }
+  | {
+      tipo: 'bulk_editar_comisiones';
+      negocio_id: string;
+      comision_pct: number;
+      profesionales: { id: string; nombre: string }[];
+      resumen: string;
     };
 
 // ---------------------------------------------------------------------------
@@ -548,14 +565,18 @@ const TOOLS = [
   // --- GESTION (Sesion 3): la funcion NO ejecuta; devuelve accion_propuesta ---
   {
     name: 'confirmar_citas',
-    description: 'Propone confirmar EN BLOQUE las citas pendientes de un dia (p.ej. "confirmame las citas de manana"). Pasa la fecha ya resuelta a YYYY-MM-DD.',
+    description: 'Propone confirmar EN BLOQUE las citas pendientes. Si no se pasa fecha, se proponen todas las pendientes desde hoy. Permite excluir clientes específicos.',
     parameters: {
       type: 'object' as const,
       properties: {
-        fecha: { type: 'string', description: 'Dia a confirmar en YYYY-MM-DD (resuelve "manana", "el lunes"...)' },
+        fecha: { type: 'string', description: 'Dia a confirmar en YYYY-MM-DD (opcional; si se omite, se confirman todas las pendientes desde hoy)' },
         profesional: { type: 'string', description: 'Opcional: limitar a un profesional (nombre parcial)' },
+        excluir_clientes: {
+          type: 'array',
+          description: 'Nombres de clientes a excluir de la confirmacion (opcional, ej. ["Juan Carlos", "Nuria"])',
+          items: { type: 'string' }
+        }
       },
-      required: ['fecha'],
     },
   },
   {
@@ -722,6 +743,85 @@ const TOOLS = [
       },
       required: ['clave', 'valor'],
     },
+  },
+  {
+    name: 'consultar_estado_pagos',
+    description: 'Consulta el estado de facturacion, cobros y senales/depositos de las citas de una fecha. Úsalo para saber si un cliente ha pagado la señal de una cita, o si todas las citas de hoy han sido cobradas.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        fecha: { type: 'string', description: 'YYYY-MM-DD de la consulta (por defecto hoy)' },
+        profesional: { type: 'string', description: 'Nombre parcial del profesional (opcional)' }
+      }
+    }
+  },
+  {
+    name: 'bulk_editar_horarios',
+    description: 'Propone establecer en bloque el horario de uno o varios profesionales para un dia de la semana (ej. poner el mismo turno a todo el equipo el sabado, o copiar el horario de un profesional a otros).',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        profesionales: {
+          type: 'array',
+          description: 'Nombres de los profesionales a modificar. Usa ["todos"] para todo el equipo.',
+          items: { type: 'string' }
+        },
+        dia: { type: 'string', description: 'Dia de la semana: lunes..domingo' },
+        hora_inicio: { type: 'string', description: 'Hora de entrada HH:MM' },
+        hora_fin: { type: 'string', description: 'Hora de salida HH:MM' }
+      },
+      required: ['profesionales', 'dia', 'hora_inicio', 'hora_fin']
+    }
+  },
+  {
+    name: 'bulk_editar_comisiones',
+    description: 'Propone actualizar el porcentaje de comision por defecto de uno o varios profesionales.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        profesionales: {
+          type: 'array',
+          description: 'Nombres de los profesionales a modificar. Usa ["todos"] para todo el equipo.',
+          items: { type: 'string' }
+        },
+        comision_pct: { type: 'number', description: 'Nuevo porcentaje de comision (ej. 15.5)' }
+      },
+      required: ['profesionales', 'comision_pct']
+    }
+  },
+  {
+    name: 'consultar_fichajes',
+    description: 'Consulta los fichajes de entrada (clock-in) y salida (clock-out) de los profesionales para una fecha.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        fecha: { type: 'string', description: 'YYYY-MM-DD del dia a consultar (opcional; si se omite, se usa hoy)' }
+      }
+    }
+  },
+  {
+    name: 'consultar_inventario',
+    description: 'Consulta el inventario y stock de productos del salon. Permite buscar por nombre y filtrar alertas de stock bajo.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        bajo_stock_only: { type: 'string', description: 'Opcional: "si" para mostrar solo productos que esten por debajo de su stock minimo' },
+        texto: { type: 'string', description: 'Opcional: termino de busqueda para filtrar productos por nombre' }
+      }
+    }
+  },
+  {
+    name: 'consultar_resenas',
+    description: 'Consulta las reseñas de clientes recibidas en un rango de fechas. Permite filtrar solo reseñas negativas (puntuacion menor a 4).',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        desde: { type: 'string', description: 'Fecha inicio YYYY-MM-DD' },
+        hasta: { type: 'string', description: 'Fecha fin YYYY-MM-DD (opcional; si se omite, se usa igual que desde)' },
+        solo_negativas: { type: 'string', description: 'Opcional: "si" para filtrar solo resenas con puntuacion menor a 4 estrellas' }
+      },
+      required: ['desde']
+    }
   },
 ];
 
@@ -917,12 +1017,20 @@ export function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'
     'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar uno o VARIOS ajustes relacionados en la misma frase (por ejemplo "activa los recordatorios con 48h de antelacion" junta notifRecordatorioActiva + notifRecordatorioHoras, o "pon la antelacion minima en 4h" es solo uno), usa la tool cambiar_config con la lista "cambios" (una entrada clave+valor por ajuste, CLAVE exacta de la lista AJUSTES EDITABLES del final). Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
     'COMPOSICION DE TOOLS Y MACROS (S22): Si una peticion compleja no puede resolverse con una sola tool, desglosala y ejecuta secuencialmente multiples tools (ej: consultar caja y luego ocupacion). Si identificas que esta peticion multi-paso es util y recurrente, usa la tool "proponer_macro" para crear una automatizacion parametrizable que el propietario podra aprobar. Las macros aprobadas se inyectaran como tools dinamicas (identificadas con [MACRO DE CHISPA] en la descripcion); puedes llamarlas directamente como cualquier otra tool.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad, citas_hoy).',
-    'Para responder sobre UNA clienta (su historial, cuanto gasta, cada cuanto viene, su etiquetas o su riesgo de no-show) usa ficha_cliente. REGLA DURA DE SALUD: nunca pidas, muestres ni deduzcas datos de salud, alergias, medicacion o notas medicas. Si ficha_cliente devuelve tiene_notas_salud=true, di UNICAMENTE que "hay notas en su ficha, revisalas alli" y ofrece un enlace a Clientes con sugerir_enlace; jamas inventes el contenido. Si la ficha no aparece (encontrado=false), di con naturalidad que no la encuentras: puede que no exista o que no haya dado su consentimiento para que la IA use sus datos.',
+    'Para responder sobre UNA clienta (su historial, cuanto gasta, cada cuanto viene, su etiquetas o su riesgo de no-show) usa ficha_cliente. REGLA DURA DE SALUD: nunca pidas, muestres ni deduzcas datos de salud, alergias, medicacion o notas medicas. Si ficha_cliente devuelve tiene_notas_salud=true, di UNICAMENTE que "hay notas en su ficha, revisalas alli" y ofrece un enlace a Clientes con sugerir_enlace; jamas inventes el contenido. Los datos de salud del cliente están completamente fuera del alcance del LLM (lo ves negro y no debes consultarlo). Si la ficha no aparece (encontrado=false), di con naturalidad que no la encuentras: puede que no exista o que no haya dado su consentimiento para que la IA use sus datos.',
     'Menciona el riesgo de no-show de una clienta solo si es relevante (p.ej. el usuario pregunta si es fiable, o hay una cita suya sin confirmar), y siempre en tono neutro y sin juzgar: es una senal operativa, no una etiqueta sobre la persona.',
     'Si el usuario quiere recuperar a una clienta que lleva tiempo sin venir, puedes proponer recuperar_cliente (deja el registro para que el equipo le mande la propuesta de vuelta; tu no envias nada).',
     'Para el progreso de objetivos/metas usa metas_progreso (del equipo si eres direccion/propietario, o los tuyos si eres profesional); si no hay ninguno fijado, dilo con naturalidad y sugiere fijarlo en Equipo.',
     'Para proponer operaciones de agenda usa las tools de escritura (crear_cita, reagendar_cita, cancelar_cita, bloquear_hueco, liberar_hueco).',
-    'Tambien puedes proponer acciones de GESTION cuando tengas la tool disponible: confirmar_citas (confirmar en bloque las citas pendientes de un dia, p.ej. "confirmame las citas de manana"), crear_servicio (dar de alta un servicio nuevo en el catalogo), editar_servicio (cambiar precio/nombre/duracion/activar/senal-deposito de un servicio del catalogo YA existente), editar_horario (fijar el turno de un profesional un dia), crear_presupuesto (borrador con precios REALES del catalogo, nunca inventes precios), enviar_mensaje_bandeja (guardar un borrador en el hilo de la Bandeja del cliente; NO envia el WhatsApp real, eso lo hace el equipo), cambiar_idioma_portal (idioma del portal PUBLICO de reserva online: es/en; distinto del idioma de la interfaz del software, ese no lo puedes cambiar) y anadir_cierre_negocio (marcar un dia completo como festivo/cierre de TODO el salon). Si una tool no esta disponible para el rol de este usuario, no la menciones como algo que puedas hacer: guia a la pantalla correspondiente.',
+    'Tambien puedes proponer acciones de GESTION cuando tengas la tool disponible: confirmar_citas (confirmar en bloque las citas, opcionalmente filtrando excluidos con excluir_clientes), bulk_editar_horarios (fijar en bloque turnos de uno o varios profesionales), bulk_editar_comisiones (actualizar porcentaje de comision base de profesionales), crear_servicio (dar de alta un servicio nuevo en el catalogo), editar_servicio (cambiar precio/nombre/duracion/activar/senal-deposito de un servicio del catalogo YA existente), editar_horario (fijar el turno de un profesional un dia), crear_presupuesto (borrador con precios REALES del catalogo, nunca inventes precios), enviar_mensaje_bandeja (guardar un borrador en el hilo de la Bandeja del cliente; NO envia el WhatsApp real, eso lo hace el equipo), cambiar_idioma_portal (idioma del portal PUBLICO de reserva online: es/en; distinto del idioma de la interfaz del software, ese no lo puedes cambiar) y anadir_cierre_negocio (marcar un dia completo como festivo/cierre de TODO el salon). Si una tool no esta disponible para el rol de este usuario, no la menciones como algo que puedas hacer: guia a la pantalla correspondiente.',
+    'GESTION EN BLOQUE Y CAMBIOS DE EQUIPO (V3+): Si el usuario te pide cambiar el horario de un profesional o aplicarlo a varios, o cambiar las comisiones de su equipo, utiliza bulk_editar_horarios o bulk_editar_comisiones en lugar de proponer cambios individuales. Si te dicen "copia el horario de X a Y", consulta primero la disponibilidad de X y luego llama a bulk_editar_horarios con el horario de X.',
+    'ESTADO DE PAGOS, SEÑALES Y CAJA (V3+): Para verificar si un cliente ha pagado la señal/depósito de su cita o si hemos cobrado a todos los clientes hoy/ayer, utiliza siempre consultar_estado_pagos. Te devolverá el estado del cobro ("cobrada") y del depósito ("deposito_pagado") de cada cita de la fecha.',
+    'CONTROL DE INVENTARIO Y STOCK (V3+): Si te preguntan si queda stock de un producto, si hay alertas de stock bajo, o por el precio de algún artículo, utiliza consultar_inventario.',
+    'FICHAS Y ASISTENCIA DEL PERSONAL (V3+): Si te preguntan quién ha fichado hoy, a qué hora entró o salió el personal, utiliza consultar_fichajes.',
+    'SEGUIMIENTO DE RESEÑAS (V3+): Si te preguntan por las opiniones de los clientes, la puntuación media del salón, o reseñas negativas de los últimos días, utiliza consultar_resenas.',
+    'ENTRENAMIENTO CASOS DE USO (V3+):',
+    '- Caso Confirmación Masiva con Exclusiones: Si el usuario te dice "Hay 40 citas sin confirmar. Confírmamelas todas excepto Juan y Nuria", llama a confirmar_citas(excluir_clientes: ["Juan", "Nuria"]).',
+    '- Caso Copiar Horario: Si te dicen "copia el horario de los sabados de Maria a Ana", llama a consultar_disponibilidad(fecha: "proximo_sabado", profesional: "Maria") para deducir el horario, y luego llama a bulk_editar_horarios(profesionales: ["Ana"], dia: "sabado", hora_inicio: "HH:MM", hora_fin: "HH:MM").',
     'Cuando el usuario te comente explícitamente una preferencia o hecho operativo sobre el negocio, un profesional o UNA CLIENTA (ej. "A María le gusta el café", "Suele llegar 10 minutos tarde"), utiliza la tool guardar_recuerdo para persistirlo (pasando el cliente_id si aplica). NUNCA guardes datos médicos o de salud.',
     'Todas estas acciones son PROPUESTAS (excepto guardar_recuerdo que es interna): se muestran en una tarjeta y el usuario confirma; tu nunca las aplicas.',
     puedeInformes
@@ -1361,6 +1469,177 @@ async function ejecutarLectura(
       return { servicios, profesionales: profes };
     }
 
+    case 'consultar_estado_pagos': {
+      const fecha = /^\d{4}-\d{2}-\d{2}$/.test(inp.fecha ?? '')
+        ? inp.fecha
+        : new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+
+      let profIdFiltro: string | null = null;
+      if (scope === 'self') profIdFiltro = await resolverProfesionalDelUsuario(negocioId, userId);
+
+      let q = svc
+        .from('citas')
+        .select('id, inicio, estado, profesional_id, servicio_id, cliente_id, deposito_requerido, deposito_pagado, deposito_importe, cobrada, importe_final')
+        .eq('negocio_id', negocioId)
+        .gte('inicio', `${fecha}T00:00:00`)
+        .lte('inicio', `${fecha}T23:59:59`)
+        .order('inicio', { ascending: true });
+
+      if (profIdFiltro) q = q.eq('profesional_id', profIdFiltro);
+      const { data: citas } = await q;
+      if (!citas) return [];
+
+      // Resolver servicios, profesionales y clientes
+      const servIds = [...new Set(citas.map((c) => c.servicio_id).filter(Boolean))] as string[];
+      const profIds = [...new Set(citas.map((c) => c.profesional_id).filter(Boolean))] as string[];
+      const cliIds = [...new Set(citas.map((c) => c.cliente_id).filter(Boolean))] as string[];
+
+      const [servRes, profRes, cliRes] = await Promise.all([
+        servIds.length ? svc.from('servicios').select('id, nombre').in('id', servIds) : Promise.resolve({ data: [] }),
+        profIds.length ? svc.from('profesionales').select('id, nombre').in('id', profIds) : Promise.resolve({ data: [] }),
+        cliIds.length ? svc.from('clientes').select('id, nombre').eq('consiente_ia', true).in('id', cliIds) : Promise.resolve({ data: [] }),
+      ]);
+
+      const servMap = new Map((servRes.data ?? []).map((s: any) => [s.id, s.nombre]));
+      const profMap = new Map((profRes.data ?? []).map((p: any) => [p.id, p.nombre]));
+      const cliMap = new Map((cliRes.data ?? []).map((c: any) => [c.id, c.nombre]));
+
+      return citas.map((c: any) => {
+        const hora = new Date(c.inicio).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+        const cliName = c.cliente_id ? (cliMap.get(c.cliente_id) ?? 'Cliente (Sin consentimiento IA)') : 'Walk-in / Anónimo';
+        return {
+          id: c.id,
+          hora,
+          cliente: cliName,
+          servicio: c.servicio_id ? (servMap.get(c.servicio_id) ?? 'Servicio') : 'Servicio',
+          profesional: c.profesional_id ? (profMap.get(c.profesional_id) ?? 'Equipo') : 'Equipo',
+          estado: c.estado,
+          deposito_requerido: !!c.deposito_requerido,
+          deposito_pagado: !!c.deposito_pagado,
+          deposito_importe: c.deposito_importe ? Number(c.deposito_importe) : 0,
+          cobrada: !!c.cobrada,
+          importe_final: c.importe_final ? Number(c.importe_final) : 0,
+        };
+      });
+    }
+
+    case 'consultar_fichajes': {
+      const fecha = /^\d{4}-\d{2}-\d{2}$/.test(inp.fecha ?? '')
+        ? inp.fecha
+        : new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+
+      const { data: fichajes } = await svc
+        .from('fichajes')
+        .select('id, profesional_id, tipo, marcado_at, nota')
+        .eq('negocio_id', negocioId)
+        .gte('marcado_at', `${fecha}T00:00:00Z`)
+        .lte('marcado_at', `${fecha}T23:59:59Z`)
+        .order('marcado_at', { ascending: true });
+      
+      if (!fichajes || fichajes.length === 0) return { fecha, mensaje: 'No hay fichajes registrados para este dia.' };
+
+      const profIds = [...new Set(fichajes.map((f: any) => f.profesional_id).filter(Boolean))] as string[];
+      const { data: profes } = profIds.length
+        ? await svc.from('profesionales').select('id, nombre').in('id', profIds)
+        : { data: [] };
+      const profMap = new Map((profes ?? []).map((p: any) => [p.id, p.nombre]));
+
+      return fichajes.map((f: any) => {
+        const hora = new Date(f.marcado_at).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+        return {
+          id: f.id,
+          hora,
+          profesional: f.profesional_id ? (profMap.get(f.profesional_id) ?? 'Equipo') : 'Equipo',
+          tipo: f.tipo === 'entrada' ? 'Entrada (Clock-in)' : 'Salida (Clock-out)',
+          nota: f.nota || null,
+        };
+      });
+    }
+
+    case 'consultar_inventario': {
+      let q = svc
+        .from('productos')
+        .select('id, nombre, descripcion, categoria, precio_cents, stock_minimo, activo')
+        .eq('negocio_id', negocioId)
+        .eq('activo', true);
+
+      if (inp.texto) {
+        q = q.ilike('nombre', `%${sanitizarFiltro(inp.texto)}%`);
+      }
+
+      const { data: productos } = await q;
+      if (!productos || productos.length === 0) return { mensaje: 'No se encontraron productos en el catalogo.' };
+
+      const prodIds = productos.map((p: any) => p.id);
+      const { data: stock } = await svc
+        .from('inventario')
+        .select('producto_id, unidades, ubicacion')
+        .eq('negocio_id', negocioId)
+        .in('producto_id', prodIds);
+
+      const stockMap = new Map((stock ?? []).map((s: any) => [s.producto_id, s]));
+
+      const listado = productos.map((p: any) => {
+        const itemStock = stockMap.get(p.id);
+        const unidades = itemStock ? itemStock.unidades : 0;
+        const bajoStock = p.stock_minimo != null && unidades < p.stock_minimo;
+        return {
+          id: p.id,
+          nombre: p.nombre,
+          categoria: p.categoria,
+          precio_eur: Math.round(p.precio_cents) / 100,
+          stock: unidades,
+          stock_minimo: p.stock_minimo,
+          ubicacion: itemStock ? itemStock.ubicacion : null,
+          alerta_bajo_stock: bajoStock,
+        };
+      });
+
+      if (inp.bajo_stock_only === 'true' || inp.bajo_stock_only === 'si' || inp.bajo_stock_only === 'sí') {
+        return listado.filter((item: any) => item.alerta_bajo_stock);
+      }
+
+      return listado;
+    }
+
+    case 'consultar_resenas': {
+      const desde = inp.desde;
+      const hasta = inp.hasta ?? inp.desde;
+
+      let q = svc
+        .from('resenas')
+        .select('id, autor_nombre, comentario, puntuacion, created_at, fuente')
+        .eq('negocio_id', negocioId)
+        .gte('created_at', `${desde}T00:00:00Z`)
+        .lte('created_at', `${hasta}T23:59:59Z`)
+        .order('created_at', { ascending: false });
+
+      if (inp.solo_negativas === 'true' || inp.solo_negativas === 'si' || inp.solo_negativas === 'sí') {
+        q = q.lt('puntuacion', 4);
+      }
+
+      const { data: resenas } = await q;
+      if (!resenas || resenas.length === 0) return { desde, hasta, mensaje: 'No se recibieron resenas en este rango.' };
+
+      const total = resenas.length;
+      const suma = resenas.reduce((s: number, r: any) => s + (r.puntuacion ?? 0), 0);
+      const media = total > 0 ? Number((suma / total).toFixed(1)) : 0;
+
+      return {
+        rango: { desde, hasta },
+        total_recibidas: total,
+        nota_media: media,
+        resenas: resenas.map((r: any) => ({
+          id: r.id,
+          autor: r.autor_nombre,
+          comentario: r.comentario,
+          puntuacion: r.puntuacion,
+          fuente: r.fuente || 'web',
+          fecha: new Date(r.created_at).toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' }),
+        })),
+      };
+    }
+
     case 'buscar_cliente': {
       // Consentimiento IA: los clientes con consiente_ia=false son INVISIBLES
       // para la IA (como si no existieran). Lista blanca de campos (regla dura de
@@ -1478,7 +1757,7 @@ async function ejecutarLectura(
 
       let q = svc
         .from('citas')
-        .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id')
+        .select('id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, deposito_requerido, deposito_pagado, deposito_importe, cobrada, importe_final')
         .eq('negocio_id', negocioId)
         .gte('inicio', `${inp.desde}T00:00:00`);
 
@@ -2728,8 +3007,6 @@ export async function construirPropuesta(
     // --- GESTION (Sesion 3) ---
     case 'confirmar_citas': {
       const fecha = (inp.fecha ?? '').trim();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return { error: 'Necesito la fecha del dia a confirmar (YYYY-MM-DD).' };
-
       let profId: string | null = null;
       if (scope === 'self') {
         profId = await resolverProfesionalDelUsuario(negocioId, userId);
@@ -2744,35 +3021,194 @@ export async function construirPropuesta(
 
       let q = svc
         .from('citas').select('id, inicio, servicio_id, cliente_id')
-        .eq('negocio_id', negocioId).eq('estado', 'pendiente')
-        .gte('inicio', `${fecha}T00:00:00`).lte('inicio', `${fecha}T23:59:59`)
-        .order('inicio');
+        .eq('negocio_id', negocioId).eq('estado', 'pendiente');
+      
+      if (fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        q = q.gte('inicio', `${fecha}T00:00:00`).lte('inicio', `${fecha}T23:59:59`);
+      } else {
+        const hoyStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+        q = q.gte('inicio', `${hoyStr}T00:00:00`);
+      }
       if (profId) q = q.eq('profesional_id', profId);
+      q = q.order('inicio');
+      
       const { data: citas } = await q;
-      if (!citas || citas.length === 0) return { error: `No hay citas pendientes por confirmar el ${fecha}.` };
+      if (!citas || citas.length === 0) return { error: `No hay citas pendientes por confirmar${fecha ? ` el ${fecha}` : ' desde hoy'}.` };
 
       const servIds = [...new Set(citas.map((c: { servicio_id: string | null }) => c.servicio_id).filter(Boolean))] as string[];
       const cliIds = [...new Set(citas.map((c: { cliente_id: string | null }) => c.cliente_id).filter(Boolean))] as string[];
       const [servRes, cliRes] = await Promise.all([
         servIds.length ? svc.from('servicios').select('id, nombre').in('id', servIds) : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
-        // Nombres solo de clientes que consienten IA (regla de consentimiento).
         cliIds.length ? svc.from('clientes').select('id, nombre').eq('negocio_id', negocioId).eq('consiente_ia', true).in('id', cliIds) : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
       ]);
       const servMap = new Map((servRes.data ?? []).map((s: { id: string; nombre: string }) => [s.id, s.nombre]));
       const cliMap = new Map((cliRes.data ?? []).map((c: { id: string; nombre: string }) => [c.id, c.nombre]));
 
-      const lista = citas.map((c: { id: string; inicio: string; servicio_id: string | null; cliente_id: string | null }) => {
+      let lista = citas.map((c: { id: string; inicio: string; servicio_id: string | null; cliente_id: string | null }) => {
         const hora = new Date(c.inicio).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
         const serv = (c.servicio_id && servMap.get(c.servicio_id)) || 'Servicio';
         const cli = c.cliente_id ? cliMap.get(c.cliente_id) : null;
-        return { id: c.id, label: `${hora} · ${serv}${cli ? ` · ${cli}` : ''}` };
+        return { id: c.id, label: `${hora} · ${serv}${cli ? ` · ${cli}` : ''}`, clienteNombre: cli || '' };
       });
+
+      let excluirNombres: string[] = [];
+      if (inp.excluir_clientes) {
+        if (Array.isArray(inp.excluir_clientes)) {
+          excluirNombres = inp.excluir_clientes;
+        } else if (typeof inp.excluir_clientes === 'string') {
+          try {
+            const parsed = JSON.parse(inp.excluir_clientes);
+            if (Array.isArray(parsed)) excluirNombres = parsed;
+            else excluirNombres = [inp.excluir_clientes];
+          } catch {
+            excluirNombres = String(inp.excluir_clientes).split(',').map(s => s.trim());
+          }
+        }
+      }
+
+      const normalizarNombre = (n: string) =>
+        n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+      const excluidosNormalizados = excluirNombres.map(n => normalizarNombre(n));
+
+      if (excluidosNormalizados.length > 0) {
+        lista = lista.filter(item => {
+          const cliNorm = normalizarNombre(item.clienteNombre);
+          return !excluidosNormalizados.some(excl => cliNorm.includes(excl));
+        });
+      }
+
+      if (lista.length === 0) return { error: 'Todas las citas pendientes coinciden con los criterios de exclusion.' };
 
       return {
         tipo: 'confirmar_citas',
         negocio_id: negocioId,
-        citas: lista,
-        resumen: `Confirmar ${lista.length} cita${lista.length === 1 ? '' : 's'} del ${fecha}`,
+        citas: lista.map(item => ({ id: item.id, label: item.label })),
+        resumen: `Confirmar ${lista.length} cita${lista.length === 1 ? '' : 's'}${fecha ? ` del ${fecha}` : ' pendientes'}`,
+      };
+    }
+
+    case 'bulk_editar_horarios': {
+      const diaSemanaValido = parseDiaSemana(inp.dia);
+      if (diaSemanaValido === null) return { error: `Dia de la semana no valido: "${inp.dia}".` };
+      const inicio = normalizaHora(inp.hora_inicio);
+      const fin = normalizaHora(inp.hora_fin);
+      if (!inicio || !fin) return { error: 'Horas de inicio o fin no validas (formato HH:MM).' };
+
+      let listaProfes: string[] = [];
+      if (inp.profesionales) {
+        if (Array.isArray(inp.profesionales)) {
+          listaProfes = inp.profesionales;
+        } else if (typeof inp.profesionales === 'string') {
+          try {
+            const parsed = JSON.parse(inp.profesionales);
+            if (Array.isArray(parsed)) listaProfes = parsed;
+            else listaProfes = [inp.profesionales];
+          } catch {
+            listaProfes = String(inp.profesionales).split(',').map(s => s.trim());
+          }
+        }
+      }
+
+      if (listaProfes.length === 0) return { error: 'Debes indicar al menos un profesional o "todos".' };
+
+      let targetProfes = [];
+      if (listaProfes.map(p => p.toLowerCase()).includes('todos')) {
+        const { data } = await svc
+          .from('profesionales')
+          .select('id, nombre')
+          .eq('negocio_id', negocioId)
+          .eq('activo', true);
+        targetProfes = data ?? [];
+      } else {
+        const { data } = await svc
+          .from('profesionales')
+          .select('id, nombre')
+          .eq('negocio_id', negocioId)
+          .eq('activo', true);
+        const all = data ?? [];
+        for (const name of listaProfes) {
+          const match = all.filter(p => p.nombre.toLowerCase().includes(name.toLowerCase()));
+          targetProfes.push(...match);
+        }
+        const seen = new Set();
+        targetProfes = targetProfes.filter(p => {
+          if (seen.has(p.id)) return false;
+          seen.add(p.id);
+          return true;
+        });
+      }
+
+      if (targetProfes.length === 0) return { error: 'No se encontraron profesionales activos coincidentes.' };
+
+      return {
+        tipo: 'bulk_editar_horarios',
+        negocio_id: negocioId,
+        dia: inp.dia,
+        dia_semana: diaSemanaValido,
+        hora_inicio: inicio,
+        hora_fin: fin,
+        profesionales: targetProfes.map(p => ({ id: p.id, nombre: p.nombre })),
+        resumen: `Establecer horario los ${inp.dia}s (${inicio} - ${fin}) para: ${targetProfes.map(p => p.nombre).join(', ')}`,
+      };
+    }
+
+    case 'bulk_editar_comisiones': {
+      const pct = Number(inp.comision_pct);
+      if (isNaN(pct) || pct < 0 || pct > 100) return { error: 'Porcentaje de comision no valido (debe ser entre 0 y 100).' };
+
+      let listaProfes: string[] = [];
+      if (inp.profesionales) {
+        if (Array.isArray(inp.profesionales)) {
+          listaProfes = inp.profesionales;
+        } else if (typeof inp.profesionales === 'string') {
+          try {
+            const parsed = JSON.parse(inp.profesionales);
+            if (Array.isArray(parsed)) listaProfes = parsed;
+            else listaProfes = [inp.profesionales];
+          } catch {
+            listaProfes = String(inp.profesionales).split(',').map(s => s.trim());
+          }
+        }
+      }
+
+      if (listaProfes.length === 0) return { error: 'Debes indicar al menos un profesional o "todos".' };
+
+      let targetProfes = [];
+      if (listaProfes.map(p => p.toLowerCase()).includes('todos')) {
+        const { data } = await svc
+          .from('profesionales')
+          .select('id, nombre')
+          .eq('negocio_id', negocioId)
+          .eq('activo', true);
+        targetProfes = data ?? [];
+      } else {
+        const { data } = await svc
+          .from('profesionales')
+          .select('id, nombre')
+          .eq('negocio_id', negocioId)
+          .eq('activo', true);
+        const all = data ?? [];
+        for (const name of listaProfes) {
+          const match = all.filter(p => p.nombre.toLowerCase().includes(name.toLowerCase()));
+          targetProfes.push(...match);
+        }
+        const seen = new Set();
+        targetProfes = targetProfes.filter(p => {
+          if (seen.has(p.id)) return false;
+          seen.add(p.id);
+          return true;
+        });
+      }
+
+      if (targetProfes.length === 0) return { error: 'No se encontraron profesionales activos coincidentes.' };
+
+      return {
+        tipo: 'bulk_editar_comisiones',
+        negocio_id: negocioId,
+        comision_pct: pct,
+        profesionales: targetProfes.map(p => ({ id: p.id, nombre: p.nombre })),
+        resumen: `Fijar comision base al ${pct}% para: ${targetProfes.map(p => p.nombre).join(', ')}`,
       };
     }
 
