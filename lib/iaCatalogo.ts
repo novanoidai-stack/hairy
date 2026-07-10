@@ -209,6 +209,15 @@ export const CATALOGO_IA: FuncionIA[] = [
     categoria: 'pagina',
   },
   {
+    id: 'chispa-gestion-salon',
+    titulo: 'Llevar el salón (cierre del día y gestión)',
+    descripcion: 'Chispa hace de mano derecha de dirección: dile "cierra el día", "prepara la semana" o "revisa lo urgente" y te devuelve un panel con las cifras reales (citas, cobrado, sin confirmar, avisos del escaneo) y un menú de acciones de un clic. Todo se propone y tú confirmas; los envíos quedan encolados para el motor de mensajería. Solo dirección/propietario.',
+    ubicacion: '/app?chispa=1',
+    uso: 'En el panel Chispa, escribe "cierra el día", "prepara la semana" o "revisa lo urgente".',
+    categoria: 'panel',
+    soloGestor: true,
+  },
+  {
     id: 'chispa-datos-formato',
     titulo: 'Respuestas con datos en su mejor formato',
     descripcion: 'Cuando preguntas por cifras del negocio, Chispa elige sola el formato: indicador (KPI) con variación para una cifra, barras para un reparto por categoría, gráfica de línea para una evolución, tabla con totales para un listado y línea de tiempo para un histórico. Cifras siempre reales.',

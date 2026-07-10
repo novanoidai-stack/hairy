@@ -116,6 +116,9 @@ const LECTURA_CAP: Record<string, Capability | null> = {
   metas_progreso: null, // cualquier rol: el handler decide objetivos propios o del equipo
   mostrar_grafica: 'informes.ver', // emite bloque 'grafica' con datos agregados del negocio
   mostrar_comparativa: 'informes.ver', // emite bloque 'comparativa' con datos agregados del negocio
+  // S21 (capstone): panel de gestion de alto nivel. Orquesta agenda + caja +
+  // escaneo proactivo -> mismo gate que el resto de vision de negocio (owner/admin).
+  resumen_gestion: 'informes.ver',
 };
 
 // Predicado central del gating: ¿se declara esta tool al LLM para este rol/scope?

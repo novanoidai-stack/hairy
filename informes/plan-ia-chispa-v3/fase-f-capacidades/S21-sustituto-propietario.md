@@ -33,8 +33,22 @@ perder el control (confirma; puede deshacer, S05).
   confirmable y reversible; nada se ejecuta sin confirmación; envíos quedan encolados (verificado E2E).
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] edge desplegada+probada  [ ] E2E demo  [ ] manuales+iaCatalogo
-[ ] specs landing  [ ] commit+push  [ ] S21 marcada`
+`[x] tsc  [x] build (no requiere: bloques kpi/opciones ya en cliente desde S19)  [x] edge desplegada+probada (v40, CLI)  [x] E2E demo  [x] manuales+iaCatalogo
+[x] specs landing  [x] commit+push  [x] S21 marcada`
 
 ## Estado
-PENDIENTE.
+HECHA (10 jul). Implementado como tool de LECTURA+composicion `resumen_gestion(foco)` en el edge
+(supabase/functions/agenda-asistente): foco = cierre_dia | preparar_semana | urgente. No es una
+escritura: orquesta lecturas reales (agenda + caja + escaneo proactivo hallazgos_ia) y empuja un
+panel VISUAL (kpi + barras/tabla) + un menu 'opciones' cuyas labels vuelven como turno y disparan
+las tarjetas individuales de propone->confirma (confirmar_citas, organizar agenda, etc.). Respeta
+reparto (envios encolados por sus tools = Alexandro), rol/tenant (gate informes.ver en permisos.ts,
+service key + negocio_id), salud fuera (no toca fichas). Gotchas resueltos:
+- El tipo `Bloque` LOCAL del edge no tenia kpi/barras/tabla (S19 solo toco el cliente); anadidos.
+- Deploy: repo no linkado con config.toml pero la CLI de Supabase ya estaba autenticada
+  (`npx supabase functions deploy agenda-asistente --project-ref vtrggiogjrhqtwbhbgia`); bundlea
+  siguiendo el import `../../../lib/iaCatalogo.ts`. No hizo falta Docker (warning ignorable).
+- Verificado E2E contra el tenant demo (owner) via curl con JWT real: los 3 focos enrutan bien y
+  las cifras (0 en la demo vacia hoy) coinciden con SQL directo (conteo correcto).
+Nota aparte (no S21): `buscar_recuerdos`/`guardar_recuerdo` NO estaban en LECTURA_CAP -> nunca se
+declaraban al LLM (S9-S12 rotas por el panel). Flagueado como tarea de fondo, no arreglado aqui.

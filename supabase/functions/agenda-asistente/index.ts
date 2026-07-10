@@ -182,7 +182,22 @@ type Bloque =
       multiple?: boolean;
     }
   | { tipo: 'progreso'; paso: number; total: number; etiqueta?: string }
-  | { tipo: 'timeline'; titulo: string; eventos: { id: string; fecha: string; titulo: string; descripcion: string; icono?: string; color?: string }[] };
+  | { tipo: 'timeline'; titulo: string; eventos: { id: string; fecha: string; titulo: string; descripcion: string; icono?: string; color?: string }[] }
+  // S19 (libreria de datos): cifras SIEMPRE server-side. El edge ya SI las emite
+  // (S21 panel de gestion). Espejo de lib/chispaBloques.ts en el cliente.
+  | {
+      tipo: 'kpi';
+      titulo?: string;
+      tarjetas: { label: string; valor: number; unidad: ChispaUnidad; deltaPct?: number; nota?: string }[];
+    }
+  | { tipo: 'barras'; titulo: string; unidad: ChispaUnidad; datos: { etiqueta: string; valor: number }[] }
+  | {
+      tipo: 'tabla';
+      titulo?: string;
+      columnas: { key: string; label: string; alinear?: 'izq' | 'der'; unidad?: ChispaUnidad }[];
+      filas: Record<string, string | number>[];
+      total?: Record<string, string | number>;
+    };
 
 // Allowlist de rutas para bloques 'enlace' (espejo de CHISPA_RUTAS del cliente).
 // El LLM elige una CLAVE; el edge valida y adjunta la ruta/label real.
@@ -344,6 +359,18 @@ const TOOLS = [
         periodo: { type: 'string', description: 'semana | mes' },
       },
       required: ['metrica', 'periodo'],
+    },
+  },
+  // --- GESTION DE ALTO NIVEL (Sesion 21): panel accionable que orquesta varias areas ---
+  {
+    name: 'resumen_gestion',
+    description: 'Panel de gestion de alto nivel para direccion/propietario: encadena lecturas de varias areas (agenda, caja, escaneo proactivo) y devuelve un resumen VISUAL con acciones de un clic. Usala cuando el usuario quiera "llevar el salon" de un vistazo: "cierra el dia" / "haz el cierre" / "como ha ido hoy" -> foco cierre_dia; "prepara la semana" / "como viene la semana" -> foco preparar_semana; "revisa lo urgente" / "que tengo pendiente" / "que es lo mas importante" -> foco urgente. No ejecuta nada: cada accion del panel se propone y el usuario confirma. Solo direccion/propietario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        foco: { type: 'string', description: 'cierre_dia | preparar_semana | urgente' },
+      },
+      required: ['foco'],
     },
   },
   // --- ESCRITURA (el LLM las invoca; la funcion NO las ejecuta) ---
@@ -821,6 +848,9 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     'Cuando el usuario te comente explícitamente una preferencia o hecho operativo sobre el negocio, un profesional o UNA CLIENTA (ej. "A María le gusta el café", "Suele llegar 10 minutos tarde"), utiliza la tool guardar_recuerdo para persistirlo (pasando el cliente_id si aplica). NUNCA guardes datos médicos o de salud.',
     'Todas estas acciones son PROPUESTAS (excepto guardar_recuerdo que es interna): se muestran en una tarjeta y el usuario confirma; tu nunca las aplicas.',
     puedeInformes
+      ? 'GESTION DE ALTO NIVEL (llevar el salon): cuando el usuario quiera una vision de direccion de un vistazo o cerrar/organizar el dia o la semana ("cierra el dia", "haz el cierre", "como ha ido hoy", "prepara la semana", "revisa lo urgente", "que tengo pendiente", "que es lo mas importante"), llama a resumen_gestion con el foco adecuado (cierre_dia | preparar_semana | urgente). Devuelve un panel visual con KPIs y un menu de acciones de un clic; tras invocarla resume en 1-2 frases lo esencial SIN repetir las cifras que ya salen en las tarjetas, e invita a pulsar una de las acciones. No inventes numeros: los pone la propia tool.'
+      : '',
+    puedeInformes
       ? 'Para datos agregados de informes o facturacion (citas por estado, ingresos cobrados en un rango) usa resumen_informes; para dinero cobrado de verdad (efectivo/datafono/propinas) usa resumen_caja; para ocupacion del salon usa ocupacion. Cuando el usuario pida un resumen de un periodo ("resumeme el mes", "como va la semana") o la evolucion de una metrica, ANADE ademas mostrar_grafica (dia a dia) y, si tiene sentido comparar con el periodo anterior, mostrar_comparativa; luego ofrece sugerir_enlace hacia informes para el detalle completo. Nunca inventes cifras: usa solo las que devuelven estas tools, y si el rango tiene pocos datos dilo con franqueza en vez de sonar mas seguro de lo que permiten los datos.'
       : 'NO tienes acceso a informes, caja agregada, ocupacion ni graficas de negocio con el rol de este usuario. Si te preguntan por ingresos totales, facturacion, cuanto se ha ganado, estadisticas o informes del negocio, explica con naturalidad que no tienes acceso a esos datos con su rol y que lo consulten con direccion o el propietario. NUNCA inventes cifras.',
     'Cuando sea util, usa sugerir_enlace para ofrecer un chip que lleve a la pantalla relevante (p.ej. tras hablar de una clienta, ofrecer ir a Clientes). Es opcional y no modifica nada; no abuses (a lo sumo uno o dos por respuesta).',
@@ -1017,6 +1047,7 @@ async function runAgente(
     if (name === 'sugerir_enlace') return procesarEnlace(inp);
     if (name === 'mostrar_grafica') return await procesarGrafica(inp, negocioId, bloquesExtra);
     if (name === 'mostrar_comparativa') return await procesarComparativa(inp, negocioId, bloquesExtra);
+    if (name === 'resumen_gestion') return await procesarResumenGestion(inp, negocioId, hoy, bloquesExtra);
     if (name === 'buscar_recuerdos') return await procesarRecuerdos(inp, negocioId, bloquesExtra);
     if (name === 'guardar_recuerdo') {
       const clave = (inp.clave ?? '').trim();
@@ -1843,6 +1874,196 @@ async function procesarComparativa(inp: Record<string, string>, negocioId: strin
     anterior: { label: r.labelAnterior, valor: anterior },
   });
   return 'Comparativa anadida a la respuesta con los datos reales de ambos periodos.';
+}
+
+// ---------------------------------------------------------------------------
+// S21 (capstone): resumen de GESTION de alto nivel. Orquesta lecturas de varias
+// areas (agenda, caja, escaneo proactivo) y produce un panel accionable: KPIs +
+// (tabla/barras) + un menu de acciones de un clic. Cada accion sigue siendo una
+// PROPUESTA -> el usuario confirma (las labels del menu vuelven como turno y
+// disparan la tarjeta de confirmacion individual, p.ej. confirmar_citas). Nada
+// se ejecuta aqui; los envios reales quedan encolados por sus tools (reparto
+// Alexandro). Solo direccion/propietario (gate informes.ver en LECTURA_CAP).
+// ---------------------------------------------------------------------------
+// Suma dias a una fecha YYYY-MM-DD (aritmetica en UTC: no depende de DST).
+function diaISO(base: string, offset: number): string {
+  const d = new Date(`${base}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + offset);
+  return d.toISOString().slice(0, 10);
+}
+// Etiqueta corta de dia de la semana (para barras/tabla), en hora de Madrid.
+function nombreDiaCorto(iso: string): string {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('es-ES', { weekday: 'short', timeZone: 'Europe/Madrid' });
+}
+// Cuenta citas por estado en un rango [desde, hasta] (fechas YYYY-MM-DD inclusivas).
+async function contarCitasRango(negocioId: string, desde: string, hasta: string): Promise<{ total: number; pendientes: number; canceladas: number; porDia: Record<string, number> }> {
+  const { data } = await svc
+    .from('citas')
+    .select('inicio, estado')
+    .eq('negocio_id', negocioId)
+    .gte('inicio', `${desde}T00:00:00`)
+    .lte('inicio', `${hasta}T23:59:59`);
+  const filas = (data ?? []) as { inicio: string; estado: string | null }[];
+  const porDia: Record<string, number> = {};
+  let pendientes = 0;
+  let canceladas = 0;
+  for (const c of filas) {
+    const dia = String(c.inicio).slice(0, 10);
+    if (c.estado === 'cancelada') { canceladas++; continue; }
+    porDia[dia] = (porDia[dia] ?? 0) + 1;
+    if (c.estado === 'pendiente') pendientes++;
+  }
+  return { total: filas.length - canceladas, pendientes, canceladas, porDia };
+}
+// Total cobrado (libro de caja) en un dia concreto, en euros.
+async function cobradoDia(negocioId: string, dia: string): Promise<number> {
+  return await totalIngresosRango(negocioId, dia, dia);
+}
+// Rango de severidad de un hallazgo para ordenar (menor = mas urgente).
+function rangoSeveridad(sev: string | null): number {
+  return sev === 'urgente' ? 0 : sev === 'alta' ? 1 : sev === 'media' ? 2 : 3;
+}
+
+async function procesarResumenGestion(
+  inp: Record<string, string>,
+  negocioId: string,
+  hoy: string,
+  bloques: Bloque[],
+): Promise<string> {
+  const foco = (inp.foco ?? 'cierre_dia').trim().toLowerCase();
+  const manana = diaISO(hoy, 1);
+
+  // --- URGENTE: escaneo proactivo 24/7 (hallazgos_ia, S13) + pendientes proximos ---
+  if (foco === 'urgente') {
+    const { data: hallData } = await svc
+      .from('hallazgos_ia')
+      .select('severidad, familia, resumen, accion_sugerida')
+      .eq('negocio_id', negocioId)
+      .eq('estado', 'nuevo')
+      .order('creado_en', { ascending: false })
+      .limit(20);
+    const hallazgos = ((hallData ?? []) as {
+      severidad: string | null; familia: string | null; resumen: string | null;
+      accion_sugerida: { tipo?: string; label?: string; payload?: { destino?: string } } | null;
+    }[]).sort((a, b) => rangoSeveridad(a.severidad) - rangoSeveridad(b.severidad));
+
+    const hoyCitas = await contarCitasRango(negocioId, hoy, hoy);
+    const mananaCitas = await contarCitasRango(negocioId, manana, manana);
+    const pendientesProximos = hoyCitas.pendientes + mananaCitas.pendientes;
+    const criticos = hallazgos.filter((h) => h.severidad === 'urgente' || h.severidad === 'alta').length;
+
+    bloques.push({
+      tipo: 'kpi',
+      titulo: 'Lo urgente ahora mismo',
+      tarjetas: [
+        { label: 'Avisos criticos', valor: criticos, unidad: 'citas' },
+        { label: 'Avisos totales', valor: hallazgos.length, unidad: 'citas' },
+        { label: 'Sin confirmar (hoy y manana)', valor: pendientesProximos, unidad: 'citas' },
+      ],
+    });
+
+    if (hallazgos.length > 0) {
+      bloques.push({
+        tipo: 'tabla',
+        titulo: 'Avisos de Chispa',
+        columnas: [
+          { key: 'severidad', label: 'Prioridad' },
+          { key: 'resumen', label: 'Aviso' },
+          { key: 'area', label: 'Area' },
+        ],
+        filas: hallazgos.slice(0, 8).map((h) => ({
+          severidad: (h.severidad ?? 'baja').toUpperCase(),
+          resumen: h.resumen ?? '',
+          area: h.familia ?? '',
+        })),
+      });
+    }
+
+    // Enlaces directos a las areas de los hallazgos con accion "ir_a" (dedup).
+    const destinosVistos = new Set<string>();
+    for (const h of hallazgos.slice(0, 6)) {
+      const dest = h.accion_sugerida?.tipo === 'ir_a' ? h.accion_sugerida?.payload?.destino : undefined;
+      if (dest && RUTAS[dest] && !destinosVistos.has(dest)) {
+        destinosVistos.add(dest);
+        bloques.push({ tipo: 'enlace', ruta: RUTAS[dest].ruta, label: RUTAS[dest].label, descripcion: h.resumen ?? undefined });
+      }
+    }
+
+    // Menu de acciones de un clic (cada label vuelve como turno -> propone->confirma).
+    const opciones: { valor: string; label: string; descripcion?: string }[] = [];
+    if (pendientesProximos > 0) {
+      opciones.push({ valor: 'conf_manana', label: `Confirmar las ${mananaCitas.pendientes || pendientesProximos} citas pendientes de manana`, descripcion: 'Las reviso y las dejo confirmadas' });
+    }
+    opciones.push({ valor: 'ver_todo', label: 'Repasar avisos en la pantalla de Avisos', descripcion: 'Ver el detalle completo del escaneo' });
+    opciones.push({ valor: 'cierre', label: 'Hacer el cierre del dia', descripcion: 'Balance de hoy y lo que queda' });
+    bloques.push({ tipo: 'opciones', id: `gestion-urgente-${Date.now()}`, titulo: 'Por donde empezamos?', opciones });
+
+    return `Panel de lo urgente inyectado (KPIs + tabla de avisos + acciones). Datos reales: ${criticos} avisos criticos, ${hallazgos.length} avisos en total, ${pendientesProximos} citas sin confirmar entre hoy y manana. Resume en 1-2 frases lo mas importante y NO repitas cifras que ya se ven en las tarjetas; invita a pulsar una accion.`;
+  }
+
+  // --- PREPARAR SEMANA: proximos 7 dias (hoy incluido) ---
+  if (foco === 'preparar_semana' || foco === 'semana') {
+    const hasta = diaISO(hoy, 6);
+    const semana = await contarCitasRango(negocioId, hoy, hasta);
+
+    bloques.push({
+      tipo: 'kpi',
+      titulo: 'Tu semana de un vistazo',
+      tarjetas: [
+        { label: 'Citas esta semana', valor: semana.total, unidad: 'citas' },
+        { label: 'Sin confirmar', valor: semana.pendientes, unidad: 'citas' },
+      ],
+    });
+
+    // Barras: citas por dia (7 dias, incluidos los vacios para ver los huecos).
+    const datosDias = Array.from({ length: 7 }, (_, i) => {
+      const d = diaISO(hoy, i);
+      return { etiqueta: nombreDiaCorto(d), valor: semana.porDia[d] ?? 0 };
+    });
+    bloques.push({ tipo: 'barras', titulo: 'Citas por dia', unidad: 'citas', datos: datosDias });
+
+    const opciones: { valor: string; label: string; descripcion?: string }[] = [];
+    const mananaCitas = await contarCitasRango(negocioId, manana, manana);
+    if (mananaCitas.pendientes > 0) {
+      opciones.push({ valor: 'conf_manana', label: `Confirmar las ${mananaCitas.pendientes} citas pendientes de manana`, descripcion: 'Empieza por el dia mas cercano' });
+    }
+    opciones.push({ valor: 'org_manana', label: 'Organizar la agenda de manana', descripcion: 'Compactar huecos muertos (propuesta)' });
+    opciones.push({ valor: 'urgente', label: 'Revisar lo urgente', descripcion: 'Avisos del escaneo de Chispa' });
+    bloques.push({ tipo: 'opciones', id: `gestion-semana-${Date.now()}`, titulo: 'Preparamos la semana?', opciones });
+
+    return `Panel de la semana inyectado (KPIs + barras por dia + acciones). Datos reales: ${semana.total} citas los proximos 7 dias, ${semana.pendientes} sin confirmar. Resume en 1-2 frases (senala si hay dias flojos o cargados) sin repetir las cifras de las tarjetas; invita a pulsar una accion.`;
+  }
+
+  // --- CIERRE DEL DIA (por defecto) ---
+  const hoyCitas = await contarCitasRango(negocioId, hoy, hoy);
+  const mananaCitas = await contarCitasRango(negocioId, manana, manana);
+  const cobrado = await cobradoDia(negocioId, hoy);
+
+  bloques.push({
+    tipo: 'kpi',
+    titulo: 'Cierre del dia',
+    tarjetas: [
+      { label: 'Citas hoy', valor: hoyCitas.total, unidad: 'citas' },
+      { label: 'Cobrado hoy', valor: cobrado, unidad: 'eur' },
+      { label: 'Sin confirmar manana', valor: mananaCitas.pendientes, unidad: 'citas' },
+    ],
+  });
+
+  const opciones: { valor: string; label: string; descripcion?: string }[] = [];
+  if (hoyCitas.pendientes > 0) {
+    opciones.push({ valor: 'conf_hoy', label: `Confirmar las ${hoyCitas.pendientes} citas pendientes de hoy`, descripcion: 'Cierra hoy sin cabos sueltos' });
+  }
+  if (mananaCitas.pendientes > 0) {
+    opciones.push({ valor: 'conf_manana', label: `Confirmar las ${mananaCitas.pendientes} citas pendientes de manana`, descripcion: 'Deja manana listo' });
+  }
+  opciones.push({ valor: 'caja', label: 'Ver el detalle de la caja de hoy', descripcion: 'Efectivo, datafono y propinas' });
+  opciones.push({ valor: 'urgente', label: 'Revisar lo urgente antes de cerrar', descripcion: 'Avisos del escaneo de Chispa' });
+  bloques.push({ tipo: 'opciones', id: `gestion-cierre-${Date.now()}`, titulo: 'Cerramos el dia?', opciones });
+
+  // Enlace a caja para el arqueo completo.
+  bloques.push({ tipo: 'enlace', ruta: RUTAS.caja.ruta, label: RUTAS.caja.label, descripcion: 'Para el arqueo del dia' });
+
+  return `Panel de cierre del dia inyectado (KPIs + acciones). Datos reales: ${hoyCitas.total} citas hoy, ${cobrado.toFixed(2)} euros cobrados, ${mananaCitas.pendientes} sin confirmar manana, ${hoyCitas.pendientes} sin confirmar hoy. Resume en 1-2 frases el balance del dia sin repetir las cifras de las tarjetas; invita a pulsar una accion.`;
 }
 
 // ---------------------------------------------------------------------------
