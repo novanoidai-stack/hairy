@@ -47,10 +47,12 @@ async function generarConKokoro(texto: string, voiceId?: string): Promise<ArrayB
         response_format: 'mp3',
         speed: 1.0,
       }),
-      // Timeout ajustado (antes 12s): TTS de <700 chars en Kokoro-FastAPI es de
-      // ~1-2s; 6s deja margen sin que un VPS caido haga esperar al usuario
-      // ("la voz tarda mucho en llegar") antes de degradar al respaldo.
-      signal: AbortSignal.timeout(6000),
+      // Timeout generoso a proposito: Kokoro-FastAPI en el VPS responde en ~1-2s
+      // EN CALIENTE, pero el PRIMER request del dia (cold start) carga el modelo y
+      // tarda ~15-20s. La llamada TTS es async (no bloquea la UI: la voz suena
+      // cuando llega), asi que preferimos esperar al cold start y usar Kokoro de
+      // verdad antes que degradar al respaldo. En caliente esto no afecta.
+      signal: AbortSignal.timeout(25000),
     });
     if (!r.ok) return null;
     return await r.arrayBuffer();
