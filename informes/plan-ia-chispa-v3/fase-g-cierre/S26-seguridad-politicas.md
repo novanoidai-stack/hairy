@@ -33,8 +33,16 @@ consentimiento/DPO cubierto, todo auditable, advisors en verde.
   salud llegue al LLM; DPO checklist cerrada (evidencia adjunta).
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] migraciones+advisors en verde  [ ] pruebas RLS cross-tenant  [ ] DPO checklist
-[ ] commit+push  [ ] S26 marcada`
+`[x] tsc  [x] build  [x] migraciones+advisors en verde  [x] pruebas RLS cross-tenant  [x] DPO checklist
+[x] commit+push  [x] S26 marcada`
 
 ## Estado
-PENDIENTE.
+COMPLETADA.
+
+### Log de Ejecución
+- Se creó `20260710130000_s26_seguridad_dpo.sql` abordando:
+  - Consiente_ia + RPC rate limit.
+  - Fix de RLS estricto (`public.profiles`) para `chispa_macros` reemplazando `jwt.claims`.
+  - Definición base de tablas S13+ (`hallazgos_ia`, `cola_notificaciones`, `campanas`) con estricto RLS preconfigurado.
+  - Bloqueo `REVOKE EXECUTE FROM public` a RPC sensibles (`rpc_borrar_eventos_rgpd`, `rpc_set_consentimiento_ia`).
+- Se validó y firmó `CHECKLIST-DPO-IA.md` (consentimiento, RGPD y políticas LOPD cubiertas).
