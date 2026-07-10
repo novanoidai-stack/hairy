@@ -248,7 +248,15 @@ corto plazo; Connect es la solución escalable.
 | S5.4 | Config de plan de tarifas por salón (`% + fijo` Mecha Pay) en `negocio_config` | [A] | S |
 | S5.5 | Webhook Connect (`account.updated`, payouts) + panel de estado de la cuenta del salón | [A] | M |
 
-**Estado:** no empezado. Cambio arquitectónico (afecta a TODAS las edge functions de pago).
+**Estado:** ✅ decidido **MONO-CUENTA** y construido (8 jul 2026). Infraestructura mono-cuenta:
+claves Stripe por salón **cifradas en Supabase Vault** (`negocio_pasarela` + RPC
+`guardar_pasarela_stripe` para el owner + accesores `pasarela_stripe_secret`/`_webhook_secret`
+service_role-only); las **6 edges de pago** resuelven la cuenta Stripe por negocio con **fallback
+a plataforma** (demo y lo existente intactos); **webhook por salón** vía `?negocio=<id>`; y **config
+UI** (sección Pasarela de pago en Políticas). El salón se queda el 100%; Mecha cobra por
+suscripción. **Connect (S5.2–S5.5, `application_fee`/`on_behalf_of`) queda para escalar.**
+**Pendiente externo (cada salón):** crear su cuenta Stripe → pegar claves en Configuración →
+configurar su webhook Stripe a la URL con su `?negocio`.
 
 **Pendiente externo (tú):** decidir Connect sí/no; si sí, KYC de la plataforma en Stripe
 (Connect platform) y verificación de cada salón.
