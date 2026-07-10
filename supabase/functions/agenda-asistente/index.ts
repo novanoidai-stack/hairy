@@ -823,6 +823,102 @@ const TOOLS = [
       required: ['desde']
     }
   },
+  // --- LECTURA de negocio ampliada (V3, cobertura de tablas): todo son consultas
+  // puras (svc + .eq('negocio_id')); ninguna escribe. Gating en permisos.ts. ---
+  {
+    name: 'consultar_campanas',
+    description: 'Estado de las campanas de marketing (WhatsApp/correo): cuantas se han creado, en que estado estan (borrador/encolada/enviada) y cuantos destinatarios se han enviado o han fallado. Usala para "como van las campanas", "cuantos mensajes he mandado", "que campanas tengo". Solo direccion/propietario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        desde: { type: 'string', description: 'YYYY-MM-DD (opcional; por defecto ultimos 90 dias)' },
+        hasta: { type: 'string', description: 'YYYY-MM-DD (opcional; por defecto hoy)' },
+      },
+    },
+  },
+  {
+    name: 'consultar_cumpleanos',
+    description: 'Proximos cumpleanos de clientas y si ya se les felicito. Usala para "quien cumple anos", "cumpleanos de esta semana/mes", "hemos felicitado a alguien". Devuelve nombre, fecha, descuento del detalle y estado del aviso (pendiente/enviado).',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        solo_pendientes: { type: 'string', description: 'Opcional: "si" para mostrar solo los que aun no se han felicitado' },
+      },
+    },
+  },
+  {
+    name: 'consultar_lista_espera',
+    description: 'Quien esta en la lista de espera de un hueco: clientas apuntadas, el servicio/profesional que quieren, su franja preferida, la prioridad y si ya se les aviso. Usala para "quien espera hueco", "mira la lista de espera", "a quien puedo avisar si se libera algo". Distinto de avisar_lista_espera (que propone el aviso tras una cancelacion): esta solo consulta.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        estado: { type: 'string', description: 'Opcional: filtrar por estado (por defecto solo las activas/en espera)' },
+        profesional: { type: 'string', description: 'Opcional: nombre parcial del profesional deseado' },
+      },
+    },
+  },
+  {
+    name: 'consultar_intercambios_turno',
+    description: 'Solicitudes de intercambio de turnos entre profesionales y su estado (pendiente de companero, pendiente de gestor, aceptado, rechazado). Usala para "hay cambios de turno pendientes", "quien ha pedido cambiar un turno", "que intercambios tengo que aprobar". Solo direccion/propietario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        estado: { type: 'string', description: 'Opcional: filtrar por estado (por defecto los que estan pendientes de resolver)' },
+      },
+    },
+  },
+  {
+    name: 'consultar_comisiones_liquidadas',
+    description: 'Comisiones calculadas y su estado de pago por profesional en un periodo: base de calculo, porcentaje aplicado, importe y si estan pendientes o pagadas. Usala para "cuanto debo en comisiones", "que comisiones ha generado X", "comisiones de este mes". Solo direccion/propietario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        desde: { type: 'string', description: 'YYYY-MM-DD (opcional; por defecto ultimos 90 dias segun periodo_inicio)' },
+        hasta: { type: 'string', description: 'YYYY-MM-DD (opcional; por defecto hoy)' },
+        profesional: { type: 'string', description: 'Opcional: nombre parcial del profesional' },
+        solo_pendientes: { type: 'string', description: 'Opcional: "si" para mostrar solo las comisiones aun no pagadas' },
+      },
+    },
+  },
+  {
+    name: 'consultar_logros',
+    description: 'Programa de logros/gamificacion de clientas (Fidelizacion): que logros existen y cuantas clientas los han desbloqueado (dato agregado, sin nombres). Usala para "que logros tengo configurados", "cuantas clientas han conseguido X logro". No revela clientas concretas.',
+    parameters: { type: 'object' as const, properties: {} },
+  },
+  {
+    name: 'consultar_fidelizacion',
+    description: 'Programa de fidelizacion del salon: niveles (con sus umbrales de visitas/gasto), recompensas disponibles y cuantas se han canjeado (agregado por estado). Usala para "como va la fidelizacion", "que recompensas tengo", "cuantos canjes ha habido". No revela clientas concretas.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        desde: { type: 'string', description: 'YYYY-MM-DD (opcional; acota los canjes; por defecto ultimos 90 dias)' },
+        hasta: { type: 'string', description: 'YYYY-MM-DD (opcional; por defecto hoy)' },
+      },
+    },
+  },
+  {
+    name: 'consultar_movimientos_inventario',
+    description: 'Historial de entradas y salidas de stock (movimientos_inventario): que productos han entrado o salido, cuantas unidades, el motivo y cuando. Usala para "que movimientos de stock ha habido", "por que ha bajado el stock de X", "entradas de esta semana". Complementa a consultar_inventario (que da el stock actual).',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        producto: { type: 'string', description: 'Opcional: nombre parcial del producto' },
+        desde: { type: 'string', description: 'YYYY-MM-DD (opcional; por defecto ultimos 30 dias)' },
+        hasta: { type: 'string', description: 'YYYY-MM-DD (opcional; por defecto hoy)' },
+      },
+    },
+  },
+  {
+    name: 'consultar_hallazgos',
+    description: 'Alertas e insights generados por la vigilancia proactiva de la IA (hallazgos_ia): retrasos, citas sin confirmar, fallos de configuracion, clientas en fuga, etc., con su severidad y estado. Usala para "que ha detectado la IA", "que alertas tengo", "que es lo mas urgente". Solo direccion/propietario.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        solo_pendientes: { type: 'string', description: 'Opcional: "si" (por defecto) para mostrar solo hallazgos abiertos; "no" para incluir los resueltos' },
+        severidad: { type: 'string', description: 'Opcional: filtrar por severidad (alta | media | baja)' },
+      },
+    },
+  },
 ];
 
 // La deteccion de tools de escritura vive en permisos.ts (esEscritura): cubre
@@ -1028,6 +1124,8 @@ export function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'
     'CONTROL DE INVENTARIO Y STOCK (V3+): Si te preguntan si queda stock de un producto, si hay alertas de stock bajo, o por el precio de algún artículo, utiliza consultar_inventario.',
     'FICHAS Y ASISTENCIA DEL PERSONAL (V3+): Si te preguntan quién ha fichado hoy, a qué hora entró o salió el personal, utiliza consultar_fichajes.',
     'SEGUIMIENTO DE RESEÑAS (V3+): Si te preguntan por las opiniones de los clientes, la puntuación media del salón, o reseñas negativas de los últimos días, utiliza consultar_resenas.',
+    'MÁS CONSULTAS DE NEGOCIO (V3+, todas de solo lectura): usa consultar_campanas para el estado de las campañas de marketing (cuántas se han enviado, fallidas); consultar_cumpleanos para próximos cumpleaños de clientas y si se han felicitado; consultar_lista_espera para ver quién espera un hueco (distinto de avisar_lista_espera, que propone el aviso tras una cancelación); consultar_intercambios_turno para solicitudes de cambio de turno pendientes de aprobar; consultar_comisiones_liquidadas para las comisiones calculadas/pagadas por profesional en un periodo; consultar_logros para el programa de gamificación (cuántas clientas han desbloqueado cada logro, sin nombres); consultar_fidelizacion para niveles, recompensas y canjes del programa de fidelización (datos agregados, sin nombres); consultar_movimientos_inventario para el historial de entradas/salidas de stock; y consultar_hallazgos para las alertas que ha detectado la vigilancia proactiva de la IA. Muchas de estas requieren rol de dirección/propietario: si no está disponible para el rol del usuario, no la menciones y guíalo a la pantalla correspondiente.',
+    'NOTAS INTERNAS (regla dura): si ficha_cliente devuelve num_notas_internas mayor que 0, puedes decir que la clienta tiene notas internas del equipo y ofrecer un enlace a Clientes para revisarlas; NUNCA inventes ni deduzcas su contenido (pueden contener datos sensibles), igual que con las notas de salud.',
     'ENTRENAMIENTO CASOS DE USO (V3+):',
     '- Caso Confirmación Masiva con Exclusiones: Si el usuario te dice "Hay 40 citas sin confirmar. Confírmamelas todas excepto Juan y Nuria", llama a confirmar_citas(excluir_clientes: ["Juan", "Nuria"]).',
     '- Caso Copiar Horario: Si te dicen "copia el horario de los sabados de Maria a Ana", llama a consultar_disponibilidad(fecha: "proximo_sabado", profesional: "Maria") para deducir el horario, y luego llama a bulk_editar_horarios(profesionales: ["Ana"], dia: "sabado", hora_inicio: "HH:MM", hora_fin: "HH:MM").',
@@ -1734,6 +1832,16 @@ async function ejecutarLectura(
         return `${nombreClave}: ${typeof h.valor === 'string' ? h.valor : JSON.stringify(h.valor)}`;
       });
 
+      // Notas internas operativas (notas_internas_cliente): son texto LIBRE que
+      // podria contener datos de salud (art. 9 RGPD), asi que NUNCA se vuelca su
+      // contenido al LLM. Igual que la salud, solo se expone un CONTADOR sin texto
+      // para que Chispa pueda avisar de que existen y remitir a la ficha.
+      const { count: numNotasInternas } = await svc
+        .from('notas_internas_cliente')
+        .select('id', { count: 'exact', head: true })
+        .eq('negocio_id', negocioId)
+        .eq('cliente_id', clienteId);
+
       // Proyeccion final: lista blanca de operativos + agregados NO sensibles.
       const base = proyectarClienteIA(row);
       return {
@@ -1743,6 +1851,7 @@ async function ejecutarLectura(
         gasto_acumulado: gastoAcumulado,
         etiquetas,
         tiene_notas_salud: tieneNotasSalud,
+        num_notas_internas: numNotasInternas ?? 0,
         riesgo_no_show: riesgo,
         memoria_ia,
       };
@@ -2094,6 +2203,397 @@ async function ejecutarLectura(
             estado: c.estado || '-'
           }))
         }
+      };
+    }
+
+    case 'consultar_campanas': {
+      const hoyStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+      const desde = /^\d{4}-\d{2}-\d{2}$/.test(inp.desde ?? '')
+        ? inp.desde
+        : new Date(Date.now() - 90 * 86_400_000).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+      const hasta = /^\d{4}-\d{2}-\d{2}$/.test(inp.hasta ?? '') ? inp.hasta : hoyStr;
+
+      const { data: camps } = await svc
+        .from('campanas')
+        .select('id, nombre, canal, estado, total_destinatarios, created_at, encolada_en')
+        .eq('negocio_id', negocioId)
+        .gte('created_at', `${desde}T00:00:00Z`)
+        .lte('created_at', `${hasta}T23:59:59Z`)
+        .order('created_at', { ascending: false });
+      if (!camps || camps.length === 0) return { rango: { desde, hasta }, mensaje: 'No hay campanas en este rango.' };
+
+      const campIds = camps.map((c: { id: string }) => c.id);
+      const { data: dests } = await svc
+        .from('campana_destinatarios')
+        .select('campana_id, estado')
+        .eq('negocio_id', negocioId)
+        .in('campana_id', campIds);
+      const enviadosPorCamp = new Map<string, number>();
+      const fallidosPorCamp = new Map<string, number>();
+      for (const d of (dests ?? []) as { campana_id: string; estado: string }[]) {
+        // estados canonicos (migrations/sesion20-campanas.sql): pendiente|enviado|descartado|error.
+        if (d.estado === 'enviado') enviadosPorCamp.set(d.campana_id, (enviadosPorCamp.get(d.campana_id) ?? 0) + 1);
+        else if (d.estado === 'error') fallidosPorCamp.set(d.campana_id, (fallidosPorCamp.get(d.campana_id) ?? 0) + 1);
+      }
+      const filas = camps.map((c: { id: string; nombre: string; canal: string; estado: string; total_destinatarios: number | null; created_at: string }) => ({
+        nombre: c.nombre,
+        canal: c.canal,
+        estado: c.estado,
+        destinatarios: c.total_destinatarios ?? 0,
+        enviados: enviadosPorCamp.get(c.id) ?? 0,
+        fallidos: fallidosPorCamp.get(c.id) ?? 0,
+        fecha: new Date(c.created_at).toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' }),
+      }));
+      return {
+        rango: { desde, hasta },
+        total_campanas: filas.length,
+        campanas: filas,
+        dato_respuesta: {
+          clase: 'listado',
+          titulo: 'Campanas de marketing',
+          columnas: [
+            { key: 'nombre', label: 'Campana', alinear: 'izq' },
+            { key: 'canal', label: 'Canal', alinear: 'izq' },
+            { key: 'estado', label: 'Estado', alinear: 'izq' },
+            { key: 'enviados', label: 'Enviados', alinear: 'der' },
+          ],
+          filas: filas.map((f) => ({ nombre: f.nombre, canal: f.canal, estado: f.estado, enviados: String(f.enviados) })),
+        },
+      };
+    }
+
+    case 'consultar_cumpleanos': {
+      let q = svc
+        .from('cumpleanos_avisos')
+        .select('id, nombre, anio, descuento_pct, estado, sent_at, created_at')
+        .eq('negocio_id', negocioId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (inp.solo_pendientes === 'si' || inp.solo_pendientes === 'sí' || inp.solo_pendientes === 'true') {
+        q = q.neq('estado', 'enviado');
+      }
+      const { data: rows } = await q;
+      if (!rows || rows.length === 0) return { mensaje: 'No hay cumpleanos registrados por ahora.' };
+      return {
+        total: rows.length,
+        cumpleanos: rows.map((r: { nombre: string; anio: number | null; descuento_pct: number | null; estado: string; sent_at: string | null }) => ({
+          nombre: r.nombre,
+          anio: r.anio,
+          descuento_pct: r.descuento_pct ?? 0,
+          estado: r.estado,
+          felicitado: !!r.sent_at,
+        })),
+      };
+    }
+
+    case 'consultar_lista_espera': {
+      let q = svc
+        .from('lista_espera')
+        .select('id, nombre, telefono, servicio_id, profesional_id, desde, hasta, franja, nota, estado, prioridad, created_at, avisado_at')
+        .eq('negocio_id', negocioId)
+        .order('prioridad', { ascending: false })
+        .order('created_at', { ascending: true })
+        .limit(50);
+      // estados canonicos (migrations/lista-espera.sql): esperando|avisado|resuelta|cancelada.
+      // Por defecto solo las que siguen en juego (no resueltas ni canceladas).
+      if (inp.estado) q = q.eq('estado', String(inp.estado).trim());
+      else q = q.in('estado', ['esperando', 'avisado']);
+      const { data: rows } = await q;
+      if (!rows || rows.length === 0) return { mensaje: 'La lista de espera esta vacia.' };
+
+      const servIds = [...new Set(rows.map((r: { servicio_id: string | null }) => r.servicio_id).filter(Boolean))] as string[];
+      const profIds = [...new Set(rows.map((r: { profesional_id: string | null }) => r.profesional_id).filter(Boolean))] as string[];
+      const [servRes, profRes] = await Promise.all([
+        servIds.length ? svc.from('servicios').select('id, nombre').in('id', servIds) : Promise.resolve({ data: [] }),
+        profIds.length ? svc.from('profesionales').select('id, nombre').in('id', profIds) : Promise.resolve({ data: [] }),
+      ]);
+      const servMap = new Map((servRes.data ?? []).map((s: { id: string; nombre: string }) => [s.id, s.nombre]));
+      const profMap = new Map((profRes.data ?? []).map((p: { id: string; nombre: string }) => [p.id, p.nombre]));
+
+      let lista = rows.map((r: { nombre: string; telefono: string | null; servicio_id: string | null; profesional_id: string | null; desde: string | null; hasta: string | null; franja: string | null; nota: string | null; estado: string; prioridad: number | null; avisado_at: string | null }) => ({
+        cliente: r.nombre,
+        telefono: r.telefono,
+        servicio: r.servicio_id ? (servMap.get(r.servicio_id) ?? null) : null,
+        profesional: r.profesional_id ? (profMap.get(r.profesional_id) ?? 'Cualquiera') : 'Cualquiera',
+        desde: r.desde,
+        hasta: r.hasta,
+        franja: r.franja,
+        nota: r.nota,
+        estado: r.estado,
+        prioridad: r.prioridad ?? 0,
+        avisada: !!r.avisado_at,
+      }));
+      if (inp.profesional) {
+        const needle = String(inp.profesional).toLowerCase();
+        lista = lista.filter((x) => (x.profesional ?? '').toLowerCase().includes(needle));
+      }
+      return {
+        total: lista.length,
+        lista_espera: lista,
+        dato_respuesta: {
+          clase: 'listado',
+          titulo: 'Lista de espera',
+          columnas: [
+            { key: 'cliente', label: 'Cliente', alinear: 'izq' },
+            { key: 'servicio', label: 'Servicio', alinear: 'izq' },
+            { key: 'prof', label: 'Profesional', alinear: 'izq' },
+            { key: 'franja', label: 'Franja', alinear: 'izq' },
+          ],
+          filas: lista.map((x) => ({ cliente: x.cliente || '-', servicio: x.servicio || '-', prof: x.profesional || '-', franja: x.franja || '-' })),
+        },
+      };
+    }
+
+    case 'consultar_intercambios_turno': {
+      let q = svc
+        .from('turnos_intercambio')
+        .select('id, solicitante_id, companero_id, fecha_solicitante, fecha_companero, motivo, estado, created_at')
+        .eq('negocio_id', negocioId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      // estados canonicos (migrations/turnos-intercambio.sql): pendiente_companero|
+      // pendiente_gestor|aprobado|rechazado|cancelado. Por defecto los pendientes de resolver.
+      if (inp.estado) q = q.eq('estado', String(inp.estado).trim());
+      else q = q.in('estado', ['pendiente_companero', 'pendiente_gestor']);
+      const { data: rows } = await q;
+      if (!rows || rows.length === 0) return { mensaje: 'No hay intercambios de turno pendientes.' };
+
+      const profIds = [...new Set(rows.flatMap((r: { solicitante_id: string | null; companero_id: string | null }) => [r.solicitante_id, r.companero_id]).filter(Boolean))] as string[];
+      const { data: profs } = profIds.length
+        ? await svc.from('profesionales').select('id, nombre').in('id', profIds)
+        : { data: [] };
+      const profMap = new Map((profs ?? []).map((p: { id: string; nombre: string }) => [p.id, p.nombre]));
+
+      return {
+        total: rows.length,
+        intercambios: rows.map((r: { solicitante_id: string | null; companero_id: string | null; fecha_solicitante: string | null; fecha_companero: string | null; motivo: string | null; estado: string }) => ({
+          solicita: r.solicitante_id ? (profMap.get(r.solicitante_id) ?? 'Profesional') : 'Profesional',
+          companero: r.companero_id ? (profMap.get(r.companero_id) ?? 'Profesional') : 'Profesional',
+          fecha_solicitante: r.fecha_solicitante,
+          fecha_companero: r.fecha_companero,
+          motivo: r.motivo,
+          estado: r.estado,
+        })),
+      };
+    }
+
+    case 'consultar_comisiones_liquidadas': {
+      const hoyStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+      const desde = /^\d{4}-\d{2}-\d{2}$/.test(inp.desde ?? '')
+        ? inp.desde
+        : new Date(Date.now() - 90 * 86_400_000).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+      const hasta = /^\d{4}-\d{2}-\d{2}$/.test(inp.hasta ?? '') ? inp.hasta : hoyStr;
+
+      let q = svc
+        .from('comisiones')
+        .select('profesional_id, periodo_inicio, periodo_fin, base_calculo_cents, porcentaje_aplicado, importe_comision_cents, estado, pagada_en')
+        .eq('negocio_id', negocioId)
+        .gte('periodo_inicio', `${desde}T00:00:00Z`)
+        .lte('periodo_inicio', `${hasta}T23:59:59Z`)
+        .order('periodo_inicio', { ascending: false })
+        .limit(100);
+      // estados canonicos (migrations/comisiones-liquidaciones.sql): pendiente|pagada|anulada.
+      if (inp.solo_pendientes === 'si' || inp.solo_pendientes === 'sí' || inp.solo_pendientes === 'true') {
+        q = q.eq('estado', 'pendiente');
+      }
+      const { data: rows } = await q;
+      if (!rows || rows.length === 0) return { rango: { desde, hasta }, mensaje: 'No hay comisiones calculadas en este rango.' };
+
+      const profIds = [...new Set(rows.map((r: { profesional_id: string | null }) => r.profesional_id).filter(Boolean))] as string[];
+      const { data: profs } = profIds.length
+        ? await svc.from('profesionales').select('id, nombre').in('id', profIds)
+        : { data: [] };
+      const profMap = new Map((profs ?? []).map((p: { id: string; nombre: string }) => [p.id, p.nombre]));
+
+      let filas = rows.map((r: { profesional_id: string | null; base_calculo_cents: number | null; porcentaje_aplicado: number | null; importe_comision_cents: number | null; estado: string; pagada_en: string | null }) => ({
+        profesional: r.profesional_id ? (profMap.get(r.profesional_id) ?? 'Profesional') : 'Profesional',
+        base_eur: Math.round(r.base_calculo_cents ?? 0) / 100,
+        porcentaje: r.porcentaje_aplicado ?? 0,
+        importe_eur: Math.round(r.importe_comision_cents ?? 0) / 100,
+        estado: r.estado,
+        pagada: r.estado === 'pagada',
+      }));
+      if (inp.profesional) {
+        const needle = String(inp.profesional).toLowerCase();
+        filas = filas.filter((x) => x.profesional.toLowerCase().includes(needle));
+      }
+      const totalPendiente = filas.filter((x) => x.estado === 'pendiente').reduce((s, x) => s + x.importe_eur, 0);
+      return {
+        rango: { desde, hasta },
+        total_comisiones: filas.length,
+        total_pendiente_eur: Math.round(totalPendiente * 100) / 100,
+        comisiones: filas,
+        dato_respuesta: {
+          clase: 'listado',
+          titulo: 'Comisiones',
+          columnas: [
+            { key: 'prof', label: 'Profesional', alinear: 'izq' },
+            { key: 'importe', label: 'Comision', alinear: 'der' },
+            { key: 'estado', label: 'Estado', alinear: 'der' },
+          ],
+          filas: filas.map((x) => ({ prof: x.profesional, importe: `${x.importe_eur.toFixed(2)} EUR`, estado: x.estado })),
+        },
+      };
+    }
+
+    case 'consultar_logros': {
+      const { data: logros } = await svc
+        .from('logros')
+        .select('id, nombre, descripcion, tipo, activo')
+        .eq('negocio_id', negocioId)
+        .order('orden', { ascending: true });
+      if (!logros || logros.length === 0) return { mensaje: 'No hay logros configurados en el programa de gamificacion.' };
+
+      const { data: desbloqueos } = await svc
+        .from('logros_desbloqueados')
+        .select('logro_id')
+        .eq('negocio_id', negocioId);
+      const conteo = new Map<string, number>();
+      for (const d of (desbloqueos ?? []) as { logro_id: string }[]) conteo.set(d.logro_id, (conteo.get(d.logro_id) ?? 0) + 1);
+
+      return {
+        total_logros: logros.length,
+        logros: logros.map((l: { id: string; nombre: string; descripcion: string | null; tipo: string | null; activo: boolean }) => ({
+          nombre: l.nombre,
+          descripcion: l.descripcion,
+          tipo: l.tipo,
+          activo: l.activo,
+          veces_desbloqueado: conteo.get(l.id) ?? 0,
+        })),
+      };
+    }
+
+    case 'consultar_fidelizacion': {
+      const hoyStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+      const desde = /^\d{4}-\d{2}-\d{2}$/.test(inp.desde ?? '')
+        ? inp.desde
+        : new Date(Date.now() - 90 * 86_400_000).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+      const hasta = /^\d{4}-\d{2}-\d{2}$/.test(inp.hasta ?? '') ? inp.hasta : hoyStr;
+
+      const [{ data: niveles }, { data: recompensas }, { data: canjes }] = await Promise.all([
+        svc.from('niveles_fidelizacion').select('nombre, orden, umbral_visitas, umbral_gastado_cents, activo').eq('negocio_id', negocioId).eq('activo', true).order('orden', { ascending: true }),
+        svc.from('recompensas').select('nombre, tipo, valor, umbral_visitas, activo').eq('negocio_id', negocioId).eq('activo', true).order('umbral_visitas', { ascending: true }),
+        svc.from('recompensas_canjeadas').select('estado').eq('negocio_id', negocioId).gte('canjeado_en', `${desde}T00:00:00Z`).lte('canjeado_en', `${hasta}T23:59:59Z`),
+      ]);
+
+      const canjesPorEstado: Record<string, number> = {};
+      for (const c of (canjes ?? []) as { estado: string | null }[]) {
+        const k = c.estado || 'sin_estado';
+        canjesPorEstado[k] = (canjesPorEstado[k] ?? 0) + 1;
+      }
+      return {
+        rango_canjes: { desde, hasta },
+        niveles: (niveles ?? []).map((n: { nombre: string; umbral_visitas: number | null; umbral_gastado_cents: number | null }) => ({
+          nombre: n.nombre,
+          umbral_visitas: n.umbral_visitas,
+          umbral_gastado_eur: n.umbral_gastado_cents != null ? Math.round(n.umbral_gastado_cents) / 100 : null,
+        })),
+        recompensas: (recompensas ?? []).map((r: { nombre: string; tipo: string | null; valor: string | null; umbral_visitas: number | null }) => ({
+          nombre: r.nombre,
+          tipo: r.tipo,
+          valor: r.valor,
+          umbral_visitas: r.umbral_visitas,
+        })),
+        canjes_total: (canjes ?? []).length,
+        canjes_por_estado: canjesPorEstado,
+      };
+    }
+
+    case 'consultar_movimientos_inventario': {
+      const hoyStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+      const desde = /^\d{4}-\d{2}-\d{2}$/.test(inp.desde ?? '')
+        ? inp.desde
+        : new Date(Date.now() - 30 * 86_400_000).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+      const hasta = /^\d{4}-\d{2}-\d{2}$/.test(inp.hasta ?? '') ? inp.hasta : hoyStr;
+
+      let prodIdFiltro: string[] | null = null;
+      if (inp.producto) {
+        const { data: prods } = await svc
+          .from('productos')
+          .select('id')
+          .eq('negocio_id', negocioId)
+          .ilike('nombre', `%${sanitizarFiltro(inp.producto)}%`);
+        prodIdFiltro = (prods ?? []).map((p: { id: string }) => p.id);
+        if (prodIdFiltro.length === 0) return { mensaje: 'No se encontro ningun producto con ese nombre.' };
+      }
+
+      let q = svc
+        .from('movimientos_inventario')
+        .select('producto_id, tipo, unidades, motivo, created_at')
+        .eq('negocio_id', negocioId)
+        .gte('created_at', `${desde}T00:00:00Z`)
+        .lte('created_at', `${hasta}T23:59:59Z`)
+        .order('created_at', { ascending: false })
+        .limit(80);
+      if (prodIdFiltro) q = q.in('producto_id', prodIdFiltro);
+      const { data: movs } = await q;
+      if (!movs || movs.length === 0) return { rango: { desde, hasta }, mensaje: 'No hay movimientos de inventario en este rango.' };
+
+      const prodIds = [...new Set(movs.map((m: { producto_id: string | null }) => m.producto_id).filter(Boolean))] as string[];
+      const { data: prods } = prodIds.length
+        ? await svc.from('productos').select('id, nombre').in('id', prodIds)
+        : { data: [] };
+      const prodMap = new Map((prods ?? []).map((p: { id: string; nombre: string }) => [p.id, p.nombre]));
+
+      const filas = movs.map((m: { producto_id: string | null; tipo: string; unidades: number | null; motivo: string | null; created_at: string }) => ({
+        producto: m.producto_id ? (prodMap.get(m.producto_id) ?? 'Producto') : 'Producto',
+        tipo: m.tipo,
+        unidades: m.unidades ?? 0,
+        motivo: m.motivo,
+        fecha: new Date(m.created_at).toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' }),
+      }));
+      return {
+        rango: { desde, hasta },
+        total: filas.length,
+        movimientos: filas,
+        dato_respuesta: {
+          clase: 'listado',
+          titulo: 'Movimientos de inventario',
+          columnas: [
+            { key: 'producto', label: 'Producto', alinear: 'izq' },
+            { key: 'tipo', label: 'Tipo', alinear: 'izq' },
+            { key: 'unidades', label: 'Unidades', alinear: 'der' },
+            { key: 'fecha', label: 'Fecha', alinear: 'der' },
+          ],
+          filas: filas.map((f) => ({ producto: f.producto, tipo: f.tipo, unidades: String(f.unidades), fecha: f.fecha })),
+        },
+      };
+    }
+
+    case 'consultar_hallazgos': {
+      const incluirResueltos = inp.solo_pendientes === 'no' || inp.solo_pendientes === 'false';
+      let q = svc
+        .from('hallazgos_ia')
+        .select('tipo, familia, severidad, entidad, resumen, estado, creado_en')
+        .eq('negocio_id', negocioId)
+        .order('creado_en', { ascending: false })
+        .limit(50);
+      // estados canonicos (migrations/sesion13-...): nuevo|visto|resuelto|descartado.
+      if (!incluirResueltos) q = q.in('estado', ['nuevo', 'visto']);
+      if (inp.severidad) q = q.eq('severidad', String(inp.severidad).trim());
+      const { data: rows } = await q;
+      if (!rows || rows.length === 0) return { mensaje: 'La IA no ha detectado hallazgos pendientes. Todo en orden.' };
+
+      const filas = rows.map((r: { tipo: string | null; familia: string | null; severidad: string | null; entidad: string | null; resumen: string | null; estado: string; creado_en: string }) => ({
+        severidad: r.severidad ?? 'media',
+        familia: r.familia ?? r.tipo,
+        resumen: r.resumen,
+        estado: r.estado,
+        fecha: new Date(r.creado_en).toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' }),
+      }));
+      return {
+        total: filas.length,
+        hallazgos: filas,
+        dato_respuesta: {
+          clase: 'listado',
+          titulo: 'Hallazgos de la vigilancia IA',
+          columnas: [
+            { key: 'severidad', label: 'Severidad', alinear: 'izq' },
+            { key: 'resumen', label: 'Hallazgo', alinear: 'izq' },
+            { key: 'estado', label: 'Estado', alinear: 'der' },
+          ],
+          filas: filas.map((f) => ({ severidad: f.severidad, resumen: f.resumen || '-', estado: f.estado })),
+        },
       };
     }
 

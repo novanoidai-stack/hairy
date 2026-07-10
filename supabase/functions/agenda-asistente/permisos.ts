@@ -141,6 +141,24 @@ const LECTURA_CAP: Record<string, Capability | null> = {
   // escritura INTERNA que NO pasa por propone->confirma (no es esEscritura), asi que
   // vive aqui con cap null: cualquier rol puede anotar un hecho aprendido.
   guardar_recuerdo: null,
+  // --- LECTURA de negocio ampliada (V3, cobertura de tablas) ---
+  // Marketing y vision de negocio: mismo gate que informes/caja (owner/admin).
+  consultar_campanas: 'informes.ver',
+  consultar_hallazgos: 'informes.ver',
+  // Cumpleanos: datos operativos de clientas (felicitaciones) -> mismo gate que ver clientes.
+  consultar_cumpleanos: 'clientes.ver',
+  // Lista de espera: opera sobre toda la agenda del salon -> recepcion/direccion/propietario.
+  consultar_lista_espera: 'agenda.ver_todas',
+  // Intercambios de turno: gestion de turnos del equipo -> quien edita horarios.
+  consultar_intercambios_turno: 'horarios.editar',
+  // Comisiones liquidadas: dato economico del equipo -> misma cap que editarlas.
+  consultar_comisiones_liquidadas: 'config.comisiones',
+  // Logros y fidelizacion: vistas AGREGADAS (sin PII de clientas) del programa;
+  // gate suave (clientes.ver) para que recepcion pueda consultarlas.
+  consultar_logros: 'clientes.ver',
+  consultar_fidelizacion: 'clientes.ver',
+  // Movimientos de inventario: mismo gate que consultar_inventario (cualquier rol).
+  consultar_movimientos_inventario: null,
 };
 
 // Predicado central del gating: ¿se declara esta tool al LLM para este rol/scope?

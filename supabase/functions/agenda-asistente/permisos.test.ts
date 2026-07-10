@@ -175,3 +175,33 @@ Deno.test('Nuevas tools emergentes V3+: permisos de fichajes, inventario y resen
   assertEquals(toolPermitida('consultar_resenas', roleOf('admin'), 'all'), true);
   assertEquals(toolPermitida('consultar_resenas', roleOf('owner'), 'all'), true);
 });
+
+Deno.test('Cobertura de tablas V3: campanas/hallazgos/cumpleanos/lista_espera/turnos/comisiones/logros/fidelizacion/movimientos', () => {
+  // Marketing y hallazgos: informes.ver (admin/owner)
+  for (const t of ['consultar_campanas', 'consultar_hallazgos']) {
+    assertEquals(toolPermitida(t, roleOf('employee'), 'self'), false);
+    assertEquals(toolPermitida(t, roleOf('recepcion'), 'all'), false);
+    assertEquals(toolPermitida(t, roleOf('admin'), 'all'), true);
+    assertEquals(toolPermitida(t, roleOf('owner'), 'all'), true);
+  }
+  // Cumpleanos, logros, fidelizacion: clientes.ver (todos los roles)
+  for (const t of ['consultar_cumpleanos', 'consultar_logros', 'consultar_fidelizacion']) {
+    for (const valor of ['employee', 'recepcion', 'admin', 'owner']) {
+      assertEquals(toolPermitida(t, roleOf(valor), 'all'), true);
+    }
+  }
+  // Lista de espera: agenda.ver_todas (recepcion+)
+  assertEquals(toolPermitida('consultar_lista_espera', roleOf('employee'), 'self'), false);
+  assertEquals(toolPermitida('consultar_lista_espera', roleOf('recepcion'), 'all'), true);
+  assertEquals(toolPermitida('consultar_lista_espera', roleOf('owner'), 'all'), true);
+  // Intercambios de turno: horarios.editar (admin/owner)
+  assertEquals(toolPermitida('consultar_intercambios_turno', roleOf('recepcion'), 'all'), false);
+  assertEquals(toolPermitida('consultar_intercambios_turno', roleOf('admin'), 'all'), true);
+  // Comisiones: config.comisiones (admin/owner)
+  assertEquals(toolPermitida('consultar_comisiones_liquidadas', roleOf('recepcion'), 'all'), false);
+  assertEquals(toolPermitida('consultar_comisiones_liquidadas', roleOf('admin'), 'all'), true);
+  // Movimientos de inventario: publico (como consultar_inventario)
+  for (const valor of ['employee', 'recepcion', 'admin', 'owner']) {
+    assertEquals(toolPermitida('consultar_movimientos_inventario', roleOf(valor), 'all'), true);
+  }
+});
