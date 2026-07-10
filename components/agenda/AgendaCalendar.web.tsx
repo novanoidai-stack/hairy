@@ -7596,21 +7596,27 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
           {holdPagoId && (
             <>
               <button onClick={() => gestionarFianza('capturar')} disabled={guardando}
+                onMouseEnter={(e) => { if (!guardando) { e.currentTarget.style.filter = 'brightness(1.05)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.transform = 'none'; }}
                 title="Cobrar la fianza retenida (penalizacion por no presentarse)."
-                style={{ padding: '9px 14px', background: 'rgba(226,59,52,0.10)', color: '#b91c1c', border: '1px solid rgba(226,59,52,0.5)', borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+                style={{ padding: '9px 14px', background: 'rgba(226,59,52,0.10)', color: '#b91c1c', border: '1px solid rgba(226,59,52,0.5)', borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, transition: 'filter 0.16s ease, transform 0.16s ease' }}>
                 Capturar fianza
               </button>
               <button onClick={() => gestionarFianza('liberar')} disabled={guardando}
+                onMouseEnter={(e) => { if (!guardando) { e.currentTarget.style.filter = 'brightness(1.05)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.transform = 'none'; }}
                 title="Liberar la retencion (el cliente asistio, no se cobra)."
-                style={{ padding: '9px 14px', background: TOKENS.bgCard, color: TOKENS.text, border: `1px solid ${TOKENS.border}`, borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+                style={{ padding: '9px 14px', background: TOKENS.bgCard, color: TOKENS.text, border: `1px solid ${TOKENS.border}`, borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, transition: 'filter 0.16s ease, transform 0.16s ease' }}>
                 Liberar fianza
               </button>
             </>
           )}
           {cobrada && (
             <button onClick={anularCobro} disabled={guardando}
+              onMouseEnter={(e) => { if (!guardando) { e.currentTarget.style.filter = 'brightness(1.05)'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.transform = 'none'; }}
               title="Anular este cobro (efectivo/datafono). La cita vuelve a estar sin cobrar."
-              style={{ padding: '9px 14px', background: TOKENS.bgCard, color: '#b91c1c', border: '1px solid rgba(226,59,52,0.5)', borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+              style={{ padding: '9px 14px', background: TOKENS.bgCard, color: '#b91c1c', border: '1px solid rgba(226,59,52,0.5)', borderRadius: 8, cursor: guardando ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, transition: 'filter 0.16s ease, transform 0.16s ease' }}>
               Anular cobro
             </button>
           )}

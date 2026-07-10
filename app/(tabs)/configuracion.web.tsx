@@ -3274,7 +3274,9 @@ function PasarelaStripeSection({ negocioId }: { negocioId: string }) {
       {!!msg && <div style={{ fontSize: 12.5, color: '#5c5249', marginTop: 4 }}>{msg}</div>}
       <div style={{ marginTop: 10 }}>
         <button onClick={guardar} disabled={saving}
-          style={{ padding: '10px 18px', background: '#f4501e', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+          onMouseEnter={(e) => { if (!saving) e.currentTarget.style.filter = 'brightness(1.06)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
+          style={{ padding: '10px 18px', background: '#f4501e', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1, boxShadow: '0 6px 16px rgba(244,80,30,0.28)', transition: 'filter 0.16s ease' }}>
           {saving ? 'Guardando…' : 'Guardar y conectar'}
         </button>
       </div>
