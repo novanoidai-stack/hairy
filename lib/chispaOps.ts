@@ -141,13 +141,18 @@ export type AccionPropuesta =
       resumen: string;
     }
   | {
-      // Crea un servicio nuevo del catalogo (Sesion 3 V2: "actua con minima
-      // info"). Complementa editar_servicio (que solo edita existentes).
-      tipo: 'crear_servicio';
+      // S22: Macros (I+D). Cambia estado a aprobado
+      tipo: 'aprobar_macro';
       negocio_id: string;
+      macro_id: string;
       nombre: string;
-      precio: number;
-      duracion_activa_min: number;
+      descripcion: string;
+      resumen: string;
+    }
+  | {
+      // Crea un servicio nuevo (Sesion 3 V2: "actua con minima info").
+      tipo: 'crear_servicio';
+      negocio_id: string; nombre: string; precio: number; duracion_activa_min: number;
       resumen: string;
     }
   | {
@@ -259,6 +264,10 @@ async function capturarEstadoPrevio(
     case 'crear_cita':
       // No hay estado previo (crear → borrar la cita creada)
       return null;
+      
+    case 'aprobar_macro':
+      // El estado previo es revision
+      return { estado_previo: 'revision' };
 
     case 'reagendar_cita': {
       // Necesitamos: inicio, fin, fin_activa, fin_espera, profesional_id previos
@@ -446,7 +455,26 @@ export async function ejecutarAccion(
           );
           return { ok: true, mensaje: `Cita creada: ${a.resumen}`, accion_id: accionId === '00000000-0000-0000-0000-000000000000' ? undefined : accionId };
         }
-        return { ok: true, mensaje: `Cita creada: ${a.resumen}` };
+        return { ok: true, mensaje: 'Cita creada y confirmada correctamente.' };
+      }
+
+      case 'aprobar_macro': {
+        const { error } = await supabase
+          .from('chispa_macros')
+          .update({ estado: 'aprobado' })
+          .eq('id', a.macro_id);
+        if (error) return { ok: false, error: error.message };
+        
+        await registrarAccionChispa(
+          a.negocio_id,
+          userId,
+          'aprobar_macro',
+          estadoPrevio,
+          true, // reversible a revision
+          a.macro_id, 
+          targetLabel
+        );
+        return { ok: true, mensaje: `Macro "${a.nombre}" aprobada y lista para usarse.` };
       }
 
       case 'reagendar_cita': {
@@ -1128,6 +1156,17 @@ export async function deshacerAccion(accionId: string, userId: string): Promise<
           .eq('id', targetId)
           .eq('negocio_id', negocioId);
         if (eDel) return { ok: false, error: eDel.message };
+        break;
+      }
+      
+      case 'aprobar_macro': {
+        if (!targetId) return { ok: false, error: 'No se puede identificar la macro a revertir.' };
+        const { error: eUpd } = await supabase
+          .from('chispa_macros')
+          .update({ estado: 'revision' })
+          .eq('id', targetId)
+          .eq('negocio_id', negocioId);
+        if (eUpd) return { ok: false, error: eUpd.message };
         break;
       }
 

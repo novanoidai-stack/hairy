@@ -93,6 +93,12 @@ type AccionPropuesta =
       resumen: string;
     }
   | {
+      // S22: Macros
+      tipo: 'aprobar_macro';
+      negocio_id: string; macro_id: string; nombre: string; descripcion: string;
+      resumen: string;
+    }
+  | {
       // Crea un servicio nuevo (Sesion 3 V2: "actua con minima info").
       tipo: 'crear_servicio';
       negocio_id: string; nombre: string; precio: number; duracion_activa_min: number;
@@ -198,6 +204,51 @@ type Bloque =
       filas: Record<string, string | number>[];
       total?: Record<string, string | number>;
     };
+
+// S19: Descriptor neutral de un resultado de datos para emitir directamente kpi/barras/tabla
+export type DatoRespuesta =
+  | { clase: 'cifra'; titulo?: string; label: string; valor: number; unidad: ChispaUnidad; deltaPct?: number; nota?: string }
+  | { clase: 'cifras'; titulo?: string; tarjetas: { label: string; valor: number; unidad: ChispaUnidad; deltaPct?: number; nota?: string }[] }
+  | { clase: 'reparto'; titulo: string; unidad: ChispaUnidad; datos: { etiqueta: string; valor: number }[] }
+  | { clase: 'evolucion'; titulo: string; unidad: ChispaUnidad; serie: { fecha: string; valor: number }[] }
+  | { clase: 'comparativa'; titulo: string; unidad: ChispaUnidad; actual: { label: string; valor: number }; anterior: { label: string; valor: number } }
+  | { clase: 'listado'; titulo?: string; columnas: { key: string; label: string; alinear?: 'izq' | 'der'; unidad?: ChispaUnidad }[]; filas: Record<string, string | number>[]; total?: Record<string, string | number> }
+  | { clase: 'cronologia'; titulo: string; eventos: { id: string; fecha: string; titulo: string; descripcion: string; icono?: string; color?: string }[] };
+
+// Convierte un descriptor de datos en el mejor bloque visual (espejo de lib/chispaFormato.ts).
+export function elegirFormatoDato(d: DatoRespuesta): Bloque {
+  switch (d.clase) {
+    case 'cifra':
+      return { tipo: 'kpi', titulo: d.titulo, tarjetas: [{ label: d.label, valor: d.valor, unidad: d.unidad, deltaPct: d.deltaPct, nota: d.nota }] };
+    case 'cifras':
+      return { tipo: 'kpi', titulo: d.titulo, tarjetas: d.tarjetas };
+    case 'reparto': {
+      if (d.datos.length <= 1) {
+        const uno = d.datos[0];
+        return uno
+          ? { tipo: 'kpi', titulo: d.titulo, tarjetas: [{ label: uno.etiqueta, valor: uno.valor, unidad: d.unidad }] }
+          : { tipo: 'texto', texto: `${d.titulo}: sin datos en el periodo.` };
+      }
+      return { tipo: 'barras', titulo: d.titulo, unidad: d.unidad, datos: d.datos };
+    }
+    case 'evolucion': {
+      if (d.serie.length <= 1) {
+        const p = d.serie[0];
+        return p
+          ? { tipo: 'kpi', titulo: d.titulo, tarjetas: [{ label: d.titulo, valor: p.valor, unidad: d.unidad }] }
+          : { tipo: 'texto', texto: `${d.titulo}: sin datos en el periodo.` };
+      }
+      return { tipo: 'grafica', titulo: d.titulo, unidad: d.unidad, serie: d.serie };
+    }
+    case 'comparativa':
+      return { tipo: 'comparativa', titulo: d.titulo, unidad: d.unidad, actual: d.actual, anterior: d.anterior };
+    case 'listado':
+      return { tipo: 'tabla', titulo: d.titulo, columnas: d.columnas, filas: d.filas, total: d.total };
+    case 'cronologia':
+      return { tipo: 'timeline', titulo: d.titulo, eventos: d.eventos };
+  }
+}
+
 
 // Allowlist de rutas para bloques 'enlace' (espejo de CHISPA_RUTAS del cliente).
 // El LLM elige una CLAVE; el edge valida y adjunta la ruta/label real.
@@ -372,6 +423,31 @@ const TOOLS = [
       },
       required: ['foco'],
     },
+  },
+  // --- MACROS EN VIVO (S22) ---
+  {
+    name: 'proponer_macro',
+    description: 'Propone crear una macro (tool declarativa) que encadena multiples tools existentes para resolver peticiones complejas o recurrentes. Usala si ves que una misma operacion de varios pasos se repite, o si el usuario pide automatizar/definir un reporte que usa varias tools de lectura. Se guardara en estado "revision" y no se activara hasta que el propietario la apruebe. Nunca inventes nombres de tools que no existen; solo puedes usar las de lectura/orquestacion.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        nombre: { type: 'string', description: 'Nombre tecnico en snake_case (ej. auditoria_matutina)' },
+        descripcion: { type: 'string', description: 'Descripcion clara de que hace la macro' },
+        pasos: {
+          type: 'array',
+          description: 'Llamadas a tools existentes a ejecutar en secuencia.',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'Nombre de la tool existente' },
+              args_mapping: { type: 'object', description: 'Argumentos para esta tool, tal como los pide su definicion original' }
+            },
+            required: ['name']
+          }
+        }
+      },
+      required: ['nombre', 'descripcion', 'pasos']
+    }
   },
   // --- ESCRITURA (el LLM las invoca; la funcion NO las ejecuta) ---
   {
@@ -838,6 +914,7 @@ function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none', puede
     'AUTO-CONOCIMIENTO: si el usuario pregunta que sabes hacer, en que le puedes ayudar, o donde esta / como se usa una funcion de IA, responde desde la lista AUTO-CONOCIMIENTO del final: enumera de forma breve las funciones relevantes y ofrece un chip con sugerir_enlace a cada pantalla. No inventes funciones que no esten en esa lista.',
     'GUIA DE CONFIGURACION: si el usuario pregunta como o donde configurar/personalizar algo, o que se puede ajustar de una funcion, responde con el MAPA DE CONFIGURACION del final: da la RUTA exacta (Configuracion > Pestana > Seccion) y enumera que se puede ajustar ahi. Cinete ESTRICTAMENTE al mapa: no inventes ajustes, opciones, valores de ejemplo ni rutas que no esten escritos en el (por ejemplo, no anadas "cada 15/30 min" ni "SMS/email" si el mapa no lo dice). Si te preguntan por algo que no esta en el mapa, dilo con franqueza en vez de suponer.',
     'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar uno o VARIOS ajustes relacionados en la misma frase (por ejemplo "activa los recordatorios con 48h de antelacion" junta notifRecordatorioActiva + notifRecordatorioHoras, o "pon la antelacion minima en 4h" es solo uno), usa la tool cambiar_config con la lista "cambios" (una entrada clave+valor por ajuste, CLAVE exacta de la lista AJUSTES EDITABLES del final). Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
+    'COMPOSICION DE TOOLS Y MACROS (S22): Si una peticion compleja no puede resolverse con una sola tool, desglosala y ejecuta secuencialmente multiples tools (ej: consultar caja y luego ocupacion). Si identificas que esta peticion multi-paso es util y recurrente, usa la tool "proponer_macro" para crear una automatizacion parametrizable que el propietario podra aprobar. Las macros aprobadas se inyectaran como tools dinamicas (identificadas con [MACRO DE CHISPA] en la descripcion); puedes llamarlas directamente como cualquier otra tool.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad, citas_hoy).',
     'Para responder sobre UNA clienta (su historial, cuanto gasta, cada cuanto viene, su etiquetas o su riesgo de no-show) usa ficha_cliente. REGLA DURA DE SALUD: nunca pidas, muestres ni deduzcas datos de salud, alergias, medicacion o notas medicas. Si ficha_cliente devuelve tiene_notas_salud=true, di UNICAMENTE que "hay notas en su ficha, revisalas alli" y ofrece un enlace a Clientes con sugerir_enlace; jamas inventes el contenido. Si la ficha no aparece (encontrado=false), di con naturalidad que no la encuentras: puede que no exista o que no haya dado su consentimiento para que la IA use sus datos.',
     'Menciona el riesgo de no-show de una clienta solo si es relevante (p.ej. el usuario pregunta si es fiable, o hay una cita suya sin confirmar), y siempre en tono neutro y sin juzgar: es una senal operativa, no una etiqueta sobre la persona.',
@@ -999,16 +1076,50 @@ async function runAgente(
     ...mensajes.map((m) => ({ role: m.role, content: m.content })),
   ];
 
+  // S22: Recuperar macros (tools declarativas) aprobadas
+  const { data: macrosRows } = await svc
+    .from('chispa_macros')
+    .select('nombre, descripcion, parametros, pasos')
+    .eq('negocio_id', negocioId)
+    .eq('estado', 'aprobado');
+    
+  const dynamicTools = (macrosRows ?? []).map((m: any) => ({
+    type: 'function' as const,
+    function: {
+      name: m.nombre,
+      description: m.descripcion + ' [MACRO DE CHISPA]',
+      parameters: {
+        type: 'object' as const,
+        properties: (m.parametros ?? []).reduce((acc: any, p: any) => ({ ...acc, [p.name]: { type: p.type || 'string', description: p.description || '' } }), {}),
+        required: (m.parametros ?? []).filter((p: any) => p.required).map((p: any) => p.name),
+      }
+    }
+  }));
+
   // Solo se exponen al LLM las tools permitidas para este rol/scope (fail-closed).
-  const tools = TOOLS
-    .filter((t) => toolPermitida(t.name, rolCanon, scope))
-    .map((t) => ({ type: 'function' as const, function: t }));
+  const tools = [
+    ...TOOLS.filter((t) => toolPermitida(t.name, rolCanon, scope)).map((t) => ({ type: 'function' as const, function: t })),
+    ...dynamicTools
+  ];
+
+  // Bloques sin efecto de escritura acumulados durante el razonamiento (enlace,
+  // grafica, comparativa, kpi, barras, tabla): se adjuntan a la respuesta final.
+  const bloquesExtra: Bloque[] = [];
 
   // Serializa el resultado de una tool de lectura hacia el LLM aplicando la
   // regla dura de salud: si algun campo prohibido se colara, falla cerrado.
+  // S19: Si el resultado contiene un 'dato_respuesta', lo intercepta, inyecta el 
+  // bloque visual determinista en bloquesExtra y le pasa el JSON raw al LLM.
   const serializarLectura = async (name: string, input: Record<string, string>): Promise<string> => {
     const r = await ejecutarLectura({ name, input }, negocioId, scope, userId, rolCanon, userClient);
     assertSinCamposProhibidos(r);
+    
+    const rObj = r as Record<string, unknown>;
+    if (rObj && typeof rObj === 'object' && rObj.dato_respuesta) {
+      const dr = rObj.dato_respuesta as DatoRespuesta;
+      bloquesExtra.push(elegirFormatoDato(dr));
+    }
+    
     return JSON.stringify(r);
   };
 
@@ -1020,10 +1131,6 @@ async function runAgente(
     }
   };
 
-  // Bloques sin efecto de escritura acumulados durante el razonamiento (enlace,
-  // grafica, comparativa): se adjuntan a la respuesta final junto al texto y la
-  // accion (si la hay).
-  const bloquesExtra: Bloque[] = [];
   const verto = new Set<string>(); // evita enlaces duplicados por ruta
   // Procesa una tool de navegacion: valida el destino y acumula un bloque enlace.
   // Devuelve el texto de respuesta que se reinyecta al LLM.
@@ -1078,6 +1185,28 @@ async function runAgente(
       if (error) return `Error al guardar recuerdo: ${error.message}`;
       return 'Hecho guardado correctamente en la memoria a largo plazo.';
     }
+    
+    const macro = macrosRows?.find((m: any) => m.nombre === name);
+    if (macro) {
+      const resultados: any = {};
+      for (const paso of macro.pasos) {
+        const stepName = paso.name;
+        const mappedArgs: any = {};
+        if (paso.args_mapping) {
+          for (const [k, v] of Object.entries(paso.args_mapping)) {
+             mappedArgs[k] = inp[v as string] !== undefined ? inp[v as string] : v; 
+          }
+        }
+        const stepRes = await serializarLectura(stepName, mappedArgs);
+        try {
+          resultados[stepName] = JSON.parse(stepRes);
+        } catch {
+          resultados[stepName] = stepRes;
+        }
+      }
+      return JSON.stringify({ macro_ejecutada: macro.nombre, resultados });
+    }
+
     return await serializarLectura(name, inp);
   };
 
@@ -1482,12 +1611,21 @@ async function ejecutarLectura(
         (s, r) => s + (r.total_cents ?? 0),
         0,
       );
+      const totalEur = Math.round(totalCents) / 100;
       return {
         rango: { desde, hasta },
         citas_total: (citas ?? []).length,
         citas_por_estado: porEstado,
-        ingresos_cobrados_eur: Math.round(totalCents) / 100,
+        ingresos_cobrados_eur: totalEur,
         nota: 'Ingresos aproximados: suma de cobros con fecha de cobro dentro del rango.',
+        dato_respuesta: {
+          clase: 'cifras',
+          titulo: 'Resumen General',
+          tarjetas: [
+            { label: 'Citas Totales', valor: (citas ?? []).length, unidad: 'citas' },
+            { label: 'Ingresos', valor: totalEur, unidad: 'eur' }
+          ]
+        }
       };
     }
 
@@ -1508,14 +1646,28 @@ async function ejecutarLectura(
         datafono_cents: number | null; propina_cents: number | null;
       }[];
       const eur = (n: number) => Math.round(n) / 100;
+      const total = eur(filas.reduce((s, r) => s + (r.total_cents ?? 0), 0));
+      const efectivo = eur(filas.reduce((s, r) => s + (r.efectivo_cents ?? 0), 0));
+      const datafono = eur(filas.reduce((s, r) => s + (r.datafono_cents ?? 0), 0));
+      const propinas = eur(filas.reduce((s, r) => s + (r.propina_cents ?? 0), 0));
       return {
         rango: { desde, hasta },
-        total_eur: eur(filas.reduce((s, r) => s + (r.total_cents ?? 0), 0)),
-        efectivo_eur: eur(filas.reduce((s, r) => s + (r.efectivo_cents ?? 0), 0)),
-        datafono_eur: eur(filas.reduce((s, r) => s + (r.datafono_cents ?? 0), 0)),
-        propinas_eur: eur(filas.reduce((s, r) => s + (r.propina_cents ?? 0), 0)),
+        total_eur: total,
+        efectivo_eur: efectivo,
+        datafono_eur: datafono,
+        propinas_eur: propinas,
         num_cobros: filas.length,
         nota: 'Dinero realmente cobrado (libro de caja); no incluye citas del rango aun no cobradas.',
+        dato_respuesta: {
+          clase: 'cifras',
+          titulo: 'Arqueo de Caja',
+          tarjetas: [
+            { label: 'Total', valor: total, unidad: 'eur' },
+            { label: 'Efectivo', valor: efectivo, unidad: 'eur' },
+            { label: 'Datáfono', valor: datafono, unidad: 'eur' },
+            { label: 'Propinas', valor: propinas, unidad: 'eur' }
+          ]
+        }
       };
     }
 
@@ -1551,6 +1703,12 @@ async function ejecutarLectura(
         promedio_citas_por_profesional: listaProfes.length > 0 ? Math.round((totalCitasOcup / listaProfes.length) * 10) / 10 : 0,
         por_profesional: porProfesional,
         nota: 'Ocupacion aproximada: citas por profesional activo, no porcentaje de horario disponible.',
+        dato_respuesta: {
+          clase: 'reparto',
+          titulo: 'Citas por Profesional',
+          unidad: 'citas',
+          datos: porProfesional.map(p => ({ etiqueta: p.nombre, valor: p.citas }))
+        }
       };
     }
 
@@ -1640,6 +1798,22 @@ async function ejecutarLectura(
           profesional: c.profesional_id ? profMap.get(c.profesional_id) ?? null : null,
           estado: c.estado,
         })),
+        dato_respuesta: {
+          clase: 'listado',
+          titulo: `Citas del ${fecha}`,
+          columnas: [
+            { key: 'hora', label: 'Hora', alinear: 'izq' },
+            { key: 'servicio', label: 'Servicio', alinear: 'izq' },
+            { key: 'prof', label: 'Profesional', alinear: 'izq' },
+            { key: 'estado', label: 'Estado', alinear: 'der' }
+          ],
+          filas: lista.map((c) => ({
+            hora: horaDe(c.inicio),
+            servicio: (c.servicio_id ? servMap.get(c.servicio_id) : null) || '-',
+            prof: (c.profesional_id ? profMap.get(c.profesional_id) : null) || '-',
+            estado: c.estado || '-'
+          }))
+        }
       };
     }
 
@@ -2515,6 +2689,40 @@ async function construirPropuesta(
         resumen: `Liberar bloqueo ${inp.bloqueo_id}`,
       };
     }
+
+    case 'proponer_macro': {
+      let macroPasos: any = [];
+      if (typeof inp.pasos === 'string') {
+        try {
+          macroPasos = JSON.parse(inp.pasos);
+        } catch {
+          macroPasos = [];
+        }
+      } else {
+        macroPasos = inp.pasos;
+      }
+      
+      const { data, error } = await svc.from('chispa_macros').insert({
+        negocio_id: negocioId,
+        nombre: inp.nombre,
+        descripcion: inp.descripcion,
+        pasos: macroPasos,
+        creado_por: 'ai_asistente',
+        estado: 'revision'
+      }).select('id').single();
+      
+      if (error) return { error: `Error creando la macro: ${error.message}` };
+      
+      return {
+        tipo: 'aprobar_macro',
+        negocio_id: negocioId,
+        macro_id: data.id,
+        nombre: inp.nombre,
+        descripcion: inp.descripcion,
+        resumen: `Aprobar macro: ${inp.nombre} (${inp.descripcion})`,
+      };
+    }
+
 
     // --- GESTION (Sesion 3) ---
     case 'confirmar_citas': {

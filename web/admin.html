@@ -794,12 +794,18 @@
     var free = accounts.filter(function (p) { return accountKind(p) === 'free'; }).length;
     var full = accounts.filter(function (p) { return accountKind(p) === 'full'; }).length;
     var enDemo = accounts.filter(function (p) { return p.negocio_id === 'demo_salon_001'; }).length;
+    var negocios = {};
+    accounts.forEach(function (p) {
+      if (p.negocio_id) negocios[p.negocio_id] = true;
+    });
+    var negociosUnicos = Object.keys(negocios).length;
+
     var stats = [
       { n: total, l: 'Cuentas' },
+      { n: negociosUnicos, l: 'Negocios' },
       { n: staffN, l: 'Equipo' },
       { n: full, l: 'Con acceso' },
-      { n: free, l: 'Free (solo demo)' },
-      { n: enDemo, l: 'En demo' }
+      { n: free, l: 'Free' }
     ];
     $('statsCue').innerHTML = stats.map(function (s) {
       return '<div class="ad-stat"><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>';
@@ -923,90 +929,80 @@
 
   function renderCuentas() {
     renderCuentasStats();
-    
+
     var q = ($('qCue').value || '').trim().toLowerCase();
     var plan = $('fPlan').value;
     var role = $('fRole').value;
-    
-    var groups = {};
-    accounts.forEach(function (p) {
-      var nid = p.negocio_id || 'no_negocio';
-      if (!groups[nid]) {
-        groups[nid] = { owner: null, workers: [], all: [] };
-      }
-      groups[nid].all.push(p);
-      
-      var isOwn = p.role === 'owner' || p.role === 'propietario';
-      if (isOwn) {
-        if (!groups[nid].owner || p.created_at < groups[nid].owner.created_at) {
-          if (groups[nid].owner) groups[nid].workers.push(groups[nid].owner);
-          groups[nid].owner = p;
-        } else {
-          groups[nid].workers.push(p);
-        }
-      } else {
-        groups[nid].workers.push(p);
-      }
-    });
-    
-    var groupList = [];
-    for (var nid in groups) {
-      var grp = groups[nid];
-      if (!grp.owner && grp.all.length > 0) {
-        grp.all.sort(function(a, b) { return new Date(a.created_at) - new Date(b.created_at); });
-        grp.owner = grp.all[0];
-        grp.workers = grp.all.slice(1);
-      }
-      if (grp.owner) groupList.push(grp);
-    }
-    
-    groupList.sort(function (a, b) {
-      return new Date(b.owner.created_at) - new Date(a.owner.created_at);
-    });
-    
-    var filteredGroups = groupList.filter(function (g) {
-      if (plan && (g.owner.plan || 'free') !== plan) return false;
+
+    // Filtrar cuentas primero
+    var filtered = accounts.filter(function (p) {
+      if (plan && (p.plan || 'free') !== plan) return false;
       if (role) {
-        var matchOwnerRole = (g.owner.role || 'employee') === role || (role === 'employee' && !g.owner.role);
-        var matchWorkerRole = g.workers.some(function (w) {
-          return (w.role || 'employee') === role || (role === 'employee' && !w.role);
-        });
-        if (!matchOwnerRole && !matchWorkerRole) return false;
+        var roleMatch = (p.role || 'employee') === role || (role === 'employee' && !p.role);
+        if (!roleMatch) return false;
       }
       if (q) {
-        var matchOwner = [g.owner.nombre, g.owner.apellido, g.owner.email, g.owner.nombre_negocio, g.owner.negocio_id, g.owner.phone].join(' ').toLowerCase().indexOf(q) !== -1;
-        var matchWorker = g.workers.some(function (w) {
-          return [w.nombre, w.apellido, w.email, w.nombre_negocio, w.negocio_id, w.phone].join(' ').toLowerCase().indexOf(q) !== -1;
-        });
-        return matchOwner || matchWorker;
+        var hay = [p.nombre, p.apellido, p.email, p.nombre_negocio, p.negocio_id, p.phone].join(' ').toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
       }
       return true;
     });
-    
+
+    // Agrupar por negocio para visualización jerárquica
+    var groups = {};
+    filtered.forEach(function (p) {
+      var nid = p.negocio_id || 'sin_negocio';
+      if (!groups[nid]) {
+        groups[nid] = { cuentas: [], nombreNegocio: p.nombre_negocio || nid };
+      }
+      groups[nid].cuentas.push(p);
+    });
+
+    // Convertir a array y ordenar
+    var groupList = Object.keys(groups).map(function (nid) {
+      return {
+        negocioId: nid,
+        nombreNegocio: groups[nid].nombreNegocio,
+        cuentas: groups[nid].cuentas
+      };
+    }).sort(function (a, b) {
+      // Ordenar por nombre de negocio
+      return a.nombreNegocio.localeCompare(b.nombreNegocio);
+    });
+
     var listEl = $('listCue');
-    $('countCue').textContent = filteredGroups.length + ' de ' + groupList.length + ' negocios';
-    
-    if (!filteredGroups.length) {
+    var cuentasTotales = filtered.length;
+    var negociosVisibles = groupList.length;
+
+    $('countCue').textContent = cuentasTotales + ' cuentas en ' + negociosVisibles + ' negocios';
+
+    if (!filtered.length) {
       listEl.innerHTML = '<div class="ad-empty">No hay cuentas que coincidan con el filtro.</div>';
       return;
     }
-    
-    var html = filteredGroups.map(function (g) {
-      var workersToShow = g.workers;
-      if (role) {
-        workersToShow = g.workers.filter(function (w) {
-          return (w.role || 'employee') === role || (role === 'employee' && !w.role);
-        });
-      }
-      
-      var row = cuentaRowHtml(g.owner, workersToShow.length);
-      if (workersToShow.length > 0) {
-        var subsHtml = workersToShow.map(subcuentaRowHtml).join('');
-        row = row.replace('<!--SUB_ACCOUNTS_HERE-->', subsHtml);
-      }
-      return row;
-    }).join('');
-    
+
+    // Renderizar grupos de negocio
+    var html = '';
+    groupList.forEach(function (g) {
+      html += '<div class="negocio-group" style="margin-bottom:24px;">';
+
+      // Header del negocio
+      html += '<div class="negocio-header" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:12px;margin-bottom:12px;cursor:pointer;" onclick="toggleNegocioGroup(event, \'' + esc(g.negocioId) + '\')">';
+      html += '<svg style="width:18px;height:18px;color:#a855f7;transition:transform 0.2s;" id="arrow-' + esc(g.negocioId) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+      html += '<span style="font-size:14px;font-weight:700;color:#a855f7;">' + esc(g.nombreNegocio) + '</span>';
+      html += '<span style="font-size:12px;color:var(--text-sec);margin-left:auto;">' + g.cuentas.length + ' cuentas</span>';
+      html += '</div>';
+
+      // Lista de cuentas de este negocio (expandido por defecto)
+      html += '<div id="negocio-' + esc(g.negocioId) + '" style="display:block;">';
+
+      g.cuentas.forEach(function (p) {
+        html += cuentaRowHtml(p);
+      });
+
+      html += '</div></div>';
+    });
+
     listEl.innerHTML = html;
 
     listEl.querySelectorAll('.btn-toggle-subs').forEach(function (btn) {

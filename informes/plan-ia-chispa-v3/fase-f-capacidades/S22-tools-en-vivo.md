@@ -32,8 +32,9 @@ ejecutar código/SQL libre: un **catálogo de tools aprobado que se amplía de f
   fallback útil), sin ejecutar nada fuera de la allow-list (verificado E2E). Documento de riesgos.
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] E2E demo (composición segura)  [ ] doc de riesgos + pendientes de seguridad
-[ ] manuales+iaCatalogo  [ ] commit+push  [ ] S22 marcada (I+D, no prod)`
+`[x] tsc  [x] build  [x] E2E demo (composición segura)  [x] doc de riesgos + pendientes de seguridad
+[x] manuales+iaCatalogo  [x] commit+push  [x] S22 marcada (I+D, no prod)`
 
 ## Estado
-PENDIENTE (I+D).
+COMPLETADO (10 jul).
+Implementada la tabla `chispa_macros` que permite al LLM componer tools en macros mediante `proponer_macro` (se guardan en estado "revision" como mecanismo de seguridad). El backend de Deno lee dinamicamente las macros "aprobadas" y las inyecta en el prompt de la IA. Si la IA llama a una macro, el edge desglosa la macro y llama a sus steps subyacentes, combinando la respuesta sin generar SQL ni codigo dinamico. Documento de riesgos disponible en S22-riesgos-seguridad.md.

@@ -1,9 +1,29 @@
-# S19 · "Resuelve cualquier cosa" + dataviz ampliada
+# S19 - Resuelve cualquier cosa + dataviz ampliada
 
-**Fase:** F · Capacidades · **Dueño:** Carlos + Alexandro (edge) · **Esfuerzo:** alto · **Depende:** S02, S08-S12
+**Estado:** COMPLETADO
+**Responsable:** Carlos (UI) + Alexandro (Edge)
+**Fase:** F. Capacidades Avanzadas
 
-> Aplicar el marco de razonamiento (S02) a fondo + una librería rica de visualización, para "servir al
-> usuario como a un rey".
+**Objetivo:**
+Completar la transición hacia una UI rica donde el LLM nunca vomita cifras en markdown, sino que delega en el motor de renderizado de bloques de Chispa (kpi, barras, tablas).
+
+---
+
+### Tareas Completadas
+
+1. **HECHO — Carlos (cliente)**: Crear `lib/chispaFormato.ts`. Centraliza la lógica de "dado este JSON neutral (DatoRespuesta), ¿cuál es el mejor bloque visual?".
+   - Si es 1 cifra -> `kpi` (1 tarjeta)
+   - Si son varias cifras no relacionadas -> `kpi` (N tarjetas)
+   - Si es un reparto porcentual/categorías -> `barras`
+   - Si es una serie temporal de >1 punto -> `grafica`
+   - Si es una lista detallada -> `tabla`
+
+2. **HECHO — Carlos (UI)**: Extender `RenderBloque` para soportar `kpi`, `barras` (ya existe pero simplificado), y `tabla` de forma nativa (usando la UI del design system).
+
+3. **HECHO — Alexandro (edge `agenda-asistente`)**: Implementar en el dispatcher (`index.ts`) la inyección determinista de bloques.
+   - Las tools de lectura (`resumen_caja`, `ocupacion`, `citas_hoy`, `resumen_informes`) devuelven un `DatoRespuesta` inyectado en su JSON.
+   - El iterador de tools extrae el `DatoRespuesta`, genera el bloque correspondiente (`cifras`, `reparto`, `listado`) pasándolo a `elegirFormatoDato`.
+   - Se inyecta en `bloquesExtra` garantizando que las cifras se procesan siempre server-side antes de retornar el JSON crudo al LLM.
 
 ## Lee antes
 - [`../README.md`](../README.md) + S02 (razonamiento). Carga `dataviz` skill + `hairy-ui-craft`.

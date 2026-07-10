@@ -96,6 +96,8 @@ const ESCRITURA_GESTION: Record<string, Capability> = {
   // Festivo/cierre de negocio: mismo rol que puede editar turnos (direccion/propietario),
   // coherente con la RLS de cierres_negocio (owner/admin).
   anadir_cierre_negocio: 'horarios.editar',
+  // S22 Macros
+  proponer_macro: 'config.cambiar',
 };
 
 // Capacidad requerida por cada tool de LECTURA/NAVEGACION. null = cualquier rol.
