@@ -119,6 +119,18 @@ const LECTURA_CAP: Record<string, Capability | null> = {
   // S21 (capstone): panel de gestion de alto nivel. Orquesta agenda + caja +
   // escaneo proactivo -> mismo gate que el resto de vision de negocio (owner/admin).
   resumen_gestion: 'informes.ver',
+  // --- Memoria y registro universal (Sesiones 9/10/11) ---
+  // buscar_recuerdos (S11): audita eventos_negocio para explicar el pasado
+  // ("¿por que aparecio este upsell?", "¿que hicimos en marzo?"). Se declara a
+  // CUALQUIER rol para habilitar el "¿por que me salio este upsell?" del profesional
+  // en Mi Jornada, PERO no es barra libre: procesarRecuerdos acota la consulta por
+  // actor (solo eventos propios) a los roles SIN informes.ver, para no filtrar
+  // eventos de caja/negocio del salon entero a recepcion/profesional.
+  buscar_recuerdos: null,
+  // guardar_recuerdo (S09/S10): memoria a largo plazo (hecho operativo). Es una
+  // escritura INTERNA que NO pasa por propone->confirma (no es esEscritura), asi que
+  // vive aqui con cap null: cualquier rol puede anotar un hecho aprendido.
+  guardar_recuerdo: null,
 };
 
 // Predicado central del gating: ¿se declara esta tool al LLM para este rol/scope?

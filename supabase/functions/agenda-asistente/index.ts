@@ -1048,7 +1048,7 @@ async function runAgente(
     if (name === 'mostrar_grafica') return await procesarGrafica(inp, negocioId, bloquesExtra);
     if (name === 'mostrar_comparativa') return await procesarComparativa(inp, negocioId, bloquesExtra);
     if (name === 'resumen_gestion') return await procesarResumenGestion(inp, negocioId, hoy, bloquesExtra);
-    if (name === 'buscar_recuerdos') return await procesarRecuerdos(inp, negocioId, bloquesExtra);
+    if (name === 'buscar_recuerdos') return await procesarRecuerdos(inp, negocioId, bloquesExtra, puedeInformes ? null : userId);
     if (name === 'guardar_recuerdo') {
       const clave = (inp.clave ?? '').trim();
       const valor = (inp.valor ?? '').trim();
@@ -1729,7 +1729,11 @@ async function procesarGrafica(inp: Record<string, string>, negocioId: string, b
 }
 
 // S11: Busca en eventos_negocio e inyecta un bloque timeline
-async function procesarRecuerdos(inp: Record<string, string>, negocioId: string, bloques: Bloque[]): Promise<string> {
+// actorScope: null = ve TODO el negocio (roles con informes.ver, direccion/propietario).
+// Un string (userId) = acota a los eventos donde el usuario es el actor: asi el
+// profesional/recepcion puede preguntar "¿por que me salio este upsell?" (sus propias
+// ejecuciones de IA, registradas con actor=usuario_id) SIN ver caja/eventos ajenos.
+async function procesarRecuerdos(inp: Record<string, string>, negocioId: string, bloques: Bloque[], actorScope: string | null): Promise<string> {
   const tema = (inp.entidad_o_tema ?? '').trim().toLowerCase();
   // Fechas opcionales: por defecto, ventana de los ultimos 30 dias (S12: el usuario
   // suele preguntar "¿por que aparecio X?" sin dar fechas).
@@ -1750,6 +1754,11 @@ async function procesarRecuerdos(inp: Record<string, string>, negocioId: string,
 
   if (tema) {
     q = q.or(`resumen.ilike.%${tema}%,entidad.ilike.%${tema}%`);
+  }
+
+  // Acotado por actor para roles sin informes.ver (ver comentario de la firma).
+  if (actorScope) {
+    q = q.eq('actor', actorScope);
   }
 
   const { data: eventos, error } = await q;

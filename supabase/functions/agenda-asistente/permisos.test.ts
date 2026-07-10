@@ -136,6 +136,22 @@ Deno.test('Sesion 3 V2: anadir_cierre_negocio solo direccion+ (misma capacidad q
   assertEquals(toolPermitida('anadir_cierre_negocio', roleOf('owner'), 'all'), true);
 });
 
+Deno.test('Sesion 9/11: buscar_recuerdos y guardar_recuerdo se declaran a TODOS los roles', () => {
+  // Antes fallaban cerrado (no estaban en ningun set) y nunca se declaraban al LLM.
+  // buscar_recuerdos abierta a cualquier rol (el "¿por que me salio este upsell?" del
+  // profesional en Mi Jornada); el acotado por actor lo hace procesarRecuerdos, no el gate.
+  for (const valor of ['employee', 'recepcion', 'admin', 'owner']) {
+    const rol = roleOf(valor);
+    const scope: WriteScope = valor === 'employee' ? 'self' : 'all';
+    assertEquals(toolPermitida('buscar_recuerdos', rol, scope), true);
+    assertEquals(toolPermitida('guardar_recuerdo', rol, scope), true);
+  }
+  // Incluso con scope 'none' (profesional sin agenda operable) siguen disponibles:
+  // son lectura/memoria, no dependen del scope de agenda.
+  assertEquals(toolPermitida('buscar_recuerdos', roleOf('employee'), 'none'), true);
+  assertEquals(toolPermitida('guardar_recuerdo', roleOf('employee'), 'none'), true);
+});
+
 Deno.test('tool desconocida: fail-closed (nunca se declara)', () => {
   for (const scope of ['all', 'self', 'none'] as WriteScope[]) {
     assertEquals(toolPermitida('exfiltrar_todo', roleOf('owner'), scope), false);
