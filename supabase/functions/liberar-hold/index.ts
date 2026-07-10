@@ -1,10 +1,7 @@
 import Stripe from 'npm:stripe@16';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-// Libera un hold (fianza retenida) — el cliente asistio. Auth de staff (verify_jwt). Autoriza
-// con iniciar_liberacion_hold (valida negocio + senal 'retenido' con payment_intent), cancela
-// el PaymentIntent en Stripe (se devuelve la retencion) y concilia via registrar_liberacion_hold
-// (service_role, idempotente; el pago pasa a 'liberado'). Acepta pago_id o cita_id.
+// Libera un hold (fianza retenida). Auth staff (verify_jwt). S5: cuenta Stripe del negocio o plataforma.
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -14,9 +11,20 @@ const cors = {
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-06-20' });
 const url = Deno.env.get('SUPABASE_URL') ?? '';
 const service = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+const PLATFORM_KEY = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
+
+async function stripeParaNegocio(negocioId: string | null): Promise<Stripe> {
+  let key = PLATFORM_KEY;
+  if (negocioId) {
+    try {
+      const { data } = await service.rpc('pasarela_stripe_secret', { p_negocio_id: negocioId });
+      if (typeof data === 'string' && data.length > 10) key = data;
+    } catch { /* fallback plataforma */ }
+  }
+  return new Stripe(key, { apiVersion: '2024-06-20' });
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
@@ -37,7 +45,9 @@ Deno.serve(async (req) => {
     if (eAuth) return json({ error: eAuth.message ?? 'no_liberable' }, 400);
     if (!info?.ok) return json({ error: 'no_liberable' }, 400);
 
-    // Cancelar el hold en Stripe (libera la retencion, sin cobro).
+    const { data: pg } = await service.from('pagos').select('negocio_id').eq('id', info.pago_id).maybeSingle();
+    const stripe = await stripeParaNegocio((pg as { negocio_id?: string } | null)?.negocio_id ?? null);
+
     await stripe.paymentIntents.cancel(info.payment_intent as string);
 
     await service.rpc('registrar_liberacion_hold', { p_pago_id: info.pago_id });

@@ -1237,7 +1237,7 @@ export default function ConfiguracionWeb() {
               <HubIA negocioId={negocioId} rolStr={account?.role} />
             )}
             {tab === 'notificaciones' && <TabNotificaciones config={config} setC={setC} />}
-            {tab === 'politicas' && <TabPoliticas config={config} setC={setC} />}
+            {tab === 'politicas' && <TabPoliticas config={config} setC={setC} negocioId={negocioId} />}
             {tab === 'reserva' && <TabReservaOnline negocioId={negocioId} defaultNombre={account?.nombreNegocio || config.nombre} defaultDireccion={config.direccion} defaultTelefono={config.telefono} />}
             {tab === 'recompensas' && <TabRecompensas negocioId={negocioId} />}
             {tab === 'referidos' && <TabReferidos />}
@@ -3219,7 +3219,70 @@ function TabNotificaciones({ config, setC }: {
   );
 }
 
-function TabPoliticas({ config, setC }: { config: ConfigState; setC: (k: keyof ConfigState, v: any) => void }) {
+function PasarelaStripeSection({ negocioId }: { negocioId: string }) {
+  const [configurado, setConfigurado] = useState(false);
+  const [pk, setPk] = useState('');
+  const [sk, setSk] = useState('');
+  const [whsec, setWhsec] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  useEffect(() => {
+    if (!negocioId) return;
+    supabase.from('negocio_pasarela').select('configurado, publishable_key').eq('negocio_id', negocioId).maybeSingle()
+      .then(({ data }: any) => { if (data) { setConfigurado(!!data.configurado); setPk(data.publishable_key || ''); } });
+  }, [negocioId]);
+
+  const webhookUrl = `https://vtrggiogjrhqtwbhbgia.supabase.co/functions/v1/stripe-webhook?negocio=${negocioId}`;
+
+  async function guardar() {
+    setMsg('');
+    if (sk.trim().length < 10) { setMsg('Pega tu clave secreta (sk_...).'); return; }
+    setSaving(true);
+    try {
+      const { data, error } = await supabase.rpc('guardar_pasarela_stripe', {
+        p_secret_key: sk.trim(), p_webhook_secret: whsec.trim() || null, p_publishable_key: pk.trim() || null,
+      });
+      const res = (data ?? {}) as { ok?: boolean; error?: string };
+      if (error || !res.ok) { setMsg('No se pudo guardar. Revisa las claves.'); setSaving(false); return; }
+      setConfigurado(true); setSk(''); setWhsec('');
+      setMsg('Guardado. Tu cuenta Stripe queda conectada.');
+    } catch { setMsg('Error al guardar.'); }
+    setSaving(false);
+  }
+
+  return (
+    <Section title="Pasarela de pago (Stripe)"
+      desc="Conecta TU cuenta Stripe para que los cobros online (senal, QR, retenciones) vayan a tu banco, menos la suscripcion de Mecha. Las claves se guardan cifradas y nunca se muestran. Si no la configuras, se usa la cuenta de Mecha por defecto.">
+      <FieldRow label="Estado">
+        <span style={{ fontSize: 13, fontWeight: 700, color: configurado ? '#0f9d6b' : '#b45309' }}>
+          {configurado ? 'Conectada' : 'No conectada (usando cuenta Mecha)'}
+        </span>
+      </FieldRow>
+      <FieldRow label="Clave secreta (sk_)" hint="Stripe -> Desarrolladores -> Claves de API -> Clave secreta.">
+        <STextInput value={sk} onChange={setSk} type="password" placeholder={configurado ? 'dejar vacio para no cambiar' : 'sk_live_...'} />
+      </FieldRow>
+      <FieldRow label="Signing secret del webhook (whsec_)" hint="Al crear el webhook en Stripe con la URL de abajo, Stripe te da este secreto.">
+        <STextInput value={whsec} onChange={setWhsec} type="password" placeholder={configurado ? 'dejar vacio para no cambiar' : 'whsec_...'} />
+      </FieldRow>
+      <FieldRow label="Clave publicable (pk_)" hint="Opcional, no es secreta.">
+        <STextInput value={pk} onChange={setPk} placeholder="pk_live_..." />
+      </FieldRow>
+      <FieldRow label="URL del webhook" hint="Crea un webhook en Stripe con ESTA URL exacta y suscribe los eventos de pago (checkout, payment_intent, charge.refunded).">
+        <span style={{ fontSize: 11.5, color: '#5c5249', wordBreak: 'break-all', fontFamily: 'monospace' }}>{webhookUrl}</span>
+      </FieldRow>
+      {!!msg && <div style={{ fontSize: 12.5, color: '#5c5249', marginTop: 4 }}>{msg}</div>}
+      <div style={{ marginTop: 10 }}>
+        <button onClick={guardar} disabled={saving}
+          style={{ padding: '10px 18px', background: '#f4501e', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+          {saving ? 'Guardando…' : 'Guardar y conectar'}
+        </button>
+      </div>
+    </Section>
+  );
+}
+
+function TabPoliticas({ config, setC, negocioId }: { config: ConfigState; setC: (k: keyof ConfigState, v: any) => void; negocioId: string }) {
   const on = config.depositoDinamicoActivo;
   return (
     <>
@@ -3281,6 +3344,8 @@ function TabPoliticas({ config, setC }: { config: ConfigState; setC: (k: keyof C
           </div>
         </FieldRow>
       </Section>
+
+      <PasarelaStripeSection negocioId={negocioId} />
 
       <SoonBanner icon="shield" title="Politicas de cancelacion -- fase 4"
         desc="Penalizaciones por cancelacion tardia. Se activaran junto con el modulo de pagos." />
