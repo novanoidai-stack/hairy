@@ -22,6 +22,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
             <Tabs.Screen name="bandeja" />
             <Tabs.Screen name="lista-espera" />
             <Tabs.Screen name="clientes" />
+            <Tabs.Screen name="campanas" />
             <Tabs.Screen name="equipo" />
             <Tabs.Screen name="inventario" />
             <Tabs.Screen name="informes" />
@@ -54,6 +55,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       <Tabs.Screen name="presupuestos" />
       <Tabs.Screen name="bandeja" />
       <Tabs.Screen name="clientes" />
+      <Tabs.Screen name="campanas" />
       <Tabs.Screen name="resenas" />
       <Tabs.Screen name="equipo" />
       <Tabs.Screen name="inventario" />

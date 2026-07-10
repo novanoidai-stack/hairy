@@ -201,6 +201,14 @@ export const CATALOGO_IA: FuncionIA[] = [
     categoria: 'pagina',
   },
   {
+    id: 'campanas-reactivacion',
+    titulo: 'Campañas de reactivación y difusión',
+    descripcion: 'Define un segmento por criterios reales (clientas sin volver hace X días, visitas mínimas, ticket medio, etiqueta), ve el conteo en vivo, redacta el mensaje con {nombre} y encola la campaña. El envío real (WhatsApp/correo) lo hace el motor de mensajería.',
+    ubicacion: '/app/campanas',
+    uso: 'Menú Campañas (solo gestor). Elige una plantilla o define el segmento, escribe el mensaje y pulsa Encolar.',
+    categoria: 'pagina',
+  },
+  {
     id: 'chispa-datos-formato',
     titulo: 'Respuestas con datos en su mejor formato',
     descripcion: 'Cuando preguntas por cifras del negocio, Chispa elige sola el formato: indicador (KPI) con variación para una cifra, barras para un reparto por categoría, gráfica de línea para una evolución, tabla con totales para un listado y línea de tiempo para un histórico. Cifras siempre reales.',

@@ -35,6 +35,7 @@ const es: Dict = {
   nav_lista_espera_corta: 'Espera',
   nav_presupuestos: 'Presupuestos',
   nav_resenas: 'Reseñas',
+  nav_campanas: 'Campañas',
   nav_grp_principal: 'Principal',
   nav_grp_gestion: 'Gestión',
   // Comunes
@@ -91,7 +92,7 @@ const en: Dict = {
   nav_informes: 'Reports', nav_caja: 'Cashier', nav_mi_jornada: 'My day',
   nav_bandeja: 'Inbox', nav_inventario: 'Inventory', nav_configuracion: 'Settings',
   nav_mas: 'More', nav_lista_espera: 'Waitlist', nav_lista_espera_corta: 'Waitlist', nav_presupuestos: 'Estimates',
-  nav_resenas: 'Reviews',
+  nav_resenas: 'Reviews', nav_campanas: 'Campaigns',
   nav_grp_principal: 'Core', nav_grp_gestion: 'Management',
   guardar: 'Save', cancelar: 'Cancel', eliminar: 'Delete', editar: 'Edit',
   cerrar: 'Close', aceptar: 'Accept', buscar: 'Search', cargando: 'Loading...',

@@ -29,6 +29,7 @@ export const CHISPA_RUTAS: Record<string, { ruta: string; label: string }> = {
   bandeja: { ruta: '/(tabs)/bandeja', label: 'Abrir bandeja' },
   inventario: { ruta: '/(tabs)/inventario', label: 'Ver inventario' },
   'mi-jornada': { ruta: '/(tabs)/mi-jornada', label: 'Ver Mi Jornada' },
+  campanas: { ruta: '/(tabs)/campanas', label: 'Ir a Campanas' },
 };
 
 export type ChispaRutaKey = keyof typeof CHISPA_RUTAS;
