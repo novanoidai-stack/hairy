@@ -102,12 +102,22 @@ export function TarjetaAyudaIA({
 }: TarjetaAyudaIAProps) {
   const cargando = estado.tipo === 'cargando';
   const [tipCarga, setTipCarga] = useState('');
+  // Permite CERRAR el resultado de un analisis/optimizacion (queja recurrente:
+  // los analisis no se podian descartar). Se resetea al relanzar el analisis.
+  const [descartado, setDescartado] = useState(false);
 
   useEffect(() => {
     if (estado.tipo === 'cargando') {
       setTipCarga(obtenerTipCarga());
+      setDescartado(false);
     }
+    if (estado.tipo === 'listo') setDescartado(false);
   }, [estado.tipo]);
+
+  // El resultado se muestra salvo que el usuario lo haya cerrado a mano.
+  const mostrarResultado = estado.tipo !== 'idle' && !descartado;
+  // Solo tiene sentido ofrecer "cerrar" cuando ya hay algo que cerrar (no mientras carga).
+  const puedeCerrar = estado.tipo === 'listo' || estado.tipo === 'vacio' || estado.tipo === 'error';
 
   return (
     <div className="glass-panel magic-border" style={{ borderRadius: 18, padding: '16px 20px', marginBottom: 16 }}>
@@ -136,8 +146,19 @@ export function TarjetaAyudaIA({
         </div>
       )}
 
-      {estado.tipo !== 'idle' && (
-        <div style={{ marginTop: resumenDeterminista ? 8 : 14, paddingTop: resumenDeterminista ? 0 : 14, borderTop: resumenDeterminista ? 'none' : `1px solid ${T.border}` }}>
+      {mostrarResultado && (
+        <div style={{ marginTop: resumenDeterminista ? 8 : 14, paddingTop: resumenDeterminista ? 0 : 14, borderTop: resumenDeterminista ? 'none' : `1px solid ${T.border}`, position: 'relative' }}>
+          {puedeCerrar && (
+            <button
+              type="button"
+              aria-label="Cerrar resultado"
+              onClick={() => setDescartado(true)}
+              className="btn-interactive"
+              style={{ position: 'absolute', top: resumenDeterminista ? 2 : -6, right: -4, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 999, border: 'none', background: 'transparent', color: T.textTertiary, cursor: 'pointer', zIndex: 1 }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          )}
           {estado.tipo === 'cargando' && <FilaCargando tip={tipCarga} />}
           {estado.tipo === 'vacio' && <FilaVacio mensaje={mensajeVacio} />}
           {estado.tipo === 'error' && <FilaError mensaje={estado.mensaje} onReintentar={onReintentar ?? onAnalizar} />}

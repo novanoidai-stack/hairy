@@ -104,11 +104,13 @@ body, html {
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(40, 30, 24, 0.06);
+  /* Casi solido crema (antes 0.65 + blur40 se veia lavado sobre el contenido).
+     Mantiene un leve blur para separar del fondo sin sacrificar legibilidad. */
+  background: rgba(255, 253, 251, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(40, 30, 24, 0.08);
+  box-shadow: 0 8px 28px rgba(40, 30, 24, 0.08);
 }
 
 .magic-border {

@@ -21,12 +21,31 @@ export function TabVoz({ config, setC }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [errorVoz, setErrorVoz] = useState<string | null>(null);
 
+  // Fallback: previsualiza con la voz del navegador (speechSynthesis) cuando el
+  // TTS natural (Kokoro/ElevenLabs) aun no esta activo. Asi el boton "Escuchar"
+  // SIEMPRE hace algo, en vez de quedarse muerto con un error.
+  const previewNavegador = useCallback((texto: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return false;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(texto);
+      u.lang = 'es-ES';
+      u.onend = () => setReproduciendo(null);
+      u.onerror = () => setReproduciendo(null);
+      window.speechSynthesis.speak(u);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   const reproducirDemo = useCallback(async (vozId: string) => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-    
+    if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+
     if (reproduciendo === vozId) {
       setReproduciendo(null);
       return;
@@ -35,41 +54,49 @@ export function TabVoz({ config, setC }: Props) {
     setReproduciendo(vozId);
     setErrorVoz(null);
 
+    const texto = `Hola, soy ${VOCES.find(v => v.id === vozId)?.nombre}. Me encantaría ayudarte a gestionar tu salón.`;
+
     try {
       const { data: sesion } = await supabase.auth.getSession();
       const token = sesion.session?.access_token;
       if (!token) throw new Error('Sin sesion');
 
-      const texto = `Hola, soy ${VOCES.find(v => v.id === vozId)?.nombre}. Me encantaría ayudarte a gestionar tu salón.`;
-      
       const r = await fetch(`${SUPABASE_URL}/functions/v1/chispa-tts`, {
         method: 'POST',
-        headers: { 
-          Authorization: `Bearer ${token}`, 
-          apikey: SUPABASE_ANON_KEY, 
-          'Content-Type': 'application/json' 
+        headers: {
+          Authorization: `Bearer ${token}`,
+          apikey: SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ texto, voice_id: vozId }),
       });
 
-      if (!r.ok) {
-        throw new Error('Fallo al generar audio de prueba');
+      // 501 = el TTS natural aun no esta configurado por el equipo. No es un
+      // fallo del usuario: previsualizamos con la voz del navegador y avisamos.
+      if (r.status === 501) {
+        const ok = previewNavegador(texto);
+        setErrorVoz('La voz natural de Chispa todavía no está activada en tu salón (la activa el equipo de Mecha). Mientras tanto te la mostramos con la voz del navegador.');
+        if (!ok) setReproduciendo(null);
+        return;
       }
+      if (!r.ok) throw new Error('Fallo al generar audio de prueba');
 
       const blob = await r.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audioRef.current = audio;
-      
       audio.onended = () => setReproduciendo(null);
       audio.onerror = () => setReproduciendo(null);
-      
       await audio.play();
     } catch (e: any) {
-      setErrorVoz('No se pudo reproducir la demo en este momento.');
-      setReproduciendo(null);
+      // Ultimo recurso: intentar la voz del navegador antes de rendirse.
+      const ok = previewNavegador(texto);
+      if (!ok) {
+        setErrorVoz('No se pudo reproducir la demo en este momento.');
+        setReproduciendo(null);
+      }
     }
-  }, [reproduciendo]);
+  }, [reproduciendo, previewNavegador]);
 
   return (
     <div style={{ maxWidth: 800 }}>

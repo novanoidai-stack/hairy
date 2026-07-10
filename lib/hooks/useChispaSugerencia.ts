@@ -4,6 +4,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { normalizarRespuesta, type Bloque } from '@/lib/chispaBloques';
+import { estructurarBloques } from '@/lib/chispaEstructura';
 
 export type ResultadoChispa = { ok: true; bloques: Bloque[] } | { ok: false; error: string };
 
@@ -21,7 +22,7 @@ export async function invocarChispa(prompt: string, contexto?: Record<string, un
     if (error || !data) {
       return { ok: false, error: error?.message || 'Error al conectar con Chispa' };
     }
-    return { ok: true, bloques: normalizarRespuesta(data) };
+    return { ok: true, bloques: estructurarBloques(normalizarRespuesta(data)) };
   } catch (e) {
     return { ok: false, error: String(e) };
   }

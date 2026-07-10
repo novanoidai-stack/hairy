@@ -1159,7 +1159,7 @@ export function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'
 // Doc: informes/plan-ia-chispa-v3/RAZONAMIENTO-UNIVERSAL.md
 // ---------------------------------------------------------------------------
 // Tipos de bloque que cuentan como "superficie util" (no texto seco).
-const TIPOS_SUPERFICIE = new Set(['enlace', 'accion', 'grafica', 'comparativa', 'formulario', 'opciones', 'progreso']);
+const TIPOS_SUPERFICIE = new Set(['enlace', 'accion', 'grafica', 'comparativa', 'formulario', 'opciones', 'progreso', 'kpi', 'barras', 'tabla', 'timeline']);
 
 // Acciones rapidas por rol: el label, al pulsarse, vuelve como turno del usuario
 // y el agente lo resuelve con una superficie (agenda de hoy, auto-conocimiento,

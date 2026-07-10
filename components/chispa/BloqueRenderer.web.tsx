@@ -148,6 +148,44 @@ function citasAfectadas(accion: unknown): { id: string; label: string }[] {
   return [];
 }
 
+// Movimientos de una accion 'optimizar_agenda' (o vacio si no aplica).
+function movimientosDe(accion: unknown): { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[] {
+  if (!accion || typeof accion !== 'object' || !('movimientos' in accion)) return [];
+  const m = (accion as { movimientos?: unknown }).movimientos;
+  return Array.isArray(m) ? (m as { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[]) : [];
+}
+
+function hhmm(iso: string): string {
+  try { return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); }
+  catch { return ''; }
+}
+
+// --- Mini-agenda visual de una optimizacion: pinta el horario PROPUESTO como
+// una linea de tiempo compacta (chip de hora + cliente), en vez de una lista
+// seca. Es la "vista de calendario" de lo que Chispa va a reordenar. ---
+function TimelineOptimizacion({ movimientos }: { movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[] }) {
+  const orden = [...movimientos].sort((a, b) => a.nuevo_inicio.localeCompare(b.nuevo_inicio));
+  return (
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 8, margin: '4px 0 12px', paddingLeft: 4 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: T.textTertiary, textTransform: 'uppercase', letterSpacing: 0.3 }}>Horario propuesto</div>
+      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ position: 'absolute', left: 43, top: 6, bottom: 6, width: 2, background: T.borderHi, borderRadius: 2 }} />
+        {orden.map((mov) => (
+          <div key={mov.cita_id} style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
+            <span style={{ minWidth: 78, textAlign: 'right', fontSize: 11.5, fontWeight: 700, color: T.primaryHi, fontVariantNumeric: 'tabular-nums' }}>
+              {hhmm(mov.nuevo_inicio)}–{hhmm(mov.nuevo_fin)}
+            </span>
+            <span style={{ width: 9, height: 9, borderRadius: 999, background: T.primary, flexShrink: 0, boxShadow: `0 0 0 3px ${T.bgCard}`, zIndex: 1 }} />
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: T.text, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {mov.cliente_nombre || 'Cita'}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // --- Control de un campo de 'formulario', segun su tipo. Se envuelve en un
 // <label> nativo (no id/htmlFor) para que la etiqueta sea accesible sin tener
 // que anadir props de id a los atomos de SettingsAtoms. ---
@@ -567,8 +605,12 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
         <div style={{ fontSize: 13, fontWeight: 600, color: T.text, lineHeight: 1.45, marginBottom: citas.length > 0 ? 8 : 6 }}>
           {accion.resumen}
         </div>
+        {/* optimizar_agenda: mini-agenda visual del horario propuesto */}
+        {accion.tipo === 'optimizar_agenda' && !resuelta && movimientosDe(accion).length > 0 && (
+          <TimelineOptimizacion movimientos={movimientosDe(accion)} />
+        )}
         {/* Batch (confirmar_citas): lista de citas afectadas */}
-        {citas.length > 0 && !resuelta && (
+        {accion.tipo !== 'optimizar_agenda' && citas.length > 0 && !resuelta && (
           <ul style={{ listStyle: 'none', margin: '0 0 10px', padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
             {citas.map((c) => (
               <li key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: T.textSecondary, lineHeight: 1.4 }}>

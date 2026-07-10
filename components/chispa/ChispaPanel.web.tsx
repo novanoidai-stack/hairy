@@ -5,6 +5,7 @@ import { useGlobalSearchParams, usePathname } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { ejecutarAccion, deshacerAccion, type AccionPropuesta } from '@/lib/agendaOps';
 import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, type Bloque } from '@/lib/chispaBloques';
+import { estructurarBloques } from '@/lib/chispaEstructura';
 import { elegirFormatoDatos } from '@/lib/chispaFormato';
 import { lanzarCoach } from '@/lib/coachGuias';
 import { TOURS, lanzarTour, reanudarTour, leerProgresoTour, tourPorId } from '@/lib/tours';
@@ -656,17 +657,25 @@ export default function ChispaPanel({
         }
         return { role: 'user' as const, content: m.content };
       }
+      // Aplana los bloques a texto NEUTRO para dar contexto al edge. Se describe
+      // en lenguaje natural (no con sintaxis tipo "[enlace: X]" ni markdown) para
+      // no ensenarle al LLM a devolver esos patrones como texto: el modelo tiende
+      // a imitar el formato del historial. La superficie visual real la reconstruye
+      // el edge (bloques tipados) / la capa de recuperacion del cliente.
       const content = m.bloques
         .map((b) => {
           if (b.tipo === 'texto') return b.texto;
-          if (b.tipo === 'enlace') return `[enlace: ${b.label}]`;
-          if (b.tipo === 'accion') return `[accion propuesta: ${b.accion.resumen}]`;
-          if (b.tipo === 'grafica') return `[grafica: ${b.titulo}]`;
-          if (b.tipo === 'comparativa') return `[comparativa: ${b.titulo}]`;
-          if (b.tipo === 'formulario') return `[formulario: ${b.titulo}]`;
-          if (b.tipo === 'opciones') return `[opciones: ${b.titulo ?? ''}]`;
-          if (b.tipo === 'timeline') return `[timeline: ${b.titulo}]`;
-          if (b.tipo === 'progreso') return `[progreso: paso ${b.paso} de ${b.total}]`;
+          if (b.tipo === 'enlace') return `(sugeri un acceso a ${b.label})`;
+          if (b.tipo === 'accion') return `(propuse una accion: ${b.accion.resumen})`;
+          if (b.tipo === 'grafica') return `(mostre una grafica de ${b.titulo})`;
+          if (b.tipo === 'comparativa') return `(mostre una comparativa de ${b.titulo})`;
+          if (b.tipo === 'kpi') return `(mostre unas cifras${b.titulo ? ` de ${b.titulo}` : ''})`;
+          if (b.tipo === 'barras') return `(mostre un desglose de ${b.titulo})`;
+          if (b.tipo === 'tabla') return `(mostre una tabla${b.titulo ? ` de ${b.titulo}` : ''})`;
+          if (b.tipo === 'formulario') return `(pedi datos con un formulario: ${b.titulo})`;
+          if (b.tipo === 'opciones') return `(ofreci opciones para elegir${b.titulo ? `: ${b.titulo}` : ''})`;
+          if (b.tipo === 'timeline') return `(mostre una cronologia de ${b.titulo})`;
+          if (b.tipo === 'progreso') return `(paso ${b.paso} de ${b.total})`;
           return '';
         })
         .join('\n');
@@ -866,7 +875,7 @@ export default function ChispaPanel({
         return;
       }
 
-      const bloques = normalizarRespuesta(data);
+      const bloques = estructurarBloques(normalizarRespuesta(data));
       const tieneAccion = bloques.some((b) => b.tipo === 'accion');
       setMensajes((m) => [...m, { role: 'assistant', bloques, accionEstado: tieneAccion ? 'pendiente' : null, ts: ahora() }]);
       if (voz.vozActiva) {
