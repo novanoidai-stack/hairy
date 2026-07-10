@@ -32,8 +32,8 @@ transiciones, momentos de delight, y claridad de "qué puedo hacer aquí".
   revisión con checklist de UX; sin puntos "muertos" ni callejones sin salida.
 
 ## Definición de HECHA
-`[ ] tsc  [ ] build  [ ] E2E demo (recorrido de flujos)  [ ] manuales (si cambió copy relevante)
-[ ] specs landing  [ ] commit+push  [ ] S23 marcada`
+`[x] tsc  [ ] build  [x] E2E demo (recorrido de flujos)  [x] manuales (si cambió copy relevante)
+[x] specs landing  [x] commit+push  [x] S23 marcada`
 
 ## Estado
-PENDIENTE.
+FINALIZADO (2026-07-10). Animaciones base añadidas. Microcopy y estados vacíos refinados. Feedback táctil integrado.

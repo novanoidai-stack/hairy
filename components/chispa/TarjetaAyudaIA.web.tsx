@@ -41,6 +41,7 @@ function FilaError({ mensaje, onReintentar }: { mensaje: string; onReintentar: (
       <span style={{ fontSize: 13, color: T.danger }}>{mensaje}</span>
       <button
         type="button"
+        className="btn-interactive"
         onClick={onReintentar}
         style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${T.danger}`, background: 'transparent', color: T.danger, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}
       >
@@ -88,7 +89,7 @@ export function TarjetaAyudaIA({
   const cargando = estado.tipo === 'cargando';
 
   return (
-    <div style={{ background: T.bgCard, border: `1px solid ${T.primary}40`, borderRadius: 12, padding: '14px 18px' }}>
+    <div className="glass-panel magic-border" style={{ borderRadius: 18, padding: '16px 20px', marginBottom: 16 }}>
       <style>{SPIN_KEYFRAMES}</style>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
@@ -98,14 +99,14 @@ export function TarjetaAyudaIA({
             {subtitulo && <div style={{ fontSize: 12, color: T.textSecondary }}>{subtitulo}</div>}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onAnalizar}
-          disabled={cargando}
-          style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: T.primarySoft, color: T.primaryHi, fontSize: 13, fontWeight: 700, cursor: cargando ? 'not-allowed' : 'pointer', flexShrink: 0 }}
-        >
-          {cargando ? 'Analizando...' : botonLabel}
-        </button>
+            <button
+              type="button"
+              className="btn-interactive"
+              onClick={cargando ? undefined : onAnalizar}
+              style={{ padding: '8px 16px', borderRadius: 24, border: 'none', background: cargando ? T.bgCardHi : T.fireGradient, color: cargando ? T.textMuted : '#fff', fontSize: 13, fontWeight: 700, cursor: cargando ? 'default' : 'pointer', flexShrink: 0, boxShadow: cargando ? 'none' : '0 4px 12px rgba(244,80,30,0.2)' }}
+            >
+              {cargando ? 'Pensando...' : botonLabel}
+            </button>
       </div>
 
       {resumenDeterminista && (

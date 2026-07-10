@@ -1155,17 +1155,16 @@ export default function ChispaPanel({
               style={{ position: 'fixed', inset: 0, zIndex: 2147482999, background: T.ia.drawerBackdrop }} />
           )}
 
-          <div className="chispa-drawer" style={{
+          <div className="chispa-drawer glass-panel" style={{
             position: 'fixed', top: 0, right: 0, height: '100%', width: drawerWidth, zIndex: 2147483000,
             display: 'flex', flexDirection: 'column',
-            background: 'rgba(255, 253, 251, 0.72)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-            borderLeft: `1px solid ${T.ia.drawerBorder}`, boxShadow: T.ia.drawerShadow,
+            borderLeft: `1px solid rgba(255, 255, 255, 0.5)`,
             fontFamily: 'Inter, system-ui, sans-serif',
             // Transicion suave al entrar/salir de pantalla completa (desktop).
             transition: isMobile ? undefined : 'width 0.32s cubic-bezier(0.16,1,0.3,1)',
           }}>
             {/* Cabecera */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', background: 'linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%)', flexShrink: 0 }}>
               <ChispaMascota size={30} showLabel={false} animar />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: T.text, lineHeight: 1.15, letterSpacing: -0.2 }}>Chispa</div>
@@ -1274,17 +1273,17 @@ export default function ChispaPanel({
                   const tourEnCurso = prog ? tourPorId(prog.id) : undefined;
                   const pill = { padding: '7px 11px', borderRadius: 999, border: `1px solid ${T.border}`, background: T.bgCard, color: T.textSecondary, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' } as const;
                   return (
-                    <div style={{ marginBottom: 10, padding: '11px 12px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12 }}>
+                    <div className="animate-fade-in-up" style={{ marginBottom: 10, padding: '11px 12px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12 }}>
                       <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700, marginBottom: 8 }}>Tours guiados</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         {tourEnCurso && (
-                          <button type="button" onClick={() => { setAbierto(false); setTimeout(() => reanudarTour(), 60); }}
+                          <button type="button" className="btn-interactive" onClick={() => { setAbierto(false); setTimeout(() => reanudarTour(), 60); }}
                             style={{ ...pill, border: 'none', background: T.primary, color: '#fff' }}>
                             Reanudar: {tourEnCurso.titulo}
                           </button>
                         )}
                         {TOURS.map((tr) => (
-                          <button key={tr.id} type="button" title={tr.descripcion}
+                          <button key={tr.id} type="button" title={tr.descripcion} className="btn-interactive"
                             onClick={() => { setAbierto(false); setTimeout(() => lanzarTour(tr.id), 60); }} style={pill}>
                             {tr.titulo}
                           </button>
@@ -1293,6 +1292,17 @@ export default function ChispaPanel({
                     </div>
                   );
                 })()}
+
+                {/* S23: Empty state cuando no hay mensajes */}
+                {!configGuiada && mensajes.length === 0 && (
+                  <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '30px 20px 40px', textAlign: 'center', opacity: 0.8 }}>
+                    <ChispaMascota size={56} showLabel={false} animar={!cargando} />
+                    <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginTop: 16 }}>¡Hola! Soy Chispa ✨</div>
+                    <div style={{ fontSize: 13, color: T.textSecondary, marginTop: 8, lineHeight: 1.5, maxWidth: 280 }}>
+                      Estoy lista para ayudarte. Pregúntame sobre la agenda, pide un resumen del día, o pídemelo directamente.
+                    </div>
+                  </div>
+                )}
                 {/* Turnos con AUTOR + hora. Mensajes consecutivos del mismo
                     autor se agrupan (avatar y cabecera solo en el primero);
                     entre turnos distintos hay mas aire. Asi se distingue de un
@@ -1305,18 +1315,19 @@ export default function ChispaPanel({
 
                   if (msg.role === 'user') {
                     return (
-                      <div key={i} className="chispa-msg" style={{ marginTop: margenSup, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                      <div key={i} className="chispa-msg animate-pop-in" style={{ marginTop: margenSup, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                         {primeroDelGrupo && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, paddingRight: 3 }}>
-                            <span style={{ fontSize: 11.5, fontWeight: 700, color: T.textSecondary }}>{nombreUsuario}</span>
-                            {hora ? <span style={{ fontSize: 10.5, color: T.textMuted }}>{hora}</span> : null}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, paddingRight: 4 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: T.textSecondary, letterSpacing: 0.2 }}>{nombreUsuario}</span>
+                            {hora ? <span style={{ fontSize: 10, color: T.textMuted }}>{hora}</span> : null}
                           </div>
                         )}
                         <div style={{
-                          maxWidth: '80%', padding: '9px 12px',
-                          borderRadius: primeroDelGrupo ? '14px 14px 4px 14px' : '14px 4px 4px 14px',
-                          background: T.primary, fontSize: 13.5, color: '#fff', lineHeight: 1.5,
+                          maxWidth: '80%', padding: '10px 14px',
+                          borderRadius: primeroDelGrupo ? '18px 18px 4px 18px' : '18px 4px 4px 18px',
+                          background: T.fireGradient, fontSize: 13.5, color: '#fff', lineHeight: 1.5,
                           wordBreak: 'break-word', whiteSpace: 'pre-wrap',
+                          boxShadow: '0 4px 12px rgba(244, 80, 30, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
                         }}>
                           {msg.content}
                         </div>
@@ -1326,7 +1337,7 @@ export default function ChispaPanel({
                   // Chispa: gutter con avatar (solo en el primero del grupo) +
                   // columna con cabecera (autor + hora) y sus bloques.
                   return (
-                    <div key={i} className="chispa-msg" style={{ marginTop: margenSup, display: 'flex', gap: 7, alignItems: 'flex-start' }}>
+                    <div key={i} className="chispa-msg animate-pop-in" style={{ marginTop: margenSup, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                       <div style={{ flexShrink: 0, width: 22 }}>
                         {primeroDelGrupo ? <ChispaMascota size={22} showLabel={false} animar={false} /> : null}
                       </div>
@@ -1355,7 +1366,7 @@ export default function ChispaPanel({
                 })}
 
                 {cargando && (
-                  <div className="chispa-msg" style={{ marginTop: 14, display: 'flex', gap: 7, alignItems: 'flex-start' }}>
+                  <div className="chispa-msg animate-fade-in-up" style={{ marginTop: 14, display: 'flex', gap: 7, alignItems: 'flex-start' }}>
                     <div style={{ flexShrink: 0, width: 22 }}><ChispaMascota size={22} showLabel={false} mood="think" /></div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
                       <span style={{ fontSize: 11.5, fontWeight: 700, color: T.primaryHi }}>Chispa</span>
@@ -1451,38 +1462,38 @@ export default function ChispaPanel({
             )}
 
             {/* Input */}
-            <div style={{ padding: '10px 12px 12px', borderTop: `1px solid ${T.border}`, flexShrink: 0, display: 'flex', justifyContent: amplio ? 'center' : 'stretch' }}>
+            <div style={{ padding: '12px 16px 20px', flexShrink: 0, display: 'flex', justifyContent: amplio ? 'center' : 'stretch', background: 'linear-gradient(0deg, rgba(255,253,251,0.9) 0%, rgba(255,253,251,0) 100%)' }}>
               <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined }}>
               {imagenB64 && (
-                <div style={{ padding: '8px', marginBottom: '8px', background: T.bgCard, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                   <div style={{ fontSize: '12px', color: T.textSecondary }}>Imagen adjuntada lista para enviar</div>
-                   <button onClick={() => setImagenB64(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: T.danger, fontSize: '12px', fontWeight: 600 }}>Quitar</button>
+                <div style={{ padding: '10px 14px', marginBottom: '10px', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                   <div style={{ fontSize: '12.5px', fontWeight: 600, color: T.textSecondary }}>📸 Imagen lista para enviar</div>
+                   <button className="btn-interactive" onClick={() => setImagenB64(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: T.danger, fontSize: '12px', fontWeight: 700 }}>Quitar</button>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', background: T.bgCard, border: `1.5px solid ${hayAccionPendiente ? T.border : T.borderHi}`, borderRadius: 14, padding: '8px 8px 8px 12px', transition: 'border-color 0.15s ease' }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', background: '#fff', border: `1px solid ${hayAccionPendiente ? T.border : 'rgba(40,30,24,0.08)'}`, borderRadius: 24, padding: '8px 8px 8px 16px', boxShadow: '0 8px 24px rgba(40,30,24,0.06)', transition: 'border-color 0.15s ease' }}>
                 <input
                   ref={inputRef}
                   value={texto}
                   onChange={(e) => setTexto(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje(); } }}
                   disabled={bloqueado}
-                  placeholder={hayAccionPendiente ? 'Confirma o cancela la accion primero...' : configGuiada ? 'Responde arriba para continuar, o usa Saltar/Salir...' : 'Escribe tu solicitud...'}
+                  placeholder={hayAccionPendiente ? 'Confirma o cancela la accion primero...' : configGuiada ? 'Responde arriba para continuar...' : 'Escribe tu solicitud...'}
                   aria-label="Mensaje para Chispa"
-                  style={{ flex: 1, border: 'none', background: 'transparent', color: T.text, fontSize: 13.5, fontFamily: 'Inter, system-ui, sans-serif', outline: 'none', lineHeight: 1.4, cursor: hayAccionPendiente ? 'not-allowed' : 'text' }}
+                  style={{ flex: 1, border: 'none', background: 'transparent', color: T.text, fontSize: 14, fontFamily: 'Inter, system-ui, sans-serif', outline: 'none', lineHeight: 1.4, cursor: hayAccionPendiente ? 'not-allowed' : 'text', paddingBottom: 8, paddingTop: 8 }}
                 />
                 
                 <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={manejarImagen} />
                 <button
+                  className="btn-interactive"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={bloqueado || !!imagenB64}
                   aria-label="Adjuntar imagen"
                   style={{
-                    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-                    border: `1.5px solid ${T.border}`,
-                    background: imagenB64 ? T.primarySoft : T.bgPanel,
+                    width: 38, height: 38, borderRadius: 18, flexShrink: 0,
+                    border: 'none',
+                    background: imagenB64 ? T.primarySoft : '#f4f2f0',
                     cursor: bloqueado || !!imagenB64 ? 'default' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'border-color 0.15s ease, background 0.15s ease',
                   }}>
                   <IconoImagen size={16} color={imagenB64 ? T.primaryHi : T.textSecondary} />
                 </button>

@@ -67,11 +67,21 @@ export default function BriefingAgenda({ negocioId, profile, onClose }: Briefing
   // que rankearSenales la ordene por severidad junto al resto.
   const operativas = noShow ? [...ops, noShow] : ops;
   const senales = rankearSenales(senalesSetup(status), operativas, recuperar, status.coreDone);
-  if (senales.length === 0) return null;
+  if (senales.length === 0) {
+    return (
+      <div className="animate-pop-in glass-panel" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, padding: '16px 20px', borderRadius: 16 }}>
+        <div style={{ fontSize: 24 }}>✨</div>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: T.text, letterSpacing: -0.2 }}>Todo al día</div>
+          <div style={{ fontSize: 12.5, color: T.textSecondary, marginTop: 2 }}>Tu agenda está despejada y sin alertas.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 6 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.3, color: T.textTertiary, textTransform: 'uppercase' }}>
+    <div className="animate-pop-in" style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, color: T.textTertiary, textTransform: 'uppercase', paddingLeft: 4 }}>
         Esto es lo que veo hoy
       </div>
       {senales.map((s) => {
@@ -79,36 +89,37 @@ export default function BriefingAgenda({ negocioId, profile, onClose }: Briefing
         return (
           <div
             key={s.tipo}
+            className="glass-panel"
             style={{
-              background: T.bgCard,
-              border: `1px solid ${T.border}`,
-              borderLeft: `3px solid ${COLOR_SEV[s.severidad]}`,
-              borderRadius: 12,
-              padding: '10px 12px',
+              borderLeft: `4px solid ${COLOR_SEV[s.severidad]}`,
+              borderRadius: 16,
+              padding: '14px 16px',
+              boxShadow: '0 4px 12px rgba(40,30,24,0.05)',
             }}
           >
-            <div style={{ fontSize: 13, fontWeight: 600, color: T.text, lineHeight: 1.35 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, lineHeight: 1.35 }}>
               {s.titulo}
-              {s.count > 1 ? ` · ${s.count}` : ''}
             </div>
-            <div style={{ fontSize: 12, color: T.textSecondary, marginTop: 2, lineHeight: 1.4 }}>{s.detalle}</div>
+            <div style={{ fontSize: 12.5, color: T.textSecondary, marginTop: 4, lineHeight: 1.45 }}>{s.detalle}</div>
             {navegable && s.accion ? (
               <button
+                className="btn-interactive"
                 onClick={() => irA(s)}
                 style={{
-                  marginTop: 8,
-                  padding: '6px 12px',
-                  borderRadius: 9,
+                  marginTop: 12,
+                  padding: '8px 16px',
+                  borderRadius: 24,
                   border: 'none',
-                  background: T.fireGradient,
-                  color: '#fff',
+                  background: T.bgCardHi,
+                  color: T.text,
                   fontSize: 12.5,
                   fontWeight: 700,
                   cursor: 'pointer',
                   fontFamily: 'Inter, system-ui, sans-serif',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 }}
               >
-                {s.accion.label}
+                {(s.accion.payload as any)?.label || 'Ver detalle'}
               </button>
             ) : null}
           </div>

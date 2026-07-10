@@ -214,7 +214,7 @@ function BloqueFormulario({ bloque, respondido, anchoAmplio, onEnviar }: {
   );
 
   return (
-    <div style={{ background: T.bgCard, border: `1.5px solid ${T.borderHi}`, borderRadius: 14, padding: '14px 16px' }}>
+    <div className="glass-panel" style={{ borderRadius: 18, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 12 }}>{bloque.titulo}</div>
       <div style={{
         display: 'grid',
@@ -279,7 +279,7 @@ function BloqueOpciones({ bloque, respondido, onEnviar }: {
   }
 
   return (
-    <div style={{ background: T.bgCard, border: `1.5px solid ${T.borderHi}`, borderRadius: 14, padding: '12px 14px' }}>
+    <div className="glass-panel" style={{ borderRadius: 16, padding: '14px 16px' }}>
       {bloque.titulo && <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: bloque.multiple && !enviado ? 12 : 0 }}>
         {bloque.opciones.map((o) => {
@@ -376,7 +376,7 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
     const fmt = fmtUnidad(bloque.unidad);
     const serie = bloque.serie.map((p) => ({ fecha: new Date(`${p.fecha}T00:00:00`), valor: p.valor }));
     return (
-      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px 14px' }}>
+      <div className="glass-panel" style={{ borderRadius: 16, padding: '14px 16px' }}>
         <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 8 }}>{bloque.titulo}</div>
         <LineChartMini serie={serie} color={colorUnidad(bloque.unidad)} fmt={fmt} />
       </div>
@@ -394,7 +394,7 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
       : (actual.valor > 0 ? 100 : 0);
     const colorDelta = igual ? T.textTertiary : subiendo ? T.success : T.danger;
     return (
-      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px 14px' }}>
+      <div className="glass-panel" style={{ borderRadius: 16, padding: '14px 16px' }}>
         <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{titulo}</div>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, flexWrap: 'wrap' }}>
           <div>
@@ -417,7 +417,7 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
   if (bloque.tipo === 'kpi') {
     const tarjetas = bloque.tarjetas ?? [];
     return (
-      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px 14px' }}>
+      <div className="glass-panel" style={{ borderRadius: 16, padding: '14px 16px' }}>
         {bloque.titulo && <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>}
         <div style={{ display: 'grid', gridTemplateColumns: tarjetas.length > 1 ? 'repeat(auto-fit, minmax(120px, 1fr))' : '1fr', gap: 10 }}>
           {tarjetas.map((k, i) => {
@@ -451,7 +451,7 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
   if (bloque.tipo === 'barras') {
     const fmt = fmtUnidad(bloque.unidad);
     return (
-      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px 14px' }}>
+      <div className="glass-panel" style={{ borderRadius: 16, padding: '14px 16px' }}>
         <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>
         <BarChartMini datos={bloque.datos} color={colorUnidad(bloque.unidad)} fmt={fmt} />
       </div>
@@ -469,7 +469,7 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
     const alignOf = (key: string): 'left' | 'right' =>
       (cols.find((c) => c.key === key)?.alinear === 'der' ? 'right' : 'left');
     return (
-      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px 14px', overflowX: 'auto' }}>
+      <div className="glass-panel" style={{ borderRadius: 16, padding: '14px 16px', overflowX: 'auto' }}>
         {bloque.titulo && <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>}
         {bloque.filas.length === 0 ? (
           <div style={{ fontSize: 13, color: T.textTertiary, fontStyle: 'italic' }}>No hay filas que mostrar.</div>
@@ -563,7 +563,7 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
     const aplicando = accionEstado === 'aplicando';
     const citas = citasAfectadas(accion);
     return (
-      <div style={{ background: T.bgCard, border: `1.5px solid ${T.borderHi}`, borderRadius: 14, padding: '12px 14px' }}>
+      <div className={resuelta ? "glass-panel" : "glass-panel magic-border"} style={{ borderRadius: 18, padding: '16px 18px', background: resuelta ? T.bgCard : '#fff' }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: T.text, lineHeight: 1.45, marginBottom: citas.length > 0 ? 8 : 6 }}>
           {accion.resumen}
         </div>
@@ -595,11 +595,11 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-            <button onClick={onCancelar} disabled={aplicando}
+            <button className="btn-interactive" onClick={onCancelar} disabled={aplicando}
               style={{ flex: 1, padding: '9px 0', borderRadius: 10, border: `1.5px solid ${T.border}`, background: T.bgPanel, color: T.textSecondary, fontSize: 13.5, fontWeight: 600, cursor: aplicando ? 'default' : 'pointer', opacity: aplicando ? 0.6 : 1 }}>
               Cancelar
             </button>
-            <button onClick={onConfirmar} disabled={aplicando}
+            <button className="btn-interactive" onClick={onConfirmar} disabled={aplicando}
               style={{ flex: 2, padding: '9px 0', borderRadius: 10, border: 'none', background: T.fireGradient, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: aplicando ? 'default' : 'pointer', opacity: aplicando ? 0.7 : 1, boxShadow: '0 6px 18px rgba(192,38,10,0.22)' }}>
               {aplicando ? 'Aplicando...' : 'Confirmar'}
             </button>
@@ -612,7 +612,7 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
   // --- TIMELINE: linea de tiempo de eventos historicos (Sesion 11) ---
   if (bloque.tipo === 'timeline') {
     return (
-      <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 14, padding: '16px', position: 'relative' }}>
+      <div className="glass-panel" style={{ borderRadius: 16, padding: '16px', position: 'relative' }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 16 }}>{bloque.titulo}</div>
         
         {bloque.eventos.length === 0 ? (
