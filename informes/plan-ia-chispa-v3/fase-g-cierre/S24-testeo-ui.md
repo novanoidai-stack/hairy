@@ -33,4 +33,10 @@ todas las superficies.
 [ ] commit+push  [ ] S24 marcada`
 
 ## Estado
-PENDIENTE.
+COMPLETADA.
+
+### Log de Bugs Arreglados (Evidencia)
+1. **AvisosBell (Z-Index / Render Bug)**: El dropdown de notificaciones se renderizaba detrás del contenido principal (o se veía cortado/tapado) al abrirse desde el `Sidebar` (dashboard) o páginas con un stacking context complejo como `/clientes`. 
+   - **Solución**: Refactorizado `AvisosBell.web.tsx` para usar `createPortal(..., document.body)` desde `react-dom`. Esto permite que el dropdown escape del DOM hierarchy del Sidebar/Página y se renderice siempre por encima de todo (`zIndex: 99999`).
+2. **Tipos de React-DOM**: Añadido `@types/react-dom` a `devDependencies` para mantener una compilación TypeScript limpia y sin errores de tipado implícito en `createPortal`.
+3. **Verificación**: `npx tsc --noEmit` exitoso y `npm run build:web` exitoso. Todos los botones de la capa IA y el dropdown de avisos funcionan correctamente en móvil/escritorio sin ser solapados.

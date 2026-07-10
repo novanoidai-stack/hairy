@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'expo-router';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { useAvisos } from '@/lib/hooks/useAvisos';
@@ -60,9 +61,12 @@ export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
 
   const dropdownStyle: React.CSSProperties = mode === 'header'
     ? (isMobile
-      ? { position: 'fixed', top: 58, left: 12, right: 12, maxHeight: '60vh', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 200, padding: 12 }
-      : { position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 320, maxHeight: 420, overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 200, padding: 12 })
-    : { position: 'fixed', top: 12, left: collapsed ? 84 : 248, width: 320, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 200, padding: 12 };
+      ? { position: 'fixed', top: 58, left: 12, right: 12, maxHeight: '60vh', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 }
+      : { position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 320, maxHeight: 420, overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 })
+    : { position: 'fixed', top: 12, left: collapsed ? 84 : 248, width: 320, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 };
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
@@ -85,10 +89,10 @@ export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
         )}
       </button>
 
-      {open && (
+      {open && mounted && createPortal(
         <>
-          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
-          <div style={dropdownStyle}>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 99998 }} />
+          <div style={dropdownStyle} className="animate-pop-in">
             <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span>Avisos</span>
               {avisos.total > 0 && (
@@ -226,7 +230,8 @@ export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
               </>
             )}
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );
