@@ -915,7 +915,7 @@ const TOOLS = [
       type: 'object' as const,
       properties: {
         solo_pendientes: { type: 'string', description: 'Opcional: "si" (por defecto) para mostrar solo hallazgos abiertos; "no" para incluir los resueltos' },
-        severidad: { type: 'string', description: 'Opcional: filtrar por severidad (alta | media | baja)' },
+        severidad: { type: 'string', description: 'Opcional: filtrar por severidad. Valores exactos: urgente | alta | media | baja (para "lo urgente" usa exactamente "urgente").' },
       },
     },
   },
