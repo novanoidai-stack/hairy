@@ -1,6 +1,5 @@
 // Hub "Qué hace la IA" - SESIÓN 9 PLAN-IA-CHISPA-V2-REDISENO.md
 // Catálogo discoverible de todas las funciones de IA de Mecha
-import { useRouter } from 'expo-router';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { roleOf, type Role } from '@/lib/permissions';
 import { CATALOGO_POR_CATEGORIA, type FuncionIA } from '@/lib/iaCatalogo';
@@ -87,21 +86,27 @@ function IconoSVG({ Icon, size = 18, color = T.text }: { Icon: () => React.React
 }
 
 function FilaFuncion({ fn, esGestor }: { fn: FuncionIA; esGestor: boolean }) {
-  const router = useRouter();
-
   if (fn.soloGestor && !esGestor) return null;
 
   const ir = () => {
-    if (fn.ubicacion.startsWith('/app')) {
-      router.push(fn.ubicacion as never);
-    } else if (fn.ubicacion.startsWith('?')) {
-      // Mantener la ruta actual y añadir query param
-      const current = window.location.pathname;
-      router.push(`${current}${fn.ubicacion}` as never);
-    } else {
-      // Relativo
-      router.push(`/${fn.ubicacion}` as never);
+    if (typeof window === 'undefined') return;
+    const u = fn.ubicacion;
+    // Abrir el chat de Chispa donde estas, no navegar: '?chispa=1' no es una ruta.
+    if (u.includes('chispa=1')) {
+      window.dispatchEvent(new CustomEvent('mecha-chispa-open'));
+      return;
     }
+    // Las 'ubicacion' del catalogo usan el prefijo publico '/app' (baseUrl); el
+    // router interno de expo espera hrefs '/(tabs)/...'. Ademas navegamos por el
+    // puente 'mecha-nav' del layout raiz (mismo que usa el tour): navegar con el
+    // router LOCAL desde dentro de la escena de Configuracion dejaba la pagina
+    // anterior pintada encima (overlap). Desde la raiz el cambio de pestana es limpio.
+    let ruta = u.split('?')[0].replace(/^\/app/, '');
+    // La agenda es el index del grupo; 'avisos' es una hoja, no una ruta propia.
+    const route = (ruta === '' || ruta === '/' || ruta === '/agenda' || ruta === '/avisos')
+      ? '/(tabs)'
+      : '/(tabs)' + ruta;
+    window.postMessage({ type: 'mecha-nav', route }, window.location.origin);
   };
 
   const cat = CATEGORIAS[fn.categoria];
@@ -111,9 +116,9 @@ function FilaFuncion({ fn, esGestor }: { fn: FuncionIA; esGestor: boolean }) {
       onClick={ir}
       style={{
         display: 'flex',
-        alignItems: 'flex-start',
-        gap: 14,
-        padding: '14px 16px',
+        alignItems: 'center',
+        gap: 11,
+        padding: '9px 12px',
         borderRadius: 10,
         background: T.bgCard,
         border: `1px solid ${T.border}`,
@@ -125,28 +130,23 @@ function FilaFuncion({ fn, esGestor }: { fn: FuncionIA; esGestor: boolean }) {
     >
       <div style={{
         display: 'grid', placeItems: 'center', flexShrink: 0,
-        width: 36, height: 36, borderRadius: 9, background: `${cat.color}10`,
+        width: 30, height: 30, borderRadius: 8, background: `${cat.color}10`,
       }}>
-        <IconoSVG Icon={ICONOS[fn.categoria] || ICONOS.pagina} size={18} color={cat.color} />
+        <IconoSVG Icon={ICONOS[fn.categoria] || ICONOS.pagina} size={16} color={cat.color} />
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{ fontSize: 14.5, fontWeight: 700, color: T.text }}>{fn.titulo}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 1 }}>
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fn.titulo}</span>
           {fn.soloGestor && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: cat.color, background: `${cat.color}12`, borderRadius: 999, padding: '2px 6px' }}>Solo gestor</span>
+            <span style={{ fontSize: 9.5, fontWeight: 700, color: cat.color, background: `${cat.color}12`, borderRadius: 999, padding: '1px 6px', flexShrink: 0 }}>Solo gestor</span>
           )}
         </div>
-        <p style={{ fontSize: 13, color: T.textSecondary, lineHeight: 1.5, margin: 0 }}>
+        {/* Descripcion a una sola linea (antes 2-3 lineas por fila hacian la lista
+            interminable); el detalle completo se ve al ir a la funcion. */}
+        <p style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.4, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {fn.descripcion}
         </p>
-        <div style={{ fontSize: 12, color: T.textTertiary, marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ background: T.bg, padding: '2px 8px', borderRadius: 6, fontWeight: 600 }}>
-            {cat.label}
-          </span>
-          <span>·</span>
-          <span>{fn.uso}</span>
-        </div>
       </div>
 
       <div style={{ display: 'grid', placeItems: 'center', flexShrink: 0 }}>
@@ -178,16 +178,16 @@ export function HubIA({ negocioId, rolStr }: Props) {
         if (visibles.length === 0) return null;
 
         return (
-          <div key={catKey} style={{ marginBottom: 32 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <div style={{ width: 4, height: 20, background: cat.color, borderRadius: 999 }} />
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: T.text, margin: 0 }}>{cat.label}</h3>
-              <span style={{ fontSize: 12, color: T.textTertiary, background: T.bg, padding: '2px 8px', borderRadius: 6 }}>
+          <div key={catKey} style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 4, height: 18, background: cat.color, borderRadius: 999 }} />
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: T.text, margin: 0 }}>{cat.label}</h3>
+              <span style={{ fontSize: 11.5, color: T.textTertiary, background: T.bg, padding: '2px 8px', borderRadius: 6 }}>
                 {visibles.length} {visibles.length === 1 ? 'función' : 'funciones'}
               </span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               {visibles.map((fn) => (
                 <FilaFuncion key={fn.id} fn={fn} esGestor={esGestor} />
               ))}

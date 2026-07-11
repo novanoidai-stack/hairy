@@ -616,7 +616,14 @@ export default function ChispaPanel({
     if (typeof window === 'undefined') return;
     const handler = () => { setAbierto(true); iniciarConfigGuiada(); };
     window.addEventListener(CHISPA_CONFIG_GUIADA_EVENT, handler);
-    return () => window.removeEventListener(CHISPA_CONFIG_GUIADA_EVENT, handler);
+    // Apertura simple (sin config guiada): el hub "Que hace la IA" abre el chat
+    // en su sitio en vez de navegar a una ruta inexistente (?chispa=1).
+    const abrirHandler = () => setAbierto(true);
+    window.addEventListener('mecha-chispa-open', abrirHandler);
+    return () => {
+      window.removeEventListener(CHISPA_CONFIG_GUIADA_EVENT, handler);
+      window.removeEventListener('mecha-chispa-open', abrirHandler);
+    };
   });
 
   useEffect(() => {

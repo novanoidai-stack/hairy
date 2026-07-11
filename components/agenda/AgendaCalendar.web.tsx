@@ -6931,7 +6931,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
 
             {/* Confirmacion del cliente */}
             <div>
-              <Label>Confirmacion del cliente</Label>
+              <Label>Confirmacion de asistencia (cliente)</Label>
               <button
                 type="button"
                 onClick={toggleConfirma}
@@ -6983,14 +6983,14 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>
-                    {confirmadaCliente ? 'Confirmada por el cliente' : 'Sin confirmar por el cliente'}
+                    {confirmadaCliente ? 'El cliente confirmo que asistira' : 'El cliente aun no ha confirmado asistencia'}
                   </div>
                   <div style={{ fontSize: 11, color: confirmadaCliente ? 'rgba(16,185,129,0.80)' : 'rgba(239,68,68,0.80)', fontWeight: 500 }}>
                     {togglingConfirma
                       ? 'Guardando...'
                       : confirmadaCliente
-                        ? 'Toca para desmarcar'
-                        : 'Toca para marcarla como confirmada'}
+                        ? 'Toca para desmarcar (independiente del estado de la cita)'
+                        : 'Toca para marcar que el cliente confirmo su asistencia'}
                   </div>
                 </div>
                 <div style={{
