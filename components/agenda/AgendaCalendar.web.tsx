@@ -534,6 +534,10 @@ export default function AgendaCalendar() {
   // Colapso de la barra de filtros (vista/servicio/estado). En movil arranca plegada:
   // ocupa demasiado alto y el dia es la vista principal; se despliega con el chip "Filtros".
   const [toolbarCollapsed, setToolbarCollapsed] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  // Tarjeta de "Optimización de Agenda" (IA): en movil ocupaba media pantalla
+  // encima de la rejilla (queja de ruido visual). Arranca plegada tras un chip
+  // compacto y solo se despliega si el usuario la pide; en escritorio sigue abierta.
+  const [iaHelperOpen, setIaHelperOpen] = useState<boolean>(() => typeof window === 'undefined' || window.innerWidth >= 768);
   // Colapso independiente de los bloques del rail lateral (KPIs y mini-calendario)
   const [kpisCollapsed, setKpisCollapsed] = useState(false);
   const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
@@ -1006,8 +1010,11 @@ export default function AgendaCalendar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h1 style={{ margin: 0, fontSize: 19, fontWeight: 700, letterSpacing: -0.3, flexShrink: 0 }}>Agenda</h1>
-            {userProfile?.role && (
-              <span style={{ fontSize: 10, fontWeight: 700, color: roleTheme.badgeColor, background: roleTheme.badgeBg, padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+            {/* Badge de rol solo en escritorio: en movil no cabe junto al titulo y
+                los botones de accion, y acababa tapado por ellos. El rol sigue
+                visible en la hoja de cuenta ("Mas"). */}
+            {!isMobile && userProfile?.role && (
+              <span style={{ fontSize: 10, fontWeight: 700, color: roleTheme.badgeColor, background: roleTheme.badgeBg, padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: 0.3, flexShrink: 0, whiteSpace: 'nowrap' }}>
                 {roleLabelText(userProfile.role)}
               </span>
             )}
@@ -1820,21 +1827,34 @@ export default function AgendaCalendar() {
                 </div>
               </div>
 
-              {/* IA Helper Card */}
+              {/* IA Helper Card. En movil arranca plegada tras un chip compacto
+                  para no comerse la agenda; en escritorio va desplegada. */}
               <div style={{ margin: isMobile ? '0 12px 12px' : '0 14px 14px' }}>
-                <TarjetaAyudaIA
-                  titulo="Optimización de Agenda"
-                  subtitulo="IA: Reduce tiempos muertos y mejora la ocupación del salón"
-                  estado={ayudaIA.estado}
-                  onAnalizar={handleAnalizarAgenda}
-                  onReintentar={ayudaIA.reintentar}
-                  botonLabel="Analizar jornada"
-                  resumenDeterminista={
-                    <div>
-                      Hay <b>{citasHoy.length}</b> citas programadas para el día seleccionado.
-                    </div>
-                  }
-                />
+                {isMobile && !iaHelperOpen ? (
+                  <button
+                    onClick={() => setIaHelperOpen(true)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 11, cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l1.8 5.6L19.5 10.4l-5.7 1.8L12 18l-1.8-5.8L4.5 10.4l5.7-1.8L12 3z" stroke={roleTheme.primary} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" /></svg>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>Optimización de Agenda</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: TOKENS.textTer }}>{citasHoy.length} citas</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={TOKENS.textTer} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+                  </button>
+                ) : (
+                  <TarjetaAyudaIA
+                    titulo="Optimización de Agenda"
+                    subtitulo="IA: Reduce tiempos muertos y mejora la ocupación del salón"
+                    estado={ayudaIA.estado}
+                    onAnalizar={handleAnalizarAgenda}
+                    onReintentar={ayudaIA.reintentar}
+                    botonLabel="Analizar jornada"
+                    resumenDeterminista={
+                      <div>
+                        Hay <b>{citasHoy.length}</b> citas programadas para el día seleccionado.
+                      </div>
+                    }
+                  />
+                )}
               </div>
 
               {/* Selector de profesional en movil: UNO a la vez (switcher con flechas
@@ -3019,20 +3039,26 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
               background: TOKENS.danger,
               boxShadow: `0 0 12px ${TOKENS.danger}`,
             }} />
+            {/* Hora "ahora" en la columna de horas (gutter), no sobre las citas:
+                antes iba a left:8 dentro de la rejilla y tapaba la esquina de la
+                cita en curso. La linea discontinua + el punto rojo ya marcan el
+                ahora; aqui solo la hora, alineada a la derecha del gutter. */}
             <div style={{
               position: 'absolute',
-              left: 8,
-              top: -10,
-              fontSize: 9,
-              fontWeight: 700,
+              left: -56,
+              top: -8,
+              width: 50,
+              textAlign: 'right',
+              fontSize: 9.5,
+              fontWeight: 800,
               color: TOKENS.danger,
               background: TOKENS.bg,
-              padding: '2px 6px',
+              padding: '1px 4px',
               borderRadius: 4,
-              border: `1px solid ${TOKENS.danger}55`,
               whiteSpace: 'nowrap',
+              fontVariantNumeric: 'tabular-nums',
             }}>
-              {now.getHours().toString().padStart(2, '0')}:{now.getMinutes().toString().padStart(2, '0')} AHORA
+              {now.getHours().toString().padStart(2, '0')}:{now.getMinutes().toString().padStart(2, '0')}
             </div>
           </div>
         )}

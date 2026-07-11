@@ -37,7 +37,7 @@ function FilaCargando({ tip }: { tip: string }) {
           padding: '8px 10px', borderRadius: 8, border: `1px dashed ${T.border}`,
           display: 'flex', flexDirection: 'column', gap: 2
         }}>
-          <span style={{ fontWeight: 700, color: T.primaryHi, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 0.3 }}>💡 Tip de Chispa</span>
+          <span style={{ fontWeight: 700, color: T.primaryHi, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 0.3 }}>Tip de Chispa</span>
           <span>{tip}</span>
         </div>
       ) : null}

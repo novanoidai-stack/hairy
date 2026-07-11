@@ -279,7 +279,7 @@ export default function OrganizarAgendaPanel({
         </div>
 
         {/* Acciones */}
-        <div style={{ display: 'flex', gap: 10, padding: '4px 20px 20px' }}>
+        <div style={{ display: 'flex', gap: 10, padding: isMobile ? '4px 20px 88px' : '4px 20px 20px' }}>
           <button onClick={onClose} disabled={bloqueado} style={{ flex: 1, padding: '13px', borderRadius: 13, border: `1.5px solid ${T.border}`, background: T.card, color: T.textSec, fontSize: 14.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer' }}>
             Cerrar
           </button>
