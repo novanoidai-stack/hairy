@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useGlobalSearchParams, usePathname } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { ejecutarAccion, deshacerAccion, type AccionPropuesta } from '@/lib/agendaOps';
-import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, CHISPA_ORGANIZAR_EVENT, CHISPA_ORGANIZAR_FLAG, type Bloque } from '@/lib/chispaBloques';
+import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, CHISPA_ORGANIZAR_EVENT, CHISPA_ORGANIZAR_FLAG, CHISPA_WAKE_EVENT, type Bloque } from '@/lib/chispaBloques';
 import { estructurarBloques } from '@/lib/chispaEstructura';
 import { elegirFormatoDatos } from '@/lib/chispaFormato';
 import { lanzarCoach } from '@/lib/coachGuias';
@@ -15,6 +15,7 @@ import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { MotionStyles } from '@/lib/motion';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { useChispaVoz } from '@/lib/hooks/useChispaVoz.web';
+import { useChispaWakeWord } from '@/lib/hooks/useChispaWakeWord.web';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import BriefingAgenda from '@/components/agenda/BriefingAgenda';
 import {
@@ -49,6 +50,9 @@ const HILO_KEY_PREFIX = 'mecha-chispa-hilo:';
 // se ofrece una sola vez por navegador mientras el nucleo del negocio no este
 // completo. Retirado ese overlay (Sesion 2 V2): el flujo vive dentro de Chispa.
 const ONBOARDING_AUTO_KEY_PREFIX = 'mecha-chispa-onboarding-auto:';
+// Modo conversacion (voz manos libres): preferencia por navegador, igual
+// patron que motorVoz/vozActiva en useChispaVoz.web.ts.
+const MODO_CONVERSACION_KEY = 'mecha-chispa-modo-conversacion';
 
 // Duracion de la animacion de cierre del drawer (ms). Debe coincidir con
 // chispaDrawerOut/chispaBackdropOut de abajo: el drawer se mantiene montado
@@ -74,6 +78,8 @@ const PANEL_STYLES = `
   @keyframes chispaTypewriter { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes chispaStatusPulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(15,157,107,0.14); } 50% { box-shadow: 0 0 0 3px rgba(15,157,107,0.28), 0 0 6px rgba(15,157,107,0.4); } }
   .chispa-status-dot { animation: chispaStatusPulse 2.4s ease-in-out infinite; }
+  @keyframes chispaMicPulso { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+  .chispa-mic-pulso { animation: chispaMicPulso 1.4s ease-in-out infinite; }
   .chispa-msg { animation: chispaMsgIn 0.3s cubic-bezier(0.16,1,0.3,1); }
   .chispa-drawer { animation: chispaDrawerIn 0.36s cubic-bezier(0.16,1,0.3,1); }
   .chispa-drawer-closing { animation: chispaDrawerOut 0.28s cubic-bezier(0.4,0,1,1) forwards; }
@@ -88,7 +94,7 @@ const PANEL_STYLES = `
   .chispa-text-bubble ul, .chispa-text-bubble ol { margin: 4px 0; padding-left: 18px; }
   .chispa-text-bubble li { margin-bottom: 2px; }
   @media (prefers-reduced-motion: reduce) {
-    .chispa-msg, .chispa-drawer, .chispa-drawer-closing, .chispa-backdrop, .chispa-backdrop-closing, .chispa-launch-tab, .chispa-logo-badge, .chispa-typewriter-word, .chispa-status-dot { animation: none !important; }
+    .chispa-msg, .chispa-drawer, .chispa-drawer-closing, .chispa-backdrop, .chispa-backdrop-closing, .chispa-launch-tab, .chispa-logo-badge, .chispa-typewriter-word, .chispa-status-dot, .chispa-mic-pulso { animation: none !important; }
   }
 `;
 
@@ -136,6 +142,31 @@ function IconoRayo({ size = 16, color = '#fff' }: { size?: number; color?: strin
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true">
       <path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z" />
+    </svg>
+  );
+}
+
+// Modo conversacion por voz (bucle de turnos manos libres): dos flechas en
+// circulo. El punto central se muestra cuando esta activo.
+function IconoConversacion({ size = 15, color = T.textSecondary, activo = false }: { size?: number; color?: string; activo?: boolean }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M17 2l4 4-4 4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M21 6H8a5 5 0 0 0-5 5v1" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7 22l-4-4 4-4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 18h13a5 5 0 0 0 5-5v-1" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      {activo && <circle cx="12" cy="12" r="1.5" fill={color} />}
+    </svg>
+  );
+}
+
+// "Nueva conversacion" (borra el historial trivial acumulado): icono de
+// redactar/empezar de cero, patron habitual de chat.
+function IconoNueva({ size = 15, color = T.textSecondary }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M12 20h9" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -425,6 +456,29 @@ export default function ChispaPanel({
   // Voz (Sesion 5): microfono + lectura en voz alta. Todo vive en el hook;
   // aqui solo se conecta a los puntos donde se anaden mensajes.
   const voz = useChispaVoz(chispaVozId);
+  // Modo conversacion (voz manos libres): tras cada respuesta, el microfono se
+  // reabre solo (ver efectos mas abajo). Preferencia por navegador.
+  const [modoConversacion, setModoConversacionState] = useState(false);
+  useEffect(() => {
+    try { setModoConversacionState(localStorage.getItem(MODO_CONVERSACION_KEY) === '1'); } catch { /* no critico */ }
+  }, []);
+  const setModoConversacion = (v: boolean) => {
+    setModoConversacionState(v);
+    try { localStorage.setItem(MODO_CONVERSACION_KEY, v ? '1' : '0'); } catch { /* no critico */ }
+  };
+  // Sesion de conversacion por voz abierta con "Hola Mecha": permite el bucle de
+  // turnos manos libres SOLO durante esa sesion aunque el toggle persistente este
+  // apagado (se limpia al cerrar el panel). No es estado de React (no necesita
+  // re-render: solo lo leen los efectos de re-arme cuando corresponde).
+  const sesionVozRef = useRef(false);
+  // El ultimo turno lo inicio la VOZ (no el teclado): evita que el microfono se
+  // reabra solo despues de que el usuario ESCRIBA un mensaje en modo conversacion.
+  const ultimaEntradaVozRef = useRef(false);
+  // Palabra de activacion "Hola Mecha": se monta solo por su EFECTO (escucha
+  // en segundo plano). El toggle que la activa/desactiva vive en Configuracion >
+  // Voz (TabVoz), asi que aqui no se usa el valor de retorno. Nunca en la demo
+  // ni cuando el panel esta montado solo para el onboarding.
+  useChispaWakeWord(!soloOnboarding && !IS_DEMO_MODE);
   // Modo comparacion A/B (solo dev/decision, no para clientas): ?vozab=1 en la
   // URL muestra el selector de motor de voz para decidir si compensa el plan
   // de pago de ElevenLabs frente al speechSynthesis gratis del navegador.
@@ -501,6 +555,11 @@ export default function ChispaPanel({
   // Cierre animado del panel: usado por la X, el backdrop, Escape y cualquier
   // atajo que cierre Chispa para abrir otra cosa encima (coach/tours).
   function cerrarPanel() {
+    // Cerrar el panel termina cualquier conversacion por voz en curso (incluida
+    // la abierta por "Hola Mecha") y corta la escucha/habla activa.
+    sesionVozRef.current = false;
+    voz.detenerEscucha();
+    voz.detenerHabla();
     setCerrando(true);
     setTimeout(() => { setAbierto(false); setCerrando(false); }, DRAWER_CLOSE_MS);
   }
@@ -689,6 +748,88 @@ export default function ChispaPanel({
     iniciarConfigGuiada();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [esGestorOnboarding, onbStatus.ready, onbStatus.coreDone, negocioId, mensajes.length]);
+
+  // Nueva conversacion (feedback: un hilo que solo guarda "hola" -> saludo no
+  // tiene sentido). Limpia el hilo en pantalla Y el persistido, corta voz y
+  // resetea la config guiada. Deja el panel abierto y listo para empezar.
+  function limpiarConversacion() {
+    voz.detenerEscucha();
+    voz.detenerHabla();
+    sesionVozRef.current = false;
+    ultimaEntradaVozRef.current = false;
+    setMensajes([]);
+    setConfigGuiada(false);
+    setTemaIdx(0);
+    setRespuestasInteractivas({});
+    setUltimaAccion(null);
+    bloqueDescriptorRef.current = {};
+    ctxOnboardingRef.current = { negocioId, profesionalesCreados: [], serviciosCreados: [], datosNegocioSesion: undefined };
+    try {
+      if (IS_DEMO_MODE) {
+        localStorage.removeItem(`${HILO_KEY_PREFIX}${negocioId}:${profile.id}`);
+      } else {
+        void supabase.from('chispa_memoria').delete()
+          .eq('negocio_id', negocioId).eq('tipo', 'hilo')
+          .eq('clave', 'sesion_actual').eq('usuario_id', profile.id);
+      }
+    } catch { /* borrado best-effort: no bloquea limpiar la UI */ }
+    setTimeout(() => inputRef.current?.focus(), 60);
+  }
+
+  // Modo conversacion / "Hola Mecha": re-arme automatico del microfono tras un
+  // turno HABLADO. Solo si (a) hay modo manos libres activo (toggle persistente
+  // o sesion abierta por palabra de activacion) y (b) el ultimo turno lo inicio
+  // la voz — asi escribir un mensaje no reabre el microfono de sopeton. Nunca se
+  // re-arma mientras Chispa habla (evita captar su propia voz por el altavoz).
+  const prevEstadoVozRef = useRef(voz.estado);
+  useEffect(() => {
+    const prev = prevEstadoVozRef.current;
+    prevEstadoVozRef.current = voz.estado;
+    const manosLibres = modoConversacion || sesionVozRef.current;
+    if (!manosLibres || !abierto || !ultimaEntradaVozRef.current) return;
+    if (prev === 'hablando' && voz.estado === 'inactivo') {
+      setTimeout(() => iniciarTurnoVoz(), 300);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voz.estado, modoConversacion, abierto]);
+
+  // Con el altavoz apagado no hay fase 'hablando': el turno termina cuando se
+  // renderiza la respuesta (cargando true -> false). Con el altavoz activo, lo
+  // gestiona el efecto de arriba (evita re-armar dos veces).
+  const prevCargandoRef = useRef(cargando);
+  useEffect(() => {
+    const prev = prevCargandoRef.current;
+    prevCargandoRef.current = cargando;
+    const manosLibres = modoConversacion || sesionVozRef.current;
+    if (!manosLibres || !abierto || voz.vozActiva || !ultimaEntradaVozRef.current) return;
+    if (prev && !cargando) {
+      setTimeout(() => iniciarTurnoVoz(), 500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cargando, modoConversacion, abierto, voz.vozActiva]);
+
+  // Palabra de activacion "Hola Mecha": al detectarla en cualquier pantalla, se
+  // abre el panel y empieza una conversacion por voz (sesionVozRef: el bucle
+  // manos libres funciona aunque el toggle de conversacion este apagado). Si el
+  // usuario dijo un comando en la misma frase ("hola mecha, cuanto llevo hoy"),
+  // se envia directamente; si no, se abre el microfono para que hable.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (ev: Event) => {
+      const detalle = (ev as CustomEvent<{ comando?: string | null }>).detail;
+      setAbierto(true);
+      sesionVozRef.current = true;
+      ultimaEntradaVozRef.current = true;
+      if (detalle?.comando) {
+        void enviarMensaje(detalle.comando);
+      } else {
+        setTimeout(() => iniciarTurnoVoz(), 400);
+      }
+    };
+    window.addEventListener(CHISPA_WAKE_EVENT, handler);
+    return () => window.removeEventListener(CHISPA_WAKE_EVENT, handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // S05: ventana temporal para deshacer (10s). Pasado ese tiempo, la opcion desaparece.
   useEffect(() => {
@@ -986,22 +1127,33 @@ export default function ChispaPanel({
     }
   }
 
-  // Click en el boton de microfono: toggle. Si ya esta escuchando/transcribiendo,
-  // el mismo boton corta. Si esta hablando, primero corta la voz (no tiene
-  // sentido escuchar mientras Chispa habla). El texto reconocido se manda solo
-  // (flujo manos libres); PR-12 sigue protegiendo cualquier escritura real con
-  // la tarjeta de confirmacion, asi que un fallo de transcripcion no ejecuta nada.
-  function manejarClicMicro() {
-    if (voz.estado === 'escuchando' || voz.estado === 'transcribiendo') {
-      voz.detenerEscucha();
-      return;
-    }
-    if (bloqueado) return;
-    if (voz.estado === 'hablando') voz.detenerHabla();
+  // Arranca un turno de escucha: se reutiliza tanto para el clic manual del
+  // microfono como para el re-arme automatico del modo conversacion y para la
+  // palabra de activacion (tras abrir el panel). Marca el turno como "de voz"
+  // para que el bucle manos libres solo se re-arme tras hablar, no tras escribir.
+  function iniciarTurnoVoz() {
+    if (voz.estado !== 'inactivo' || bloqueado) return;
     void voz.iniciarEscucha((textoReconocido: string) => {
+      ultimaEntradaVozRef.current = true;
       setTexto(textoReconocido);
       void enviarMensaje(textoReconocido);
     });
+  }
+
+  // Click en el boton de microfono. Si ya esta escuchando, el mismo boton
+  // TERMINA el turno y envia lo oido hasta ahora (manos libres de verdad: no
+  // descarta como antes, y no hay que esperar el silencio completo si hay prisa).
+  // Si esta hablando, primero corta la voz. PR-12 sigue protegiendo cualquier
+  // escritura real con la tarjeta de confirmacion.
+  function manejarClicMicro() {
+    if (voz.estado === 'escuchando') {
+      voz.finalizarEscucha();
+      return;
+    }
+    if (voz.estado === 'transcribiendo') return; // ya en curso, nada que hacer
+    if (bloqueado) return;
+    if (voz.estado === 'hablando') voz.detenerHabla();
+    iniciarTurnoVoz();
   }
 
   async function manejarImagen(e: React.ChangeEvent<HTMLInputElement>) {
@@ -1362,6 +1514,21 @@ export default function ChispaPanel({
                 }}>
                 <IconoAltavoz size={15} color={voz.vozActiva ? T.primaryHi : T.textSecondary} activo={voz.vozActiva} />
               </button>
+              {/* Modo conversacion por voz: el microfono se reabre solo tras
+                  cada respuesta, para hablar con Chispa sin tocar nada. */}
+              <button
+                onClick={() => setModoConversacion(!modoConversacion)}
+                aria-label={modoConversacion ? 'Desactivar conversacion por voz' : 'Activar conversacion por voz (el microfono se reabre solo tras cada respuesta)'}
+                aria-pressed={modoConversacion}
+                title={modoConversacion ? 'Conversacion por voz activa: el microfono se reabre solo tras cada respuesta' : 'Activar conversacion por voz (manos libres)'}
+                style={{
+                  width: 30, height: 30, borderRadius: 8,
+                  border: `1px solid ${modoConversacion ? T.primary : T.border}`,
+                  background: modoConversacion ? T.primarySoft : T.bgCard,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                <IconoConversacion size={15} color={modoConversacion ? T.primaryHi : T.textSecondary} activo={modoConversacion} />
+              </button>
               {/* Coach intra-pagina (S16): cierra el panel y resalta los
                   elementos de la pantalla actual explicandolos in-situ. */}
               <button
@@ -1374,6 +1541,17 @@ export default function ChispaPanel({
                   <circle cx="12" cy="12" r="3.2" fill={T.primary} />
                 </svg>
               </button>
+              {/* Nueva conversacion: solo con historial y fuera de la config
+                  guiada (no tiene sentido borrar a mitad de la puesta en marcha). */}
+              {mensajes.length > 0 && !configGuiada && (
+                <button
+                  onClick={limpiarConversacion}
+                  aria-label="Nueva conversacion"
+                  title="Nueva conversacion (borra el historial)"
+                  style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <IconoNueva size={15} color={T.textSecondary} />
+                </button>
+              )}
               {!isMobile && (
                 <button
                   onClick={alternarPantallaCompleta}
@@ -1755,7 +1933,7 @@ export default function ChispaPanel({
                 <input
                   ref={inputRef}
                   value={texto}
-                  onChange={(e) => setTexto(e.target.value)}
+                  onChange={(e) => { setTexto(e.target.value); ultimaEntradaVozRef.current = false; }}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje(); } }}
                   disabled={bloqueado}
                   placeholder={hayAccionPendiente ? 'Confirma o cancela la accion primero...' : configGuiada ? 'Responde arriba para continuar...' : 'Escribe tu solicitud...'}
@@ -1782,8 +1960,9 @@ export default function ChispaPanel({
                 <button
                   onClick={manejarClicMicro}
                   disabled={bloqueado && voz.estado === 'inactivo'}
-                  aria-label={voz.estado === 'escuchando' ? 'Detener escucha' : voz.estado === 'transcribiendo' ? 'Transcribiendo' : 'Hablar a Chispa'}
+                  aria-label={voz.estado === 'escuchando' ? 'Terminar y enviar' : voz.estado === 'transcribiendo' ? 'Transcribiendo' : 'Hablar a Chispa'}
                   aria-pressed={voz.estado === 'escuchando'}
+                  className={voz.estado === 'escuchando' ? 'chispa-mic-pulso' : undefined}
                   style={{
                     width: 34, height: 34, borderRadius: 10, flexShrink: 0,
                     border: `1.5px solid ${voz.estado === 'escuchando' ? T.danger : T.border}`,
@@ -1791,7 +1970,10 @@ export default function ChispaPanel({
                     cursor: bloqueado && voz.estado === 'inactivo' ? 'default' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     opacity: voz.estado === 'transcribiendo' ? 0.6 : 1,
-                    transition: 'border-color 0.15s ease, background 0.15s ease',
+                    boxShadow: voz.estado === 'escuchando'
+                      ? `0 0 0 ${2 + Math.round(voz.nivelAudio * 8)}px rgba(226,59,52,${(0.12 + voz.nivelAudio * 0.25).toFixed(2)})`
+                      : 'none',
+                    transition: 'border-color 0.15s ease, background 0.15s ease, box-shadow 0.08s linear',
                   }}>
                   <IconoMicro size={16} color={voz.estado === 'escuchando' ? T.danger : T.textSecondary} />
                 </button>
@@ -1810,8 +1992,14 @@ export default function ChispaPanel({
                   {voz.estado !== 'inactivo' && (
                     <span style={{ width: 6, height: 6, borderRadius: 999, background: voz.errorVoz ? T.textMuted : T.primary, animation: voz.errorVoz ? 'none' : 'chispaDot 1s ease-in-out infinite', flexShrink: 0, marginTop: 4 }} />
                   )}
-                  <span style={{ fontSize: 11.5, color: voz.errorVoz ? T.warning : T.textTertiary, lineHeight: 1.4 }}>
-                    {voz.errorVoz ?? (voz.estado === 'escuchando' ? 'Escuchando... habla ahora' : voz.estado === 'transcribiendo' ? 'Transcribiendo tu voz...' : voz.estado === 'hablando' ? 'Chispa está hablando...' : '')}
+                  <span style={{ fontSize: 11.5, color: voz.errorVoz ? T.warning : T.textTertiary, lineHeight: 1.4, fontStyle: voz.transcripcionParcial ? 'italic' : 'normal' }}>
+                    {voz.errorVoz ?? (
+                      voz.estado === 'escuchando'
+                        ? (voz.transcripcionParcial ? `"${voz.transcripcionParcial}"` : 'Escuchando... habla ahora')
+                        : voz.estado === 'transcribiendo' ? 'Transcribiendo tu voz...'
+                        : voz.estado === 'hablando' ? 'Chispa está hablando...'
+                        : ''
+                    )}
                   </span>
                 </div>
               )}
