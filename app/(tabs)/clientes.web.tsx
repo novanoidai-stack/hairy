@@ -1889,7 +1889,18 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
             style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.primary}`, color: TOKENS.primary, borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
           >
             <Icon name="sparkle" size={12} color={TOKENS.primary} />
-            Probar Color IA ✨
+            Probar Color IA
+          </button>
+          {/* Atajo directo al dictado (dentro del editor de ficha ya hay 'Dictar
+              Formula (Manos libres)'): lo hacemos descubrible desde la cabecera. */}
+          <button
+            className="m-btn-secondary"
+            onClick={() => setShowAdd(true)}
+            title="Crea una ficha dictando la formula con la voz"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.primary}`, color: TOKENS.primary, borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
+          >
+            <Icon name="mic" size={12} color={TOKENS.primary} />
+            Dictar
           </button>
           <button
             className="m-btn-secondary"

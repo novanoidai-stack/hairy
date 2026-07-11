@@ -520,6 +520,15 @@ function PresupuestosScreen() {
   const [nlInput, setNlInput] = useState('');
   const [ultimoNlInput, setUltimoNlInput] = useState('');
   const [respuestasFormularioIA, setRespuestasFormularioIA] = useState<Record<string, unknown>>({});
+  // "Cambiar esto": correccion determinista sin chat. En vez de que la IA "espere
+  // tu respuesta" (no hay conversacion aqui), el usuario escribe el ajuste y se
+  // reenvia la descripcion original + la correccion como un nuevo one-shot.
+  const [correccionIA, setCorreccionIA] = useState('');
+
+  const lanzarPresupuestoIA = (texto: string) => {
+    const cat = conceptos.map(c => `${c.nombre} (${eur(c.precio_cents)})`).join(', ');
+    ayudaPresupuestoIA.analizar(`Crea un presupuesto con esta descripción: "${texto}". Utiliza este catálogo como referencia para los precios: ${cat}. Propón siempre líneas concretas con lo que tengas; no pidas confirmación por chat.`);
+  };
 
   const handleNlSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -527,9 +536,37 @@ function PresupuestosScreen() {
     if (!texto) return;
     setUltimoNlInput(texto);
     setRespuestasFormularioIA({});
-    const cat = conceptos.map(c => `${c.nombre} (${eur(c.precio_cents)})`).join(', ');
-    ayudaPresupuestoIA.analizar(`Crea un presupuesto con esta descripción: "${texto}". Utiliza este catálogo como referencia para los precios: ${cat}`);
+    setCorreccionIA('');
+    lanzarPresupuestoIA(texto);
     setNlInput('');
+  };
+
+  // "Cambiar esto": reenvia la descripcion original + el ajuste del usuario.
+  const handleCorreccionIA = () => {
+    const ajuste = correccionIA.trim();
+    if (!ajuste || !ultimoNlInput) return;
+    setRespuestasFormularioIA({});
+    lanzarPresupuestoIA(`${ultimoNlInput}. Ajusta esto: ${ajuste}`);
+    setCorreccionIA('');
+  };
+
+  // Fallback determinista: abre el editor con lo que haya (o en blanco con el
+  // texto como titulo) para que NUNCA te quedes sin poder crear el presupuesto.
+  const abrirEditorConLoQueHaya = () => {
+    if (!profile) return;
+    const borrador: Presupuesto = {
+      id: '', negocio_id: profile.negocio_id, numero: null, estado: 'borrador',
+      cliente_id: null, contacto_nombre: null,
+      contacto_telefono: null, contacto_email: null, profesional_id: null,
+      titulo: ultimoNlInput || null, notas: null, total_cents: 0, valido_hasta: null,
+      cita_id: null, cobro_id: null, token: '', pdf_path: null, whatsapp_solicitado: false,
+      enviado_email_at: null, enviado_whatsapp_at: null, aceptado_at: null,
+      created_at: new Date().toISOString(),
+      lineas: [],
+    };
+    setEditor({ open: true, initial: borrador, origenIA: true });
+    ayudaPresupuestoIA.reset();
+    setRespuestasFormularioIA({});
   };
 
   // Bloque 'formulario' del edge (Sesion 3, "actua con minima info": precio que
@@ -697,8 +734,11 @@ function PresupuestosScreen() {
                 </div>
               )}
               {ayudaPresupuestoIA.estado.tipo === 'vacio' && (
-                <div style={{ fontSize: 13, color: T.textTer }}>
-                  Chispa no ha podido extraer líneas de esa descripción. Prueba a ser más concreto (servicios y, si no están en el catálogo, precio).
+                <div>
+                  <div style={{ fontSize: 13, color: T.textTer, marginBottom: 10 }}>
+                    Chispa no ha podido extraer líneas de esa descripción. Prueba a ser más concreto (servicios y, si no están en el catálogo, precio), o ábrelo en el editor y ajústalo a mano.
+                  </div>
+                  <button onClick={abrirEditorConLoQueHaya} style={{ background: 'none', border: `1px solid ${T.border}`, color: T.textSec, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', borderRadius: 8, padding: '7px 12px' }}>Abrir editor y crearlo a mano</button>
                 </div>
               )}
               {ayudaPresupuestoIA.estado.tipo === 'error' && (
@@ -724,7 +764,23 @@ function PresupuestosScreen() {
                       />
                     ))}
                   </div>
-                  <div style={{ textAlign: 'right', marginTop: 10 }}>
+                  {/* "Cambiar esto": ajuste determinista sin chat + salida siempre
+                      disponible al editor, para no quedarte esperando una respuesta. */}
+                  <div style={{ marginTop: 12, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: 10 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.textSec, marginBottom: 6 }}>¿No es lo que querías? Cámbialo:</div>
+                    <div style={{ display: 'flex', gap: 8, flexDirection: isMobile ? 'column' : 'row' }}>
+                      <input
+                        value={correccionIA}
+                        onChange={e => setCorreccionIA(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCorreccionIA(); } }}
+                        placeholder="Ej: quita el corte y añade tratamiento de keratina a 40€"
+                        style={{ flex: 1, padding: '10px 12px', background: T.card, border: `1px solid ${T.border}`, borderRadius: 9, fontSize: 13, color: T.text, boxSizing: 'border-box' }}
+                      />
+                      <button onClick={handleCorreccionIA} disabled={!correccionIA.trim()} className="p-btn" style={{ padding: '10px 16px', background: correccionIA.trim() ? T.primary : T.borderHi, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', cursor: correccionIA.trim() ? 'pointer' : 'not-allowed' }}>Cambiar</button>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+                    <button onClick={abrirEditorConLoQueHaya} style={{ background: 'none', border: `1px solid ${T.border}`, color: T.textSec, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', borderRadius: 8, padding: '7px 12px' }}>Abrir editor y ajustar a mano</button>
                     <button onClick={() => ayudaPresupuestoIA.reset()} style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Ocultar sugerencia</button>
                   </div>
                 </>
