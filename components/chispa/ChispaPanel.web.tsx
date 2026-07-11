@@ -10,7 +10,6 @@ import { elegirFormatoDatos } from '@/lib/chispaFormato';
 import { lanzarCoach } from '@/lib/coachGuias';
 import { TOURS, lanzarTour, reanudarTour, leerProgresoTour, tourPorId } from '@/lib/tours';
 import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
-import { ChispaMascota } from '@/components/chispa/ChispaMascota.web';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { MotionStyles } from '@/lib/motion';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -59,9 +58,14 @@ const MODO_CONVERSACION_KEY = 'mecha-chispa-modo-conversacion';
 // (abierto=true) mientras dura, para que la salida se vea, no desaparezca de golpe.
 const DRAWER_CLOSE_MS = 280;
 
+// Ancho de la columna de contenido en pantalla completa (desktop). Antes se
+// centraba a 760 (apenas mas que el drawer de 400), por eso "no se ganaba nada"
+// al maximizar. Con mas ancho + rejilla de prompts, el espacio se aprovecha.
+const ANCHO_AMPLIO = 1000;
+
 const PANEL_STYLES = `
-  @keyframes chispaDrawerIn { from { transform: translateX(100%) scale(0.98); opacity: 0.5; } to { transform: translateX(0) scale(1); opacity: 1; } }
-  @keyframes chispaDrawerOut { from { transform: translateX(0) scale(1); opacity: 1; } to { transform: translateX(100%) scale(0.98); opacity: 0; } }
+  @keyframes chispaDrawerIn { from { transform: translateX(28px) scale(0.94); opacity: 0; filter: blur(6px); } 55% { filter: blur(0); } to { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); } }
+  @keyframes chispaDrawerOut { from { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); } to { transform: translateX(44px) scale(0.94); opacity: 0; filter: blur(3px); } }
   @keyframes chispaBackdropIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes chispaBackdropOut { from { opacity: 1; } to { opacity: 0; } }
   @keyframes chispaMsgIn { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -81,8 +85,8 @@ const PANEL_STYLES = `
   @keyframes chispaMicPulso { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
   .chispa-mic-pulso { animation: chispaMicPulso 1.4s ease-in-out infinite; }
   .chispa-msg { animation: chispaMsgIn 0.3s cubic-bezier(0.16,1,0.3,1); }
-  .chispa-drawer { animation: chispaDrawerIn 0.36s cubic-bezier(0.16,1,0.3,1); }
-  .chispa-drawer-closing { animation: chispaDrawerOut 0.28s cubic-bezier(0.4,0,1,1) forwards; }
+  .chispa-drawer { animation: chispaDrawerIn 0.44s cubic-bezier(0.16,1,0.3,1); transform-origin: bottom right; will-change: transform, opacity, filter; }
+  .chispa-drawer-closing { animation: chispaDrawerOut 0.26s cubic-bezier(0.4,0,1,1) forwards; transform-origin: bottom right; will-change: transform, opacity, filter; }
   .chispa-backdrop { animation: chispaBackdropIn 0.25s ease; }
   .chispa-backdrop-closing { animation: chispaBackdropOut 0.28s ease forwards; }
   .chispa-launch-tab { animation: chispaTabIn 0.3s cubic-bezier(0.16,1,0.3,1), chispaTabPulse 3s ease-in-out infinite 0.3s; }
@@ -143,6 +147,21 @@ function IconoRayo({ size = 16, color = '#fff' }: { size?: number; color?: strin
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true">
       <path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z" />
     </svg>
+  );
+}
+
+// Logo de Chispa: circulo con el degradado fuego y el RAYO en blanco. Unico
+// "avatar" de Chispa en TODA la app (pestana, cabecera, hero del estado vacio y
+// avatar de cada mensaje), para que la identidad sea coherente y no aparezca el
+// antiguo fueguito (imagen chispa-avatar.png) dentro del chat.
+function LogoChispa({ size = 30, glow = false }: { size?: number; glow?: boolean }) {
+  return (
+    <div
+      className={glow ? 'chispa-logo-badge' : undefined}
+      style={{ width: size, height: size, borderRadius: '50%', background: T.fireGradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+    >
+      <IconoRayo size={Math.round(size * 0.54)} />
+    </div>
   );
 }
 
@@ -1590,7 +1609,7 @@ export default function ChispaPanel({
                 columna con mas aire para que formularios/graficas no se
                 aplasten a lo ancho de todo el viewport. */}
             <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: amplio ? '20px 0' : '12px 14px', display: 'flex', flexDirection: 'column', alignItems: amplio ? 'center' : 'stretch' }}>
-              <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined, display: 'flex', flexDirection: 'column', gap: 0 }}>
+              <div style={{ width: '100%', maxWidth: amplio ? ANCHO_AMPLIO : undefined, padding: amplio ? '0 32px' : undefined, display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {briefingActivo && (
                   <div style={{ marginBottom: 4 }}>
                     <BriefingAgenda negocioId={negocioId} profile={profile} onClose={cerrarPanel} />
@@ -1628,8 +1647,8 @@ export default function ChispaPanel({
                 {!configGuiada && mensajes.length === 0 && (
                   <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', padding: '16px 4px 24px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 20 }}>
-                      <ChispaMascota size={48} showLabel={false} animar={!cargando} />
-                      <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginTop: 10 }}>¡Hola! Soy Chispa ✨</div>
+                      <LogoChispa size={amplio ? 60 : 50} glow={!cargando} />
+                      <div style={{ fontSize: amplio ? 20 : 16, fontWeight: 800, color: T.text, marginTop: 12 }}>Hola, soy Chispa</div>
                       <div style={{ fontSize: 12.5, color: T.textSecondary, marginTop: 4, lineHeight: 1.45, maxWidth: 300 }}>
                         Tu asistente inteligente. Selecciona una sugerencia o escribe lo que necesites:
                       </div>
@@ -1669,8 +1688,12 @@ export default function ChispaPanel({
                       })}
                     </div>
 
-                    {/* Lista de prompts correspondientes a la pestaña activa */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {/* Lista de prompts correspondientes a la pestaña activa. En
+                        pantalla completa se reparte en varias columnas para
+                        aprovechar el ancho (antes: una sola columna estrecha). */}
+                    <div style={amplio
+                      ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 10 }
+                      : { display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {(() => {
                         const filtrados = promptsVisibles.filter((p) => {
                           if (promptCat === 'todos') return true;
@@ -1755,7 +1778,7 @@ export default function ChispaPanel({
                   return (
                     <div key={i} className="chispa-msg animate-pop-in" style={{ marginTop: margenSup, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                       <div style={{ flexShrink: 0, width: 22 }}>
-                        {primeroDelGrupo ? <ChispaMascota size={22} showLabel={false} animar={false} /> : null}
+                        {primeroDelGrupo ? <LogoChispa size={22} /> : null}
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, maxWidth: amplio ? '100%' : '84%' }}>
                         {primeroDelGrupo && (
@@ -1783,7 +1806,7 @@ export default function ChispaPanel({
 
                 {cargando && (
                   <div className="chispa-msg animate-fade-in-up" style={{ marginTop: 14, display: 'flex', gap: 7, alignItems: 'flex-start' }}>
-                    <div style={{ flexShrink: 0, width: 22 }}><ChispaMascota size={22} showLabel={false} mood="think" /></div>
+                    <div style={{ flexShrink: 0, width: 22 }}><LogoChispa size={22} glow /></div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, maxWidth: '80%' }}>
                       <span style={{ fontSize: 11.5, fontWeight: 700, color: T.primaryHi }}>Chispa</span>
                       <div style={{ padding: '9px 14px', borderRadius: '14px 14px 14px 4px', background: T.bgCard, border: `1px solid ${T.border}`, display: 'flex', gap: 4, alignItems: 'center', alignSelf: 'flex-start' }}>
@@ -1893,7 +1916,7 @@ export default function ChispaPanel({
               <div style={{
                 display: 'flex', gap: 8, overflowX: 'auto', padding: '8px 16px 4px',
                 scrollbarWidth: 'none', msOverflowStyle: 'none', flexShrink: 0,
-                alignSelf: 'center', width: '100%', maxWidth: amplio ? 760 : undefined,
+                alignSelf: 'center', width: '100%', maxWidth: amplio ? ANCHO_AMPLIO : undefined,
               }}>
                 <style>{`.chispa-scroll-hide::-webkit-scrollbar { display: none; }`}</style>
                 <div className="chispa-scroll-hide" style={{ display: 'flex', gap: 6, overflowX: 'auto', width: '100%', padding: '2px 0' }}>
@@ -1922,7 +1945,7 @@ export default function ChispaPanel({
 
             {/* Input */}
             <div style={{ padding: '12px 16px 20px', flexShrink: 0, display: 'flex', justifyContent: amplio ? 'center' : 'stretch', background: 'linear-gradient(0deg, rgba(255,253,251,0.9) 0%, rgba(255,253,251,0) 100%)' }}>
-              <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined }}>
+              <div style={{ width: '100%', maxWidth: amplio ? ANCHO_AMPLIO : undefined, padding: amplio ? '0 32px' : undefined }}>
               {imagenB64 && (
                 <div style={{ padding: '10px 14px', marginBottom: '10px', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                    <div style={{ fontSize: '12.5px', fontWeight: 600, color: T.textSecondary, display: 'flex', alignItems: 'center', gap: 6 }}><IconoImagen size={14} color={T.textSecondary} /> Imagen lista para enviar</div>
