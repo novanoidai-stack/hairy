@@ -1251,7 +1251,11 @@ export default function ChispaPanel({
           onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.paddingRight = '12px'; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.paddingRight = '8px'; }}
         >
-          <ChispaMascota size={26} showLabel={false} animar={false} />
+          {/* Icono electrico (rayo/chispa), no fuego: encaja con el nombre
+              "Chispa" sin repetir la marca de fuego del resto de la app. */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+            <path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z" />
+          </svg>
           <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: 11, fontWeight: 700, letterSpacing: 0.3, fontFamily: 'Inter, system-ui, sans-serif' }}>
             Chispa
           </span>

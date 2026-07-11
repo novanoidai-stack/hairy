@@ -1518,56 +1518,59 @@ export default function AgendaCalendar() {
       )}
 
       {/* AlertBar: citas vencidas */}
-      {citasVencidas.length > 0 && !hideCitasVencidas && (
+      {citasVencidas.length > 0 && !hideCitasVencidas && (() => {
+        // En movil la cinta pasa a una fila propia a lo ancho; si hay varias, se
+        // desplaza sola (marquesina) para no obligar a scroll horizontal a mano.
+        // Se pausa al tocar/pasar el raton y cada chip sigue siendo clicable.
+        const vencChips = citasVencidas.slice(0, isMobile ? 12 : 5);
+        const marquee = isMobile && vencChips.length > 2;
+        const chipList = marquee ? [...vencChips, ...vencChips] : vencChips;
+        const renderChip = (c: Cita, k: number) => {
+          const prof = profesionales.find((p) => p.id === c.profesional_id);
+          const cli = clientes.find((cl) => cl.id === c.cliente_id);
+          const ini = new Date(c.inicio);
+          const minutosRetraso = Math.round((Date.now() - ini.getTime()) / 60000);
+          return (
+            <button
+              key={`${c.id}-${k}`}
+              onClick={() => setShowClientaTarde(c)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 600, color: TOKENS.text, whiteSpace: 'nowrap', transition: 'background 0.15s ease', flexShrink: 0 }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.20)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; }}
+            >
+              {prof && <span style={{ width: 6, height: 6, borderRadius: 3, background: prof.color }} />}
+              <span>{cli?.nombre ?? 'Cliente'}</span>
+              <span style={{ color: '#ef4444' }}>+{minutosRetraso}min</span>
+            </button>
+          );
+        };
+        return (
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: 12,
-          padding: '10px 32px',
+          padding: isMobile ? '8px 14px' : '10px 32px',
           background: 'rgba(239,68,68,0.08)',
           borderBottom: '1px solid rgba(239,68,68,0.20)',
           animation: 'fadeIn 0.3s ease',
+          flexWrap: isMobile ? 'wrap' : 'nowrap',
         }}>
-          <div style={{ width: 8, height: 8, borderRadius: 4, background: '#ef4444', animation: 'pulse 2s infinite' }} />
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#ef4444' }}>
+          <style>{`@keyframes mechaVencMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}} .venc-marquee-track:hover,.venc-marquee-track:active{animation-play-state:paused}`}</style>
+          <div style={{ width: 8, height: 8, borderRadius: 4, background: '#ef4444', animation: 'pulse 2s infinite', flexShrink: 0 }} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#ef4444', flexShrink: 0 }}>
             {citasVencidas.length} cita{citasVencidas.length > 1 ? 's' : ''} sin atender
           </span>
-          <div style={{ display: 'flex', gap: 6, flex: 1, overflowX: 'auto' }}>
-            {citasVencidas.slice(0, 5).map((c) => {
-              const prof = profesionales.find((p) => p.id === c.profesional_id);
-              const cli = clientes.find((cl) => cl.id === c.cliente_id);
-              const ini = new Date(c.inicio);
-              const minutosRetraso = Math.round((Date.now() - ini.getTime()) / 60000);
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setShowClientaTarde(c)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '5px 10px',
-                    background: 'rgba(239,68,68,0.12)',
-                    border: '1px solid rgba(239,68,68,0.25)',
-                    borderRadius: 8,
-                    cursor: 'pointer',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: TOKENS.text,
-                    whiteSpace: 'nowrap',
-                    transition: 'background 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.20)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; }}
-                >
-                  {prof && <span style={{ width: 6, height: 6, borderRadius: 3, background: prof.color }} />}
-                  <span>{cli?.nombre ?? 'Cliente'}</span>
-                  <span style={{ color: '#ef4444' }}>+{minutosRetraso}min</span>
-                </button>
-              );
-            })}
+          <div style={{ order: isMobile ? 3 : 0, flexBasis: isMobile ? '100%' : 'auto', flex: isMobile ? undefined : 1, minWidth: 0, overflow: 'hidden' }}>
+            <div
+              className={marquee ? 'venc-marquee-track' : undefined}
+              style={marquee
+                ? { display: 'inline-flex', gap: 6, whiteSpace: 'nowrap', animation: `mechaVencMarquee ${Math.max(10, vencChips.length * 3.5)}s linear infinite`, willChange: 'transform' }
+                : { display: 'flex', gap: 6, overflowX: 'auto' }}
+            >
+              {chipList.map((c, k) => renderChip(c, k))}
+            </div>
           </div>
-          {citasVencidas.length > 5 && (
+          {!isMobile && citasVencidas.length > 5 && (
             <span style={{ fontSize: 11, color: TOKENS.textTer, whiteSpace: 'nowrap' }}>+{citasVencidas.length - 5} mas</span>
           )}
           <button
@@ -1595,7 +1598,8 @@ export default function AgendaCalendar() {
             </svg>
           </button>
         </div>
-      )}
+        );
+      })()}
 
       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isReallyCollapsed ? '1fr' : '340px 1fr', overflow: 'hidden' }}>
         {/* Left rail */}
