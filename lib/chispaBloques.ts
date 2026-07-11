@@ -50,6 +50,17 @@ export const CHISPA_CONFIG_GUIADA_EVENT = 'mecha-chispa-config-guiada';
 export const CHISPA_ORGANIZAR_EVENT = 'mecha-chispa-organizar-agenda';
 export const CHISPA_ORGANIZAR_FLAG = '__mechaOrganizarDisponible';
 
+// Voz manos libres (palabra de activacion "Hola Mecha"): CHISPA_WAKE_EVENT lo
+// dispara useChispaWakeWord.web.ts al detectar la frase (con el comando restante
+// en detail.comando si venia en la misma frase); ChispaPanel.web.tsx lo escucha
+// para abrirse y empezar a escuchar. CHISPA_WAKEWORD_TOGGLE_EVENT sincroniza el
+// toggle de Configuracion > Voz (TabVoz.web.tsx) con la instancia real del hook
+// (montada en ChispaPanel), que vive en otro punto del arbol y no comparte
+// estado de React: sin este evento, activar/desactivar en Configuracion no
+// tendria efecto hasta recargar la pagina.
+export const CHISPA_WAKE_EVENT = 'mecha-chispa-wake';
+export const CHISPA_WAKEWORD_TOGGLE_EVENT = 'mecha-chispa-wakeword-toggle';
+
 // Bloque tipado. Union EXTENSIBLE: anadir nuevos tipos aqui + su caso en
 // BloqueRenderer, sin tocar el resto del flujo.
 // Unidad de un valor numerico de 'grafica'/'comparativa': determina formato y color.
