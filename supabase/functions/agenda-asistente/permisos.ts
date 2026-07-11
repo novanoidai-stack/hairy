@@ -77,6 +77,9 @@ const ESCRITURA_AGENDA = new Set([
   // Matching de lista de espera (Sesion 8-B): tras cancelar, busca candidatas
   // y propone avisar. Opera sobre citas y lista de espera -> mismo scope de agenda.
   'avisar_lista_espera',
+  // Reenviar recordatorio a las citas sin confirmar POR EL CLIENTE (resetea el
+  // flag para que el motor reavise). Opera sobre citas -> mismo scope de agenda.
+  'reenviar_confirmacion',
 ]);
 
 // Tools de escritura de GESTION (Sesion 3): cada una requiere su capacidad
@@ -108,6 +111,8 @@ const ESCRITURA_GESTION: Record<string, Capability> = {
 const LECTURA_CAP: Record<string, Capability | null> = {
   info_catalogo: null,
   buscar_cliente: 'clientes.ver',
+  // Lista/segmenta la cartera de clientes (S-datos): mismo gate que ver clientes.
+  listar_clientes: 'clientes.ver',
   // Ficha 360 de una clienta (Sesion 7): historial/gasto/frecuencia/riesgo + flag
   // de notas de salud SIN contenido (regla dura de salud). Mismo gate que buscar.
   ficha_cliente: 'clientes.ver',

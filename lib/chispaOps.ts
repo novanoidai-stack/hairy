@@ -124,6 +124,14 @@ export type AccionPropuesta =
       resumen: string;
     }
   | {
+      // Reenvia el recordatorio a citas ya confirmadas por el salon pero que el
+      // CLIENTE aun no ha confirmado (resetea flags -> el motor n8n reavisa).
+      tipo: 'reenviar_confirmacion';
+      negocio_id: string;
+      citas: { id: string; label: string }[];
+      resumen: string;
+    }
+  | {
       tipo: 'editar_servicio';
       negocio_id: string;
       servicio_id: string;
@@ -642,6 +650,32 @@ export async function ejecutarAccion(
         }
         if (n === 0) return { ok: true, mensaje: 'No habia citas pendientes por confirmar (ya estaban confirmadas).' };
         return { ok: true, mensaje: `${n} cita${n === 1 ? '' : 's'} confirmada${n === 1 ? '' : 's'}.` };
+      }
+
+      case 'reenviar_confirmacion': {
+        const ids = a.citas.map((c) => c.id);
+        if (ids.length === 0) return { ok: false, error: 'No hay citas a las que reenviar el recordatorio.' };
+
+        // Solo las que siguen confirmadas por el salon y sin confirmar por el
+        // cliente (idempotente). Resetear los flags hace que el motor n8n reavise;
+        // el envio real del WhatsApp lo hace ese motor (reparto Alexandro).
+        const { data: actualizadas, error } = await supabase
+          .from('citas')
+          .update({ confirmacion_enviada: false, recordatorio_enviado: false })
+          .in('id', ids)
+          .eq('estado', CITA_STATUS.CONFIRMADA)
+          .eq('confirmada_cliente', false)
+          .select('id');
+        if (error) return { ok: false, error: error.message };
+
+        const n = actualizadas?.length ?? 0;
+        for (const row of (actualizadas ?? []) as { id: string }[]) {
+          await registrarHistorialIA(a.negocio_id, row.id, [
+            { campo: 'recordatorio', anterior: 'enviado', nuevo: 'reenviar' },
+          ], 'Recordatorio de confirmacion reenviado por Chispa (IA)');
+        }
+        if (n === 0) return { ok: true, mensaje: 'Ninguna seguia pendiente de confirmar por el cliente.' };
+        return { ok: true, mensaje: `Se reenviara el recordatorio a ${n} cliente${n === 1 ? '' : 's'} (lo envia el motor del salon).` };
       }
 
       case 'editar_servicio': {

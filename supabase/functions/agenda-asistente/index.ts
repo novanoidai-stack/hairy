@@ -83,6 +83,9 @@ type AccionPropuesta =
   | { tipo: 'crear_cierre_negocio'; negocio_id: string; fecha: string; motivo: string | null; resumen: string }
   // --- Acciones de gestion (Sesion 3) ---
   | { tipo: 'confirmar_citas'; negocio_id: string; citas: { id: string; label: string }[]; resumen: string }
+  // Reenviar el recordatorio a las citas que el CLIENTE aun no ha confirmado
+  // (resetea confirmacion_enviada/recordatorio_enviado -> el motor n8n reavisa).
+  | { tipo: 'reenviar_confirmacion'; negocio_id: string; citas: { id: string; label: string }[]; resumen: string }
   | {
       tipo: 'editar_servicio';
       negocio_id: string; servicio_id: string; servicio_nombre: string;
@@ -328,6 +331,18 @@ const TOOLS = [
     },
   },
   {
+    name: 'listar_clientes',
+    description: 'Lista y SEGMENTA la cartera de clientes del salon (para "que clientes tengo", "ensename mis clientes", "clientes VIP", "quien lleva tiempo sin venir", "clientes en riesgo", "los nuevos"). Devuelve un panel con KPIs (total de la cartera, listados, sin consentimiento IA) y una tabla (nombre, ultima visita, visitas, gasto, riesgo). NO trae datos de salud. Para cumpleanos usa consultar_cumpleanos. Para UNA clienta concreta usa ficha_cliente.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        segmento: { type: 'string', description: 'todos | vip | recurrentes | nuevos | en_riesgo | fuga | inactivos (por defecto todos)' },
+        orden: { type: 'string', description: 'reciente | gasto | frecuencia | alfabetico (por defecto reciente)' },
+        limite: { type: 'string', description: 'Cuantos mostrar (por defecto 20, maximo 50)' },
+      },
+    },
+  },
+  {
     name: 'listar_citas',
     description: 'Citas en un rango de fechas. Filtra por profesional, cliente o estado.',
     parameters: {
@@ -432,11 +447,11 @@ const TOOLS = [
   // --- GESTION DE ALTO NIVEL (Sesion 21): panel accionable que orquesta varias areas ---
   {
     name: 'resumen_gestion',
-    description: 'Panel de gestion de alto nivel para direccion/propietario: encadena lecturas de varias areas (agenda, caja, escaneo proactivo) y devuelve un resumen VISUAL con acciones de un clic. Usala cuando el usuario quiera "llevar el salon" de un vistazo: "cierra el dia" / "haz el cierre" / "como ha ido hoy" -> foco cierre_dia; "prepara la semana" / "como viene la semana" -> foco preparar_semana; "revisa lo urgente" / "que tengo pendiente" / "que es lo mas importante" -> foco urgente. No ejecuta nada: cada accion del panel se propone y el usuario confirma. Solo direccion/propietario.',
+    description: 'Panel de gestion de alto nivel para direccion/propietario: encadena lecturas de varias areas (agenda, caja, clientes, escaneo proactivo) y devuelve un resumen VISUAL con acciones de un clic. Usala cuando el usuario quiera "llevar el salon" de un vistazo: "analiza mi salon" / "como esta todo" / "dame el panorama" / "vision general" -> foco panorama; "cierra el dia" / "haz el cierre" / "como ha ido hoy" -> foco cierre_dia; "prepara la semana" / "como viene la semana" -> foco preparar_semana; "revisa lo urgente" / "que tengo pendiente" / "que es lo mas importante" -> foco urgente. No ejecuta nada: cada accion del panel se propone y el usuario confirma. Solo direccion/propietario.',
     parameters: {
       type: 'object' as const,
       properties: {
-        foco: { type: 'string', description: 'cierre_dia | preparar_semana | urgente' },
+        foco: { type: 'string', description: 'panorama | cierre_dia | preparar_semana | urgente' },
       },
       required: ['foco'],
     },
@@ -576,6 +591,17 @@ const TOOLS = [
           description: 'Nombres de clientes a excluir de la confirmacion (opcional, ej. ["Juan Carlos", "Nuria"])',
           items: { type: 'string' }
         }
+      },
+    },
+  },
+  {
+    name: 'reenviar_confirmacion',
+    description: 'Propone REENVIAR el recordatorio a las citas que el salon ya confirmo pero que el CLIENTE aun no ha confirmado (distinto de confirmar_citas, que confirma las PENDIENTES del equipo). Por defecto las de las proximas 48h. Resetea el aviso para que el cliente reciba de nuevo la confirmacion; el envio real de WhatsApp lo hace el motor del salon.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        fecha: { type: 'string', description: 'Dia concreto YYYY-MM-DD (opcional; por defecto las proximas 48h)' },
+        profesional: { type: 'string', description: 'Opcional: limitar a un profesional (nombre parcial)' },
       },
     },
   },
@@ -1114,7 +1140,7 @@ export function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'
     'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar uno o VARIOS ajustes relacionados en la misma frase (por ejemplo "activa los recordatorios con 48h de antelacion" junta notifRecordatorioActiva + notifRecordatorioHoras, o "pon la antelacion minima en 4h" es solo uno), usa la tool cambiar_config con la lista "cambios" (una entrada clave+valor por ajuste, CLAVE exacta de la lista AJUSTES EDITABLES del final). Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
     'COMPOSICION DE TOOLS Y MACROS (S22): Si una peticion compleja no puede resolverse con una sola tool, desglosala y ejecuta secuencialmente multiples tools (ej: consultar caja y luego ocupacion). Si identificas que esta peticion multi-paso es util y recurrente, usa la tool "proponer_macro" para crear una automatizacion parametrizable que el propietario podra aprobar. Las macros aprobadas se inyectaran como tools dinamicas (identificadas con [MACRO DE CHISPA] en la descripcion); puedes llamarlas directamente como cualquier otra tool.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad, citas_hoy).',
-    'CARTERA DE CLIENTES (lista general): si te preguntan "que clientes tengo", "cuantos clientes hay", "ensename mis clientes" o piden la lista completa, NO deflectes con un menu ni preguntes cual quieren: la cartera completa se ve en la pantalla Clientes, asi que ofrece directamente un chip con sugerir_enlace a Clientes (una frase breve del tipo "Tienes toda tu cartera en Clientes") y, si quieren, ofrece buscar UNA en concreto por nombre. Nunca inventes un numero de clientes.',
+    'CARTERA DE CLIENTES (lista y segmentos): si te preguntan "que clientes tengo", "cuantos clientes hay", "ensename mis clientes", "mis clientes VIP", "quien lleva tiempo sin venir", "clientes en riesgo", "los nuevos" o piden la lista/segmento, usa la tool listar_clientes con el segmento adecuado (todos|vip|recurrentes|nuevos|en_riesgo|fuga|inactivos) y el orden si lo piden (gasto|frecuencia|reciente|alfabetico). Devuelve KPIs + tabla; resume en 1 frase SIN inventar nombres ni cifras. NO deflectes con un menu ni preguntes cual quieren. Para UNA clienta concreta usa ficha_cliente; para cumpleanos, consultar_cumpleanos.',
     'Para responder sobre UNA clienta (su historial, cuanto gasta, cada cuanto viene, su etiquetas o su riesgo de no-show) usa ficha_cliente. REGLA DURA DE SALUD: nunca pidas, muestres ni deduzcas datos de salud, alergias, medicacion o notas medicas. Si ficha_cliente devuelve tiene_notas_salud=true, di UNICAMENTE que "hay notas en su ficha, revisalas alli" y ofrece un enlace a Clientes con sugerir_enlace; jamas inventes el contenido. Los datos de salud del cliente están completamente fuera del alcance del LLM (lo ves negro y no debes consultarlo). Si la ficha no aparece (encontrado=false), di con naturalidad que no la encuentras: puede que no exista o que no haya dado su consentimiento para que la IA use sus datos.',
     'Menciona el riesgo de no-show de una clienta solo si es relevante (p.ej. el usuario pregunta si es fiable, o hay una cita suya sin confirmar), y siempre en tono neutro y sin juzgar: es una senal operativa, no una etiqueta sobre la persona.',
     'Si el usuario quiere recuperar a una clienta que lleva tiempo sin venir, puedes proponer recuperar_cliente (deja el registro para que el equipo le mande la propuesta de vuelta; tu no envias nada).',
@@ -1128,7 +1154,7 @@ export function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'
     'SEGUIMIENTO DE RESEÑAS (V3+): Si te preguntan por las opiniones de los clientes, la puntuación media del salón, o reseñas negativas de los últimos días, utiliza consultar_resenas.',
     'MÁS CONSULTAS DE NEGOCIO (V3+, todas de solo lectura): usa consultar_campanas para el estado de las campañas de marketing (cuántas se han enviado, fallidas); consultar_cumpleanos para próximos cumpleaños de clientas y si se han felicitado; consultar_lista_espera para ver quién espera un hueco (distinto de avisar_lista_espera, que propone el aviso tras una cancelación); consultar_intercambios_turno para solicitudes de cambio de turno pendientes de aprobar; consultar_comisiones_liquidadas para las comisiones calculadas/pagadas por profesional en un periodo; consultar_logros para el programa de gamificación (cuántas clientas han desbloqueado cada logro, sin nombres); consultar_fidelizacion para niveles, recompensas y canjes del programa de fidelización (datos agregados, sin nombres); consultar_movimientos_inventario para el historial de entradas/salidas de stock; y consultar_hallazgos para las alertas que ha detectado la vigilancia proactiva de la IA. Muchas de estas requieren rol de dirección/propietario: si no está disponible para el rol del usuario, no la menciones y guíalo a la pantalla correspondiente.',
     'AVISOS Y VIGILANCIA (no des por resuelto lo que no has comprobado): cuando el usuario pregunte por sus avisos/hallazgos o te pida "revisa la agenda", "revisa lo pendiente" o "comprueba", basa la respuesta SOLO en una tool de lectura llamada en ESE momento (consultar_hallazgos para la vigilancia; citas_hoy/listar_citas/consultar_estado_pagos para la agenda). NUNCA afirmes que un aviso "ya esta resuelto", "es viejo" o "es de hace dias y ya no aplica" sin haberlo verificado ahora con la tool: si no lo has comprobado, compruebalo o di con franqueza que no lo has revisado, en vez de tranquilizar al usuario con una suposicion. La FECHA de creacion de un hallazgo NO implica que este obsoleto: sigue abierto mientras su condicion se cumpla.',
-    'DOS SENTIDOS DE "CITA SIN CONFIRMAR" (no los mezcles): (a) cita PENDIENTE = falta que el EQUIPO/salon la confirme -> eso es lo que resuelve confirmar_citas. (b) cita ya CONFIRMADA por el salon pero que el CLIENTE aun no ha confirmado -> eso NO lo arregla confirmar_citas (el cliente confirma desde su recordatorio; como mucho se reenvia el aviso). El hallazgo "Citas sin confirmar" de la vigilancia se refiere al sentido (b). Si confirmar_citas no encuentra pendientes pero la vigilancia sigue marcando "Citas sin confirmar", EXPLICA esta diferencia con naturalidad, en vez de decir que hay una contradiccion o que ya esta todo resuelto.',
+    'DOS SENTIDOS DE "CITA SIN CONFIRMAR" (no los mezcles): (a) cita PENDIENTE = falta que el EQUIPO/salon la confirme -> eso es lo que resuelve confirmar_citas. (b) cita ya CONFIRMADA por el salon pero que el CLIENTE aun no ha confirmado -> para esas usa reenviar_confirmacion (reenvia el recordatorio para que el cliente confirme; el envio real lo hace el motor del salon). El hallazgo "Citas sin confirmar" de la vigilancia se refiere al sentido (b). Si confirmar_citas no encuentra pendientes pero la vigilancia sigue marcando "Citas sin confirmar", EXPLICA esta diferencia y ofrece reenviar_confirmacion, en vez de decir que hay una contradiccion o que ya esta todo resuelto.',
     'NOTAS INTERNAS (regla dura): si ficha_cliente devuelve num_notas_internas mayor que 0, puedes decir que la clienta tiene notas internas del equipo y ofrecer un enlace a Clientes para revisarlas; NUNCA inventes ni deduzcas su contenido (pueden contener datos sensibles), igual que con las notas de salud.',
     'ENTRENAMIENTO CASOS DE USO (V3+):',
     '- Caso Confirmación Masiva con Exclusiones: Si el usuario te dice "Hay 40 citas sin confirmar. Confírmamelas todas excepto Juan y Nuria", llama a confirmar_citas(excluir_clientes: ["Juan", "Nuria"]).',
@@ -1136,7 +1162,7 @@ export function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'
     'Cuando el usuario te comente explícitamente una preferencia o hecho operativo sobre el negocio, un profesional o UNA CLIENTA (ej. "A María le gusta el café", "Suele llegar 10 minutos tarde"), utiliza la tool guardar_recuerdo para persistirlo (pasando el cliente_id si aplica). NUNCA guardes datos médicos o de salud.',
     'Todas estas acciones son PROPUESTAS (excepto guardar_recuerdo que es interna): se muestran en una tarjeta y el usuario confirma; tu nunca las aplicas.',
     puedeInformes
-      ? 'GESTION DE ALTO NIVEL (llevar el salon): cuando el usuario quiera una vision de direccion de un vistazo o cerrar/organizar el dia o la semana ("cierra el dia", "haz el cierre", "como ha ido hoy", "prepara la semana", "revisa lo urgente", "que tengo pendiente", "que es lo mas importante"), llama a resumen_gestion con el foco adecuado (cierre_dia | preparar_semana | urgente). Devuelve un panel visual con KPIs y un menu de acciones de un clic; tras invocarla resume en 1-2 frases lo esencial SIN repetir las cifras que ya salen en las tarjetas, e invita a pulsar una de las acciones. No inventes numeros: los pone la propia tool.'
+      ? 'GESTION DE ALTO NIVEL (llevar el salon): cuando el usuario quiera una vision de direccion de un vistazo o cerrar/organizar el dia o la semana ("analiza mi salon", "como esta todo", "dame el panorama", "vision general" -> foco panorama; "cierra el dia", "haz el cierre", "como ha ido hoy", "prepara la semana", "revisa lo urgente", "que tengo pendiente", "que es lo mas importante"), llama a resumen_gestion con el foco adecuado (panorama | cierre_dia | preparar_semana | urgente). Devuelve un panel visual con KPIs y un menu de acciones de un clic; tras invocarla resume en 1-2 frases lo esencial SIN repetir las cifras que ya salen en las tarjetas, e invita a pulsar una de las acciones. No inventes numeros: los pone la propia tool.'
       : '',
     puedeInformes
       ? 'Para datos agregados de informes o facturacion (citas por estado, ingresos cobrados en un rango) usa resumen_informes; para dinero cobrado de verdad (efectivo/datafono/propinas) usa resumen_caja; para ocupacion del salon usa ocupacion. Cuando el usuario pida un resumen de un periodo ("resumeme el mes", "como va la semana") o la evolucion de una metrica, ANADE ademas mostrar_grafica (dia a dia) y, si tiene sentido comparar con el periodo anterior, mostrar_comparativa; luego ofrece sugerir_enlace hacia informes para el detalle completo. Nunca inventes cifras: usa solo las que devuelven estas tools, y si el rango tiene pocos datos dilo con franqueza en vez de sonar mas seguro de lo que permiten los datos.'
@@ -1381,6 +1407,7 @@ export async function runAgente(
     if (name === 'mostrar_grafica') return await procesarGrafica(inp, negocioId, bloquesExtra);
     if (name === 'mostrar_comparativa') return await procesarComparativa(inp, negocioId, bloquesExtra);
     if (name === 'resumen_gestion') return await procesarResumenGestion(inp, negocioId, hoy, bloquesExtra);
+    if (name === 'listar_clientes') return await procesarListarClientes(inp, negocioId, bloquesExtra);
     if (name === 'buscar_recuerdos') return await procesarRecuerdos(inp, negocioId, bloquesExtra, puedeInformes ? null : userId);
     if (name === 'guardar_recuerdo') {
       const clave = (inp.clave ?? '').trim();
@@ -2906,6 +2933,87 @@ function rangoSeveridad(sev: string | null): number {
   return sev === 'urgente' ? 0 : sev === 'alta' ? 1 : sev === 'media' ? 2 : 3;
 }
 
+// --- Cartera de clientes: lista + segmenta (RPC listar_clientes_ia). Empuja un
+// panel (KPIs + tabla + acciones) y devuelve al LLM SOLO conteos: la PII (nombres)
+// va en el bloque renderizado que ve el equipo, nunca al modelo. Sin datos de salud.
+const SEGMENTOS_CLIENTES: Record<string, string> = {
+  todos: 'Toda la cartera',
+  vip: 'Clientes VIP',
+  recurrentes: 'Clientes recurrentes',
+  nuevos: 'Clientes nuevos',
+  en_riesgo: 'Clientes en riesgo de no-show',
+  fuga: 'Clientes en fuga',
+  inactivos: 'Clientes inactivos',
+};
+
+async function procesarListarClientes(
+  inp: Record<string, string>,
+  negocioId: string,
+  bloques: Bloque[],
+): Promise<string> {
+  const segRaw = (inp.segmento ?? 'todos').trim().toLowerCase();
+  const segmento = SEGMENTOS_CLIENTES[segRaw] ? segRaw : 'todos';
+  const ordRaw = (inp.orden ?? 'reciente').trim().toLowerCase();
+  const orden = ['reciente', 'gasto', 'frecuencia', 'alfabetico'].includes(ordRaw) ? ordRaw : 'reciente';
+  const limite = Math.min(Math.max(parseInt(inp.limite ?? '20', 10) || 20, 1), 50);
+  const tituloSeg = SEGMENTOS_CLIENTES[segmento];
+
+  const { data, error } = await svc.rpc('listar_clientes_ia', {
+    p_negocio: negocioId, p_segmento: segmento, p_orden: orden, p_limite: limite,
+  });
+  if (error) return `No pude cargar la cartera de clientes: ${error.message}`;
+  const res = (data ?? {}) as {
+    total?: number; excluidos_consentimiento?: number;
+    items?: { nombre: string; ultima_visita: string | null; total_visitas: number; gasto_eur: number; riesgo: string }[];
+  };
+  const items = res.items ?? [];
+  const total = res.total ?? 0;
+  const excluidos = res.excluidos_consentimiento ?? 0;
+
+  const tarjetas: { label: string; valor: number; unidad: ChispaUnidad }[] = [
+    { label: 'En la cartera', valor: total, unidad: 'citas' },
+    { label: 'Mostrados', valor: items.length, unidad: 'citas' },
+  ];
+  if (excluidos > 0) tarjetas.push({ label: 'Sin consentimiento IA', valor: excluidos, unidad: 'citas' });
+  bloques.push({ tipo: 'kpi', titulo: tituloSeg, tarjetas });
+
+  if (items.length > 0) {
+    const sufijoOrden = orden === 'gasto' ? 'por gasto' : orden === 'frecuencia' ? 'por frecuencia' : orden === 'alfabetico' ? 'A-Z' : 'mas recientes';
+    bloques.push({
+      tipo: 'tabla',
+      titulo: `${tituloSeg} (${sufijoOrden})`,
+      columnas: [
+        { key: 'nombre', label: 'Cliente' },
+        { key: 'ultima', label: 'Ultima visita' },
+        { key: 'visitas', label: 'Visitas' },
+        { key: 'gasto', label: 'Gasto' },
+        { key: 'riesgo', label: 'Riesgo' },
+      ],
+      filas: items.map((c) => ({
+        nombre: c.nombre,
+        ultima: c.ultima_visita ?? '—',
+        visitas: String(c.total_visitas ?? 0),
+        gasto: `${(c.gasto_eur ?? 0).toFixed(2)} €`,
+        riesgo: c.riesgo === 'alto' ? 'Alto' : c.riesgo === 'medio' ? 'Medio' : 'Bajo',
+      })),
+    });
+  }
+
+  const opciones: { valor: string; label: string; descripcion?: string }[] = [];
+  if (segmento === 'fuga' || segmento === 'inactivos') {
+    opciones.push({ valor: 'listar_riesgo', label: 'Ver clientes en riesgo de no-show', descripcion: 'Otro segmento util' });
+  } else if (segmento !== 'vip') {
+    opciones.push({ valor: 'listar_vip', label: 'Ver mis clientes VIP', descripcion: 'Los que mas vienen y mas gastan' });
+  }
+  opciones.push({ valor: 'ver_clientes', label: 'Abrir la pantalla de Clientes', descripcion: 'La cartera completa con filtros' });
+  bloques.push({ tipo: 'opciones', id: `clientes-${segmento}-${Date.now()}`, titulo: 'Que hacemos con ellos?', opciones });
+
+  if (items.length === 0) {
+    return `No hay clientes en el segmento "${tituloSeg}" (cartera total: ${total}${excluidos ? `, ${excluidos} sin consentimiento IA no listados` : ''}). Dilo con naturalidad y ofrece ver otro segmento o abrir Clientes.`;
+  }
+  return `Panel de clientes inyectado (KPIs + tabla${excluidos ? ` + ${excluidos} sin consentimiento IA no listados` : ''}). Segmento "${tituloSeg}", ${items.length} de ${total} en la cartera. La tabla YA se muestra: resume en 1 frase (sin inventar nombres ni cifras, sin repetir la tabla) e invita a pulsar una accion.`;
+}
+
 async function procesarResumenGestion(
   inp: Record<string, string>,
   negocioId: string,
@@ -2914,6 +3022,71 @@ async function procesarResumenGestion(
 ): Promise<string> {
   const foco = (inp.foco ?? 'cierre_dia').trim().toLowerCase();
   const manana = diaISO(hoy, 1);
+
+  // --- PANORAMA: "analiza mi salon" de un vistazo (caja + agenda + clientes + avisos) ---
+  if (foco === 'panorama' || foco === 'analisis' || foco === 'analizar' || foco === 'todo') {
+    const hoyCitas = await contarCitasRango(negocioId, hoy, hoy);
+    const mananaCitas = await contarCitasRango(negocioId, manana, manana);
+    const cobrado = await cobradoDia(negocioId, hoy);
+    const pend = hoyCitas.pendientes + mananaCitas.pendientes;
+
+    const [totalCli, nuevosCli, riesgoCli] = await Promise.all([
+      svc.from('clientes').select('id', { count: 'exact', head: true }).eq('negocio_id', negocioId),
+      svc.from('clientes').select('id', { count: 'exact', head: true }).eq('negocio_id', negocioId).gte('primera_visita', diaISO(hoy, -30)),
+      svc.from('clientes').select('id', { count: 'exact', head: true }).eq('negocio_id', negocioId).or('noshows_count.gte.1,perfil_riesgo.in.(medio,alto)'),
+    ]);
+
+    const { data: hallData } = await svc
+      .from('hallazgos_ia').select('severidad, familia, resumen')
+      .eq('negocio_id', negocioId).eq('estado', 'nuevo')
+      .order('creado_en', { ascending: false }).limit(20);
+    const hallazgos = ((hallData ?? []) as { severidad: string | null; familia: string | null; resumen: string | null }[])
+      .sort((a, b) => rangoSeveridad(a.severidad) - rangoSeveridad(b.severidad));
+
+    bloques.push({
+      tipo: 'kpi',
+      titulo: 'Tu salon de un vistazo',
+      tarjetas: [
+        { label: 'Cobrado hoy', valor: cobrado, unidad: 'eur' },
+        { label: 'Citas hoy', valor: hoyCitas.total, unidad: 'citas' },
+        { label: 'Sin confirmar (hoy y manana)', valor: pend, unidad: 'citas' },
+      ],
+    });
+    bloques.push({
+      tipo: 'kpi',
+      titulo: 'Cartera de clientes',
+      tarjetas: [
+        { label: 'Clientes', valor: totalCli.count ?? 0, unidad: 'citas' },
+        { label: 'Nuevos (30 dias)', valor: nuevosCli.count ?? 0, unidad: 'citas' },
+        { label: 'En riesgo', valor: riesgoCli.count ?? 0, unidad: 'citas' },
+      ],
+    });
+    if (hallazgos.length > 0) {
+      bloques.push({
+        tipo: 'tabla',
+        titulo: 'Avisos de Chispa',
+        columnas: [
+          { key: 'severidad', label: 'Prioridad' },
+          { key: 'resumen', label: 'Aviso' },
+          { key: 'area', label: 'Area' },
+        ],
+        filas: hallazgos.slice(0, 6).map((h) => ({
+          severidad: (h.severidad ?? 'baja').toUpperCase(),
+          resumen: h.resumen ?? '',
+          area: h.familia ?? '',
+        })),
+      });
+    }
+
+    const opciones: { valor: string; label: string; descripcion?: string }[] = [];
+    if (pend > 0) opciones.push({ valor: 'conf', label: `Confirmar las ${pend} citas pendientes`, descripcion: 'Las dejo confirmadas' });
+    opciones.push({ valor: 'org', label: 'Organizar la agenda de hoy', descripcion: 'Compactar huecos (propuesta)' });
+    opciones.push({ valor: 'cli_riesgo', label: 'Ver clientes en riesgo de fuga', descripcion: 'Para recuperarlos' });
+    if (hallazgos.length > 0) opciones.push({ valor: 'avisos', label: 'Revisar todos los avisos', descripcion: 'El detalle del escaneo' });
+    bloques.push({ tipo: 'opciones', id: `gestion-panorama-${Date.now()}`, titulo: 'Por donde quieres empezar?', opciones });
+
+    return `Panel 360 del salon inyectado (caja + agenda + clientes + avisos, datos reales). ${cobrado.toFixed(2)}€ hoy, ${hoyCitas.total} citas hoy, ${pend} sin confirmar, ${totalCli.count ?? 0} clientes (${riesgoCli.count ?? 0} en riesgo), ${hallazgos.length} avisos. Resume en 2 frases lo mas importante SIN repetir las cifras de las tarjetas e invita a pulsar una accion.`;
+  }
 
   // --- URGENTE: escaneo proactivo 24/7 (hallazgos_ia, S13) + pendientes proximos ---
   if (foco === 'urgente') {
@@ -3604,6 +3777,61 @@ export async function construirPropuesta(
         negocio_id: negocioId,
         citas: lista.map(item => ({ id: item.id, label: item.label })),
         resumen: `Confirmar ${lista.length} cita${lista.length === 1 ? '' : 's'}${fecha ? ` del ${fecha}` : ' pendientes'}`,
+      };
+    }
+
+    case 'reenviar_confirmacion': {
+      // Citas ya confirmadas por el salon pero que el CLIENTE aun no ha confirmado.
+      const fecha = (inp.fecha ?? '').trim();
+      let profId: string | null = null;
+      if (scope === 'self') {
+        profId = await resolverProfesionalDelUsuario(negocioId, userId);
+      } else if (inp.profesional) {
+        const { data: profes } = await svc
+          .from('profesionales').select('id, nombre')
+          .eq('negocio_id', negocioId).ilike('nombre', `%${inp.profesional}%`);
+        if (!profes || profes.length === 0) return { error: `Profesional "${inp.profesional}" no encontrado.` };
+        if (profes.length > 1) return { error: `Varios profesionales coinciden: ${profes.map((p: { nombre: string }) => p.nombre).join(', ')}. ¿Cual?` };
+        profId = profes[0].id;
+      }
+
+      let q = svc
+        .from('citas').select('id, inicio, servicio_id, cliente_id')
+        .eq('negocio_id', negocioId).eq('estado', 'confirmada').eq('confirmada_cliente', false);
+      if (fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        q = q.gte('inicio', `${fecha}T00:00:00`).lte('inicio', `${fecha}T23:59:59`);
+      } else {
+        const ahora = new Date();
+        const en48h = new Date(ahora.getTime() + 48 * 3600000);
+        q = q.gte('inicio', ahora.toISOString()).lte('inicio', en48h.toISOString());
+      }
+      if (profId) q = q.eq('profesional_id', profId);
+      q = q.order('inicio');
+
+      const { data: citas } = await q;
+      if (!citas || citas.length === 0) return { error: `No hay citas pendientes de confirmar por el cliente${fecha ? ` el ${fecha}` : ' en las proximas 48h'}.` };
+
+      const servIds = [...new Set(citas.map((c: { servicio_id: string | null }) => c.servicio_id).filter(Boolean))] as string[];
+      const cliIds = [...new Set(citas.map((c: { cliente_id: string | null }) => c.cliente_id).filter(Boolean))] as string[];
+      const [servRes, cliRes] = await Promise.all([
+        servIds.length ? svc.from('servicios').select('id, nombre').in('id', servIds) : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
+        cliIds.length ? svc.from('clientes').select('id, nombre').eq('negocio_id', negocioId).eq('consiente_ia', true).in('id', cliIds) : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
+      ]);
+      const servMap = new Map((servRes.data ?? []).map((s: { id: string; nombre: string }) => [s.id, s.nombre]));
+      const cliMap = new Map((cliRes.data ?? []).map((c: { id: string; nombre: string }) => [c.id, c.nombre]));
+
+      const lista = citas.map((c: { id: string; inicio: string; servicio_id: string | null; cliente_id: string | null }) => {
+        const hora = new Date(c.inicio).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+        const serv = (c.servicio_id && servMap.get(c.servicio_id)) || 'Servicio';
+        const cli = c.cliente_id ? cliMap.get(c.cliente_id) : null;
+        return { id: c.id, label: `${hora} · ${serv}${cli ? ` · ${cli}` : ''}` };
+      });
+
+      return {
+        tipo: 'reenviar_confirmacion',
+        negocio_id: negocioId,
+        citas: lista,
+        resumen: `Reenviar el recordatorio a ${lista.length} cliente${lista.length === 1 ? '' : 's'} que aun no ${lista.length === 1 ? 'ha' : 'han'} confirmado${fecha ? ` (${fecha})` : ''}`,
       };
     }
 

@@ -98,6 +98,10 @@ export const manualChispa: ManualContent = {
       texto: 'Chispa puede leer sus respuestas en voz alta con voz neural natural (motor Kokoro). Y sí puedes cambiarla: en Configuración > Voz eliges entre varias voces de distintos tonos y géneros, con un botón "Escuchar" para probar cada una; la voz elegida se aplica a todos los dispositivos del salón. Para oírla en el chat, activa el altavocito en el panel (la primera vez te pedirá permiso para usar el micro). Si la voz neural no está disponible, cae a la voz básica del navegador avisándote.',
     },
     {
+      titulo: 'Listar y analizar tus datos',
+      texto: 'Chispa lista y segmenta lo que le pidas: "qué clientes tengo", "mis VIP", "quién no viene hace tiempo", "los nuevos"; devuelve KPIs y una tabla ordenable (por gasto, frecuencia o fecha), sin datos de salud y respetando el consentimiento de IA. Con "analiza mi salón" o "dame el panorama" te da un panel 360 de un vistazo (caja, agenda, citas sin confirmar, clientes y avisos) con acciones de un clic. Para una clienta concreta, pídele su ficha por el nombre. Y si el cliente aún no ha confirmado su cita, puede reenviarle el recordatorio.',
+    },
+    {
       titulo: 'Biblioteca de Prompts Prefabricados',
       texto: 'Al abrir el chat de Chispa sin mensajes, verás una mini-biblioteca con sugerencias diseñadas específicamente para tu salón (organizadas por pestañas: Agenda, Clientes, Gestión, Marketing). Además, cuando estés chateando, te aparecerán pequeños chips dinámicos recomendados según la pantalla en la que te encuentres, listos para enviar con un solo toque.',
     },

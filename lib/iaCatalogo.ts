@@ -45,6 +45,23 @@ export const CATALOGO_IA: FuncionIA[] = [
     categoria: 'panel',
   },
   {
+    id: 'chispa-listar-clientes',
+    titulo: 'Listar y segmentar clientes',
+    descripcion: 'Pídele a Chispa "qué clientes tengo", "mis clientes VIP", "quién lleva tiempo sin venir", "los nuevos" o "clientes en riesgo" y devuelve un panel con KPIs (total de la cartera, mostrados, sin consentimiento IA) y una tabla ordenable por gasto, frecuencia, última visita o alfabético. Nunca muestra datos de salud y respeta el consentimiento de IA de cada cliente.',
+    ubicacion: '/app?chispa=1',
+    uso: 'En el panel Chispa: "enséñame mis clientes VIP", "quién no viene hace tiempo", "clientes nuevos por gasto".',
+    categoria: 'panel',
+  },
+  {
+    id: 'chispa-panorama-salon',
+    titulo: 'Analiza mi salón (panel 360)',
+    descripcion: 'Pídele "analiza mi salón", "cómo está todo" o "dame el panorama" y Chispa junta de un vistazo caja de hoy, citas y citas sin confirmar, cartera de clientes (total, nuevos, en riesgo) y los avisos de la vigilancia, con un menú de acciones de un clic. Cifras reales, nunca inventadas. Solo dirección/propietario.',
+    ubicacion: '/app?chispa=1',
+    uso: 'En el panel Chispa: "analiza mi salón" o "dame el panorama del día".',
+    categoria: 'panel',
+    soloGestor: true,
+  },
+  {
     id: 'chispa-deshacer',
     titulo: 'Deshacer acciones',
     descripcion: 'Casi todas las acciones de Chispa (crear citas, reagendar, cambiar configuración) son reversibles durante 10 segundos. Una ventana de seguridad para corregir errores sin manchar la base de datos.',
