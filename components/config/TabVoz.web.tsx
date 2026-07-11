@@ -226,11 +226,11 @@ export function TabVoz({ config, setC }: Props) {
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '4px 0' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 4 }}>
-              "Hola Mecha"
+              "Hola Mecha" o "Hola Chispa"
             </div>
             <div style={{ fontSize: 12.5, color: T.textSecondary, lineHeight: 1.5 }}>
               {soportaWakeWord
-                ? 'Al activarla, este dispositivo escucha de forma continua para detectar "Hola Mecha". El audio lo procesa el reconocimiento de voz del navegador; Mecha no lo recibe ni lo guarda hasta que se detecta la frase y empieza una conversación normal.'
+                ? 'Al activarla, este dispositivo escucha de forma continua para detectar "Hola Mecha" o "Hola Chispa". El audio lo procesa el reconocimiento de voz del navegador; Mecha no lo recibe ni lo guarda hasta que se detecta la frase y empieza una conversación normal.'
                 : 'No disponible en este navegador (necesitas Chrome o Edge).'}
             </div>
           </div>
