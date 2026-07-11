@@ -110,6 +110,23 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => ({}));
   const voiceId = String((body as { voice_id?: unknown })?.voice_id ?? '').trim();
 
+  // Lista de voces disponibles en el VPS de Kokoro (solo lectura, usuario
+  // autenticado). Sirve para poblar/validar el selector de voz de forma dinamica
+  // en vez de una lista hardcodeada que puede quedar desfasada.
+  if ((body as { voices?: unknown })?.voices === true) {
+    if (!KOKORO_TTS_URL) return json({ voices: null, motivo: 'kokoro_no_configurado' }, 200);
+    try {
+      const r = await fetch(`${KOKORO_TTS_URL}/v1/audio/voices`, {
+        headers: { 'X-Mecha-Secret': KOKORO_TTS_SECRET },
+        signal: AbortSignal.timeout(8000),
+      });
+      const j = await r.json().catch(() => null);
+      return json({ voices: j, status: r.status }, 200);
+    } catch (e) {
+      return json({ voices: null, error: String((e as Error)?.message ?? e) }, 200);
+    }
+  }
+
   // PRE-CALENTAMIENTO desde el cliente (usuario autenticado): cuando se abre
   // Chispa con la voz activa, se dispara esto para cargar el modelo de Kokoro EN
   // SEGUNDO PLANO mientras el usuario lee/escribe, de modo que la primera voz real

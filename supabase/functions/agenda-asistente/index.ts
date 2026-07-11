@@ -943,6 +943,7 @@ GRUPO COMUNICACION
 - Notificaciones: "Avisos automaticos al cliente" (activar/desactivar Confirmacion de cita, Recordatorio previo, Peticion de resena, Enlace de pago de senal, Aviso de retraso). OJO: el TEXTO de estos mensajes NO se puede editar; son plantillas fijas aprobadas por Meta y solo se rellenan los datos de cada cita. "Horario sin envios (no molestar)" (activar y franja horaria); "Lista de espera (avisos de hueco)" (ofrecer huecos automaticamente, ventana de respuesta, tiempo maximo de reserva del hueco, desde cuando cuenta el tope, antelacion minima del hueco, si la oferta pide senal, avisar si el hueco caduca); "Canal de envio" (hoy solo WhatsApp; SMS/email proximamente).
 - Politicas: "Deposito dinamico por riesgo del cliente" (activar, multiplicador para clientes con no-shows, exencion VIP) YA disponible. Cancelacion y penalizacion por cancelacion tardia: proximamente (fase 4, junto con el modulo de pagos).
 - Reserva online: "Portal publico" (activar, enlace de reserva, enlace de valoracion, idioma); "Datos publicos" (nombre, direccion, telefono, web); "Visibilidad" (mostrar precios, servicios visibles).
+- Voz: "Voz de Chispa" (elegir con que voz neural lee Chispa sus respuestas por los altavoces: Dora, Rufo, Alex, Adam o Bella, con boton para escuchar cada una). SI se puede cambiar la voz desde aqui; se aplica a todos los dispositivos del salon.
 
 GRUPO CUENTA
 - Invita y gana: programa de referidos y tu red de salones invitados.
@@ -1113,6 +1114,7 @@ export function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'
     'CAMBIAR CONFIGURACION (solo PROPIETARIO): si el propietario pide cambiar uno o VARIOS ajustes relacionados en la misma frase (por ejemplo "activa los recordatorios con 48h de antelacion" junta notifRecordatorioActiva + notifRecordatorioHoras, o "pon la antelacion minima en 4h" es solo uno), usa la tool cambiar_config con la lista "cambios" (una entrada clave+valor por ajuste, CLAVE exacta de la lista AJUSTES EDITABLES del final). Se propone y el usuario confirma; tu no lo aplicas. Si el usuario NO es propietario, no cambies nada: solo guialo a donde esta el ajuste.',
     'COMPOSICION DE TOOLS Y MACROS (S22): Si una peticion compleja no puede resolverse con una sola tool, desglosala y ejecuta secuencialmente multiples tools (ej: consultar caja y luego ocupacion). Si identificas que esta peticion multi-paso es util y recurrente, usa la tool "proponer_macro" para crear una automatizacion parametrizable que el propietario podra aprobar. Las macros aprobadas se inyectaran como tools dinamicas (identificadas con [MACRO DE CHISPA] en la descripcion); puedes llamarlas directamente como cualquier otra tool.',
     'Para consultar la agenda usa las tools de lectura (info_catalogo, buscar_cliente, listar_citas, consultar_disponibilidad, citas_hoy).',
+    'CARTERA DE CLIENTES (lista general): si te preguntan "que clientes tengo", "cuantos clientes hay", "ensename mis clientes" o piden la lista completa, NO deflectes con un menu ni preguntes cual quieren: la cartera completa se ve en la pantalla Clientes, asi que ofrece directamente un chip con sugerir_enlace a Clientes (una frase breve del tipo "Tienes toda tu cartera en Clientes") y, si quieren, ofrece buscar UNA en concreto por nombre. Nunca inventes un numero de clientes.',
     'Para responder sobre UNA clienta (su historial, cuanto gasta, cada cuanto viene, su etiquetas o su riesgo de no-show) usa ficha_cliente. REGLA DURA DE SALUD: nunca pidas, muestres ni deduzcas datos de salud, alergias, medicacion o notas medicas. Si ficha_cliente devuelve tiene_notas_salud=true, di UNICAMENTE que "hay notas en su ficha, revisalas alli" y ofrece un enlace a Clientes con sugerir_enlace; jamas inventes el contenido. Los datos de salud del cliente están completamente fuera del alcance del LLM (lo ves negro y no debes consultarlo). Si la ficha no aparece (encontrado=false), di con naturalidad que no la encuentras: puede que no exista o que no haya dado su consentimiento para que la IA use sus datos.',
     'Menciona el riesgo de no-show de una clienta solo si es relevante (p.ej. el usuario pregunta si es fiable, o hay una cita suya sin confirmar), y siempre en tono neutro y sin juzgar: es una senal operativa, no una etiqueta sobre la persona.',
     'Si el usuario quiere recuperar a una clienta que lleva tiempo sin venir, puedes proponer recuperar_cliente (deja el registro para que el equipo le mande la propuesta de vuelta; tu no envias nada).',
@@ -1142,7 +1144,8 @@ export function buildSystemPrompt(hoyISO: string, scope: 'all' | 'self' | 'none'
     'Si hay ambiguedad (varios clientes con ese nombre, servicio no encontrado), PREGUNTA al usuario en vez de proponer con datos inciertos.',
     'Las propuestas de escritura NO se ejecutan automaticamente: el sistema mostrara una tarjeta de confirmacion al usuario.',
     'EXPERTO COLORISTA (VISION): Si recibes una imagen adjunta de cabello (type: image_url), asume el rol de Maestro Colorista de marcas premium (LOréal, Wella). Analiza de forma proactiva la base, la altura de tono y el estado del cabello. Si el usuario te pide un objetivo (ej. "quiero esto"), formula una receta exacta (gramos, volumenes, matiz, tecnica). Acto seguido, llama automaticamente a crear_presupuesto para presupuestar los servicios necesarios.',
-    'MODO TETRIS (REORDENADOR): Si te piden "optimiza la agenda" o "junta mis citas", consulta la disponibilidad del dia, detecta huecos ineficientes (ej. 30 min sueltos entre dos citas de 1h) e invoca la tool optimizar_agenda proponiendo adelantar o atrasar citas (movimientos en array). Esto generara un bloque visual diff para el profesional.',
+    'MODO TETRIS (REORDENADOR): Si te piden CUALQUIER cosa relacionada con reordenar/mejorar el dia -- "optimiza la agenda", "junta mis citas", "analiza mi agenda", "compacta los huecos", "evita retrasos", "reorganiza el dia", "cuadra mejor las citas" -- invoca SIEMPRE la tool optimizar_agenda (previa consulta de la agenda del dia con citas_hoy/listar_citas si te falta el detalle). Devuelve un bloque visual diff con los movimientos propuestos. NUNCA respondas este tipo de peticion con un parrafo de analisis: la propuesta la genera la tool, no tu.',
+    'ANTI-INVENCION DE AGENDA (REGLA DURA): jamas afirmes horas concretas, huecos, duraciones ni el estado (confirmada/completada/pendiente/no-show) de una cita "de memoria" ni deducidos. Esos datos SOLO pueden venir de una tool de lectura (citas_hoy, listar_citas, consultar_disponibilidad, consultar_estado_pagos). Si no has llamado a la tool, no tienes esos datos: llamala antes de hablar. Si el usuario pide un analisis de huecos/retrasos, no narres un diagnostico inventado -> usa optimizar_agenda. Prefiere mostrar la tabla/diff real de la tool a describir la agenda con palabras.',
     'PREDICCION FINANCIERA: Si te piden predicciones (ej. "¿que pasa si subo el precio del corte 2 euros?"), realiza un calculo estimativo usando sentido comun de retencion vs precio. Usa mostrar_grafica inyectando fechas futuras de los proximos 3 meses para dibujar la estimacion al alza en formato visual, y explica paso a paso la estimacion de elasticidad (asume una perdida leve de clientes, pero mayor ticket medio).',
     scopeMsg,
   ].join('\n') + '\n\n' + AUTOCONOCIMIENTO_IA + '\n\n' + MAPA_CONFIG + '\n\n' + CONFIG_EDITABLE_TEXT;
@@ -1179,11 +1182,25 @@ function accionesRapidas(scope: 'all' | 'self' | 'none', puedeInformes: boolean)
   };
 }
 
-// Garantiza una superficie util. Si ya hay alguna (accion/enlace/grafica/...),
-// deja los bloques intactos; si solo hay texto (o esta vacio), adjunta las
-// acciones rapidas para que el usuario nunca se quede sin siguiente paso.
+// Umbral: por debajo de esta longitud de texto la respuesta se considera un
+// "cuelgue" (saludo, acuse, "no te he entendido") y SI merece el menu de
+// rescate. Por encima ya es una respuesta util por si misma y NO se le pega el
+// menu generico (evita la sensacion robotica de repetir las mismas 4 opciones
+// en cada turno, feedback de Carlos 11 jul).
+const LONGITUD_RESPUESTA_UTIL = 160;
+
+// Garantiza que el usuario nunca se quede sin siguiente paso, SIN spamear.
+// - Si ya hay una superficie util (accion/enlace/grafica/...), no toca nada.
+// - Si hay una respuesta de texto sustancial (la respuesta ES el resultado),
+//   tampoco pega el menu: el texto ya vale por si mismo.
+// - Solo cuando la respuesta esta vacia o es un texto corto/seco (un cuelgue de
+//   verdad) adjunta las acciones rapidas por rol.
 function garantizarSuperficie(bloques: Bloque[], scope: 'all' | 'self' | 'none', puedeInformes: boolean): Bloque[] {
   if (bloques.some((b) => TIPOS_SUPERFICIE.has(b.tipo))) return bloques;
+  const textoTotal = bloques
+    .filter((b) => b.tipo === 'texto')
+    .reduce((n, b) => n + (typeof (b as { texto?: unknown }).texto === 'string' ? (b as { texto: string }).texto.length : 0), 0);
+  if (textoTotal >= LONGITUD_RESPUESTA_UTIL) return bloques;
   return [...bloques, accionesRapidas(scope, puedeInformes)];
 }
 

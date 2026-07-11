@@ -8,12 +8,14 @@ interface Props {
   setC: (key: any, value: any) => void;
 }
 
+// Voces REALES en español del VPS de Kokoro (verificado contra /v1/audio/voices:
+// solo existen ef_dora, em_alex y em_santa en español). Las antiguas ef_rufo /
+// am_adam / af_bella se retiraron: ef_rufo no existia (sonaba una voz de repuesto)
+// y am_adam/af_bella son voces en INGLES que leian el espanol con acento.
 const VOCES = [
   { id: 'ef_dora', nombre: 'Dora', descripcion: 'Femenina, natural y cercana', genero: 'Mujer' },
-  { id: 'ef_rufo', nombre: 'Rufo', descripcion: 'Femenina, enérgica y clara', genero: 'Mujer' },
   { id: 'em_alex', nombre: 'Alex', descripcion: 'Masculina, profesional y cálida', genero: 'Hombre' },
-  { id: 'am_adam', nombre: 'Adam', descripcion: 'Masculina, grave y pausada', genero: 'Hombre' },
-  { id: 'af_bella', nombre: 'Bella', descripcion: 'Femenina, dulce y expresiva', genero: 'Mujer' },
+  { id: 'em_santa', nombre: 'Santi', descripcion: 'Masculina, grave y pausada', genero: 'Hombre' },
 ];
 
 export function TabVoz({ config, setC }: Props) {

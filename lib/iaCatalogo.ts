@@ -28,11 +28,12 @@ export const CATALOGO_IA: FuncionIA[] = [
   },
   {
     id: 'chispa-vo-z',
-    titulo: 'Voz de Chispa',
-    descripcion: 'Chispa lee sus respuestas en voz alta con voz premium (ElevenLabs) o voz básica del navegador si la primera no está disponible.',
-    ubicacion: '/app?chispa=1',
-    uso: 'Desde el panel Chispa, activa el altavoz. La primera vez te pedirá permiso para usar el micro.',
+    titulo: 'Voz de Chispa (seleccionable)',
+    descripcion: 'Chispa lee sus respuestas en voz alta con voz neural natural (motor Kokoro), y SÍ se puede cambiar: en Configuración > Voz eliges entre varias voces (Dora, Rufo, Alex, Adam, Bella) con un botón "Escuchar" para probar cada una. La voz elegida se aplica a todos los dispositivos del salón. Si la voz neural no está disponible, cae a la voz básica del navegador con aviso honesto.',
+    ubicacion: '/app/configuracion',
+    uso: 'Para cambiar la voz: Configuración > Voz, elige una y púlsala. Para oírla en el chat: en el panel Chispa activa el altavoz (la primera vez pedirá permiso del micro).',
     categoria: 'voz',
+    soloGestor: true,
   },
 
   {
