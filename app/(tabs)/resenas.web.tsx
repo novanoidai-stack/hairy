@@ -493,7 +493,7 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
               <div style={{ marginBottom: 24 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr)', gap: 14 }}>
                   {/* Puntos fuertes */}
-                  <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 20, borderTop: `3px solid ${TOKENS.success}` }}>
+                  <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: isMobile ? 14 : 20, borderTop: `3px solid ${TOKENS.success}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                       <div style={{ display: 'inline-flex', padding: 6, borderRadius: 8, background: TOKENS.successSoft, color: TOKENS.success }}>
                         <Icon name="up" size={16} color="currentColor" />
@@ -522,7 +522,7 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
                   </div>
 
                   {/* Oportunidades de mejora */}
-                  <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: 20, borderTop: `3px solid ${TOKENS.star}` }}>
+                  <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: isMobile ? 14 : 20, borderTop: `3px solid ${TOKENS.star}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                       <div style={{ display: 'inline-flex', padding: 6, borderRadius: 8, background: TOKENS.goldSoft, color: TOKENS.gold }}>
                         <Icon name="spark" size={16} color="currentColor" />
