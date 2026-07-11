@@ -634,13 +634,18 @@ export default function ChispaPanel({
     if (IS_DEMO_MODE || typeof window === 'undefined') return;
     if (!esGestorOnboarding || !onbStatus.ready || onbStatus.coreDone) return;
     if (abierto || configGuiada) return;
+    // No secuestrar una conversacion ya en curso: si el usuario ya esta hablando
+    // con Chispa, no le inyectamos el flujo de onboarding en medio (feedback 11
+    // jul: la tarjeta "Retomar / Fotos 86%" se colaba tras un Q&A). No quemamos
+    // la key: se ofrecera solo mas adelante, con el panel limpio.
+    if (mensajes.length > 0) return;
     const key = `${ONBOARDING_AUTO_KEY_PREFIX}${negocioId}`;
     if (window.localStorage.getItem(key)) return;
     window.localStorage.setItem(key, '1');
     setAbierto(true);
     iniciarConfigGuiada();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [esGestorOnboarding, onbStatus.ready, onbStatus.coreDone, negocioId]);
+  }, [esGestorOnboarding, onbStatus.ready, onbStatus.coreDone, negocioId, mensajes.length]);
 
   // S05: ventana temporal para deshacer (10s). Pasado ese tiempo, la opcion desaparece.
   useEffect(() => {

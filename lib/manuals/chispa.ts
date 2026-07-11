@@ -94,8 +94,8 @@ export const manualChispa: ManualContent = {
       texto: 'En Configuración > Migración Mágica, sube un CSV de Booksy/Fresha o una foto de tu lista de precios/albarán. Chispa extraerá los datos con IA y los importará en bloque. Solo para gestores.',
     },
     {
-      titulo: 'Voz de Chispa',
-      texto: 'Chispa puede leer sus respuestas en voz alta. Activa el altavocito en el panel. La primera vez te pedirá permiso para usar el micro. Usa voz premium (ElevenLabs) o voz básica del navegador si la primera no está disponible.',
+      titulo: 'Voz de Chispa (seleccionable)',
+      texto: 'Chispa puede leer sus respuestas en voz alta con voz neural natural (motor Kokoro). Y sí puedes cambiarla: en Configuración > Voz eliges entre varias voces de distintos tonos y géneros, con un botón "Escuchar" para probar cada una; la voz elegida se aplica a todos los dispositivos del salón. Para oírla en el chat, activa el altavocito en el panel (la primera vez te pedirá permiso para usar el micro). Si la voz neural no está disponible, cae a la voz básica del navegador avisándote.',
     },
     {
       titulo: 'Biblioteca de Prompts Prefabricados',
