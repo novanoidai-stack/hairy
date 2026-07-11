@@ -50,9 +50,16 @@ const HILO_KEY_PREFIX = 'mecha-chispa-hilo:';
 // completo. Retirado ese overlay (Sesion 2 V2): el flujo vive dentro de Chispa.
 const ONBOARDING_AUTO_KEY_PREFIX = 'mecha-chispa-onboarding-auto:';
 
+// Duracion de la animacion de cierre del drawer (ms). Debe coincidir con
+// chispaDrawerOut/chispaBackdropOut de abajo: el drawer se mantiene montado
+// (abierto=true) mientras dura, para que la salida se vea, no desaparezca de golpe.
+const DRAWER_CLOSE_MS = 280;
+
 const PANEL_STYLES = `
-  @keyframes chispaDrawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  @keyframes chispaDrawerIn { from { transform: translateX(100%) scale(0.98); opacity: 0.5; } to { transform: translateX(0) scale(1); opacity: 1; } }
+  @keyframes chispaDrawerOut { from { transform: translateX(0) scale(1); opacity: 1; } to { transform: translateX(100%) scale(0.98); opacity: 0; } }
   @keyframes chispaBackdropIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes chispaBackdropOut { from { opacity: 1; } to { opacity: 0; } }
   @keyframes chispaMsgIn { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
   @keyframes chispaTabIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
   @keyframes chispaDot { 0%, 80%, 100% { opacity: 0.3; transform: scale(0.85); } 40% { opacity: 1; transform: scale(1); } }
@@ -60,13 +67,20 @@ const PANEL_STYLES = `
     0%, 100% { box-shadow: 0 8px 24px rgba(192,38,10,0.32); }
     50% { box-shadow: 0 8px 32px rgba(244,80,30,0.52), 0 0 16px rgba(255,140,66,0.3); }
   }
+  @keyframes chispaLogoGlow {
+    0%, 100% { box-shadow: 0 0 8px 2px rgba(244,80,30,0.28), 0 0 18px 4px rgba(255,140,66,0.14); }
+    50% { box-shadow: 0 0 14px 4px rgba(244,80,30,0.42), 0 0 28px 8px rgba(255,140,66,0.22); }
+  }
   @keyframes chispaTypewriter { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes chispaStatusPulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(15,157,107,0.14); } 50% { box-shadow: 0 0 0 3px rgba(15,157,107,0.28), 0 0 6px rgba(15,157,107,0.4); } }
   .chispa-status-dot { animation: chispaStatusPulse 2.4s ease-in-out infinite; }
   .chispa-msg { animation: chispaMsgIn 0.3s cubic-bezier(0.16,1,0.3,1); }
-  .chispa-drawer { animation: chispaDrawerIn 0.30s cubic-bezier(0.16,1,0.3,1); }
+  .chispa-drawer { animation: chispaDrawerIn 0.36s cubic-bezier(0.16,1,0.3,1); }
+  .chispa-drawer-closing { animation: chispaDrawerOut 0.28s cubic-bezier(0.4,0,1,1) forwards; }
   .chispa-backdrop { animation: chispaBackdropIn 0.25s ease; }
+  .chispa-backdrop-closing { animation: chispaBackdropOut 0.28s ease forwards; }
   .chispa-launch-tab { animation: chispaTabIn 0.3s cubic-bezier(0.16,1,0.3,1), chispaTabPulse 3s ease-in-out infinite 0.3s; }
+  .chispa-logo-badge { animation: chispaLogoGlow 3s ease-in-out infinite; }
   .chispa-typewriter-word { display: inline; animation: chispaTypewriter 0.18s ease-out both; }
   .chispa-text-bubble strong, .chispa-text-bubble b { font-weight: 700; color: #1c1814; }
   .chispa-text-bubble em, .chispa-text-bubble i { font-style: italic; }
@@ -74,7 +88,7 @@ const PANEL_STYLES = `
   .chispa-text-bubble ul, .chispa-text-bubble ol { margin: 4px 0; padding-left: 18px; }
   .chispa-text-bubble li { margin-bottom: 2px; }
   @media (prefers-reduced-motion: reduce) {
-    .chispa-msg, .chispa-drawer, .chispa-backdrop, .chispa-launch-tab, .chispa-typewriter-word, .chispa-status-dot { animation: none !important; }
+    .chispa-msg, .chispa-drawer, .chispa-drawer-closing, .chispa-backdrop, .chispa-backdrop-closing, .chispa-launch-tab, .chispa-logo-badge, .chispa-typewriter-word, .chispa-status-dot { animation: none !important; }
   }
 `;
 
@@ -111,6 +125,17 @@ function IconoCerrar({ size = 15, color = T.textSecondary }: { size?: number; co
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Mismo icono electrico que la pestana lanzadora (ver mas abajo): la cabecera
+// del drawer abierto usa el rayo tambien, en vez de la foto de la mascota, para
+// que el "logo" de Chispa sea consistente este cerrado o abierto.
+function IconoRayo({ size = 16, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true">
+      <path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z" />
     </svg>
   );
 }
@@ -375,6 +400,10 @@ export default function ChispaPanel({
   // Nombre corto para etiquetar los turnos del usuario en el hilo (S03 V3).
   const nombreUsuario = profile.nombre?.trim().split(/\s+/)[0] || 'Tú';
   const [abierto, setAbierto] = useState(false);
+  // Cierre animado (S: "mas cinematico"): en vez de desmontar el drawer al
+  // instante, se marca "cerrando" para que juegue chispaDrawerOut/BackdropOut
+  // y solo entonces (DRAWER_CLOSE_MS despues) se pone abierto=false de verdad.
+  const [cerrando, setCerrando] = useState(false);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [texto, setTexto] = useState('');
   const [imagenB64, setImagenB64] = useState<string | null>(null);
@@ -469,6 +498,13 @@ export default function ChispaPanel({
     try { setPantallaCompleta(localStorage.getItem(FULLSCREEN_KEY) === '1'); } catch { /* no critico */ }
   }, []);
 
+  // Cierre animado del panel: usado por la X, el backdrop, Escape y cualquier
+  // atajo que cierre Chispa para abrir otra cosa encima (coach/tours).
+  function cerrarPanel() {
+    setCerrando(true);
+    setTimeout(() => { setAbierto(false); setCerrando(false); }, DRAWER_CLOSE_MS);
+  }
+
   function alternarPantallaCompleta() {
     setPantallaCompleta((v) => {
       const nv = !v;
@@ -524,7 +560,7 @@ export default function ChispaPanel({
       // Primer Escape sale de pantalla completa (sin tocar la preferencia
       // guardada); el siguiente Escape cierra el panel.
       if (pantallaCompleta) { setPantallaCompleta(false); return; }
-      setAbierto(false);
+      cerrarPanel();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -1266,11 +1302,11 @@ export default function ChispaPanel({
       {abierto && (
         <>
           {isMobile && (
-            <div className="chispa-backdrop" onClick={() => setAbierto(false)}
+            <div className={`chispa-backdrop${cerrando ? ' chispa-backdrop-closing' : ''}`} onClick={cerrarPanel}
               style={{ position: 'fixed', inset: 0, zIndex: 2147482999, background: T.ia.drawerBackdrop }} />
           )}
 
-          <div className="chispa-drawer glass-panel" style={{
+          <div className={`chispa-drawer${cerrando ? ' chispa-drawer-closing' : ''} glass-panel`} style={{
             position: 'fixed', top: 0, right: 0, height: '100%', width: drawerWidth, zIndex: 2147483000,
             display: 'flex', flexDirection: 'column',
             borderLeft: `1px solid rgba(255, 255, 255, 0.5)`,
@@ -1280,7 +1316,9 @@ export default function ChispaPanel({
           }}>
             {/* Cabecera */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', background: 'linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%)', flexShrink: 0 }}>
-              <ChispaMascota size={30} showLabel={false} animar />
+              <div className="chispa-logo-badge" style={{ width: 30, height: 30, borderRadius: '50%', background: T.fireGradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <IconoRayo size={16} />
+              </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: T.text, lineHeight: 1.15, letterSpacing: -0.2 }}>Chispa</div>
                 <div style={{ fontSize: 11, color: T.textTertiary, marginTop: 1, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -1327,7 +1365,7 @@ export default function ChispaPanel({
               {/* Coach intra-pagina (S16): cierra el panel y resalta los
                   elementos de la pantalla actual explicandolos in-situ. */}
               <button
-                onClick={() => { setAbierto(false); setTimeout(() => lanzarCoach(), 60); }}
+                onClick={() => { cerrarPanel(); setTimeout(() => lanzarCoach(), DRAWER_CLOSE_MS + 40); }}
                 aria-label="Ensename esta pantalla"
                 title="Que Chispa te ensene esta pantalla"
                 style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1346,9 +1384,9 @@ export default function ChispaPanel({
                   <IconoPantallaCompleta activo={pantallaCompleta} size={15} color={T.textSecondary} />
                 </button>
               )}
-              <button onClick={() => setAbierto(false)} aria-label="Cerrar Chispa"
+              <button onClick={cerrarPanel} aria-label="Cerrar Chispa"
                 style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <IconoCerrar size={15} color={T.textSecondary} />
+                <IconoCerrar size={15} color={T.danger} />
               </button>
             </div>
 
@@ -1377,7 +1415,7 @@ export default function ChispaPanel({
               <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined, display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {briefingActivo && (
                   <div style={{ marginBottom: 4 }}>
-                    <BriefingAgenda negocioId={negocioId} profile={profile} onClose={() => setAbierto(false)} />
+                    <BriefingAgenda negocioId={negocioId} profile={profile} onClose={cerrarPanel} />
                   </div>
                 )}
                 {/* Tours guiados (S17): entrada determinista a los recorridos
@@ -1392,14 +1430,14 @@ export default function ChispaPanel({
                       <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: T.textTertiary, fontWeight: 700, marginBottom: 8 }}>Tours guiados</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         {tourEnCurso && (
-                          <button type="button" className="btn-interactive" onClick={() => { setAbierto(false); setTimeout(() => reanudarTour(), 60); }}
+                          <button type="button" className="btn-interactive" onClick={() => { cerrarPanel(); setTimeout(() => reanudarTour(), DRAWER_CLOSE_MS + 40); }}
                             style={{ ...pill, border: 'none', background: T.primary, color: '#fff' }}>
                             Reanudar: {tourEnCurso.titulo}
                           </button>
                         )}
                         {TOURS.map((tr) => (
                           <button key={tr.id} type="button" title={tr.descripcion} className="btn-interactive"
-                            onClick={() => { setAbierto(false); setTimeout(() => lanzarTour(tr.id), 60); }} style={pill}>
+                            onClick={() => { cerrarPanel(); setTimeout(() => lanzarTour(tr.id), DRAWER_CLOSE_MS + 40); }} style={pill}>
                             {tr.titulo}
                           </button>
                         ))}
