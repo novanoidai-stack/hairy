@@ -102,6 +102,10 @@ export const manualChispa: ManualContent = {
       texto: 'Chispa lista y segmenta lo que le pidas: "qué clientes tengo", "mis VIP", "quién no viene hace tiempo", "los nuevos"; devuelve KPIs y una tabla ordenable (por gasto, frecuencia o fecha), sin datos de salud y respetando el consentimiento de IA. Con "analiza mi salón" o "dame el panorama" te da un panel 360 de un vistazo (caja, agenda, citas sin confirmar, clientes y avisos) con acciones de un clic. Para una clienta concreta, pídele su ficha por el nombre. Y si el cliente aún no ha confirmado su cita, puede reenviarle el recordatorio.',
     },
     {
+      titulo: 'Conversación por voz y "Hola Mecha"',
+      texto: 'Junto al botón de altavoz hay un botón de "Conversación": actívalo y, tras cada respuesta de Chispa, el micrófono se reabre solo para que sigas hablando sin tocar nada, como una llamada normal. Al hablar verás una animación en vivo con lo que se va transcribiendo, y el mensaje se envía solo cuando dejas de hablar de verdad (una pausa para pensar no lo envía). Además, en Configuración > Voz puedes activar "Hola Mecha" (apagado por defecto): con el micrófono escuchando de fondo, decir "Hola Mecha" desde cualquier pantalla abre el panel al instante. El audio lo procesa el navegador; Mecha no lo recibe hasta que se detecta la frase. Y si un hilo se queda con saludos sueltos, el botón de "Nueva conversación" (arriba, cuando hay historial) lo limpia.',
+    },
+    {
       titulo: 'Biblioteca de Prompts Prefabricados',
       texto: 'Al abrir el chat de Chispa sin mensajes, verás una mini-biblioteca con sugerencias diseñadas específicamente para tu salón (organizadas por pestañas: Agenda, Clientes, Gestión, Marketing). Además, cuando estés chateando, te aparecerán pequeños chips dinámicos recomendados según la pantalla en la que te encuentres, listos para enviar con un solo toque.',
     },

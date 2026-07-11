@@ -114,3 +114,21 @@ verdad) NO se puede probar en el entorno de preview automatizado (sin hardware d
 Carlos en su navegador. Lo que SÍ se verifica en preview: que los toggles nuevos
 (Conversación / Hola Mecha) renderizan, persisten en localStorage, y que el gate de navegador
 (`soportaReconocimientoNativo`) oculta el toggle de wake-word cuando corresponde.
+
+## Estado
+
+Implementado 2026-07-11. Tareas 1-4 (utilidades, eventos, `useChispaVoz` reescrito, hook
+`useChispaWakeWord`) ya venían de una tanda anterior; esta sesión completó el cableado en la UI:
+Tarea 5 (modo conversación + "Hola Mecha" en `ChispaPanel`), Tarea 6 (micrófono audio-reactivo +
+transcripción en vivo + toggle "Conversación"), Tarea 7 (toggle "Hola Mecha" en Configuración >
+Voz) y Tarea 8 (auto-conocimiento). Añadido fuera del plan original, por feedback del socio: botón
+**"Nueva conversación"** (limpia el hilo en pantalla y el persistido) — un hilo que solo guarda
+"hola" → saludo no aporta; y refinamiento del re-arme manos libres para que solo se reabra el micro
+tras un turno HABLADO (no tras escribir), y para que "Hola Mecha" abra una conversación por voz
+aunque el toggle de conversación esté apagado (`sesionVozRef`, se limpia al cerrar el panel).
+
+Verificado: `tsc --noEmit` limpio + `npm run build:web` (exit 0) + `deno test` (9/9) + UI en preview
+(demo iframe: botones renderizan, "Nueva conversación" aparece/limpia, toggle "Hola Mecha" persiste,
+cero errores de consola). **Pendiente de prueba con micrófono real** (Carlos, navegador real): la
+animación en vivo, el auto-envío por silencio de 4.5 s, el bucle de conversación y que "Hola Mecha"
+oiga de verdad no se pueden verificar en el preview automatizado (sin hardware de audio).
