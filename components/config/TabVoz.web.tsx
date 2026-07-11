@@ -1,7 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
-import { Section, FieldRow } from '@/components/ui/SettingsAtoms';
+import { Section, FieldRow, Toggle } from '@/components/ui/SettingsAtoms';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, supabase } from '@/lib/supabase';
+import { soportaVozNavegador } from '@/lib/hooks/useChispaVoz.web';
+import { WAKEWORD_ACTIVO_KEY } from '@/lib/hooks/useChispaWakeWord.web';
+import { CHISPA_WAKEWORD_TOGGLE_EVENT } from '@/lib/chispaBloques';
 
 interface Props {
   config: any;
@@ -22,6 +25,21 @@ export function TabVoz({ config, setC }: Props) {
   const [reproduciendo, setReproduciendo] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [errorVoz, setErrorVoz] = useState<string | null>(null);
+  const [wakeWordActivo, setWakeWordActivo] = useState(false);
+  const soportaWakeWord = useRef(soportaVozNavegador()).current;
+
+  useEffect(() => {
+    try { setWakeWordActivo(localStorage.getItem(WAKEWORD_ACTIVO_KEY) === '1'); } catch { /* no critico */ }
+  }, []);
+
+  // Este toggle NO monta el hook de escucha (ese vive en ChispaPanel, siempre
+  // montado globalmente): solo persiste la preferencia y avisa a la instancia
+  // REAL via evento, para que el cambio surta efecto sin recargar la pagina.
+  const cambiarWakeWord = (v: boolean) => {
+    setWakeWordActivo(v);
+    try { localStorage.setItem(WAKEWORD_ACTIVO_KEY, v ? '1' : '0'); } catch { /* no critico */ }
+    window.dispatchEvent(new CustomEvent(CHISPA_WAKEWORD_TOGGLE_EVENT, { detail: { activo: v } }));
+  };
 
   // Al entrar en la pantalla de voz, pre-calentar Kokoro en segundo plano para
   // que el primer "Escuchar" no pague el cold start del VPS (~15-20s la 1a vez).
@@ -201,6 +219,27 @@ export function TabVoz({ config, setC }: Props) {
               </div>
             );
           })}
+        </div>
+      </Section>
+
+      <Section title="Activar con la voz">
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '4px 0' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 4 }}>
+              "Hola Mecha"
+            </div>
+            <div style={{ fontSize: 12.5, color: T.textSecondary, lineHeight: 1.5 }}>
+              {soportaWakeWord
+                ? 'Al activarla, este dispositivo escucha de forma continua para detectar "Hola Mecha". El audio lo procesa el reconocimiento de voz del navegador; Mecha no lo recibe ni lo guarda hasta que se detecta la frase y empieza una conversación normal.'
+                : 'No disponible en este navegador (necesitas Chrome o Edge).'}
+            </div>
+          </div>
+          <Toggle
+            on={wakeWordActivo}
+            onChange={cambiarWakeWord}
+            disabled={!soportaWakeWord}
+            label=""
+          />
         </div>
       </Section>
     </div>
