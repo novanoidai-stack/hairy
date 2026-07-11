@@ -1247,39 +1247,52 @@ Reemplázala por:
   .chispa-mic-pulso { animation: chispaMicPulso 1.4s ease-in-out infinite; }
 ```
 
-Busca esta línea ya existente (lista de animaciones desactivadas por accesibilidad):
+Busca esta línea ya existente (lista de animaciones desactivadas por accesibilidad — NOTA: una
+sesión paralela añadió `chispa-drawer-closing`/`chispa-backdrop-closing`/`chispa-logo-badge` a esta
+lista el 11 jul; usa el contenido REAL de tu archivo, no una versión anterior, si difiere de esto):
 
 ```ts
   @media (prefers-reduced-motion: reduce) {
-    .chispa-msg, .chispa-drawer, .chispa-backdrop, .chispa-launch-tab, .chispa-typewriter-word, .chispa-status-dot { animation: none !important; }
+    .chispa-msg, .chispa-drawer, .chispa-drawer-closing, .chispa-backdrop, .chispa-backdrop-closing, .chispa-launch-tab, .chispa-logo-badge, .chispa-typewriter-word, .chispa-status-dot { animation: none !important; }
   }
 ```
 
-Reemplázala por:
+Reemplázala por (añade `.chispa-mic-pulso` a la lista, sin quitar nada de lo demás):
 
 ```ts
   @media (prefers-reduced-motion: reduce) {
-    .chispa-msg, .chispa-drawer, .chispa-backdrop, .chispa-launch-tab, .chispa-typewriter-word, .chispa-status-dot, .chispa-mic-pulso { animation: none !important; }
+    .chispa-msg, .chispa-drawer, .chispa-drawer-closing, .chispa-backdrop, .chispa-backdrop-closing, .chispa-launch-tab, .chispa-logo-badge, .chispa-typewriter-word, .chispa-status-dot, .chispa-mic-pulso { animation: none !important; }
   }
 ```
 
 - [ ] **Step 2: Añade el icono de "Conversación" junto a los demás iconos**
 
-Busca esta función ya existente (icono de cerrar, al principio del archivo):
+NOTA: una sesión paralela añadió el 11 jul un icono `IconoRayo` entre `IconoCerrar` e
+`IconoImagen` (logo de la cabecera). Ancla sobre `IconoRayo` (ya existe tal cual en el archivo):
+
+Busca esta función ya existente:
 
 ```ts
-function IconoCerrar({ size = 15, color = T.textSecondary }: { size?: number; color?: string }) {
+function IconoRayo({ size = 16, color = '#fff' }: { size?: number; color?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true">
+      <path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z" />
     </svg>
   );
+}
 ```
 
-Justo tras el cierre de esa función (busca el `}` que la cierra y el siguiente salto de línea),
-añade esta función nueva:
+Reemplázala por (deja `IconoRayo` intacto, añade `IconoConversacion` justo después):
 
 ```ts
+function IconoRayo({ size = 16, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true">
+      <path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z" />
+    </svg>
+  );
+}
+
 function IconoConversacion({ size = 15, color = T.textSecondary, activo = false }: { size?: number; color?: string; activo?: boolean }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -1292,6 +1305,10 @@ function IconoConversacion({ size = 15, color = T.textSecondary, activo = false 
   );
 }
 ```
+
+Si al llegar a este paso tu archivo real ya no tiene `IconoRayo` en ese punto (otra sesión pudo
+haberlo movido/renombrado), usa en su lugar el mismo patrón sobre `IconoImagen` (busca su función
+completa y añade `IconoConversacion` justo ANTES, con el mismo cuerpo de arriba).
 
 - [ ] **Step 3: Añade el botón "Conversación" en la cabecera, junto al de altavoz**
 
