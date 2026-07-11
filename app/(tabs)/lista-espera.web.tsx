@@ -191,7 +191,7 @@ function ListaEsperaScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, padding: isMobile ? '16px 12px' : '28px 32px', fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto' }}>
+    <div style={{ height: '100%', flex: 1, minHeight: '100%', background: T.bg, padding: isMobile ? '16px 12px 96px' : '28px 32px', fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto' }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
       <div style={{ maxWidth: 980, margin: '0 auto' }}>
         {/* Cabecera */}

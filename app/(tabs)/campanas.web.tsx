@@ -138,7 +138,7 @@ function CampanasScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100%', background: T.bg, paddingBottom: 40 }}>
+    <div style={{ height: '100%', minHeight: '100%', background: T.bg, overflowY: 'auto', paddingBottom: isMobile ? 96 : 40 }}>
       <Header onBack={() => router.back()} isMobile={isMobile} />
       <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '0 14px' : '0 24px', display: 'grid', gap: 16 }}>
 

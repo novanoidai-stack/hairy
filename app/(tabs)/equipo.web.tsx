@@ -495,7 +495,7 @@ export default function EquipoWeb() {
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         {/* Cards grid — visible cuando no hay miembro seleccionado */}
         {!(profSel && selected) && (
-        <div style={{ overflowY: 'auto', padding: isMobile ? '12px 12px 88px' : 24, height: '100%' }}>
+        <div style={{ overflowY: 'auto', padding: isMobile ? '12px 12px 96px' : 24, height: '100%' }}>
           <div onClick={() => menuCardId && setMenuCardId(null)} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)'), gap: isMobile ? 12 : 16 }}>
             {profesionales.map((p, idx) => {
               const isSel = p.id === selected;
@@ -676,7 +676,7 @@ export default function EquipoWeb() {
 
         {/* Detalle del miembro a pantalla completa */}
         {profSel && selected && (
-          <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: isMobile ? '12px 16px 88px' : '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
+          <div className="equipo-panel" onClick={() => setMenuBloqueoId(null)} style={{ position: 'absolute', inset: 0, padding: isMobile ? '12px 16px 96px' : '20px 32px 36px', overflowY: 'auto', background: TOKENS.bg }}>
             {/* Cabecera: volver · identidad · acciones */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22, flexWrap: 'wrap' }}>
               <button

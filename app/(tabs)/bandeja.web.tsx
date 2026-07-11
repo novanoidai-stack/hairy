@@ -221,7 +221,7 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
     <div className="b-modal-overlay" onClick={() => { if (!enviando) onClose(); }}
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 220, display: 'grid', placeItems: isMobile ? 'end stretch' : 'center', padding: isMobile ? 0 : 16 }}>
       <div className="b-modal" onClick={(e) => e.stopPropagation()}
-        style={{ background: T.panel, border: `1px solid ${T.borderHi}`, borderRadius: isMobile ? '16px 16px 0 0' : 16, padding: isMobile ? 18 : 24, width: '100%', maxWidth: 560, maxHeight: isMobile ? '92vh' : '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 70px rgba(40,30,24,0.35)' }}>
+        style={{ background: T.panel, border: `1px solid ${T.borderHi}`, borderRadius: isMobile ? '16px 16px 0 0' : 16, padding: isMobile ? '18px 18px 84px' : 24, width: '100%', maxWidth: 560, maxHeight: isMobile ? '92vh' : '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 70px rgba(40,30,24,0.35)' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, gap: 10 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>

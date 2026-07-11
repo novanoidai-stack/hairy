@@ -54,7 +54,7 @@ const PANEL_STYLES = `
   @keyframes chispaDrawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
   @keyframes chispaBackdropIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes chispaMsgIn { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-  @keyframes chispaTabIn { from { opacity: 0; transform: translate(20px,-50%); } to { opacity: 1; transform: translate(0,-50%); } }
+  @keyframes chispaTabIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
   @keyframes chispaDot { 0%, 80%, 100% { opacity: 0.3; transform: scale(0.85); } 40% { opacity: 1; transform: scale(1); } }
   @keyframes chispaTabPulse {
     0%, 100% { box-shadow: 0 8px 24px rgba(192,38,10,0.32); }
@@ -1235,7 +1235,7 @@ export default function ChispaPanel({
           // Ancla para el coach intra-pagina (S16): siempre presente en la app.
           data-coach="chispa-bubble"
           style={{
-            position: 'fixed', top: '50%', right: 0, transform: 'translateY(-50%)',
+            position: 'fixed', bottom: isMobile ? 132 : 96, right: 0, top: 'auto',
             zIndex: 2147483000, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
             padding: T.ia.launcherPadding, border: 'none', borderRadius: '14px 0 0 14px',
             background: T.fireGradient, color: '#fff', boxShadow: T.ia.launcherShadow, cursor: 'pointer',
@@ -1698,7 +1698,7 @@ export default function ChispaPanel({
               <div style={{ width: '100%', maxWidth: amplio ? 760 : undefined, padding: amplio ? '0 32px' : undefined }}>
               {imagenB64 && (
                 <div style={{ padding: '10px 14px', marginBottom: '10px', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                   <div style={{ fontSize: '12.5px', fontWeight: 600, color: T.textSecondary }}>📸 Imagen lista para enviar</div>
+                   <div style={{ fontSize: '12.5px', fontWeight: 600, color: T.textSecondary, display: 'flex', alignItems: 'center', gap: 6 }}><IconoImagen size={14} color={T.textSecondary} /> Imagen lista para enviar</div>
                    <button className="btn-interactive" onClick={() => setImagenB64(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: T.danger, fontSize: '12px', fontWeight: 700 }}>Quitar</button>
                 </div>
               )}
@@ -1711,7 +1711,7 @@ export default function ChispaPanel({
                   disabled={bloqueado}
                   placeholder={hayAccionPendiente ? 'Confirma o cancela la accion primero...' : configGuiada ? 'Responde arriba para continuar...' : 'Escribe tu solicitud...'}
                   aria-label="Mensaje para Chispa"
-                  style={{ flex: 1, border: 'none', background: 'transparent', color: T.text, fontSize: 14, fontFamily: 'Inter, system-ui, sans-serif', outline: 'none', lineHeight: 1.4, cursor: hayAccionPendiente ? 'not-allowed' : 'text', paddingBottom: 8, paddingTop: 8 }}
+                  style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', color: T.text, fontSize: 14, fontFamily: 'Inter, system-ui, sans-serif', outline: 'none', lineHeight: 1.4, cursor: hayAccionPendiente ? 'not-allowed' : 'text', paddingBottom: 8, paddingTop: 8 }}
                 />
                 
                 <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={manejarImagen} />

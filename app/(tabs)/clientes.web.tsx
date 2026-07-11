@@ -746,7 +746,7 @@ function ClientesWeb() {
 
       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (!c ? '1fr 0px' : (panelExpanded ? '0fr 1fr' : '1fr 420px')), overflow: 'hidden', transition: 'grid-template-columns 0.35s cubic-bezier(0.16,1,0.3,1)' }}>
         {/* List */}
-        <div style={{ display: (isMobile && selected) ? 'none' : 'block', overflowY: 'auto', overflowX: 'hidden', padding: (panelExpanded || (isMobile && selected)) ? 0 : (isMobile ? '12px 12px 88px' : 24), minWidth: 0 }}>
+        <div style={{ display: (isMobile && selected) ? 'none' : 'block', overflowY: 'auto', overflowX: 'hidden', padding: (panelExpanded || (isMobile && selected)) ? 0 : (isMobile ? '12px 12px 96px' : 24), minWidth: 0 }}>
           {/* Search */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: '11px 14px', marginBottom: 16 }}>
             <Icon name="search" size={16} color={TOKENS.textSec} />
@@ -912,7 +912,7 @@ function ClientesWeb() {
 
         {/* Detail panel */}
         {c && (
-          <div key={c.id} className="m-slide-right" style={{ borderLeft: isMobile ? 'none' : `1px solid ${TOKENS.border}`, padding: panelExpanded ? '24px 0' : (isMobile ? '12px 0' : 24), overflowY: 'auto', background: 'linear-gradient(180deg, rgba(244,80,30,0.04), transparent 30%)', minWidth: 0 }}>
+          <div key={c.id} className="m-slide-right" style={{ borderLeft: isMobile ? 'none' : `1px solid ${TOKENS.border}`, padding: isMobile ? (panelExpanded ? '24px 0 96px' : '12px 0 96px') : (panelExpanded ? '24px 0' : 24), overflowY: 'auto', background: 'linear-gradient(180deg, rgba(244,80,30,0.04), transparent 30%)', minWidth: 0 }}>
           <div style={{ maxWidth: panelExpanded ? 1400 : 'none', margin: panelExpanded ? '0 auto' : 0, padding: panelExpanded ? '0 32px' : (isMobile ? '0 16px' : 0) }}>
             {/* Toggle expand / Back button. En movil la barra queda fija (sticky)
                 para que "Volver al listado" siga a mano aunque se baje por la ficha. */}
