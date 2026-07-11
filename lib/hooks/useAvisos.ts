@@ -1,9 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
 import { CITA_STATUS } from '@/lib/constants';
 import { contarSinLeer } from '@/lib/bandeja';
 import { cargarHallazgos, marcarHallazgo, type Hallazgo, type EstadoHallazgo } from '@/lib/hallazgos';
+import {
+  categoriaDeHallazgo, ordenarAvisos,
+  type AvisoItem, type AvisoUrgencia,
+} from '@/lib/avisosCategorias';
 
 // Hallazgos (S13/S14) que YA se muestran como su propia seccion nativa de Avisos:
 // se excluyen de la seccion "Chispa esta vigilando" para no duplicar.
@@ -35,6 +39,10 @@ export interface AvisosData {
   // Hallazgos del escaneo proactivo (S13) que no tienen ya seccion nativa
   // (senal sin pagar, presupuesto sin respuesta, stock bajo).
   hallazgos: Hallazgo[];
+  // Vista unificada de TODOS los avisos, normalizada y ordenada (urgencia +
+  // cercania temporal). La consumen la campana web y la hoja movil para pintar
+  // categorias, urgencia y orden cronologico de forma identica.
+  items: AvisoItem[];
   total: number;
   loading: boolean;
   refresh: () => void;
@@ -137,5 +145,104 @@ export function useAvisos(enabled = true): AvisosData {
   }, [enabled, tick]);
 
   const total = sinConfirmar.length + cumples.length + mensajesSinLeer + clientesFuga + hallazgos.length;
-  return { sinConfirmar, cumples, mensajesSinLeer, clientesFuga, hallazgos, total, loading, refresh, resolverHallazgo };
+
+  // Vista unificada: normaliza cada fuente a AvisoItem (categoria + urgencia + ts
+  // + ruta) y ordena por urgencia y cercania temporal. Un solo lugar de verdad
+  // para que campana y hoja movil sean identicas.
+  const items = useMemo<AvisoItem[]>(() => {
+    const ahora = Date.now();
+    const out: AvisoItem[] = [];
+
+    // Citas sin confirmar (proximas 48h): urgencia alta si es en <24h.
+    sinConfirmar.forEach((c) => {
+      const ts = new Date(c.inicio).getTime();
+      const urgencia: AvisoUrgencia = ts - ahora < 24 * 3600000 ? 'alta' : 'media';
+      out.push({
+        id: `cita:${c.id}`,
+        categoria: 'citas',
+        urgencia,
+        titulo: c.clienteNombre,
+        subtitulo: 'Sin confirmar',
+        ts,
+        ruta: `/(tabs)/?cita=${c.id}`,
+      });
+    });
+
+    // Mensajes sin leer (agregado): un aviso con el total.
+    if (mensajesSinLeer > 0) {
+      out.push({
+        id: 'mensajes',
+        categoria: 'mensajes',
+        urgencia: 'media',
+        titulo: `${mensajesSinLeer} ${mensajesSinLeer === 1 ? 'mensaje nuevo' : 'mensajes nuevos'}`,
+        subtitulo: 'En Bandeja',
+        ts: ahora,
+        ruta: '/(tabs)/bandeja',
+        meta: String(mensajesSinLeer),
+      });
+    }
+
+    // Clientas en riesgo de fuga (agregado).
+    if (clientesFuga > 0) {
+      out.push({
+        id: 'fuga',
+        categoria: 'clientes',
+        urgencia: 'media',
+        titulo: `${clientesFuga} ${clientesFuga === 1 ? 'clienta en riesgo de fuga' : 'clientas en riesgo de fuga'}`,
+        subtitulo: 'Hace tiempo que no vienen',
+        ts: ahora,
+        ruta: '/(tabs)/clientes?filtro=fuga',
+        meta: String(clientesFuga),
+      });
+    }
+
+    // Cumpleanos proximos (prioridad baja).
+    cumples.forEach((b) => {
+      const cuando = b.diff === 0 ? 'Hoy cumple años' : b.diff === 1 ? 'Mañana cumple años' : `Cumple en ${b.diff} días`;
+      out.push({
+        id: `cumple:${b.clienteId}`,
+        categoria: 'clientes',
+        urgencia: 'baja',
+        titulo: b.nombre,
+        subtitulo: cuando,
+        ts: b.fecha.getTime(),
+        ruta: `/(tabs)/clientes?clienteId=${b.clienteId}`,
+      });
+    });
+
+    // Hallazgos del escaneo proactivo (senal sin pagar, stock bajo, retrasos...).
+    hallazgos.forEach((h) => {
+      const cnt = h.datos?.count ?? 0;
+      out.push({
+        id: `hallazgo:${h.id}`,
+        categoria: categoriaDeHallazgo(h),
+        urgencia: h.severidad,
+        titulo: h.resumen,
+        subtitulo: h.detalle || undefined,
+        ts: new Date(h.creado_en).getTime() || ahora,
+        ruta: rutaHallazgo(h.tipo, h.accion_sugerida?.payload as Record<string, unknown>),
+        hallazgoId: h.id,
+        meta: cnt > 0 ? `${cnt} ${cnt === 1 ? 'caso' : 'casos'}` : undefined,
+      });
+    });
+
+    return ordenarAvisos(out);
+  }, [sinConfirmar, cumples, mensajesSinLeer, clientesFuga, hallazgos]);
+
+  return { sinConfirmar, cumples, mensajesSinLeer, clientesFuga, hallazgos, items, total, loading, refresh, resolverHallazgo };
+}
+
+// Ruta destino de un hallazgo segun su accion sugerida (o por tipo como
+// fallback). Compartida por la vista unificada de items.
+function rutaHallazgo(tipo: string, payload?: Record<string, unknown>): string {
+  const destino = (payload?.destino as string) || '';
+  const mapa: Record<string, string> = {
+    agenda: '/(tabs)/', bandeja: '/(tabs)/bandeja', presupuestos: '/(tabs)/presupuestos',
+    inventario: '/(tabs)/inventario', clientes: '/(tabs)/clientes',
+  };
+  if (destino && mapa[destino]) return mapa[destino];
+  if (tipo === 'senal_sin_pagar') return '/(tabs)/';
+  if (tipo === 'presupuesto_sin_respuesta') return '/(tabs)/presupuestos';
+  if (tipo === 'stock_bajo') return '/(tabs)/inventario';
+  return '/(tabs)/';
 }
