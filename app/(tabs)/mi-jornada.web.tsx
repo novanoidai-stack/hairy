@@ -245,6 +245,9 @@ function MiJornadaScreen() {
   const [userId, setUserId] = useState('');
   const [fichando, setFichando] = useState(false);
   const [subTab, setSubTab] = useState<'citas' | 'numeros' | 'ausencias'>('citas');
+  // "Resumen de tu dia" (tarjeta IA): en movil ocupaba demasiado arriba. Arranca
+  // plegada tras un chip compacto; en escritorio va desplegada.
+  const [resumenIaOpen, setResumenIaOpen] = useState<boolean>(() => typeof window === 'undefined' || window.innerWidth >= 768);
 
   // Vista de equipo (solo propietario/direccion): ranking de profesionales.
   const [vista, setVista] = useState<Vista>('personal');
@@ -920,23 +923,34 @@ para proponerla completa, así que no llames a esa herramienta.`;
             resumen determinista se ve siempre; "Analizar mi día" solo anade
             una lectura del LLM encima y nunca deja la tarjeta en blanco. */}
         <div className="mj-row" style={{ marginBottom: 16 }}>
-          <TarjetaAyudaIA
-            titulo="Resumen de tu día"
-            subtitulo="Descubre oportunidades o huecos libres"
-            estado={ayudaIA.estado}
-            onAnalizar={analizarDiaIA}
-            botonLabel="Analizar mi día"
-            mensajeVacio="Chispa no ha encontrado nada que destacar en tu día."
-            resumenDeterminista={resumen ? (
-              <>
-                {resumenIADeterminista(resumen, periodo)}
-                {huecosHoy.length > 0 && <div style={{ marginTop: 6 }}>{textoHueco(huecosHoy[0])}</div>}
-              </>
-            ) : null}
-            accionEstado={accionEstadoIA}
-            onConfirmarAccion={confirmarAccionIA}
-            onCancelarAccion={() => setAccionEstadoIA('cancelada')}
-          />
+          {isMobile && !resumenIaOpen ? (
+            <button
+              onClick={() => setResumenIaOpen(true)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 11, cursor: 'pointer', textAlign: 'left' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l1.8 5.6L19.5 10.4l-5.7 1.8L12 18l-1.8-5.8L4.5 10.4l5.7-1.8L12 3z" stroke={T.primary} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" /></svg>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: T.text }}>Resumen de tu día</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.textTer} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+            </button>
+          ) : (
+            <TarjetaAyudaIA
+              titulo="Resumen de tu día"
+              subtitulo="Descubre oportunidades o huecos libres"
+              estado={ayudaIA.estado}
+              onAnalizar={analizarDiaIA}
+              botonLabel="Analizar mi día"
+              mensajeVacio="Chispa no ha encontrado nada que destacar en tu día."
+              resumenDeterminista={resumen ? (
+                <>
+                  {resumenIADeterminista(resumen, periodo)}
+                  {huecosHoy.length > 0 && <div style={{ marginTop: 6 }}>{textoHueco(huecosHoy[0])}</div>}
+                </>
+              ) : null}
+              accionEstado={accionEstadoIA}
+              onConfirmarAccion={confirmarAccionIA}
+              onCancelarAccion={() => setAccionEstadoIA('cancelada')}
+            />
+          )}
         </div>
 
         {/* Selector de SubTabs en Móvil */}

@@ -118,6 +118,8 @@ export default function InventarioScreen() {
   const [alertasCount, setAlertasCount] = useState(0);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [soloStockBajo, setSoloStockBajo] = useState(false);
+  // "Prediccion de Pedido" (tarjeta IA): en movil arranca plegada tras un chip.
+  const [prediccionOpen, setPrediccionOpen] = useState<boolean>(() => typeof window === 'undefined' || window.innerWidth >= 768);
 
   // Modales
   const [showNuevoProducto, setShowNuevoProducto] = useState(false);
@@ -912,21 +914,32 @@ export default function InventarioScreen() {
           </div>
           
           <div style={{ marginTop: 16 }}>
-            <TarjetaAyudaIA
-              titulo="Predicción de Pedido"
-              subtitulo="IA: Sugerencia de reposición inteligente"
-              estado={ayudaIA.estado}
-              onAnalizar={handlePrediccionStock}
-              onReintentar={ayudaIA.reintentar}
-              botonLabel="Predicción de Pedido"
-              resumenDeterminista={
-                <div>
-                  Tienes <span style={{fontWeight: 600, color: TOKENS.danger}}>{criticos.length} productos</span> por debajo del stock mínimo.
-                </div>
-              }
-              onConfirmarAccion={procesarAccionChispa}
-              isMobile={isMobile}
-            />
+            {isMobile && !prediccionOpen ? (
+              <button
+                onClick={() => setPrediccionOpen(true)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 11, cursor: 'pointer', textAlign: 'left' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l1.8 5.6L19.5 10.4l-5.7 1.8L12 18l-1.8-5.8L4.5 10.4l5.7-1.8L12 3z" stroke={TOKENS.primary} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" /></svg>
+                <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>Predicción de Pedido (IA)</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={TOKENS.textTer} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+              </button>
+            ) : (
+              <TarjetaAyudaIA
+                titulo="Predicción de Pedido"
+                subtitulo="IA: Sugerencia de reposición inteligente"
+                estado={ayudaIA.estado}
+                onAnalizar={handlePrediccionStock}
+                onReintentar={ayudaIA.reintentar}
+                botonLabel="Predicción de Pedido"
+                resumenDeterminista={
+                  <div>
+                    Tienes <span style={{fontWeight: 600, color: TOKENS.danger}}>{criticos.length} productos</span> por debajo del stock mínimo.
+                  </div>
+                }
+                onConfirmarAccion={procesarAccionChispa}
+                isMobile={isMobile}
+              />
+            )}
           </div>
         </div>
       )}
@@ -983,7 +996,7 @@ export default function InventarioScreen() {
         </div>
 
         <div style={styles.toolbarRight}>
-          <div style={styles.viewToggleGroup}>
+          <div style={{ ...styles.viewToggleGroup, display: isMobile ? 'none' : undefined }}>
             <button
               style={{
                 ...styles.toggleBtn,
@@ -1036,8 +1049,9 @@ export default function InventarioScreen() {
               </button>
             )}
           </div>
-        ) : viewMode === 'grid' ? (
-          /* GRID VIEW */
+        ) : (viewMode === 'grid' || isMobile) ? (
+          /* GRID VIEW (en movil siempre: la tabla de 8 columnas se cortaba a la
+             derecha y obligaba a scroll horizontal sin sentido en pantalla pequena) */
           <div style={{ ...styles.productosGrid, gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: isMobile ? 12 : 20 }}>
             {productosFiltrados.map((producto) => (
               <div
@@ -1054,7 +1068,7 @@ export default function InventarioScreen() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                       <span style={styles.cardCategoryBadge}>{producto.categoria}</span>
                       {producto.ubicacion && (
-                        <span style={styles.cardLocationBadge}>📍 {producto.ubicacion}</span>
+                        <span style={styles.cardLocationBadge}>{producto.ubicacion}</span>
                       )}
                     </div>
                     <h3 style={styles.cardTitle} title={producto.nombre}>{producto.nombre}</h3>
@@ -1064,17 +1078,21 @@ export default function InventarioScreen() {
                   </div>
                 </div>
 
-                <p style={styles.cardDesc}>
-                  {producto.descripcion || 'Sin descripción detallada.'}
-                </p>
+                {/* Descripcion y codigo de barras solo en escritorio: en movil
+                    engordaban la tarjeta sin aportar (el detalle se ve al abrir). */}
+                {!isMobile && (
+                  <p style={styles.cardDesc}>
+                    {producto.descripcion || 'Sin descripción detallada.'}
+                  </p>
+                )}
 
-                {producto.codigo_barras && (
+                {!isMobile && producto.codigo_barras && (
                   <div style={styles.barcodeBox}>
                     <span style={{ fontSize: '11px', color: TOKENS.textTer }}>EAN: {producto.codigo_barras}</span>
                   </div>
                 )}
 
-                <div style={{ margin: '16px 0' }}>
+                <div style={{ margin: isMobile ? '10px 0' : '16px 0' }}>
                   {renderStockProgress(producto.stock_actual, producto.stock_minimo)}
                 </div>
 
