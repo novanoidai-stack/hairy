@@ -3201,7 +3201,9 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         borderLeft: `3px solid ${bColor}99`,
                         borderRadius: 6,
                         pointerEvents: 'none',
-                        zIndex: 2,
+                        // Detras de las citas (z:1 < cita z:3): la ausencia/bloqueo es
+                        // una banda de fondo, nunca debe taparlas (antes z:2 = encima).
+                        zIndex: 1,
                         padding: '4px 6px',
                         overflow: 'hidden',
                       }}
@@ -3247,6 +3249,9 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         height,
                         boxSizing: 'border-box',
                         pointerEvents: 'auto',
+                        // Siempre por encima de bloqueos/ausencias (z:1) para que nunca
+                        // queden tapadas por la banda de ausencia.
+                        zIndex: 3,
                         background: cancelada ? 'linear-gradient(180deg, #3a3a3a18, #2a2a2a10)' : citaBg,
                         border: cancelada ? '1px solid #55555540' : `1px solid ${citaBorder}`,
                         borderLeft: cancelada ? '3px solid #66666660' : `3px solid ${profColor}`,
@@ -3312,8 +3317,21 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         const srv = servicioMap?.get(cita.servicio_id);
                         const cat = srv ? (categorias || []).find((c: any) => c.id === srv.categoria_id) : null;
                         const catColor = cat ? categoryColorHex(cat.color) : null;
-                        const catIcon = cat?.icono ? getCategoryIcon(cat.icono, catColor || profColor, 12) : null;
                         const catName = cat?.nombre || '';
+                        // Icono de categoria PROTAGONISTA: un badge de color con el icono en
+                        // blanco (o, si el servicio no tiene categoria, las iniciales del
+                        // cliente). Da identidad visual instantanea de "que es esta cita".
+                        const badgeColor = catColor || profColor;
+                        const catIconWhite = cat?.icono ? getCategoryIcon(cat.icono, '#fff', narrow ? 12 : 15) : null;
+                        const iniciales = nombreCliente.split(/\s+/).map((w: string) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '·';
+                        // Columna estrecha (muchos profesionales o citas solapadas): mostrar
+                        // INICIALES en vez del nombre completo evita el truncado inconsistente
+                        // con puntos suspensivos que se veia con muchos profesionales.
+                        const estrecho = totalLanes > 1 || (profesionales?.length || 1) >= 5;
+                        // Identidad del cliente en el texto: si el badge ya muestra iniciales
+                        // (sin categoria), el texto lleva el nombre; si el badge lleva el icono
+                        // de categoria, el texto usa iniciales cuando la columna es estrecha.
+                        const identidad = catIconWhite ? (estrecho ? iniciales : nombreCliente) : nombreCliente;
 
                         const esCompletada = cita.estado === CITA_STATUS.COMPLETADA;
                         const esNoShow = cita.estado === CITA_STATUS.NO_PRESENTADA;
@@ -3368,17 +3386,18 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
 
                         if (narrow) {
                           const superNarrow = height <= 20;
+                          const badgePx = superNarrow ? 15 : 18;
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', height: '100%' }}>
-                              <span style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancelada ? 'line-through' : 'none' }}>
-                                {nombreCliente}{!superNarrow && nombreServicio ? ` · ${nombreServicio}` : ''}{!superNarrow && addonsStr ? ` ${addonsStr}` : ''}
+                              <span style={{ flexShrink: 0, width: badgePx, height: badgePx, borderRadius: 5, background: cancelada ? '#99999955' : badgeColor, display: 'grid', placeItems: 'center', color: '#fff', fontSize: superNarrow ? 8 : 9, fontWeight: 800 }} title={catName}>
+                                {catIconWhite || iniciales}
                               </span>
                               {!superNarrow && (
-                                <span style={{ fontSize: 10, fontWeight: 600, color: TOKENS.textTer, flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                  {timeStrCompact}
-                                  {catIcon && <span style={{ display: 'inline-flex', opacity: 0.8 }} title={catName}>{catIcon}</span>}
-                                </span>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.textSec, flexShrink: 0, whiteSpace: 'nowrap' }}>{timeStrCompact}</span>
                               )}
+                              <span style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancelada ? 'line-through' : 'none' }}>
+                                {estrecho ? (catIconWhite ? iniciales : nombreCliente) : `${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ''}`}
+                              </span>
                               {chainBadge}
                               {icon}
                             </div>
@@ -3386,34 +3405,40 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         }
 
                         return (
-                          <>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                              <span style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                {timeStr}
-                                {catIcon && <span style={{ display: 'inline-flex', opacity: 0.8 }} title={catName}>{catIcon}</span>}
-                              </span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                {chainBadge}
-                                {icon}
+                          <div style={{ display: 'flex', gap: 7, height: '100%', overflow: 'hidden' }}>
+                            {/* Badge de categoria PROTAGONISTA (icono en blanco sobre color
+                                de la categoria, o iniciales del cliente si no hay categoria). */}
+                            <span style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 8, background: cancelada ? '#99999955' : badgeColor, display: 'grid', placeItems: 'center', color: '#fff', fontSize: 11, fontWeight: 800, marginTop: 1 }} title={catName}>
+                              {catIconWhite || iniciales}
+                            </span>
+                            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: height < 64 ? 0 : 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                                <span style={{ fontSize: 11.5, color: cancelada ? TOKENS.textTer : TOKENS.textSec, fontWeight: 700, whiteSpace: 'nowrap' }}>{timeStr}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                                  {chainBadge}
+                                  {icon}
+                                </div>
                               </div>
-                            </div>
-                            <div
-                              onMouseDown={(e) => { if (onClienteHistorial) e.stopPropagation(); }}
-                              onClick={(e) => { if (onClienteHistorial) { e.stopPropagation(); const cli = clientes.find((cl: any) => cl.id === cita.cliente_id); if (cli) onClienteHistorial(cli); } }}
-                              style={{ display: 'inline-block', alignSelf: 'flex-start', maxWidth: '100%', fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelada ? 'line-through' : 'none', cursor: onClienteHistorial ? 'pointer' : 'default' }}
-                              title="Ver historial de este cliente"
-                            >
-                              {nombreCliente}
-                            </div>
-                            <div style={{ fontSize: 10, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {nombreServicio || (cita.servicio_id ? 'Servicio eliminado' : 'Sin servicio')}
-                            </div>
-                            {addonsStr && (
-                              <div style={{ fontSize: 9, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {addonsStr}
+                              <div
+                                onMouseDown={(e) => { if (onClienteHistorial) e.stopPropagation(); }}
+                                onClick={(e) => { if (onClienteHistorial) { e.stopPropagation(); const cli = clientes.find((cl: any) => cl.id === cita.cliente_id); if (cli) onClienteHistorial(cli); } }}
+                                style={{ maxWidth: '100%', fontSize: 12, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelada ? 'line-through' : 'none', cursor: onClienteHistorial ? 'pointer' : 'default' }}
+                                title="Ver historial de este cliente"
+                              >
+                                {identidad}
                               </div>
-                            )}
-                          </>
+                              {height >= 48 && (
+                                <div style={{ fontSize: 10, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {nombreServicio || (cita.servicio_id ? 'Servicio eliminado' : 'Sin servicio')}
+                                </div>
+                              )}
+                              {addonsStr && height >= 64 && (
+                                <div style={{ fontSize: 9, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {addonsStr}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         );
                       })()}
                     </div>
