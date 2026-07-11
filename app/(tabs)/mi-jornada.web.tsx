@@ -45,6 +45,8 @@ function Icon({ name, size = 18, color = T.text }: { name: string; size?: number
     link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
     info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
     star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    pause: '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>',
+    play: '<polygon points="5 3 19 12 5 21 5 3"/>',
   };
   return (
     <span style={{ display: 'inline-flex', color, flexShrink: 0 }} dangerouslySetInnerHTML={{
@@ -121,14 +123,19 @@ function rangoDe(periodo: Periodo): [Date, Date] {
   const d = startOfMonth(now); return [d, addMonths(d, 1)];
 }
 
-// Horas trabajadas a partir de marcas entrada/salida (sesion abierta cuenta hasta ahora).
+// Horas trabajadas a partir de marcas entrada/salida (sesion abierta cuenta hasta
+// ahora). La pausa NO cuenta: 'pausa_inicio' cierra el intervalo activo y
+// 'pausa_fin' abre uno nuevo, igual que salida/entrada.
 function horasDeMarcas(fichajes: Fichaje[]): number {
   const sorted = [...fichajes].sort((a, b) => a.marcado_at.localeCompare(b.marcado_at));
   let total = 0;
   let abierta: number | null = null;
   for (const f of sorted) {
-    if (f.tipo === 'entrada') abierta = parseISO(f.marcado_at).getTime();
-    else if (f.tipo === 'salida' && abierta != null) { total += (parseISO(f.marcado_at).getTime() - abierta) / 3600000; abierta = null; }
+    if (f.tipo === 'entrada' || f.tipo === 'pausa_fin') abierta = parseISO(f.marcado_at).getTime();
+    else if ((f.tipo === 'salida' || f.tipo === 'pausa_inicio') && abierta != null) {
+      total += (parseISO(f.marcado_at).getTime() - abierta) / 3600000;
+      abierta = null;
+    }
   }
   if (abierta != null) total += (Date.now() - abierta) / 3600000;
   return total;
@@ -626,16 +633,21 @@ para proponerla completa, así que no llames a esa herramienta.`;
     const sorted = [...fichajesHoy].sort((a, b) => a.marcado_at.localeCompare(b.marcado_at));
     return sorted[sorted.length - 1];
   }, [fichajesHoy]);
-  const fichado = ultimaMarca?.tipo === 'entrada';
+  // Estados del turno segun la ultima marca:
+  //  - fuera: sin marcas o ultima 'salida'
+  //  - trabajando: ultima 'entrada' o 'pausa_fin'
+  //  - enPausa: ultima 'pausa_inicio'
+  const enPausa = ultimaMarca?.tipo === 'pausa_inicio';
+  const trabajando = ultimaMarca?.tipo === 'entrada' || ultimaMarca?.tipo === 'pausa_fin';
+  const fichado = trabajando || enPausa; // dentro del turno (para el icono/estado)
   const horasHoy = useMemo(() => horasDeMarcas(fichajesHoy), [fichajesHoy]);
 
-  const fichar = async () => {
+  const fichar = async (tipo: 'entrada' | 'salida' | 'pausa_inicio' | 'pausa_fin') => {
     setFichando(true);
     setError(null);
     try {
       const profile = await getUserProfile();
       if (!profile?.negocio_id) { setFichando(false); return; }
-      const tipo = fichado ? 'salida' : 'entrada';
       const { error: insErr } = await supabase.from('fichajes').insert({
         negocio_id: profile.negocio_id,
         user_id: profile.id,
@@ -899,22 +911,48 @@ para proponerla completa, así que no llames a esa herramienta.`;
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Tu fichaje de hoy</div>
                 <div style={{ fontSize: 12, color: T.textSec }}>
-                  {fichado ? 'Trabajando — entrada registrada' : 'Fuera de turno'} · {fmtHoras(horasHoy)} hoy
+                  {enPausa ? 'En pausa' : trabajando ? 'Trabajando — entrada registrada' : 'Fuera de turno'} · {fmtHoras(horasHoy)} hoy
                 </div>
               </div>
             </div>
-            <button onClick={fichar} disabled={fichando} className="mj-btn" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: fichado ? T.danger : T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <Icon name="clock" size={15} color="#fff" /> {fichando ? '...' : (fichado ? 'Fichar salida' : 'Fichar entrada')}
-            </button>
+            {/* Fuera: entrada. Trabajando: pausa + salida. En pausa: reanudar + salida. */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {!fichado && (
+                <button onClick={() => fichar('entrada')} disabled={fichando} className="mj-btn" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Icon name="clock" size={15} color="#fff" /> {fichando ? '...' : 'Fichar entrada'}
+                </button>
+              )}
+              {trabajando && (
+                <button onClick={() => fichar('pausa_inicio')} disabled={fichando} className="mj-btn" style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${T.warning}`, background: T.warningSoft, color: T.warning, fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Icon name="pause" size={14} color={T.warning} /> Pausa
+                </button>
+              )}
+              {enPausa && (
+                <button onClick={() => fichar('pausa_fin')} disabled={fichando} className="mj-btn" style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Icon name="play" size={14} color="#fff" /> Reanudar
+                </button>
+              )}
+              {fichado && (
+                <button onClick={() => fichar('salida')} disabled={fichando} className="mj-btn" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: T.danger, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Icon name="clock" size={15} color="#fff" /> {fichando ? '...' : 'Fichar salida'}
+                </button>
+              )}
+            </div>
           </div>
           {fichajesHoy.length > 0 && (
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {fichajesHoy.map((f, i) => (
-                <span key={i} style={{ fontSize: 11.5, color: T.textSec, padding: '4px 9px', borderRadius: 999, background: T.bg, border: `1px solid ${T.border}`, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: f.tipo === 'entrada' ? T.success : T.textTer }} />
-                  {f.tipo === 'entrada' ? 'Entrada' : 'Salida'} {format(parseISO(f.marcado_at), 'HH:mm', { locale: es })}
-                </span>
-              ))}
+              {fichajesHoy.map((f, i) => {
+                const meta = f.tipo === 'entrada' ? { label: 'Entrada', color: T.success }
+                  : f.tipo === 'salida' ? { label: 'Salida', color: T.textTer }
+                  : f.tipo === 'pausa_inicio' ? { label: 'Pausa', color: T.warning }
+                  : { label: 'Reanudar', color: T.success };
+                return (
+                  <span key={i} style={{ fontSize: 11.5, color: T.textSec, padding: '4px 9px', borderRadius: 999, background: T.bg, border: `1px solid ${T.border}`, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: meta.color }} />
+                    {meta.label} {format(parseISO(f.marcado_at), 'HH:mm', { locale: es })}
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>
