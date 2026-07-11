@@ -33,6 +33,10 @@ const MODEL_ID = 'eleven_multilingual_v2';
 // Control de coste: una respuesta de Chispa nunca deberia necesitar mas de
 // esto para transmitir la idea; se recorta en vez de rechazar.
 const MAX_CHARS = 700;
+// Texto del pre-calentamiento: una frase REAL (no "." — demasiado trivial para
+// forzar la carga del modelo/voz). Sintetizarla en segundo plano hace que el
+// cold start (~15-20s la 1a vez tras un reinicio) lo pague el warm, no el usuario.
+const WARM_TEXT = 'Preparando la voz de Chispa para el salon.';
 
 async function generarConKokoro(texto: string, voiceId?: string): Promise<ArrayBuffer | null> {
   if (!KOKORO_TTS_URL || !KOKORO_TTS_SECRET) return null;
@@ -84,6 +88,16 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
+  // KEEP-WARM sin sesion de usuario: un cron (n8n / pg_cron) puede mantener el
+  // modelo de Kokoro caliente 24/7 pasando el MISMO secreto del VPS en la cabecera
+  // X-Warm-Secret (no hace falta un secreto nuevo). Dispara una sintesis minima
+  // que fuerza la carga del modelo; nunca es un proxy TTS abierto (no acepta texto).
+  const warmSecret = req.headers.get('X-Warm-Secret') ?? '';
+  if (warmSecret && KOKORO_TTS_SECRET && warmSecret === KOKORO_TTS_SECRET) {
+    const ok = await generarConKokoro(WARM_TEXT, '').catch(() => null);
+    return json({ warmed: !!ok }, 200);
+  }
+
   // Auth: solo cuentas de Mecha autenticadas pueden gastar cuota de ElevenLabs
   // (evita que el endpoint se use como proxy TTS gratis desde fuera).
   const authHeader = req.headers.get('Authorization') ?? '';
@@ -94,8 +108,18 @@ Deno.serve(async (req) => {
   if (!userData?.user) return json({ error: 'No autenticado' }, 401);
 
   const body = await req.json().catch(() => ({}));
-  const texto = String((body as { texto?: unknown })?.texto ?? '').trim();
   const voiceId = String((body as { voice_id?: unknown })?.voice_id ?? '').trim();
+
+  // PRE-CALENTAMIENTO desde el cliente (usuario autenticado): cuando se abre
+  // Chispa con la voz activa, se dispara esto para cargar el modelo de Kokoro EN
+  // SEGUNDO PLANO mientras el usuario lee/escribe, de modo que la primera voz real
+  // de la sesion no pague el cold start (~15-20s). No sintetiza ni devuelve audio util.
+  if ((body as { warm?: unknown })?.warm === true) {
+    const ok = await generarConKokoro(WARM_TEXT, voiceId).catch(() => null);
+    return json({ warmed: !!ok }, 200);
+  }
+
+  const texto = String((body as { texto?: unknown })?.texto ?? '').trim();
   if (!texto) return json({ error: 'Falta texto' }, 400);
   const textoRecortado = texto.slice(0, MAX_CHARS);
 

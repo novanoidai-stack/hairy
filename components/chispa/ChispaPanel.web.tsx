@@ -511,7 +511,11 @@ export default function ChispaPanel({
 
   useEffect(() => {
     if (abierto) setTimeout(() => inputRef.current?.focus(), 120);
-  }, [abierto]);
+    // Al abrir Chispa con la voz activa, pre-calentar Kokoro en segundo plano:
+    // el cold start (~15-20s la 1a vez tras un reinicio) se paga mientras el
+    // usuario lee/escribe, no cuando pide oir la respuesta.
+    if (abierto && voz.vozActiva) void voz.precalentar();
+  }, [abierto, voz.vozActiva]);
 
   useEffect(() => {
     if (!abierto) return;
@@ -1292,7 +1296,7 @@ export default function ChispaPanel({
                 </button>
               )}
               <button
-                onClick={() => voz.setVozActiva(!voz.vozActiva)}
+                onClick={() => { const activar = !voz.vozActiva; voz.setVozActiva(activar); if (activar) void voz.precalentar(); }}
                 aria-label={voz.vozActiva ? 'Desactivar que Chispa hable' : 'Activar que Chispa hable'}
                 aria-pressed={voz.vozActiva}
                 title={voz.vozActiva ? 'Chispa lee sus respuestas en voz alta' : 'Chispa solo escribe'}

@@ -99,6 +99,31 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
     try { localStorage.setItem(VOZ_ACTIVA_KEY, v ? '1' : '0'); } catch { /* no critico */ }
   }, []);
 
+  // Pre-calienta el motor natural (Kokoro en el VPS) en segundo plano: la
+  // primera sintesis del dia carga el modelo (~15-20s cold start), asi que se
+  // dispara al abrir Chispa / activar la voz para que ese coste se pague MIENTRAS
+  // el usuario lee o escribe, no cuando pide oir la respuesta. Best-effort y
+  // throttled (una vez cada 4 min): si falla o el motor es el navegador, no hace nada.
+  const ultimoWarm = useRef(0);
+  const precalentar = useCallback(async () => {
+    if (motorVoz === 'navegador' || !ttsDisponible) return;
+    const now = Date.now();
+    if (now - ultimoWarm.current < 4 * 60 * 1000) return;
+    ultimoWarm.current = now;
+    try {
+      const { data: sesion } = await supabase.auth.getSession();
+      const token = sesion.session?.access_token;
+      if (!token) { ultimoWarm.current = 0; return; }
+      await fetch(`${SUPABASE_URL}/functions/v1/chispa-tts`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ warm: true, voice_id: configVozId }),
+      });
+    } catch {
+      ultimoWarm.current = 0; // reintentar la proxima vez si fallo la red
+    }
+  }, [motorVoz, ttsDisponible, configVozId]);
+
   const detenerHabla = useCallback(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
     if (audioElRef.current) {
@@ -322,7 +347,7 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
   return {
     estado, errorVoz, soportaReconocimientoNativo, ttsDisponible, vozDegradada,
     motorVoz, setMotorVoz, vozActiva, setVozActiva,
-    iniciarEscucha, detenerEscucha, hablar, detenerHabla,
+    iniciarEscucha, detenerEscucha, hablar, detenerHabla, precalentar,
   };
 }
 

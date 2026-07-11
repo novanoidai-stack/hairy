@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { Section, FieldRow } from '@/components/ui/SettingsAtoms';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, supabase } from '@/lib/supabase';
@@ -20,6 +20,25 @@ export function TabVoz({ config, setC }: Props) {
   const [reproduciendo, setReproduciendo] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [errorVoz, setErrorVoz] = useState<string | null>(null);
+
+  // Al entrar en la pantalla de voz, pre-calentar Kokoro en segundo plano para
+  // que el primer "Escuchar" no pague el cold start del VPS (~15-20s la 1a vez).
+  useEffect(() => {
+    let cancelado = false;
+    (async () => {
+      try {
+        const { data: sesion } = await supabase.auth.getSession();
+        const token = sesion.session?.access_token;
+        if (!token || cancelado) return;
+        await fetch(`${SUPABASE_URL}/functions/v1/chispa-tts`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ warm: true }),
+        });
+      } catch { /* best-effort */ }
+    })();
+    return () => { cancelado = true; };
+  }, []);
 
   // Fallback: previsualiza con la voz del navegador (speechSynthesis) cuando el
   // TTS natural (Kokoro/ElevenLabs) aun no esta activo. Asi el boton "Escuchar"
