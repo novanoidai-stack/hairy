@@ -916,7 +916,7 @@ function ClientesWeb() {
           <div style={{ maxWidth: panelExpanded ? 1400 : 'none', margin: panelExpanded ? '0 auto' : 0, padding: panelExpanded ? '0 32px' : (isMobile ? '0 16px' : 0) }}>
             {/* Toggle expand / Back button. En movil la barra queda fija (sticky)
                 para que "Volver al listado" siga a mano aunque se baje por la ficha. */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, position: isMobile ? 'sticky' : undefined, top: 0, zIndex: 5, background: isMobile ? TOKENS.bg : undefined, paddingTop: isMobile ? 8 : 0, paddingBottom: isMobile ? 8 : 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, position: isMobile ? 'sticky' : undefined, top: 0, zIndex: 5, background: isMobile ? TOKENS.bg : undefined, paddingTop: isMobile ? 10 : 0, paddingBottom: isMobile ? 10 : 0, ...(isMobile ? { marginLeft: -16, marginRight: -16, paddingLeft: 16, paddingRight: 16, borderBottom: `1px solid ${TOKENS.border}`, boxShadow: '0 6px 12px -8px rgba(40,30,24,0.18)' } : {}) }}>
               {isMobile ? (
                 <button
                   onClick={() => { setSelected(null); setPanelExpanded(false); }}

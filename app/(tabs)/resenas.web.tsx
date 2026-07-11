@@ -181,6 +181,10 @@ function ResenasScreen() {
   const [fPeriod, setFPeriod] = useState<PeriodKey>('all');
   const [fScope, setFScope] = useState<ScopeKey>('all');
   const [fSearch, setFSearch] = useState('');
+  // Reseñas desplegadas (movil): por defecto todas compactas para poder ojear
+  // muchas de un vistazo; se abre la ficha completa al tocar.
+  const [expandidas, setExpandidas] = useState<Set<string>>(new Set());
+  const toggleExpandida = (id: string) => setExpandidas((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   // IA: Borrador de respuesta (Sesion 8 - patron useAyudaIA)
   const [resenaEnEdicion, setResenaEnEdicion] = useState<Resena | null>(null);
@@ -617,7 +621,7 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
                     animationDelay: `${Math.min(i, 8) * 0.05}s`,
                     background: r.puntuacion <= 2 ? '#faf9f7' : TOKENS.bgCard, // Alerta visual sutil/neutra
                     border: `1px solid ${r.puntuacion <= 2 ? 'rgba(217,119,6,0.3)' : TOKENS.border}`,
-                    borderRadius: 16, padding: 20,
+                    borderRadius: 16, padding: isMobile ? 14 : 20,
                     display: 'flex', flexDirection: 'column',
                     opacity: r.visible ? 1 : 0.65,
                     transition: 'opacity 0.2s ease',
@@ -654,6 +658,21 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
                       </div>
                     </div>
 
+                    {/* En movil, colapsada: solo un vistazo compacto (valoracion +
+                        comentario en una linea). Se despliega la ficha completa al tocar. */}
+                    {isMobile && !expandidas.has(r.id) ? (
+                      <div onClick={() => toggleExpandida(r.id)} style={{ cursor: 'pointer' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <FlamesRow value={r.puntuacion} size={15} />
+                          {r.mecha_puntuacion ? <span style={{ fontSize: 10.5, fontWeight: 700, color: TOKENS.star, background: 'rgba(244,80,30,0.06)', borderRadius: 6, padding: '1px 6px' }}>+ Reservas</span> : null}
+                        </div>
+                        <div style={{ fontSize: 13, color: TOKENS.textSec, fontStyle: r.comentario ? 'italic' : 'normal', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {r.comentario ? `"${r.comentario}"` : (r.mecha_mejora_comentario ? `"${r.mecha_mejora_comentario}"` : 'Sin comentario')}
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 12, fontWeight: 700, color: TOKENS.primary }}>Ver detalle</div>
+                      </div>
+                    ) : (
+                    <>
                     {/* VALORACIONES DEL SALÓN */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginBottom: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -745,6 +764,11 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
                       <div style={{ marginTop: 16, fontSize: 12, fontWeight: 600, color: TOKENS.textTer, display: 'flex', alignItems: 'center', gap: 6, background: TOKENS.bgCardHi, padding: '6px 10px', borderRadius: 6, alignSelf: 'flex-start' }}>
                         <Icon name="eyeOff" size={14} color={TOKENS.textTer} /> Oculta al público
                       </div>
+                    )}
+                    {isMobile && (
+                      <button onClick={() => toggleExpandida(r.id)} style={{ marginTop: 12, alignSelf: 'flex-start', background: 'none', border: 'none', color: TOKENS.textTer, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}>Ver menos</button>
+                    )}
+                    </>
                     )}
                   </div>
                 ))}

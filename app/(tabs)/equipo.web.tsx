@@ -591,32 +591,36 @@ export default function EquipoWeb() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-                    <div style={{ background: 'rgba(148,163,184,0.06)', borderRadius: 10, padding: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: isMobile ? 0 : 12 }}>
+                    <div style={{ background: 'rgba(148,163,184,0.06)', borderRadius: 10, padding: isMobile ? '8px 10px' : 10 }}>
                       <div style={{ fontSize: 9, letterSpacing: 1, color: TOKENS.textTer, fontWeight: 600 }}>CITAS / MES</div>
-                      <div style={{ fontSize: 18, fontWeight: 700, marginTop: 2 }}>{p.citas}</div>
+                      <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, marginTop: 2 }}>{p.citas}</div>
                     </div>
-                    <div style={{ background: 'rgba(148,163,184,0.06)', borderRadius: 10, padding: 10 }}>
+                    <div style={{ background: 'rgba(148,163,184,0.06)', borderRadius: 10, padding: isMobile ? '8px 10px' : 10 }}>
                       <div style={{ fontSize: 9, letterSpacing: 1, color: TOKENS.textTer, fontWeight: 600 }}>OCUPACIÓN</div>
-                      <div style={{ fontSize: 18, fontWeight: 700, marginTop: 2, color: p.activo ? TOKENS.success : TOKENS.textTer }}>
+                      <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, marginTop: 2, color: p.activo ? TOKENS.success : TOKENS.textTer }}>
                         {p.activo ? `${p.ocupacion}%` : '—'}
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 32, marginTop: 18 }}>
-                    {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d, i) => {
-                      const h = p.activo ? (p.dayPcts?.[i] ?? 0) : 0;
-                      return (
-                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                          <div style={{ width: '100%', height: 24, borderRadius: 4, background: 'rgba(148,163,184,0.08)', position: 'relative', overflow: 'hidden' }}>
-                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${h}%`, background: p.color, borderRadius: 4 }} />
+                  {/* Grafica semanal solo en escritorio: en movil engorda la tarjeta;
+                      el detalle completo se ve al tocar (abre el panel del profesional). */}
+                  {!isMobile && (
+                    <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 32, marginTop: 18 }}>
+                      {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d, i) => {
+                        const h = p.activo ? (p.dayPcts?.[i] ?? 0) : 0;
+                        return (
+                          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                            <div style={{ width: '100%', height: 24, borderRadius: 4, background: 'rgba(148,163,184,0.08)', position: 'relative', overflow: 'hidden' }}>
+                              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${h}%`, background: p.color, borderRadius: 4 }} />
+                            </div>
+                            <span style={{ fontSize: 9, color: TOKENS.textTer, fontWeight: 600 }}>{d}</span>
                           </div>
-                          <span style={{ fontSize: 9, color: TOKENS.textTer, fontWeight: 600 }}>{d}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {p.especialidades && p.especialidades.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 10 }}>
