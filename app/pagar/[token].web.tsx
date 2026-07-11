@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
 import { supabase } from '@/lib/supabase';
+import { irARedsys } from '@/lib/redsysRedirect';
 
 // ---------------------------------------------------------------------------
 // Pagina de pago del TOTAL de una cita (/app/pagar/[token], token = enlace opaco de tipo
@@ -101,6 +102,7 @@ export default function PagoTotalWeb() {
         },
       });
       if (error) { setErr('No se pudo iniciar el pago. El enlace puede haber caducado.'); setBusy(false); return; }
+      if ((data as any)?.redsys) { irARedsys((data as any).redsys.url, (data as any).redsys.params); return; }
       if ((data as any)?.ya_pagado) { setInfo({ ...(info as Info), estado: 'pagado' }); setBusy(false); return; }
       if ((data as any)?.checkout_url) { window.location.href = (data as any).checkout_url; return; }
       setErr('Respuesta inesperada del servidor.'); setBusy(false);

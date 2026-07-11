@@ -3284,6 +3284,73 @@ function PasarelaStripeSection({ negocioId }: { negocioId: string }) {
   );
 }
 
+function PasarelaRedsysSection({ negocioId }: { negocioId: string }) {
+  const [activo, setActivo] = useState(false);
+  const [fuc, setFuc] = useState('');
+  const [terminal, setTerminal] = useState('1');
+  const [key, setKey] = useState('');
+  const [test, setTest] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  useEffect(() => {
+    if (!negocioId) return;
+    supabase.from('negocio_pasarela').select('proveedor, redsys_fuc, redsys_terminal, redsys_test').eq('negocio_id', negocioId).maybeSingle()
+      .then(({ data }: any) => { if (data) { setActivo(data.proveedor === 'redsys'); setFuc(data.redsys_fuc || ''); setTerminal(data.redsys_terminal || '1'); setTest(data.redsys_test !== false); } });
+  }, [negocioId]);
+
+  const notifUrl = `https://vtrggiogjrhqtwbhbgia.supabase.co/functions/v1/redsys-notificacion?negocio=${negocioId}`;
+
+  async function guardar() {
+    setMsg('');
+    if (fuc.trim().length < 6 || key.trim().length < 10) { setMsg('Rellena el FUC y la clave secreta.'); return; }
+    setSaving(true);
+    try {
+      const { data, error } = await supabase.rpc('guardar_pasarela_redsys', {
+        p_fuc: fuc.trim(), p_terminal: terminal.trim() || '1', p_secret_key: key.trim(), p_test: test,
+      });
+      const res = (data ?? {}) as { ok?: boolean };
+      if (error || !res.ok) { setMsg('No se pudo guardar. Revisa los datos.'); setSaving(false); return; }
+      setActivo(true); setKey('');
+      setMsg('Guardado. Redsys queda como tu pasarela activa.');
+    } catch { setMsg('Error al guardar.'); }
+    setSaving(false);
+  }
+
+  return (
+    <Section title="Pasarela de pago (Redsys / Bizum)"
+      desc="Alternativa a Stripe: cobra por el TPV virtual de tu banco (Redsys), con Bizum incluido si tu banco lo tiene activo. La clave se guarda cifrada. Activar Redsys hace que tus cobros online vayan por tu banco en vez de Stripe.">
+      <FieldRow label="Estado">
+        <span style={{ fontSize: 13, fontWeight: 700, color: activo ? '#0f9d6b' : '#736658' }}>{activo ? 'Redsys activo' : 'No activo'}</span>
+      </FieldRow>
+      <FieldRow label="Codigo de comercio (FUC)" hint="Tu numero de comercio Redsys (lo da tu banco).">
+        <STextInput value={fuc} onChange={setFuc} placeholder="999008881" />
+      </FieldRow>
+      <FieldRow label="Terminal" hint="Normalmente 1.">
+        <STextInput value={terminal} onChange={setTerminal} placeholder="1" width={90} />
+      </FieldRow>
+      <FieldRow label="Clave secreta" hint="Clave SHA-256 de tu comercio Redsys.">
+        <STextInput value={key} onChange={setKey} type="password" placeholder={activo ? 'dejar vacio para no cambiar' : 'clave del banco'} />
+      </FieldRow>
+      <FieldRow label="Modo prueba (sandbox)" hint="Activo = entorno de test de Redsys; desactivado = cobros reales.">
+        <Toggle on={test} onChange={setTest} />
+      </FieldRow>
+      <FieldRow label="URL de notificacion" hint="En tu panel Redsys, ponla como URL de notificacion online.">
+        <span style={{ fontSize: 11.5, color: '#5c5249', wordBreak: 'break-all', fontFamily: 'monospace' }}>{notifUrl}</span>
+      </FieldRow>
+      {!!msg && <div style={{ fontSize: 12.5, color: '#5c5249', marginTop: 4 }}>{msg}</div>}
+      <div style={{ marginTop: 10 }}>
+        <button onClick={guardar} disabled={saving}
+          onMouseEnter={(e) => { if (!saving) e.currentTarget.style.filter = 'brightness(1.06)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
+          style={{ padding: '10px 18px', background: '#f4501e', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1, boxShadow: '0 6px 16px rgba(244,80,30,0.28)', transition: 'filter 0.16s ease' }}>
+          {saving ? 'Guardando…' : 'Guardar y activar Redsys'}
+        </button>
+      </div>
+    </Section>
+  );
+}
+
 function TabPoliticas({ config, setC, negocioId }: { config: ConfigState; setC: (k: keyof ConfigState, v: any) => void; negocioId: string }) {
   const on = config.depositoDinamicoActivo;
   return (
@@ -3348,6 +3415,8 @@ function TabPoliticas({ config, setC, negocioId }: { config: ConfigState; setC: 
       </Section>
 
       <PasarelaStripeSection negocioId={negocioId} />
+
+      <PasarelaRedsysSection negocioId={negocioId} />
 
       <SoonBanner icon="shield" title="Politicas de cancelacion -- fase 4"
         desc="Penalizaciones por cancelacion tardia. Se activaran junto con el modulo de pagos." />

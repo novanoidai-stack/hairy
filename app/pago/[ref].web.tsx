@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
 import { supabase } from '@/lib/supabase';
+import { irARedsys } from '@/lib/redsysRedirect';
 
 // ---------------------------------------------------------------------------
 // Pagina de pago de la senal (/app/pago/[ref], ref = token opaco de cita_pago_enlaces,
@@ -58,6 +59,7 @@ export default function PagoSenalWeb() {
       setErr('No se pudo iniciar el pago. Puede que esta cita ya no requiera señal o el enlace haya caducado.');
       setEstado('error'); setBusy(false); return;
     }
+    if ((data as any)?.redsys) { irARedsys((data as any).redsys.url, (data as any).redsys.params); return; }
     if (data?.ya_pagado) { setEstado('paid'); setBusy(false); return; }
     if (data?.checkout_url) { window.location.href = data.checkout_url as string; return; }
     setErr('Respuesta inesperada del servidor.'); setEstado('error'); setBusy(false);
