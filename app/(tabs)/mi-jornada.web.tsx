@@ -7,7 +7,7 @@ import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
-import { Segmented, StatBox } from '@/components/ui/SettingsAtoms';
+import { Segmented, StatBox, STextInput, SSelect } from '@/components/ui/SettingsAtoms';
 import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualMiJornada } from '@/lib/manuals/mi-jornada';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
