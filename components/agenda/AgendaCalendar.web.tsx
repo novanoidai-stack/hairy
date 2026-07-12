@@ -2862,6 +2862,10 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
   // asumir el riesgo (colocarla igual, al lado, aprovechando el tiempo muerto).
   const [dragRiesgo, setDragRiesgo] = useState<{ overflowMin: number; hostNombre: string; horaTxt: string; payload: any; citaOrig: any } | null>(null);
   const [aplicandoRiesgo, setAplicandoRiesgo] = useState(false);
+  // Soltar sobre un profesional con vacaciones/ausencia ese rato: NO se bloquea de
+  // golpe; se pregunta (feedback Jose) y se deja mover asumiendo el aviso.
+  const [dragAusencia, setDragAusencia] = useState<{ profNombre: string; horaTxt: string; payload: any; citaOrig: any } | null>(null);
+  const [aplicandoAusencia, setAplicandoAusencia] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<any>(null);
   const dropRef = useRef<any>(null);
@@ -2963,8 +2967,14 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
       const b2 = activo2Ms > 0 && bloqueos.some((b: any) => b.profesional_id === targetProf.id && new Date(b.inicio) < nuevoFin && new Date(b.fin) > nuevoFinEspera);
       
       if (b1 || b2) {
-        setDragError(`${targetProf.nombre.split(' ')[0]} no está disponible (vacaciones o bloqueo).`);
-        setTimeout(() => setDragError(null), 3500);
+        // No bloquear: preguntar. El gestor puede querer mover igualmente (turno
+        // extra, ausencia que se cancela, etc.). Se aplica el mismo payload de mover.
+        setDragAusencia({
+          profNombre: targetProf.nombre,
+          horaTxt: nuevoInicio.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+          payload: { inicio: nuevoInicio.toISOString(), fin: nuevoFin.toISOString(), fin_activa: nuevoFinActiva.toISOString(), fin_espera: nuevoFinEspera.toISOString(), profesional_id: targetProf.id },
+          citaOrig: cita,
+        });
         return;
       }
 
@@ -3744,6 +3754,54 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                 }}
                 style={{ flex: 1.6, padding: '12px', borderRadius: 12, border: 'none', background: TOKENS.fireGradient, color: '#fff', fontSize: 14, fontWeight: 800, cursor: aplicandoRiesgo ? 'default' : 'pointer', opacity: aplicandoRiesgo ? 0.7 : 1 }}>
                 {aplicandoRiesgo ? 'Colocando…' : 'Colocar igualmente'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dragAusencia && (
+        <div onClick={() => !aplicandoAusencia && setDragAusencia(null)} style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(8,6,4,0.42)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 400, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 24px 60px rgba(40,30,24,0.22)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
+              <span style={{ display: 'inline-flex', width: 30, height: 30, borderRadius: 8, background: 'rgba(245,158,11,0.16)', alignItems: 'center', justifyContent: 'center' }}
+                dangerouslySetInnerHTML={{ __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>` }} />
+              <div style={{ fontSize: 15.5, fontWeight: 800, color: TOKENS.text }}>{dragAusencia.profNombre?.split(' ')[0]} tiene una ausencia</div>
+            </div>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: TOKENS.textSec, lineHeight: 1.5 }}>
+              A las <b style={{ color: TOKENS.primaryHi }}>{dragAusencia.horaTxt}</b>, {dragAusencia.profNombre?.split(' ')[0]} figura con vacaciones o un bloqueo. ¿Mover la cita ahi de todas formas?
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setDragAusencia(null)} disabled={aplicandoAusencia} style={{ flex: 1, padding: '12px', borderRadius: 12, border: `1.5px solid ${TOKENS.border}`, background: TOKENS.bgCard, color: TOKENS.textSec, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                Cancelar
+              </button>
+              <button
+                disabled={aplicandoAusencia}
+                onClick={async () => {
+                  const a = dragAusencia;
+                  setAplicandoAusencia(true);
+                  try {
+                    const { error } = await supabase.from('citas').update(a.payload).eq('id', a.citaOrig.id);
+                    if (!error) {
+                      onCitaUpdated?.({ id: a.citaOrig.id, ...a.payload });
+                      const profile = await getUserProfile();
+                      const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
+                      const cambios = [
+                        { campo: 'inicio', anterior: a.citaOrig.inicio, nuevo: a.payload.inicio },
+                        { campo: 'fin', anterior: a.citaOrig.fin, nuevo: a.payload.fin },
+                      ];
+                      if (a.payload.profesional_id !== a.citaOrig.profesional_id) {
+                        cambios.push({ campo: 'profesional_id', anterior: a.citaOrig.profesional_id, nuevo: a.payload.profesional_id });
+                      }
+                      registrarHistorial(a.citaOrig.id, nId, cambios, 'Movida sobre ausencia (confirmado por el gestor)');
+                    }
+                    setDragAusencia(null);
+                  } finally {
+                    setAplicandoAusencia(false);
+                  }
+                }}
+                style={{ flex: 1.6, padding: '12px', borderRadius: 12, border: 'none', background: TOKENS.fireGradient, color: '#fff', fontSize: 14, fontWeight: 800, cursor: aplicandoAusencia ? 'default' : 'pointer', opacity: aplicandoAusencia ? 0.7 : 1 }}>
+                {aplicandoAusencia ? 'Moviendo…' : 'Mover igualmente'}
               </button>
             </div>
           </div>
@@ -8853,9 +8911,16 @@ function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clie
                     
                     const hora = new Date(c.inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
                     const profColor = prof?.color || TOKENS.primary;
+                    // Color que diferencia la CATEGORIA del servicio (feedback Jose):
+                    // el borde/acento de la tarjeta usa el color de categoria, con
+                    // fallback al color del profesional si el servicio no tiene categoria.
+                    const acentoColor = catColor || profColor;
                     const done = c.estado === 'completada';
                     const cancel = c.estado === 'cancelada';
                     const noShow = c.estado === 'no_presentada';
+                    // Iniciales de la clienta para el avatar (max 2 letras).
+                    const iniciales = (cli?.nombre || '?')
+                      .split(/\s+/).filter(Boolean).slice(0, 2).map((w: string) => w[0]).join('').toUpperCase() || '?';
                     return (
                       <button
                         key={c.id}
@@ -8871,7 +8936,7 @@ function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clie
                           padding: '6px 8px', borderRadius: 8,
                           background: done ? 'rgba(15,157,107,0.05)' : cancel ? 'rgba(226,59,52,0.04)' : noShow ? 'rgba(224,138,0,0.05)' : TOKENS.bgCardHi,
                           border: `1px solid ${TOKENS.border}`,
-                          borderLeft: `3.5px solid ${cancel ? TOKENS.danger : profColor}`,
+                          borderLeft: `3.5px solid ${cancel ? TOKENS.danger : acentoColor}`,
                           opacity: cancel ? 0.6 : 1,
                           transition: 'all 0.12s ease',
                           display: 'flex',
@@ -8885,13 +8950,21 @@ function WeekView({ citas, profesionales, servicios, clientes, servicioMap, clie
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                             <span style={{ fontSize: 10.5, fontWeight: 700, color: TOKENS.textSec, flexShrink: 0 }}>{hora}</span>
-                            {catIcon && <span style={{ display: 'inline-flex', opacity: 0.8, flexShrink: 0 }} title={catName}>{catIcon}</span>}
+                            {/* Distintivo de categoria del servicio: color + icono (si lo hay). */}
+                            <span title={catName || undefined} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                              <span style={{ width: 6, height: 6, borderRadius: 999, background: acentoColor, flexShrink: 0 }} />
+                              {catIcon && <span style={{ display: 'inline-flex', opacity: 0.85 }}>{catIcon}</span>}
+                            </span>
                           </div>
                           {done && <span style={{ width: 6, height: 6, borderRadius: 999, background: TOKENS.success, flexShrink: 0 }} />}
                         </div>
-                        
-                        <div style={{ width: '100%', fontSize: 11.5, fontWeight: 650, color: TOKENS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancel ? 'line-through' : 'none' }}>
-                          {cli?.nombre || 'Sin cliente'}
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', minWidth: 0 }}>
+                          {/* Avatar de iniciales de la clienta (tintado con el color de categoria). */}
+                          <span style={{ width: 20, height: 20, borderRadius: 999, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 8.5, fontWeight: 800, color: acentoColor, background: `${acentoColor}1f`, border: `1px solid ${acentoColor}55` }}>{iniciales}</span>
+                          <span style={{ flex: 1, fontSize: 11.5, fontWeight: 650, color: TOKENS.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancel ? 'line-through' : 'none', minWidth: 0 }}>
+                            {cli?.nombre || 'Sin cliente'}
+                          </span>
                         </div>
                         
                         {prof && (
@@ -9010,13 +9083,16 @@ function MonthView({ citas, profesionales, servicios, clientes, servicioMap, cli
                 {!isMobile && total > 0 && <span style={{ fontSize: 9.5, fontWeight: 800, color: TOKENS.textSec, background: 'rgba(148,163,184,0.14)', padding: '1px 6px', borderRadius: 999 }}>{total}</span>}
               </div>
               
-              {/* RN-AG-044: Ocupacion visual (barrita de volumen) */}
+              {/* RN-AG-044: Ocupacion visual (barrita de volumen).
+                  Curva sqrt con referencia baja (~10 citas = lleno) para que la
+                  barra CAMBIE MUCHO con pocas citas (feedback Jose): 1->0.32,
+                  2->0.45, 3->0.55, 5->0.71, 10->1. Antes era lineal /15 y con 1-4
+                  citas apenas se movia. */}
               {total > 0 && (() => {
-                // Asumimos ~15 citas como un dia de alta ocupacion (depende de los profesionales, pero sirve de ref)
-                const ratio = Math.min(total / 15, 1);
-                const color = ratio > 0.75 ? '#ef4444' : ratio > 0.4 ? '#f59e0b' : TOKENS.primary;
-                const h = ratio > 0.75 ? 4 : (ratio > 0.4 ? 3 : 2.5);
-                const w = Math.max(15, ratio * 100);
+                const ratio = Math.min(Math.sqrt(total / 10), 1);
+                const color = ratio > 0.72 ? '#ef4444' : ratio > 0.42 ? '#f59e0b' : TOKENS.primary;
+                const h = ratio > 0.72 ? 4 : (ratio > 0.42 ? 3.4 : 2.6);
+                const w = Math.max(20, ratio * 100);
                 return (
                   <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
                     <div style={{ height: h, width: `${w}%`, background: color, borderRadius: 4, opacity: isToday ? 1 : 0.8 }} />
