@@ -21,7 +21,6 @@ import { ejecutarAccion } from '@/lib/chispaOps';
 import { fasesDe, type CitaRetraso } from '@/lib/retrasos';
 import { UMBRAL_HUECO_MIN_DEFAULT } from '@/lib/organizarAgenda';
 import { CITA_STATUS, CITA_STATUS_ACTIVOS } from '@/lib/constants';
-import { useTheme } from '@/lib/hooks/useTheme';
 
 const T = DESIGN_TOKENS;
 
@@ -1364,7 +1363,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
 }
 
 function SolicitudAusenciaModal({ onClose }: { onClose: () => void }) {
-  const { c } = useTheme();
+  const c = T;
   const [inicio, setInicio] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [fin, setFin] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [motivo, setMotivo] = useState('Vacaciones');
