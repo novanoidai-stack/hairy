@@ -161,6 +161,25 @@ git commit -m "feat(chispa): gating por superficie (SUPERFICIE_ACCIONES) + selec
 
 ### Task 3: Borrar las tools cortadas del chat
 
+> **REPRIORIZADO (decisión en ejecución):** el corte FUNCIONAL ya lo hace el filtro de
+> declaración de Task 2 — ninguna tool cortada está en ningún `SUPERFICIE_ACCIONES`, así que
+> el modelo NUNCA la ve (el chat ya es estrecho). El borrado FÍSICO del código muerto (defs +
+> handlers + ramas de `AccionPropuesta` + `construirPropuesta`/`construirPropuestaConfig`) es
+> pura limpieza KISS, es el edit más grande y delicado del edge (switch de ~660 líneas), y NO
+> es requisito funcional. Por eso se hace **al final, con cuidado/incremental** (ideal: subagente),
+> DESPUÉS de las tareas de más valor (retraso, memoria, prompt, voz, intra-página).
+>
+> **Resolución `crear_cita` / bandeja:** `bandeja.web.tsx` convierte un hilo en cita/presupuesto
+> usando `crear_cita`/`crear_presupuesto`. Como "cortarlas todas" era **del chatbot**, se conservan
+> acotadas a la superficie `bandeja` (añadido a `SUPERFICIE_ACCIONES`). Se cortan del todo, en cambio,
+> `reagendar_cita`/`cancelar_cita`/`bloquear_hueco`/`liberar_hueco` (ninguna superficie los usa).
+>
+> **Dependencias que deja esto:** (a) Task 10 debe hacer que `bandeja` envíe `tarea:'accion',
+> superficie:'bandeja'` en su `invoke` (hoy manda `{mensajes}` → default 'chat' → perdería sus tools;
+> cubierto por el orden de despliegue cliente→edge). (b) Task 7 (prompt) debe **quitar del system
+> prompt las referencias/capacidades de las tools cortadas**, o Chispa "mentirá" diciendo que sabe
+> hacer cosas que ya no ofrece (fallo de auto-conocimiento conocido).
+
 **Files:**
 - Modify: `supabase/functions/agenda-asistente/index.ts` (defs en TOOLS + handlers en el dispatch ~`:1400-1900`)
 - Modify: `supabase/functions/agenda-asistente/permisos.ts` (`ESCRITURA_AGENDA`, `ESCRITURA_GESTION`)

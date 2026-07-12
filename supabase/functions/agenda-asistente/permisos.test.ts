@@ -223,6 +223,11 @@ Deno.test('Rework KISS: cada superficie de accion conserva su tool acotada', () 
   assertEquals(accionPermitidaEnSuperficie('recuperar_cliente', 'clientes'), true);
   assertEquals(accionPermitidaEnSuperficie('optimizar_agenda', 'agenda'), true);
   assertEquals(accionPermitidaEnSuperficie('gestionar_retraso', 'agenda'), true);
+  // Bandeja conserva crear_cita/crear_presupuesto (convierte hilo en cita/presupuesto):
+  assertEquals(accionPermitidaEnSuperficie('crear_cita', 'bandeja'), true);
+  assertEquals(accionPermitidaEnSuperficie('crear_presupuesto', 'bandeja'), true);
+  // crear_cita sigue fuera del chat (KISS del chatbot):
+  assertEquals(accionPermitidaEnSuperficie('crear_cita', 'chat'), false);
   // No cruzadas ni en superficies sin acciones:
   assertEquals(accionPermitidaEnSuperficie('crear_presupuesto', 'clientes'), false);
   assertEquals(accionPermitidaEnSuperficie('confirmar_citas', 'presupuestos'), false);

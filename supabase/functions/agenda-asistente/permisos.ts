@@ -196,6 +196,9 @@ export const SUPERFICIE_ACCIONES: Record<string, string[]> = {
   agenda: ['optimizar_agenda', 'gestionar_retraso'],
   presupuestos: ['crear_presupuesto'],
   clientes: ['recuperar_cliente'],
+  // Bandeja convierte un hilo de conversacion en cita o presupuesto (feature
+  // intra-pagina existente): conserva ambas tools acotadas aqui, NO en el chat.
+  bandeja: ['crear_cita', 'crear_presupuesto'],
 };
 
 // ¿Se ofrece esta tool de ESCRITURA en esta superficie? (fail-closed).
