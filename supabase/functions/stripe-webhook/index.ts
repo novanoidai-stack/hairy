@@ -71,6 +71,22 @@ Deno.serve(async (req) => {
     const pi = event.data.object as Stripe.PaymentIntent;
     const pagoId = pi.metadata?.pago_id as string | undefined;
     if (pagoId) await supabase.rpc('registrar_hold_colocado', { p_pago_id: pagoId, p_payment_intent: pi.id });
+  } else if (event.type === 'payment_intent.succeeded') {
+    // S7.2 (Tap to Pay): el cobro por Terminal no pasa por checkout.session; se concilia aqui.
+    // Solo actuamos sobre PaymentIntents de Terminal (canal='terminal') para no colisionar con los
+    // de Checkout (ya conciliados en checkout.session.completed). Registrado como DATAFONO.
+    const pi = event.data.object as Stripe.PaymentIntent;
+    if (pi.metadata?.canal === 'terminal') {
+      const pagoId = pi.metadata?.pago_id as string | undefined;
+      if (pagoId) {
+        const { data: pago } = await supabase.from('pagos').select('estado, metadata').eq('id', pagoId).maybeSingle();
+        if (pago && pago.estado !== 'pagado') {
+          const merged = { ...((pago.metadata as Record<string, unknown>) ?? {}), payment_intent: pi.id };
+          await supabase.from('pagos').update({ estado: 'pagado', paid_at: new Date().toISOString(), metodo: 'datafono', metadata: merged }).eq('id', pagoId);
+          await supabase.rpc('registrar_cobro_online', { p_pago_id: pagoId, p_metodo: 'datafono' });
+        }
+      }
+    }
   } else if (event.type === 'payment_intent.canceled') {
     const pi = event.data.object as Stripe.PaymentIntent;
     const pagoId = pi.metadata?.pago_id as string | undefined;
