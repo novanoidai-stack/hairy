@@ -9,6 +9,9 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { can, roleOf, toolPermitida, esEscritura, accionPermitidaEnSuperficie, esLectura, type Role } from './permisos.ts';
 import { assertSinCamposProhibidos, proyectarClienteIA } from './whitelist.ts';
 import { CATALOGO_IA } from '../../../lib/iaCatalogo.ts';
+// Retrasos: logica PURA ya testeada (lib/retrasos.test.ts). El edge solo la consume
+// para gestionar_retraso; no se toca la logica, solo se mapea a movimientos.
+import { calcularEstrategiasRetraso, type CitaRetraso } from '../../../lib/retrasos.ts';
 
 // ---------------------------------------------------------------------------
 // CORS + helper
@@ -149,7 +152,10 @@ type AccionPropuesta =
       tipo: 'optimizar_agenda';
       negocio_id: string;
       fecha: string;
-      movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[];
+      // nuevo_fin_activa/nuevo_fin_espera opcionales (espejo del cliente en
+      // lib/chispaOps.ts): el Modo Tetris del chat solo da inicio/fin, pero
+      // gestionar_retraso SI las manda para conservar las fases activa/reposo.
+      movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; nuevo_fin_activa?: string; nuevo_fin_espera?: string; cliente_nombre: string }[];
       resumen: string;
     }
   | {
@@ -742,6 +748,21 @@ const TOOLS = [
         },
       },
       required: ['fecha', 'movimientos'],
+    },
+  },
+  // --- GESTIONAR RETRASO (absorber un retraso del dia) ---
+  {
+    name: 'gestionar_retraso',
+    description: 'Propone como absorber un retraso del dia: dado un profesional (o una cita) y los minutos de retraso, calcula la mejor estrategia (empujar en cascada, mover a un hueco, aprovechar un reposo o pedir a la siguiente venir mas tarde) y propone los movimientos. No ejecuta: el usuario confirma. Usala para "vengo con 20 min de retraso" o "la de las 5 llega tarde". Los movimientos los calcula el edge; tu solo pasa profesional/cita y los minutos.',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        profesional: { type: 'string', description: 'Nombre parcial del profesional (opcional si se da cita_id)' },
+        cita_id: { type: 'string', description: 'UUID de la cita que se retrasa (opcional; si no, retraso a nivel profesional desde su primera cita pendiente del dia)' },
+        minutos: { type: 'string', description: 'Minutos de retraso (ej. "20")' },
+        fecha: { type: 'string', description: 'YYYY-MM-DD (por defecto hoy)' },
+      },
+      required: ['minutos'],
     },
   },
   // --- NAVEGACION (no escribe nada; anade un chip que lleva a otra pantalla) ---
@@ -4350,6 +4371,97 @@ export async function construirPropuesta(
         fecha: inp.fecha,
         movimientos: arrayMovs as { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[],
         resumen: `Optimizar agenda del ${inp.fecha} (${arrayMovs.length} movimientos). Avisaremos por WhatsApp.`,
+      };
+    }
+
+    case 'gestionar_retraso': {
+      // Absorber un retraso del dia. El edge calcula la MEJOR estrategia con la
+      // logica pura (lib/retrasos.ts) y la emite como una propuesta
+      // 'optimizar_agenda' (el cliente ya sabe aplicarla: mueve las 4 marcas y
+      // re-notifica por WhatsApp). No se ejecuta: el usuario confirma.
+      const minutos = parseInt(String(inp.minutos ?? ''), 10);
+      if (!Number.isFinite(minutos) || minutos <= 0) return { error: 'Indica cuantos minutos de retraso.' };
+      const hoyRet = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+      const fecha = inp.fecha && /^\d{4}-\d{2}-\d{2}$/.test(inp.fecha) ? inp.fecha : hoyRet;
+
+      // 1. Resolver el profesional cuyas citas se recolocan (por cita, por self o por nombre).
+      let profId: string | null = null;
+      let citaAncla: string | null = inp.cita_id?.trim() || null;
+      if (citaAncla) {
+        const { data: citaRow } = await svc
+          .from('citas').select('profesional_id').eq('id', citaAncla).eq('negocio_id', negocioId).maybeSingle();
+        if (!citaRow) return { error: 'No encuentro esa cita.' };
+        profId = (citaRow as { profesional_id: string }).profesional_id;
+      } else if (scope === 'self') {
+        profId = await resolverProfesionalDelUsuario(negocioId, userId);
+      } else if (inp.profesional?.trim()) {
+        const { data: profes } = await svc
+          .from('profesionales').select('id, nombre').eq('negocio_id', negocioId).eq('activo', true)
+          .ilike('nombre', `%${sanitizarFiltro(inp.profesional)}%`);
+        const lista = (profes ?? []) as { id: string; nombre: string }[];
+        if (lista.length === 0) return { error: `No encuentro a ningun profesional que coincida con "${inp.profesional}".` };
+        if (lista.length > 1) return { error: `Varios profesionales coinciden con "${inp.profesional}". Dime el nombre exacto.` };
+        profId = lista[0].id;
+      }
+      if (!profId) return { error: 'Dime de que profesional es el retraso (o indica la cita).' };
+
+      // 2. Cargar sus citas confirmadas del dia (con las 4 marcas de fase).
+      const { data: citasRaw } = await svc
+        .from('citas')
+        .select('id, inicio, fin, fin_activa, fin_espera, cliente_id')
+        .eq('negocio_id', negocioId).eq('profesional_id', profId).eq('estado', 'confirmada')
+        .gte('inicio', `${fecha}T00:00:00`).lt('inicio', `${fecha}T23:59:59`);
+      const citas = (citasRaw ?? []) as {
+        id: string; inicio: string; fin: string; fin_activa: string | null; fin_espera: string | null; cliente_id: string | null;
+      }[];
+      if (citas.length === 0) return { error: `No hay citas confirmadas para recolocar el ${fecha}.` };
+
+      // 3. Nombres de cliente para las etiquetas (deterministas, no van al LLM).
+      const clienteIds = [...new Set(citas.map((c) => c.cliente_id).filter(Boolean))] as string[];
+      const nombrePorCliente = new Map<string, string>();
+      if (clienteIds.length > 0) {
+        const { data: cls } = await svc.from('clientes').select('id, nombre').eq('negocio_id', negocioId).in('id', clienteIds);
+        for (const c of (cls ?? []) as { id: string; nombre: string }[]) nombrePorCliente.set(c.id, c.nombre);
+      }
+      const nombreDe = (id: string | null): string => (id ? nombrePorCliente.get(id) : null) || 'Cliente';
+
+      // 4. Sin cita ancla -> retraso a nivel profesional: ancla en la primera cita
+      //    aun pendiente del dia (la que esta "en curso" o la proxima).
+      if (!citaAncla) {
+        const ahora = Date.now();
+        const ordenadas = [...citas].sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
+        citaAncla = (ordenadas.find((c) => +new Date(c.fin) > ahora) ?? ordenadas[0]).id;
+      } else if (!citas.some((c) => c.id === citaAncla)) {
+        return { error: 'Esa cita no esta confirmada ese dia o es de otro profesional.' };
+      }
+
+      // 5. Calcular estrategias (logica pura) y tomar la recomendada.
+      const citasRetraso: CitaRetraso[] = citas.map((c) => ({
+        id: c.id, inicio: c.inicio, fin: c.fin, fin_activa: c.fin_activa, fin_espera: c.fin_espera,
+        cliente: nombreDe(c.cliente_id),
+      }));
+      const estrategias = calcularEstrategiasRetraso(citasRetraso, citaAncla, minutos);
+      const mejor = estrategias.find((e) => e.recomendada) ?? estrategias[0];
+      if (!mejor || mejor.updates.length === 0) {
+        return { error: 'Con ese retraso no hay nada que recolocar: no se pisa ninguna cita siguiente.' };
+      }
+
+      // 6. Emitir como optimizar_agenda (reutiliza el aplicador; conserva fases).
+      const movimientos = mejor.updates.map((u) => ({
+        cita_id: u.id,
+        nuevo_inicio: u.inicio,
+        nuevo_fin: u.fin,
+        nuevo_fin_activa: u.fin_activa,
+        nuevo_fin_espera: u.fin_espera,
+        cliente_nombre: nombreDe(citas.find((c) => c.id === u.id)?.cliente_id ?? null),
+      }));
+      const cierre = mejor.retrasoCierreMin > 0 ? ` El cierre se retrasa ${mejor.retrasoCierreMin} min.` : '';
+      return {
+        tipo: 'optimizar_agenda',
+        negocio_id: negocioId,
+        fecha,
+        movimientos,
+        resumen: `Retraso de ${minutos} min: ${mejor.titulo}. ${mejor.resumen}${cierre} Avisaremos por WhatsApp.`,
       };
     }
 

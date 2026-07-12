@@ -80,6 +80,9 @@ const ESCRITURA_AGENDA = new Set([
   // Reenviar recordatorio a las citas sin confirmar POR EL CLIENTE (resetea el
   // flag para que el motor reavise). Opera sobre citas -> mismo scope de agenda.
   'reenviar_confirmacion',
+  // Gestionar un retraso del dia (rework KISS 2026-07): recoloca citas del
+  // profesional en cascada/hueco/reposo. Opera sobre citas -> mismo scope de agenda.
+  'gestionar_retraso',
 ]);
 
 // Tools de escritura de GESTION (Sesion 3): cada una requiere su capacidad
