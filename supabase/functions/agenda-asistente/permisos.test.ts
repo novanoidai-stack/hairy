@@ -13,10 +13,9 @@ Deno.test('roleOf mapea los valores historicos de profiles.role', () => {
   assertEquals(roleOf('valor_raro'), 'profesional');
 });
 
-Deno.test('Profesional: NO se le declara la tool de informes ni cambiar_config', () => {
+Deno.test('Profesional: NO se le declara la tool de informes', () => {
   const rol = roleOf('employee');
   assertEquals(toolPermitida('resumen_informes', rol, 'self'), false);
-  assertEquals(toolPermitida('cambiar_config', rol, 'self'), false);
   // Lecturas basicas si; escrituras solo si el salon le da scope.
   assertEquals(toolPermitida('info_catalogo', rol, 'self'), true);
   assertEquals(toolPermitida('buscar_cliente', rol, 'self'), true);
@@ -25,25 +24,24 @@ Deno.test('Profesional: NO se le declara la tool de informes ni cambiar_config',
   assertEquals(toolPermitida('crear_cita', rol, 'none'), false);
 });
 
-Deno.test('Recepcion: opera agenda (scope all) pero NO informes ni config', () => {
+Deno.test('Recepcion: opera agenda (scope all) pero NO informes', () => {
   const rol = roleOf('recepcion');
   assertEquals(toolPermitida('crear_cita', rol, 'all'), true);
-  assertEquals(toolPermitida('cancelar_cita', rol, 'all'), true);
+  assertEquals(toolPermitida('confirmar_citas', rol, 'all'), true);
   assertEquals(toolPermitida('resumen_informes', rol, 'all'), false);
-  assertEquals(toolPermitida('cambiar_config', rol, 'all'), false);
 });
 
-Deno.test('Direccion: SI informes, NO cambiar_config', () => {
+Deno.test('Direccion: SI informes', () => {
   const rol = roleOf('admin');
   assertEquals(toolPermitida('resumen_informes', rol, 'all'), true);
-  assertEquals(toolPermitida('cambiar_config', rol, 'all'), false);
+  assertEquals(toolPermitida('crear_presupuesto', rol, 'all'), true);
 });
 
-Deno.test('Propietario: acceso total (informes + config + agenda)', () => {
+Deno.test('Propietario: acceso total (informes + agenda)', () => {
   const rol = roleOf('owner');
   assertEquals(toolPermitida('resumen_informes', rol, 'all'), true);
-  assertEquals(toolPermitida('cambiar_config', rol, 'all'), true);
-  assertEquals(toolPermitida('bloquear_hueco', rol, 'all'), true);
+  assertEquals(toolPermitida('crear_cita', rol, 'all'), true);
+  assertEquals(toolPermitida('confirmar_citas', rol, 'all'), true);
 });
 
 Deno.test('Gestion (Sesion 3): confirmar_citas sigue el scope de agenda', () => {
@@ -52,23 +50,15 @@ Deno.test('Gestion (Sesion 3): confirmar_citas sigue el scope de agenda', () => 
   assertEquals(toolPermitida('confirmar_citas', roleOf('recepcion'), 'all'), true);
 });
 
-Deno.test('Gestion (Sesion 3): editar_servicio/horario solo direccion+, presupuestos/bandeja recepcion+', () => {
-  // Profesional: nada de gestion.
+Deno.test('Gestion (rework KISS): crear_presupuesto recepcion+ (no profesional)', () => {
+  // Tras el recorte del chat, la unica escritura de gestion generica que queda
+  // (ademas de recuperar_cliente) es crear_presupuesto.
   const prof = roleOf('employee');
-  assertEquals(toolPermitida('editar_servicio', prof, 'self'), false);
-  assertEquals(toolPermitida('editar_horario', prof, 'self'), false);
   assertEquals(toolPermitida('crear_presupuesto', prof, 'self'), false);
-  assertEquals(toolPermitida('enviar_mensaje_bandeja', prof, 'self'), false);
-  // Recepcion: comunicacion si, catalogo/turnos no.
   const rec = roleOf('recepcion');
   assertEquals(toolPermitida('crear_presupuesto', rec, 'all'), true);
-  assertEquals(toolPermitida('enviar_mensaje_bandeja', rec, 'all'), true);
-  assertEquals(toolPermitida('editar_servicio', rec, 'all'), false);
-  assertEquals(toolPermitida('editar_horario', rec, 'all'), false);
-  // Direccion: catalogo y turnos si.
   const dir = roleOf('admin');
-  assertEquals(toolPermitida('editar_servicio', dir, 'all'), true);
-  assertEquals(toolPermitida('editar_horario', dir, 'all'), true);
+  assertEquals(toolPermitida('crear_presupuesto', dir, 'all'), true);
 });
 
 Deno.test('Omnisciencia (Sesion 6): Profesional NO ve caja/ocupacion/graficas globales, SI citas_hoy y metas_progreso', () => {
@@ -110,30 +100,6 @@ Deno.test('Sesion 7: recuperar_cliente solo recepcion+ (misma capacidad que Band
   assertEquals(toolPermitida('recuperar_cliente', roleOf('recepcion'), 'all'), true);
   assertEquals(toolPermitida('recuperar_cliente', roleOf('admin'), 'all'), true);
   assertEquals(toolPermitida('recuperar_cliente', roleOf('owner'), 'all'), true);
-});
-
-Deno.test('Sesion 3 V2: crear_servicio sigue la misma capacidad que editar_servicio (direccion+)', () => {
-  const prof = roleOf('employee');
-  const rec = roleOf('recepcion');
-  const dir = roleOf('admin');
-  assertEquals(toolPermitida('crear_servicio', prof, 'self'), false);
-  assertEquals(toolPermitida('crear_servicio', rec, 'all'), false);
-  assertEquals(toolPermitida('crear_servicio', dir, 'all'), true);
-  assertEquals(toolPermitida('crear_servicio', roleOf('owner'), 'all'), true);
-});
-
-Deno.test('Sesion 3 V2: cambiar_idioma_portal solo propietario (misma capacidad que cambiar_config)', () => {
-  assertEquals(toolPermitida('cambiar_idioma_portal', roleOf('employee'), 'self'), false);
-  assertEquals(toolPermitida('cambiar_idioma_portal', roleOf('recepcion'), 'all'), false);
-  assertEquals(toolPermitida('cambiar_idioma_portal', roleOf('admin'), 'all'), false);
-  assertEquals(toolPermitida('cambiar_idioma_portal', roleOf('owner'), 'all'), true);
-});
-
-Deno.test('Sesion 3 V2: anadir_cierre_negocio solo direccion+ (misma capacidad que horarios)', () => {
-  assertEquals(toolPermitida('anadir_cierre_negocio', roleOf('employee'), 'self'), false);
-  assertEquals(toolPermitida('anadir_cierre_negocio', roleOf('recepcion'), 'all'), false);
-  assertEquals(toolPermitida('anadir_cierre_negocio', roleOf('admin'), 'all'), true);
-  assertEquals(toolPermitida('anadir_cierre_negocio', roleOf('owner'), 'all'), true);
 });
 
 Deno.test('Sesion 9/11: buscar_recuerdos y guardar_recuerdo se declaran a TODOS los roles', () => {

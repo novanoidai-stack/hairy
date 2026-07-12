@@ -32,18 +32,16 @@ export type Capability =
   | 'clientes.ver'
   | 'informes.ver'
   | 'presupuestos.crear' // crear_presupuesto
-  | 'bandeja.escribir' // enviar_mensaje_bandeja (registro; envio real = Alexandro)
-  | 'servicios.editar' // editar_servicio (catalogo)
-  | 'horarios.editar' // editar_horario (turnos de equipo)
-  | 'config.comisiones' // bulk_editar_comisiones
-  | 'config.cambiar'; // cambiar_config: solo propietario (como en el edge actual)
+  | 'bandeja.escribir' // recuperar_cliente (registro; envio real = Alexandro)
+  | 'horarios.editar' // lectura de fichajes / intercambios de turno del equipo
+  | 'config.comisiones'; // lectura de comisiones liquidadas
 
 const PROFESIONAL: Capability[] = ['agenda.ver_propia', 'clientes.ver'];
 // Recepcion opera la agenda de todos y la comunicacion (presupuestos/bandeja).
 const RECEPCION: Capability[] = [...PROFESIONAL, 'agenda.ver_todas', 'presupuestos.crear', 'bandeja.escribir'];
-// Direccion suma la vision de negocio y la gestion del catalogo/turnos.
-const DIRECCION: Capability[] = [...RECEPCION, 'informes.ver', 'servicios.editar', 'horarios.editar', 'config.comisiones'];
-const PROPIETARIO: Capability[] = [...DIRECCION, 'config.cambiar'];
+// Direccion suma la vision de negocio (informes/caja) y las lecturas de gestion.
+const DIRECCION: Capability[] = [...RECEPCION, 'informes.ver', 'horarios.editar', 'config.comisiones'];
+const PROPIETARIO: Capability[] = [...DIRECCION];
 
 const ROLE_CAPS: Record<Role, ReadonlySet<Capability>> = {
   profesional: new Set(PROFESIONAL),
@@ -59,7 +57,7 @@ export function can(role: Role, cap: Capability): boolean {
 // ¿Esta tool es una ESCRITURA (agenda, gestion o config)? El edge la usa para
 // enrutar la construccion de propuestas (propone->confirma) en vez de ejecutar.
 export function esEscritura(name: string): boolean {
-  return name === 'cambiar_config' || name in ESCRITURA_GESTION || ESCRITURA_AGENDA.has(name);
+  return name in ESCRITURA_GESTION || ESCRITURA_AGENDA.has(name);
 }
 
 // Alcance de escritura del asistente (identico a asistenteWriteScope de la lib).
@@ -67,11 +65,9 @@ export type WriteScope = 'all' | 'self' | 'none';
 
 // Tools de escritura de AGENDA (requieren scope != none).
 const ESCRITURA_AGENDA = new Set([
+  // crear_cita ya no se ofrece en el chat (rework KISS); solo en la superficie
+  // 'bandeja' (convertir un hilo de conversacion en cita).
   'crear_cita',
-  'reagendar_cita',
-  'cancelar_cita',
-  'bloquear_hueco',
-  'liberar_hueco',
   // Batch de confirmacion: opera sobre citas -> mismo gating de agenda (scope).
   'confirmar_citas',
   // Matching de lista de espera (Sesion 8-B): tras cancelar, busca candidatas
@@ -88,26 +84,14 @@ const ESCRITURA_AGENDA = new Set([
 // Tools de escritura de GESTION (Sesion 3): cada una requiere su capacidad
 // concreta (independiente del scope de agenda).
 const ESCRITURA_GESTION: Record<string, Capability> = {
-  editar_servicio: 'servicios.editar',
-  // Crear servicio nuevo (Sesion 3 V2): misma capacidad que editarlo.
-  crear_servicio: 'servicios.editar',
-  editar_horario: 'horarios.editar',
+  // Solo se conservan las escrituras de gestion que alguna superficie del cliente
+  // ofrece (rework KISS): presupuestos (bandeja/presupuestos) y recuperar_cliente
+  // (clientes). El resto de gestion (catalogo/turnos/config/idioma/festivos/macros)
+  // se retiro del chat y vive en su propia pantalla.
   crear_presupuesto: 'presupuestos.crear',
-  enviar_mensaje_bandeja: 'bandeja.escribir',
   // Recuperacion de clienta en fuga (Sesion 7): deja el registro/borrador para el
   // motor de envio (WhatsApp real = Alexandro). Misma capacidad que la Bandeja.
   recuperar_cliente: 'bandeja.escribir',
-  // Catalogo curado de config (Sesion 3 V2): idioma del portal es un ajuste de
-  // negocio tan sensible como cambiar_config, mismo gate (solo propietario).
-  cambiar_idioma_portal: 'config.cambiar',
-  // Festivo/cierre de negocio: mismo rol que puede editar turnos (direccion/propietario),
-  // coherente con la RLS de cierres_negocio (owner/admin).
-  anadir_cierre_negocio: 'horarios.editar',
-  // Nuevas tools de gestion masiva (V3+)
-  bulk_editar_horarios: 'horarios.editar',
-  bulk_editar_comisiones: 'config.comisiones',
-  // S22 Macros
-  proponer_macro: 'config.cambiar',
 };
 
 // Capacidad requerida por cada tool de LECTURA/NAVEGACION. null = cualquier rol.
@@ -134,9 +118,6 @@ const LECTURA_CAP: Record<string, Capability | null> = {
   metas_progreso: null, // cualquier rol: el handler decide objetivos propios o del equipo
   mostrar_grafica: 'informes.ver', // emite bloque 'grafica' con datos agregados del negocio
   mostrar_comparativa: 'informes.ver', // emite bloque 'comparativa' con datos agregados del negocio
-  // S21 (capstone): panel de gestion de alto nivel. Orquesta agenda + caja +
-  // escaneo proactivo -> mismo gate que el resto de vision de negocio (owner/admin).
-  resumen_gestion: 'informes.ver',
   // --- Memoria y registro universal (Sesiones 9/10/11) ---
   // buscar_recuerdos (S11): audita eventos_negocio para explicar el pasado
   // ("¿por que aparecio este upsell?", "¿que hicimos en marzo?"). Se declara a
@@ -172,7 +153,6 @@ const LECTURA_CAP: Record<string, Capability | null> = {
 // Predicado central del gating: ¿se declara esta tool al LLM para este rol/scope?
 // Fail-closed: una tool desconocida NUNCA se declara.
 export function toolPermitida(name: string, role: Role, scope: WriteScope): boolean {
-  if (name === 'cambiar_config') return can(role, 'config.cambiar');
   if (name in ESCRITURA_GESTION) return can(role, ESCRITURA_GESTION[name]);
   if (ESCRITURA_AGENDA.has(name)) {
     if (scope === 'none') return false;

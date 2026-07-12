@@ -60,75 +60,16 @@ type AccionPropuesta =
       inicio: string; fin: string; fin_activa: string; fin_espera: string;
       resumen: string; solapa: boolean;
     }
-  | {
-      tipo: 'reagendar_cita';
-      cita_id: string; nuevo_inicio: string; nuevo_fin: string;
-      nuevo_fin_activa: string; nuevo_fin_espera: string;
-      nuevo_profesional_id?: string; resumen: string; solapa: boolean;
-    }
-  | { tipo: 'cancelar_cita'; cita_id: string; motivo: string | null; resumen: string }
-  | {
-      tipo: 'bloquear_hueco';
-      negocio_id: string; profesional_id: string; profesional_nombre: string;
-      inicio: string; fin: string; motivo: string | null; resumen: string; solapa: boolean;
-    }
-  | { tipo: 'liberar_hueco'; bloqueo_id: string; resumen: string }
-  | {
-      tipo: 'cambiar_config';
-      negocio_id: string; clave: string; label: string;
-      valor: boolean | number | string; valor_actual: boolean | number | string | null;
-      resumen: string;
-    }
-  // --- Catalogo curado de config (Sesion 3 V2) ---
-  | {
-      tipo: 'cambiar_config_multiple';
-      negocio_id: string;
-      cambios: { clave: string; label: string; valor: boolean | number | string; valor_actual: boolean | number | string | null }[];
-      resumen: string;
-    }
-  | { tipo: 'cambiar_idioma_portal'; negocio_id: string; idioma: string; idioma_actual: string | null; resumen: string }
-  | { tipo: 'crear_cierre_negocio'; negocio_id: string; fecha: string; motivo: string | null; resumen: string }
   // --- Acciones de gestion (Sesion 3) ---
   | { tipo: 'confirmar_citas'; negocio_id: string; citas: { id: string; label: string }[]; resumen: string }
   // Reenviar el recordatorio a las citas que el CLIENTE aun no ha confirmado
   // (resetea confirmacion_enviada/recordatorio_enviado -> el motor n8n reavisa).
   | { tipo: 'reenviar_confirmacion'; negocio_id: string; citas: { id: string; label: string }[]; resumen: string }
   | {
-      tipo: 'editar_servicio';
-      negocio_id: string; servicio_id: string; servicio_nombre: string;
-      cambios: {
-        precio?: number; nombre?: string; duracion_activa_min?: number; activo?: boolean;
-        prepago_requerido?: boolean; prepago_cantidad_fija?: number;
-      };
-      resumen: string;
-    }
-  | {
-      // S22: Macros
-      tipo: 'aprobar_macro';
-      negocio_id: string; macro_id: string; nombre: string; descripcion: string;
-      resumen: string;
-    }
-  | {
-      // Crea un servicio nuevo (Sesion 3 V2: "actua con minima info").
-      tipo: 'crear_servicio';
-      negocio_id: string; nombre: string; precio: number; duracion_activa_min: number;
-      resumen: string;
-    }
-  | {
-      tipo: 'editar_horario';
-      negocio_id: string; profesional_id: string; profesional_nombre: string;
-      dia_semana: number; hora_inicio: string; hora_fin: string; resumen: string;
-    }
-  | {
       tipo: 'crear_presupuesto';
       negocio_id: string; cliente_id: string | null; cliente_nombre: string | null;
       titulo: string | null; lineas: { nombre: string; precio_cents: number; cantidad: number }[];
       total_cents: number; resumen: string;
-    }
-  | {
-      tipo: 'enviar_mensaje_bandeja';
-      negocio_id: string; conversacion_id: string; contacto_nombre: string | null;
-      cuerpo: string; resumen: string;
     }
   // --- Recuperacion de fuga (Sesion 7) ---
   | {
@@ -157,23 +98,6 @@ type AccionPropuesta =
       // gestionar_retraso SI las manda para conservar las fases activa/reposo.
       movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; nuevo_fin_activa?: string; nuevo_fin_espera?: string; cliente_nombre: string }[];
       resumen: string;
-    }
-  | {
-      tipo: 'bulk_editar_horarios';
-      negocio_id: string;
-      dia: string;
-      dia_semana: number;
-      hora_inicio: string;
-      hora_fin: string;
-      profesionales: { id: string; nombre: string }[];
-      resumen: string;
-    }
-  | {
-      tipo: 'bulk_editar_comisiones';
-      negocio_id: string;
-      comision_pct: number;
-      profesionales: { id: string; nombre: string }[];
-      resumen: string;
     };
 
 // ---------------------------------------------------------------------------
@@ -183,10 +107,10 @@ type AccionPropuesta =
 type ChispaUnidad = 'eur' | 'citas' | 'pct';
 
 // Bloques de entrada (Sesion 1 V2 del plan): formulario/opciones/progreso.
-// Desde la Sesion 3 V2 este edge SI los emite: cuando construirPropuesta /
-// construirPropuestaConfig detectan que falta o es ambiguo un dato requerido,
-// devuelven un 'formulario'/'opciones' PRE-RELLENADO en vez de un texto
-// pidiendolo (ver PropuestaResultado / 'pedirInfo' mas abajo).
+// Desde la Sesion 3 V2 este edge SI los emite: cuando construirPropuesta
+// detecta que falta o es ambiguo un dato requerido, devuelve un
+// 'formulario'/'opciones' PRE-RELLENADO en vez de un texto pidiendolo
+// (ver PropuestaResultado / 'pedirInfo' mas abajo).
 type CampoFormularioTipo = 'texto' | 'numero' | 'euro' | 'tel' | 'hora' | 'fecha' | 'select';
 type CampoFormulario = {
   key: string;
@@ -454,43 +378,6 @@ const TOOLS = [
       required: ['metrica', 'periodo'],
     },
   },
-  // --- GESTION DE ALTO NIVEL (Sesion 21): panel accionable que orquesta varias areas ---
-  {
-    name: 'resumen_gestion',
-    description: 'Panel de gestion de alto nivel para direccion/propietario: encadena lecturas de varias areas (agenda, caja, clientes, escaneo proactivo) y devuelve un resumen VISUAL con acciones de un clic. Usala cuando el usuario quiera "llevar el salon" de un vistazo: "analiza mi salon" / "como esta todo" / "dame el panorama" / "vision general" -> foco panorama; "cierra el dia" / "haz el cierre" / "como ha ido hoy" -> foco cierre_dia; "prepara la semana" / "como viene la semana" -> foco preparar_semana; "revisa lo urgente" / "que tengo pendiente" / "que es lo mas importante" -> foco urgente. No ejecuta nada: cada accion del panel se propone y el usuario confirma. Solo direccion/propietario.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        foco: { type: 'string', description: 'panorama | cierre_dia | preparar_semana | urgente' },
-      },
-      required: ['foco'],
-    },
-  },
-  // --- MACROS EN VIVO (S22) ---
-  {
-    name: 'proponer_macro',
-    description: 'Propone crear una macro (tool declarativa) que encadena multiples tools existentes para resolver peticiones complejas o recurrentes. Usala si ves que una misma operacion de varios pasos se repite, o si el usuario pide automatizar/definir un reporte que usa varias tools de lectura. Se guardara en estado "revision" y no se activara hasta que el propietario la apruebe. Nunca inventes nombres de tools que no existen; solo puedes usar las de lectura/orquestacion.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        nombre: { type: 'string', description: 'Nombre tecnico en snake_case (ej. auditoria_matutina)' },
-        descripcion: { type: 'string', description: 'Descripcion clara de que hace la macro' },
-        pasos: {
-          type: 'array',
-          description: 'Llamadas a tools existentes a ejecutar en secuencia.',
-          items: {
-            type: 'object',
-            properties: {
-              name: { type: 'string', description: 'Nombre de la tool existente' },
-              args_mapping: { type: 'object', description: 'Argumentos para esta tool, tal como los pide su definicion original' }
-            },
-            required: ['name']
-          }
-        }
-      },
-      required: ['nombre', 'descripcion', 'pasos']
-    }
-  },
   // --- ESCRITURA (el LLM las invoca; la funcion NO las ejecuta) ---
   {
     name: 'crear_cita',
@@ -502,88 +389,6 @@ const TOOLS = [
         profesional: { type: 'string', description: 'Nombre del profesional (vacio si no se ha dicho)' },
         inicio: { type: 'string', description: 'ISO 8601 YYYY-MM-DDTHH:mm o lenguaje natural resuelto (vacio si no se ha dicho)' },
         cliente: { type: 'string', description: 'Nombre o telefono del cliente (opcional para walk-in)' },
-      },
-    },
-  },
-  {
-    name: 'reagendar_cita',
-    description: 'Propone mover una cita existente a otra hora y/o profesional.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        cita_id: { type: 'string', description: 'UUID de la cita' },
-        nuevo_inicio: { type: 'string', description: 'Nueva hora de inicio ISO 8601' },
-        nuevo_profesional: { type: 'string', description: 'Nuevo profesional (opcional)' },
-      },
-      required: ['cita_id', 'nuevo_inicio'],
-    },
-  },
-  {
-    name: 'cancelar_cita',
-    description: 'Propone cancelar una cita.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        cita_id: { type: 'string', description: 'UUID de la cita' },
-        motivo: { type: 'string' },
-      },
-      required: ['cita_id'],
-    },
-  },
-  {
-    name: 'bloquear_hueco',
-    description: 'Propone bloquear una franja de tiempo de un profesional.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        profesional: { type: 'string', description: 'Nombre del profesional' },
-        inicio: { type: 'string', description: 'ISO 8601' },
-        fin: { type: 'string', description: 'ISO 8601' },
-        motivo: { type: 'string' },
-      },
-      required: ['profesional', 'inicio', 'fin'],
-    },
-  },
-  {
-    name: 'liberar_hueco',
-    description: 'Propone eliminar un bloqueo existente.',
-    parameters: {
-      type: 'object' as const,
-      properties: { bloqueo_id: { type: 'string', description: 'UUID del bloqueo' } },
-      required: ['bloqueo_id'],
-    },
-  },
-  {
-    name: 'cambiar_config',
-    description: 'Propone cambiar uno o VARIOS ajustes de la configuracion del salon (SOLO propietario). Usa la CLAVE exacta de la lista AJUSTES EDITABLES del system prompt. Si el usuario pide cambiar varios ajustes RELACIONADOS en la misma frase (p.ej. "activa el recordatorio con 48h de antelacion" = notifRecordatorioActiva + notifRecordatorioHoras), pasalos TODOS juntos en el mismo array "cambios" para que se confirmen de una vez. Si falta el valor de algun ajuste, llama a la tool igual: el sistema pedira lo que falte con un formulario.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        cambios: {
-          type: 'array',
-          description: 'Lista de ajustes a cambiar',
-          items: {
-            type: 'object',
-            properties: {
-              clave: { type: 'string', description: 'Clave exacta del ajuste (de la lista AJUSTES EDITABLES)' },
-              valor: { type: 'string', description: 'Nuevo valor: activar/desactivar, un numero, una hora HH:MM, o una opcion del enum. Dejalo vacio si no lo sabes.' },
-            },
-            required: ['clave'],
-          },
-        },
-      },
-      required: ['cambios'],
-    },
-  },
-  {
-    name: 'crear_servicio',
-    description: 'Propone crear un servicio NUEVO en el catalogo (nombre, precio en euros, duracion en minutos). Llama a esta tool en cuanto el usuario pida crear un servicio, aunque no te haya dado todos los datos todavia: deja vacio lo que no sepas y el sistema lo pedira con un formulario. No la uses para editar uno que ya existe (usa editar_servicio).',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        nombre: { type: 'string', description: 'Nombre del servicio nuevo' },
-        precio: { type: 'string', description: 'Precio en euros (ej. "15" o "15.50")' },
-        duracion_activa_min: { type: 'string', description: 'Duracion activa en minutos' },
       },
     },
   },
@@ -616,36 +421,6 @@ const TOOLS = [
     },
   },
   {
-    name: 'editar_servicio',
-    description: 'Propone cambiar datos de un servicio del catalogo: precio (en euros), nombre, duracion activa (min), activarlo/desactivarlo, o su senal/deposito (activarla y su cantidad fija en euros). Indica solo lo que cambia. Llama a esta tool aunque no sepas el nombre exacto del servicio o no indiques ningun cambio todavia: el sistema te dejara elegir el servicio y/o pedira que cambiar con un formulario.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        servicio: { type: 'string', description: 'Nombre del servicio a editar (puede ir vacio si no lo sabes)' },
-        precio: { type: 'string', description: 'Nuevo precio en euros (ej. "15" o "15.50")' },
-        nombre: { type: 'string', description: 'Nuevo nombre del servicio' },
-        duracion_activa_min: { type: 'string', description: 'Nueva duracion activa en minutos' },
-        activo: { type: 'string', description: 'activar o desactivar' },
-        senal_activa: { type: 'string', description: 'activar o desactivar la senal/deposito de este servicio' },
-        senal_importe: { type: 'string', description: 'Cantidad fija de la senal en euros (ej. "10")' },
-      },
-    },
-  },
-  {
-    name: 'editar_horario',
-    description: 'Propone fijar el turno de un profesional en un dia de la semana (reemplaza lo que hubiera ese dia por un unico turno inicio-fin). Para turnos partidos, avisa de que se hara en la pantalla Equipo.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        profesional: { type: 'string', description: 'Nombre del profesional' },
-        dia: { type: 'string', description: 'Dia de la semana: lunes..domingo' },
-        hora_inicio: { type: 'string', description: 'Hora de entrada HH:MM' },
-        hora_fin: { type: 'string', description: 'Hora de salida HH:MM' },
-      },
-      required: ['profesional', 'dia', 'hora_inicio', 'hora_fin'],
-    },
-  },
-  {
     name: 'crear_presupuesto',
     description: 'Propone crear un presupuesto (borrador) a partir de una descripcion. Usa los precios REALES del catalogo (info_catalogo); no inventes precios. Si un concepto no esta en el catalogo, pide el precio.',
     parameters: {
@@ -671,18 +446,6 @@ const TOOLS = [
     },
   },
   {
-    name: 'enviar_mensaje_bandeja',
-    description: 'Propone GUARDAR un mensaje del salon en el hilo de la Bandeja de un cliente (registro). OJO: no envia el WhatsApp real (eso lo gestiona el equipo); solo deja el borrador registrado. Requiere que ya exista un hilo con ese cliente en la Bandeja.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        cliente: { type: 'string', description: 'Nombre o telefono del cliente' },
-        cuerpo: { type: 'string', description: 'Texto del mensaje' },
-      },
-      required: ['cliente', 'cuerpo'],
-    },
-  },
-  {
     name: 'recuperar_cliente',
     description: 'Propone lanzar una PROPUESTA DE VUELTA a una clienta que lleva tiempo sin venir (en riesgo de fuga). Deja el registro/borrador para el equipo; el envio real por WhatsApp lo gestiona el equipo, tu no lo mandas. Usalo cuando el usuario quiera recuperar/reenganchar a una clienta concreta.',
     parameters: {
@@ -691,27 +454,6 @@ const TOOLS = [
         cliente: { type: 'string', description: 'Nombre o telefono de la clienta a recuperar' },
       },
       required: ['cliente'],
-    },
-  },
-  {
-    name: 'cambiar_idioma_portal',
-    description: 'Propone cambiar el idioma del PORTAL PUBLICO de reserva online (lo que ven las clientes en /r/tu-salon). NO es el idioma de la interfaz del software (ese no lo puede cambiar Chispa). Llama a esta tool aunque no sepas el idioma exacto: el sistema ofrecera las opciones disponibles.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        idioma: { type: 'string', description: 'Idioma del portal: es (espanol) o en (ingles)' },
-      },
-    },
-  },
-  {
-    name: 'anadir_cierre_negocio',
-    description: 'Propone marcar un dia completo como festivo/cierre de TODO el salon (vacaciones, festivo local, dia suelto): la agenda lo pinta cerrado y el portal no ofrece huecos ese dia. Llama a esta tool aunque no sepas la fecha exacta todavia: el sistema la pedira con un formulario.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        fecha: { type: 'string', description: 'Fecha del cierre en YYYY-MM-DD (resuelve "el 25 de diciembre", "el proximo lunes"...)' },
-        motivo: { type: 'string', description: 'Motivo opcional (ej. "Festivo local", "Vacaciones")' },
-      },
     },
   },
   // --- LISTA DE ESPERA (Sesion 8-B) ---
@@ -804,40 +546,6 @@ const TOOLS = [
         fecha: { type: 'string', description: 'YYYY-MM-DD de la consulta (por defecto hoy)' },
         profesional: { type: 'string', description: 'Nombre parcial del profesional (opcional)' }
       }
-    }
-  },
-  {
-    name: 'bulk_editar_horarios',
-    description: 'Propone establecer en bloque el horario de uno o varios profesionales para un dia de la semana (ej. poner el mismo turno a todo el equipo el sabado, o copiar el horario de un profesional a otros).',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        profesionales: {
-          type: 'array',
-          description: 'Nombres de los profesionales a modificar. Usa ["todos"] para todo el equipo.',
-          items: { type: 'string' }
-        },
-        dia: { type: 'string', description: 'Dia de la semana: lunes..domingo' },
-        hora_inicio: { type: 'string', description: 'Hora de entrada HH:MM' },
-        hora_fin: { type: 'string', description: 'Hora de salida HH:MM' }
-      },
-      required: ['profesionales', 'dia', 'hora_inicio', 'hora_fin']
-    }
-  },
-  {
-    name: 'bulk_editar_comisiones',
-    description: 'Propone actualizar el porcentaje de comision por defecto de uno o varios profesionales.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        profesionales: {
-          type: 'array',
-          description: 'Nombres de los profesionales a modificar. Usa ["todos"] para todo el equipo.',
-          items: { type: 'string' }
-        },
-        comision_pct: { type: 'number', description: 'Nuevo porcentaje de comision (ej. 15.5)' }
-      },
-      required: ['profesionales', 'comision_pct']
     }
   },
   {
@@ -1002,118 +710,6 @@ GRUPO CUENTA
 - Cuenta: tus datos (nombre, telefono), acceso y seguridad (email y contrasena), el negocio al que perteneces, plan y plazas.
 - Soporte: contacto con el equipo de Mecha.`;
 
-// Ajustes de negocio_config que el asistente puede CAMBIAR (solo propietario).
-// Operativos; se excluyen identidad/cuenta/contrasena por seguridad.
-type ConfigMeta = { label: string; tipo: 'bool' | 'num' | 'enum' | 'hora'; valores?: string[]; min?: number; max?: number };
-const CONFIG_EDITABLE: Record<string, ConfigMeta> = {
-  notifConfirmacionActiva: { label: 'Confirmacion de cita (aviso al cliente)', tipo: 'bool' },
-  notifRecordatorioActiva: { label: 'Recordatorio previo', tipo: 'bool' },
-  notifRecordatorioHoras: { label: 'Horas de antelacion del recordatorio', tipo: 'num', min: 1, max: 168 },
-  notifResenaActiva: { label: 'Peticion de resena', tipo: 'bool' },
-  notifSenalActiva: { label: 'Enlace de pago de senal', tipo: 'bool' },
-  notifRetrasoActiva: { label: 'Aviso de retraso', tipo: 'bool' },
-  notifNoMolestar: { label: 'Horario sin envios (no molestar)', tipo: 'bool' },
-  notifNoMolestarInicio: { label: 'Inicio del horario sin envios', tipo: 'hora' },
-  notifNoMolestarFin: { label: 'Fin del horario sin envios', tipo: 'hora' },
-  antelacionGlobal: { label: 'Antelacion minima para reservar (min)', tipo: 'num', min: 0, max: 10080 },
-  antelacionMax: { label: 'Antelacion maxima para reservar', tipo: 'num', min: 0 },
-  permitirMismoDia: { label: 'Permitir reservas el mismo dia', tipo: 'bool' },
-  solapamiento: { label: 'Solapamiento de citas', tipo: 'enum', valores: ['nunca', 'reposo', 'siempre'] },
-  confirmacionModo: { label: 'Modo de confirmacion', tipo: 'enum', valores: ['auto', 'manual'] },
-  confirmacionTimeout: { label: 'Tiempo maximo sin confirmar (min)', tipo: 'num', min: 0 },
-  confirmacionNotificar: { label: 'Avisar al equipo en pendientes nuevas', tipo: 'bool' },
-  noShowGrace: { label: 'Tiempo para marcar no-show (min)', tipo: 'num', min: 0 },
-  retrasoGrace: { label: 'Tiempo de gracia para retraso (min)', tipo: 'num', min: 0 },
-  contadorRetraso: { label: 'Mostrar contador de retraso en la cita', tipo: 'bool' },
-  recolocarRetraso: { label: 'Recolocacion por retraso', tipo: 'bool' },
-  completarManual: { label: 'Marcar citas completadas manualmente', tipo: 'bool' },
-  reposoMargen: { label: 'Margen de seguridad para reposo (min)', tipo: 'num', min: 0 },
-  alertaReposo: { label: 'Alertar en exceso de reposos simultaneos', tipo: 'bool' },
-  alertaReposoUmbral: { label: 'Umbral de reposos simultaneos', tipo: 'num', min: 1 },
-  aprovecharReposo: { label: 'Permitir aprovechar reposo en otra cliente', tipo: 'bool' },
-  asistenteAgendaActivo: { label: 'Asistente de agenda (IA)', tipo: 'bool' },
-  asistenteProfesionalEscribe: { label: 'Permitir que el profesional opere su propia agenda', tipo: 'bool' },
-  asistenteEffort: { label: 'Nivel del asistente', tipo: 'enum', valores: ['low', 'medium', 'high'] },
-  listaEsperaMatchingActivo: { label: 'Ofrecer huecos automaticamente (lista de espera)', tipo: 'bool' },
-  listaEsperaVentanaMin: { label: 'Ventana de respuesta de la oferta (min)', tipo: 'num', min: 1 },
-  listaEsperaMaxBloqueoHoras: { label: 'Tiempo maximo de reserva del hueco (horas)', tipo: 'num', min: 1 },
-  listaEsperaAntelacionMinHoras: { label: 'Antelacion minima del hueco (horas)', tipo: 'num', min: 0 },
-  listaEsperaDesbloqueoDesde: { label: 'Desde cuando cuenta el tope', tipo: 'enum', valores: ['primer_aviso', 'ultimo_aviso'] },
-  listaEsperaOfertaPideSenal: { label: 'La oferta de hueco pide senal', tipo: 'bool' },
-  listaEsperaAvisarCaducado: { label: 'Avisar si el hueco caduca', tipo: 'bool' },
-  comisionBase: { label: 'Porcentaje base de comision', tipo: 'num', min: 0, max: 100 },
-  comisionBaseImporte: { label: 'Base de calculo de comision', tipo: 'enum', valores: ['bruto', 'neto'] },
-  comisionAddons: { label: 'Incluir add-ons en la comision', tipo: 'bool' },
-  comisionPropinas: { label: 'Incluir propinas en la comision', tipo: 'bool' },
-  comisionPeriodo: { label: 'Periodo de liquidacion', tipo: 'enum', valores: ['semanal', 'quincenal', 'mensual'] },
-  slotInterval: { label: 'Granularidad de los huecos (min)', tipo: 'num', min: 5, max: 60 },
-  defaultView: { label: 'Vista por defecto del calendario', tipo: 'enum', valores: ['dia', 'semana', 'mes'] },
-  startOfWeek: { label: 'Primer dia de la semana', tipo: 'enum', valores: ['lun', 'dom'] },
-  // Deposito dinamico por riesgo (Sesion 3 V2): ya vivia en negocio_config.config
-  // (Configuracion > Politicas) pero Chispa no podia tocarlo todavia.
-  depositoDinamicoActivo: { label: 'Deposito dinamico segun riesgo del cliente', tipo: 'bool' },
-  depositoFactorRiesgo: { label: 'Multiplicador de senal para clientes con no-shows', tipo: 'num', min: 1, max: 5 },
-  depositoVipExento: { label: 'Clientes VIP exentos de senal', tipo: 'bool' },
-};
-
-const CONFIG_EDITABLE_TEXT = 'AJUSTES EDITABLES (solo propietario). Para cambiar uno o varios, usa la tool cambiar_config con la(s) CLAVE(s) exacta(s) de esta lista:\n' +
-  Object.entries(CONFIG_EDITABLE).map(([k, m]) => {
-    const t = m.tipo === 'enum' ? `opciones: ${(m.valores || []).join('/')}` : m.tipo === 'bool' ? 'activar/desactivar' : m.tipo === 'hora' ? 'HH:MM' : 'numero';
-    return `- ${k}: ${m.label} (${t})`;
-  }).join('\n');
-
-function coerceConfigValor(meta: ConfigMeta, valorRaw: string): { ok: true; valor: boolean | number | string } | { ok: false; error: string } {
-  const v = String(valorRaw).trim().toLowerCase();
-  if (meta.tipo === 'bool') {
-    if (['true', 'si', 'sí', 'activar', 'activado', 'activa', 'on', '1'].includes(v)) return { ok: true, valor: true };
-    if (['false', 'no', 'desactivar', 'desactivado', 'desactiva', 'off', '0'].includes(v)) return { ok: true, valor: false };
-    return { ok: false, error: `Para "${meta.label}" indica activar o desactivar.` };
-  }
-  if (meta.tipo === 'num') {
-    const n = Number(String(valorRaw).replace(',', '.').replace(/[^0-9.\-]/g, ''));
-    if (isNaN(n)) return { ok: false, error: `"${valorRaw}" no es un numero valido para "${meta.label}".` };
-    if (meta.min != null && n < meta.min) return { ok: false, error: `El minimo de "${meta.label}" es ${meta.min}.` };
-    if (meta.max != null && n > meta.max) return { ok: false, error: `El maximo de "${meta.label}" es ${meta.max}.` };
-    return { ok: true, valor: n };
-  }
-  if (meta.tipo === 'enum') {
-    const match = (meta.valores || []).find((x) => x.toLowerCase() === v);
-    if (!match) return { ok: false, error: `Valor no valido para "${meta.label}". Opciones: ${(meta.valores || []).join(', ')}.` };
-    return { ok: true, valor: match };
-  }
-  const m = String(valorRaw).match(/^(\d{1,2}):(\d{2})$/);
-  if (!m) return { ok: false, error: `Indica la hora en formato HH:MM para "${meta.label}".` };
-  return { ok: true, valor: `${m[1].padStart(2, '0')}:${m[2]}` };
-}
-
-// Convierte un dia de la semana en lenguaje natural a numero (0=domingo..6=sabado,
-// convencion Postgres extract(dow)). Devuelve null si no lo reconoce.
-function parseDiaSemana(raw: string): number | null {
-  const v = String(raw ?? '').trim().toLowerCase();
-  if (/^[0-6]$/.test(v)) return Number(v);
-  const map: Record<string, number> = {
-    domingo: 0, dom: 0,
-    lunes: 1, lun: 1,
-    martes: 2, mar: 2,
-    miercoles: 3, 'miércoles': 3, mie: 3, 'mié': 3,
-    jueves: 4, jue: 4,
-    viernes: 5, vie: 5,
-    sabado: 6, 'sábado': 6, sab: 6, 'sáb': 6,
-  };
-  return v in map ? map[v] : null;
-}
-
-// Normaliza "9", "9:00", "09:5" a HH:MM valido, o null.
-function normalizaHora(raw: string): string | null {
-  const v = String(raw ?? '').trim();
-  const m = v.match(/^(\d{1,2})(?::(\d{1,2}))?$/);
-  if (!m) return null;
-  const h = Number(m[1]);
-  const min = m[2] != null ? Number(m[2]) : 0;
-  if (h < 0 || h > 23 || min < 0 || min > 59) return null;
-  return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-}
-
 // --- S12: Catálogo inyectado dinámicamente (con pantalla para agrupar por página) ---
 // Inyeccion COMPACTA (presupuesto de tokens): titulo + pantalla + descripcion.
 // El "uso"/categoria detallados viven en el Hub IA y los manuales, no aqui.
@@ -1246,7 +842,7 @@ export function buildSystemPrompt(
   }
 
   return [...base, ...acciones, scopeMsg].join('\n') +
-    '\n\n' + AUTOCONOCIMIENTO_IA + '\n\n' + MAPA_CONFIG + '\n\n' + CONFIG_EDITABLE_TEXT;
+    '\n\n' + AUTOCONOCIMIENTO_IA + '\n\n' + MAPA_CONFIG;
 }
 
 // ---------------------------------------------------------------------------
@@ -1526,7 +1122,6 @@ export async function runAgente(
     if (name === 'sugerir_enlace') return procesarEnlace(inp);
     if (name === 'mostrar_grafica') return await procesarGrafica(inp, negocioId, bloquesExtra);
     if (name === 'mostrar_comparativa') return await procesarComparativa(inp, negocioId, bloquesExtra);
-    if (name === 'resumen_gestion') return await procesarResumenGestion(inp, negocioId, hoy, bloquesExtra);
     if (name === 'listar_clientes') return await procesarListarClientes(inp, negocioId, bloquesExtra);
     if (name === 'buscar_recuerdos') return await procesarRecuerdos(inp, negocioId, bloquesExtra, puedeInformes ? null : userId);
     if (name === 'guardar_recuerdo') {
@@ -1636,21 +1231,15 @@ export async function runAgente(
       // declararlas, revalidamos que esta escritura esta permitida (rol+scope).
       if (!toolPermitida(name, rolCanon, scope)) {
         await registrarConv(negocioId, userId, messages);
-        return finalizar(
-          name === 'cambiar_config'
-            ? 'Solo el propietario puede cambiar la configuracion del salon. Puedo indicarte donde esta el ajuste para que lo cambies tu.'
-            : 'No tienes permiso para esa accion con tu rol. Puedo darte la informacion, pero no aplicarla.',
-        );
+        return finalizar('No tienes permiso para esa accion con tu rol. Puedo darte la informacion, pero no aplicarla.');
       }
 
-      const propuesta = name === 'cambiar_config'
-        ? await construirPropuestaConfig(parseArgs(writeCall), negocioId)
-        : await construirPropuesta(
-            { name, input: parseArgs(writeCall) },
-            negocioId,
-            scope as 'all' | 'self',
-            userId,
-          );
+      const propuesta = await construirPropuesta(
+        { name, input: parseArgs(writeCall) },
+        negocioId,
+        scope as 'all' | 'self',
+        userId,
+      );
 
       // "Actua con minima info" (Sesion 3 V2): falta o es ambiguo un dato
       // requerido. En vez de un error de texto que el LLM convertiria en una
@@ -3030,54 +2619,6 @@ async function procesarComparativa(inp: Record<string, string>, negocioId: strin
   return 'Comparativa anadida a la respuesta con los datos reales de ambos periodos.';
 }
 
-// ---------------------------------------------------------------------------
-// S21 (capstone): resumen de GESTION de alto nivel. Orquesta lecturas de varias
-// areas (agenda, caja, escaneo proactivo) y produce un panel accionable: KPIs +
-// (tabla/barras) + un menu de acciones de un clic. Cada accion sigue siendo una
-// PROPUESTA -> el usuario confirma (las labels del menu vuelven como turno y
-// disparan la tarjeta de confirmacion individual, p.ej. confirmar_citas). Nada
-// se ejecuta aqui; los envios reales quedan encolados por sus tools (reparto
-// Alexandro). Solo direccion/propietario (gate informes.ver en LECTURA_CAP).
-// ---------------------------------------------------------------------------
-// Suma dias a una fecha YYYY-MM-DD (aritmetica en UTC: no depende de DST).
-function diaISO(base: string, offset: number): string {
-  const d = new Date(`${base}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + offset);
-  return d.toISOString().slice(0, 10);
-}
-// Etiqueta corta de dia de la semana (para barras/tabla), en hora de Madrid.
-function nombreDiaCorto(iso: string): string {
-  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('es-ES', { weekday: 'short', timeZone: 'Europe/Madrid' });
-}
-// Cuenta citas por estado en un rango [desde, hasta] (fechas YYYY-MM-DD inclusivas).
-async function contarCitasRango(negocioId: string, desde: string, hasta: string): Promise<{ total: number; pendientes: number; canceladas: number; porDia: Record<string, number> }> {
-  const { data } = await svc
-    .from('citas')
-    .select('inicio, estado')
-    .eq('negocio_id', negocioId)
-    .gte('inicio', `${desde}T00:00:00`)
-    .lte('inicio', `${hasta}T23:59:59`);
-  const filas = (data ?? []) as { inicio: string; estado: string | null }[];
-  const porDia: Record<string, number> = {};
-  let pendientes = 0;
-  let canceladas = 0;
-  for (const c of filas) {
-    const dia = String(c.inicio).slice(0, 10);
-    if (c.estado === 'cancelada') { canceladas++; continue; }
-    porDia[dia] = (porDia[dia] ?? 0) + 1;
-    if (c.estado === 'pendiente') pendientes++;
-  }
-  return { total: filas.length - canceladas, pendientes, canceladas, porDia };
-}
-// Total cobrado (libro de caja) en un dia concreto, en euros.
-async function cobradoDia(negocioId: string, dia: string): Promise<number> {
-  return await totalIngresosRango(negocioId, dia, dia);
-}
-// Rango de severidad de un hallazgo para ordenar (menor = mas urgente).
-function rangoSeveridad(sev: string | null): number {
-  return sev === 'urgente' ? 0 : sev === 'alta' ? 1 : sev === 'media' ? 2 : 3;
-}
-
 // --- Cartera de clientes: lista + segmenta (RPC listar_clientes_ia). Empuja un
 // panel (KPIs + tabla + acciones) y devuelve al LLM SOLO conteos: la PII (nombres)
 // va en el bloque renderizado que ve el equipo, nunca al modelo. Sin datos de salud.
@@ -3159,213 +2700,6 @@ async function procesarListarClientes(
   return `Panel de clientes inyectado (KPIs + tabla${excluidos ? ` + ${excluidos} sin consentimiento IA no listados` : ''}). Segmento "${tituloSeg}", ${items.length} de ${total} en la cartera. La tabla YA se muestra: resume en 1 frase (sin inventar nombres ni cifras, sin repetir la tabla) e invita a pulsar una accion.`;
 }
 
-async function procesarResumenGestion(
-  inp: Record<string, string>,
-  negocioId: string,
-  hoy: string,
-  bloques: Bloque[],
-): Promise<string> {
-  const foco = (inp.foco ?? 'cierre_dia').trim().toLowerCase();
-  const manana = diaISO(hoy, 1);
-
-  // --- PANORAMA: "analiza mi salon" de un vistazo (caja + agenda + clientes + avisos) ---
-  if (foco === 'panorama' || foco === 'analisis' || foco === 'analizar' || foco === 'todo') {
-    const hoyCitas = await contarCitasRango(negocioId, hoy, hoy);
-    const mananaCitas = await contarCitasRango(negocioId, manana, manana);
-    const cobrado = await cobradoDia(negocioId, hoy);
-    const pend = hoyCitas.pendientes + mananaCitas.pendientes;
-
-    const [totalCli, nuevosCli, riesgoCli] = await Promise.all([
-      svc.from('clientes').select('id', { count: 'exact', head: true }).eq('negocio_id', negocioId),
-      svc.from('clientes').select('id', { count: 'exact', head: true }).eq('negocio_id', negocioId).gte('primera_visita', diaISO(hoy, -30)),
-      svc.from('clientes').select('id', { count: 'exact', head: true }).eq('negocio_id', negocioId).or('noshows_count.gte.1,perfil_riesgo.in.(medio,alto)'),
-    ]);
-
-    const { data: hallData } = await svc
-      .from('hallazgos_ia').select('severidad, familia, resumen')
-      .eq('negocio_id', negocioId).eq('estado', 'nuevo')
-      .order('creado_en', { ascending: false }).limit(20);
-    const hallazgos = ((hallData ?? []) as { severidad: string | null; familia: string | null; resumen: string | null }[])
-      .sort((a, b) => rangoSeveridad(a.severidad) - rangoSeveridad(b.severidad));
-
-    bloques.push({
-      tipo: 'kpi',
-      titulo: 'Tu salon de un vistazo',
-      tarjetas: [
-        { label: 'Cobrado hoy', valor: cobrado, unidad: 'eur' },
-        { label: 'Citas hoy', valor: hoyCitas.total, unidad: 'citas' },
-        { label: 'Sin confirmar (hoy y manana)', valor: pend, unidad: 'citas' },
-      ],
-    });
-    bloques.push({
-      tipo: 'kpi',
-      titulo: 'Cartera de clientes',
-      tarjetas: [
-        { label: 'Clientes', valor: totalCli.count ?? 0, unidad: 'citas' },
-        { label: 'Nuevos (30 dias)', valor: nuevosCli.count ?? 0, unidad: 'citas' },
-        { label: 'En riesgo', valor: riesgoCli.count ?? 0, unidad: 'citas' },
-      ],
-    });
-    if (hallazgos.length > 0) {
-      bloques.push({
-        tipo: 'tabla',
-        titulo: 'Avisos de Chispa',
-        columnas: [
-          { key: 'severidad', label: 'Prioridad' },
-          { key: 'resumen', label: 'Aviso' },
-          { key: 'area', label: 'Area' },
-        ],
-        filas: hallazgos.slice(0, 6).map((h) => ({
-          severidad: (h.severidad ?? 'baja').toUpperCase(),
-          resumen: h.resumen ?? '',
-          area: h.familia ?? '',
-        })),
-      });
-    }
-
-    const opciones: { valor: string; label: string; descripcion?: string }[] = [];
-    if (pend > 0) opciones.push({ valor: 'conf', label: `Confirmar las ${pend} citas pendientes`, descripcion: 'Las dejo confirmadas' });
-    opciones.push({ valor: 'org', label: 'Organizar la agenda de hoy', descripcion: 'Compactar huecos (propuesta)' });
-    opciones.push({ valor: 'cli_riesgo', label: 'Ver clientes en riesgo de fuga', descripcion: 'Para recuperarlos' });
-    if (hallazgos.length > 0) opciones.push({ valor: 'avisos', label: 'Revisar todos los avisos', descripcion: 'El detalle del escaneo' });
-    bloques.push({ tipo: 'opciones', id: `gestion-panorama-${Date.now()}`, titulo: 'Por donde quieres empezar?', opciones });
-
-    return `Panel 360 del salon inyectado (caja + agenda + clientes + avisos, datos reales). ${cobrado.toFixed(2)}€ hoy, ${hoyCitas.total} citas hoy, ${pend} sin confirmar, ${totalCli.count ?? 0} clientes (${riesgoCli.count ?? 0} en riesgo), ${hallazgos.length} avisos. Resume en 2 frases lo mas importante SIN repetir las cifras de las tarjetas e invita a pulsar una accion.`;
-  }
-
-  // --- URGENTE: escaneo proactivo 24/7 (hallazgos_ia, S13) + pendientes proximos ---
-  if (foco === 'urgente') {
-    const { data: hallData } = await svc
-      .from('hallazgos_ia')
-      .select('severidad, familia, resumen, accion_sugerida')
-      .eq('negocio_id', negocioId)
-      .eq('estado', 'nuevo')
-      .order('creado_en', { ascending: false })
-      .limit(20);
-    const hallazgos = ((hallData ?? []) as {
-      severidad: string | null; familia: string | null; resumen: string | null;
-      accion_sugerida: { tipo?: string; label?: string; payload?: { destino?: string } } | null;
-    }[]).sort((a, b) => rangoSeveridad(a.severidad) - rangoSeveridad(b.severidad));
-
-    const hoyCitas = await contarCitasRango(negocioId, hoy, hoy);
-    const mananaCitas = await contarCitasRango(negocioId, manana, manana);
-    const pendientesProximos = hoyCitas.pendientes + mananaCitas.pendientes;
-    const criticos = hallazgos.filter((h) => h.severidad === 'urgente' || h.severidad === 'alta').length;
-
-    bloques.push({
-      tipo: 'kpi',
-      titulo: 'Lo urgente ahora mismo',
-      tarjetas: [
-        { label: 'Avisos criticos', valor: criticos, unidad: 'citas' },
-        { label: 'Avisos totales', valor: hallazgos.length, unidad: 'citas' },
-        { label: 'Sin confirmar (hoy y manana)', valor: pendientesProximos, unidad: 'citas' },
-      ],
-    });
-
-    if (hallazgos.length > 0) {
-      bloques.push({
-        tipo: 'tabla',
-        titulo: 'Avisos de Chispa',
-        columnas: [
-          { key: 'severidad', label: 'Prioridad' },
-          { key: 'resumen', label: 'Aviso' },
-          { key: 'area', label: 'Area' },
-        ],
-        filas: hallazgos.slice(0, 8).map((h) => ({
-          severidad: (h.severidad ?? 'baja').toUpperCase(),
-          resumen: h.resumen ?? '',
-          area: h.familia ?? '',
-        })),
-      });
-    }
-
-    // Enlaces directos a las areas de los hallazgos con accion "ir_a" (dedup).
-    const destinosVistos = new Set<string>();
-    for (const h of hallazgos.slice(0, 6)) {
-      const dest = h.accion_sugerida?.tipo === 'ir_a' ? h.accion_sugerida?.payload?.destino : undefined;
-      if (dest && RUTAS[dest] && !destinosVistos.has(dest)) {
-        destinosVistos.add(dest);
-        bloques.push({ tipo: 'enlace', ruta: RUTAS[dest].ruta, label: RUTAS[dest].label, descripcion: h.resumen ?? undefined });
-      }
-    }
-
-    // Menu de acciones de un clic (cada label vuelve como turno -> propone->confirma).
-    const opciones: { valor: string; label: string; descripcion?: string }[] = [];
-    if (pendientesProximos > 0) {
-      opciones.push({ valor: 'conf_manana', label: `Confirmar las ${mananaCitas.pendientes || pendientesProximos} citas pendientes de manana`, descripcion: 'Las reviso y las dejo confirmadas' });
-    }
-    opciones.push({ valor: 'ver_todo', label: 'Repasar avisos en la pantalla de Avisos', descripcion: 'Ver el detalle completo del escaneo' });
-    opciones.push({ valor: 'cierre', label: 'Hacer el cierre del dia', descripcion: 'Balance de hoy y lo que queda' });
-    bloques.push({ tipo: 'opciones', id: `gestion-urgente-${Date.now()}`, titulo: 'Por donde empezamos?', opciones });
-
-    return `Panel de lo urgente inyectado (KPIs + tabla de avisos + acciones). Datos reales: ${criticos} avisos criticos, ${hallazgos.length} avisos en total, ${pendientesProximos} citas sin confirmar entre hoy y manana. Resume en 1-2 frases lo mas importante y NO repitas cifras que ya se ven en las tarjetas; invita a pulsar una accion.`;
-  }
-
-  // --- PREPARAR SEMANA: proximos 7 dias (hoy incluido) ---
-  if (foco === 'preparar_semana' || foco === 'semana') {
-    const hasta = diaISO(hoy, 6);
-    const semana = await contarCitasRango(negocioId, hoy, hasta);
-
-    bloques.push({
-      tipo: 'kpi',
-      titulo: 'Tu semana de un vistazo',
-      tarjetas: [
-        { label: 'Citas esta semana', valor: semana.total, unidad: 'citas' },
-        { label: 'Sin confirmar', valor: semana.pendientes, unidad: 'citas' },
-      ],
-    });
-
-    // Barras: citas por dia (7 dias, incluidos los vacios para ver los huecos).
-    const datosDias = Array.from({ length: 7 }, (_, i) => {
-      const d = diaISO(hoy, i);
-      return { etiqueta: nombreDiaCorto(d), valor: semana.porDia[d] ?? 0 };
-    });
-    bloques.push({ tipo: 'barras', titulo: 'Citas por dia', unidad: 'citas', datos: datosDias });
-
-    const opciones: { valor: string; label: string; descripcion?: string }[] = [];
-    const mananaCitas = await contarCitasRango(negocioId, manana, manana);
-    if (mananaCitas.pendientes > 0) {
-      opciones.push({ valor: 'conf_manana', label: `Confirmar las ${mananaCitas.pendientes} citas pendientes de manana`, descripcion: 'Empieza por el dia mas cercano' });
-    }
-    opciones.push({ valor: 'org_manana', label: 'Organizar la agenda de manana', descripcion: 'Compactar huecos muertos (propuesta)' });
-    opciones.push({ valor: 'urgente', label: 'Revisar lo urgente', descripcion: 'Avisos del escaneo de Chispa' });
-    bloques.push({ tipo: 'opciones', id: `gestion-semana-${Date.now()}`, titulo: 'Preparamos la semana?', opciones });
-
-    return `Panel de la semana inyectado (KPIs + barras por dia + acciones). Datos reales: ${semana.total} citas los proximos 7 dias, ${semana.pendientes} sin confirmar. Resume en 1-2 frases (senala si hay dias flojos o cargados) sin repetir las cifras de las tarjetas; invita a pulsar una accion.`;
-  }
-
-  // --- CIERRE DEL DIA (por defecto) ---
-  const hoyCitas = await contarCitasRango(negocioId, hoy, hoy);
-  const mananaCitas = await contarCitasRango(negocioId, manana, manana);
-  const cobrado = await cobradoDia(negocioId, hoy);
-
-  bloques.push({
-    tipo: 'kpi',
-    titulo: 'Cierre del dia',
-    tarjetas: [
-      { label: 'Citas hoy', valor: hoyCitas.total, unidad: 'citas' },
-      { label: 'Cobrado hoy', valor: cobrado, unidad: 'eur' },
-      { label: 'Sin confirmar manana', valor: mananaCitas.pendientes, unidad: 'citas' },
-    ],
-  });
-
-  const opciones: { valor: string; label: string; descripcion?: string }[] = [];
-  if (hoyCitas.pendientes > 0) {
-    opciones.push({ valor: 'conf_hoy', label: `Confirmar las ${hoyCitas.pendientes} citas pendientes de hoy`, descripcion: 'Cierra hoy sin cabos sueltos' });
-  }
-  if (mananaCitas.pendientes > 0) {
-    opciones.push({ valor: 'conf_manana', label: `Confirmar las ${mananaCitas.pendientes} citas pendientes de manana`, descripcion: 'Deja manana listo' });
-  }
-  opciones.push({ valor: 'caja', label: 'Ver el detalle de la caja de hoy', descripcion: 'Efectivo, datafono y propinas' });
-  opciones.push({ valor: 'urgente', label: 'Revisar lo urgente antes de cerrar', descripcion: 'Avisos del escaneo de Chispa' });
-  bloques.push({ tipo: 'opciones', id: `gestion-cierre-${Date.now()}`, titulo: 'Cerramos el dia?', opciones });
-
-  // Enlace a caja para el arqueo completo.
-  bloques.push({ tipo: 'enlace', ruta: RUTAS.caja.ruta, label: RUTAS.caja.label, descripcion: 'Para el arqueo del dia' });
-
-  return `Panel de cierre del dia inyectado (KPIs + acciones). Datos reales: ${hoyCitas.total} citas hoy, ${cobrado.toFixed(2)} euros cobrados, ${mananaCitas.pendientes} sin confirmar manana, ${hoyCitas.pendientes} sin confirmar hoy. Resume en 1-2 frases el balance del dia sin repetir las cifras de las tarjetas; invita a pulsar una accion.`;
-}
-
 // ---------------------------------------------------------------------------
 // Helpers de tiempo: interpretar la hora del LLM como hora local de Madrid.
 // ---------------------------------------------------------------------------
@@ -3396,110 +2730,6 @@ function parseInstante(s: string): Date {
 // ---------------------------------------------------------------------------
 // Construir propuesta de ESCRITURA (resuelve nombres→ids, calcula fines, marca solapa)
 // ---------------------------------------------------------------------------
-// Construye el campo de 'formulario' adecuado para UNA clave de CONFIG_EDITABLE
-// dentro de un formulario con VARIOS campos (bool/enum se piden con un 'select'
-// dentro del propio formulario). Reutilizable para cualquier clave nueva que se
-// anada a CONFIG_EDITABLE (catalogo EXTENSIBLE, Sesion 3 V2).
-function campoParaClave(clave: string, meta: ConfigMeta, valorPrefill?: string): CampoFormulario {
-  if (meta.tipo === 'bool') {
-    return {
-      key: clave, label: meta.label, tipo: 'select', requerido: true,
-      opciones: [{ valor: 'activar', label: 'Activar' }, { valor: 'desactivar', label: 'Desactivar' }],
-    };
-  }
-  if (meta.tipo === 'enum') {
-    return { key: clave, label: meta.label, tipo: 'select', requerido: true, opciones: (meta.valores ?? []).map((v) => ({ valor: v, label: v })) };
-  }
-  if (meta.tipo === 'hora') return { key: clave, label: meta.label, tipo: 'hora', requerido: true, valor: valorPrefill };
-  return { key: clave, label: meta.label, tipo: meta.tipo === 'num' ? 'numero' : 'texto', requerido: true, valor: valorPrefill };
-}
-
-type CambioConfigRaw = { clave?: string; valor?: string };
-
-// Construye la propuesta de cambio de configuracion. Acepta uno o VARIOS
-// cambios a la vez (Sesion 3 V2: "cambios" es un array; ver tool cambiar_config).
-// Si falta o es invalido el valor de alguna clave, en vez de un error de texto
-// devuelve un 'formulario'/'opciones' (pedirInfo) SOLO con lo que falta,
-// pre-rellenado con lo que ya se pudo interpretar.
-async function construirPropuestaConfig(
-  inpRaw: Record<string, unknown>,
-  negocioId: string,
-): Promise<AccionPropuesta | { error: string } | { pedirInfo: Bloque }> {
-  const cambiosIn: CambioConfigRaw[] = Array.isArray(inpRaw.cambios)
-    ? (inpRaw.cambios as CambioConfigRaw[]).filter((c) => c && typeof c === 'object')
-    : inpRaw.clave
-    ? [{ clave: String(inpRaw.clave), valor: inpRaw.valor != null ? String(inpRaw.valor) : undefined }]
-    : [];
-  if (cambiosIn.length === 0) return { error: 'Dime que ajuste quieres cambiar.' };
-
-  const metas: { clave: string; meta: ConfigMeta; raw?: string }[] = [];
-  for (const c of cambiosIn) {
-    const clave = (c.clave ?? '').trim();
-    const meta = CONFIG_EDITABLE[clave];
-    if (!meta) return { error: `"${clave}" no es un ajuste que pueda cambiar. Dime en palabras que quieres cambiar y te digo si se puede.` };
-    metas.push({ clave, meta, raw: c.valor != null ? String(c.valor) : undefined });
-  }
-
-  const { data: cfgRow } = await svc.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle();
-  const cfgActual = (cfgRow?.config ?? {}) as Record<string, unknown>;
-  const fmt = (meta: ConfigMeta, val: unknown): string =>
-    meta.tipo === 'bool' ? (val ? 'activado' : 'desactivado') : (val === undefined || val === null ? '(sin definir)' : String(val));
-
-  const resueltos: { clave: string; meta: ConfigMeta; valor: boolean | number | string; valorActual: boolean | number | string | null }[] = [];
-  const faltantes: { clave: string; meta: ConfigMeta; valorPrefill?: string }[] = [];
-  for (const { clave, meta, raw } of metas) {
-    const actual = (cfgActual[clave] ?? null) as boolean | number | string | null;
-    if (raw == null || raw.trim() === '') { faltantes.push({ clave, meta }); continue; }
-    const c = coerceConfigValor(meta, raw);
-    if (!c.ok) { faltantes.push({ clave, meta, valorPrefill: raw }); continue; }
-    resueltos.push({ clave, meta, valor: c.valor, valorActual: actual });
-  }
-
-  // Un UNICO ajuste faltante y de eleccion (bool/enum): 'opciones' standalone,
-  // se responde de un toque. El resto (varios, o un numero/hora/texto suelto)
-  // va en UN 'formulario'.
-  if (faltantes.length === 1 && (faltantes[0].meta.tipo === 'bool' || faltantes[0].meta.tipo === 'enum')) {
-    const { meta } = faltantes[0];
-    return {
-      pedirInfo: {
-        tipo: 'opciones', id: crypto.randomUUID(), titulo: meta.label,
-        opciones: meta.tipo === 'bool'
-          ? [{ valor: 'activar', label: 'Activar' }, { valor: 'desactivar', label: 'Desactivar' }]
-          : (meta.valores ?? []).map((v) => ({ valor: v, label: v })),
-      },
-    };
-  }
-  if (faltantes.length > 0) {
-    return {
-      pedirInfo: {
-        tipo: 'formulario', id: crypto.randomUUID(),
-        titulo: faltantes.length === 1 ? faltantes[0].meta.label : 'Completa estos ajustes',
-        campos: faltantes.map((f) => campoParaClave(f.clave, f.meta, f.valorPrefill)),
-        enviarLabel: 'Guardar',
-      },
-    };
-  }
-
-  if (resueltos.length === 1) {
-    const r = resueltos[0];
-    return {
-      tipo: 'cambiar_config',
-      negocio_id: negocioId,
-      clave: r.clave,
-      label: r.meta.label,
-      valor: r.valor,
-      valor_actual: r.valorActual,
-      resumen: `Cambiar "${r.meta.label}": ${fmt(r.meta, r.valorActual)} -> ${fmt(r.meta, r.valor)}`,
-    };
-  }
-  return {
-    tipo: 'cambiar_config_multiple',
-    negocio_id: negocioId,
-    cambios: resueltos.map((r) => ({ clave: r.clave, label: r.meta.label, valor: r.valor, valor_actual: r.valorActual })),
-    resumen: resueltos.map((r) => `"${r.meta.label}": ${fmt(r.meta, r.valorActual)} -> ${fmt(r.meta, r.valor)}`).join('; '),
-  };
-}
-
 export async function construirPropuesta(
   t: { name: string; input: Record<string, string> },
   negocioId: string,
@@ -3632,214 +2862,6 @@ export async function construirPropuesta(
         solapa,
       };
     }
-
-    case 'reagendar_cita': {
-      // 1. Obtener la cita existente con su servicio
-      const { data: citaRow, error: eCita } = await svc
-        .from('citas')
-        .select('id, profesional_id, servicio_id, inicio')
-        .eq('id', inp.cita_id)
-        .eq('negocio_id', negocioId)
-        .maybeSingle();
-
-      if (eCita || !citaRow)
-        return { error: `Cita ${inp.cita_id} no encontrada.` };
-
-      // 2. Scope self: la cita debe ser del profesional del caller
-      if (scope === 'self') {
-        const miProfId = await resolverProfesionalDelUsuario(negocioId, userId);
-        if (miProfId !== citaRow.profesional_id)
-          return { error: 'Solo puedes operar tu propia agenda.' };
-      }
-
-      // 3. Nuevo profesional (si se indica)
-      let nuevoProfId: string | undefined;
-      let nuevoProfNombre: string | undefined;
-      if (inp.nuevo_profesional) {
-        const { data: profes } = await svc
-          .from('profesionales')
-          .select('id, nombre')
-          .eq('negocio_id', negocioId)
-          .ilike('nombre', `%${inp.nuevo_profesional}%`);
-        if (!profes || profes.length === 0)
-          return { error: `Profesional "${inp.nuevo_profesional}" no encontrado.` };
-        if (profes.length > 1)
-          return { error: `Varios profesionales coinciden: ${profes.map((p: { nombre: string }) => p.nombre).join(', ')}. ¿Cual?` };
-        if (scope === 'self') {
-          const miProfId = await resolverProfesionalDelUsuario(negocioId, userId);
-          if (miProfId !== profes[0].id)
-            return { error: 'Solo puedes operar tu propia agenda.' };
-        }
-        nuevoProfId = profes[0].id;
-        nuevoProfNombre = profes[0].nombre;
-      }
-
-      // 4. Obtener duraciones del servicio
-      const { data: servicio } = await svc
-        .from('servicios')
-        .select('duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, nombre')
-        .eq('id', citaRow.servicio_id)
-        .maybeSingle();
-
-      const durActiva: number = servicio?.duracion_activa_min ?? 0;
-      const durEspera: number = servicio?.duracion_espera_min ?? 0;
-      const durExtra: number = servicio?.duracion_activa_extra_min ?? 0;
-
-      // 5. Calcular fines con el nuevo inicio
-      const nuevoInicio = parseInstante(inp.nuevo_inicio);
-      if (isNaN(nuevoInicio.getTime()))
-        return { error: `Hora de inicio no valida: "${inp.nuevo_inicio}"` };
-
-      const nuevoFinActiva = new Date(nuevoInicio.getTime() + durActiva * 60_000);
-      const nuevoFinEspera = new Date(nuevoFinActiva.getTime() + durEspera * 60_000);
-      const nuevoFin = new Date(nuevoFinEspera.getTime() + durExtra * 60_000);
-
-      const nuevoInicioISO = nuevoInicio.toISOString();
-      const nuevoFinActivaISO = nuevoFinActiva.toISOString();
-      const nuevoFinEsperaISO = nuevoFinEspera.toISOString();
-      const nuevoFinISO = nuevoFin.toISOString();
-
-      const profParaSolapa = nuevoProfId ?? citaRow.profesional_id;
-      const solapa = await detectarSolapa(profParaSolapa, nuevoInicioISO, nuevoFinISO, nuevoFinActivaISO, inp.cita_id);
-
-      const resumen = `Cita reagendada a ${nuevoInicio.toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}${nuevoProfNombre ? ` con ${nuevoProfNombre}` : ''}`;
-
-      const propuesta: AccionPropuesta = {
-        tipo: 'reagendar_cita',
-        cita_id: inp.cita_id,
-        nuevo_inicio: nuevoInicioISO,
-        nuevo_fin: nuevoFinISO,
-        nuevo_fin_activa: nuevoFinActivaISO,
-        nuevo_fin_espera: nuevoFinEsperaISO,
-        resumen,
-        solapa,
-      };
-      if (nuevoProfId) (propuesta as { nuevo_profesional_id?: string }).nuevo_profesional_id = nuevoProfId;
-      return propuesta;
-    }
-
-    case 'cancelar_cita': {
-      // Verificar que la cita es del negocio (y del propio profesional si scope===self)
-      const { data: citaRow } = await svc
-        .from('citas')
-        .select('id, profesional_id')
-        .eq('id', inp.cita_id)
-        .eq('negocio_id', negocioId)
-        .maybeSingle();
-
-      if (!citaRow) return { error: `Cita ${inp.cita_id} no encontrada.` };
-
-      if (scope === 'self') {
-        const miProfId = await resolverProfesionalDelUsuario(negocioId, userId);
-        if (miProfId !== citaRow.profesional_id)
-          return { error: 'Solo puedes cancelar citas de tu propia agenda.' };
-      }
-
-      return {
-        tipo: 'cancelar_cita',
-        cita_id: inp.cita_id,
-        motivo: inp.motivo ?? null,
-        resumen: `Cancelar cita ${inp.cita_id}${inp.motivo ? ` (${inp.motivo})` : ''}`,
-      };
-    }
-
-    case 'bloquear_hueco': {
-      const { data: profes } = await svc
-        .from('profesionales')
-        .select('id, nombre')
-        .eq('negocio_id', negocioId)
-        .ilike('nombre', `%${inp.profesional}%`);
-
-      if (!profes || profes.length === 0)
-        return { error: `Profesional "${inp.profesional}" no encontrado.` };
-      if (profes.length > 1)
-        return { error: `Varios profesionales coinciden: ${profes.map((p: { nombre: string }) => p.nombre).join(', ')}. ¿Cual?` };
-
-      const profesional = profes[0];
-
-      if (scope === 'self') {
-        const miProfId = await resolverProfesionalDelUsuario(negocioId, userId);
-        if (miProfId !== profesional.id)
-          return { error: 'Solo puedes bloquear tu propia agenda.' };
-      }
-
-      const inicio = parseInstante(inp.inicio);
-      const fin = parseInstante(inp.fin);
-      if (isNaN(inicio.getTime()) || isNaN(fin.getTime()))
-        return { error: 'Rango de horas no valido.' };
-
-      const solapa = await detectarSolapa(profesional.id, inicio.toISOString(), fin.toISOString(), fin.toISOString());
-
-      return {
-        tipo: 'bloquear_hueco',
-        negocio_id: negocioId,
-        profesional_id: profesional.id,
-        profesional_nombre: profesional.nombre,
-        inicio: inicio.toISOString(),
-        fin: fin.toISOString(),
-        motivo: inp.motivo ?? null,
-        resumen: `Bloquear ${profesional.nombre} de ${inicio.toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })} a ${fin.toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}${inp.motivo ? ` (${inp.motivo})` : ''}`,
-        solapa,
-      };
-    }
-
-    case 'liberar_hueco': {
-      // Verificar que el bloqueo existe y pertenece al negocio
-      const { data: bloqueo } = await svc
-        .from('bloqueos_profesional')
-        .select('id, profesional_id')
-        .eq('id', inp.bloqueo_id)
-        .eq('negocio_id', negocioId)
-        .maybeSingle();
-
-      if (!bloqueo) return { error: `Bloqueo ${inp.bloqueo_id} no encontrado.` };
-
-      if (scope === 'self') {
-        const miProfId = await resolverProfesionalDelUsuario(negocioId, userId);
-        if (miProfId !== bloqueo.profesional_id)
-          return { error: 'Solo puedes liberar bloqueos de tu propia agenda.' };
-      }
-
-      return {
-        tipo: 'liberar_hueco',
-        bloqueo_id: inp.bloqueo_id,
-        resumen: `Liberar bloqueo ${inp.bloqueo_id}`,
-      };
-    }
-
-    case 'proponer_macro': {
-      let macroPasos: any = [];
-      if (typeof inp.pasos === 'string') {
-        try {
-          macroPasos = JSON.parse(inp.pasos);
-        } catch {
-          macroPasos = [];
-        }
-      } else {
-        macroPasos = inp.pasos;
-      }
-      
-      const { data, error } = await svc.from('chispa_macros').insert({
-        negocio_id: negocioId,
-        nombre: inp.nombre,
-        descripcion: inp.descripcion,
-        pasos: macroPasos,
-        creado_por: 'ai_asistente',
-        estado: 'revision'
-      }).select('id').single();
-      
-      if (error) return { error: `Error creando la macro: ${error.message}` };
-      
-      return {
-        tipo: 'aprobar_macro',
-        negocio_id: negocioId,
-        macro_id: data.id,
-        nombre: inp.nombre,
-        descripcion: inp.descripcion,
-        resumen: `Aprobar macro: ${inp.nombre} (${inp.descripcion})`,
-      };
-    }
-
 
     // --- GESTION (Sesion 3) ---
     case 'confirmar_citas': {
@@ -3980,308 +3002,6 @@ export async function construirPropuesta(
       };
     }
 
-    case 'bulk_editar_horarios': {
-      const diaSemanaValido = parseDiaSemana(inp.dia);
-      if (diaSemanaValido === null) return { error: `Dia de la semana no valido: "${inp.dia}".` };
-      const inicio = normalizaHora(inp.hora_inicio);
-      const fin = normalizaHora(inp.hora_fin);
-      if (!inicio || !fin) return { error: 'Horas de inicio o fin no validas (formato HH:MM).' };
-
-      let listaProfes: string[] = [];
-      if (inp.profesionales) {
-        if (Array.isArray(inp.profesionales)) {
-          listaProfes = inp.profesionales;
-        } else if (typeof inp.profesionales === 'string') {
-          try {
-            const parsed = JSON.parse(inp.profesionales);
-            if (Array.isArray(parsed)) listaProfes = parsed;
-            else listaProfes = [inp.profesionales];
-          } catch {
-            listaProfes = String(inp.profesionales).split(',').map(s => s.trim());
-          }
-        }
-      }
-
-      if (listaProfes.length === 0) return { error: 'Debes indicar al menos un profesional o "todos".' };
-
-      let targetProfes = [];
-      if (listaProfes.map(p => p.toLowerCase()).includes('todos')) {
-        const { data } = await svc
-          .from('profesionales')
-          .select('id, nombre')
-          .eq('negocio_id', negocioId)
-          .eq('activo', true);
-        targetProfes = data ?? [];
-      } else {
-        const { data } = await svc
-          .from('profesionales')
-          .select('id, nombre')
-          .eq('negocio_id', negocioId)
-          .eq('activo', true);
-        const all = data ?? [];
-        for (const name of listaProfes) {
-          const match = all.filter(p => p.nombre.toLowerCase().includes(name.toLowerCase()));
-          targetProfes.push(...match);
-        }
-        const seen = new Set();
-        targetProfes = targetProfes.filter(p => {
-          if (seen.has(p.id)) return false;
-          seen.add(p.id);
-          return true;
-        });
-      }
-
-      if (targetProfes.length === 0) return { error: 'No se encontraron profesionales activos coincidentes.' };
-
-      return {
-        tipo: 'bulk_editar_horarios',
-        negocio_id: negocioId,
-        dia: inp.dia,
-        dia_semana: diaSemanaValido,
-        hora_inicio: inicio,
-        hora_fin: fin,
-        profesionales: targetProfes.map(p => ({ id: p.id, nombre: p.nombre })),
-        resumen: `Establecer horario los ${inp.dia}s (${inicio} - ${fin}) para: ${targetProfes.map(p => p.nombre).join(', ')}`,
-      };
-    }
-
-    case 'bulk_editar_comisiones': {
-      const pct = Number(inp.comision_pct);
-      if (isNaN(pct) || pct < 0 || pct > 100) return { error: 'Porcentaje de comision no valido (debe ser entre 0 y 100).' };
-
-      let listaProfes: string[] = [];
-      if (inp.profesionales) {
-        if (Array.isArray(inp.profesionales)) {
-          listaProfes = inp.profesionales;
-        } else if (typeof inp.profesionales === 'string') {
-          try {
-            const parsed = JSON.parse(inp.profesionales);
-            if (Array.isArray(parsed)) listaProfes = parsed;
-            else listaProfes = [inp.profesionales];
-          } catch {
-            listaProfes = String(inp.profesionales).split(',').map(s => s.trim());
-          }
-        }
-      }
-
-      if (listaProfes.length === 0) return { error: 'Debes indicar al menos un profesional o "todos".' };
-
-      let targetProfes = [];
-      if (listaProfes.map(p => p.toLowerCase()).includes('todos')) {
-        const { data } = await svc
-          .from('profesionales')
-          .select('id, nombre')
-          .eq('negocio_id', negocioId)
-          .eq('activo', true);
-        targetProfes = data ?? [];
-      } else {
-        const { data } = await svc
-          .from('profesionales')
-          .select('id, nombre')
-          .eq('negocio_id', negocioId)
-          .eq('activo', true);
-        const all = data ?? [];
-        for (const name of listaProfes) {
-          const match = all.filter(p => p.nombre.toLowerCase().includes(name.toLowerCase()));
-          targetProfes.push(...match);
-        }
-        const seen = new Set();
-        targetProfes = targetProfes.filter(p => {
-          if (seen.has(p.id)) return false;
-          seen.add(p.id);
-          return true;
-        });
-      }
-
-      if (targetProfes.length === 0) return { error: 'No se encontraron profesionales activos coincidentes.' };
-
-      return {
-        tipo: 'bulk_editar_comisiones',
-        negocio_id: negocioId,
-        comision_pct: pct,
-        profesionales: targetProfes.map(p => ({ id: p.id, nombre: p.nombre })),
-        resumen: `Fijar comision base al ${pct}% para: ${targetProfes.map(p => p.nombre).join(', ')}`,
-      };
-    }
-
-    case 'editar_servicio': {
-      // Resolver servicio "con minima info": si falta/es ambiguo/no se
-      // encuentra, se pide con 'opciones' en vez de un error de texto.
-      const { data: serviciosTodos } = await svc
-        .from('servicios').select('id, nombre, precio, duracion_activa_min, activo, prepago_requerido, prepago_cantidad_fija')
-        .eq('negocio_id', negocioId).eq('activo', true);
-      const listaServicios = (serviciosTodos ?? []) as {
-        id: string; nombre: string; precio: number | null; duracion_activa_min: number | null;
-        activo: boolean; prepago_requerido: boolean | null; prepago_cantidad_fija: number | null;
-      }[];
-      let s: (typeof listaServicios)[number] | null = null;
-      let opcionesServicio: { valor: string; label: string }[] = [];
-      if (!inp.servicio?.trim()) {
-        opcionesServicio = listaServicios.map((x) => ({ valor: x.nombre, label: x.nombre }));
-      } else {
-        const coincidencias = listaServicios.filter((x) => x.nombre.toLowerCase().includes(inp.servicio.toLowerCase()));
-        if (coincidencias.length === 1) s = coincidencias[0];
-        else opcionesServicio = (coincidencias.length > 1 ? coincidencias : listaServicios).map((x) => ({ valor: x.nombre, label: x.nombre }));
-      }
-      if (!s) {
-        return { pedirInfo: { tipo: 'opciones', id: crypto.randomUUID(), titulo: '¿Que servicio quieres editar?', opciones: opcionesServicio } };
-      }
-
-      const cambios: {
-        precio?: number; nombre?: string; duracion_activa_min?: number; activo?: boolean;
-        prepago_requerido?: boolean; prepago_cantidad_fija?: number;
-      } = {};
-      const partes: string[] = [];
-      if (inp.precio != null && String(inp.precio).trim() !== '') {
-        const n = Number(String(inp.precio).replace(',', '.').replace(/[^0-9.]/g, ''));
-        if (isNaN(n) || n < 0) return { error: `Precio no valido: "${inp.precio}".` };
-        cambios.precio = n; partes.push(`precio ${s.precio ?? '-'}€ -> ${n}€`);
-      }
-      if (inp.nombre != null && String(inp.nombre).trim() !== '') {
-        cambios.nombre = String(inp.nombre).trim(); partes.push(`nombre "${s.nombre}" -> "${cambios.nombre}"`);
-      }
-      if (inp.duracion_activa_min != null && String(inp.duracion_activa_min).trim() !== '') {
-        const d = parseInt(String(inp.duracion_activa_min).replace(/[^0-9]/g, ''), 10);
-        if (isNaN(d) || d <= 0) return { error: `Duracion no valida: "${inp.duracion_activa_min}".` };
-        cambios.duracion_activa_min = d; partes.push(`duracion ${s.duracion_activa_min ?? '-'}min -> ${d}min`);
-      }
-      if (inp.activo != null && String(inp.activo).trim() !== '') {
-        const v = String(inp.activo).trim().toLowerCase();
-        const activar = ['activar', 'activado', 'activa', 'si', 'sí', 'true', 'on', '1'].includes(v);
-        const desactivar = ['desactivar', 'desactivado', 'desactiva', 'no', 'false', 'off', '0'].includes(v);
-        if (!activar && !desactivar) return { error: 'Para "activo" indica activar o desactivar.' };
-        cambios.activo = activar; partes.push(activar ? 'activar' : 'desactivar');
-      }
-      if (inp.senal_activa != null && String(inp.senal_activa).trim() !== '') {
-        const v = String(inp.senal_activa).trim().toLowerCase();
-        const activar = ['activar', 'activado', 'activa', 'si', 'sí', 'true', 'on', '1'].includes(v);
-        const desactivar = ['desactivar', 'desactivado', 'desactiva', 'no', 'false', 'off', '0'].includes(v);
-        if (!activar && !desactivar) return { error: 'Para la senal indica activar o desactivar.' };
-        cambios.prepago_requerido = activar;
-        partes.push(`senal ${s.prepago_requerido ? 'activada' : 'desactivada'} -> ${activar ? 'activada' : 'desactivada'}`);
-      }
-      if (inp.senal_importe != null && String(inp.senal_importe).trim() !== '') {
-        const n = Number(String(inp.senal_importe).replace(',', '.').replace(/[^0-9.]/g, ''));
-        if (isNaN(n) || n < 0) return { error: `Importe de senal no valido: "${inp.senal_importe}".` };
-        cambios.prepago_cantidad_fija = n;
-        if (cambios.prepago_requerido == null) cambios.prepago_requerido = true;
-        partes.push(`senal ${s.prepago_cantidad_fija ?? '-'}€ -> ${n}€`);
-      }
-
-      if (Object.keys(cambios).length === 0) {
-        // Nada que cambiar todavia: formulario de edicion pre-rellenado con
-        // los valores actuales (Sesion 3 V2, "actua con minima info").
-        return {
-          pedirInfo: {
-            tipo: 'formulario', id: crypto.randomUUID(), titulo: `Editar ${s.nombre}`, enviarLabel: 'Guardar cambios',
-            campos: [
-              { key: 'nombre', label: 'Nombre', tipo: 'texto', requerido: true, valor: s.nombre },
-              { key: 'precio', label: 'Precio', tipo: 'euro', requerido: true, valor: s.precio ?? undefined },
-              { key: 'duracion_activa_min', label: 'Duracion (min)', tipo: 'numero', requerido: true, valor: s.duracion_activa_min ?? undefined },
-            ],
-          },
-        };
-      }
-
-      return {
-        tipo: 'editar_servicio',
-        negocio_id: negocioId,
-        servicio_id: s.id,
-        servicio_nombre: s.nombre,
-        cambios,
-        resumen: `${s.nombre}: ${partes.join(', ')}`,
-      };
-    }
-
-    case 'crear_servicio': {
-      const nombre = String(inp.nombre ?? '').trim();
-      const precioRaw = String(inp.precio ?? '').trim();
-      const duracionRaw = String(inp.duracion_activa_min ?? '').trim();
-      const precioNum = precioRaw ? Number(precioRaw.replace(',', '.').replace(/[^0-9.]/g, '')) : NaN;
-      const duracionNum = duracionRaw ? parseInt(duracionRaw.replace(/[^0-9]/g, ''), 10) : NaN;
-      const nombreOk = nombre.length > 0;
-      const precioOk = !isNaN(precioNum) && precioNum > 0;
-      const duracionOk = !isNaN(duracionNum) && duracionNum > 0;
-
-      if (nombreOk && precioOk && duracionOk) {
-        return {
-          tipo: 'crear_servicio', negocio_id: negocioId, nombre, precio: precioNum, duracion_activa_min: duracionNum,
-          resumen: `${nombre} · ${precioNum.toFixed(2)}€ · ${duracionNum} min`,
-        };
-      }
-
-      const campos: CampoFormulario[] = [];
-      if (!nombreOk) campos.push({ key: 'nombre', label: 'Nombre del servicio', tipo: 'texto', requerido: true, valor: nombre || undefined });
-      if (!precioOk) campos.push({ key: 'precio', label: 'Precio', tipo: 'euro', requerido: true, valor: precioRaw || undefined });
-      if (!duracionOk) campos.push({ key: 'duracion_activa_min', label: 'Duracion (min)', tipo: 'numero', requerido: true, valor: duracionRaw || undefined });
-      return { pedirInfo: { tipo: 'formulario', id: crypto.randomUUID(), titulo: 'Nuevo servicio', campos, enviarLabel: 'Crear servicio' } };
-    }
-
-    case 'cambiar_idioma_portal': {
-      const IDIOMAS_PORTAL = [{ valor: 'es', label: 'Espanol' }, { valor: 'en', label: 'English' }];
-      const idioma = String(inp.idioma ?? '').trim().toLowerCase();
-      const valido = IDIOMAS_PORTAL.find((o) => o.valor === idioma);
-      if (!valido) {
-        return { pedirInfo: { tipo: 'opciones', id: crypto.randomUUID(), titulo: 'Idioma del portal de reserva', opciones: IDIOMAS_PORTAL } };
-      }
-      const { data: portal } = await svc.from('negocio_portal').select('idioma').eq('negocio_id', negocioId).maybeSingle();
-      if (!portal) return { error: 'Primero activa el portal de reserva en Configuracion > Reserva online.' };
-      const actual = (portal.idioma as string) ?? 'es';
-      if (actual === idioma) return { error: `El portal ya esta en ${valido.label}.` };
-      return {
-        tipo: 'cambiar_idioma_portal', negocio_id: negocioId, idioma, idioma_actual: actual,
-        resumen: `Cambiar idioma del portal: ${actual} -> ${idioma}`,
-      };
-    }
-
-    case 'anadir_cierre_negocio': {
-      const fecha = (inp.fecha ?? '').trim();
-      const motivo = (inp.motivo ?? '').trim() || null;
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-        return {
-          pedirInfo: {
-            tipo: 'formulario', id: crypto.randomUUID(), titulo: 'Festivo / cierre del salon', enviarLabel: 'Anadir cierre',
-            campos: [
-              { key: 'fecha', label: 'Fecha', tipo: 'fecha', requerido: true, valor: fecha || undefined },
-              { key: 'motivo', label: 'Motivo (opcional)', tipo: 'texto', valor: motivo ?? undefined },
-            ],
-          },
-        };
-      }
-      return {
-        tipo: 'crear_cierre_negocio', negocio_id: negocioId, fecha, motivo,
-        resumen: `Marcar el ${fecha} como festivo/cierre${motivo ? ` (${motivo})` : ''}`,
-      };
-    }
-
-    case 'editar_horario': {
-      const { data: profes } = await svc
-        .from('profesionales').select('id, nombre')
-        .eq('negocio_id', negocioId).eq('activo', true).ilike('nombre', `%${inp.profesional}%`);
-      if (!profes || profes.length === 0) return { error: `Profesional "${inp.profesional}" no encontrado.` };
-      if (profes.length > 1) return { error: `Varios profesionales coinciden: ${profes.map((p: { nombre: string }) => p.nombre).join(', ')}. ¿Cual?` };
-      const prof = profes[0];
-
-      const dia = parseDiaSemana(inp.dia);
-      if (dia == null) return { error: `No reconozco el dia "${inp.dia}". Usa lunes..domingo.` };
-      const hi = normalizaHora(inp.hora_inicio);
-      const hf = normalizaHora(inp.hora_fin);
-      if (!hi || !hf) return { error: 'Indica horas validas en formato HH:MM.' };
-      if (hi >= hf) return { error: 'La hora de entrada debe ser anterior a la de salida.' };
-
-      const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-      return {
-        tipo: 'editar_horario',
-        negocio_id: negocioId,
-        profesional_id: prof.id,
-        profesional_nombre: prof.nombre,
-        dia_semana: dia,
-        hora_inicio: hi,
-        hora_fin: hf,
-        resumen: `${prof.nombre}, ${dias[dia]}: ${hi}-${hf} (reemplaza el turno de ese dia)`,
-      };
-    }
-
     case 'crear_presupuesto': {
       const anyInp = inp as unknown as { lineas?: unknown; cliente?: string; titulo?: string };
       const lineasRaw = Array.isArray(anyInp.lineas) ? anyInp.lineas as Record<string, unknown>[] : [];
@@ -4350,38 +3070,6 @@ export async function construirPropuesta(
         lineas,
         total_cents: total,
         resumen,
-      };
-    }
-
-    case 'enviar_mensaje_bandeja': {
-      const cuerpo = String(inp.cuerpo ?? '').trim();
-      if (!cuerpo) return { error: 'Dime que mensaje quieres registrar en la Bandeja.' };
-
-      const { data: clientes } = await svc
-        .from('clientes').select('id, nombre')
-        .eq('negocio_id', negocioId).eq('consiente_ia', true)
-        .or(`nombre.ilike.%${sanitizarFiltro(inp.cliente)}%,telefono.ilike.%${sanitizarFiltro(inp.cliente)}%`)
-        .limit(5);
-      if (!clientes || clientes.length === 0) return { error: `Cliente "${inp.cliente}" no encontrado (o sin consentimiento de IA).` };
-      if (clientes.length > 1) return { error: `Varios clientes coinciden con "${inp.cliente}". ¿Cual?` };
-      const cli = clientes[0];
-
-      const { data: convs } = await svc
-        .from('conversaciones').select('id, contacto_nombre')
-        .eq('negocio_id', negocioId).eq('cliente_id', cli.id)
-        .order('ultimo_mensaje_at', { ascending: false }).limit(1);
-      if (!convs || convs.length === 0) {
-        return { error: `No hay un hilo abierto con ${cli.nombre} en la Bandeja. Abrelo desde la Bandeja y vuelve a pedirmelo.` };
-      }
-      const conv = convs[0];
-
-      return {
-        tipo: 'enviar_mensaje_bandeja',
-        negocio_id: negocioId,
-        conversacion_id: conv.id,
-        contacto_nombre: conv.contacto_nombre ?? cli.nombre,
-        cuerpo,
-        resumen: `Guardar en Bandeja para ${cli.nombre}: "${cuerpo.length > 60 ? cuerpo.slice(0, 57) + '...' : cuerpo}"`,
       };
     }
 

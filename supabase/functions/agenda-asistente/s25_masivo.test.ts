@@ -95,26 +95,11 @@ Deno.test('S25 - Confirmar citas con exclusions', async () => {
   }
 });
 
-Deno.test('S25 - Bulk editar horarios', async () => {
-  setMocks({}, [
-    { id: 'prof-1', nombre: 'Maria' }
-  ]);
+Deno.test('S25 - Rework KISS: una tool de escritura cortada cae en el default (error)', async () => {
+  // bulk_editar_horarios/comisiones se retiraron del edge (rework KISS): ya no
+  // tienen case en construirPropuesta, asi que caen en el default con error.
+  setMocks({}, []);
   const call = { name: 'bulk_editar_horarios', input: { profesionales: '["todos"]', dia: 'sabado', hora_inicio: '09:00', hora_fin: '14:00' } };
   const res = await construirPropuesta(call, 'neg-1', 'all', 'user-1');
-  if ('tipo' in res) {
-    assertEquals(res.tipo, 'bulk_editar_horarios');
-    assertEquals((res as any).hora_inicio, '09:00');
-  }
-});
-
-Deno.test('S25 - Bulk editar comisiones', async () => {
-  setMocks({}, [
-    { id: 'prof-1', nombre: 'Maria' }
-  ]);
-  const call = { name: 'bulk_editar_comisiones', input: { profesionales: '["todos"]', comision_pct: '20' } };
-  const res = await construirPropuesta(call, 'neg-1', 'all', 'user-1');
-  if ('tipo' in res) {
-    assertEquals(res.tipo, 'bulk_editar_comisiones');
-    assertEquals((res as any).comision_pct, 20);
-  }
+  assertEquals('error' in res, true);
 });
