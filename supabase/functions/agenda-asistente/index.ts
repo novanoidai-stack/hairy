@@ -38,6 +38,10 @@ const openai = new OpenAI({
 // degradar el tool-calling). Cambiar aqui si se quiere subir a Sonnet para intenciones
 // complejas. Se puede sobrescribir por config del negocio via OPENROUTER_MODEL (secret).
 const MODEL = Deno.env.get('OPENROUTER_MODEL') ?? 'anthropic/claude-haiku-4.5';
+// Modelo barato para LECTURA/analisis (la "biblioteca del salon"): ~10x mas barato
+// que Haiku. Las ESCRITURAS siguen en MODEL (Haiku). Configurable por secret sin
+// tocar codigo (rework KISS: dos modelos por tarea).
+const MODEL_LECTURA = Deno.env.get('OPENROUTER_MODEL_LECTURA') ?? 'google/gemini-2.0-flash-001';
 // Tenant demo compartido entre visitantes: NO se persiste memoria cross-visitante (constraint #8).
 const DEMO_NEGOCIO_ID = 'demo_salon_001';
 
@@ -1281,9 +1285,16 @@ Deno.serve(async (req) => {
     // --- Body ---
     const body = await req.json().catch(() => ({}));
     const mensajes = Array.isArray(body?.mensajes) ? body.mensajes : [];
+    // Ruteo del rework KISS: 'lectura' (modelo barato) | 'accion' (Haiku) |
+    // 'auto' (chat: clasifica lectura/accion mas abajo). 'superficie' acota que
+    // tools de ESCRITURA se ofrecen (chat, presupuestos, clientes, agenda...).
+    const tareaRaw = String((body as { tarea?: unknown })?.tarea ?? 'auto');
+    const tarea: 'lectura' | 'accion' | 'auto' =
+      tareaRaw === 'lectura' || tareaRaw === 'accion' ? tareaRaw : 'auto';
+    const superficie = String((body as { superficie?: unknown })?.superficie ?? 'chat');
 
     // --- Ejecutar agente ---
-    const resultado = await runAgente(negocioId, role, user.id, realScope, effort, mensajes, userClient);
+    const resultado = await runAgente(negocioId, role, user.id, realScope, effort, mensajes, userClient, tarea, superficie);
     return json(resultado);
   } catch (e) {
     return json({ error: String((e as Error)?.message ?? e) }, 500);
@@ -1301,6 +1312,8 @@ export async function runAgente(
   _effort: string,
   mensajes: { role: 'user' | 'assistant'; content: string | any[] }[],
   userClient: typeof svc,
+  tarea: 'lectura' | 'accion' | 'auto' = 'auto',
+  superficie: string = 'chat',
 ): Promise<{ bloques: Bloque[]; texto: string; accion_propuesta?: AccionPropuesta }> {
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }); // YYYY-MM-DD
 
@@ -1308,6 +1321,12 @@ export async function runAgente(
   // tools se DECLARAN al LLM. Lo que un rol no puede hacer, ni se declara.
   const rolCanon = roleOf(role);
   const puedeInformes = can(rolCanon, 'informes.ver');
+
+  // Ruteo por tarea (rework KISS): 'lectura' -> modelo barato; el resto -> Haiku.
+  // El chat ('auto') se afina con un clasificador (ver mas abajo) que puede
+  // reasignar tareaEfectiva/modeloEnUso a 'accion'/Haiku cuando detecta escritura.
+  let tareaEfectiva: 'lectura' | 'accion' = tarea === 'lectura' ? 'lectura' : 'accion';
+  let modeloEnUso = tareaEfectiva === 'lectura' ? MODEL_LECTURA : MODEL;
 
   // S09: Recuperar hechos de memoria a largo plazo
   const { data: hechos } = await svc
@@ -1488,7 +1507,7 @@ export async function runAgente(
       console.log('[CHISPA_DEBUG_PAYLOAD]', JSON.stringify(messages));
     }
     const resp = await openai.chat.completions.create({
-      model: MODEL,
+      model: modeloEnUso,
       max_tokens: 1024,
       messages,
       tools,
