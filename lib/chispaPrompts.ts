@@ -182,6 +182,30 @@ export function obtenerTipCarga(): string {
   return TIPS_CARGA[idx];
 }
 
+// ---------------------------------------------------------------------------
+// Prompt de IA POR PAGINA (rework KISS, Titular -> Visual -> Accion).
+// El contrato de FORMATO duro (titular + bloque visual + accion de 1 clic) vive
+// en el system prompt del edge (buildSystemPrompt, turno de LECTURA). Aqui solo
+// se arma la INTENCION concreta de la pagina: su objetivo y, si la tiene, la
+// accion de 1 clic que se espera al final. Funcion pura (comentarios en espanol).
+// ---------------------------------------------------------------------------
+export interface PromptPaginaCfg {
+  pagina: string;        // nombre legible de la pantalla (p.ej. 'clientes', 'informes')
+  objetivo: string;      // que debe analizar/hacer Chispa en esa pantalla
+  accionEsperada?: string; // accion de 1 clic sugerida al cierre (p.ej. 'recuperar', 'responder')
+}
+
+export function buildPromptPagina(cfg: PromptPaginaCfg): string {
+  const partes: string[] = [
+    `Estas en la pantalla "${cfg.pagina}" del software del salon. ${cfg.objetivo}`,
+    'Responde con un TITULAR de una frase (dato clave en negrita) y el MEJOR bloque visual con cifras reales; nada de muros de texto.',
+  ];
+  if (cfg.accionEsperada) {
+    partes.push(`Cierra ofreciendo, si procede, una accion de 1 clic: ${cfg.accionEsperada}.`);
+  }
+  return partes.join(' ');
+}
+
 // Normaliza el pathname eliminando prefijos de tabs y parámetros para un matching exacto
 export function normalizarPathname(pathname: string): string {
   if (!pathname) return '/';
