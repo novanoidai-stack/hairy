@@ -116,10 +116,12 @@ export default function InventarioScreen() {
   const [filtroCategoria, setFiltroCategoria] = useState<string>('todas');
   const [busqueda, setBusqueda] = useState('');
   const [alertasCount, setAlertasCount] = useState(0);
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  // Tabla por defecto (feedback Jose): se ven mas productos de un vistazo que en mosaico.
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [soloStockBajo, setSoloStockBajo] = useState(false);
-  // "Prediccion de Pedido" (tarjeta IA): en movil arranca plegada tras un chip.
-  const [prediccionOpen, setPrediccionOpen] = useState<boolean>(() => typeof window === 'undefined' || window.innerWidth >= 768);
+  // "Prediccion de Pedido" (tarjeta IA): plegable en TODO viewport (feedback Jose:
+  // "no se puede cerrar la parte de la IA"). Arranca plegada para no comerse la pagina.
+  const [prediccionOpen, setPrediccionOpen] = useState<boolean>(false);
 
   // Modales
   const [showNuevoProducto, setShowNuevoProducto] = useState(false);
@@ -914,7 +916,7 @@ export default function InventarioScreen() {
           </div>
           
           <div style={{ marginTop: 16 }}>
-            {isMobile && !prediccionOpen ? (
+            {!prediccionOpen ? (
               <button
                 onClick={() => setPrediccionOpen(true)}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 11, cursor: 'pointer', textAlign: 'left' }}
@@ -924,21 +926,33 @@ export default function InventarioScreen() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={TOKENS.textTer} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
               </button>
             ) : (
-              <TarjetaAyudaIA
-                titulo="Predicción de Pedido"
-                subtitulo="IA: Sugerencia de reposición inteligente"
-                estado={ayudaIA.estado}
-                onAnalizar={handlePrediccionStock}
-                onReintentar={ayudaIA.reintentar}
-                botonLabel="Predicción de Pedido"
-                resumenDeterminista={
-                  <div>
-                    Tienes <span style={{fontWeight: 600, color: TOKENS.danger}}>{criticos.length} productos</span> por debajo del stock mínimo.
-                  </div>
-                }
-                onConfirmarAccion={procesarAccionChispa}
-                isMobile={isMobile}
-              />
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+                  <button
+                    onClick={() => setPrediccionOpen(false)}
+                    title="Ocultar predicción"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: TOKENS.textSec }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15" /></svg>
+                    Ocultar
+                  </button>
+                </div>
+                <TarjetaAyudaIA
+                  titulo="Predicción de Pedido"
+                  subtitulo="IA: Sugerencia de reposición inteligente"
+                  estado={ayudaIA.estado}
+                  onAnalizar={handlePrediccionStock}
+                  onReintentar={ayudaIA.reintentar}
+                  botonLabel="Predicción de Pedido"
+                  resumenDeterminista={
+                    <div>
+                      Tienes <span style={{fontWeight: 600, color: TOKENS.danger}}>{criticos.length} productos</span> por debajo del stock mínimo.
+                    </div>
+                  }
+                  onConfirmarAccion={procesarAccionChispa}
+                  isMobile={isMobile}
+                />
+              </div>
             )}
           </div>
         </div>
