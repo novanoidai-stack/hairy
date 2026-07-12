@@ -8,15 +8,26 @@ import { estructurarBloques } from '@/lib/chispaEstructura';
 
 export type ResultadoChispa = { ok: true; bloques: Bloque[] } | { ok: false; error: string };
 
+// Ruteo del rework KISS: la superficie declara si su peticion es de LECTURA
+// (modelo barato) o de ACCION (Haiku) y en QUE superficie esta (acota que tools
+// de escritura se ofrecen). Por defecto el edge asume 'auto'/'chat'.
+export type OpcionesChispa = { tarea?: 'lectura' | 'accion' | 'auto'; superficie?: string };
+
 // Invoca el edge agenda-asistente y normaliza la respuesta a bloques tipados.
 // Funcion pura (no-hook) para que otros hooks (p.ej. useAyudaIA, Sesion 4 del
 // plan V2) reutilicen la MISMA logica de llamada sin duplicarla.
-export async function invocarChispa(prompt: string, contexto?: Record<string, unknown>): Promise<ResultadoChispa> {
+export async function invocarChispa(
+  prompt: string,
+  contexto?: Record<string, unknown>,
+  opts?: OpcionesChispa,
+): Promise<ResultadoChispa> {
   try {
     const { data, error } = await supabase.functions.invoke('agenda-asistente', {
       body: {
         mensajes: [{ role: 'user', content: prompt }],
         contexto, // opcional: datos adicionales de la superficie
+        ...(opts?.tarea ? { tarea: opts.tarea } : {}),
+        ...(opts?.superficie ? { superficie: opts.superficie } : {}),
       },
     });
     if (error || !data) {
@@ -31,7 +42,7 @@ export async function invocarChispa(prompt: string, contexto?: Record<string, un
 interface SugerenciaChispa {
   loading: boolean;
   error: string | null;
-  generar: (prompt: string, contexto?: Record<string, unknown>) => Promise<string | null>;
+  generar: (prompt: string, contexto?: Record<string, unknown>, opts?: OpcionesChispa) => Promise<string | null>;
   reset: () => void;
   cargando: boolean;
   limpiar: () => void;
@@ -44,12 +55,12 @@ export function useChispaSugerencia(): SugerenciaChispa {
   const [error, setError] = useState<string | null>(null);
   const [bloques, setBloques] = useState<Bloque[]>([]);
 
-  const generar = useCallback(async (prompt: string, contexto?: Record<string, unknown>): Promise<string | null> => {
+  const generar = useCallback(async (prompt: string, contexto?: Record<string, unknown>, opts?: OpcionesChispa): Promise<string | null> => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await invocarChispa(prompt, contexto);
+      const res = await invocarChispa(prompt, contexto, opts);
       if (!res.ok) {
         setError(res.error);
         return null;

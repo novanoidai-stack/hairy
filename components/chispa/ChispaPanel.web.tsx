@@ -1122,7 +1122,9 @@ export default function ChispaPanel({
 
     try {
       const { data, error } = await supabase.functions.invoke('agenda-asistente', {
-        body: { mensajes: historialParaEdge(nuevos) },
+        // Chat: 'auto' deja que el edge clasifique lectura/accion; superficie 'chat'
+        // acota las escrituras a las 4 acciones en bloque (rework KISS).
+        body: { mensajes: historialParaEdge(nuevos), tarea: 'auto', superficie: 'chat' },
       });
 
       if (error || !data) {

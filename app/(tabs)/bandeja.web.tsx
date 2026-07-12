@@ -142,7 +142,9 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
       const txt = mensajes.map(m => `${m.autor}: ${m.cuerpo}`).join('\n');
       const prompt = `Analiza esta conversación con ${conv.contacto_nombre}. Genera un bloque de acción de tipo '${tipoAccion === 'cita' ? 'crear_cita' : 'crear_presupuesto'}' con los datos que puedas extraer. Si faltan datos, usa valores por defecto lógicos.\nConversación:\n${txt}`;
       const { data, error: err } = await supabase.functions.invoke('agenda-asistente', {
-        body: { mensajes: [{ role: 'user', content: prompt }] },
+        // Bandeja convierte un hilo en cita/presupuesto: declara su superficie para
+        // que el edge (rework KISS) le ofrezca crear_cita/crear_presupuesto (no van en el chat).
+        body: { mensajes: [{ role: 'user', content: prompt }], tarea: 'accion', superficie: 'bandeja' },
       });
       // Sesion 10: nunca fallar en silencio. Cada camino deja un estado visible
       // (error / sin datos / propuesta), no "el boton deja de girar y no pasa nada".

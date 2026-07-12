@@ -527,7 +527,11 @@ function PresupuestosScreen() {
 
   const lanzarPresupuestoIA = (texto: string) => {
     const cat = conceptos.map(c => `${c.nombre} (${eur(c.precio_cents)})`).join(', ');
-    ayudaPresupuestoIA.analizar(`Crea un presupuesto con esta descripción: "${texto}". Utiliza este catálogo como referencia para los precios: ${cat}. Propón siempre líneas concretas con lo que tengas; no pidas confirmación por chat.`);
+    ayudaPresupuestoIA.analizar(
+      `Crea un presupuesto con esta descripción: "${texto}". Utiliza este catálogo como referencia para los precios: ${cat}. Propón siempre líneas concretas con lo que tengas; no pidas confirmación por chat.`,
+      undefined,
+      { tarea: 'accion', superficie: 'presupuestos' },
+    );
   };
 
   const handleNlSubmit = (e?: React.FormEvent) => {
@@ -578,7 +582,11 @@ function PresupuestosScreen() {
     setRespuestasFormularioIA((prev) => ({ ...prev, [bloque.id]: payload }));
     const valores = payload as Record<string, string | number>;
     const detalle = bloque.campos.map((c) => `${c.label}: ${valores[c.key] ?? ''}`).join('; ');
-    ayudaPresupuestoIA.analizar(`${ultimoNlInput}. Datos que faltaban: ${detalle}.`);
+    ayudaPresupuestoIA.analizar(
+      `${ultimoNlInput}. Datos que faltaban: ${detalle}.`,
+      undefined,
+      { tarea: 'accion', superficie: 'presupuestos' },
+    );
   };
 
   // El bloque 'accion' (si lo hay) dentro de la respuesta ya normalizada del hook.
