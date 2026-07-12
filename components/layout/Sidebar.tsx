@@ -20,19 +20,22 @@ const WORDMARK_FONT = Platform.select({
   default: undefined,
 }) as string | undefined;
 
-const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: string; href: string; cap?: Capability }[] = [
-  { label: 'Agenda', labelKey: 'nav_agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)' },
-  { label: 'Mi jornada', labelKey: 'nav_mi_jornada', icon: 'person-circle-outline', activeIcon: 'person-circle', href: '/(tabs)/mi-jornada' },
-  { label: 'Caja', labelKey: 'nav_caja', icon: 'wallet-outline', activeIcon: 'wallet', href: '/(tabs)/caja', cap: 'config.ver' },
-  { label: 'Presupuestos', labelKey: 'nav_presupuestos', icon: 'document-text-outline', activeIcon: 'document-text', href: '/(tabs)/presupuestos' },
-  { label: 'Bandeja', labelKey: 'nav_bandeja', icon: 'mail-outline', activeIcon: 'mail', href: '/(tabs)/bandeja' },
-  { label: 'Lista de espera', labelKey: 'nav_lista_espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas' },
-  { label: 'Clientes', labelKey: 'nav_clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver' },
-  { label: 'Campañas', labelKey: 'nav_campanas', icon: 'megaphone-outline', activeIcon: 'megaphone', href: '/(tabs)/campanas', cap: 'informes.ver' },
-  { label: 'Reseñas', labelKey: 'nav_resenas', icon: 'star-outline', activeIcon: 'star', href: '/(tabs)/resenas' },
-  { label: 'Equipo', labelKey: 'nav_equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver' },
-  { label: 'Inventario', labelKey: 'nav_inventario', icon: 'cube-outline', activeIcon: 'cube', href: '/(tabs)/inventario' },
-  { label: 'Informes', labelKey: 'nav_informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver' },
+const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: string; href: string; cap?: Capability; group?: string }[] = [
+  { label: 'Agenda', labelKey: 'nav_agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)', group: 'Operativa' },
+  { label: 'Mi jornada', labelKey: 'nav_mi_jornada', icon: 'person-circle-outline', activeIcon: 'person-circle', href: '/(tabs)/mi-jornada', group: 'Operativa' },
+  { label: 'Lista de espera', labelKey: 'nav_lista_espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas', group: 'Operativa' },
+  { label: 'Citas', labelKey: 'nav_citas', icon: 'calendar-number-outline', activeIcon: 'calendar-number', href: '/(tabs)/citas', cap: 'agenda.ver_todas', group: 'Operativa' },
+  
+  { label: 'Clientes', labelKey: 'nav_clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver', group: 'CRM & Marketing' },
+  { label: 'Bandeja', labelKey: 'nav_bandeja', icon: 'mail-outline', activeIcon: 'mail', href: '/(tabs)/bandeja', group: 'CRM & Marketing' },
+  { label: 'Campañas', labelKey: 'nav_campanas', icon: 'megaphone-outline', activeIcon: 'megaphone', href: '/(tabs)/campanas', cap: 'informes.ver', group: 'CRM & Marketing' },
+  
+  { label: 'Caja', labelKey: 'nav_caja', icon: 'wallet-outline', activeIcon: 'wallet', href: '/(tabs)/caja', cap: 'config.ver', group: 'Gestión' },
+  { label: 'Presupuestos', labelKey: 'nav_presupuestos', icon: 'document-text-outline', activeIcon: 'document-text', href: '/(tabs)/presupuestos', group: 'Gestión' },
+  { label: 'Equipo', labelKey: 'nav_equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver', group: 'Gestión' },
+  { label: 'Inventario', labelKey: 'nav_inventario', icon: 'cube-outline', activeIcon: 'cube', href: '/(tabs)/inventario', group: 'Gestión' },
+  { label: 'Reseñas', labelKey: 'nav_resenas', icon: 'star-outline', activeIcon: 'star', href: '/(tabs)/resenas', group: 'Análisis' },
+  { label: 'Informes', labelKey: 'nav_informes', icon: 'bar-chart-outline', activeIcon: 'bar-chart', href: '/(tabs)/informes', cap: 'informes.ver', group: 'Análisis' },
 ];
 
 const HOVER_DURATION = 200;
@@ -206,8 +209,8 @@ export function Sidebar() {
           {isActive && !collapsed && <View style={[s.navItemBar, { backgroundColor: roleTheme.accent }]} />}
           <Ionicons
             name={(isActive ? item.activeIcon : item.icon) as any}
-            size={collapsed ? 20 : 18}
-            color={isActive ? roleTheme.accent : tokens.textSecondary}
+            size={collapsed ? 20 : 16}
+            color={isActive ? roleTheme.accent : 'rgba(92,82,73,0.5)'}
           />
           {!collapsed && (
             <TText style={[
@@ -292,33 +295,32 @@ export function Sidebar() {
         contentContainerStyle={s.navScrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* grupo 1: PRINCIPAL */}
-        {!collapsed && (
-          <TText style={s.navSectionLabel}>{t('nav_grp_principal')}</TText>
-        )}
-        <View style={s.navGroupContainer}>
-          {NAV_ITEMS.slice(0, 4).map((item, idx) => {
-            if (!allows(item.cap)) return null;
-            return renderNavItem(item, idx);
-          })}
-        </View>
+        {/* Dynamic Groups Rendering */}
+        {(() => {
+          const groups = NAV_ITEMS.reduce((acc, item, index) => {
+            const groupName = item.group || 'General';
+            if (!acc[groupName]) acc[groupName] = [];
+            acc[groupName].push({ item, index });
+            return acc;
+          }, {} as Record<string, { item: typeof NAV_ITEMS[0]; index: number }[]>);
 
-        {/* Separator */}
-        {!collapsed && <View style={s.navDivider} />}
-
-        {/* grupo 2: GESTIÓN */}
-        {!collapsed && (
-          <TText style={[s.navSectionLabel, { marginTop: tokens.spacing.xs }]}>
-            {t('nav_grp_gestion')}
-          </TText>
-        )}
-        <View style={s.navGroupContainer}>
-          {NAV_ITEMS.slice(4).map((item, idx) => {
-            const mainIdx = idx + 4;
-            if (!allows(item.cap)) return null;
-            return renderNavItem(item, mainIdx);
-          })}
-        </View>
+          return Object.entries(groups).map(([groupName, items], groupIndex) => (
+            <View key={groupName}>
+              {groupIndex > 0 && !collapsed && <View style={s.navDivider} />}
+              {!collapsed && (
+                <TText style={[s.navSectionLabel, groupIndex > 0 && { marginTop: tokens.spacing.xs }]}>
+                  {groupName}
+                </TText>
+              )}
+              <View style={s.navGroupContainer}>
+                {items.map(({ item, index }) => {
+                  if (!allows(item.cap)) return null;
+                  return renderNavItem(item, index);
+                })}
+              </View>
+            </View>
+          ));
+        })()}
       </ScrollView>
 
       {/* Bottom section */}

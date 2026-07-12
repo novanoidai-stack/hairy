@@ -21,6 +21,7 @@ import { ejecutarAccion } from '@/lib/chispaOps';
 import { fasesDe, type CitaRetraso } from '@/lib/retrasos';
 import { UMBRAL_HUECO_MIN_DEFAULT } from '@/lib/organizarAgenda';
 import { CITA_STATUS, CITA_STATUS_ACTIVOS } from '@/lib/constants';
+import { useTheme } from '@/lib/hooks/useTheme';
 
 const T = DESIGN_TOKENS;
 
@@ -252,45 +253,26 @@ function MiJornadaScreen() {
   const [userId, setUserId] = useState('');
   const [fichando, setFichando] = useState(false);
   const [subTab, setSubTab] = useState<'citas' | 'numeros' | 'ausencias'>('citas');
-  // "Resumen de tu dia" (tarjeta IA): en movil ocupaba demasiado arriba. Arranca
-  // plegada tras un chip compacto; en escritorio va desplegada.
   const [resumenIaOpen, setResumenIaOpen] = useState<boolean>(() => typeof window === 'undefined' || window.innerWidth >= 768);
-
-  // Vista de equipo (solo propietario/direccion): ranking de profesionales.
   const [vista, setVista] = useState<Vista>('personal');
   const [equipo, setEquipo] = useState<EquipoProfesional[] | null>(null);
   const [loadingEquipo, setLoadingEquipo] = useState(false);
   const [errorEquipo, setErrorEquipo] = useState<string | null>(null);
   const [ordenEquipo, setOrdenEquipo] = useState<OrdenEquipo>('ingresos');
-
-  // Intercambio de turnos: solicitudes visibles + form de nueva.
   const [intercambios, setIntercambios] = useState<any[]>([]);
   const [showIntercambioModal, setShowIntercambioModal] = useState(false);
   const [nuevoIntercambio, setNuevoIntercambio] = useState<{ companero_id: string; fecha_solicitante: string; fecha_companero: string; motivo: string } | null>(null);
-
-  // Objetivos gamificados: los del profesional (vista personal) + los de todo el equipo (vista gestor).
   const [misObjetivos, setMisObjetivos] = useState<MiObjetivo[]>([]);
   const [objetivosEquipo, setObjetivosEquipo] = useState<ObjetivoEquipo[]>([]);
   const [profesionalesActivos, setProfesionalesActivos] = useState<ProfesionalMini[]>([]);
   const [showObjetivoModal, setShowObjetivoModal] = useState(false);
   const [objetivoEnCurso, setObjetivoEnCurso] = useState<{ profesional_id: string; metrica: MetricaObjetivo; objetivo_valor: string; bonus_euros: string } | null>(null);
-
-  // Ausencias
   const [ausencias, setAusencias] = useState<Array<{id: string; inicio: string; fin: string; tipo: string; motivo: string | null}>>([]);
   const [showAusenciaModal, setShowAusenciaModal] = useState(false);
-  const [nuevaAusencia, setNuevaAusencia] = useState<{tipo: string; inicio: string; fin: string; motivo: string}>({ tipo: 'vacaciones', inicio: '', fin: '', motivo: '' });
-  const [guardandoAusencia, setGuardandoAusencia] = useState(false);
-
-  // Sesión 4 (V2): patron "AyudaIA por pagina" — idle/cargando/vacio/
-  // error(+reintentar)/listo, nunca se queda en blanco (lib/hooks/useAyudaIA.ts).
   const ayudaIA = useAyudaIA();
   const [accionEstadoIA, setAccionEstadoIA] = useState<AccionEstado>('pendiente');
-
-  // Coaching de huecos (Sesion 7 V2): solo tiene sentido en la vista de HOY,
-  // sobre la agenda propia. Se calcula aparte del RPC mi_jornada_resumen
-  // (que solo trae citas YA completadas) porque necesita las citas futuras
-  // del dia para detectar huecos aprovechables.
   const [huecosHoy, setHuecosHoy] = useState<HuecoHoy[]>([]);
+
   useEffect(() => {
     const profId = resumen?.profesional?.id;
     if (periodo !== 'hoy' || vista !== 'personal' || !resumen?.profesional?.vinculado || !profId) {
@@ -340,7 +322,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
     ayudaIA.analizar(prompt);
   };
 
-  // El bloque 'accion' (si lo hay) dentro de la respuesta ya normalizada del hook.
   const bloqueAccionIA = ayudaIA.estado.tipo === 'listo'
     ? ayudaIA.estado.bloques.find((b): b is Extract<Bloque, { tipo: 'accion' }> => b.tipo === 'accion')
     : undefined;
@@ -365,8 +346,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
       const profile = await getUserProfile();
       if (!profile?.negocio_id) { setLoading(false); return; }
       setUserId(profile.id || '');
-
-      // Fichajes de HOY del usuario (para la tarjeta de fichaje, siempre visible).
       const hoy0 = startOfDay(new Date());
       const { data: fchs } = await supabase
         .from('fichajes')
@@ -377,8 +356,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
         .lt('marcado_at', addDays(hoy0, 1).toISOString())
         .order('marcado_at', { ascending: true });
       setFichajesHoy((fchs as Fichaje[]) || []);
-
-      // Resumen del periodo (RPC con gate server-side de dinero/comision).
       const [d, h] = rangoDe(per);
       const { data, error: rpcErr } = await supabase.rpc('mi_jornada_resumen', {
         p_desde: d.toISOString(),
@@ -386,12 +363,8 @@ para proponerla completa, así que no llames a esa herramienta.`;
       });
       if (rpcErr) throw rpcErr;
       setResumen(data as Resumen);
-
-      // Mis objetivos (siempre; el RPC devuelve [] si no eres profesional).
       const { data: objRes } = await supabase.rpc('mis_objetivos_progreso');
       setMisObjetivos(((objRes as any)?.objetivos as MiObjetivo[]) || []);
-
-      // Mis ausencias (próximas y recientes)
       const profId = (data as Resumen)?.profesional?.id;
       if (profId) {
         const { data: ausData } = await supabase
@@ -415,7 +388,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
   useEffect(() => { cargar(periodo); }, [periodo, cargar]);
 
   const esGestor = resumen?.rol === 'owner' || resumen?.rol === 'admin';
-
   const cargarEquipo = useCallback(async (per: Periodo) => {
     setLoadingEquipo(true);
     setErrorEquipo(null);
@@ -439,7 +411,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
     if (vista === 'equipo' && esGestor) cargarEquipo(periodo);
   }, [vista, periodo, esGestor, cargarEquipo]);
 
-  // Objetivos del equipo + lista de profesionales activos (solo gestores, vista Equipo).
   const cargarObjetivosEquipo = useCallback(async () => {
     try {
       const profile = await getUserProfile();
@@ -458,7 +429,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
     if (vista === 'equipo' && esGestor) cargarObjetivosEquipo();
   }, [vista, esGestor, cargarObjetivosEquipo]);
 
-  // Intercambio de turnos: visible siempre (todo el equipo lo ve — bitacora compartida).
   const cargarIntercambios = useCallback(async () => {
     try {
       const profile = await getUserProfile();
@@ -525,31 +495,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
       if (rpcErr) throw rpcErr;
       await cargarIntercambios();
     } catch (err) { console.error(err); }
-  };
-
-  const guardarAusencia = async () => {
-    if (!nuevaAusencia.inicio || !nuevaAusencia.fin) return;
-    setGuardandoAusencia(true);
-    try {
-      const profile = await getUserProfile();
-      if (!profile?.negocio_id || !resumen?.profesional?.id) throw new Error('No vinculado');
-      const { error: insErr } = await supabase.from('bloqueos_profesional').insert({
-        negocio_id: profile.negocio_id,
-        profesional_id: resumen.profesional.id,
-        inicio: new Date(nuevaAusencia.inicio).toISOString(),
-        fin: new Date(nuevaAusencia.fin + 'T23:59:59').toISOString(),
-        tipo: nuevaAusencia.tipo,
-        motivo: nuevaAusencia.motivo || null,
-      });
-      if (insErr) throw insErr;
-      setShowAusenciaModal(false);
-      setNuevaAusencia({ tipo: 'vacaciones', inicio: '', fin: '', motivo: '' });
-      cargar(periodo);
-    } catch (err) {
-      setError(mensajeDeError(err));
-    } finally {
-      setGuardandoAusencia(false);
-    }
   };
 
   const eliminarAusencia = async (id: string) => {
@@ -633,13 +578,9 @@ para proponerla completa, así que no llames a esa herramienta.`;
     const sorted = [...fichajesHoy].sort((a, b) => a.marcado_at.localeCompare(b.marcado_at));
     return sorted[sorted.length - 1];
   }, [fichajesHoy]);
-  // Estados del turno segun la ultima marca:
-  //  - fuera: sin marcas o ultima 'salida'
-  //  - trabajando: ultima 'entrada' o 'pausa_fin'
-  //  - enPausa: ultima 'pausa_inicio'
   const enPausa = ultimaMarca?.tipo === 'pausa_inicio';
   const trabajando = ultimaMarca?.tipo === 'entrada' || ultimaMarca?.tipo === 'pausa_fin';
-  const fichado = trabajando || enPausa; // dentro del turno (para el icono/estado)
+  const fichado = trabajando || enPausa;
   const horasHoy = useMemo(() => horasDeMarcas(fichajesHoy), [fichajesHoy]);
 
   const fichar = async (tipo: 'entrada' | 'salida' | 'pausa_inicio' | 'pausa_fin') => {
@@ -685,7 +626,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
       <style>{ANIM}</style>
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: isMobile ? '16px 14px 96px' : '20px' }}>
 
-        {/* Cabecera: identidad + selector de periodo */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: isMobile ? 16 : 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <div style={{ width: 44, height: 44, borderRadius: 999, background: T.primary, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 16, flexShrink: 0 }}>
@@ -709,6 +649,13 @@ para proponerla completa, así que no llames a esa herramienta.`;
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
+            </button>
+            <button
+              onClick={() => setShowAusenciaModal(true)}
+              style={{ padding: '6px 12px', borderRadius: 9, background: T.bgCard, border: `1px solid ${T.border}`, color: T.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <Icon name="calendar" size={16} />
+              <span style={{ display: isMobile ? 'none' : 'inline' }}>Pedir Ausencia</span>
             </button>
             <AvisosBell mode="header" />
             {esGestor && (
@@ -840,7 +787,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
               </div>
             )}
 
-            {/* Objetivos gamificados del equipo (mensuales). Gestor los fija; se ven aqui + en Mi jornada de cada uno. */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Icon name="star" size={14} color={T.primaryHi} />
@@ -893,7 +839,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
           </>
         ) : (
         <>
-        {/* Aviso si la cuenta no esta vinculada a una ficha de profesional */}
         {resumen && !vinculado && (
           <div className="mj-row" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '12px 16px', borderRadius: 12, marginBottom: 16, background: T.warningSoft, border: `1px solid ${T.warning}33` }}>
             <Icon name="info" size={18} color={T.warning} />
@@ -903,7 +848,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
           </div>
         )}
 
-        {/* Tarjeta de fichaje (siempre, hoy) */}
         <div className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.borderHi}`, borderRadius: 12, padding: '14px 18px', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -915,7 +859,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
                 </div>
               </div>
             </div>
-            {/* Fuera: entrada. Trabajando: pausa + salida. En pausa: reanudar + salida. */}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {!fichado && (
                 <button onClick={() => fichar('entrada')} disabled={fichando} className="mj-btn" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -957,9 +900,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
           )}
         </div>
 
-        {/* Resumen de tu día: patron "AyudaIA por pagina" (Sesion 4 V2). El
-            resumen determinista se ve siempre; "Analizar mi día" solo anade
-            una lectura del LLM encima y nunca deja la tarjeta en blanco. */}
         <div className="mj-row" style={{ marginBottom: 16 }}>
           {isMobile && !resumenIaOpen ? (
             <button
@@ -991,7 +931,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
           )}
         </div>
 
-        {/* Selector de SubTabs en Móvil */}
         {isMobile && (
           <div style={{ display: 'flex', background: T.bgCard, borderRadius: 10, padding: 4, marginBottom: 16, border: `1px solid ${T.border}` }}>
             <button
@@ -1051,7 +990,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
           </div>
         )}
 
-        {/* Metricas del periodo */}
         {(!isMobile || subTab === 'numeros') && (
           <>
             <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4, margin: '4px 2px 10px' }}>
@@ -1093,7 +1031,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
           </>
         )}
 
-        {/* Mis objetivos del mes (progreso) */}
         {(!isMobile || subTab === 'numeros') && misObjetivos.length > 0 && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 2px 10px' }}>
@@ -1129,7 +1066,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
           </>
         )}
 
-        {/* Lista de citas completadas del periodo */}
         {(!isMobile || subTab === 'citas') && vinculado && (
           <>
             <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4, margin: '4px 2px 10px' }}>
@@ -1167,7 +1103,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
           </>
         )}
 
-        {/* Mis ausencias */}
         {(!isMobile || subTab === 'ausencias') && vinculado && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
@@ -1177,17 +1112,10 @@ para proponerla completa, así que no llames a esa herramienta.`;
                   Mis ausencias
                 </div>
               </div>
-              <button
-                onClick={() => setShowAusenciaModal(true)}
-                className="mj-btn"
-                style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primary}`, background: T.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
-              >
-                + Registrar ausencia
-              </button>
             </div>
             {ausencias.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '24px 20px', background: T.bgCard, borderRadius: 12, border: `1px dashed ${T.border}`, color: T.textSec, fontSize: 13 }}>
-                No tienes ausencias registradas. Cuando necesites vacaciones, baja médica o formación, regístralas aquí.
+                No tienes ausencias registradas.
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1219,7 +1147,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
           </>
         )}
 
-        {/* Intercambio de turnos */}
         {(!isMobile || subTab === 'ausencias') && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
@@ -1242,7 +1169,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
             </div>
             {intercambios.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '24px 20px', background: T.bgCard, borderRadius: 12, border: `1px dashed ${T.border}`, color: T.textSec, fontSize: 13 }}>
-                Sin cambios de turno pendientes. Cuando pidas uno queda registrado aquí para que el compañero y el gestor lo revisen.
+                Sin cambios de turno pendientes.
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1289,7 +1216,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
         )}
       </div>
 
-      {/* Modal: nuevo objetivo (gestor). Formulario minimo: profesional, metrica, valor, bonus opcional. */}
       {showObjetivoModal && objetivoEnCurso && (
         <div
           onClick={() => setShowObjetivoModal(false)}
@@ -1357,7 +1283,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
         </div>
       )}
 
-      {/* Modal: pedir cambio de turno (profesional). */}
       {showIntercambioModal && nuevoIntercambio && (
         <div
           onClick={() => setShowIntercambioModal(false)}
@@ -1368,9 +1293,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
             style={{ background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, padding: 20, width: '100%', maxWidth: 460, boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}
           >
             <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 6 }}>Pedir cambio de turno</div>
-            <div style={{ fontSize: 12.5, color: T.textSec, marginBottom: 14 }}>
-              Propones cambiar tu día por el de un compañero. Él acepta y luego lo aprueba el gestor.
-            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
                 Compañero
@@ -1410,7 +1332,6 @@ para proponerla completa, así que no llames a esa herramienta.`;
                   type="text" maxLength={200}
                   value={nuevoIntercambio.motivo}
                   onChange={(e) => setNuevoIntercambio({ ...nuevoIntercambio, motivo: e.target.value })}
-                  placeholder="Cita médica, viaje familiar..."
                   style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
                 />
               </label>
@@ -1427,57 +1348,10 @@ para proponerla completa, así que no llames a esa herramienta.`;
         </div>
       )}
 
-      {/* Modal: registrar ausencia */}
       {showAusenciaModal && (
-        <div
-          onClick={() => setShowAusenciaModal(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(8,6,4,0.45)', zIndex: 200, display: 'grid', placeItems: 'center', padding: 16 }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{ background: T.bgCard, borderRadius: 14, border: `1px solid ${T.border}`, padding: 20, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}
-          >
-            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 12 }}>Registrar ausencia</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
-                Tipo
-                <select
-                  value={nuevaAusencia.tipo}
-                  onChange={(e) => setNuevaAusencia({ ...nuevaAusencia, tipo: e.target.value })}
-                  style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
-                >
-                  <option value="vacaciones">Vacaciones</option>
-                  <option value="baja">Baja médica</option>
-                  <option value="formacion">Formación</option>
-                  <option value="ausencia">Ausencia personal</option>
-                </select>
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
-                  Desde
-                  <input type="date" value={nuevaAusencia.inicio} onChange={(e) => setNuevaAusencia({ ...nuevaAusencia, inicio: e.target.value })} style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
-                </label>
-                <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
-                  Hasta
-                  <input type="date" value={nuevaAusencia.fin} onChange={(e) => setNuevaAusencia({ ...nuevaAusencia, fin: e.target.value })} style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
-                </label>
-              </div>
-              <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
-                Motivo (opcional)
-                <input type="text" value={nuevaAusencia.motivo} onChange={(e) => setNuevaAusencia({ ...nuevaAusencia, motivo: e.target.value })} placeholder="Ej: Cita médica, viaje personal..." style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
-              </label>
-              <button
-                onClick={guardarAusencia}
-                disabled={guardandoAusencia || !nuevaAusencia.inicio || !nuevaAusencia.fin}
-                className="mj-btn"
-                style={{ padding: '11px 16px', borderRadius: 10, border: 'none', background: T.primary, color: '#fff', fontSize: 14, fontWeight: 700, cursor: guardandoAusencia ? 'not-allowed' : 'pointer', opacity: (!nuevaAusencia.inicio || !nuevaAusencia.fin) ? 0.5 : 1 }}
-              >
-                {guardandoAusencia ? 'Guardando...' : 'Registrar ausencia'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <SolicitudAusenciaModal onClose={() => setShowAusenciaModal(false)} />
       )}
+
       {showManualPanel && (
         <ManualPanel
           content={manualMiJornada}
@@ -1485,6 +1359,79 @@ para proponerla completa, así que no llames a esa herramienta.`;
           onClose={() => setShowManualPanel(false)}
         />
       )}
+    </div>
+  );
+}
+
+function SolicitudAusenciaModal({ onClose }: { onClose: () => void }) {
+  const { c } = useTheme();
+  const [inicio, setInicio] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [fin, setFin] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [motivo, setMotivo] = useState('Vacaciones');
+  const [notas, setNotas] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const submit = async () => {
+    if (!inicio || !fin) { setError('Fechas inválidas'); return; }
+    if (new Date(fin) < new Date(inicio)) { setError('La fecha final debe ser posterior a la inicial'); return; }
+    setLoading(true);
+    try {
+      const profile = await getUserProfile();
+      if (!profile) throw new Error('No auth');
+      const dbMotivo = `[PENDIENTE] ${motivo}${notas ? ' - ' + notas : ''}`;
+      const { error: err } = await supabase.from('bloqueos_profesional').insert({
+        negocio_id: profile.negocio_id,
+        profesional_id: profile.id,
+        inicio: `${inicio}T00:00:00`,
+        fin: `${fin}T23:59:59`,
+        tipo: 'ausencia',
+        motivo: dbMotivo
+      });
+      if (err) throw err;
+      onClose();
+    } catch (e: any) {
+      setError(e.message || 'Error al solicitar');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} onClick={onClose} />
+      <div style={{ position: 'relative', width: '100%', maxWidth: 400, background: c.bgPanel, borderRadius: 16, padding: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+        <h2 style={{ margin: '0 0 16px 0', fontSize: 18, color: c.text }}>Solicitar Ausencia</h2>
+        {error && <div style={{ color: T.danger, marginBottom: 12, fontSize: 14 }}>{error}</div>}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: c.textSec }}>Inicio</label>
+            <STextInput type="date" value={inicio} onChange={setInicio} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: c.textSec }}>Fin</label>
+            <STextInput type="date" value={fin} onChange={setFin} />
+          </div>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: c.textSec }}>Motivo</label>
+          <SSelect value={motivo} onChange={setMotivo} options={[
+            { label: 'Vacaciones', value: 'Vacaciones' },
+            { label: 'Baja Médica', value: 'Baja Médica' },
+            { label: 'Asuntos Propios', value: 'Asuntos Propios' }
+          ]} />
+        </div>
+        <div style={{ marginBottom: 24 }}>
+          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: c.textSec }}>Notas (opcional)</label>
+          <STextInput value={notas} onChange={setNotas} placeholder="Ej. Viaje familiar..." />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+          <button onClick={onClose} style={{ padding: '8px 16px', background: 'transparent', border: 'none', cursor: 'pointer', color: c.textSec, fontWeight: 600 }}>Cancelar</button>
+          <button onClick={submit} disabled={loading} style={{ padding: '8px 16px', background: c.primary, border: 'none', borderRadius: 8, cursor: 'pointer', color: '#fff', fontWeight: 600 }}>
+            {loading ? 'Enviando...' : 'Solicitar'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

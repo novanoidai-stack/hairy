@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { getUserProfile, can } from '@/lib/auth';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { NEGOCIO_ID_FALLBACK } from '@/lib/constants';
+import { useRouter } from 'expo-router';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { mensajeDeError } from '@/lib/errores';
@@ -103,6 +104,7 @@ type FiltroEstado = 'activas' | 'esperando' | 'avisado' | 'todas';
 const FRANJA_LABEL: Record<string, string> = { manana: 'Mañana', tarde: 'Tarde', cualquiera: 'Cualquier hora' };
 
 function ListaEsperaScreen() {
+  const router = useRouter();
   const { isMobile } = useResponsive();
   const [showManualPanel, setShowManualPanel] = useState(false);
   const paginaManual = usePaginaManualVista('lista-espera');
@@ -378,6 +380,12 @@ function ListaEsperaScreen() {
                   </div>
                   {!resueltaOCancelada && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                      <button className="le-btn" onClick={() => {
+                        window.dispatchEvent(new CustomEvent('agenda-nueva-cita', { detail: { clienteId: item.cliente_id, servicioId: item.servicio_id, notas: item.nota, profId: item.profesional_id, waitlistId: item.id } }));
+                        router.push('/(tabs)');
+                      }} style={pillBtn(T.primary, T.primarySoft)}>
+                        <Icon name="plus" size={14} color={T.primary} /> Agendar
+                      </button>
                       {item.telefono && (
                         <button className="le-btn" title="Abrir WhatsApp" onClick={() => abrirWhatsApp(item.telefono)} style={iconBtn(T.success)}>
                           <Icon name="phone" size={15} color={T.success} />

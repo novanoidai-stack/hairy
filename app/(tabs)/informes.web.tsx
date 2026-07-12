@@ -379,6 +379,7 @@ function InformesScreen() {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [periodo, setPeriodo] = useState<Periodo>('mes');
+  const [agrupacionEjeX, setAgrupacionEjeX] = useState<'dia' | 'semana' | 'mes'>('dia');
   const [negocioId, setNegocioId] = useState('');
   // Demo guiada: enfocar los botones de descarga (PDF/CSV) cuando la guia lo pide.
   const [demoExport, setDemoExport] = useState(false);
@@ -460,6 +461,11 @@ function InformesScreen() {
     setResenas(resRes.data ?? []);
     setCobros(cobRes.data ?? []);
     setGastos(gastosRes.data ?? []);
+
+    if (periodo === 'semana') setAgrupacionEjeX('dia');
+    else if (periodo === 'mes') setAgrupacionEjeX('semana');
+    else setAgrupacionEjeX('mes');
+
     setLoading(false);
   }
 
@@ -481,9 +487,10 @@ function InformesScreen() {
 
   const completadas = useMemo(() => citas.filter(c => c.estado === CITA_STATUS.COMPLETADA), [citas]);
   const confirmadas = useMemo(() => citas.filter(c => c.estado === CITA_STATUS.CONFIRMADA), [citas]);
+  const pendientes = useMemo(() => citas.filter(c => c.estado === CITA_STATUS.PENDIENTE), [citas]);
   const noShows = useMemo(() => citas.filter(c => c.estado === CITA_STATUS.NO_PRESENTADA), [citas]);
   const canceladas = useMemo(() => citas.filter(c => c.estado === CITA_STATUS.CANCELADA), [citas]);
-  const activas = useMemo(() => [...completadas, ...confirmadas], [completadas, confirmadas]);
+  const activas = useMemo(() => [...completadas, ...confirmadas, ...pendientes], [completadas, confirmadas, pendientes]);
 
   // -- 9.10: KPIs --
   const totalCitas = citas.length;
@@ -1173,18 +1180,140 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
     </div>
   );
 
-  // -- C4: serie temporal (ingresos y citas por dia del periodo) --
+  // -- C4: serie temporal (ingresos y citas por periodo agrupado) --
+  const agruparFecha = useCallback((d: Date) => {
+    if (agrupacionEjeX === 'semana') return format(startOfWeek(d, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    if (agrupacionEjeX === 'mes') return format(startOfMonth(d), 'yyyy-MM-dd');
+    return format(d, 'yyyy-MM-dd');
+  }, [agrupacionEjeX]);
+
   const tendenciaData = useMemo(() => {
     const dias = eachDayOfInterval({ start: desde, end: hasta });
-    const map = new Map<string, { ingresos: number; citas: number }>();
-    dias.forEach(d => map.set(format(d, 'yyyy-MM-dd'), { ingresos: 0, citas: 0 }));
+    const map = new Map<string, { fecha: Date, ingresos: number; citas: number }>();
+    dias.forEach(d => {
+      const g = agruparFecha(d);
+      if (!map.has(g)) map.set(g, { fecha: d, ingresos: 0, citas: 0 }); // Usamos el primer dia del grupo
+    });
     activas.forEach(c => {
-      const key = format(parseISO(c.inicio), 'yyyy-MM-dd');
+      const key = agruparFecha(parseISO(c.inicio));
       const b = map.get(key);
       if (b) { b.ingresos += srvMap.get(c.servicio_id ?? '')?.precio || 0; b.citas += 1; }
     });
-    return dias.map(d => { const b = map.get(format(d, 'yyyy-MM-dd'))!; return { fecha: d, ingresos: b.ingresos, citas: b.citas }; });
-  }, [activas, srvMap, desde, hasta]);
+    return Array.from(map.values()).sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+  }, [activas, srvMap, desde, hasta, agruparFecha]);
+
+  const noShowEvolucionData = useMemo(() => {
+    const dias = eachDayOfInterval({ start: desde, end: hasta });
+    const map = new Map<string, { fecha: Date, count: number }>();
+    dias.forEach(d => {
+      const g = agruparFecha(d);
+      if (!map.has(g)) map.set(g, { fecha: d, count: 0 });
+    });
+    noShows.forEach(c => {
+      const key = agruparFecha(parseISO(c.inicio));
+      const b = map.get(key);
+      if (b) b.count += 1;
+    });
+    return Array.from(map.values()).sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+  }, [noShows, desde, hasta, agruparFecha]);
+
+  const retencionEvolucionData = useMemo(() => {
+    const dias = eachDayOfInterval({ start: desde, end: hasta });
+    const map = new Map<string, { fecha: Date, nuevos: number; recurrentes: number }>();
+    dias.forEach(d => {
+      const g = agruparFecha(d);
+      if (!map.has(g)) map.set(g, { fecha: d, nuevos: 0, recurrentes: 0 });
+    });
+    
+    // Calculate if it's the first appointment overall.
+    // For simplicity with currently fetched 'citas', a client is 'nuevo' in this period if they only have 1 appointment or this is their chronologically first in this fetched set. 
+    // If they have multiple, the subsequent ones are recurrent.
+    const clienteVisitasGlobal: Record<string, Date[]> = {};
+    citas.forEach(c => {
+      if (!c.cliente_id) return;
+      if (!clienteVisitasGlobal[c.cliente_id]) clienteVisitasGlobal[c.cliente_id] = [];
+      clienteVisitasGlobal[c.cliente_id].push(parseISO(c.inicio));
+    });
+
+    Object.keys(clienteVisitasGlobal).forEach(cid => {
+      clienteVisitasGlobal[cid].sort((a, b) => a.getTime() - b.getTime());
+    });
+
+    activas.forEach(c => {
+      if (!c.cliente_id) return;
+      const d = parseISO(c.inicio);
+      const key = agruparFecha(d);
+      const b = map.get(key);
+      if (b) {
+        // Is this the very first visit?
+        const isFirst = clienteVisitasGlobal[c.cliente_id][0].getTime() === d.getTime();
+        if (isFirst) b.nuevos += 1;
+        else b.recurrentes += 1;
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+  }, [activas, citas, desde, hasta, agruparFecha]);
+
+  const eficienciaReposoEvolucionData = useMemo(() => {
+    const dias = eachDayOfInterval({ start: desde, end: hasta });
+    const map = new Map<string, { fecha: Date, totalMin: number; usedMin: number }>();
+    dias.forEach(d => {
+      const g = agruparFecha(d);
+      if (!map.has(g)) map.set(g, { fecha: d, totalMin: 0, usedMin: 0 });
+    });
+
+    const byProf: Record<string, Cita[]> = {};
+    activas.forEach(c => {
+      if (!byProf[c.profesional_id]) byProf[c.profesional_id] = [];
+      byProf[c.profesional_id].push(c);
+    });
+
+    Object.values(byProf).forEach(profCitas => {
+      profCitas.forEach(c => {
+        if (!c.fin_activa || !c.fin_espera) return;
+        const restStart = new Date(c.fin_activa).getTime();
+        const restEnd = new Date(c.fin_espera).getTime();
+        if (restEnd <= restStart) return;
+
+        const esAnidada = profCitas.some(host => {
+          if (host.id === c.id || !host.fin_activa || !host.fin_espera) return false;
+          const hRS = new Date(host.fin_activa).getTime();
+          const hRE = new Date(host.fin_espera).getTime();
+          return new Date(c.inicio).getTime() >= hRS && new Date(c.inicio).getTime() < hRE;
+        });
+        if (esAnidada) return;
+
+        const min = (restEnd - restStart) / 60000;
+        const start = new Date(c.fin_activa!);
+        
+        let overlapMin = 0;
+        profCitas.forEach(other => {
+          if (other.id === c.id) return;
+          const oS = new Date(other.inicio).getTime();
+          const oE = new Date(other.fin).getTime();
+          const overlapStart = Math.max(restStart, oS);
+          const overlapEnd = Math.min(restEnd, oE);
+          if (overlapEnd > overlapStart) {
+            overlapMin += (overlapEnd - overlapStart) / 60000;
+          }
+        });
+        const used = Math.min(min, overlapMin);
+
+        const key = agruparFecha(start);
+        const b = map.get(key);
+        if (b) {
+          b.totalMin += min;
+          b.usedMin += used;
+        }
+      });
+    });
+
+    return Array.from(map.values()).map(d => ({
+      fecha: d.fecha,
+      pct: d.totalMin > 0 ? (d.usedMin / d.totalMin) * 100 : 0
+    })).sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+  }, [activas, desde, hasta, agruparFecha]);
 
   // Grafico de linea: componente compartido components/charts/LineChartMini
   // (mismo algoritmo, reutilizado tambien por el bloque 'grafica' de Chispa).
@@ -1415,9 +1544,30 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             {/* C4: Evolucion temporal                                        */}
             {/* ============================================================= */}
             <div style={{ marginBottom: isMobile ? 10 : 14 }}>
-              <SectionHeader icon="trendingUp" iconColor={TOKENS.success} title="Evolucion del periodo" subtitle="Ingresos y citas dia a dia" />
+              <SectionHeader icon="trendingUp" iconColor={TOKENS.success} title="Evolución temporal" subtitle="Métricas a lo largo del periodo" />
               <SectionBody>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', gap: 4, background: TOKENS.bg, borderRadius: 8, padding: 3, border: `1px solid ${TOKENS.border}` }}>
+                    {(['dia', 'semana', 'mes'] as const).map(g => (
+                      <button
+                        key={g}
+                        onClick={() => setAgrupacionEjeX(g)}
+                        style={{
+                          padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                          fontSize: 11, fontWeight: agrupacionEjeX === g ? 600 : 400,
+                          background: agrupacionEjeX === g ? TOKENS.bgCard : 'transparent',
+                          color: agrupacionEjeX === g ? TOKENS.text : TOKENS.textSec,
+                          boxShadow: agrupacionEjeX === g ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                          transition: 'all 0.2s ease', textTransform: 'capitalize'
+                        }}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24 }}>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Ingresos</div>
                     <LineChartMini serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.ingresos }))} color={TOKENS.success} fmt={(n) => `${fmtEur(n)} EUR`} />
@@ -1425,6 +1575,22 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Citas</div>
                     <LineChartMini serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.citas }))} color={TOKENS.primary} fmt={(n) => `${n}`} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Evolución de No-shows</div>
+                    <LineChartMini serie={noShowEvolucionData.map(d => ({ fecha: d.fecha, valor: d.count }))} color={TOKENS.danger} fmt={(n) => `${n} ausencias`} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Eficiencia de Reposos (%)</div>
+                    <LineChartMini serie={eficienciaReposoEvolucionData.map(d => ({ fecha: d.fecha, valor: d.pct }))} color={TOKENS.violet} fmt={(n) => `${Math.round(n)}%`} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Retención (Clientes Recurrentes)</div>
+                    <LineChartMini serie={retencionEvolucionData.map(d => ({ fecha: d.fecha, valor: d.recurrentes }))} color={TOKENS.rose} fmt={(n) => `${n} recurrentes`} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Adquisición (Clientes Nuevos)</div>
+                    <LineChartMini serie={retencionEvolucionData.map(d => ({ fecha: d.fecha, valor: d.nuevos }))} color={TOKENS.cyan} fmt={(n) => `${n} nuevos`} />
                   </div>
                 </div>
               </SectionBody>

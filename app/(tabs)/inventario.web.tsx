@@ -1052,7 +1052,7 @@ export default function InventarioScreen() {
         ) : (viewMode === 'grid' || isMobile) ? (
           /* GRID VIEW (en movil siempre: la tabla de 8 columnas se cortaba a la
              derecha y obligaba a scroll horizontal sin sentido en pantalla pequena) */
-          <div style={{ ...styles.productosGrid, gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: isMobile ? 12 : 20 }}>
+          <div style={{ ...styles.productosGrid, gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))', gap: isMobile ? 12 : 16 }}>
             {productosFiltrados.map((producto) => (
               <div
                 key={producto.id}
@@ -1080,11 +1080,7 @@ export default function InventarioScreen() {
 
                 {/* Descripcion y codigo de barras solo en escritorio: en movil
                     engordaban la tarjeta sin aportar (el detalle se ve al abrir). */}
-                {!isMobile && (
-                  <p style={styles.cardDesc}>
-                    {producto.descripcion || 'Sin descripción detallada.'}
-                  </p>
-                )}
+                {/* Descripcion y codigo de barras eliminados del grid denso */}
 
                 {!isMobile && producto.codigo_barras && (
                   <div style={styles.barcodeBox}>
@@ -1096,7 +1092,7 @@ export default function InventarioScreen() {
                   {renderStockProgress(producto.stock_actual, producto.stock_minimo)}
                 </div>
 
-                <div style={styles.cardActions}>
+                <div style={{ ...styles.cardActions, flexDirection: 'column', gap: 6 }}>
                   <button
                     style={styles.cardActionBtn}
                     onClick={() => {
@@ -1110,28 +1106,30 @@ export default function InventarioScreen() {
                     <span>{t('inv_ajustar_stock')}</span>
                   </button>
                   
-                  <button
-                    style={styles.cardActionBtn}
-                    onClick={() => {
-                      setProductoSeleccionado(producto);
-                      cargarMovimientos(producto.id);
-                      setShowHistorial(true);
-                    }}
-                    className="btn-action-premium"
-                    title="Kardex / Historial"
-                  >
-                    <Icon name="history" size={16} color={TOKENS.textSec} />
-                    <span>{t('inv_historial')}</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      style={{ ...styles.cardActionBtn, flex: 1 }}
+                      onClick={() => {
+                        setProductoSeleccionado(producto);
+                        cargarMovimientos(producto.id);
+                        setShowHistorial(true);
+                      }}
+                      className="btn-action-premium"
+                      title="Kardex / Historial"
+                    >
+                      <Icon name="history" size={16} color={TOKENS.textSec} />
+                      <span style={{ fontSize: 11 }}>Kardex</span>
+                    </button>
 
-                  <button
-                    style={{ ...styles.cardActionBtn, flex: 0.3 }}
-                    onClick={() => eliminarProducto(producto.id)}
-                    className="btn-action-premium"
-                    title="Eliminar referencia"
-                  >
-                    <Icon name="trash" size={16} color={TOKENS.danger} />
-                  </button>
+                    <button
+                      style={{ ...styles.cardActionBtn, flex: 0.3, justifyContent: 'center' }}
+                      onClick={() => eliminarProducto(producto.id)}
+                      className="btn-action-premium"
+                      title="Eliminar referencia"
+                    >
+                      <Icon name="trash" size={16} color={TOKENS.danger} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

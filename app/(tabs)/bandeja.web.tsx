@@ -21,6 +21,7 @@ import { normalizarRespuesta, type Bloque } from '@/lib/chispaBloques';
 import { ejecutarAccion } from '@/lib/chispaOps';
 import { BloqueRenderer, type AccionEstado } from '@/components/chispa/BloqueRenderer.web';
 import { supabase } from '@/lib/supabase';
+import { useFocusEffect } from 'expo-router';
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
@@ -325,26 +326,45 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
 function BandejaScreen() {
   const { isMobile } = useResponsive();
   const [showManualPanel, setShowManualPanel] = useState(false);
-  const paginaManual = usePaginaManualVista('bandeja');
-  const [negocioId, setNegocioId] = useState<string | null>(null);
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState<'abiertas' | 'todas'>('abiertas');
-  const [abierta, setAbierta] = useState<Conversacion | null>(null);
   const [mensaje, setMensaje] = useState('');
+  const [abierta, setAbierta] = useState<Conversacion | null>(null);
+  const [paginaManual] = usePaginaManualVista('bandeja');
+  const [ausenciasPendientes, setAusenciasPendientes] = useState<any[]>([]);
+
+  const negocioId = (conversaciones[0]?.negocio_id) || null;
+
+  // Usamos el id del usuario / perfil
+  const cargarAusenciasPendientes = useCallback(async () => {
+    try {
+      const p = await getUserProfile();
+      if (!p?.negocio_id) return;
+      const { data } = await supabase.from('bloqueos_profesional').select('*, profesionales(nombre)').eq('negocio_id', p.negocio_id).ilike('motivo', '[PENDIENTE]%');
+      if (data) setAusenciasPendientes(data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   const cargar = useCallback(async () => {
+    setLoading(true);
     try {
       const p = await getUserProfile();
       if (!p?.negocio_id) { setLoading(false); return; }
-      setNegocioId(p.negocio_id);
       const data = await cargarConversaciones(p.negocio_id);
       setConversaciones(data);
+      await cargarAusenciasPendientes();
     } catch (e) { setMensaje(mensajeDeError(e)); }
     finally { setLoading(false); }
-  }, []);
+  }, [cargarAusenciasPendientes]);
 
-  useEffect(() => { cargar(); }, [cargar]);
+  useFocusEffect(
+    useCallback(() => {
+      cargar();
+    }, [cargar])
+  );
 
   const filtradas = useMemo(
     () => filtro === 'abiertas' ? conversaciones.filter((c) => c.estado === 'abierta') : conversaciones,
@@ -414,6 +434,50 @@ function BandejaScreen() {
             </button>;
           })}
         </div>
+
+        {/* Sección de Ausencias Pendientes */}
+        {ausenciasPendientes.length > 0 && (
+          <div style={{ marginBottom: 24 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 12 }}>Peticiones de Ausencia</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {ausenciasPendientes.map((aus) => {
+                const parts = (aus.motivo || '').replace('[PENDIENTE] ', '').split(' - ');
+                const tipoReal = parts[0] || aus.tipo;
+                const notas = parts[1] || '';
+                return (
+                  <div key={aus.id} style={{ background: T.warningSoft, border: `1px solid ${T.warning}`, borderRadius: 12, padding: '14px 18px', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: T.text, marginBottom: 4 }}>
+                        {aus.profesionales?.nombre || 'Profesional'} <span style={{ color: T.warning }}>({tipoReal})</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: T.textSec }}>
+                        Desde: {format(parseISO(aus.inicio), "d MMM yyyy", { locale: es })} — Hasta: {format(parseISO(aus.fin), "d MMM yyyy", { locale: es })}
+                      </div>
+                      {notas && <div style={{ fontSize: 13, color: T.textTer, marginTop: 4, fontStyle: 'italic' }}>"{notas}"</div>}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button 
+                        onClick={async () => {
+                          await supabase.from('bloqueos_profesional').delete().eq('id', aus.id);
+                          cargarAusenciasPendientes();
+                        }}
+                        style={{ padding: '8px 16px', borderRadius: 8, background: T.card, border: `1px solid ${T.border}`, color: T.danger, fontWeight: 600, cursor: 'pointer' }}
+                      >Rechazar</button>
+                      <button 
+                        onClick={async () => {
+                          const nuevoMotivo = (aus.motivo || '').replace('[PENDIENTE] ', '');
+                          await supabase.from('bloqueos_profesional').update({ motivo: nuevoMotivo }).eq('id', aus.id);
+                          cargarAusenciasPendientes();
+                        }}
+                        style={{ padding: '8px 16px', borderRadius: 8, background: T.success, border: 'none', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+                      >Aprobar</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {filtradas.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px', background: T.card, borderRadius: 16, border: `1px solid ${T.border}` }}>

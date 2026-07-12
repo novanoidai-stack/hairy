@@ -15,6 +15,7 @@ export const INTERVALO_MINUTOS = 15;
 export const CITA_CARD_DETAILS_MIN_HEIGHT = 38;
 
 export const CITA_STATUS = {
+  PENDIENTE: 'pendiente',
   CONFIRMADA: 'confirmada',
   COMPLETADA: 'completada',
   CANCELADA: 'cancelada',

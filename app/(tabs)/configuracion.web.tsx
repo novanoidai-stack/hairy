@@ -536,7 +536,7 @@ export default function ConfiguracionWeb() {
         { data: catData },
       ] = await Promise.all([
         supabase.from('servicios').select('*').eq('negocio_id', nid).order('nombre'),
-        supabase.from('profesionales').select('id, nombre, color, categoria, comision_pct, activo').eq('negocio_id', nid).eq('activo', true).order('nombre'),
+        supabase.from('profesionales').select('id, nombre, color, categoria, comision_pct, activo').eq('negocio_id', nid).order('nombre'),
         supabase.from('negocio_config').select('config').eq('negocio_id', nid).maybeSingle(),
         supabase.from('negocio_horarios').select('*').eq('negocio_id', nid),
         supabase.from('categorias_servicio').select('*').eq('negocio_id', nid).eq('activo', true).order('orden'),
@@ -750,6 +750,16 @@ export default function ConfiguracionWeb() {
       setEdit(null);
     } catch (error) {
       alert(mensajeDeError(error, 'No se pudo guardar el servicio.'));
+    }
+  };
+
+  const handleMoveCategory = async (servicioId: string, categoriaId: string | null) => {
+    try {
+      const { error } = await supabase.from('servicios').update({ categoria_id: categoriaId }).eq('id', servicioId);
+      if (error) throw error;
+      setServicios(prev => prev.map(s => s.id === servicioId ? { ...s, categoria_id: categoriaId } : s));
+    } catch (error) {
+      alert(mensajeDeError(error, 'No se pudo mover el servicio.'));
     }
   };
 
@@ -1206,6 +1216,7 @@ export default function ConfiguracionWeb() {
                 categorias={categorias} isOwnerUser={isOwnerUser}
                 onManageCategorias={() => setShowCategoriasModal(true)}
                 onEdit={setEdit} onToggle={handleToggleServicio}
+                onMoveCategory={handleMoveCategory}
                 onDelete={handleDeleteService} onSaveOverride={handleSaveOverride}
                 onResetOverride={handleResetOverride}
                 onSaveDurProf={handleSaveDurProf} onResetDurProf={handleResetDurProf}
@@ -2385,7 +2396,7 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
 
 // En movil la fila de servicio pasa de grid de 5 columnas con 410px fijos
 // (que dejaba el NOMBRE a ancho 0) a dos lineas: nombre + datos.
-function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, duracionesProf, profSelData, variantCounts, catPricing, categorias, isOwnerUser, onManageCategorias, onEdit, onToggle, onDelete, onSaveOverride, onResetOverride, onSaveDurProf, onResetDurProf }: {
+function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, duracionesProf, profSelData, variantCounts, catPricing, categorias, isOwnerUser, onManageCategorias, onEdit, onToggle, onMoveCategory, onDelete, onSaveOverride, onResetOverride, onSaveDurProf, onResetDurProf }: {
   services: Servicio[]; profesionales: any[];
   profId: string | null; setProfId: (id: string | null) => void;
   allOverrides: Override[]; getOverride: (sid: string) => Override | undefined;
@@ -2395,6 +2406,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
   catPricing: Record<string, Record<string, number>>;
   categorias: CategoriaServicio[]; isOwnerUser: boolean; onManageCategorias: () => void;
   onEdit: (s: Servicio) => void; onToggle: (s: Servicio) => void;
+  onMoveCategory: (servicioId: string, categoriaId: string | null) => Promise<void>;
   onDelete: (id: string) => void;
   onSaveOverride: (sid: string, patch: Partial<Override>) => Promise<void>;
   onResetOverride: (sid: string) => Promise<void>;
@@ -2404,6 +2416,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
   const { isMobile, isTablet } = useResponsive();
   const [search, setSearch] = useState('');
   const [expandedDur, setExpandedDur] = useState<string | null>(null);
+  const [movingServiceId, setMovingServiceId] = useState<string | null>(null);
   const categoriaNombrePorId = useMemo(() => new Map(categorias.map(c => [c.id, c.nombre.toLowerCase()])), [categorias]);
   const filtered = useMemo(() => {
     if (!search.trim()) return services;
@@ -2632,12 +2645,33 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
                     </div>
 
                     {/* Acciones (en movil, al final de la segunda linea) */}
-                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end', ...(isMobile ? { marginLeft: 'auto' } : {}) }}>
-                      <IconBtn icon="edit" size={28} onClick={() => onEdit(s)} title="Editar" />
-                      {profId ? (
-                        hasOv && <IconBtn icon="x" size={28} tone="primary" onClick={() => s.id && onResetOverride(s.id)} title="Restablecer a catalogo" />
+                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end', alignItems: 'center', ...(isMobile ? { marginLeft: 'auto' } : {}) }}>
+                      {movingServiceId === s.id ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <SSelect 
+                            value={s.categoria_id || '__null__'} 
+                            onChange={v => {
+                              const val = v === '__null__' ? null : String(v);
+                              onMoveCategory(s.id!, val).then(() => setMovingServiceId(null));
+                            }}
+                            options={[
+                              { value: '__null__', label: 'Sin categoria' },
+                              ...categorias.map(c => ({ value: c.id, label: c.nombre }))
+                            ]}
+                            width={130}
+                          />
+                          <IconBtn icon="x" size={28} onClick={() => setMovingServiceId(null)} title="Cancelar" />
+                        </div>
                       ) : (
-                        <IconBtn icon="trash" size={28} tone="danger" onClick={() => s.id && onDelete(s.id)} title="Eliminar" />
+                        <>
+                          {!profId && <IconBtn icon="folder" size={28} onClick={() => setMovingServiceId(s.id!)} title="Mover de categoria" />}
+                          <IconBtn icon="edit" size={28} onClick={() => onEdit(s)} title="Editar" />
+                          {profId ? (
+                            hasOv && <IconBtn icon="x" size={28} tone="primary" onClick={() => s.id && onResetOverride(s.id)} title="Restablecer a catalogo" />
+                          ) : (
+                            <IconBtn icon="trash" size={28} tone="danger" onClick={() => s.id && onDelete(s.id)} title="Eliminar" />
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -2770,23 +2804,13 @@ function TabAgenda({ config, setC, bloqueoCounts }: {
         </FieldRow>
       </Section>
 
-      <Section title="Asistente de agenda (IA)" desc="Chat interno para consultar y operar la agenda en lenguaje natural. Solo visible para el equipo; los clientes no lo ven.">
-        <FieldRow label="Asistente de agenda (IA)" hint="Activa un chat interno para consultar y operar la agenda en lenguaje natural.">
-          <Toggle on={config.asistenteAgendaActivo} onChange={v => setC('asistenteAgendaActivo', v)} />
-        </FieldRow>
-        <FieldRow label="Permitir que cada profesional opere su propia agenda" hint="Cada miembro del equipo puede usar el asistente para gestionar sus propias citas." disabled={!config.asistenteAgendaActivo}>
-          <Toggle on={config.asistenteProfesionalEscribe} onChange={v => setC('asistenteProfesionalEscribe', v)} disabled={!config.asistenteAgendaActivo} />
-        </FieldRow>
-        <FieldRow label="Nivel del asistente" hint="Profundidad de razonamiento: Basico es rapido, Alto es mas preciso en instrucciones complejas." disabled={!config.asistenteAgendaActivo}>
-          <Segmented value={config.asistenteEffort} onChange={v => setC('asistenteEffort', v)} options={[
-            { value: 'low',    label: 'Basico' },
-            { value: 'medium', label: 'Normal' },
-            { value: 'high',   label: 'Alto' },
-          ]} />
-        </FieldRow>
-        <FieldRow label="Briefing proactivo" hint="Al abrir Chispa, resume lo que necesita atencion hoy (senales sin pagar, bandeja sin responder, clientes a recuperar, pasos de puesta en marcha)." disabled={!config.asistenteAgendaActivo}>
-          <Toggle on={config.briefingProactivoActivo} onChange={v => setC('briefingProactivoActivo', v)} disabled={!config.asistenteAgendaActivo} />
-        </FieldRow>
+      <Section title="Inteligencia Artificial (Chispa OS)" desc="Tu asistente inteligente integrado nativamente en todo el sistema.">
+        <div style={{ padding: 16, background: T.bgCardHi, borderRadius: 12, border: `1px solid ${T.borderHi}` }}>
+          <p style={{ margin: 0, fontSize: 13, color: T.textSecondary, lineHeight: 1.5 }}>
+            <strong style={{ color: T.text }}>El asistente Chispa IA está siempre activo.</strong><br/>
+            Analiza tu rendimiento, asiste en recepción, optimiza tu agenda y genera borradores de respuestas automáticas para las reseñas.
+          </p>
+        </div>
       </Section>
 
       <Section title="Bloqueos y descansos" desc="Vacaciones, formaciones y reuniones. Se gestionan en la pantalla de Equipo.">

@@ -1,4 +1,5 @@
-import { useId } from 'react';
+import { useId, useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 
 // Grafico de linea (SVG) minimalista para series temporales cortas. Mismo
@@ -45,8 +46,71 @@ export function LineChartMini({ serie, color, fmt }: LineChartMiniProps) {
   const fechaMid = n >= 3 ? serie[Math.floor((n - 1) / 2)].fecha : null;
   const fmtFecha = (d: Date) => d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+
+  const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (n === 0 || !svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    // Find closest index
+    let closestIdx = 0;
+    let minDist = Infinity;
+    for (let i = 0; i < n; i++) {
+      const dist = Math.abs(x - xx(i));
+      if (dist < minDist) {
+        minDist = dist;
+        closestIdx = i;
+      }
+    }
+    setHoverIdx(closestIdx);
+    setTooltipPos({ x: rect.left + xx(closestIdx), y: rect.top + yy(serie[closestIdx].valor) });
+  };
+
+  const handlePointerLeave = () => {
+    setHoverIdx(null);
+  };
+
+  // Render tooltip with React Portal
+  const tooltip = hoverIdx !== null && tooltipPos && typeof window !== 'undefined' ? createPortal(
+    <div style={{
+      position: 'absolute',
+      left: tooltipPos.x,
+      top: tooltipPos.y - 10,
+      transform: 'translate(-50%, -100%)',
+      background: T.text,
+      color: '#fff',
+      padding: '4px 8px',
+      borderRadius: 6,
+      fontSize: 11,
+      fontWeight: 600,
+      pointerEvents: 'none',
+      whiteSpace: 'nowrap',
+      zIndex: 999999,
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 2
+    }}>
+      <span>{fmt(serie[hoverIdx].valor)}</span>
+      <span style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}>{fmtFecha(serie[hoverIdx].fecha)}</span>
+      <div style={{
+        position: 'absolute',
+        bottom: -4,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        borderLeft: '4px solid transparent',
+        borderRight: '4px solid transparent',
+        borderTop: `4px solid ${T.text}`,
+      }} />
+    </div>,
+    document.body
+  ) : null;
+
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
       <div style={{ display: 'flex', gap: 6 }}>
         {/* Eje Y con valores */}
         <div style={{ width: GUTTER, height: H, position: 'relative', flexShrink: 0 }}>
@@ -59,8 +123,17 @@ export function LineChartMini({ serie, color, fmt }: LineChartMiniProps) {
             </span>
           ))}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" style={{ display: 'block' }}>
+        <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+          <svg 
+            ref={svgRef}
+            viewBox={`0 0 ${W} ${H}`} 
+            width="100%" 
+            height={H} 
+            preserveAspectRatio="none" 
+            style={{ display: 'block', touchAction: 'pan-y' }}
+            onPointerMove={handlePointerMove}
+            onPointerLeave={handlePointerLeave}
+          >
             <defs>
               <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0" stopColor={color} stopOpacity="0.22" />
@@ -73,6 +146,23 @@ export function LineChartMini({ serie, color, fmt }: LineChartMiniProps) {
             ))}
             {area && <path d={area} fill={`url(#${gid})`} />}
             {n > 0 && <path d={line} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />}
+            
+            {/* Hover Indicators */}
+            {hoverIdx !== null && (
+              <>
+                <line 
+                  x1={xx(hoverIdx)} y1={0} 
+                  x2={xx(hoverIdx)} y2={H - pad} 
+                  stroke={color} strokeWidth={1} strokeDasharray="3 3" opacity={0.5} 
+                  vectorEffect="non-scaling-stroke" 
+                />
+                <circle 
+                  cx={xx(hoverIdx)} cy={yy(serie[hoverIdx].valor)} r={4} 
+                  fill={T.bgCard} stroke={color} strokeWidth={2} 
+                  vectorEffect="non-scaling-stroke" 
+                />
+              </>
+            )}
           </svg>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10.5, color: T.textTertiary }}>
             <span>{n ? fmtFecha(serie[0].fecha) : ''}</span>
@@ -84,6 +174,7 @@ export function LineChartMini({ serie, color, fmt }: LineChartMiniProps) {
       <div style={{ textAlign: 'center', marginTop: 4, fontSize: 10.5, fontWeight: 600, color: T.textSecondary }}>
         Total: {fmt(total)}
       </div>
+      {tooltip}
     </div>
   );
 }

@@ -72,7 +72,7 @@ export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
   const dropdownStyle: React.CSSProperties = mode === 'header'
     ? (isMobile
       ? { position: 'fixed', top: 58, left: 12, right: 12, maxHeight: '68vh', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 }
-      : { position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 340, maxHeight: 460, overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 })
+      : { position: 'fixed', top: 58, right: 12, width: 340, maxHeight: 460, overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 })
     : { position: 'fixed', top: 12, left: collapsed ? 84 : 248, width: 340, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 };
 
   const [mounted, setMounted] = useState(false);
@@ -99,47 +99,51 @@ export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
         )}
       </button>
 
-      {open && mounted && createPortal(
+      {open && mounted && (
         <>
-          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 99998 }} />
-          <div style={dropdownStyle} className="animate-pop-in">
-            <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span>Avisos</span>
-              {avisos.total > 0 && (
-                <span style={{ fontSize: 11, fontWeight: 700, color: hayUrgente ? T.danger : '#fb923c', background: hayUrgente ? T.dangerSoft : 'rgba(251,146,60,0.14)', borderRadius: 999, padding: '2px 8px' }}>{avisos.total}</span>
-              )}
-            </div>
-
-            {items.length === 0 ? (
-              <div style={{ fontSize: 12, color: T.textTertiary, textAlign: 'center', padding: '22px 0' }}>
-                {avisos.loading ? 'Cargando...' : 'No hay avisos pendientes'}
+          {createPortal(
+            <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 99998 }} />,
+            document.body
+          )}
+          
+          {createPortal(
+            <div style={dropdownStyle} className="animate-pop-in">
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Avisos</span>
+                {avisos.total > 0 && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: hayUrgente ? T.danger : '#fb923c', background: hayUrgente ? T.dangerSoft : 'rgba(251,146,60,0.14)', borderRadius: 999, padding: '2px 8px' }}>{avisos.total}</span>
+                )}
               </div>
-            ) : (
-              <>
-                {/* Chips de categoria: "Todos" + solo las categorias con avisos. */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
-                  <Chip label="Todos" count={items.length} active={cat === 'todos'} onClick={() => setCat('todos')} />
-                  {categoriasPresentes.map((c) => (
-                    <Chip key={c} label={CATEGORIA_META[c].label} count={conteo(c)} active={cat === c} onClick={() => setCat(c)} />
-                  ))}
-                </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {visibles.map((it) => (
-                    <FilaAviso
-                      key={it.id}
-                      item={it}
-                      onOpen={() => go(it.ruta)}
-                      onResolver={it.hallazgoId ? () => { void avisos.resolverHallazgo(it.hallazgoId!, 'resuelto'); } : undefined}
-                      onDescartar={it.hallazgoId ? () => { void avisos.resolverHallazgo(it.hallazgoId!, 'descartado'); } : undefined}
-                    />
-                  ))}
+              {items.length === 0 ? (
+                <div style={{ fontSize: 12, color: T.textTertiary, textAlign: 'center', padding: '22px 0' }}>
+                  {avisos.loading ? 'Cargando...' : 'No hay avisos pendientes'}
                 </div>
-              </>
-            )}
-          </div>
-        </>,
-        document.body
+              ) : (
+                <>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
+                    <Chip label="Todos" count={items.length} active={cat === 'todos'} onClick={() => setCat('todos')} />
+                    {categoriasPresentes.map((c) => (
+                      <Chip key={c} label={CATEGORIA_META[c].label} count={conteo(c)} active={cat === c} onClick={() => setCat(c)} />
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {visibles.map((it) => (
+                      <FilaAviso
+                        key={it.id}
+                        item={it}
+                        onOpen={() => go(it.ruta)}
+                        onResolver={it.hallazgoId ? () => { void avisos.resolverHallazgo(it.hallazgoId!, 'resuelto'); } : undefined}
+                        onDescartar={it.hallazgoId ? () => { void avisos.resolverHallazgo(it.hallazgoId!, 'descartado'); } : undefined}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>,
+            document.body
+          )}
+        </>
       )}
     </div>
   );

@@ -615,7 +615,7 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
                 Ninguna reseña coincide con los filtros. <button onClick={() => { setFRating(0); setFPeriod('all'); setFScope('all'); setFSearch(''); }} style={{ border: 'none', background: 'none', color: TOKENS.primary, fontWeight: 700, cursor: 'pointer', fontSize: 'inherit' }}>Quitar filtros</button>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'repeat(auto-fill, minmax(400px, 1fr))', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
                 {filtradas.map((r, i) => (
                   <div key={r.id} className="resena-card" style={{
                     animationDelay: `${Math.min(i, 8) * 0.05}s`,
