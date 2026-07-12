@@ -1328,6 +1328,30 @@ export async function runAgente(
   let tareaEfectiva: 'lectura' | 'accion' = tarea === 'lectura' ? 'lectura' : 'accion';
   let modeloEnUso = tareaEfectiva === 'lectura' ? MODEL_LECTURA : MODEL;
 
+  // Clasificador Paso-0 (rework KISS): el chat ('auto') no sabe a priori si el
+  // mensaje es lectura o accion. Una llamada barata sin tools (1 palabra) decide
+  // modelo + set de tools. Ante duda -> 'accion' (Haiku, fiable). Las superficies
+  // intra-pagina mandan 'lectura'/'accion' explicitos y se respetan sin clasificar.
+  if (tarea === 'auto') {
+    const ultimoUsuario = [...mensajes].reverse().find((m) => m.role === 'user');
+    const contenido = typeof ultimoUsuario?.content === 'string' ? ultimoUsuario.content : '';
+    try {
+      const cls = await openai.chat.completions.create({
+        model: MODEL_LECTURA,
+        max_tokens: 3,
+        messages: [
+          { role: 'system', content: 'Clasifica el mensaje del usuario en UNA sola palabra: "accion" si pide confirmar citas, reenviar recordatorios, avisar a la lista de espera o gestionar un retraso; "lectura" si pide datos, cifras, listados, historial o analisis; "charla" para saludos o ayuda. Responde solo esa palabra.' },
+          { role: 'user', content: contenido },
+        ],
+      });
+      const etiqueta = (cls.choices[0]?.message?.content ?? '').toLowerCase();
+      tareaEfectiva = etiqueta.includes('accion') ? 'accion' : 'lectura';
+    } catch {
+      tareaEfectiva = 'accion'; // fallback seguro: Haiku con las acciones del chat
+    }
+    modeloEnUso = tareaEfectiva === 'lectura' ? MODEL_LECTURA : MODEL;
+  }
+
   // S09: Recuperar hechos de memoria a largo plazo
   const { data: hechos } = await svc
     .from('chispa_memoria')
