@@ -35,6 +35,7 @@ import { FichaColorModal } from '@/app/(tabs)/clientes.web';
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import { registrarEventoIA } from '@/lib/registroUniversal';
+import { obtenerNivelCliente } from '@/lib/fidelizacion';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -537,7 +538,19 @@ export default function AgendaCalendar() {
   // Tarjeta de "Optimización de Agenda" (IA): en movil ocupaba media pantalla
   // encima de la rejilla (queja de ruido visual). Arranca plegada tras un chip
   // compacto y solo se despliega si el usuario la pide; en escritorio sigue abierta.
-  const [iaHelperOpen, setIaHelperOpen] = useState<boolean>(() => typeof window === 'undefined' || window.innerWidth >= 768);
+  // La preferencia de mostrar/ocultar la tarjeta de IA se recuerda (localStorage):
+  // si el usuario la oculta, no vuelve a aparecer sola en cada carga.
+  const [iaHelperOpen, setIaHelperOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const saved = window.localStorage.getItem('mecha-agenda-ia-helper');
+    if (saved === 'oculto') return false;
+    if (saved === 'visible') return true;
+    return window.innerWidth >= 768;
+  });
+  function setIaHelper(v: boolean) {
+    setIaHelperOpen(v);
+    if (typeof window !== 'undefined') window.localStorage.setItem('mecha-agenda-ia-helper', v ? 'visible' : 'oculto');
+  }
   // Colapso independiente de los bloques del rail lateral (KPIs y mini-calendario)
   const [kpisCollapsed, setKpisCollapsed] = useState(false);
   const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
@@ -1000,7 +1013,7 @@ export default function AgendaCalendar() {
   const monthName = currentMonth.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, minHeight: 0, overflow: 'hidden', background: TOKENS.bg, color: TOKENS.text, fontFamily: 'Inter, sans-serif' }}>
       <style>{ANIMATIONS}</style>
       {/* Topbar — en movil: fila compacta (titulo + campana + acciones), sin la
           fecha larga (ya se ve en la cabecera del dia) y sin pills informativas
@@ -1601,10 +1614,10 @@ export default function AgendaCalendar() {
         );
       })()}
 
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isReallyCollapsed ? '1fr' : '340px 1fr', overflow: 'hidden' }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: isReallyCollapsed ? '1fr' : '340px 1fr', overflow: 'hidden' }}>
         {/* Left rail */}
         {!isReallyCollapsed && (
-        <div style={{ borderRight: `1px solid ${TOKENS.border}`, padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div style={{ borderRight: `1px solid ${TOKENS.border}`, padding: 20, overflowY: 'auto', overscrollBehavior: 'contain', minHeight: 0, display: 'flex', flexDirection: 'column', gap: 18 }}>
           {/* KPIs — colapsable de forma independiente */}
           <div>
             <button
@@ -1746,7 +1759,7 @@ export default function AgendaCalendar() {
         )}
 
         {/* Main content area */}
-        <div style={{ overflowY: 'auto', padding: isMobile ? '12px 12px 90px' : (isReallyCollapsed ? '20px 28px' : 24) }}>
+        <div style={{ minWidth: 0, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: isMobile ? '12px 12px 90px' : (isReallyCollapsed ? '20px 28px' : 24) }}>
           {view === 'day' && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12 }}>
@@ -1834,9 +1847,10 @@ export default function AgendaCalendar() {
               {/* IA Helper Card. En movil arranca plegada tras un chip compacto
                   para no comerse la agenda; en escritorio va desplegada. */}
               <div style={{ margin: isMobile ? '0 12px 12px' : '0 14px 14px' }}>
-                {isMobile && !iaHelperOpen ? (
+                {!iaHelperOpen ? (
                   <button
-                    onClick={() => setIaHelperOpen(true)}
+                    onClick={() => setIaHelper(true)}
+                    title="Mostrar la optimización de agenda de la IA"
                     style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 11, cursor: 'pointer', textAlign: 'left' }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l1.8 5.6L19.5 10.4l-5.7 1.8L12 18l-1.8-5.8L4.5 10.4l5.7-1.8L12 3z" stroke={roleTheme.primary} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" /></svg>
@@ -1852,6 +1866,7 @@ export default function AgendaCalendar() {
                     onAnalizar={handleAnalizarAgenda}
                     onReintentar={ayudaIA.reintentar}
                     botonLabel="Analizar jornada"
+                    onOcultar={() => setIaHelper(false)}
                     resumenDeterminista={
                       <div>
                         Hay <b>{citasHoy.length}</b> citas programadas para el día seleccionado.
@@ -2800,6 +2815,10 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
   // Anti-solape inteligente: al soltar en conflicto, propone el hueco valido mas cercano.
   const [dragAlt, setDragAlt] = useState<{ profNombre: string; horaTxt: string; payload: any; citaOrig: any } | null>(null);
   const [aplicandoAlt, setAplicandoAlt] = useState(false);
+  // Encaje en reposo que NO cabe por poco: se avisa cuanto se pasa y se ofrece
+  // asumir el riesgo (colocarla igual, al lado, aprovechando el tiempo muerto).
+  const [dragRiesgo, setDragRiesgo] = useState<{ overflowMin: number; hostNombre: string; horaTxt: string; payload: any; citaOrig: any } | null>(null);
+  const [aplicandoRiesgo, setAplicandoRiesgo] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<any>(null);
   const dropRef = useRef<any>(null);
@@ -2896,6 +2915,37 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
       const activo2Ms = cita.fin_espera ? new Date(cita.fin).getTime() - new Date(cita.fin_espera).getTime() : 0;
       const c1 = isTimeSlotOccupied(nuevoInicio, nuevoFinActiva, currentCitas, targetProf.id, cita.id);
       const c2 = activo2Ms > 0 && isTimeSlotOccupied(nuevoFinEspera, nuevoFin, currentCitas, targetProf.id, cita.id);
+
+      // Encaje en reposo: si el conflicto es solo que la cita se pasa un poco del
+      // reposo de OTRA cita (empieza dentro de su reposo pero su fase activa lo
+      // rebasa), no bloqueamos: avisamos cuanto se pasa y dejamos asumir el riesgo.
+      if (c1 || c2) {
+        const reposoHost = currentCitas.find((c: any) =>
+          c.id !== cita.id && c.profesional_id === targetProf.id && c.fin_activa && c.fin_espera &&
+          nuevoInicio.getTime() >= new Date(c.fin_activa).getTime() &&
+          nuevoInicio.getTime() < new Date(c.fin_espera).getTime()
+        );
+        if (reposoHost) {
+          const overflowMin = Math.ceil((nuevoFinActiva.getTime() - new Date(reposoHost.fin_espera).getTime()) / 60000);
+          if (overflowMin > 0) {
+            // ¿El unico problema es rebasar el reposo del host? (sin el host, no hay otro solape)
+            const citasSinHost = currentCitas.filter((c: any) => c.id !== reposoHost.id);
+            const otro1 = isTimeSlotOccupied(nuevoInicio, nuevoFinActiva, citasSinHost, targetProf.id, cita.id);
+            const otro2 = activo2Ms > 0 && isTimeSlotOccupied(nuevoFinEspera, nuevoFin, citasSinHost, targetProf.id, cita.id);
+            if (!otro1 && !otro2) {
+              setDragRiesgo({
+                overflowMin,
+                hostNombre: clienteMap?.get(reposoHost.cliente_id)?.nombre || 'la otra cita',
+                horaTxt: nuevoInicio.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+                payload: { inicio: nuevoInicio.toISOString(), fin: nuevoFin.toISOString(), fin_activa: nuevoFinActiva.toISOString(), fin_espera: nuevoFinEspera.toISOString(), profesional_id: targetProf.id },
+                citaOrig: cita,
+              });
+              return;
+            }
+          }
+        }
+      }
+
       if (c1 || c2) {
         // Anti-solape inteligente (Sesion 4): en vez de solo bloquear, busca el hueco valido
         // mas cercano en esa columna (respeta activa-sobre-reposo) y lo propone.
@@ -3072,25 +3122,71 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
           const dropTop = dropSlot.minutesFromStart / 60 * ROW_H;
           const dropLeft = 56 + dropSlot.profIndex * dropSlot.colW;
           const dropH = drag.blockHeight;
+          // Si el punto de suelta cae dentro del REPOSO de otra cita, resaltamos ese
+          // hueco con fuerza (aprovechar tiempo muerto) e indicamos si la cita cabe.
+          const dayStart = new Date(selectedDateObj); dayStart.setHours(START_H, 0, 0, 0);
+          const dropStartMs = dayStart.getTime() + dropSlot.minutesFromStart * 60000;
+          const dragActivaMs = drag.cita.fin_activa
+            ? new Date(drag.cita.fin_activa).getTime() - new Date(drag.cita.inicio).getTime()
+            : new Date(drag.cita.fin).getTime() - new Date(drag.cita.inicio).getTime();
+          const host = dropProf ? citas.find((c: any) =>
+            c.id !== drag.cita.id && c.profesional_id === dropProf.id && c.fin_activa && c.fin_espera &&
+            dropStartMs >= new Date(c.fin_activa).getTime() && dropStartMs < new Date(c.fin_espera).getTime()
+          ) : null;
+          let hostBand = null;
+          if (host) {
+            const hostRepTop = (new Date(host.fin_activa).getTime() - dayStart.getTime()) / 3600000 * ROW_H;
+            const hostRepH = (new Date(host.fin_espera).getTime() - new Date(host.fin_activa).getTime()) / 3600000 * ROW_H;
+            const overflowMin = Math.ceil((dropStartMs + dragActivaMs - new Date(host.fin_espera).getTime()) / 60000);
+            const cabe = overflowMin <= 0;
+            const bandColor = cabe ? TOKENS.success : '#f59e0b';
+            hostBand = (
+              <div style={{
+                position: 'absolute', top: hostRepTop, left: dropLeft,
+                width: dropSlot.colW - 8, height: Math.max(16, hostRepH),
+                borderRadius: 8, pointerEvents: 'none', zIndex: 5,
+                background: `${bandColor}26`,
+                border: `2px solid ${bandColor}`,
+                boxShadow: `0 0 0 4px ${bandColor}22, 0 8px 22px ${bandColor}66`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 800, color: bandColor, textTransform: 'uppercase', letterSpacing: 0.4, textAlign: 'center', padding: '0 6px' }}>
+                  {cabe ? 'Aprovecha el reposo' : `Se pasa ${overflowMin} min`}
+                </span>
+              </div>
+            );
+          }
           return (
-            <div style={{
-              position: 'absolute', top: dropTop, left: dropLeft,
-              width: dropSlot.colW - 8, height: dropH,
-              background: `${dropColor}18`,
-              border: `2px dashed ${dropColor}99`,
-              borderRadius: 8, pointerEvents: 'none', zIndex: 6,
-              display: 'flex', alignItems: 'flex-start', padding: '4px 6px',
-            }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: dropColor }}>
-                {String(START_H + Math.floor(dropSlot.minutesFromStart / 60)).padStart(2, '0')}:{String(dropSlot.minutesFromStart % 60).padStart(2, '0')}
-              </span>
-            </div>
+            <>
+              {hostBand}
+              <div style={{
+                position: 'absolute', top: dropTop, left: dropLeft,
+                width: dropSlot.colW - 8, height: dropH,
+                background: `${dropColor}18`,
+                border: `2px dashed ${dropColor}99`,
+                borderRadius: 8, pointerEvents: 'none', zIndex: 6,
+                display: 'flex', alignItems: 'flex-start', padding: '4px 6px',
+              }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: dropColor }}>
+                  {String(START_H + Math.floor(dropSlot.minutesFromStart / 60)).padStart(2, '0')}:{String(dropSlot.minutesFromStart % 60).padStart(2, '0')}
+                </span>
+              </div>
+            </>
           );
         })()}
         {HOURS.map((h, idx) => (
           <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(192,38,10,0.16)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(244,80,30,0.045)' }}>
-            <div style={{ padding: '8px 8px', fontSize: 11.5, fontWeight: 600, color: TOKENS.textSec, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
-              {h}:00
+            {/* Gutter de horas: la hora en punto grande y las intermedias (:15/:30/:45)
+                en pequenito, alineadas a su altura real, para leer el eje de un vistazo. */}
+            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 6, left: 0, right: 7, textAlign: 'right', fontSize: 12, fontWeight: 700, color: TOKENS.textSec, fontVariantNumeric: 'tabular-nums', letterSpacing: -0.2 }}>
+                {String(h).padStart(2, '0')}:00
+              </div>
+              {[15, 30, 45].map((mm) => (
+                <div key={mm} style={{ position: 'absolute', top: (mm / 60) * ROW_H - 5, left: 0, right: 7, textAlign: 'right', fontSize: 8.5, fontWeight: 600, color: mm === 30 ? TOKENS.textTer : TOKENS.textMuted, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>
+                  {mm}
+                </div>
+              ))}
             </div>
             {profesionales.map((p: any) => (
               // Cada hora se parte en dos medias horas (:00 y :30). Cada mitad se
@@ -3238,6 +3334,13 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                   const activaPx = finActiva ? ((finActiva.getTime() - start.getTime()) / (1000 * 60 * 60)) * ROW_H : height;
                   const esperaPx = (finActiva && finEspera) ? ((finEspera.getTime() - finActiva.getTime()) / (1000 * 60 * 60)) * ROW_H : 0;
                   const hasEspera = esperaPx > 2;
+                  // Categoria del servicio -> color de identidad de la cita (banda
+                  // izquierda + badge). Deja reconocer el tipo (corte/tinte/...) de un vistazo.
+                  const srv = servicioMap?.get(cita.servicio_id);
+                  const cat = srv ? (categorias || []).find((cc: any) => cc.id === srv.categoria_id) : null;
+                  const catColor = cat ? categoryColorHex(cat.color) : null;
+                  const catName = cat?.nombre || '';
+                  const stripeColor = catColor || profColor;
                   return (
                     <div
                       key={cita.id}
@@ -3254,7 +3357,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         zIndex: 3,
                         background: cancelada ? 'linear-gradient(180deg, #3a3a3a18, #2a2a2a10)' : citaBg,
                         border: cancelada ? '1px solid #55555540' : `1px solid ${citaBorder}`,
-                        borderLeft: cancelada ? '3px solid #66666660' : `3px solid ${profColor}`,
+                        borderLeft: cancelada ? '4px solid #66666660' : `4px solid ${stripeColor}`,
                         borderTop: isChained && !cancelada ? `2px solid #e0340e` : undefined,
                         borderRadius: 8,
                         padding: height < 50 ? '3px 6px' : '4px 8px',
@@ -3273,16 +3376,22 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         e.currentTarget.style.transform = 'scale(1.05)';
                         e.currentTarget.style.boxShadow = cancelada ? 'none' : citaShadowHover;
                         e.currentTarget.style.borderColor = cancelada ? '#77777770' : citaBorderHover;
+                        // borderColor (shorthand) pisa la banda de categoria: la restauramos.
+                        e.currentTarget.style.borderLeftColor = cancelada ? '#66666660' : stripeColor;
                         if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #e0340e';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'scale(1)';
                         e.currentTarget.style.boxShadow = cancelada ? 'none' : citaShadow;
                         e.currentTarget.style.borderColor = cancelada ? '#55555540' : citaBorder;
+                        e.currentTarget.style.borderLeftColor = cancelada ? '#66666660' : stripeColor;
                         if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #e0340e';
                       }}
                     >
-                      {/* RN-AG-042: zona de reposo semitransparente con rayas */}
+                      {/* RN-AG-042: zona de reposo MUY diferenciada del tiempo activo.
+                          El activo (productivo) es el tinte solido del profesional; el
+                          reposo (profesional libre) se pinta como banda ambar clara con
+                          rayas, para que "corte" visualmente y se vea el hueco aprovechable. */}
                       {hasEspera && !cancelada && (
                         <div style={{
                           position: 'absolute',
@@ -3291,16 +3400,18 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                           right: 0,
                           height: esperaPx,
                           pointerEvents: 'none',
-                          background: `repeating-linear-gradient(45deg, transparent, transparent 4px, ${profColor}12 4px, ${profColor}12 8px)`,
-                          borderTop: `1px dashed ${profColor}70`,
-                          borderBottom: esperaPx > 2 && finEspera && finEspera < end ? `1px dashed ${profColor}70` : 'none',
+                          background: `repeating-linear-gradient(45deg, rgba(245,158,11,0.22) 0 5px, rgba(255,251,240,0.86) 5px 11px)`,
+                          borderTop: `1.5px dashed #f59e0b`,
+                          borderBottom: esperaPx > 2 && finEspera && finEspera < end ? `1.5px dashed #f59e0b` : 'none',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           overflow: 'hidden',
+                          boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.10)',
                         }}>
-                          {esperaPx >= 18 && (
-                            <span style={{ fontSize: 9, fontWeight: 700, color: `${profColor}99`, letterSpacing: 0.5, textTransform: 'uppercase', userSelect: 'none' }}>
+                          {esperaPx >= 16 && (
+                            <span style={{ fontSize: 9, fontWeight: 800, color: '#a15c07', letterSpacing: 0.6, textTransform: 'uppercase', userSelect: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ width: 5, height: 5, borderRadius: 999, background: '#f59e0b' }} />
                               reposo
                             </span>
                           )}
@@ -3314,24 +3425,17 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         const timeStrCompact = totalLanes > 1 || height <= 32
                           ? start.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })
                           : timeStr;
-                        const srv = servicioMap?.get(cita.servicio_id);
-                        const cat = srv ? (categorias || []).find((c: any) => c.id === srv.categoria_id) : null;
-                        const catColor = cat ? categoryColorHex(cat.color) : null;
-                        const catName = cat?.nombre || '';
-                        // Icono de categoria PROTAGONISTA: un badge de color con el icono en
-                        // blanco (o, si el servicio no tiene categoria, las iniciales del
-                        // cliente). Da identidad visual instantanea de "que es esta cita".
+                        // Badge = INICIALES del cliente sobre el COLOR de la categoria:
+                        // el color identifica el tipo de servicio de un vistazo y las
+                        // letras, a quien. (srv/cat/catColor vienen del scope de la cita.)
                         const badgeColor = catColor || profColor;
-                        const catIconWhite = cat?.icono ? getCategoryIcon(cat.icono, '#fff', narrow ? 12 : 15) : null;
+                        // Icono de categoria en pequeno (chip junto al servicio), tintado.
+                        const catIconChip = cat?.icono ? getCategoryIcon(cat.icono, badgeColor, narrow ? 11 : 12) : null;
                         const iniciales = nombreCliente.split(/\s+/).map((w: string) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '·';
                         // Columna estrecha (muchos profesionales o citas solapadas): mostrar
-                        // INICIALES en vez del nombre completo evita el truncado inconsistente
-                        // con puntos suspensivos que se veia con muchos profesionales.
+                        // INICIALES en vez del nombre completo evita el truncado inconsistente.
                         const estrecho = totalLanes > 1 || (profesionales?.length || 1) >= 5;
-                        // Identidad del cliente en el texto: si el badge ya muestra iniciales
-                        // (sin categoria), el texto lleva el nombre; si el badge lleva el icono
-                        // de categoria, el texto usa iniciales cuando la columna es estrecha.
-                        const identidad = catIconWhite ? (estrecho ? iniciales : nombreCliente) : nombreCliente;
+                        const identidad = nombreCliente;
 
                         const esCompletada = cita.estado === CITA_STATUS.COMPLETADA;
                         const esNoShow = cita.estado === CITA_STATUS.NO_PRESENTADA;
@@ -3389,14 +3493,14 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                           const badgePx = superNarrow ? 15 : 18;
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', height: '100%' }}>
-                              <span style={{ flexShrink: 0, width: badgePx, height: badgePx, borderRadius: 5, background: cancelada ? '#99999955' : badgeColor, display: 'grid', placeItems: 'center', color: '#fff', fontSize: superNarrow ? 8 : 9, fontWeight: 800 }} title={catName}>
-                                {catIconWhite || iniciales}
+                              <span style={{ flexShrink: 0, width: badgePx, height: badgePx, borderRadius: 5, background: cancelada ? '#99999955' : badgeColor, display: 'grid', placeItems: 'center', color: '#fff', fontSize: superNarrow ? 8 : 9, fontWeight: 800 }} title={catName ? `${catName} · ${nombreCliente}` : nombreCliente}>
+                                {iniciales}
                               </span>
                               {!superNarrow && (
                                 <span style={{ fontSize: 10, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.textSec, flexShrink: 0, whiteSpace: 'nowrap' }}>{timeStrCompact}</span>
                               )}
                               <span style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancelada ? 'line-through' : 'none' }}>
-                                {estrecho ? (catIconWhite ? iniciales : nombreCliente) : `${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ''}`}
+                                {estrecho ? nombreCliente : `${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ''}`}
                               </span>
                               {chainBadge}
                               {icon}
@@ -3406,10 +3510,10 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
 
                         return (
                           <div style={{ display: 'flex', gap: 7, height: '100%', overflow: 'hidden' }}>
-                            {/* Badge de categoria PROTAGONISTA (icono en blanco sobre color
-                                de la categoria, o iniciales del cliente si no hay categoria). */}
-                            <span style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 8, background: cancelada ? '#99999955' : badgeColor, display: 'grid', placeItems: 'center', color: '#fff', fontSize: 11, fontWeight: 800, marginTop: 1 }} title={catName}>
-                              {catIconWhite || iniciales}
+                            {/* Badge: INICIALES del cliente sobre el COLOR de la categoria.
+                                Color = tipo de servicio (de un vistazo); letras = quien. */}
+                            <span style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 8, background: cancelada ? '#99999955' : badgeColor, display: 'grid', placeItems: 'center', color: '#fff', fontSize: 11, fontWeight: 800, marginTop: 1 }} title={catName ? `${catName} · ${nombreCliente}` : nombreCliente}>
+                              {iniciales}
                             </span>
                             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: height < 64 ? 0 : 1 }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
@@ -3428,8 +3532,12 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                                 {identidad}
                               </div>
                               {height >= 48 && (
-                                <div style={{ fontSize: 10, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                  {nombreServicio || (cita.servicio_id ? 'Servicio eliminado' : 'Sin servicio')}
+                                <div style={{ fontSize: 10, color: TOKENS.textSec, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  {/* Icono/punto de categoria: refuerza el tipo de servicio. */}
+                                  {catIconChip
+                                    ? <span style={{ display: 'inline-flex', flexShrink: 0 }} title={catName}>{catIconChip}</span>
+                                    : (catColor && <span style={{ width: 6, height: 6, borderRadius: 999, background: catColor, flexShrink: 0 }} title={catName} />)}
+                                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{nombreServicio || (cita.servicio_id ? 'Servicio eliminado' : 'Sin servicio')}</span>
                                 </div>
                               )}
                               {addonsStr && height >= 64 && (
@@ -3532,6 +3640,55 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                 }}
                 style={{ flex: 1.6, padding: '12px', borderRadius: 12, border: 'none', background: TOKENS.fireGradient, color: '#fff', fontSize: 14, fontWeight: 800, cursor: aplicandoAlt ? 'default' : 'pointer', opacity: aplicandoAlt ? 0.7 : 1 }}>
                 {aplicandoAlt ? 'Moviendo…' : `Mover a las ${dragAlt.horaTxt}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Encaje en reposo que se pasa por poco: avisar y dejar asumir el riesgo. */}
+      {dragRiesgo && (
+        <div onClick={() => !aplicandoRiesgo && setDragRiesgo(null)} style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(8,6,4,0.42)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 400, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 24px 60px rgba(40,30,24,0.22)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
+              <span style={{ display: 'inline-flex', width: 30, height: 30, borderRadius: 8, background: 'rgba(245,158,11,0.16)', alignItems: 'center', justifyContent: 'center' }}
+                dangerouslySetInnerHTML={{ __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>` }} />
+              <div style={{ fontSize: 15.5, fontWeight: 800, color: TOKENS.text }}>No cabe del todo en el reposo</div>
+            </div>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: TOKENS.textSec, lineHeight: 1.5 }}>
+              A las <b style={{ color: TOKENS.primaryHi }}>{dragRiesgo.horaTxt}</b> esta cita aprovecha el reposo de {dragRiesgo.hostNombre?.split(' ')[0]}, pero su parte activa se pasa <b style={{ color: '#b26a00' }}>{dragRiesgo.overflowMin} min</b> del tiempo de reposo. Puedes colocarla igual y asumir el riesgo de ir algo justo.
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setDragRiesgo(null)} disabled={aplicandoRiesgo} style={{ flex: 1, padding: '12px', borderRadius: 12, border: `1.5px solid ${TOKENS.border}`, background: TOKENS.bgCard, color: TOKENS.textSec, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                Cancelar
+              </button>
+              <button
+                disabled={aplicandoRiesgo}
+                onClick={async () => {
+                  const r = dragRiesgo;
+                  setAplicandoRiesgo(true);
+                  try {
+                    const { error } = await supabase.from('citas').update(r.payload).eq('id', r.citaOrig.id);
+                    if (!error) {
+                      onCitaUpdated?.({ id: r.citaOrig.id, ...r.payload });
+                      const profile = await getUserProfile();
+                      const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
+                      const cambios = [
+                        { campo: 'inicio', anterior: r.citaOrig.inicio, nuevo: r.payload.inicio },
+                        { campo: 'fin', anterior: r.citaOrig.fin, nuevo: r.payload.fin },
+                      ];
+                      if (r.payload.profesional_id !== r.citaOrig.profesional_id) {
+                        cambios.push({ campo: 'profesional_id', anterior: r.citaOrig.profesional_id, nuevo: r.payload.profesional_id });
+                      }
+                      registrarHistorial(r.citaOrig.id, nId, cambios, `Encajada en reposo (se pasa ${r.overflowMin} min, riesgo asumido)`);
+                    }
+                    setDragRiesgo(null);
+                  } finally {
+                    setAplicandoRiesgo(false);
+                  }
+                }}
+                style={{ flex: 1.6, padding: '12px', borderRadius: 12, border: 'none', background: TOKENS.fireGradient, color: '#fff', fontSize: 14, fontWeight: 800, cursor: aplicandoRiesgo ? 'default' : 'pointer', opacity: aplicandoRiesgo ? 0.7 : 1 }}>
+                {aplicandoRiesgo ? 'Colocando…' : 'Colocar igualmente'}
               </button>
             </div>
           </div>
@@ -5747,6 +5904,8 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
   // Riesgo de no-show de la clienta (Sesion 7): score neutro derivado del historial,
   // solo para el equipo. Se pide a la RPC al abrir; null si es baja o sin clienta.
   const [riesgoCliente, setRiesgoCliente] = useState<RiesgoNoShow | null>(null);
+  // Nivel de fidelidad de la clienta (junto al nombre): nombre + color del nivel.
+  const [nivelFidel, setNivelFidel] = useState<{ nombre: string; color: string; visitas: number } | null>(null);
   const [holdPagoId, setHoldPagoId] = useState<string | null>(null); // fianza retenida (hold) de esta cita, si la hay
 
   // ¿La cita ya paso y sigue en un estado que admite marcarla como no-show?
@@ -5834,6 +5993,20 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
     supabase.rpc('riesgo_no_show_cliente', { p_cliente_id: cita.cliente_id }).then(({ data }) => {
       if (!cancel && data) setRiesgoCliente(data as RiesgoNoShow);
     });
+    return () => { cancel = true; };
+  }, [cita.cliente_id]);
+
+  useEffect(() => {
+    let cancel = false;
+    if (!cita.cliente_id) { setNivelFidel(null); return; }
+    obtenerNivelCliente(cita.cliente_id).then((r) => {
+      if (cancel || !r.ok || !r.nivel_nombre) return;
+      setNivelFidel({
+        nombre: r.nivel_nombre,
+        color: r.nivel_color || '#9ca3af',
+        visitas: r.visitas || 0,
+      });
+    }).catch(() => {});
     return () => { cancel = true; };
   }, [cita.cliente_id]);
 
@@ -6020,6 +6193,16 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
   const citaDate = new Date(cita.inicio).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'short' });
   const citaHora = new Date(cita.inicio).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
   const citaFinHora = new Date(cita.fin).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
+
+  // Horas reales EN VIVO derivadas de la hora + secuencia que se estan editando
+  // (se recalculan al mover los sliders): intervalo total, limites de cada fase y
+  // duracion, para que cada tramo diga "de 14:00 a 14:40" y no solo "40 min".
+  const fmtHora = (d: Date) => d.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
+  const inicioLive = (() => { const [h, m] = horaEditada.split(':').map(Number); const d = new Date(fechaEditada); d.setHours(h || 0, m || 0, 0, 0); return d; })();
+  const finActiva1Live = new Date(inicioLive.getTime() + activo * 60000);
+  const finEsperaLive = new Date(finActiva1Live.getTime() + espera * 60000);
+  const finLive = new Date(finEsperaLive.getTime() + activo2 * 60000);
+  const durTexto = totalMin >= 60 ? `${Math.floor(totalMin / 60)}h${totalMin % 60 ? ` ${totalMin % 60}m` : ''}` : `${totalMin}m`;
 
   const handleGuardar = async () => {
     if (!selectedCliente || !selectedServicio || !selectedProf) return;
@@ -6587,6 +6770,16 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
               </div>
               <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.3, color: TOKENS.text, marginTop: 2, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 {selectedCliente?.nombre}
+                {/* Grado de fidelidad de la clienta: nivel + color junto al nombre. */}
+                {nivelFidel && (
+                  <span
+                    title={`Fidelidad: ${nivelFidel.nombre}${nivelFidel.visitas ? ` · ${nivelFidel.visitas} visitas` : ''}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999, background: `${nivelFidel.color}18`, border: `1px solid ${nivelFidel.color}55`, fontSize: 11.5, fontWeight: 700, color: nivelFidel.color, letterSpacing: 0.2 }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill={nivelFidel.color} stroke="none" aria-hidden="true"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01L12 2z" /></svg>
+                    {nivelFidel.nombre}
+                  </span>
+                )}
                 {/* Riesgo de no-show de la clienta (Sesion 7): discreto, solo equipo. */}
                 <RiesgoNoShowIndicator riesgo={riesgoCliente} compact />
               </div>
@@ -7375,6 +7568,22 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
 
           {/* Right column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
+            {/* Intervalo y duracion GRANDES: lo primero que se ve, se actualiza en vivo. */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', borderRadius: 14, background: `linear-gradient(135deg, ${TOKENS.primarySoft}, rgba(148,163,184,0.05))`, border: `1px solid ${TOKENS.primary}30` }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700 }}>Horario</div>
+                <div style={{ fontSize: 27, fontWeight: 800, color: TOKENS.text, letterSpacing: -0.5, fontVariantNumeric: 'tabular-nums', lineHeight: 1.1, marginTop: 2 }}>
+                  {fmtHora(inicioLive)} <span style={{ color: TOKENS.textTer, fontWeight: 700 }}>–</span> {fmtHora(finLive)}
+                </div>
+                <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 3, textTransform: 'capitalize' }}>
+                  {fechaEditada.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' })}
+                </div>
+              </div>
+              <div style={{ flexShrink: 0, textAlign: 'center', padding: '9px 15px', borderRadius: 12, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}` }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: TOKENS.primary, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{durTexto}</div>
+                <div style={{ fontSize: 9.5, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginTop: 3 }}>Duración</div>
+              </div>
+            </div>
             {/* Fecha */}
             <div>
               <Label>Fecha</Label>
@@ -7426,7 +7635,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
                 <span style={{ fontSize: 10, color: TOKENS.textSec, fontWeight: 400 }}>activo → espera → activo</span>
               </div>
 
-              <SequenceBar activo={activo} espera={espera} activo2={activo2} primary={TOKENS.primary} warning="#f59e0b" />
+              <SequenceBar activo={activo} espera={espera} activo2={activo2} primary={TOKENS.primary} warning="#f59e0b" inicioTxt={fmtHora(inicioLive)} finTxt={fmtHora(finLive)} />
 
               <div ref={dSeqActRef}>
                 <TimeSlider
@@ -7439,6 +7648,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
                   step={1}
                   color={TOKENS.primary}
                   chips={[15, 30, 45, 60, 90, 120]}
+                  rango={`${fmtHora(inicioLive)} – ${fmtHora(finActiva1Live)}`}
                 />
               </div>
 
@@ -7455,6 +7665,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
                   step={1}
                   color="#f59e0b"
                   chips={[0, 15, 30, 45, 60]}
+                  rango={espera > 0 ? `${fmtHora(finActiva1Live)} – ${fmtHora(finEsperaLive)}` : undefined}
                 />
               </div>
 
@@ -7471,6 +7682,7 @@ function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias, clien
                   step={1}
                   color={TOKENS.primary}
                   chips={[0, 15, 30, 45, 60]}
+                  rango={activo2 > 0 ? `${fmtHora(finEsperaLive)} – ${fmtHora(finLive)}` : undefined}
                 />
               </div>
             </div>
@@ -8084,7 +8296,7 @@ function DropdownItem({ onClick, active, children }: any) {
   );
 }
 
-function TimeSlider({ label, hint, value, setValue, min, max, step, color, chips }: any) {
+function TimeSlider({ label, hint, value, setValue, min, max, step, color, chips, rango }: any) {
   const pct = ((value - min) / (max - min)) * 100;
   const trackRef = useRef<HTMLDivElement>(null);
   // En movil el arrastre con el dedo se trababa: el navegador interpretaba el gesto
@@ -8183,6 +8395,14 @@ function TimeSlider({ label, hint, value, setValue, min, max, step, color, chips
       {hint && (
         <div style={{ fontSize: 11, color: TOKENS.textSec, marginTop: -3, marginBottom: 8, fontWeight: 400 }}>
           {hint}
+        </div>
+      )}
+
+      {/* Horas reales de este tramo (ej. "14:00 – 14:40"): claridad de lo que pasa en la vida real. */}
+      {rango && (
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginBottom: 8, padding: '2px 9px', borderRadius: 999, background: `${color}12`, border: `1px solid ${color}30`, fontSize: 11, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15.5 14" /></svg>
+          {rango}
         </div>
       )}
 
@@ -8303,7 +8523,7 @@ function SummaryCell({ label, value, color }: any) {
   );
 }
 
-function SequenceBar({ activo, espera, activo2, primary, warning }: any) {
+function SequenceBar({ activo, espera, activo2, primary, warning, inicioTxt, finTxt }: any) {
   const total = Math.max(1, activo + espera + activo2);
 
   return (
@@ -8365,9 +8585,10 @@ function SequenceBar({ activo, espera, activo2, primary, warning }: any) {
           </div>
         )}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 9, color: TOKENS.textTer, fontWeight: 600, letterSpacing: 0.5 }}>
-        <span>0 min</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 9.5, color: TOKENS.textTer, fontWeight: 700, letterSpacing: 0.4, fontVariantNumeric: 'tabular-nums' }}>
+        <span>{inicioTxt || '0 min'}</span>
         <span>Total · {total} min</span>
+        <span>{finTxt || ''}</span>
       </div>
     </div>
   );
