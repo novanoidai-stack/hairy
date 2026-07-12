@@ -28,10 +28,10 @@ export const CATALOGO_IA: FuncionIA[] = [
   },
   {
     id: 'chispa-vo-z',
-    titulo: 'Voz de Chispa (seleccionable)',
-    descripcion: 'Chispa lee sus respuestas en voz alta con voz neural natural (motor Kokoro), y SÍ se puede cambiar: en Configuración > Voz eliges entre varias voces de distintos tonos y géneros, con un botón "Escuchar" para probar cada una antes de fijarla. Además: "Conversación" (botón junto al altavoz) hace que el micrófono se reabra solo tras cada respuesta, para hablar con Chispa sin tocar nada entre turnos; y "Hola Mecha" (Configuración > Voz, apagado por defecto) abre el panel con solo decir la frase, desde cualquier pantalla. Al hablar por el micrófono se ve una animación en vivo y el mensaje se envía solo tras una pausa real (no en una parada natural para pensar). Si la voz neural no está disponible, cae a la voz básica del navegador con aviso honesto.',
+    titulo: 'Dictado por voz',
+    descripcion: 'Le puedes dictar a Chispa por voz: pulsa el micrófono del panel y habla; al hablar se ve una animación en vivo y el mensaje se envía solo tras una pausa real (no en una parada natural para pensar). Chispa te responde por ESCRITO (no lee en voz alta). Además: "Conversación" (botón del panel) hace que el micrófono se reabra solo tras cada respuesta, para dictar sin tocar nada entre turnos; y "Hola Mecha" (Configuración > Voz, apagado por defecto) abre el panel con solo decir la frase, desde cualquier pantalla.',
     ubicacion: '/app/configuracion',
-    uso: 'Para cambiar la voz: Configuración > Voz, elige una y púlsala. Para oírla en el chat: en el panel Chispa activa el altavoz (la primera vez pedirá permiso del micro).',
+    uso: 'Para dictar: en el panel de Chispa pulsa el micrófono y habla (la primera vez pedirá permiso del micro). Para activarla sin tocar: Configuración > Voz > "Hola Mecha".',
     categoria: 'voz',
     soloGestor: true,
   },

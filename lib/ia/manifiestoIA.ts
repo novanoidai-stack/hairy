@@ -177,22 +177,11 @@ export const MODULOS_IA: ModuloIA[] = [
     rol: 'todos',
     estado: 'activo',
   },
-  // --- VOZ ---
-  {
-    id: 'voz-cadena',
-    titulo: 'Voz neural (TTS) con respaldo',
-    queHace: 'Lee las respuestas: Kokoro-FastAPI (VPS) -> ElevenLabs -> speechSynthesis del navegador (con aviso honesto).',
-    donde: 'supabase/functions/chispa-tts + lib/hooks/useChispaVoz.web.ts',
-    capa: 'voz',
-    entradas: 'texto',
-    salidas: 'audio (o fallback navegador)',
-    rol: 'todos',
-    estado: 'activo',
-  },
+  // --- VOZ (solo ENTRADA: el rework KISS retiro la salida hablada/TTS) ---
   {
     id: 'voz-stt',
     titulo: 'Dictado (STT)',
-    queHace: 'Transcribe la voz del usuario para hablarle a Chispa.',
+    queHace: 'Transcribe la voz del usuario para hablarle a Chispa. Chispa responde por ESCRITO (ya no habla en voz alta).',
     donde: 'supabase/functions/chispa-stt + Web Speech',
     capa: 'voz',
     entradas: 'audio',

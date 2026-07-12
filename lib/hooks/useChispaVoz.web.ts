@@ -1,9 +1,8 @@
-// Voz de Chispa (Sesion 5 del plan IA — informes/PLAN-IA-CHISPA.md; ampliada en la
-// sesion de voz manos libres — docs/superpowers/specs/2026-07-11-chispa-voz-manos-libres-design.md).
-// Entrada por microfono (Web Speech API en modo CONTINUO con deteccion de silencio propia,
-// con fallback de grabacion + STT server-side para navegadores sin soporte como Safari/iPad)
-// y salida hablada (TTS ElevenLabs via edge, con fallback a speechSynthesis del navegador).
-// Solo web: el nativo va por detras (CLAUDE.md) y estas APIs no existen en React Native puro.
+// Voz de Chispa — ENTRADA por microfono (STT). Rework KISS (2026-07): se retiro
+// la salida hablada (TTS): Chispa responde en texto, no habla. Se conserva TODO
+// el dictado por voz (Web Speech API en modo CONTINUO con deteccion de silencio
+// propia + fallback de grabacion + STT server-side para Safari/iPad).
+// Solo web: el nativo va por detras (CLAUDE.md) y estas APIs no existen en RN puro.
 //
 // Regla de accesibilidad del plan: Chispa NUNCA escucha sola. iniciarEscucha()
 // solo se llama desde un gesto explicito del usuario (click en el boton de
@@ -11,8 +10,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase';
 
-export type EstadoVoz = 'inactivo' | 'escuchando' | 'transcribiendo' | 'hablando';
-export type MotorVoz = 'elevenlabs' | 'navegador';
+export type EstadoVoz = 'inactivo' | 'escuchando' | 'transcribiendo';
 
 // --- Tipos minimos de la Web Speech API (no forma parte de lib.dom.d.ts: solo
 // esta implementada, con prefijo webkit, en Chrome/Edge). Se declara aqui lo
@@ -38,7 +36,6 @@ interface VentanaConSpeech {
   webkitSpeechRecognition?: SpeechRecognitionConstructor;
 }
 
-const MOTOR_KEY = 'mecha-chispa-motor-voz';
 const VOZ_ACTIVA_KEY = 'mecha-chispa-voz-activa';
 
 // Silencio real antes de considerar un turno terminado (auto-envio). Una pausa
@@ -50,11 +47,6 @@ const TIMEOUT_SIN_HABLA_MS = 30000;
 // Umbral de nivel (0-1) por encima del cual se considera que hay habla, usado
 // SOLO por el fallback de grabacion (Safari/iPad, que no tiene texto parcial).
 const UMBRAL_RUIDO = 0.02;
-
-// Cache en memoria (dura mientras la pestana este abierta) de audios ya
-// sintetizados: evita pagar dos veces por el mismo texto exacto (p.ej. si el
-// usuario pide "repite" o vuelve a llegar el mismo aviso).
-const cacheAudioTts = new Map<string, string>();
 
 function speechRecognitionCtor(): SpeechRecognitionConstructor | undefined {
   if (typeof window === 'undefined') return undefined;
@@ -69,17 +61,12 @@ export function soportaVozNavegador(): boolean {
   return !!speechRecognitionCtor();
 }
 
-export function useChispaVoz(configVozId: string = 'ef_dora') {
+export function useChispaVoz() {
   const [estado, setEstado] = useState<EstadoVoz>('inactivo');
   const [errorVoz, setErrorVoz] = useState<string | null>(null);
-  // Se apaga solo (y para toda la sesion de la pestana) si el edge responde que
-  // no hay ELEVENLABS_API_KEY configurada: evita reintentar en cada respuesta.
-  const [ttsDisponible, setTtsDisponible] = useState(true);
-  // Voz honesta (Sesion 1 V2): true cuando la ULTIMA vez que se intento hablar con
-  // ElevenLabs, fallo y se degrado a la voz del navegador. Se apaga en el proximo
-  // exito. NO se activa cuando el usuario elige "navegador" a proposito en el A/B.
-  const [vozDegradada, setVozDegradada] = useState(false);
-  const [motorVoz, setMotorVozState] = useState<MotorVoz>('elevenlabs');
+  // Modo "conversacion por voz" (dictado): cuando esta activo, Chispa reabre el
+  // microfono para encadenar turnos por voz sin volver a pulsar. Persistido por
+  // navegador (preferencia personal de cada usuario del equipo).
   const [vozActiva, setVozActivaState] = useState(false);
   // Transcripcion en vivo (final + lo que se esta oyendo ahora mismo): se
   // muestra bajo el input mientras escuchando (indicador visual real, no solo
@@ -92,7 +79,6 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
-  const audioElRef = useRef<HTMLAudioElement | null>(null);
   const onResultadoRef = useRef<((texto: string) => void) | null>(null);
 
   // --- Medicion de nivel de audio (AnalyserNode), compartida por ambos motores ---
@@ -109,14 +95,11 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
 
   const soportaReconocimientoNativo = useRef(!!speechRecognitionCtor()).current;
 
-  // Preferencias persistidas (por navegador, no por negocio: es una preferencia
-  // personal de como quiere usar Chispa cada usuario en su equipo).
+  // Preferencia persistida (por navegador, no por negocio).
   useEffect(() => {
     try {
-      const m = localStorage.getItem(MOTOR_KEY);
-      if (m === 'elevenlabs' || m === 'navegador') setMotorVozState(m);
       setVozActivaState(localStorage.getItem(VOZ_ACTIVA_KEY) === '1');
-    } catch { /* almacenamiento no disponible: se queda en los valores por defecto */ }
+    } catch { /* almacenamiento no disponible: se queda en el valor por defecto */ }
   }, []);
 
   useEffect(() => {
@@ -125,48 +108,9 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
     return () => clearTimeout(t);
   }, [errorVoz]);
 
-  const setMotorVoz = useCallback((m: MotorVoz) => {
-    setMotorVozState(m);
-    try { localStorage.setItem(MOTOR_KEY, m); } catch { /* no critico */ }
-  }, []);
-
   const setVozActiva = useCallback((v: boolean) => {
     setVozActivaState(v);
     try { localStorage.setItem(VOZ_ACTIVA_KEY, v ? '1' : '0'); } catch { /* no critico */ }
-  }, []);
-
-  // Pre-calienta el motor natural (Kokoro en el VPS) en segundo plano: la
-  // primera sintesis del dia carga el modelo (~15-20s cold start), asi que se
-  // dispara al abrir Chispa / activar la voz para que ese coste se pague MIENTRAS
-  // el usuario lee o escribe, no cuando pide oir la respuesta. Best-effort y
-  // throttled (una vez cada 4 min): si falla o el motor es el navegador, no hace nada.
-  const ultimoWarm = useRef(0);
-  const precalentar = useCallback(async () => {
-    if (motorVoz === 'navegador' || !ttsDisponible) return;
-    const now = Date.now();
-    if (now - ultimoWarm.current < 4 * 60 * 1000) return;
-    ultimoWarm.current = now;
-    try {
-      const { data: sesion } = await supabase.auth.getSession();
-      const token = sesion.session?.access_token;
-      if (!token) { ultimoWarm.current = 0; return; }
-      await fetch(`${SUPABASE_URL}/functions/v1/chispa-tts`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ warm: true, voice_id: configVozId }),
-      });
-    } catch {
-      ultimoWarm.current = 0; // reintentar la proxima vez si fallo la red
-    }
-  }, [motorVoz, ttsDisponible, configVozId]);
-
-  const detenerHabla = useCallback(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
-    if (audioElRef.current) {
-      audioElRef.current.pause();
-      audioElRef.current.currentTime = 0;
-    }
-    setEstado((e) => (e === 'hablando' ? 'inactivo' : e));
   }, []);
 
   // Para el medidor de nivel (RAF + AudioContext) y resetea el indicador visual.
@@ -278,8 +222,8 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
   }, [pararMotor]);
 
   useEffect(() => {
-    // Solo al desmontar el panel: corta cualquier escucha/habla en curso.
-    return () => { detenerEscucha(); detenerHabla(); };
+    // Solo al desmontar el panel: corta cualquier escucha en curso.
+    return () => { detenerEscucha(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -457,77 +401,11 @@ export function useChispaVoz(configVozId: string = 'ef_dora') {
     }
   }, [estado, soportaReconocimientoNativo, transcribirServidor, iniciarMedidorNivel, limpiarTemporizadores, finalizarEscucha, pararMotor]);
 
-  // --- TTS navegador (fallback y motor "navegador" del A/B) ---
-  const hablarNavegador = useCallback((texto: string) => {
-    if (typeof window === 'undefined' || !window.speechSynthesis) return;
-    const u = new SpeechSynthesisUtterance(texto);
-    u.lang = 'es-ES';
-    u.onstart = () => setEstado('hablando');
-    u.onend = () => setEstado((e) => (e === 'hablando' ? 'inactivo' : e));
-    u.onerror = () => setEstado((e) => (e === 'hablando' ? 'inactivo' : e));
-    window.speechSynthesis.speak(u);
-  }, []);
-
-  // --- TTS: reproduce la respuesta de Chispa (ElevenLabs o navegador) ---
-  const hablar = useCallback(async (texto: string) => {
-    const limpio = texto.trim();
-    if (!limpio) return;
-    detenerHabla();
-
-    if (motorVoz === 'navegador' || !ttsDisponible) {
-      hablarNavegador(limpio);
-      return;
-    }
-
-    try {
-      const cacheKey = `${configVozId}|${limpio}`;
-      let url = cacheAudioTts.get(cacheKey);
-      if (!url) {
-        const { data: sesion } = await supabase.auth.getSession();
-        const token = sesion.session?.access_token;
-        if (!token) throw new Error('Sin sesion');
-        const r = await fetch(`${SUPABASE_URL}/functions/v1/chispa-tts`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ texto: limpio, voice_id: configVozId }),
-        });
-        if (r.status === 501) {
-          // Sin ELEVENLABS_API_KEY configurada en Supabase secrets: se apaga el
-          // motor IA para el resto de la sesion y se degrada al navegador.
-          setTtsDisponible(false);
-          setVozDegradada(true);
-          hablarNavegador(limpio);
-          return;
-        }
-        if (!r.ok) {
-          setVozDegradada(true);
-          throw new Error('Fallo al generar audio');
-        }
-        const blob = await r.blob();
-        url = URL.createObjectURL(blob);
-        cacheAudioTts.set(cacheKey, url);
-      }
-      // Llegar hasta aqui (cache o fetch fresco) significa que ElevenLabs
-      // respondio bien: la voz deja de estar degradada.
-      setVozDegradada(false);
-      const audio = new Audio(url);
-      audioElRef.current = audio;
-      audio.onplay = () => setEstado('hablando');
-      audio.onended = () => setEstado((e) => (e === 'hablando' ? 'inactivo' : e));
-      audio.onerror = () => setEstado((e) => (e === 'hablando' ? 'inactivo' : e));
-      await audio.play();
-    } catch {
-      // No dejar a Chispa "muda": si falla el proxy de ElevenLabs, se degrada.
-      setVozDegradada(true);
-      hablarNavegador(limpio);
-    }
-  }, [motorVoz, ttsDisponible, detenerHabla, hablarNavegador]);
-
   return {
-    estado, errorVoz, soportaReconocimientoNativo, ttsDisponible, vozDegradada,
-    motorVoz, setMotorVoz, vozActiva, setVozActiva,
+    estado, errorVoz, soportaReconocimientoNativo,
+    vozActiva, setVozActiva,
     transcripcionParcial, nivelAudio,
-    iniciarEscucha, detenerEscucha, finalizarEscucha, hablar, detenerHabla, precalentar,
+    iniciarEscucha, detenerEscucha, finalizarEscucha,
   };
 }
 

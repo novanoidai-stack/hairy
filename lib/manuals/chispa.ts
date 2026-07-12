@@ -12,7 +12,7 @@ export const manualChispa: ManualContent = {
     },
     {
       titulo: 'Panel Chispa (chatbot)',
-      texto: 'El panel de Chispa (pestaña con icono de estrella) es tu asistente conversacional. Puedes preguntarle cualquier cosa en voz o texto: crear citas, servicios, presupuestos, consultar datos de clientas o pedirle que organice tu agenda. Soporta formularios visuales para no tener que escribir. En la conversación siempre ves de un vistazo quién habla y cuándo: cada turno lleva el nombre (tú o Chispa) y la hora, los mensajes seguidos de la misma persona se agrupan y hay separación clara entre turnos. Puedes abrirlo a pantalla completa (icono en la cabecera) para trabajar con más espacio.',
+      texto: 'El panel de Chispa (pestaña con icono de estrella) es tu asistente conversacional. Puedes preguntarle cualquier cosa en voz o texto: consultar tus datos (agenda, clientas, caja, informes...) y pedirle acciones rápidas en bloque, como confirmar las citas pendientes, reenviar recordatorios, avisar a la lista de espera o gestionar un retraso del día. Las acciones más específicas (crear una cita o un presupuesto) viven en su pantalla: la propia página de Presupuestos y la Bandeja tienen su ayuda de Chispa. En la conversación siempre ves de un vistazo quién habla y cuándo: cada turno lleva el nombre (tú o Chispa) y la hora, los mensajes seguidos de la misma persona se agrupan y hay separación clara entre turnos. Puedes abrirlo a pantalla completa (icono en la cabecera) para trabajar con más espacio.',
     },
     {
       titulo: 'Configuración guiada sin ambigüedad',
@@ -94,8 +94,8 @@ export const manualChispa: ManualContent = {
       texto: 'En Configuración > Migración Mágica, sube un CSV de Booksy/Fresha o una foto de tu lista de precios/albarán. Chispa extraerá los datos con IA y los importará en bloque. Solo para gestores.',
     },
     {
-      titulo: 'Voz de Chispa (seleccionable)',
-      texto: 'Chispa puede leer sus respuestas en voz alta con voz neural natural (motor Kokoro). Y sí puedes cambiarla: en Configuración > Voz eliges entre varias voces de distintos tonos y géneros, con un botón "Escuchar" para probar cada una; la voz elegida se aplica a todos los dispositivos del salón. Para oírla en el chat, activa el altavocito en el panel (la primera vez te pedirá permiso para usar el micro). Si la voz neural no está disponible, cae a la voz básica del navegador avisándote.',
+      titulo: 'Dictado por voz',
+      texto: 'Le puedes dictar a Chispa por voz: pulsa el micrófono del panel y habla (la primera vez te pedirá permiso para usar el micro). Verás una animación en vivo con lo que se va transcribiendo y el mensaje se envía solo cuando dejas de hablar de verdad. Chispa te responde por escrito.',
     },
     {
       titulo: 'Listar y analizar tus datos',
@@ -103,7 +103,7 @@ export const manualChispa: ManualContent = {
     },
     {
       titulo: 'Conversación por voz y "Hola Mecha"',
-      texto: 'Junto al botón de altavoz hay un botón de "Conversación": actívalo y, tras cada respuesta de Chispa, el micrófono se reabre solo para que sigas hablando sin tocar nada, como una llamada normal. Al hablar verás una animación en vivo con lo que se va transcribiendo, y el mensaje se envía solo cuando dejas de hablar de verdad (una pausa para pensar no lo envía). Además, en Configuración > Voz puedes activar "Hola Mecha" (apagado por defecto): con el micrófono escuchando de fondo, decir "Hola Mecha" desde cualquier pantalla abre el panel al instante. El audio lo procesa el navegador; Mecha no lo recibe hasta que se detecta la frase. Y si un hilo se queda con saludos sueltos, el botón de "Nueva conversación" (arriba, cuando hay historial) lo limpia.',
+      texto: 'En el panel hay un botón de "Conversación": actívalo y, tras cada respuesta de Chispa, el micrófono se reabre solo para que sigas dictando sin tocar nada, como una llamada normal. Al hablar verás una animación en vivo con lo que se va transcribiendo, y el mensaje se envía solo cuando dejas de hablar de verdad (una pausa para pensar no lo envía). Además, en Configuración > Voz puedes activar "Hola Mecha" (apagado por defecto): con el micrófono escuchando de fondo, decir "Hola Mecha" desde cualquier pantalla abre el panel al instante. El audio lo procesa el navegador; Mecha no lo recibe hasta que se detecta la frase. Y si un hilo se queda con saludos sueltos, el botón de "Nueva conversación" (arriba, cuando hay historial) lo limpia.',
     },
     {
       titulo: 'Biblioteca de Prompts Prefabricados',

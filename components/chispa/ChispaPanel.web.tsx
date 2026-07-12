@@ -472,9 +472,10 @@ export default function ChispaPanel({
   const [tipCarga, setTipCarga] = useState('');
   const [promptCat, setPromptCat] = useState<'recomendados' | 'agenda' | 'clientes' | 'gestion' | 'marketing' | 'general' | 'todos'>('recomendados');
 
-  // Voz (Sesion 5): microfono + lectura en voz alta. Todo vive en el hook;
-  // aqui solo se conecta a los puntos donde se anaden mensajes.
-  const voz = useChispaVoz(chispaVozId);
+  // Voz (Sesion 5, recortada en el rework KISS a solo ENTRADA): microfono/dictado.
+  // Chispa ya no habla (TTS fuera). Todo vive en el hook; aqui solo se conecta a
+  // los puntos donde se anaden mensajes y al bucle de conversacion por voz.
+  const voz = useChispaVoz();
   // Modo conversacion (voz manos libres): tras cada respuesta, el microfono se
   // reabre solo (ver efectos mas abajo). Preferencia por navegador.
   const [modoConversacion, setModoConversacionState] = useState(false);
@@ -507,8 +508,7 @@ export default function ChispaPanel({
   // ?onboarding_ia=1: fuerza la config guiada una vez, sin tocar el flag de
   // localStorage (previsualizacion manual, mismo criterio que el antiguo
   // OnboardingAgentOverlay retirado en la Sesion 2 V2).
-  const { vozab, chispatest, onboarding_ia } = useGlobalSearchParams<{ vozab?: string; chispatest?: string; onboarding_ia?: string }>();
-  const mostrarSelectorVoz = vozab === '1';
+  const { chispatest, onboarding_ia } = useGlobalSearchParams<{ chispatest?: string; onboarding_ia?: string }>();
   const mostrarArnesPruebas = chispatest === '1';
 
   // --- Config guiada (Sesion 2 V2): "configurame el salon" dentro de Chispa ---
@@ -575,10 +575,9 @@ export default function ChispaPanel({
   // atajo que cierre Chispa para abrir otra cosa encima (coach/tours).
   function cerrarPanel() {
     // Cerrar el panel termina cualquier conversacion por voz en curso (incluida
-    // la abierta por "Hola Mecha") y corta la escucha/habla activa.
+    // la abierta por "Hola Mecha") y corta la escucha activa.
     sesionVozRef.current = false;
     voz.detenerEscucha();
-    voz.detenerHabla();
     setCerrando(true);
     setTimeout(() => { setAbierto(false); setCerrando(false); }, DRAWER_CLOSE_MS);
   }
@@ -625,11 +624,7 @@ export default function ChispaPanel({
 
   useEffect(() => {
     if (abierto) setTimeout(() => inputRef.current?.focus(), 120);
-    // Al abrir Chispa con la voz activa, pre-calentar Kokoro en segundo plano:
-    // el cold start (~15-20s la 1a vez tras un reinicio) se paga mientras el
-    // usuario lee/escribe, no cuando pide oir la respuesta.
-    if (abierto && voz.vozActiva) void voz.precalentar();
-  }, [abierto, voz.vozActiva]);
+  }, [abierto]);
 
   useEffect(() => {
     if (!abierto) return;
@@ -773,7 +768,6 @@ export default function ChispaPanel({
   // resetea la config guiada. Deja el panel abierto y listo para empezar.
   function limpiarConversacion() {
     voz.detenerEscucha();
-    voz.detenerHabla();
     sesionVozRef.current = false;
     ultimaEntradaVozRef.current = false;
     setMensajes([]);
@@ -800,32 +794,20 @@ export default function ChispaPanel({
   // o sesion abierta por palabra de activacion) y (b) el ultimo turno lo inicio
   // la voz — asi escribir un mensaje no reabre el microfono de sopeton. Nunca se
   // re-arma mientras Chispa habla (evita captar su propia voz por el altavoz).
-  const prevEstadoVozRef = useRef(voz.estado);
-  useEffect(() => {
-    const prev = prevEstadoVozRef.current;
-    prevEstadoVozRef.current = voz.estado;
-    const manosLibres = modoConversacion || sesionVozRef.current;
-    if (!manosLibres || !abierto || !ultimaEntradaVozRef.current) return;
-    if (prev === 'hablando' && voz.estado === 'inactivo') {
-      setTimeout(() => iniciarTurnoVoz(), 300);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [voz.estado, modoConversacion, abierto]);
-
-  // Con el altavoz apagado no hay fase 'hablando': el turno termina cuando se
-  // renderiza la respuesta (cargando true -> false). Con el altavoz activo, lo
-  // gestiona el efecto de arriba (evita re-armar dos veces).
+  // Sin TTS (rework KISS) no hay fase 'hablando': el turno termina cuando se
+  // renderiza la respuesta (cargando true -> false). Entonces, en manos libres y
+  // si el ultimo turno lo inicio la voz, se reabre el microfono para encadenar.
   const prevCargandoRef = useRef(cargando);
   useEffect(() => {
     const prev = prevCargandoRef.current;
     prevCargandoRef.current = cargando;
     const manosLibres = modoConversacion || sesionVozRef.current;
-    if (!manosLibres || !abierto || voz.vozActiva || !ultimaEntradaVozRef.current) return;
+    if (!manosLibres || !abierto || !ultimaEntradaVozRef.current) return;
     if (prev && !cargando) {
       setTimeout(() => iniciarTurnoVoz(), 500);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cargando, modoConversacion, abierto, voz.vozActiva]);
+  }, [cargando, modoConversacion, abierto]);
 
   // Palabra de activacion "Hola Mecha": al detectarla en cualquier pantalla, se
   // abre el panel y empieza una conversacion por voz (sesionVozRef: el bucle
@@ -919,25 +901,6 @@ export default function ChispaPanel({
 
   function pushAssistantTexto(t: string) {
     setMensajes((m) => [...m, { role: 'assistant', bloques: [{ tipo: 'texto', texto: t }], accionEstado: null, ts: ahora() }]);
-    if (voz.vozActiva) void voz.hablar(t);
-  }
-
-  // Concatena los bloques 'texto' de una respuesta (enlaces y tarjetas de
-  // accion no se leen en voz alta: se ven, no se narran).
-  function textoDeBloques(bloques: Bloque[]): string {
-    return bloques.filter((b): b is Extract<Bloque, { tipo: 'texto' }> => b.tipo === 'texto')
-      .map((b) => b.texto).join(' ').trim();
-  }
-
-  // Voz: no narra la parrafada entera (lenta y pesada). Lee un adelanto de 1-2
-  // frases; el detalle se VE en los bloques. Recorta a ~220 caracteres en un
-  // limite de frase para que suene natural y llegue rapido.
-  function resumenParaVoz(texto: string): string {
-    const limpio = texto.replace(/\s+/g, ' ').trim();
-    if (limpio.length <= 220) return limpio;
-    const corte = limpio.slice(0, 220);
-    const fin = Math.max(corte.lastIndexOf('. '), corte.lastIndexOf('? '), corte.lastIndexOf('! '));
-    return (fin > 80 ? corte.slice(0, fin + 1) : corte).trim();
   }
 
   // Resume el payload de un bloque interactivo respondido en una frase legible
@@ -1139,10 +1102,6 @@ export default function ChispaPanel({
       const bloques = estructurarBloques(normalizarRespuesta(data));
       const tieneAccion = bloques.some((b) => b.tipo === 'accion');
       setMensajes((m) => [...m, { role: 'assistant', bloques, accionEstado: tieneAccion ? 'pendiente' : null, ts: ahora() }]);
-      if (voz.vozActiva) {
-        const paraHablar = resumenParaVoz(textoDeBloques(bloques));
-        if (paraHablar) void voz.hablar(paraHablar);
-      }
     } finally {
       setCargando(false);
     }
@@ -1173,7 +1132,6 @@ export default function ChispaPanel({
     }
     if (voz.estado === 'transcribiendo') return; // ya en curso, nada que hacer
     if (bloqueado) return;
-    if (voz.estado === 'hablando') voz.detenerHabla();
     iniciarTurnoVoz();
   }
 
@@ -1499,44 +1457,10 @@ export default function ChispaPanel({
                       IA esta activa (detalle de producto, no decoracion vacia). */}
                   <span aria-hidden="true" className="chispa-status-dot" style={{ width: 6, height: 6, borderRadius: 999, background: T.success, boxShadow: `0 0 0 2px ${T.successSoft}`, flexShrink: 0 }} />
                   <span>IA de tu salón</span>
-                  {/* Voz honesta (Sesion 1 V2): indicador discreto y persistente
-                      mientras la voz este degradada a la del navegador. Nunca se
-                      finge que es la voz premium de ElevenLabs. */}
-                  {voz.vozDegradada && (
-                    <span
-                      title="ElevenLabs no esta disponible ahora mismo: Chispa usa la voz basica del navegador."
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', padding: '2px 7px', borderRadius: 999,
-                        background: T.warningSoft, border: '1px solid rgba(224,138,0,0.28)',
-                        color: T.warning, fontSize: 10, fontWeight: 700, letterSpacing: 0.2, whiteSpace: 'nowrap',
-                      }}
-                    >
-                      Voz básica del navegador
-                    </span>
-                  )}
                 </div>
               </div>
-              {voz.estado === 'hablando' && (
-                <button onClick={voz.detenerHabla} aria-label="Detener la voz de Chispa"
-                  style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: T.fireGradient, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <IconoStop size={11} color="#fff" />
-                </button>
-              )}
-              <button
-                onClick={() => { const activar = !voz.vozActiva; voz.setVozActiva(activar); if (activar) void voz.precalentar(); }}
-                aria-label={voz.vozActiva ? 'Desactivar que Chispa hable' : 'Activar que Chispa hable'}
-                aria-pressed={voz.vozActiva}
-                title={voz.vozActiva ? 'Chispa lee sus respuestas en voz alta' : 'Chispa solo escribe'}
-                style={{
-                  width: 30, height: 30, borderRadius: 8,
-                  border: `1px solid ${voz.vozActiva ? T.primary : T.border}`,
-                  background: voz.vozActiva ? T.primarySoft : T.bgCard,
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
-                <IconoAltavoz size={15} color={voz.vozActiva ? T.primaryHi : T.textSecondary} activo={voz.vozActiva} />
-              </button>
               {/* Modo conversacion por voz: el microfono se reabre solo tras
-                  cada respuesta, para hablar con Chispa sin tocar nada. */}
+                  cada respuesta, para hablar con Chispa sin tocar nada (dictado). */}
               <button
                 onClick={() => setModoConversacion(!modoConversacion)}
                 aria-label={modoConversacion ? 'Desactivar conversacion por voz' : 'Activar conversacion por voz (el microfono se reabre solo tras cada respuesta)'}
@@ -1588,24 +1512,6 @@ export default function ChispaPanel({
                 <IconoCerrar size={15} color={T.danger} />
               </button>
             </div>
-
-            {/* Selector de motor de voz (A/B): solo con ?vozab=1 en la URL, para
-                decidir internamente si compensa un plan de pago de ElevenLabs. */}
-            {mostrarSelectorVoz && (
-              <div style={{ display: 'flex', gap: 6, padding: '8px 16px', borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
-                {(['elevenlabs', 'navegador'] as const).map((m) => (
-                  <button key={m} onClick={() => voz.setMotorVoz(m)}
-                    style={{
-                      flex: 1, padding: '6px 0', borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
-                      border: `1.5px solid ${voz.motorVoz === m ? T.primary : T.border}`,
-                      background: voz.motorVoz === m ? T.primarySoft : 'transparent',
-                      color: voz.motorVoz === m ? T.primaryHi : T.textTertiary,
-                    }}>
-                    {m === 'elevenlabs' ? 'Voz IA (ElevenLabs)' : 'Voz del navegador'}
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* Lista de mensajes. En pantalla completa (desktop) se centra en una
                 columna con mas aire para que formularios/graficas no se
@@ -2022,7 +1928,6 @@ export default function ChispaPanel({
                       voz.estado === 'escuchando'
                         ? (voz.transcripcionParcial ? `"${voz.transcripcionParcial}"` : 'Escuchando... habla ahora')
                         : voz.estado === 'transcribiendo' ? 'Transcribiendo tu voz...'
-                        : voz.estado === 'hablando' ? 'Chispa está hablando...'
                         : ''
                     )}
                   </span>
