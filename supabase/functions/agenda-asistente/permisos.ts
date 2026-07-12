@@ -183,3 +183,29 @@ export function toolPermitida(name: string, role: Role, scope: WriteScope): bool
   }
   return false;
 }
+
+// ---------------------------------------------------------------------------
+// Rework KISS (2026-07): gating por SUPERFICIE.
+// Defensa extra sobre el gating por rol: que tools de ESCRITURA se ofrecen en
+// cada superficie del cliente. Las LECTURAS (la "biblioteca del salon") se
+// comparten y NO aparecen aqui. El chat solo agiliza acciones en bloque; cada
+// pantalla intra-pagina conserva su tool concreta (no se ofrece en el chat).
+// ---------------------------------------------------------------------------
+export const SUPERFICIE_ACCIONES: Record<string, string[]> = {
+  chat: ['confirmar_citas', 'reenviar_confirmacion', 'avisar_lista_espera', 'gestionar_retraso'],
+  agenda: ['optimizar_agenda', 'gestionar_retraso'],
+  presupuestos: ['crear_presupuesto'],
+  clientes: ['recuperar_cliente'],
+};
+
+// ¿Se ofrece esta tool de ESCRITURA en esta superficie? (fail-closed).
+export function accionPermitidaEnSuperficie(name: string, superficie: string): boolean {
+  return (SUPERFICIE_ACCIONES[superficie] ?? []).includes(name);
+}
+
+// Una tool es de LECTURA (biblioteca del salon) si no es escritura de
+// agenda/gestion ni cambiar_config. guardar_recuerdo es memoria interna (no es
+// esEscritura), asi que cuenta como lectura y se comparte en todas las superficies.
+export function esLectura(name: string): boolean {
+  return !esEscritura(name);
+}

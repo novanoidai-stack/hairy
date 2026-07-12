@@ -6,7 +6,7 @@
 import OpenAI from 'npm:openai@4';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 // Seguridad de la capa IA (Sesion 2): RBAC de tools + regla dura de salud.
-import { can, roleOf, toolPermitida, esEscritura, type Role } from './permisos.ts';
+import { can, roleOf, toolPermitida, esEscritura, accionPermitidaEnSuperficie, esLectura, type Role } from './permisos.ts';
 import { assertSinCamposProhibidos, proyectarClienteIA } from './whitelist.ts';
 import { CATALOGO_IA } from '../../../lib/iaCatalogo.ts';
 
@@ -1369,7 +1369,16 @@ export async function runAgente(
 
   // Solo se exponen al LLM las tools permitidas para este rol/scope (fail-closed).
   const tools = [
-    ...TOOLS.filter((t) => toolPermitida(t.name, rolCanon, scope)).map((t) => ({ type: 'function' as const, function: t })),
+    ...TOOLS
+      .filter((t) => toolPermitida(t.name, rolCanon, scope))
+      .filter((t) => {
+        // Biblioteca (lectura): siempre. En 'lectura' no se ofrece ninguna
+        // escritura. En 'accion'/'auto', solo las escrituras de la superficie.
+        if (esLectura(t.name)) return true;
+        if (tareaEfectiva === 'lectura') return false;
+        return accionPermitidaEnSuperficie(t.name, superficie);
+      })
+      .map((t) => ({ type: 'function' as const, function: t })),
     ...dynamicTools
   ];
 

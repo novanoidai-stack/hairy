@@ -2,7 +2,7 @@
 //   deno test supabase/functions/agenda-asistente/permisos.test.ts
 
 import { assertEquals } from 'jsr:@std/assert@1';
-import { roleOf, toolPermitida, type WriteScope } from './permisos.ts';
+import { roleOf, toolPermitida, accionPermitidaEnSuperficie, esLectura, type WriteScope } from './permisos.ts';
 
 Deno.test('roleOf mapea los valores historicos de profiles.role', () => {
   assertEquals(roleOf('owner'), 'propietario');
@@ -204,4 +204,34 @@ Deno.test('Cobertura de tablas V3: campanas/hallazgos/cumpleanos/lista_espera/tu
   for (const valor of ['employee', 'recepcion', 'admin', 'owner']) {
     assertEquals(toolPermitida('consultar_movimientos_inventario', roleOf(valor), 'all'), true);
   }
+});
+
+// --- Rework KISS (2026-07): gating por superficie ---
+Deno.test('Rework KISS: el chat solo ofrece las 4 acciones en bloque', () => {
+  assertEquals(accionPermitidaEnSuperficie('confirmar_citas', 'chat'), true);
+  assertEquals(accionPermitidaEnSuperficie('reenviar_confirmacion', 'chat'), true);
+  assertEquals(accionPermitidaEnSuperficie('avisar_lista_espera', 'chat'), true);
+  assertEquals(accionPermitidaEnSuperficie('gestionar_retraso', 'chat'), true);
+  // Escrituras de entidad NO se ofrecen en el chat general:
+  assertEquals(accionPermitidaEnSuperficie('crear_presupuesto', 'chat'), false);
+  assertEquals(accionPermitidaEnSuperficie('optimizar_agenda', 'chat'), false);
+  assertEquals(accionPermitidaEnSuperficie('crear_cita', 'chat'), false);
+});
+
+Deno.test('Rework KISS: cada superficie de accion conserva su tool acotada', () => {
+  assertEquals(accionPermitidaEnSuperficie('crear_presupuesto', 'presupuestos'), true);
+  assertEquals(accionPermitidaEnSuperficie('recuperar_cliente', 'clientes'), true);
+  assertEquals(accionPermitidaEnSuperficie('optimizar_agenda', 'agenda'), true);
+  assertEquals(accionPermitidaEnSuperficie('gestionar_retraso', 'agenda'), true);
+  // No cruzadas ni en superficies sin acciones:
+  assertEquals(accionPermitidaEnSuperficie('crear_presupuesto', 'clientes'), false);
+  assertEquals(accionPermitidaEnSuperficie('confirmar_citas', 'presupuestos'), false);
+  assertEquals(accionPermitidaEnSuperficie('confirmar_citas', 'informes'), false);
+});
+
+Deno.test('Rework KISS: esLectura distingue lecturas de escrituras', () => {
+  assertEquals(esLectura('listar_citas'), true);
+  assertEquals(esLectura('citas_hoy'), true);
+  assertEquals(esLectura('confirmar_citas'), false); // escritura de agenda
+  assertEquals(esLectura('crear_presupuesto'), false); // escritura de gestion
 });

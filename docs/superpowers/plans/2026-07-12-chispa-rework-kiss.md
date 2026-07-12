@@ -350,6 +350,15 @@ git commit -m "feat(chispa): system prompt troceado por tarea + contrato Titular
 
 ### Task 8: Desplegar el edge + secret + advisors
 
+> **ORDEN DE DESPLIEGUE (gotcha detectado en ejecución):** el filtro de tools por
+> `superficie` del edge asume que el cliente envía la `superficie` correcta. Si el edge
+> nuevo se despliega ANTES de que el cliente (Fase 2, Tasks 9-10) esté en producción, las
+> pantallas de acción (presupuestos/clientes) enviarían `superficie:'chat'` por defecto y
+> perderían su tool de escritura. Los cambios de cliente son retro-compatibles con el edge
+> viejo (ignora `tarea`/`superficie`). Por tanto: **primero mergear/publicar el cliente
+> (Fase 2), y solo después desplegar el edge.** (Nota: Task 2 omitió el hard-block runtime
+> por superficie por redundante — el filtro de declaración basta y evita falsos bloqueos.)
+
 - [ ] **Step 1: Fijar el secret** `OPENROUTER_MODEL_LECTURA=google/gemini-2.0-flash-001` en Supabase (dashboard o CLI `supabase secrets set`).
 - [ ] **Step 2: Desplegar** `agenda-asistente` (MCP `deploy_edge_function` o `supabase functions deploy agenda-asistente`).
 - [ ] **Step 3: Verificar versión** desplegada (`list_edge_functions` → versión incrementada, status ACTIVE).
