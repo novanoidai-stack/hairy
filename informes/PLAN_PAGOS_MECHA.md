@@ -69,7 +69,7 @@ semanas o bloqueado por terceros.
 | **S4** ✅ | Propinas + pago dividido / grupal | Pilar 4 | L | — |
 | **S5** | Mecha Pay + Stripe Connect (modelo de tasas) | Pilar 1 | XL | KYC Stripe Connect |
 | **S6** | BYOP: Bizum + Redsýs (Fase 2) | Pilar 1 / Fase 2 | XL | Credenciales Redsýs del salón |
-| **S7** | Datáfono virtual: Tap to Pay (Fase 3) | Pilar 2 / Fase 3 | XL | App nativa + elegibilidad Stripe Terminal |
+| **S7** ◐ | Datáfono virtual: Tap to Pay — backend S7.2 ✅; nativo (S7.1/3) pdte | Pilar 2 / Fase 3 | XL | App nativa + elegibilidad Stripe Terminal |
 | **S8** | Fiscalidad VeriFactu + factura simplificada | Pilar 4 / Cumplimiento | XL | Fiscalista / DPA |
 
 ---
@@ -298,16 +298,25 @@ Pay) con la SDK de Stripe Terminal.
 | # | Pieza | Quién | Esfuerzo |
 |---|---|---|---|
 | S7.1 | Integrar `@stripe/stripe-terminal-react-native` en la app Expo (requiere build nativo, no sólo web) | [A] | L |
-| S7.2 | Backend: `ConnectionToken` endpoint (edge) + `PaymentIntent` para Terminal | [A] | M |
+| S7.2 ✅ | Backend: `ConnectionToken` endpoint (edge) + `PaymentIntent` para Terminal | [A] | M |
 | S7.3 | Flujo de cobro NFC en la app: conectar lector (Tap to Pay on iPhone/Android), tomar pago, ligar a la cita | [A] | L |
 | S7.4 | (Opcional) lectores físicos Bluetooth/red local para salones que los quieran | [A] | M |
 
-**Estado:** no empezado. Fase 3. **Choca con la decisión "app nativa = lectora sin pagos in-app"**
-del roadmap → aclarar: Tap to Pay es cobro presencial (no compra in-app de Apple/Google), así que
-NO cae en la comisión del 30%; pero SÍ exige build nativo y salir de la web pura.
+**Estado:** **S7.2 (backend) ✅ en prod.** Edges `terminal-connection-token` (ConnectionToken con la
+cuenta Stripe del salón, S5) + `terminal-cobro-intent` (PaymentIntent `card_present` del total de la
+cita, marca `pasarela='stripe_terminal'`) + conciliación en `stripe-webhook` v22: al `payment_intent.
+succeeded` con `metadata.canal='terminal'` registra el cobro por **datáfono** (migración `s7_terminal_
+tap_to_pay`: `iniciar_cobro_terminal`, `terminal_contexto`, y `registrar_cobro_online` generalizado
+para enrutar `datafono`→`datafono_cents`/`origen='pos'` — verificado + regresión del path online OK).
+S7.1/S7.3 (SDK `@stripe/stripe-terminal-react-native` + flujo NFC en la app) requieren **app nativa**:
+pendientes. Fase 3. **Choca con la decisión "app nativa = lectora sin pagos in-app"** del roadmap →
+aclarar: Tap to Pay es cobro presencial (no compra in-app de Apple/Google), así que NO cae en la
+comisión del 30%; pero SÍ exige build nativo y salir de la web pura.
 
 **Pendiente externo (tú):** app nativa desplegada (iOS/Android), elegibilidad de Tap to Pay en la
-cuenta Stripe (requiere verificación), dispositivos compatibles (iPhone XS+/Android NFC).
+cuenta Stripe (requiere verificación), dispositivos compatibles (iPhone XS+/Android NFC). Además, en
+cada webhook Stripe de salón que use Terminal hay que **suscribir el evento `payment_intent.succeeded`**
+(los 5 actuales no lo incluyen) y tener activada la capacidad `card_present` en la cuenta.
 
 **Verificación:** cobro real por NFC en un móvil de prueba → `PaymentIntent` capturado y ligado a
 la cita; funciona en iOS y Android.
