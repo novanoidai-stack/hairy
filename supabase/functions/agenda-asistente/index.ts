@@ -1868,7 +1868,32 @@ async function ejecutarLectura(
         .eq('consiente_ia', true)
         .or(`nombre.ilike.%${sanitizarFiltro(inp.texto)}%,telefono.ilike.%${sanitizarFiltro(inp.texto)}%`)
         .limit(8);
-      return (data ?? []).map((row) => proyectarClienteIA(row as Record<string, unknown>));
+      const filas = (data ?? []) as Record<string, unknown>[];
+      // Ultima visita + total REALES (agregado sobre citas completadas). Las columnas
+      // denormalizadas solo se recalculan en batch y solo para clientes con >=3 visitas
+      // (ver alerta-fuga-clientas.sql), asi que para "la clienta que vino hace meses"
+      // (pocas visitas) estarian vacias. Esto da memoria fiable sin depender del batch.
+      const idsCli = filas.map((r) => String(r.id));
+      if (idsCli.length > 0) {
+        const { data: cts } = await svc
+          .from('citas')
+          .select('cliente_id, inicio')
+          .eq('negocio_id', negocioId)
+          .eq('estado', 'completada')
+          .in('cliente_id', idsCli);
+        const agg = new Map<string, { total: number; ultima: string }>();
+        for (const c of (cts ?? []) as { cliente_id: string | null; inicio: string }[]) {
+          if (!c.cliente_id) continue;
+          const cur = agg.get(c.cliente_id);
+          if (!cur) agg.set(c.cliente_id, { total: 1, ultima: c.inicio });
+          else { cur.total++; if (c.inicio > cur.ultima) cur.ultima = c.inicio; }
+        }
+        for (const r of filas) {
+          const a = agg.get(String(r.id));
+          if (a) { r.total_visitas = a.total; r.ultima_visita = a.ultima; }
+        }
+      }
+      return filas.map((row) => proyectarClienteIA(row));
     }
 
     case 'ficha_cliente': {
