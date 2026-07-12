@@ -15,6 +15,17 @@ import { obtenerTipCarga } from '@/lib/chispaPrompts';
 
 const SPIN_KEYFRAMES = '@keyframes taia-spin { to { transform: rotate(360deg) } }';
 
+// Destaca el dato clave del titular: convierte **x** en negrita con el acento
+// de marca. El contrato Titular->Visual->Accion (rework KISS) pide que el primer
+// texto de un analisis sea un titular con el dato en negrita.
+function renderNegritas(texto: string): ReactNode {
+  return texto.split(/(\*\*[^*]+\*\*)/g).map((p, i) =>
+    p.startsWith('**') && p.endsWith('**') && p.length > 4
+      ? <strong key={i} style={{ color: T.primaryHi }}>{p.slice(2, -2)}</strong>
+      : <span key={i}>{p}</span>,
+  );
+}
+
 function IconoChispa({ size = 18, color = T.primary }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -84,6 +95,9 @@ export interface TarjetaAyudaIAProps {
   onConfirmarAccion?: BloqueRendererProps['onConfirmar'];
   onCancelarAccion?: BloqueRendererProps['onCancelar'];
   isMobile?: boolean;
+  // Oculta la tarjeta ENTERA (no solo el resultado). Si se pasa, se muestra un
+  // boton discreto en la cabecera; la pagina decide como traerla de vuelta.
+  onOcultar?: () => void;
 }
 
 export function TarjetaAyudaIA({
@@ -99,6 +113,7 @@ export function TarjetaAyudaIA({
   onConfirmarAccion,
   onCancelarAccion,
   isMobile,
+  onOcultar,
 }: TarjetaAyudaIAProps) {
   const cargando = estado.tipo === 'cargando';
   const [tipCarga, setTipCarga] = useState('');
@@ -130,6 +145,7 @@ export function TarjetaAyudaIA({
             {subtitulo && <div style={{ fontSize: 12, color: T.textSecondary }}>{subtitulo}</div>}
           </div>
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <button
               type="button"
               className="btn-interactive"
@@ -138,6 +154,19 @@ export function TarjetaAyudaIA({
             >
               {cargando ? 'Pensando...' : botonLabel}
             </button>
+            {onOcultar && (
+              <button
+                type="button"
+                aria-label="Ocultar"
+                title="Ocultar esta tarjeta"
+                onClick={onOcultar}
+                className="btn-interactive"
+                style={{ width: 30, height: 30, borderRadius: 999, border: `1px solid ${T.border}`, background: 'transparent', color: T.textTertiary, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              </button>
+            )}
+        </div>
       </div>
 
       {resumenDeterminista && (
@@ -162,20 +191,33 @@ export function TarjetaAyudaIA({
           {estado.tipo === 'cargando' && <FilaCargando tip={tipCarga} />}
           {estado.tipo === 'vacio' && <FilaVacio mensaje={mensajeVacio} />}
           {estado.tipo === 'error' && <FilaError mensaje={estado.mensaje} onReintentar={onReintentar ?? onAnalizar} />}
-          {estado.tipo === 'listo' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {estado.bloques.map((b, i) => (
-                <BloqueRenderer
-                  key={i}
-                  bloque={b}
-                  accionEstado={b.tipo === 'accion' ? accionEstado : undefined}
-                  onConfirmar={onConfirmarAccion}
-                  onCancelar={onCancelarAccion}
-                  isMobile={isMobile}
-                />
-              ))}
-            </div>
-          )}
+          {estado.tipo === 'listo' && (() => {
+            // Titular -> Visual -> Accion: si el PRIMER bloque es texto, se pinta
+            // como TITULAR destacado (mayor peso/tamano, dato en negrita) y el
+            // resto de bloques (el visual y la accion) van debajo.
+            const primero = estado.bloques[0];
+            const hayTitular = !!primero && primero.tipo === 'texto' && primero.texto.trim().length > 0;
+            const resto = hayTitular ? estado.bloques.slice(1) : estado.bloques;
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {hayTitular && primero.tipo === 'texto' && (
+                  <div style={{ fontSize: 15.5, fontWeight: 700, color: T.text, lineHeight: 1.35 }}>
+                    {renderNegritas(primero.texto)}
+                  </div>
+                )}
+                {resto.map((b, i) => (
+                  <BloqueRenderer
+                    key={i}
+                    bloque={b}
+                    accionEstado={b.tipo === 'accion' ? accionEstado : undefined}
+                    onConfirmar={onConfirmarAccion}
+                    onCancelar={onCancelarAccion}
+                    isMobile={isMobile}
+                  />
+                ))}
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

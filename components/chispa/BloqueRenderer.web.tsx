@@ -457,6 +457,9 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
     return (
       <div className="glass-panel" style={{ borderRadius: 16, padding: '14px 16px' }}>
         {bloque.titulo && <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>}
+        {tarjetas.length === 0 && (
+          <div style={{ fontSize: 13, color: T.textTertiary, fontStyle: 'italic' }}>Sin cifras que mostrar ahora mismo.</div>
+        )}
         <div style={{ display: 'grid', gridTemplateColumns: tarjetas.length > 1 ? 'repeat(auto-fit, minmax(120px, 1fr))' : '1fr', gap: 10 }}>
           {tarjetas.map((k, i) => {
             const fmt = fmtUnidad(k.unidad);
@@ -488,10 +491,13 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
   // --- BARRAS: reparto de una medida entre categorias (S19). Un solo tono. ---
   if (bloque.tipo === 'barras') {
     const fmt = fmtUnidad(bloque.unidad);
+    const datos = bloque.datos ?? [];
     return (
       <div className="glass-panel" style={{ borderRadius: 16, padding: '14px 16px' }}>
         <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>
-        <BarChartMini datos={bloque.datos} color={colorUnidad(bloque.unidad)} fmt={fmt} />
+        {datos.length === 0
+          ? <div style={{ fontSize: 13, color: T.textTertiary, fontStyle: 'italic' }}>Sin datos en el periodo.</div>
+          : <BarChartMini datos={datos} color={colorUnidad(bloque.unidad)} fmt={fmt} />}
       </div>
     );
   }
@@ -504,8 +510,13 @@ export function BloqueRenderer({ bloque, accionEstado = 'pendiente', onConfirmar
       if (col?.unidad && typeof v === 'number') return fmtUnidad(col.unidad)(v);
       return v == null ? '' : String(v);
     };
-    const alignOf = (key: string): 'left' | 'right' =>
-      (cols.find((c) => c.key === key)?.alinear === 'der' ? 'right' : 'left');
+    // Alineacion: la explicita manda; si no, las columnas NUMERICAS (con unidad)
+    // se alinean a la derecha (buena practica de dataviz: numeros a la derecha).
+    const alignOf = (key: string): 'left' | 'right' => {
+      const col = cols.find((c) => c.key === key);
+      if (col?.alinear) return col.alinear === 'der' ? 'right' : 'left';
+      return col?.unidad ? 'right' : 'left';
+    };
     return (
       <div className="glass-panel" style={{ borderRadius: 16, padding: '14px 16px', overflowX: 'auto' }}>
         {bloque.titulo && <div style={{ fontSize: 12.5, fontWeight: 700, color: T.text, marginBottom: 10 }}>{bloque.titulo}</div>}
