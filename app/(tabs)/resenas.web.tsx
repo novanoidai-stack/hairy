@@ -186,30 +186,8 @@ function ResenasScreen() {
   const [expandidas, setExpandidas] = useState<Set<string>>(new Set());
   const toggleExpandida = (id: string) => setExpandidas((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
-  // IA: Borrador de respuesta (Sesion 8 - patron useAyudaIA)
-  const [resenaEnEdicion, setResenaEnEdicion] = useState<Resena | null>(null);
-  const [borradorRespuesta, setBorradorRespuesta] = useState('');
-  const [mostrarModalRespuesta, setMostrarModalRespuesta] = useState(false);
-  const [guardandoRespuesta, setGuardandoRespuesta] = useState(false);
-  const [respuestaGuardada, setRespuestaGuardada] = useState(false);
-  const iaBorrador = useAyudaIA();
-
   // IA: Resumen de temas recurrentes (Sesion 8 - patron useAyudaIA)
   const iaTemas = useAyudaIA();
-
-  // Efecto: actualizar borradorRespuesta cuando iaBorrador devuelve resultado
-  useEffect(() => {
-    if (iaBorrador.estado.tipo === 'listo' && mostrarModalRespuesta) {
-      // Extraer texto de los bloques (puede venir como bloques de texto)
-      const texto = iaBorrador.estado.bloques
-        .filter((b): b is Extract<Bloque, { tipo: 'texto' }> => b.tipo === 'texto')
-        .map((b) => b.texto)
-        .join('\n\n');
-      if (texto) {
-        setBorradorRespuesta(texto);
-      }
-    }
-  }, [iaBorrador.estado, mostrarModalRespuesta]);
 
   const generarResumenTemas = async () => {
     if (filtradas.length === 0) return;
@@ -262,63 +240,6 @@ ${comentarios}`;
     if (!confirm('¿Seguro que quieres eliminar esta reseña? No se puede deshacer.')) return;
     setResenas((prev) => prev.filter((r) => r.id !== id));
     await supabase.from('resenas').delete().eq('id', id);
-  };
-
-  // Sesion 8: generar sugerencia de respuesta con Chispa (patron useAyudaIA)
-  const generarSugerenciaRespuesta = async (resena: Resena) => {
-    setResenaEnEdicion(resena);
-    setMostrarModalRespuesta(true);
-    setRespuestaGuardada(false);
-
-    const prompt = `Genera una respuesta educada y profesional para esta reseña de cliente.
-Cliente: ${resena.autor_nombre || 'Anónimo'}
-Valoración: ${resena.puntuacion}/5
-Comentario: ${resena.comentario || 'Sin comentarios'}
-${resena.mecha_mejora_comentario ? `Sugerencia de mejora: ${resena.mecha_mejora_comentario}` : ''}
-
-Instrucciones:
-- Si la valoración es positiva (4-5): agradecer, mencionar algo concreto del comentario e invitar a volver.
-- Si es neutral (3): agradecer, mostrar interés en mejorar y ofrecer contacto directo.
-- Si es negativa (1-2): disculparse sin ser defensivos, explicar acciones correctivas y ofrecer solución.
-- Tono cercano pero profesional, adaptado a un salón de peluquería.
-- NO inventar servicios ni promesas falsas.
-- Máximo 3-4 líneas.
-
-Responde solo con el texto de la respuesta, sin explicaciones previas.`;
-
-    await iaBorrador.analizar(prompt);
-  };
-
-  // Guardar borrador de respuesta en la reseña (Sesion 8)
-  const guardarBorradorRespuesta = async () => {
-    if (!resenaEnEdicion || !borradorRespuesta.trim()) return;
-    setGuardandoRespuesta(true);
-
-    try {
-      const { error } = await supabase
-        .from('resenas')
-        .update({ respuesta_borrador: borradorRespuesta })
-        .eq('id', resenaEnEdicion.id);
-
-      if (error) throw error;
-
-      setRespuestaGuardada(true);
-      // Actualizar estado visual de la reseña localmente
-      setResenas((prev) => prev.map((r) => (r.id === resenaEnEdicion.id ? { ...r, respuesta_borrador: borradorRespuesta } : r)));
-    } catch (e) {
-      console.error('Error guardando borrador:', e);
-    } finally {
-      setGuardandoRespuesta(false);
-    }
-  };
-
-  // Cerrar modal de respuesta
-  const cerrarModalRespuesta = () => {
-    setMostrarModalRespuesta(false);
-    setResenaEnEdicion(null);
-    setBorradorRespuesta('');
-    setRespuestaGuardada(false);
-    iaBorrador.reset();
   };
 
   // --- Filtrado ---
@@ -742,24 +663,6 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
                       </div>
                     ) : null}
 
-                    {r.respuesta_borrador ? (
-                      <div style={{ marginTop: 16, padding: 12, background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`, borderRadius: 8 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                          <Icon name="spark" size={14} color={TOKENS.primary} />
-                          <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.primary, textTransform: 'uppercase' }}>Respuesta sugerida</span>
-                        </div>
-                        <div style={{ fontSize: 13, color: TOKENS.textSec, fontStyle: 'italic' }}>
-                          "{r.respuesta_borrador}"
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ marginTop: 16 }}>
-                        <button onClick={() => generarSugerenciaRespuesta(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: TOKENS.primarySoft, color: TOKENS.primaryHi, border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                          <Icon name="spark" size={14} /> Responder (Chispa)
-                        </button>
-                      </div>
-                    )}
-
                     {!r.visible && (
                       <div style={{ marginTop: 16, fontSize: 12, fontWeight: 600, color: TOKENS.textTer, display: 'flex', alignItems: 'center', gap: 6, background: TOKENS.bgCardHi, padding: '6px 10px', borderRadius: 6, alignSelf: 'flex-start' }}>
                         <Icon name="eyeOff" size={14} color={TOKENS.textTer} /> Oculta al público
@@ -776,55 +679,6 @@ Responde solo con el texto de la respuesta, sin explicaciones previas.`;
             )}
           </>
         )}
-        {/* MODAL RESPUESTA */}
-        {mostrarModalRespuesta && resenaEnEdicion && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} onClick={cerrarModalRespuesta} />
-            <div style={{ position: 'relative', background: TOKENS.bgPanel, width: '100%', maxWidth: 500, borderRadius: 20, boxShadow: '0 20px 40px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <div style={{ padding: '20px 24px', borderBottom: `1px solid ${TOKENS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Icon name="spark" size={20} color={TOKENS.primary} />
-                  <span style={{ fontSize: 18, fontWeight: 800, color: TOKENS.text }}>Responder Reseña</span>
-                </div>
-                <button onClick={cerrarModalRespuesta} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: TOKENS.textTer }}>×</button>
-              </div>
-              <div style={{ padding: 24 }}>
-                {iaBorrador.estado.tipo === 'cargando' ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 30 }}>
-                    <span className="chispa-loader" style={{ width: 24, height: 24, borderRadius: '50%', border: `3px solid ${TOKENS.primary}`, borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-                    <span style={{ fontSize: 14, color: TOKENS.textSec }}>Generando sugerencia...</span>
-                    <style dangerouslySetInnerHTML={{ __html: '@keyframes spin { 100% { transform: rotate(360deg); } }' }} />
-                  </div>
-                ) : iaBorrador.estado.tipo === 'error' ? (
-                  <div style={{ textAlign: 'center', padding: 20 }}>
-                    <div style={{ color: TOKENS.danger, fontSize: 14, marginBottom: 12 }}>{iaBorrador.estado.mensaje}</div>
-                    <button onClick={() => iaBorrador.reintentar()} style={{ padding: '8px 16px', background: TOKENS.primarySoft, color: TOKENS.primaryHi, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                      Reintentar
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <textarea
-                      value={borradorRespuesta}
-                      onChange={(e) => setBorradorRespuesta(e.target.value)}
-                      style={{ width: '100%', height: 120, padding: 12, borderRadius: 10, border: `1px solid ${TOKENS.borderHi}`, fontSize: 14, fontFamily: 'inherit', resize: 'none' }}
-                      placeholder="Escribe aquí la respuesta..."
-                    />
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 20 }}>
-                      <button onClick={cerrarModalRespuesta} style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: TOKENS.bgCardHi, color: TOKENS.textSec, fontWeight: 600, cursor: 'pointer' }}>
-                        Cancelar
-                      </button>
-                      <button disabled={guardandoRespuesta || !borradorRespuesta.trim() || respuestaGuardada} onClick={guardarBorradorRespuesta} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: respuestaGuardada ? TOKENS.success : TOKENS.primary, color: '#fff', fontWeight: 700, cursor: (guardandoRespuesta || !borradorRespuesta.trim() || respuestaGuardada) ? 'default' : 'pointer', opacity: guardandoRespuesta ? 0.7 : 1 }}>
-                        {guardandoRespuesta ? 'Guardando...' : respuestaGuardada ? 'Guardado' : 'Guardar borrador'}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
       </div>
       {showManualPanel && (
         <ManualPanel

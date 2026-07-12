@@ -29,7 +29,7 @@ const T = {
   text: '#1c1814', textSec: '#5c5249', textTer: '#736658',
   primary: '#f4501e', primaryHi: '#c0260a', primarySoft: 'rgba(244,80,30,0.10)',
   success: '#0f9d6b', successSoft: 'rgba(15,157,107,0.12)',
-  warning: '#e08a00', danger: '#e23b34', dangerSoft: 'rgba(226,59,52,0.12)',
+  warning: '#e08a00', warningSoft: 'rgba(224,138,0,0.12)', danger: '#e23b34', dangerSoft: 'rgba(226,59,52,0.12)',
 };
 
 const ANIM = `
@@ -51,6 +51,7 @@ const ICONS: Record<string, string> = {
   doc: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
   x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
   refresh: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>',
+  spark: '<path d="M12 3l1.9 5.2L19 10l-5.1 1.8L12 17l-1.9-5.2L5 10l5.1-1.8z"/>',
 };
 function Icon({ name, size = 16, color = T.text }: { name: string; size?: number; color?: string }) {
   return <span style={{ display: 'inline-flex', color, flexShrink: 0 }} dangerouslySetInnerHTML={{
@@ -331,7 +332,9 @@ function BandejaScreen() {
   const [filtro, setFiltro] = useState<'abiertas' | 'todas'>('abiertas');
   const [mensaje, setMensaje] = useState('');
   const [abierta, setAbierta] = useState<Conversacion | null>(null);
-  const [paginaManual] = usePaginaManualVista('bandeja');
+  // El hook devuelve un objeto, no una tupla: destructurar como array lanzaba
+  // "object is not iterable" en runtime y dejaba la bandeja EN BLANCO.
+  const paginaManual = usePaginaManualVista('bandeja');
   const [ausenciasPendientes, setAusenciasPendientes] = useState<any[]>([]);
 
   const negocioId = (conversaciones[0]?.negocio_id) || null;
