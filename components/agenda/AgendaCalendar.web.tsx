@@ -2913,8 +2913,22 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
       }
       const colW = (r.width - 56) / profs.length;
       const profIndex = Math.min(Math.floor(relX / colW), profs.length - 1);
-      const snappedMin = Math.max(0, Math.round((relY - d.offsetY) / ROW_H * 60 / 15) * 15);
-      const sl = { profIndex, minutesFromStart: snappedMin, colW };
+      let minutesFromStart = Math.max(0, Math.round((relY - d.offsetY) / ROW_H * 60 / 15) * 15);
+      // Encaje en reposo: si el punto de suelta cae DENTRO del reposo de otra cita
+      // del mismo profesional, alineamos el inicio al arranque del reposo (fin_activa)
+      // en vez de dejar la cita "a un lado" donde este el cursor (feedback Jose).
+      const targetProf = profs[profIndex];
+      if (targetProf) {
+        const dayStart = new Date(_dateRef.current); dayStart.setHours(START_H, 0, 0, 0);
+        const candMs = dayStart.getTime() + minutesFromStart * 60000;
+        const host = _citasRef.current.find((c: any) =>
+          c.id !== d.cita.id && c.profesional_id === targetProf.id && c.fin_activa && c.fin_espera &&
+          candMs >= new Date(c.fin_activa).getTime() && candMs < new Date(c.fin_espera).getTime());
+        if (host) {
+          minutesFromStart = Math.max(0, Math.round((new Date(host.fin_activa).getTime() - dayStart.getTime()) / 60000));
+        }
+      }
+      const sl = { profIndex, minutesFromStart, colW };
       dropRef.current = sl; setDropSlot(sl);
     };
 
@@ -3465,6 +3479,10 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                           right: 0,
                           height: esperaPx,
                           pointerEvents: 'none',
+                          // La banda de reposo debe quedar POR DEBAJO del contenido (nombre/
+                          // iniciales): antes, al ser absolute sin z-index, tapaba el texto
+                          // cuando la fase activa era corta (bloque "cortado"). z:1 < contenido z:2.
+                          zIndex: 1,
                           background: `repeating-linear-gradient(45deg, rgba(245,158,11,0.22) 0 5px, rgba(255,251,240,0.86) 5px 11px)`,
                           borderTop: `1.5px dashed #f59e0b`,
                           borderBottom: esperaPx > 2 && finEspera && finEspera < end ? `1.5px dashed #f59e0b` : 'none',
@@ -3557,7 +3575,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                           const superNarrow = height <= 20;
                           const badgePx = superNarrow ? 15 : 18;
                           return (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', height: '100%' }}>
+                            <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', height: '100%' }}>
                               <span style={{ flexShrink: 0, width: badgePx, height: badgePx, borderRadius: 5, background: cancelada ? '#99999955' : badgeColor, display: 'grid', placeItems: 'center', color: '#fff', fontSize: superNarrow ? 8 : 9, fontWeight: 800 }} title={catName ? `${catName} · ${nombreCliente}` : nombreCliente}>
                                 {iniciales}
                               </span>
@@ -3574,7 +3592,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         }
 
                         return (
-                          <div style={{ display: 'flex', gap: 7, height: '100%', overflow: 'hidden' }}>
+                          <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: 7, height: '100%', overflow: 'hidden' }}>
                             {/* Badge: INICIALES del cliente sobre el COLOR de la categoria.
                                 Color = tipo de servicio (de un vistazo); letras = quien. */}
                             <span style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 8, background: cancelada ? '#99999955' : badgeColor, display: 'grid', placeItems: 'center', color: '#fff', fontSize: 11, fontWeight: 800, marginTop: 1 }} title={catName ? `${catName} · ${nombreCliente}` : nombreCliente}>
