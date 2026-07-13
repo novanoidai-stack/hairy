@@ -7027,6 +7027,42 @@ export function DetalleCitaModal({ onClose, onSaved, cita, servicios, categorias
           </div>
         </div>
 
+        {/* Citas ENCAJADAS en el reposo de esta cita: al abrir el host se ve que hay
+            otra(s) cita(s) aprovechando su tiempo muerto (feedback Jose). */}
+        {(() => {
+          if (!cita.fin_activa || !cita.fin_espera) return null;
+          const ini = new Date(cita.fin_activa).getTime();
+          const finR = new Date(cita.fin_espera).getTime();
+          if (finR <= ini) return null;
+          const dentro = (citasHoy || []).filter((c: any) =>
+            c.id !== cita.id && c.profesional_id === cita.profesional_id && c.estado !== CITA_STATUS.CANCELADA &&
+            new Date(c.inicio).getTime() >= ini && new Date(c.fin).getTime() <= finR);
+          if (dentro.length === 0) return null;
+          const hh = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+          return (
+            <div style={{ margin: isMobileOrTablet ? '14px 18px 0' : '18px 32px 0', padding: '12px 14px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(224,147,11,0.35)', borderRadius: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 9 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c77f0a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 22h14M5 2h14M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2"/></svg>
+                <span style={{ fontSize: 12, fontWeight: 800, color: '#93560a', textTransform: 'uppercase', letterSpacing: 0.4 }}>En el reposo de esta cita ({dentro.length})</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {dentro.map((c: any) => {
+                  const cli = (clientes || []).find((x: any) => x.id === c.cliente_id);
+                  const srv = (servicios || []).find((x: any) => x.id === c.servicio_id);
+                  return (
+                    <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, padding: '7px 10px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: TOKENS.textSec, fontVariantNumeric: 'tabular-nums' }}>{hh(new Date(c.inicio))}–{hh(new Date(c.fin))}</span>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>{cli?.nombre || 'Cliente'}</span>
+                      {srv?.nombre && <span style={{ fontSize: 11.5, color: TOKENS.textTer }}>· {srv.nombre}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 7 }}>Aprovechan el tiempo de reposo: el profesional queda libre mientras el tinte/proceso actua.</div>
+            </div>
+          );
+        })()}
+
         {/* 5.5: Servicios encadenados info */}
         {cita.grupo_id && allCitas && (() => {
           const siblings = (allCitas as any[])
