@@ -53,6 +53,9 @@ const ANIM = `
   .rp-field { color: #f6f8ff !important; background-color: #101729 !important; }
   .rp-field:focus { border-color: ${T.primary} !important; box-shadow: 0 0 0 3px ${T.primarySoft} }
   .rp-check { transition: background 0.15s ease, border-color 0.15s ease }
+  .rp-check-wrap { position: relative }
+  .rp-check-wrap input.rp-check-native { position: absolute; opacity: 0; top: 1px; left: 0; width: 22px; height: 22px; margin: 0; padding: 0; cursor: pointer; z-index: 2 }
+  .rp-check-wrap input.rp-check-native:focus-visible + .rp-check { box-shadow: 0 0 0 3px rgba(244,80,30,0.30) }
   .rp-photo { transition: transform 0.3s cubic-bezier(0.16,1,0.3,1) }
   .rp-opt:hover .rp-photo { transform: scale(1.04) }
   @media (prefers-reduced-motion: reduce) {
@@ -565,8 +568,8 @@ export default function PortalReservaWeb() {
               }}
             >
               <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 2 }}>
-                <span style={{ fontSize: 13.5, fontWeight: 700, color: T.text }}>¿Venís en grupo?</span>
-                <span style={{ fontSize: 12, color: T.textSec }}>Reservad varias personas a la misma hora (bodas, madres+hijas...).</span>
+                <span style={{ fontSize: 13.5, fontWeight: 700, color: T.text }}>{t('grupo_cta_titulo')}</span>
+                <span style={{ fontSize: 12, color: T.textSec }}>{t('grupo_cta_sub')}</span>
               </span>
               <Icon name="chevronRight" size={18} color={T.primaryHi} />
             </button>
@@ -702,7 +705,7 @@ export default function PortalReservaWeb() {
                                 key={s.slot}
                                 className={sel ? 'rp-slot rp-on' : 'rp-slot'}
                                 onClick={() => setSlotSel(s)}
-                                title={profId === ANY_PRO ? `con ${s.profesional_nombre}` : undefined}
+                                title={profId === ANY_PRO ? t('slot_con_pro', { pro: s.profesional_nombre }) : undefined}
                                 style={{
                                   padding: '10px 6px', borderRadius: 12, fontSize: 14.5, fontWeight: 700, animationDelay: `${i * 0.02}s`,
                                   border: sel ? 'none' : `1.5px solid ${T.border}`,
@@ -767,49 +770,49 @@ export default function PortalReservaWeb() {
           </div>
 
           {/* Consentimiento de privacidad (se recoge el telefono) */}
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 16, cursor: 'pointer' }}>
-            <span
-              onClick={() => setConsent(c => !c)}
-              className="rp-check"
-              style={{
-                flexShrink: 0, marginTop: 1, width: 22, height: 22, borderRadius: 7,
-                border: `2px solid ${consent ? T.primary : T.borderHi}`,
-                background: consent ? T.primary : T.card,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
+          <label className="rp-check-wrap" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 16, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              className="rp-check-native"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+            />
+            <span aria-hidden className="rp-check" style={{
+              flexShrink: 0, marginTop: 1, width: 22, height: 22, borderRadius: 7,
+              border: `2px solid ${consent ? T.primary : T.borderHi}`,
+              background: consent ? T.primary : T.card,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
+            }}>
               {consent && <Icon name="check" size={14} color="#fff" />}
             </span>
             <span style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.45 }}>
-              <span onClick={() => setConsent(c => !c)}>
-                {t('consent').split('{priv}')[0]}
-                <a className="rp-link" href={PRIV_URL} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ color: T.primary, fontWeight: 700, textDecoration: 'underline' }}>{t('consent_link')}</a>
-                {t('consent').split('{priv}')[1]}
-              </span>
+              {t('consent').split('{priv}')[0]}
+              <a className="rp-link" href={PRIV_URL} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: T.primary, fontWeight: 700, textDecoration: 'underline' }}>{t('consent_link')}</a>
+              {t('consent').split('{priv}')[1]}
               <span style={{ display: 'block', color: T.textTer, marginTop: 3, fontSize: 11.5 }}>{t('consent_note')}</span>
             </span>
           </label>
 
           {/* Consentimiento de IA (opt-in) */}
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 16, cursor: 'pointer' }}>
-            <span
-              onClick={() => setConsentIa(c => !c)}
-              className="rp-check"
-              style={{
-                flexShrink: 0, marginTop: 1, width: 22, height: 22, borderRadius: 7,
-                border: `2px solid ${consentIa ? T.primary : T.borderHi}`,
-                background: consentIa ? T.primary : T.card,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
+          <label className="rp-check-wrap" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 16, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              className="rp-check-native"
+              checked={consentIa}
+              onChange={(e) => setConsentIa(e.target.checked)}
+            />
+            <span aria-hidden className="rp-check" style={{
+              flexShrink: 0, marginTop: 1, width: 22, height: 22, borderRadius: 7,
+              border: `2px solid ${consentIa ? T.primary : T.borderHi}`,
+              background: consentIa ? T.primary : T.card,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
+            }}>
               {consentIa && <Icon name="check" size={14} color="#fff" />}
             </span>
             <span style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.45 }}>
-              <span onClick={() => setConsentIa(c => !c)}>
-                Quiero usar funciones de Inteligencia Artificial (Chispa) para gestionar mis reservas y sugerencias, aceptando que mi nombre e historial de citas sea procesado por IA.
-              </span>
+              {t('consent_ia')}
               <span style={{ display: 'block', color: T.textTer, marginTop: 3, fontSize: 11.5 }}>
-                Opcional. Los datos médicos, de salud o alergias nunca se comparten.
+                {t('consent_ia_note')}
               </span>
             </span>
           </label>
@@ -911,15 +914,17 @@ export default function PortalReservaWeb() {
             onClick={(e) => e.stopPropagation()}
             style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: 24, maxWidth: 420, textAlign: 'center' }}
           >
-            <div style={{ fontSize: 40, marginBottom: 10 }}>🎉</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: T.text, marginBottom: 6 }}>Reserva de grupo confirmada</div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: '50%', background: T.primarySoft, marginBottom: 14 }}>
+              <MechaMark size={30} />
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: T.text, marginBottom: 6 }}>{t('grupo_ok_title')}</div>
             <div style={{ fontSize: 13.5, color: T.textSec, marginBottom: 16 }}>
-              {grupoOk.total} personas · {new Date(grupoOk.inicio).toLocaleString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Recibiréis un aviso con los detalles.
+              {t('grupo_ok_personas', { n: grupoOk.total })} · {new Date(grupoOk.inicio).toLocaleString(loc, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. {t('grupo_ok_aviso')}
             </div>
             <button
               onClick={() => setGrupoOk(null)}
               style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
-            >Cerrar</button>
+            >{t('grupo_ok_cerrar')}</button>
           </div>
         </div>
       )}

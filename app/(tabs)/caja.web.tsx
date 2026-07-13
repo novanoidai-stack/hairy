@@ -128,13 +128,8 @@ function CajaScreen() {
   const [mensaje, setMensaje] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   // Arqueo del dia: lo cobrado HOY de verdad (libro de cobros), por metodo.
   const [arqueo, setArqueo] = useState<{ total: number; efectivo: number; datafono: number; propinas: number; count: number } | null>(null);
-  // Fichajes (registro de jornada del equipo)
-  const [userId, setUserId] = useState<string>('');
   // Rol del usuario: propietario/dirección ven TODO el equipo; el resto, lo suyo.
   const [canSeeAll, setCanSeeAll] = useState(false);
-  // Mapa user_id -> nombre del miembro del equipo (para mostrar quién fichó).
-  const [staffMap, setStaffMap] = useState<Record<string, string>>({});
-  const [fichajesHoy, setFichajesHoy] = useState<Array<{ tipo: string; marcado_at: string; user_id: string | null }>>([]);
   // Cobros del día (filas crudas) para los registros descargables.
   const [cobrosHoy, setCobrosHoy] = useState<Array<any>>([]);
   // Id del cobro que se está reembolsando (spinner del botón).
@@ -231,16 +226,9 @@ function CajaScreen() {
 
       setCitas(procesadas);
 
-      // Rol + equipo: el propietario/dirección ve el equipo entero; el resto, lo suyo.
-      setUserId(profile.id || '');
+      // Rol: el propietario/dirección ve el equipo entero; el resto, lo suyo.
+      // (Los fichajes/jornada viven en "Mi jornada"; Caja ya no los consulta.)
       setCanSeeAll(profile.role === 'owner' || profile.role === 'admin');
-      const { data: team } = await supabase
-        .from('profiles')
-        .select('id, nombre, apellido')
-        .eq('negocio_id', profile.negocio_id);
-      const map: Record<string, string> = {};
-      (team || []).forEach((m: any) => { map[m.id] = [m.nombre, m.apellido].filter(Boolean).join(' ').trim() || 'Miembro'; });
-      setStaffMap(map);
 
       // Arqueo del dia: lo cobrado HOY de verdad (libro de cobros)
       const { data: cobrosData } = await supabase
@@ -259,15 +247,6 @@ function CajaScreen() {
         propinas: cr.reduce((s: number, r: any) => s + (r.propina_cents || 0), 0),
         count: cr.length,
       });
-
-      // Fichajes de hoy del negocio (registro de jornada)
-      const { data: fchs } = await supabase
-        .from('fichajes')
-        .select('tipo, marcado_at, user_id')
-        .eq('negocio_id', profile.negocio_id)
-        .gte('marcado_at', todayStart)
-        .order('marcado_at', { ascending: false });
-      setFichajesHoy(fchs || []);
 
       // Presupuestos aceptados, aún sin cobrar.
       const { data: presData } = await supabase
@@ -377,8 +356,7 @@ function CajaScreen() {
     setTimeout(() => setMensaje(null), 3000);
   };
 
-  // El fichaje personal vive ahora en "Mi jornada". Aqui Caja solo supervisa
-  // la jornada del equipo (lista + CSV), funcion de gestor.
+  // Los fichajes/jornada viven en "Mi jornada". Caja se centra en cobros y arqueo.
 
   // Descargas (registros del día) — solo propietario/dirección.
   const hoyStr = format(new Date(), 'yyyy-MM-dd');
@@ -393,15 +371,6 @@ function CajaScreen() {
     ]));
     rows.push(['TOTAL', ((arqueo?.total || 0) / 100).toFixed(2), ((arqueo?.efectivo || 0) / 100).toFixed(2), ((arqueo?.datafono || 0) / 100).toFixed(2), ((arqueo?.propinas || 0) / 100).toFixed(2)]);
     downloadCSV(`caja-cobros-${hoyStr}.csv`, rows);
-  };
-  const descargarFichajes = () => {
-    const rows: (string | number)[][] = [['Empleado', 'Tipo', 'Hora']];
-    [...fichajesHoy].reverse().forEach((f) => rows.push([
-      (f.user_id && staffMap[f.user_id]) || 'Miembro',
-      f.tipo === 'entrada' ? 'Entrada' : 'Salida',
-      format(parseISO(f.marcado_at), 'HH:mm', { locale: es }),
-    ]));
-    downloadCSV(`fichajes-${hoyStr}.csv`, rows);
   };
 
   // ─────────────────────────────────────────────────────────────────────────────────
