@@ -14,6 +14,7 @@ import { CalendarProvider } from '@/lib/calendarContext';
 import { PrivacyConsentProvider } from '@/lib/privacyConsentContext';
 import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
 import { ChispaLauncher } from '@/components/chispa/ChispaLauncher';
+import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 import { ProximaAccionLauncher } from '@/components/chispa/ProximaAccionLauncher';
 import { CoachLauncher } from '@/components/chispa/CoachLauncher';
 import { TourLauncher } from '@/components/chispa/TourLauncher';
@@ -207,6 +208,7 @@ export default function RootLayout() {
   }
 
   return (
+    <GlobalErrorBoundary>
     <PrivacyConsentProvider>
     <CalendarProvider>
     <ThemeProvider>
@@ -226,5 +228,6 @@ export default function RootLayout() {
     </ThemeProvider>
     </CalendarProvider>
     </PrivacyConsentProvider>
+    </GlobalErrorBoundary>
   );
 }

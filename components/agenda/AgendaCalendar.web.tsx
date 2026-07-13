@@ -7368,8 +7368,8 @@ function DayTimeline({
                                 ? "1px solid #55555540"
                                 : `1px solid ${actualCitaBorder}`,
                               borderLeft: cancelada
-                                ? `${estrecho || totalLanes > 1 ? 2 : 4}px solid #66666660`
-                                : `${estrecho || totalLanes > 1 ? 2 : 4}px solid ${stripeColor}`,
+                                ? `${totalLanes > 1 || (profesionales?.length || 1) >= 2 ? 2 : 4}px solid #66666660`
+                                : `${totalLanes > 1 || (profesionales?.length || 1) >= 2 ? 2 : 4}px solid ${stripeColor}`,
                               borderTop:
                                 isChained && !cancelada
                                   ? `2px solid #e0340e`
