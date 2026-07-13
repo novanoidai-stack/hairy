@@ -3092,9 +3092,26 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
       byProf[c.profesional_id].push(c);
     });
     Object.values(byProf).forEach((profCitas: any[]) => {
-      profCitas.sort((a: any, b: any) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+      // Citas ANIDADAS: caben enteras dentro del reposo de otra cita del mismo
+      // profesional (aprovechan el tiempo muerto). NO deben partir la columna en
+      // dos carriles ("al lado"); se pintan ENCAJADAS dentro del reposo del host.
+      profCitas.forEach((c: any) => {
+        const host = profCitas.find((h: any) =>
+          h.id !== c.id && h.estado !== CITA_STATUS.CANCELADA && c.estado !== CITA_STATUS.CANCELADA &&
+          h.fin_activa && h.fin_espera &&
+          new Date(h.fin_espera).getTime() > new Date(h.fin_activa).getTime() &&
+          new Date(c.inicio).getTime() >= new Date(h.fin_activa).getTime() &&
+          new Date(c.fin).getTime() <= new Date(h.fin_espera).getTime()
+        );
+        c._nested = !!host;
+        c._hostId = host ? host.id : null;
+      });
+
+      // Lanes/solapes SOLO entre las citas normales (las anidadas van encima).
+      const normales = profCitas.filter((c: any) => !c._nested);
+      normales.sort((a: any, b: any) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
       const lanes: any[][] = [];
-      profCitas.forEach((cita: any) => {
+      normales.forEach((cita: any) => {
         let placed = false;
         for (let i = 0; i < lanes.length; i++) {
           const last = lanes[i][lanes[i].length - 1];
@@ -3110,8 +3127,8 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
           cita._lane = lanes.length - 1;
         }
       });
-      profCitas.forEach((cita: any) => {
-        const overlapping = profCitas.filter((o: any) =>
+      normales.forEach((cita: any) => {
+        const overlapping = normales.filter((o: any) =>
           o.id !== cita.id &&
           new Date(o.inicio).getTime() < new Date(cita.fin).getTime() &&
           new Date(o.fin).getTime() > new Date(cita.inicio).getTime()
@@ -3119,6 +3136,24 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
         cita._totalLanes = overlapping.length > 0
           ? Math.max(...overlapping.map((o: any) => o._lane ?? 0), cita._lane ?? 0) + 1
           : 1;
+      });
+      // Anidadas: sub-carriles POR HOST, para que varias citas en el mismo reposo
+      // se repartan lado a lado (dentro del hueco) en vez de solaparse entre si.
+      const porHost: Record<string, any[]> = {};
+      profCitas.filter((c: any) => c._nested).forEach((c: any) => { (porHost[c._hostId] ||= []).push(c); });
+      Object.values(porHost).forEach((grupo: any[]) => {
+        grupo.sort((a: any, b: any) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+        const nlanes: any[][] = [];
+        grupo.forEach((c: any) => {
+          let placed = false;
+          for (let i = 0; i < nlanes.length; i++) {
+            if (new Date(nlanes[i][nlanes[i].length - 1].fin).getTime() <= new Date(c.inicio).getTime()) {
+              nlanes[i].push(c); c._nestedLane = i; placed = true; break;
+            }
+          }
+          if (!placed) { nlanes.push([c]); c._nestedLane = nlanes.length - 1; }
+        });
+        grupo.forEach((c: any) => { c._lane = 0; c._totalLanes = 1; c._nestedTotal = nlanes.length; });
       });
     });
     return result;
@@ -3399,6 +3434,16 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                   const height = Math.max(24, durH * ROW_H);
                   const lane = cita._lane ?? 0;
                   const totalLanes = cita._totalLanes ?? 1;
+                  // Cita ENCAJADA en el reposo de otra: se pinta indentada y por
+                  // encima del host (dentro del reposo), no en un carril al lado.
+                  // Si hay varias en el mismo reposo, se reparten en sub-carriles.
+                  const nested = !!cita._nested;
+                  const NEST_INSET = 24; // % desde la izquierda donde arranca el area anidada
+                  const nLane = cita._nestedLane ?? 0;
+                  const nTotal = cita._nestedTotal ?? 1;
+                  const nW = (100 - NEST_INSET) / nTotal;
+                  const nestedLeft = `calc(${NEST_INSET + nLane * nW}% + 6px)`;
+                  const nestedRight = `calc(${(nTotal - nLane - 1) * nW}% + 5px)`;
                   const cancelada = cita.estado === CITA_STATUS.CANCELADA;
 
                   // 5.5: grupo encadenado
@@ -3426,14 +3471,16 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                       style={{
                         position: 'absolute',
                         top,
-                        left: `calc(${(lane / totalLanes) * 100}% + 4px)`,
-                        right: `calc(${((totalLanes - lane - 1) / totalLanes) * 100}% + 4px)`,
+                        // Anidada: indentada a la derecha (dentro del reposo del host),
+                        // repartida en sub-carriles si hay varias en el mismo reposo.
+                        left: nested ? nestedLeft : `calc(${(lane / totalLanes) * 100}% + 4px)`,
+                        right: nested ? nestedRight : `calc(${((totalLanes - lane - 1) / totalLanes) * 100}% + 4px)`,
                         height,
                         boxSizing: 'border-box',
                         pointerEvents: 'auto',
                         // Siempre por encima de bloqueos/ausencias (z:1) para que nunca
-                        // queden tapadas por la banda de ausencia.
-                        zIndex: 3,
+                        // queden tapadas por la banda de ausencia. La anidada va sobre el host.
+                        zIndex: nested ? 5 : 3,
                         background: cancelada ? 'linear-gradient(180deg, #3a3a3a18, #2a2a2a10)' : citaBg,
                         border: cancelada ? '1px solid #55555540' : `1px solid ${citaBorder}`,
                         borderLeft: cancelada ? '4px solid #66666660' : `4px solid ${stripeColor}`,
@@ -3445,7 +3492,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         display: 'flex',
                         flexDirection: 'column',
                         gap: height < 60 ? 1 : 2,
-                        boxShadow: cancelada ? 'none' : citaShadow,
+                        boxShadow: cancelada ? 'none' : (nested ? '0 4px 14px rgba(40,30,24,0.20), 0 0 0 2px rgba(255,253,251,0.9)' : citaShadow),
                         transition: drag?.cita.id === cita.id ? 'none' : 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                         transform: 'scale(1)',
                         opacity: cancelada ? 0.45 : (drag?.cita.id === cita.id ? 0.25 : 1),
@@ -3471,35 +3518,48 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                           El activo (productivo) es el tinte solido del profesional; el
                           reposo (profesional libre) se pinta como banda ambar clara con
                           rayas, para que "corte" visualmente y se vea el hueco aprovechable. */}
-                      {hasEspera && !cancelada && (
+                      {hasEspera && !cancelada && (() => {
+                        const reposoMin = Math.round(esperaPx / ROW_H * 60);
+                        const hayActiva2 = !!(finEspera && finEspera < end); // activa-reposo-activa
+                        return (
                         <div style={{
                           position: 'absolute',
                           top: activaPx,
-                          left: 0,
-                          right: 0,
+                          left: 3,
+                          right: 3,
                           height: esperaPx,
                           pointerEvents: 'none',
-                          // La banda de reposo debe quedar POR DEBAJO del contenido (nombre/
-                          // iniciales): antes, al ser absolute sin z-index, tapaba el texto
-                          // cuando la fase activa era corta (bloque "cortado"). z:1 < contenido z:2.
+                          // La banda de reposo va POR DEBAJO del contenido (z:1 < contenido z:2)
+                          // para no tapar el nombre cuando la fase activa es corta.
                           zIndex: 1,
-                          background: `repeating-linear-gradient(45deg, rgba(245,158,11,0.22) 0 5px, rgba(255,251,240,0.86) 5px 11px)`,
-                          borderTop: `1.5px dashed #f59e0b`,
-                          borderBottom: esperaPx > 2 && finEspera && finEspera < end ? `1.5px dashed #f59e0b` : 'none',
+                          borderRadius: 6,
+                          // Zona ambar clara con trama diagonal fina (procesa/pausa), tinte
+                          // plano de base para cohesion y borde discontinuo que la delimita.
+                          background: 'linear-gradient(0deg, rgba(245,158,11,0.09), rgba(245,158,11,0.09)), repeating-linear-gradient(-45deg, rgba(245,158,11,0.15) 0 1.5px, transparent 1.5px 9px)',
+                          border: '1px dashed rgba(214,150,20,0.5)',
+                          // La linea que marca donde TERMINA la fase activa (mas marcada arriba).
+                          borderTop: '1.5px dashed #e0930b',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           overflow: 'hidden',
-                          boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.10)',
                         }}>
-                          {esperaPx >= 16 && (
-                            <span style={{ fontSize: 9, fontWeight: 800, color: '#a15c07', letterSpacing: 0.6, textTransform: 'uppercase', userSelect: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <span style={{ width: 5, height: 5, borderRadius: 999, background: '#f59e0b' }} />
-                              reposo
+                          {esperaPx >= 15 && (
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 4, userSelect: 'none',
+                              fontSize: 8.5, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#93560a',
+                              background: 'rgba(255,252,244,0.92)', border: '1px solid rgba(224,147,11,0.4)',
+                              borderRadius: 999, padding: '1px 7px', boxShadow: '0 1px 3px rgba(224,147,11,0.14)',
+                            }}>
+                              {/* Reloj de arena: reposo = algo actua solo, el profesional queda libre. */}
+                              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#c77f0a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 22h14M5 2h14M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2"/></svg>
+                              Reposo{esperaPx >= 30 ? ` · ${reposoMin}′` : ''}
                             </span>
                           )}
+                          {hayActiva2 && <span style={{ position: 'absolute', bottom: -1, left: 0, right: 0, borderBottom: '1.5px dashed #e0930b' }} />}
                         </div>
-                      )}
+                        );
+                      })()}
                       {(() => {
                         const narrow = height < 50;
                         const nombreCliente = clienteMap?.get(cita.cliente_id)?.nombre || '-';
