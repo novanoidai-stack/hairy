@@ -22,6 +22,7 @@ type Dict = Record<string, string>;
 const es: Dict = {
   // Navegacion (MobileTabBar + Sidebar)
   nav_agenda: 'Agenda',
+  nav_citas: 'Citas',
   nav_clientes: 'Clientes',
   nav_equipo: 'Equipo',
   nav_informes: 'Informes',
@@ -88,7 +89,7 @@ const es: Dict = {
 };
 
 const en: Dict = {
-  nav_agenda: 'Schedule', nav_clientes: 'Clients', nav_equipo: 'Team',
+  nav_agenda: 'Schedule', nav_citas: 'Appointments', nav_clientes: 'Clients', nav_equipo: 'Team',
   nav_informes: 'Reports', nav_caja: 'Cashier', nav_mi_jornada: 'My day',
   nav_bandeja: 'Inbox', nav_inventario: 'Inventory', nav_configuracion: 'Settings',
   nav_mas: 'More', nav_lista_espera: 'Waitlist', nav_lista_espera_corta: 'Waitlist', nav_presupuestos: 'Estimates',

@@ -171,7 +171,7 @@ function CitasCRMScreen() {
   const abrirEnAgenda = (c: Cita) => {
     const fecha = format(parseISO(c.inicio), 'yyyy-MM-dd');
     setSelectedCita(null);
-    router.push(`/(tabs)?fecha=${fecha}` as never);
+    router.push(`/(tabs)?fecha=${fecha}&cita=${c.id}` as never);
   };
 
   const pad = isMobile ? '16px' : '24px 32px';
@@ -201,7 +201,7 @@ function CitasCRMScreen() {
       </div>
 
       {/* Filtros */}
-      <div style={{ padding: isMobile ? '0 16px 12px' : '0 32px 14px', background: T.bg, display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, overflowX: 'auto', flexWrap: isMobile ? 'nowrap' : 'wrap' }}>
+      <div style={{ position: 'relative', zIndex: 10, padding: isMobile ? '0 16px 12px' : '0 32px 14px', background: T.bg, display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, overflowX: isMobile ? 'auto' : 'visible', flexWrap: isMobile ? 'nowrap' : 'wrap' }}>
         <div style={{ minWidth: 200, flex: isMobile ? '0 0 auto' : '1 1 200px', maxWidth: 280 }}>
           <STextInput value={search} onChange={setSearch} placeholder="Buscar cliente, telefono o servicio..." />
         </div>
@@ -237,7 +237,7 @@ function CitasCRMScreen() {
       </div>
 
       {/* Tabla */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '0 16px 96px' : '0 32px 24px', position: 'relative' }}>
+      <div style={{ position: 'relative', zIndex: 1, flex: 1, overflowY: 'auto', padding: isMobile ? '0 16px 96px' : '0 32px 24px' }}>
         {loading ? (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><PageLoader /></div>
         ) : filteredCitas.length === 0 ? (

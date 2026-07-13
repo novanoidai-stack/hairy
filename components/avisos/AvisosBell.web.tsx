@@ -13,6 +13,7 @@ interface Props {
   // en fixed junto al menu para no quedar recortado por el overflow del aside.
   collapsed?: boolean;
   mode?: 'sidebar' | 'header';
+  children?: React.ReactNode;
 }
 
 // Icono de categoria (SVG inline, tinte por categoria). El nativo usa Ionicons
@@ -42,7 +43,7 @@ function IconoX({ size = 14, color }: { size?: number; color: string }) {
 // Estructura los avisos en CATEGORIAS con un CALIFICADOR de urgencia por fila y
 // una vista "Todos" ordenada por urgencia + cercania temporal. Cada aviso navega
 // a la pantalla donde se resuelve.
-export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
+export function AvisosBell({ collapsed, mode = 'sidebar', children }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [cat, setCat] = useState<'todos' | AvisoCategoria>('todos');
@@ -72,8 +73,8 @@ export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
   const dropdownStyle: React.CSSProperties = mode === 'header'
     ? (isMobile
       ? { position: 'fixed', top: 58, left: 12, right: 12, maxHeight: '68vh', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 }
-      : { position: 'fixed', top: 58, right: 12, width: 340, maxHeight: 460, overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 })
-    : { position: 'fixed', top: 12, left: collapsed ? 84 : 248, width: 340, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 };
+      : { position: 'fixed', top: 58, right: 12, width: 620, maxHeight: 460, overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 })
+    : { position: 'fixed', top: 12, left: collapsed ? 84 : 248, width: 620, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 };
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -114,6 +115,7 @@ export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
                   <span style={{ fontSize: 11, fontWeight: 700, color: hayUrgente ? T.danger : '#fb923c', background: hayUrgente ? T.dangerSoft : 'rgba(251,146,60,0.14)', borderRadius: 999, padding: '2px 8px' }}>{avisos.total}</span>
                 )}
               </div>
+              {children}
 
               {items.length === 0 ? (
                 <div style={{ fontSize: 12, color: T.textTertiary, textAlign: 'center', padding: '22px 0' }}>
@@ -127,7 +129,12 @@ export function AvisosBell({ collapsed, mode = 'sidebar' }: Props) {
                       <Chip key={c} label={CATEGORIA_META[c].label} count={conteo(c)} active={cat === c} onClick={() => setCat(c)} />
                     ))}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{
+                    display: isMobile ? 'flex' : 'grid',
+                    flexDirection: isMobile ? 'column' : undefined,
+                    gridTemplateColumns: isMobile ? undefined : '1fr 1fr',
+                    gap: 6,
+                  }}>
                     {visibles.map((it) => (
                       <FilaAviso
                         key={it.id}
@@ -179,40 +186,42 @@ function FilaAviso({ item, onOpen, onResolver, onDescartar }: {
   const cuando = tiempoRelativo(item.ts);
   const mostrarBadge = item.urgencia === 'urgente' || item.urgencia === 'alta';
   return (
-    <div style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
+    <div style={{ display: 'flex', alignItems: 'stretch', gap: 4 }}>
       <button
         onClick={onOpen}
         title={item.subtitulo || item.titulo}
         style={{
           flex: 1, minWidth: 0, textAlign: 'left', cursor: 'pointer',
           background: T.bgCard, border: `1px solid ${T.border}`, borderLeft: `3px solid ${u.fg}`,
-          borderRadius: 10, padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 9,
+          borderRadius: 10, padding: '6px 8px', display: 'flex', alignItems: 'center', gap: 6,
         }}
       >
-        <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 30, height: 30, borderRadius: 8, background: `${meta.tint}14` }}>
-          <IconoCategoria cat={item.categoria} color={meta.tint} />
+        <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 8, background: `${meta.tint}14` }}>
+          <IconoCategoria cat={item.categoria} size={14} color={meta.tint} />
         </span>
-        <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0, flex: 1 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{item.titulo}</span>
-            {mostrarBadge && (
-              <span style={{ flexShrink: 0, fontSize: 8.5, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: u.fg, background: u.bg, borderRadius: 999, padding: '1px 6px' }}>{u.label}</span>
-            )}
+        <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flex: 1 }}>
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.titulo}</span>
+              {mostrarBadge && (
+                <span style={{ flexShrink: 0, fontSize: 8, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: u.fg, background: u.bg, borderRadius: 999, padding: '1px 5px' }}>{u.label}</span>
+              )}
+            </span>
+            <span style={{ fontSize: 9.5, color: T.textTertiary, whiteSpace: 'nowrap', flexShrink: 0 }}>{cuando}</span>
           </span>
-          <span style={{ fontSize: 11, color: T.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span style={{ fontSize: 10, color: T.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {item.meta ? item.meta : item.subtitulo || meta.label}
-            <span style={{ color: T.textTertiary }}> · {cuando}</span>
           </span>
         </span>
       </button>
       {onResolver && (
-        <button onClick={onResolver} title="Marcar como resuelto" style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 30, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.success, cursor: 'pointer', padding: 0 }}>
-          <IconoCheck color={T.success} />
+        <button onClick={onResolver} title="Marcar como resuelto" style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.success, cursor: 'pointer', padding: 0 }}>
+          <IconoCheck size={13} color={T.success} />
         </button>
       )}
       {onDescartar && (
-        <button onClick={onDescartar} title="Descartar este aviso" style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 30, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.textTertiary, cursor: 'pointer', padding: 0 }}>
-          <IconoX color={T.textTertiary} />
+        <button onClick={onDescartar} title="Descartar este aviso" style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.textTertiary, cursor: 'pointer', padding: 0 }}>
+          <IconoX size={12} color={T.textTertiary} />
         </button>
       )}
     </div>

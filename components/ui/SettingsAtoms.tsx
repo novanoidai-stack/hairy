@@ -418,7 +418,7 @@ export function SSelect({ value, onChange, options, width = 200, disabled, place
   const current = options.find(o => o.value === value);
 
   return (
-    <div ref={ref} style={{ position: 'relative' as const, width }}>
+    <div ref={ref} style={{ position: 'relative' as const, width, zIndex: open ? 1000 : 1 }}>
       <button
         disabled={disabled}
         onClick={() => setOpen(o => !o)}
@@ -448,7 +448,7 @@ export function SSelect({ value, onChange, options, width = 200, disabled, place
         <div style={{
           position: 'absolute' as const, top: 'calc(100% + 4px)', left: 0, right: 0,
           background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 10,
-          boxShadow: '0 16px 40px rgba(28,24,20,0.18)', padding: 4, zIndex: 50,
+          boxShadow: '0 16px 40px rgba(28,24,20,0.18)', padding: 4, zIndex: 1001,
           maxHeight: 280, overflowY: 'auto' as const,
         }}>
           {options.map(o => {

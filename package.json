@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
+    "@playwright/test": "^1.61.1",
     "@types/qrcode-generator": "^1.0.6",
     "@types/react": "~19.1.0",
     "@types/react-dom": "~19.1.0",

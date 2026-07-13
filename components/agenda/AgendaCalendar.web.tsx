@@ -36,6 +36,7 @@ import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import { registrarEventoIA } from '@/lib/registroUniversal';
 import { obtenerNivelCliente } from '@/lib/fidelizacion';
+import { AvisosBell } from '@/components/avisos/AvisosBell.web';
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -432,7 +433,7 @@ export default function AgendaCalendar() {
   // --- Onboarding: checklist de puesta en marcha del salon ---
   // Solo para gestores (owner/admin) en su negocio propio; nunca en la demo ni para
   // prospectos free (que viven en demo_salon_001).
-  const obParams = useLocalSearchParams<{ onboarding?: string; cita?: string }>();
+  const obParams = useLocalSearchParams<{ onboarding?: string; cita?: string; fecha?: string }>();
   const esGestor = userProfile?.role === 'owner' || userProfile?.role === 'admin';
   const onboardingEligible = !!userProfile && esGestor && !IS_DEMO_MODE && negocioId !== 'demo_salon_001';
   const onboarding = useOnboardingStatus(onboardingEligible ? negocioId : null, onboardingEligible);
@@ -513,6 +514,19 @@ export default function AgendaCalendar() {
     setSelectedCitaEdit(pick);
     setShowEditCita(true);
   }, [obParams?.cita, citas]);
+
+  const fechaParamConsumida = useRef<string | null>(null);
+  useEffect(() => {
+    const fecha = obParams?.fecha as string | undefined;
+    if (!fecha || fechaParamConsumida.current === fecha) return;
+    fechaParamConsumida.current = fecha;
+    const d = new Date(fecha + 'T00:00:00');
+    if (!isNaN(d.getTime())) {
+      setSelectedDate(d.getDate());
+      setCurrentMonth(new Date(d.getFullYear(), d.getMonth()));
+      setView('day');
+    }
+  }, [obParams?.fecha]);
 
   // Completitud "al 100%" (S18): mas alla del nucleo, la tarjeta sigue guiando
   // hasta completar TODOS los pasos, contando solo los no omitidos por el gestor
@@ -1095,131 +1109,39 @@ export default function AgendaCalendar() {
               </svg>
             </button>
           )}
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => setShowNotif((v) => !v)}
-              title="Avisos"
-              className="m-btn-icon"
-              style={{ padding: 7, background: showNotif ? roleTheme.primarySoft : TOKENS.bgCard, border: `1px solid ${showNotif ? roleTheme.primary + '40' : TOKENS.border}`, borderRadius: 9, color: TOKENS.textSec, position: 'relative', cursor: 'pointer', width: 33, height: 33, display: 'grid', placeItems: 'center' }}
-            >
-              <Icon name="bell" size={18} color={showNotif ? roleTheme.primaryHi : TOKENS.textSec} />
-              {(totalAvisos > 0 || onboardingPending) && <span style={{ position: 'absolute', top: 5, right: 5, width: 7, height: 7, background: sinConfirmar48h > 0 ? TOKENS.danger : (onboardingPending && totalAvisos === 0 ? TOKENS.primary : '#fb923c'), borderRadius: 999, boxShadow: `0 0 0 2px ${TOKENS.bg}`, animation: 'pulse 2s infinite' }} />}
-            </button>
-            {showNotif && (
-              <>
-                {/* Backdrop para cerrar al hacer clic fuera */}
-                <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: isMobile ? 'rgba(8,6,4,0.35)' : 'transparent' }} />
-                {/* En movil el dropdown de 320px anclado a la campana se salia de
-                    pantalla (375px) y quedaba como una cajita flotante ilegible.
-                    Aqui pasa a ser una hoja superior a todo el ancho, debajo de la
-                    cabecera, que el spotlight de la demo recorta limpio. */}
-                <div ref={(el) => { notifPanelRef.current = el; }} style={isMobile
-                  ? { position: 'fixed', top: 58, left: 12, right: 12, maxHeight: '52vh', overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}`, borderRadius: 16, boxShadow: '0 24px 60px rgba(0,0,0,0.55)', zIndex: 100, padding: 14 }
-                  : { position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 320, maxHeight: 420, overflowY: 'auto', background: TOKENS.bgPanel, border: `1px solid ${TOKENS.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(0,0,0,0.45)', zIndex: 100, padding: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span>Avisos</span>
-                    {totalAvisos > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: sinConfirmar48h > 0 ? '#ef4444' : '#fb923c', background: sinConfirmar48h > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(251,146,60,0.14)', borderRadius: 999, padding: '2px 8px' }}>{totalAvisos}</span>}
-                  </div>
-                  {onboardingPending && (
-                    <OnboardingCard
-                      coreCompletados={onboarding.coreCompletados}
-                      coreTotal={onboarding.coreTotal}
-                      coreDone={onboarding.coreDone}
-                      completados={obCompletados}
-                      total={obConsiderados}
-                      isMobile={isMobile}
-                      onOpen={() => { setShowNotif(false); onboarding.refresh(); setShowOnboardingPanel(true); }}
-                      onHide={hideOnboarding}
-                      onAbrirChispa={() => { setShowNotif(false); window.dispatchEvent(new CustomEvent(CHISPA_CONFIG_GUIADA_EVENT)); }}
-                    />
-                  )}
-                  {reposoGlobal && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.22)', borderRadius: 10, marginBottom: 10 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: 999, background: '#f59e0b', flexShrink: 0 }} />
-                      <span style={{ fontSize: 11.5, color: '#f59e0b', fontWeight: 600 }}>{reposoGlobal.pct}% del reposo aprovechado hoy</span>
-                    </div>
-                  )}
-                  {totalAvisos === 0 && !onboardingPending ? (
-                    <div style={{ fontSize: 12, color: TOKENS.textTer, textAlign: 'center', padding: '18px 0' }}>No hay avisos pendientes</div>
-                  ) : (
-                    <>
-                      {sinConfirmar48h > 0 && (
-                        <>
-                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6 }}>Sin confirmar (proximas 48h)</div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {sinConfirmarList.map((c: any) => {
-                              const ini = new Date(c.inicio);
-                              const cli = clienteMap?.get(c.cliente_id);
-                              return (
-                                <button
-                                  key={c.id}
-                                  onClick={() => { const d = new Date(c.inicio); setSelectedDate(d.getDate()); setCurrentMonth(new Date(d.getFullYear(), d.getMonth())); setView('day'); setShowNotif(false); setSelectedCitaEdit(c); setShowEditCita(true); }}
-                                  title="Abrir la cita para gestionarla"
-                                  style={{ textAlign: 'left', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2 }}
-                                >
-                                  <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>{cli?.nombre || 'Cliente'}</span>
-                                  <span style={{ fontSize: 11, color: TOKENS.textSec }}>{ini.toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })} · {ini.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </>
-                      )}
-                      {mensajesSinLeer > 0 && (
-                        <>
-                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: sinConfirmar48h > 0 ? 12 : 0 }}>Mensajes</div>
-                          <button
-                            onClick={() => { setShowNotif(false); router.push('/(tabs)/bandeja' as never); }}
-                            style={{ width: '100%', textAlign: 'left', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9 }}
-                          >
-                            <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 8, background: 'rgba(244,80,30,0.14)' }}><Icon name="bell" size={14} color={TOKENS.primary} /></span>
-                            <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>{mensajesSinLeer} {mensajesSinLeer === 1 ? 'mensaje nuevo' : 'mensajes nuevos'}</span>
-                          </button>
-                        </>
-                      )}
-                      {clientesFugaCount > 0 && (
-                        <>
-                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: (sinConfirmar48h > 0 || mensajesSinLeer > 0) ? 12 : 0 }}>Clientas</div>
-                          <button
-                            onClick={() => { setShowNotif(false); router.push('/(tabs)/clientes?filtro=fuga' as never); }}
-                            style={{ width: '100%', textAlign: 'left', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9 }}
-                          >
-                            <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 8, background: 'rgba(8,145,178,0.14)' }}><Icon name="alert" size={14} color="#0891b2" /></span>
-                            <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text }}>{clientesFugaCount} {clientesFugaCount === 1 ? 'clienta en riesgo de fuga' : 'clientas en riesgo de fuga'}</span>
-                          </button>
-                        </>
-                      )}
-                      {cumplesProximos.length > 0 && (
-                        <>
-                          <div style={{ fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: TOKENS.textTer, fontWeight: 700, marginBottom: 6, marginTop: (sinConfirmar48h > 0 || mensajesSinLeer > 0 || clientesFugaCount > 0) ? 12 : 0 }}>Cumpleanos (proximos 7 dias)</div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {cumplesProximos.map((b: any) => {
-                              const fechaFmt = b.fecha.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' });
-                              const cuando = b.diff === 0 ? 'Hoy' : b.diff === 1 ? 'Manana' : `En ${b.diff} dias`;
-                              return (
-                                <button
-                                  key={b.id}
-                                  onClick={() => { setShowNotif(false); router.push(`/(tabs)/clientes?clienteId=${b.id}` as never); }}
-                                  title="Ver la ficha de la clienta"
-                                  style={{ textAlign: 'left', background: TOKENS.bgCard, border: `1px solid rgba(251,146,60,0.30)`, borderRadius: 10, padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9 }}
-                                >
-                                  <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 8, background: 'rgba(251,146,60,0.14)' }}><Icon name="cake" size={14} color="#fb923c" /></span>
-                                  <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                                    <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.nombre}</span>
-                                    <span style={{ fontSize: 11, color: '#fb923c', fontWeight: 600 }}>{cuando} · {fechaFmt}</span>
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
+          <div style={{ position: 'relative' }} ref={(el) => { notifPanelRef.current = el; }}>
+            <AvisosBell mode="header">
+              {onboardingPending && (
+                <OnboardingCard
+                  coreCompletados={onboarding.coreCompletados}
+                  coreTotal={onboarding.coreTotal}
+                  coreDone={onboarding.coreDone}
+                  completados={obCompletados}
+                  total={obConsiderados}
+                  isMobile={isMobile}
+                  onOpen={() => { onboarding.refresh(); setShowOnboardingPanel(true); }}
+                  onHide={hideOnboarding}
+                  onAbrirChispa={() => { window.dispatchEvent(new CustomEvent(CHISPA_CONFIG_GUIADA_EVENT)); }}
+                />
+              )}
+              {reposoGlobal && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.22)', borderRadius: 10, marginBottom: 10 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 999, background: '#f59e0b', flexShrink: 0 }} />
+                  <span style={{ fontSize: 11.5, color: '#f59e0b', fontWeight: 600 }}>{reposoGlobal.pct}% del reposo aprovechado hoy</span>
                 </div>
-              </>
-            )}
+              )}
+            </AvisosBell>
           </div>
+        </div>
+        <div style={{ display: 'flex', gap: isMobile ? 6 : 10, alignItems: 'center', flexShrink: 0 }}>
+          <button
+            onClick={() => setToolbarCollapsed((v) => !v)}
+            title={toolbarCollapsed ? 'Mostrar filtros' : 'Ocultar filtros'}
+            style={{ padding: isMobile ? '7px 8px' : '7px 12px', background: toolbarCollapsed ? roleTheme.primarySoft : TOKENS.bgCard, border: `1px solid ${toolbarCollapsed ? roleTheme.primary + '40' : TOKENS.border}`, color: toolbarCollapsed ? roleTheme.primaryHi : TOKENS.textSec, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', minHeight: 33, transition: 'all 0.15s ease' }}
+          >
+            <Icon name="filter" size={15} color={toolbarCollapsed ? roleTheme.primaryHi : TOKENS.textSec} />
+            {!isMobile && (toolbarCollapsed ? 'Filtros' : 'Ocultar filtros')}
+          </button>
           {!isMobile && (
             <button
               onClick={() => setRailCollapsed((v) => !v)}
@@ -1659,7 +1581,7 @@ export default function AgendaCalendar() {
                 <StatCard label="MES" value={`${totalCitasMes}`} sub="citas este mes" tone={TOKENS.warning} onClick={() => setShowStatsModal('mes')} />
               </div>
               <div style={{ animation: 'slideInUp 0.5s ease 0.4s both' }}>
-                <StatCard label="CANCEL/NO-SHOW" value={`${citas.filter(c => (c.estado === CITA_STATUS.CANCELADA || c.estado === CITA_STATUS.NO_PRESENTADA) && new Date(c.inicio).getMonth() === month).length}`} sub="este mes" tone={TOKENS.violet} onClick={() => setShowStatsModal('canceladas')} />
+                <StatCard label="CANCELADAS" value={`${citas.filter(c => (c.estado === CITA_STATUS.CANCELADA || c.estado === CITA_STATUS.NO_PRESENTADA) && new Date(c.inicio).getMonth() === month).length}`} sub="este mes" tone={TOKENS.violet} onClick={() => setShowStatsModal('canceladas')} />
               </div>
             </div>
             )}
@@ -2007,7 +1929,13 @@ export default function AgendaCalendar() {
                         borderRadius: 999,
                         background: selectedProf === p.id ? '#fff' : p.color,
                       }} />
-                      {p.nombre.split(' ')[0]}
+                      {(() => {
+                        const parts = p.nombre.split(' ');
+                        const isDupe = visibleProfs.filter(x => x.nombre.split(' ')[0] === parts[0]).length > 1;
+                        if (isDupe && parts[1]) return `${parts[0]} ${parts[1].charAt(0)}.`;
+                        if (isDupe && p.rol) return `${parts[0]} (${p.rol.split(' ')[0]})`;
+                        return parts[0];
+                      })()}
                     </button>
                   ))}
                 </div>
@@ -2028,7 +1956,7 @@ export default function AgendaCalendar() {
                   theme={roleTheme}
                 />
               ) : (
-                <DayTimeline citas={filtered} profesionales={timelineProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={isReallyCollapsed} completarManual={completarManual} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} theme={roleTheme} categorias={categorias} />
+                <DayTimeline citas={filtered} profesionales={timelineProfs} servicios={servicios} clientes={clientes} servicioMap={servicioMap} clienteMap={clienteMap} profesionalMap={profesionalMap} citaAddonsMap={citaAddonsMap} onEditCita={(cita: any) => { setSelectedCitaEdit(cita); setShowEditCita(true); }} onCitaUpdated={(updated: any) => setCitas(prev => prev.map((c: any) => c.id === updated.id ? { ...c, ...updated } : c))} bloqueos={bloqueos} selectedDateObj={selectedDateObj} registrarHistorial={registrarHistorial} onClienteHistorial={(cli: any) => setShowClienteHistorial(cli)} vivid={isReallyCollapsed} completarManual={completarManual} onCreateSlot={({ hora, profId }: { hora: string; profId: string }) => { setNewCitaPrefill({ hora, profId }); setShowNewCita(true); }} theme={roleTheme} categorias={categorias} selectedProf={selectedProf} />
               )}
             </>
           )}
@@ -2834,7 +2762,7 @@ const BLOQUEO_LABELS: Record<string, string> = {
   descanso:   'Descanso',
 };
 
-function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial, vivid = false, completarManual = false, onCreateSlot, theme, categorias = [] }: any) {
+function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, clienteMap, profesionalMap, citaAddonsMap = {}, onEditCita, onCitaUpdated, bloqueos = [], selectedDateObj = new Date(), registrarHistorial, onClienteHistorial, vivid = false, completarManual = false, onCreateSlot, theme, categorias = [], selectedProf }: any) {
   const { isMobile, isTablet } = useResponsive();
   const HOURS = [];
   for (let h = HORARIO_APERTURA.horas; h < HORARIO_CIERRE.horas; h++) HOURS.push(h);
@@ -3167,21 +3095,29 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
       background: '#ffffff',
       border: `1px solid ${TOKENS.borderHi}`,
       borderRadius: 16,
-      overflowX: isMobile || isTablet ? 'auto' : 'hidden',
+      overflowX: 'auto',
       width: '100%',
       WebkitOverflowScrolling: 'touch',
       boxShadow: '0 10px 34px -12px rgba(40,30,24,0.20), 0 2px 8px rgba(40,30,24,0.06)',
     }}>
       <div style={{
-        minWidth: (isMobile || isTablet) && profesionales.length > 1 ? profesionales.length * 160 + 56 : '100%',
+        minWidth: profesionales.length > 3 ? profesionales.length * 220 + 56 : '100%',
         position: 'relative',
       }}>
-        <div style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `2px solid rgba(244,80,30,0.30)`, background: 'linear-gradient(180deg, #fff5ef 0%, #fdede4 100%)' }}>
-        <div />
+        <div style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid ${TOKENS.borderHi}`, background: '#ffffff' }}>
+        <div style={{ position: 'sticky', left: 0, zIndex: 50, background: '#ffffff' }} />
         {profesionales.map((p: any) => (
           <div key={p.id} style={{ padding: '12px 14px', borderLeft: `1px solid ${TOKENS.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 8, height: 8, borderRadius: 999, background: p.color, boxShadow: `0 0 8px ${p.color}` }} />
-            <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text }}>{p.nombre.split(' ')[0]}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text }}>
+              {(() => {
+                const parts = p.nombre.split(' ');
+                const isDupe = profesionales.filter((x: any) => x.nombre.split(' ')[0] === parts[0]).length > 1;
+                if (isDupe && parts[1]) return `${parts[0]} ${parts[1].charAt(0)}.`;
+                if (isDupe && p.rol) return `${parts[0]} (${p.rol.split(' ')[0]})`;
+                return parts[0];
+              })()}
+            </div>
           </div>
         ))}
       </div>
@@ -3248,24 +3184,47 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
             dropStartMs >= new Date(c.fin_activa).getTime() && dropStartMs < new Date(c.fin_espera).getTime()
           ) : null;
           let hostBand = null;
+          let finalLeft = dropLeft;
+          let finalWidth = dropSlot.colW - 8;
+
           if (host) {
+            // Find host's lane and totalLanes
+            const hostLane = host._lane ?? 0;
+            const hostTotalLanes = host._totalLanes ?? 1;
+
+            // Host bounds in percent of the column
+            const hostL = (hostLane / hostTotalLanes) * dropSlot.colW;
+            const hostW = dropSlot.colW / hostTotalLanes;
+
+            // Nested bounds inside the host
+            const NEST_INSET = 20; // 20%
+            const nLane = 0; // assume first lane for preview
+            const nTotal = 1; // assume 1 total nested for preview
+            const nW = (100 - NEST_INSET) / nTotal;
+
+            const nestL = hostL + (NEST_INSET + nLane * nW) * hostW / 100;
+            const nestW = hostW * (100 - NEST_INSET) / 100 / nTotal;
+
+            finalLeft = 56 + dropSlot.profIndex * dropSlot.colW + nestL;
+            finalWidth = nestW - 6;
+
             const hostRepTop = (new Date(host.fin_activa).getTime() - dayStart.getTime()) / 3600000 * ROW_H;
             const hostRepH = (new Date(host.fin_espera).getTime() - new Date(host.fin_activa).getTime()) / 3600000 * ROW_H;
             const overflowMin = Math.ceil((dropStartMs + dragActivaMs - new Date(host.fin_espera).getTime()) / 60000);
             const cabe = overflowMin <= 0;
-            const bandColor = cabe ? TOKENS.success : '#f59e0b';
+            const bandColor = cabe ? '#22c55e' : '#f59e0b';
             hostBand = (
               <div style={{
-                position: 'absolute', top: hostRepTop, left: dropLeft,
-                width: dropSlot.colW - 8, height: Math.max(16, hostRepH),
+                position: 'absolute', top: hostRepTop, left: 56 + dropSlot.profIndex * dropSlot.colW + hostL,
+                width: hostW - 8, height: Math.max(16, hostRepH),
                 borderRadius: 8, pointerEvents: 'none', zIndex: 5,
-                background: `${bandColor}26`,
-                border: `2px solid ${bandColor}`,
-                boxShadow: `0 0 0 4px ${bandColor}22, 0 8px 22px ${bandColor}66`,
+                background: `${bandColor}1a`,
+                border: `2px dashed ${bandColor}`,
+                boxShadow: `0 0 12px ${bandColor}33`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: bandColor, textTransform: 'uppercase', letterSpacing: 0.4, textAlign: 'center', padding: '0 6px' }}>
-                  {cabe ? 'Aprovecha el reposo' : `Se pasa ${overflowMin} min`}
+                <span style={{ fontSize: 9.5, fontWeight: 800, color: bandColor, textTransform: 'uppercase', letterSpacing: 0.4, textAlign: 'center', padding: '0 6px' }}>
+                  {cabe ? 'Aprovecha' : `Excede ${overflowMin} min`}
                 </span>
               </div>
             );
@@ -3274,14 +3233,14 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
             <>
               {hostBand}
               <div style={{
-                position: 'absolute', top: dropTop, left: dropLeft,
-                width: dropSlot.colW - 8, height: dropH,
-                background: `${dropColor}18`,
-                border: `2px dashed ${dropColor}99`,
+                position: 'absolute', top: dropTop, left: finalLeft,
+                width: finalWidth, height: dropH,
+                background: host ? 'rgba(34,197,94,0.1)' : `${dropColor}18`,
+                border: host ? '2px dashed #22c55e' : `2px dashed ${dropColor}99`,
                 borderRadius: 8, pointerEvents: 'none', zIndex: 6,
                 display: 'flex', alignItems: 'flex-start', padding: '4px 6px',
               }}>
-                <span style={{ fontSize: 9, fontWeight: 700, color: dropColor }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: host ? '#22c55e' : dropColor }}>
                   {String(START_H + Math.floor(dropSlot.minutesFromStart / 60)).padStart(2, '0')}:{String(dropSlot.minutesFromStart % 60).padStart(2, '0')}
                 </span>
               </div>
@@ -3289,25 +3248,27 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
           );
         })()}
         {HOURS.map((h, idx) => (
-          <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(192,38,10,0.16)`, minHeight: ROW_H, background: idx % 2 === 0 ? 'transparent' : 'rgba(244,80,30,0.045)' }}>
-            {/* Gutter de horas: la hora en punto grande y las intermedias (:15/:30/:45)
-                en pequenito, alineadas a su altura real, para leer el eje de un vistazo. */}
-            <div style={{ position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 6, left: 0, right: 7, textAlign: 'right', fontSize: 12, fontWeight: 700, color: TOKENS.textSec, fontVariantNumeric: 'tabular-nums', letterSpacing: -0.2 }}>
+          <div key={h} style={{ display: 'grid', gridTemplateColumns: `56px repeat(${profesionales.length || 1}, 1fr)`, borderBottom: `1px solid rgba(0,0,0,0.04)`, minHeight: ROW_H, background: idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+            <div style={{ position: 'sticky', left: 0, zIndex: 50, background: idx % 2 === 0 ? '#ffffff' : '#fafafa', borderRight: `1px solid rgba(0,0,0,0.06)` }}>
+              <div style={{ position: 'absolute', top: 2, left: 0, right: 7, textAlign: 'right', fontSize: 11.5, fontWeight: 700, color: TOKENS.textSec, fontVariantNumeric: 'tabular-nums', letterSpacing: -0.2 }}>
                 {String(h).padStart(2, '0')}:00
               </div>
               {[15, 30, 45].map((mm) => (
-                <div key={mm} style={{ position: 'absolute', top: (mm / 60) * ROW_H - 5, left: 0, right: 7, textAlign: 'right', fontSize: 8.5, fontWeight: 600, color: mm === 30 ? TOKENS.textTer : TOKENS.textMuted, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>
-                  {mm}
+                <div key={mm} style={{ position: 'absolute', top: (mm / 60) * ROW_H, left: 0, right: 0, height: 0 }}>
+                  <div style={{ borderTop: mm === 30 ? `1px solid rgba(0,0,0,0.04)` : `1px solid rgba(0,0,0,0.02)`, marginLeft: 24 }} />
+                  {/* Label */}
+                  <span style={{ position: 'absolute', top: -6, right: 7, fontSize: 9, fontWeight: 600, color: TOKENS.textTer, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none', opacity: 0 }}>
+                    {mm}
+                  </span>
                 </div>
               ))}
             </div>
             {profesionales.map((p: any) => (
-              // Cada hora se parte en dos medias horas (:00 y :30). Cada mitad se
+              // Cada hora se parte en 4 cuartos de hora (:00, :15, :30, :45). Cada mitad se
               // resalta sola al pasar el raton y muestra su hora exacta, asi el
-              // clic crea la cita justo en la media hora elegida.
+              // clic crea la cita justo en la hora elegida.
               <div key={`${h}-${p.id}`} style={{ borderLeft: `1px solid rgba(40,30,24,0.14)`, display: 'flex', flexDirection: 'column' }}>
-                {[0, 30].map((minute) => {
+                {[0, 15, 30, 45].map((minute) => {
                   const horaSlot = `${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
                   return (
                     <div
@@ -3337,7 +3298,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                       title={`Crear cita a las ${horaSlot}`}
                       style={{
                         flex: 1,
-                        borderTop: minute === 30 ? `1px dashed rgba(40,30,24,0.13)` : 'none',
+                        borderTop: minute !== 0 ? (minute === 30 ? `1.5px dashed rgba(40,30,24,0.14)` : `1px dashed rgba(40,30,24,0.06)`) : 'none',
                         cursor: onCreateSlot ? 'pointer' : 'default',
                         transition: 'background-color 0.12s ease',
                         display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 7px',
@@ -3354,7 +3315,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         if (lbl) lbl.style.opacity = '0';
                       }}
                     >
-                      <span style={{ fontSize: 10, fontWeight: 700, color: theme?.primary ? theme.primary : '#e0340e', opacity: 0, transition: 'opacity 0.12s ease', pointerEvents: 'none' }}>{horaSlot}</span>
+                      <span style={{ fontSize: 9.5, fontWeight: 700, color: theme?.primary ? theme.primary : '#e0340e', opacity: 0, transition: 'opacity 0.12s ease', pointerEvents: 'none' }}>{horaSlot}</span>
                     </div>
                   );
                 })}
@@ -3374,12 +3335,12 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
         }}>
           {profesionales.map((prof: any) => {
             const profColor = prof.color || TOKENS.primary;
-            // Pantalla completa (vivid): mismo tono, mayor saturacion para que las citas resalten
-            const citaBg = vivid ? `linear-gradient(180deg, ${profColor}40, ${profColor}28)` : `linear-gradient(180deg, ${profColor}28, ${profColor}18)`;
-            const citaBorder = vivid ? `${profColor}88` : `${profColor}55`;
-            const citaBorderHover = vivid ? `${profColor}cc` : `${profColor}99`;
-            const citaShadow = `0 3px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04), 0 0 0 1px ${profColor}15`;
-            const citaShadowHover = `0 10px 15px -3px rgba(0,0,0,0.12), 0 4px 6px -2px rgba(0,0,0,0.05), 0 0 0 1px ${profColor}25`;
+            // Estetica Premium Glassmorphism
+            const citaBg = `linear-gradient(180deg, ${profColor}22, ${profColor}11)`;
+            const citaBorder = `${profColor}33`;
+            const citaBorderHover = `${profColor}66`;
+            const citaShadow = `0 4px 12px -2px rgba(0,0,0,0.04), 0 2px 4px -2px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 0 1px ${profColor}1a`;
+            const citaShadowHover = `0 12px 20px -4px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 0 1px ${profColor}33`;
             const profCitas = citasWithLanes.filter((c: any) => c.profesional_id === prof.id);
             return (
               <div key={prof.id} style={{ position: 'relative', pointerEvents: 'none' }}>
@@ -3438,13 +3399,33 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                   // encima del host (dentro del reposo), no en un carril al lado.
                   // Si hay varias en el mismo reposo, se reparten en sub-carriles.
                   const nested = !!cita._nested;
-                  const NEST_INSET = 24; // % desde la izquierda donde arranca el area anidada
+                  const hostCita = nested ? profCitas.find((h: any) => h.id === cita._hostId) : null;
+                  const hostLane = hostCita?._lane ?? 0;
+                  const hostTotalLanes = hostCita?._totalLanes ?? 1;
+
+                  const hostL = (hostLane / hostTotalLanes) * 100;
+                  const hostW = 100 / hostTotalLanes;
+
+                  const NEST_INSET = 20; // % desde la izquierda donde arranca el area anidada
                   const nLane = cita._nestedLane ?? 0;
                   const nTotal = cita._nestedTotal ?? 1;
                   const nW = (100 - NEST_INSET) / nTotal;
-                  const nestedLeft = `calc(${NEST_INSET + nLane * nW}% + 6px)`;
-                  const nestedRight = `calc(${(nTotal - nLane - 1) * nW}% + 5px)`;
+
+                  const nestL = hostL + (NEST_INSET + nLane * nW) * hostW / 100;
+                  const nestR = 100 - (hostL + (NEST_INSET + (nLane + 1) * nW) * hostW / 100);
+
+                  const nestedLeft = `calc(${nestL}% + 6px)`;
+                  const nestedRight = `calc(${nestR}% + 5px)`;
                   const cancelada = cita.estado === CITA_STATUS.CANCELADA;
+
+                  const esCompletada = cita.estado === CITA_STATUS.COMPLETADA;
+                  const esNoShow = cita.estado === CITA_STATUS.NO_PRESENTADA;
+
+                  const actualCitaBg = esCompletada ? 'rgba(15,157,107,0.05)' : (cancelada ? 'rgba(226,59,52,0.04)' : (esNoShow ? 'rgba(224,138,0,0.05)' : (nested ? '#f0fdf4' : citaBg)));
+                  const actualCitaBorder = nested ? '#22c55e' : (cita.estado === 'confirmada' ? '#fb923c' : citaBorder);
+                  const actualCitaBorderHover = nested ? '#22c55e' : (cita.estado === 'confirmada' ? '#ea580c' : citaBorderHover);
+                  const actualCitaShadow = nested ? '0 4px 12px rgba(34,197,94,0.18), 0 0 0 1px rgba(34,197,94,0.5)' : citaShadow;
+                  const actualCitaShadowHover = nested ? '0 8px 20px rgba(34,197,94,0.3), 0 0 0 2px #22c55e' : citaShadowHover;
 
                   // 5.5: grupo encadenado
                   const isChained = !!cita.grupo_id;
@@ -3481,18 +3462,18 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         // Siempre por encima de bloqueos/ausencias (z:1) para que nunca
                         // queden tapadas por la banda de ausencia. La anidada va sobre el host.
                         zIndex: nested ? 5 : 3,
-                        background: cancelada ? 'linear-gradient(180deg, #3a3a3a18, #2a2a2a10)' : citaBg,
-                        border: cancelada ? '1px solid #55555540' : `1px solid ${citaBorder}`,
+                        background: cancelada ? 'linear-gradient(180deg, #3a3a3a18, #2a2a2a10)' : actualCitaBg,
+                        border: cancelada ? '1px solid #55555540' : (nested ? '2px solid #22c55e' : `1px solid ${actualCitaBorder}`),
                         borderLeft: cancelada ? '4px solid #66666660' : `4px solid ${stripeColor}`,
                         borderTop: isChained && !cancelada ? `2px solid #e0340e` : undefined,
-                        borderRadius: 8,
-                        padding: height < 50 ? '3px 6px' : '4px 8px',
+                        borderRadius: 12,
+                        padding: height < 50 ? '3px 6px' : '6px 8px',
                         overflow: 'hidden',
                         cursor: isDragging ? 'grabbing' : 'grab',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: height < 60 ? 1 : 2,
-                        boxShadow: cancelada ? 'none' : (nested ? '0 4px 14px rgba(40,30,24,0.20), 0 0 0 2px rgba(255,253,251,0.9)' : citaShadow),
+                        boxShadow: cancelada ? 'none' : actualCitaShadow,
                         transition: drag?.cita.id === cita.id ? 'none' : 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                         transform: 'scale(1)',
                         opacity: cancelada ? 0.45 : (drag?.cita.id === cita.id ? 0.25 : 1),
@@ -3500,16 +3481,16 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                       onMouseDown={(e) => { if (!cancelada) startDrag(cita, e); }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'scale(1.05)';
-                        e.currentTarget.style.boxShadow = cancelada ? 'none' : citaShadowHover;
-                        e.currentTarget.style.borderColor = cancelada ? '#77777770' : citaBorderHover;
+                        e.currentTarget.style.boxShadow = cancelada ? 'none' : actualCitaShadowHover;
+                        e.currentTarget.style.borderColor = cancelada ? '#77777770' : actualCitaBorderHover;
                         // borderColor (shorthand) pisa la banda de categoria: la restauramos.
                         e.currentTarget.style.borderLeftColor = cancelada ? '#66666660' : stripeColor;
                         if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #e0340e';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = cancelada ? 'none' : citaShadow;
-                        e.currentTarget.style.borderColor = cancelada ? '#55555540' : citaBorder;
+                        e.currentTarget.style.boxShadow = cancelada ? 'none' : actualCitaShadow;
+                        e.currentTarget.style.borderColor = cancelada ? '#55555540' : actualCitaBorder;
                         e.currentTarget.style.borderLeftColor = cancelada ? '#66666660' : stripeColor;
                         if (isChained && !cancelada) e.currentTarget.style.borderTop = '2px solid #e0340e';
                       }}
@@ -3521,6 +3502,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                       {hasEspera && !cancelada && (() => {
                         const reposoMin = Math.round(esperaPx / ROW_H * 60);
                         const hayActiva2 = !!(finEspera && finEspera < end); // activa-reposo-activa
+                        const hasNested = profCitas.some((c: any) => c._hostId === cita.id && c.estado !== CITA_STATUS.CANCELADA);
                         return (
                         <div style={{
                           position: 'absolute',
@@ -3533,27 +3515,17 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                           // para no tapar el nombre cuando la fase activa es corta.
                           zIndex: 1,
                           borderRadius: 6,
-                          // Zona ambar clara con trama diagonal fina (procesa/pausa), tinte
-                          // plano de base para cohesion y borde discontinuo que la delimita.
                           background: 'linear-gradient(0deg, rgba(245,158,11,0.09), rgba(245,158,11,0.09)), repeating-linear-gradient(-45deg, rgba(245,158,11,0.15) 0 1.5px, transparent 1.5px 9px)',
                           border: '1px dashed rgba(214,150,20,0.5)',
-                          // La linea que marca donde TERMINA la fase activa (mas marcada arriba).
                           borderTop: '1.5px dashed #e0930b',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           overflow: 'hidden',
                         }}>
-                          {esperaPx >= 15 && (
-                            <span style={{
-                              display: 'inline-flex', alignItems: 'center', gap: 4, userSelect: 'none',
-                              fontSize: 8.5, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#93560a',
-                              background: 'rgba(255,252,244,0.92)', border: '1px solid rgba(224,147,11,0.4)',
-                              borderRadius: 999, padding: '1px 7px', boxShadow: '0 1px 3px rgba(224,147,11,0.14)',
-                            }}>
-                              {/* Reloj de arena: reposo = algo actua solo, el profesional queda libre. */}
-                              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#c77f0a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 22h14M5 2h14M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2"/></svg>
-                              Reposo{esperaPx >= 30 ? ` · ${reposoMin}′` : ''}
+                          {!hasNested && (
+                            <span style={{ fontSize: 9.5, fontWeight: 700, color: '#b45309', opacity: 0.6 }}>
+                              Reposo {reposoMin}′
                             </span>
                           )}
                           {hayActiva2 && <span style={{ position: 'absolute', bottom: -1, left: 0, right: 0, borderBottom: '1.5px dashed #e0930b' }} />}
@@ -3577,7 +3549,7 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                         const iniciales = nombreCliente.split(/\s+/).map((w: string) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '·';
                         // Columna estrecha (muchos profesionales o citas solapadas): mostrar
                         // INICIALES en vez del nombre completo evita el truncado inconsistente.
-                        const estrecho = totalLanes > 1 || (profesionales?.length || 1) >= 5;
+                        const estrecho = totalLanes > 1 || (selectedProf === 'todos' && (profesionales?.length || 1) >= 2) || (profesionales?.length || 1) >= 5;
                         const identidad = nombreCliente;
 
                         const esCompletada = cita.estado === CITA_STATUS.COMPLETADA;
@@ -3631,22 +3603,41 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
                           .filter(Boolean);
                         const addonsStr = addonsNames.length > 0 ? '+ ' + addonsNames.join(', ') : '';
 
-                        if (narrow) {
-                          const superNarrow = height <= 20;
-                          const badgePx = superNarrow ? 15 : 18;
+                        if (narrow || estrecho) {
+                          const effectiveLanes = nested ? (cita._nestedTotal || 1) : totalLanes;
+                          const superNarrow = height <= 20 || effectiveLanes >= 3;
+                          const badgePx = superNarrow ? 15 : (estrecho ? 24 : 18);
+                          const isCol = estrecho && !narrow;
                           return (
-                            <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', height: '100%' }}>
-                              <span style={{ flexShrink: 0, width: badgePx, height: badgePx, borderRadius: 5, background: cancelada ? '#99999955' : badgeColor, display: 'grid', placeItems: 'center', color: '#fff', fontSize: superNarrow ? 8 : 9, fontWeight: 800 }} title={catName ? `${catName} · ${nombreCliente}` : nombreCliente}>
-                                {iniciales}
-                              </span>
-                              {!superNarrow && (
-                                <span style={{ fontSize: 10, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.textSec, flexShrink: 0, whiteSpace: 'nowrap' }}>{timeStrCompact}</span>
+                            <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: isCol ? 'column' : 'row', alignItems: isCol ? 'flex-start' : 'center', justifyContent: isCol ? 'center' : 'flex-start', gap: isCol ? 2 : 5, overflow: 'hidden', height: '100%', padding: isCol ? '0 2px' : 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span style={{ flexShrink: 0, width: badgePx, height: badgePx, borderRadius: 6, background: cancelada ? '#99999955' : badgeColor, display: 'grid', placeItems: 'center', color: '#fff', fontSize: superNarrow ? 8 : (estrecho ? 10 : 9), fontWeight: 800 }} title={catName ? `${catName} · ${nombreCliente}` : nombreCliente}>
+                                  {iniciales}
+                                </span>
+                                {catIconChip && !superNarrow && <span style={{ display: 'inline-flex', flexShrink: 0 }}>{catIconChip}</span>}
+                              </div>
+                              {(!superNarrow) && (
+                                <span style={{ fontSize: estrecho ? 9.5 : 10, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.textSec, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                                  {timeStrCompact}
+                                </span>
                               )}
-                              <span style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancelada ? 'line-through' : 'none' }}>
-                                {estrecho ? nombreCliente : `${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ''}`}
-                              </span>
-                              {chainBadge}
-                              {icon}
+                              {!estrecho && (
+                                <span style={{ fontSize: 11, fontWeight: 700, color: cancelada ? TOKENS.textTer : TOKENS.text, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: cancelada ? 'line-through' : 'none' }}>
+                                  {`${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ''}`}
+                                </span>
+                              )}
+                              {isCol && (chainBadge || icon) && (
+                                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                                  {chainBadge}
+                                  {icon}
+                                </div>
+                              )}
+                              {!isCol && (
+                                <>
+                                  {chainBadge}
+                                  {icon}
+                                </>
+                              )}
                             </div>
                           );
                         }
@@ -3839,47 +3830,25 @@ function DayTimeline({ citas, profesionales, servicios, clientes, servicioMap, c
       )}
 
       {dragAusencia && (
-        <div onClick={() => !aplicandoAusencia && setDragAusencia(null)} style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(8,6,4,0.42)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 400, background: TOKENS.bgPanel, border: `1px solid ${TOKENS.borderHi}`, borderRadius: 18, padding: 22, boxShadow: '0 24px 60px rgba(40,30,24,0.22)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
-              <span style={{ display: 'inline-flex', width: 30, height: 30, borderRadius: 8, background: 'rgba(245,158,11,0.16)', alignItems: 'center', justifyContent: 'center' }}
-                dangerouslySetInnerHTML={{ __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>` }} />
-              <div style={{ fontSize: 15.5, fontWeight: 800, color: TOKENS.text }}>{dragAusencia.profNombre?.split(' ')[0]} tiene una ausencia</div>
+        <div onClick={(e) => e.stopPropagation()} style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(8,6,4,0.42)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div className="m-bounce-in" style={{ background: TOKENS.bgPanel, borderRadius: 18, width: 340, overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', border: `1px solid ${TOKENS.borderHi}` }}>
+            <div style={{ background: '#fef2f2', padding: '18px 24px', borderBottom: `1px solid #fee2e2` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: TOKENS.danger }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div style={{ fontSize: 15.5, fontWeight: 800, color: TOKENS.danger }}>Ausencia Detectada</div>
+              </div>
             </div>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: TOKENS.textSec, lineHeight: 1.5 }}>
-              A las <b style={{ color: TOKENS.primaryHi }}>{dragAusencia.horaTxt}</b>, {dragAusencia.profNombre?.split(' ')[0]} figura con vacaciones o un bloqueo. ¿Mover la cita ahi de todas formas?
-            </p>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setDragAusencia(null)} disabled={aplicandoAusencia} style={{ flex: 1, padding: '12px', borderRadius: 12, border: `1.5px solid ${TOKENS.border}`, background: TOKENS.bgCard, color: TOKENS.textSec, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-                Cancelar
-              </button>
+            <div style={{ padding: 24, fontSize: 13.5, color: TOKENS.textSec, lineHeight: 1.5 }}>
+              A las <b style={{ color: TOKENS.danger }}>{dragAusencia.horaTxt}</b>, {dragAusencia.profNombre?.split(' ')[0]} figura con vacaciones o un bloqueo.
+              <br /><br />
+              No puedes agendar citas durante este periodo.
+            </div>
+            <div style={{ padding: '16px 24px', background: TOKENS.bgCard, borderTop: `1px solid ${TOKENS.border}`, display: 'flex', justifyContent: 'flex-end' }}>
               <button
-                disabled={aplicandoAusencia}
-                onClick={async () => {
-                  const a = dragAusencia;
-                  setAplicandoAusencia(true);
-                  try {
-                    const { error } = await supabase.from('citas').update(a.payload).eq('id', a.citaOrig.id);
-                    if (!error) {
-                      onCitaUpdated?.({ id: a.citaOrig.id, ...a.payload });
-                      const profile = await getUserProfile();
-                      const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
-                      const cambios = [
-                        { campo: 'inicio', anterior: a.citaOrig.inicio, nuevo: a.payload.inicio },
-                        { campo: 'fin', anterior: a.citaOrig.fin, nuevo: a.payload.fin },
-                      ];
-                      if (a.payload.profesional_id !== a.citaOrig.profesional_id) {
-                        cambios.push({ campo: 'profesional_id', anterior: a.citaOrig.profesional_id, nuevo: a.payload.profesional_id });
-                      }
-                      registrarHistorial(a.citaOrig.id, nId, cambios, 'Movida sobre ausencia (confirmado por el gestor)');
-                    }
-                    setDragAusencia(null);
-                  } finally {
-                    setAplicandoAusencia(false);
-                  }
-                }}
-                style={{ flex: 1.6, padding: '12px', borderRadius: 12, border: 'none', background: TOKENS.fireGradient, color: '#fff', fontSize: 14, fontWeight: 800, cursor: aplicandoAusencia ? 'default' : 'pointer', opacity: aplicandoAusencia ? 0.7 : 1 }}>
-                {aplicandoAusencia ? 'Moviendo…' : 'Mover igualmente'}
+                onClick={() => setDragAusencia(null)}
+                style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: TOKENS.danger, color: '#fff', border: 'none', cursor: 'pointer' }}
+              >
+                Entendido
               </button>
             </div>
           </div>
@@ -4205,16 +4174,16 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
         if (d.clientes[0]) setSelectedCliente(d.clientes[0].id);
         setDemoZone('cliente');
       } else if (action === 'cita-servicio') {
-        if (d.clientes[0]) setSelectedCliente((p) => p || d.clientes[0].id);
+        if (d.clientes[0]) setSelectedCliente((p: any) => p || d.clientes[0].id);
         if (d.servicios[0]) setSelectedServicio(d.servicios[0].id);
         setDemoZone('servicio');
       } else if (action === 'cita-hora') {
-        if (d.servicios[0]) setSelectedServicio((p) => p || d.servicios[0].id);
+        if (d.servicios[0]) setSelectedServicio((p: any) => p || d.servicios[0].id);
         if (d.profesionales[0]) setSelectedProf((p: string) => p || d.profesionales[0].id);
         setDemoZone('hora');
         pickDemoSlot('hora');
       } else if (action === 'cita-reposo') {
-        if (d.servicios[0]) setSelectedServicio((p) => p || d.servicios[0].id);
+        if (d.servicios[0]) setSelectedServicio((p: any) => p || d.servicios[0].id);
         if (d.profesionales[0]) setSelectedProf((p: string) => p || d.profesionales[0].id);
         setDemoZone('reposo');
         pickDemoSlot('reposo');
@@ -4381,7 +4350,7 @@ function NewCitaModal({ onClose, onSaved, selectedDate, prefillHora, prefillProf
       .then(({ data }) => {
         const ovs = data ?? [];
         setProfOverrides(ovs);
-        setSelectedServicio(prev => {
+        setSelectedServicio((prev: any) => {
           if (!prev) return prev;
           const ov = ovs.find((o: any) => o.service_id === prev);
           return ov?.activo === false ? '' : prev;
@@ -9194,7 +9163,20 @@ function MonthView({ citas, profesionales, servicios, clientes, servicioMap, cli
                 <span style={isToday
                   ? { fontSize: isMobile ? 12 : 13, fontWeight: 800, color: '#fff', width: isMobile ? 20 : 23, height: isMobile ? 20 : 23, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#ff7a2e,#f4501e)', boxShadow: '0 2px 8px rgba(244,80,30,0.4)' }
                   : { fontSize: isMobile ? 12.5 : 14, fontWeight: 600, color: weekendCol ? TOKENS.textSec : TOKENS.text }}>{d}</span>
-                {!isMobile && total > 0 && <span style={{ fontSize: 9.5, fontWeight: 800, color: TOKENS.textSec, background: 'rgba(148,163,184,0.14)', padding: '1px 6px', borderRadius: 999 }}>{total}</span>}
+                {!isMobile && total > 0 && (
+                  <div style={{ display: 'flex', gap: 2.5, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '60%' }}>
+                    {dayCitas.slice(0, 5).map((c: any, cidx: number) => {
+                      const prof = profesionales.find((p: any) => p.id === c.profesional_id);
+                      const color = prof?.color || TOKENS.primary;
+                      return <div key={cidx} style={{ width: 6, height: 6, borderRadius: 1.5, background: color, opacity: isToday ? 1 : 0.85 }} />;
+                    })}
+                    {total > 5 && (
+                      <div style={{ padding: '0 3px', height: 8, borderRadius: 3, background: 'rgba(148,163,184,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 6.5, fontWeight: 800, color: TOKENS.textSec, marginLeft: 1 }}>
+                        +{total - 5}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               
               {/* RN-AG-044: Ocupacion visual (barrita de volumen).
