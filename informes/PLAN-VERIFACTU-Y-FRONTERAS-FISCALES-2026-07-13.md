@@ -301,3 +301,72 @@ Esto es claramente **Carlos** (no mueve dinero ni integra terceros); la futura A
 - Repos: github.com/hectorsipe/aeat-verifactu (WSDL/XSD), github.com/mdiago/VeriFactu (.NET), github.com/squareetlabs/verifactu-sdk (Java)
 - Intermediarios REST: verifactuapi.es, verifacti.com, FacturaHub
 - Registro horario: art. 34.9 ET (RDL 8/2019) + nuevo RD en tramitación (Consejo de Estado, mar 2026)
+
+---
+
+## 12. ANEXO — DECISIÓN 13 jul: VeriFactu PROPIO (directo a AEAT, gratis en producción)
+
+> **Cambio de rumbo:** en vez de un intermediario REST de pago, Mecha construye la integración directa con la AEAT. Sin coste por factura/NIF. El plan de implementación detallado vive en `informes/PLAN-VERIFACTU-DIY-DIRECTO-AEAT-2026-07-13.md`. La capa `ProveedorFiscal` se mantiene; su implementación principal pasa a ser `AeatDirectoProvider`. Todas las cifras de este anexo salen de fuentes oficiales AEAT (sede + portal de desarrolladores) y están verificadas.
+
+### 12.1 Modalidad elegida: **VeriFactu puro** (remisión en tiempo real)
+- Cada registro de facturación se remite a la AEAT al emitirse. **AEAT valida y recalcula la huella**.
+- Ventaja frente a No-VeriFactu: **NO** exige firma electrónica XAdES por registro **ni** registro de eventos (esos son requisitos del modo No-VeriFactu). Menos superficie que construir.
+- Obligatorio igualmente: huella (hash) correcta, encadenamiento, QR, numeración sin huecos, inmutabilidad.
+
+### 12.2 El certificado en multi-tenant (EL MURO — resuelto)
+Modelo elegido: **Mecha como Colaborador Social con Certificado de Sello de Entidad (M2M)**. Un solo certificado de Mecha; **NO** se custodian certificados por salón.
+- **Acuerdo de Colaboración Social Tipo 017** (cubre SII / SILICIE / remisión de ficheros de registros de facturación). Alta escribiendo a **comunicacion.sepri@correo.aeat.es**.
+- **Certificado de Sello de Entidad** para comunicaciones máquina-a-máquina (el caso SaaS). Los "delegados" del colaborador pueden usar cert de empleado/persona física.
+- **Cada salón otorga representación** mediante el **modelo normalizado** (Resolución 18 dic 2024, **Anexo II** — otorgamiento a profesionales tributarios). **NO vale un click "acepto"**: debe ser un documento acreditable que **custodia Mecha** (no se entrega a AEAT salvo requerimiento). Alternativa: **apoderamiento inscrito** en el Registro de Apoderamientos (poder específico para envío de registros de facturación, o poder general Ley 58/2003).
+- Si falta/está mal el apoderamiento → **errores AEAT 4105 / 4112** ("el titular del certificado debe ser Obligado Emisión, Colaborador Social, Apoderado o Sucesor").
+- **Responsabilidad fiscal = del salón** (obligado tributario). Mecha es intermediario técnico. Esto debe constar en el DPA/contrato.
+- **NO usar Cl@ve** para automatización (es para interacción humana); M2M = certificado.
+
+### 12.3 Huella (hash) — formato literal EXACTO + vector de oro verificado
+Cadena de entrada del **registro de alta**: campos en orden estricto, formato `campo=valor` unidos por `&`; **campo vacío se escribe `Nombre=`**; se codifica en **UTF-8** y se aplica **SHA-256** → **64 hex en MAYÚSCULAS**.
+
+Orden de campos (alta): `IDEmisorFactura`, `NumSerieFactura`, `FechaExpedicionFactura`, `TipoFactura`, `CuotaTotal`, `ImporteTotal`, `Huella` (del registro anterior; vacío si es el primero), `FechaHoraHusoGenRegistro`.
+
+Formatos: importes con **punto decimal y 2 decimales** (`12.35`); `FechaExpedicionFactura` en **dd-mm-yyyy**; `FechaHoraHusoGenRegistro` en **ISO 8601 con huso** (`2024-01-01T19:20:30+01:00`).
+
+**Vector de oro (verificado localmente con node — coincide byte a byte):**
+```
+Cadena:
+IDEmisorFactura=89890001K&NumSerieFactura=12345678/G33&FechaExpedicionFactura=01-01-2024&TipoFactura=F1&CuotaTotal=12.35&ImporteTotal=123.45&Huella=&FechaHoraHusoGenRegistro=2024-01-01T19:20:30+01:00
+SHA-256 (hex, mayúsculas):
+3C464DAF61ACB827C65FDA19F352A4E3BDC2C640E9E9FC4CC058073F38F12F60
+```
+**Registro de anulación** (campos distintos): `IDEmisorFacturaAnulada`, `NumSerieFacturaAnulada`, `FechaExpedicionFacturaAnulada`, `Huella` (anterior).
+En el XML la huella va en `<sum1:Huella>` y la del registro previo en el bloque `<sum1:RegistroAnterior>`. Norma del algoritmo: **ISO/IEC 10118-3:2018** (SHA-256). Fuente literal: documento AEAT *"Detalle de las especificaciones técnicas para la generación de la huella o hash de los registros"* (portal de desarrolladores).
+
+### 12.4 Código QR (Orden HAC/1177/2024, Cap. VIII)
+- Contenido = **URL HTTPS** al servicio de cotejo de la AEAT con 4 parámetros: `nif`, `numserie`, `fecha` (dd-mm-yyyy), `importe` (decimal con punto). **No** lleva datos cifrados ni la huella.
+- Codificación **ISO/IEC 18004 nivel M**; tamaño **30×30 a 40×40 mm**; posición al inicio de la factura; leyenda "VERI*FACTU" / "Factura verificable en la Sede electrónica de la AEAT".
+- Endpoints de cotejo:
+  - Pruebas: `https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=...&numserie=...&fecha=...&importe=...`
+  - Producción: `https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?...`
+
+### 12.5 Endpoints SOAP de remisión + XSD/WSDL
+- Servicio **RegFactuSistemaFacturacion**, contrato `SistemaFacturacion.wsdl` (portal de desarrolladores AEAT). Esquemas: `SuministroInformacion.xsd`, `SuministroLR.xsd`, `RespuestaSuministro.xsd`.
+- **Preproducción/pruebas (con certificado):** `https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP` (y `prewww10.aeat.es/...` para cert de sello).
+- **Producción real:** leer el `soap:address` del **WSDL oficial descargado del portal** (autoritativo; `prewww*` es preproducción). Servicios en producción desde **23 abr 2025**; preproducción abierta desde **25 sep 2024**.
+- **Autenticación: mTLS con certificado** (Sello de Entidad).
+- Repos de apoyo con WSDL/XSD reales: `github.com/hectorsipe/aeat-verifactu`, `github.com/seccion31/verifactu-delphi-demo` (contiene `sistemafacturacion.wsdl`), `github.com/mdiago/VeriFactu` (.NET, implementación de referencia).
+
+### 12.6 Control de flujo (obligatorio)
+- Cada respuesta de la AEAT incluye un **tiempo de espera**; el SIF debe esperar ese tiempo antes del siguiente envío **o** hasta acumular el límite (~**1.000 registros** pendientes). Ignorarlo = bloqueo del servicio.
+- Respuesta por registro: **EstadoRegistro** = `Correcto` / `AceptadoConErrores` / `Incorrecto`, con **CSV** y, en su caso, código+descripción de error. Persistir todo.
+
+### 12.7 Dónde corre el envío (infra)
+- La llamada **mTLS + SOAP** con el Sello de Entidad **no** encaja de forma fiable en Supabase Edge (Deno Deploy no soporta cert de cliente arbitrario). Diseñar un **worker Node dedicado** (VPS o Vercel Function runtime Node/Fluid) con `https.Agent({ cert, key })` que: toma facturas `pendiente`, genera el XML según XSD, hace el envío mTLS, parsea la respuesta y actualiza `facturas`. **Custodia del certificado en secreto seguro** (no en el repo, no en el cliente). → Infra de **Alexandro**.
+
+### 12.8 Coste real del DIY
+- **AEAT: 0 €** (no hay tasa por factura ni por NIF).
+- Coste = **certificado de Sello de Entidad** (~decenas de € al año, uno para Mecha) + tiempo de ingeniería + mantenimiento del WSDL/XSD cuando AEAT los actualice + **responsabilidad de conformidad 100% de Mecha** (declaración responsable). El ahorro (~3 €/NIF/mes del intermediario) se materializa a partir de decenas/cientos de salones.
+
+### 12.9 Prerrequisitos legales que BLOQUEAN producción (manual — Jose/fiscalista)
+1. Firmar el **Acuerdo de Colaboración Social Tipo 017** con la AEAT (comunicacion.sepri@correo.aeat.es).
+2. Obtener el **Certificado de Sello de Entidad** de Mecha.
+3. Circuito de **representación por salón** (Anexo II, Resolución 18 dic 2024) integrado en el onboarding, con documento acreditable custodiado.
+4. **Declaración responsable de conformidad** del software (fiscalista) antes de emitir en producción.
+5. Confirmar **tipos de IVA** por servicio/producto (fiscalista).
