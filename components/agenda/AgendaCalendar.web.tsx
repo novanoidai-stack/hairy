@@ -6896,147 +6896,48 @@ function DayTimeline({
                         }}
                       >
                         {cabe ? "Aprovecha" : `Excede ${overflowMin} min`}
-                {
-                  const dropProf = profesionales[dropSlot.profIndex];
-                  const dropColor = dropProf?.color || TOKENS.primary;
-                  const dropTop = (dropSlot.minutesFromStart / 60) * ROW_H;
-                  const dropLeft = 56 + dropSlot.profIndex * dropSlot.colW;
-                  const dropH = drag.blockHeight;
-                  // Si el punto de suelta cae dentro del REPOSO de otra cita, resaltamos ese
-                  // hueco con fuerza (aprovechar tiempo muerto) e indicamos si la cita cabe.
-                  const dayStart = new Date(selectedDateObj);
-                  dayStart.setHours(START_H, 0, 0, 0);
-                  const dropStartMs =
-                    dayStart.getTime() + dropSlot.minutesFromStart * 60000;
-                  const dragActivaMs = drag.cita.fin_activa
-                    ? new Date(drag.cita.fin_activa).getTime() -
-                      new Date(drag.cita.inicio).getTime()
-                    : new Date(drag.cita.fin).getTime() -
-                      new Date(drag.cita.inicio).getTime();
-                  const host = dropProf
-                    ? citas.find(
-                        (c: any) =>
-                          c.id !== drag.cita.id &&
-                          c.profesional_id === dropProf.id &&
-                          c.fin_activa &&
-                          c.fin_espera &&
-                          dropStartMs >= new Date(c.fin_activa).getTime() &&
-                          dropStartMs < new Date(c.fin_espera).getTime(),
-                      )
-                    : null;
-                  let hostBand = null;
-                  let finalLeft = dropLeft;
-                  let finalWidth = dropSlot.colW - 8;
-
-                  if (host) {
-                    const hostLane = host._lane ?? 0;
-                    const hostTotalLanes = host._totalLanes ?? 1;
-                    const hostL = (hostLane / hostTotalLanes) * dropSlot.colW;
-                    const hostW = dropSlot.colW / hostTotalLanes;
-                    const NEST_INSET_L = 13,
-                      NEST_INSET_R = 13;
-                    const nLane = 0;
-                    const nTotal = 1;
-                    const nArea = 100 - NEST_INSET_L - NEST_INSET_R;
-                    const nW = nArea / nTotal;
-                    const nestL =
-                      hostL + ((NEST_INSET_L + nLane * nW) * hostW) / 100;
-                    const nestW = (hostW * nArea) / 100 / nTotal;
-
-                    finalLeft = 56 + dropSlot.profIndex * dropSlot.colW + nestL;
-                    finalWidth = nestW - 6;
-
-                    const hostRepTop =
-                      ((new Date(host.fin_activa).getTime() -
-                        dayStart.getTime()) /
-                        3600000) *
-                      ROW_H;
-                    const hostRepH =
-                      ((new Date(host.fin_espera).getTime() -
-                        new Date(host.fin_activa).getTime()) /
-                        3600000) *
-                      ROW_H;
-                    const overflowMin = Math.ceil(
-                      (dropStartMs +
-                        dragActivaMs -
-                        new Date(host.fin_espera).getTime()) /
-                        60000,
-                    );
-                    const cabe = overflowMin <= 0;
-                    const bandColor = cabe ? "#22c55e" : "#f59e0b";
-                    hostBand = (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: hostRepTop,
-                          left: 56 + dropSlot.profIndex * dropSlot.colW + hostL,
-                          width: hostW - 8,
-                          height: Math.max(16, hostRepH),
-                          borderRadius: 8,
-                          pointerEvents: "none",
-                          zIndex: 5,
-                          background: `${bandColor}1a`,
-                          border: `2px dashed ${bandColor}`,
-                          boxShadow: `0 0 12px ${bandColor}33`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: 9.5,
-                            fontWeight: 800,
-                            color: bandColor,
-                            textTransform: "uppercase",
-                            letterSpacing: 0.4,
-                            textAlign: "center",
-                            padding: "0 6px",
-                          }}
-                        >
-                          {cabe ? "Aprovecha" : `Excede ${overflowMin} min`}
-                        </span>
-                      </div>
-                    );
-                  }
-                  return (
-                    <>
-                      {hostBand}
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: dropTop,
-                          left: finalLeft,
-                          width: finalWidth,
-                          height: dropH,
-                          borderRadius: 12,
-                          border: "2px dashed #3b82f6",
-                          backgroundColor: "rgba(59, 130, 246, 0.15)",
-                          zIndex: 9998,
-                          pointerEvents: "none",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            color: "#1d4ed8",
-                            background: "rgba(255,255,255,0.8)",
-                            padding: "2px 6px",
-                            borderRadius: 4,
-                          }}
-                        >
-                          {String(START_H + Math.floor(dropSlot.minutesFromStart / 60)).padStart(2, "0")}:
-                          {String(dropSlot.minutesFromStart % 60).padStart(2, "0")}
-                        </span>
-                      </div>
-                    </>
+                      </span>
+                    </div>
                   );
-                })()}
+                }
+                return (
+                  <>
+                    {hostBand}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: dropTop,
+                        left: finalLeft,
+                        width: finalWidth,
+                        height: dropH,
+                        borderRadius: 12,
+                        border: `2px dashed ${dropColor}`,
+                        backgroundColor: `${dropColor}10`,
+                        zIndex: 9998,
+                        pointerEvents: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: dropColor,
+                          background: "rgba(255,255,255,0.8)",
+                          padding: "2px 6px",
+                          borderRadius: 4,
+                        }}
+                      >
+                        {String(START_H + Math.floor(dropSlot.minutesFromStart / 60)).padStart(2, "0")}:
+                        {String(dropSlot.minutesFromStart % 60).padStart(2, "0")}
+                      </span>
+                    </div>
+                  </>
+                );
+              })()}
             {HOURS.map((h, idx) => (
               <div
                 key={h}
