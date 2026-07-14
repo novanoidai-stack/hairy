@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { ChispaMascota } from "@/components/ChispaMascota";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { supabase, IS_DEMO_MODE } from "@/lib/supabase";
 import { resolverSenalStaff } from "@/lib/senalStaff";
@@ -837,7 +838,7 @@ export default function AgendaCalendar() {
         ] = await Promise.all([
           supabase
             .from("profesionales")
-            .select("id, nombre, color, activo")
+            .select("id, nombre, color, activo, foto_perfil")
             .eq("negocio_id", negocioId),
           supabase
             .from("citas")
@@ -1587,14 +1588,7 @@ export default function AgendaCalendar() {
                 fontWeight: 700,
               }}
             >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: "#f59e0b",
-                }}
-              />
+              <ChispaMascota size={14} mood="happy" />
               {reposoGlobal.pct}% reposo aprovechado
             </div>
           )}
@@ -1615,14 +1609,7 @@ export default function AgendaCalendar() {
                 fontWeight: 700,
               }}
             >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: "#ef4444",
-                }}
-              />
+              <ChispaMascota size={14} mood="thinking" />
               {sinConfirmar48h} sin confirmar
             </div>
           )}
@@ -1873,29 +1860,7 @@ export default function AgendaCalendar() {
             <Icon name="sparkle" size={15} color={roleTheme.primaryHi} />
             {!isMobile && "Organizar"}
           </button>
-          <button
-            className="m-btn-secondary"
-            onClick={handleToday}
-            title="Ir a hoy"
-            style={{
-              padding: isMobile ? "7px 8px" : "7px 12px",
-              background: TOKENS.bgCard,
-              border: `1px solid ${TOKENS.border}`,
-              color: TOKENS.text,
-              borderRadius: 9,
-              cursor: "pointer",
-              fontSize: 12.5,
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              whiteSpace: "nowrap",
-              minHeight: 33,
-            }}
-          >
-            <Icon name="calendar" size={15} color={TOKENS.text} />
-            {!isMobile && "Hoy"}
-          </button>
+          {/* Boton Hoy movido abajo */}
           <button
             onClick={() => setShowCierreSalon(true)}
             title="Cerrar salon"
@@ -1983,50 +1948,7 @@ export default function AgendaCalendar() {
             flexWrap: "wrap",
           }}
         >
-          {/* View switcher (8.5) */}
-          <div
-            style={{
-              display: "flex",
-              background: TOKENS.bgCard,
-              border: `1px solid ${TOKENS.border}`,
-              borderRadius: 10,
-              overflow: "hidden",
-            }}
-          >
-            {(["day", "week", "month"] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => {
-                  setView(v);
-                  if (v !== "day") setRailCollapsed(false);
-                }}
-                style={{
-                  padding: "7px 16px",
-                  fontSize: 12,
-                  fontWeight: view === v ? 700 : 500,
-                  background:
-                    view === v ? roleTheme.primarySoft : "transparent",
-                  color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
-                  border: "none",
-                  cursor: "pointer",
-                  borderRight:
-                    v !== "month" ? `1px solid ${TOKENS.border}` : "none",
-                  transition: "all 0.2s ease",
-                  position: "relative",
-                }}
-                onMouseEnter={(e) => {
-                  if (view !== v)
-                    e.currentTarget.style.background = roleTheme.primarySoft;
-                }}
-                onMouseLeave={(e) => {
-                  if (view !== v)
-                    e.currentTarget.style.background = "transparent";
-                }}
-              >
-                {v === "day" ? "Dia" : v === "week" ? "Semana" : "Mes"}
-              </button>
-            ))}
-          </div>
+          {/* View switcher (8.5) movido abajo */}
 
           {/* Lista de espera: en movil/tablet no hay sidebar, asi que este es su
             unico punto de entrada (en la tab bar no cabe una sexta pestana). */}
@@ -2768,16 +2690,7 @@ export default function AgendaCalendar() {
               }}
             >
               <style>{`@keyframes mechaVencMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}} .venc-marquee-track:hover,.venc-marquee-track:active{animation-play-state:paused}`}</style>
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  background: "#ef4444",
-                  animation: "pulse 2s infinite",
-                  flexShrink: 0,
-                }}
-              />
+              <ChispaMascota size={20} mood="thinking" />
               <span
                 style={{
                   fontSize: 13,
@@ -2786,7 +2699,7 @@ export default function AgendaCalendar() {
                   flexShrink: 0,
                 }}
               >
-                {citasVencidas.length} cita{citasVencidas.length > 1 ? "s" : ""}{" "}
+                Chispa te avisa que tienes {citasVencidas.length} cita{citasVencidas.length > 1 ? "s" : ""}{" "}
                 sin atender
               </span>
               <div
@@ -3423,6 +3336,7 @@ export default function AgendaCalendar() {
                         alignItems: "center",
                         gap: 8,
                         marginBottom: 0,
+                        flexWrap: "wrap",
                       }}
                     >
                       <h2
@@ -3452,6 +3366,57 @@ export default function AgendaCalendar() {
                           HOY
                         </span>
                       )}
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: isMobile ? 0 : 12 }}>
+                        <div style={{ display: "flex", background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: "hidden" }}>
+                          {(["day", "week", "month"] as const).map((v) => (
+                            <button
+                              key={v}
+                              onClick={() => {
+                                setView(v);
+                                if (v !== "day") setRailCollapsed(false);
+                              }}
+                              style={{
+                                padding: isMobile ? "5px 10px" : "7px 16px",
+                                fontSize: isMobile ? 11 : 12,
+                                fontWeight: view === v ? 700 : 500,
+                                background: view === v ? roleTheme.primarySoft : "transparent",
+                                color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
+                                border: "none",
+                                cursor: "pointer",
+                                borderRight: v !== "month" ? `1px solid ${TOKENS.border}` : "none",
+                                transition: "all 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => { if (view !== v) e.currentTarget.style.background = roleTheme.primarySoft; }}
+                              onMouseLeave={(e) => { if (view !== v) e.currentTarget.style.background = "transparent"; }}
+                            >
+                              {v === "day" ? "Dia" : v === "week" ? "Semana" : "Mes"}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          className="m-btn-secondary"
+                          onClick={handleToday}
+                          title="Ir a hoy"
+                          style={{
+                            padding: isMobile ? "5px 8px" : "7px 12px",
+                            background: TOKENS.bgCard,
+                            border: `1px solid ${TOKENS.border}`,
+                            color: TOKENS.text,
+                            borderRadius: 10,
+                            cursor: "pointer",
+                            fontSize: isMobile ? 11 : 12,
+                            fontWeight: 600,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          <Icon name="calendar" size={isMobile ? 12 : 14} color={TOKENS.text} />
+                          {!isMobile && "Hoy"}
+                        </button>
+                      </div>
+
                     </div>
                     <div
                       style={{
@@ -6737,9 +6702,9 @@ function DayTimeline({
                     src={p.foto_perfil}
                     alt={p.nombre}
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
+                      width: 26,
+                      height: 26,
+                      borderRadius: 13,
                       objectFit: "cover",
                       boxShadow: `0 0 0 2px ${p.color}`,
                     }}
@@ -6747,13 +6712,21 @@ function DayTimeline({
                 ) : (
                   <div
                     style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 999,
+                      width: 26,
+                      height: 26,
+                      borderRadius: 13,
                       background: p.color,
-                      boxShadow: `0 0 8px ${p.color}`,
+                      boxShadow: `0 0 0 2px ${p.color}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
                     }}
-                  />
+                  >
+                    {p.nombre.charAt(0).toUpperCase()}
+                  </div>
                 )}
                 <div
                   style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text }}
@@ -7409,9 +7382,11 @@ function DayTimeline({
                               background: cancelada
                                 ? "linear-gradient(180deg, #3a3a3a18, #2a2a2a10)"
                                 : actualCitaBg,
-                              border: cancelada
-                                ? "1px solid #55555540"
-                                : `1px solid ${actualCitaBorder}`,
+                              borderWidth: 1,
+                              borderStyle: "solid",
+                              borderColor: cancelada
+                                ? "#55555540"
+                                : actualCitaBorder,
                               borderLeft: cancelada
                                 ? `${totalLanes > 1 || (profesionales?.length || 1) >= 2 ? 2 : 4}px solid #66666660`
                                 : `${totalLanes > 1 || (profesionales?.length || 1) >= 2 ? 2 : 4}px solid ${stripeColor}`,
@@ -7709,10 +7684,7 @@ function DayTimeline({
                               const addonsNames = (citaAddonsMap[cita.id] || [])
                                 .map((ca: any) => ca.service_addons?.nombre)
                                 .filter(Boolean);
-                              const addonsStr =
-                                addonsNames.length > 0
-                                  ? "+ " + addonsNames.join(", ")
-                                  : "";
+                              const addonsStr = addonsNames.length > 0 ? '+ ' + addonsNames.join(', ') : '';
 
                               if (narrow || estrecho || height <= 32) {
                                 const effectiveLanes = nested
@@ -7752,33 +7724,7 @@ function DayTimeline({
                                         gap: 4,
                                       }}
                                     >
-                                      <span
-                                        style={{
-                                          flexShrink: 0,
-                                          width: badgePx,
-                                          height: badgePx,
-                                          borderRadius: 6,
-                                          background: cancelada
-                                            ? "#99999955"
-                                            : badgeColor,
-                                          display: "grid",
-                                          placeItems: "center",
-                                          color: "#fff",
-                                          fontSize: superNarrow
-                                            ? 8
-                                            : estrecho
-                                              ? 10
-                                              : 9,
-                                          fontWeight: 800,
-                                        }}
-                                        title={
-                                          catName
-                                            ? `${catName} · ${nombreCliente}`
-                                            : nombreCliente
-                                        }
-                                      >
-                                        {iniciales}
-                                      </span>
+                                      {/* Removed initials badge as requested */}
                                       {catIconChip && !superNarrow && (
                                         <span
                                           style={{
@@ -7823,12 +7769,16 @@ function DayTimeline({
                                           wordBreak: "break-word",
                                           textDecoration: cancelada
                                             ? "line-through"
-                                            : "none",
+                                            : "underline",
+                                          textDecorationColor: cancelada
+                                            ? "inherit"
+                                            : "rgba(244,80,30,0.4)",
+                                          textUnderlineOffset: 2,
                                         }}
                                       >
                                         {`${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ""}`}
                                       </span>
-                                    {isCol && (chainBadge || icon) && (
+                                    {isCol && (
                                       <div
                                         style={{
                                           display: "flex",
@@ -7836,6 +7786,15 @@ function DayTimeline({
                                           alignItems: "center",
                                         }}
                                       >
+                                        {cita.estado === "Confirmada" && (
+                                          <Icon name="check" size={10} color={TOKENS.success} />
+                                        )}
+                                        {clienteMap?.get(cita.cliente_id)?.tag === "VIP" && (
+                                          <Icon name="star" size={10} color={TOKENS.warning} />
+                                        )}
+                                        {clienteMap?.get(cita.cliente_id)?.tag === "Habitual" && (
+                                          <Icon name="star" size={10} color={TOKENS.primary} />
+                                        )}
                                         {chainBadge}
                                         {icon}
                                       </div>
@@ -11303,9 +11262,9 @@ function NewCitaModal({
                       src={p.foto_perfil}
                       alt={p.nombre}
                       style={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: 8,
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
                         objectFit: "cover",
                         boxShadow: `0 0 0 1px ${p.color}`,
                       }}
@@ -11313,12 +11272,20 @@ function NewCitaModal({
                   ) : (
                     <div
                       style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 999,
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
                         background: p.color,
+                        color: "#fff",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        display: "grid",
+                        placeItems: "center",
+                        boxShadow: `0 0 0 1px ${p.color}`,
                       }}
-                    />
+                    >
+                      {p.nombre.charAt(0).toUpperCase()}
+                    </div>
                   )}
                   {p.nombre.split(" ")[0]}
                 </button>
@@ -18304,24 +18271,23 @@ function WeekView({
                           }}
                         >
                           {/* Avatar de iniciales de la clienta (tintado con el color de categoria). */}
-                          <span
+                          <div
                             style={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: 999,
-                              flexShrink: 0,
-                              display: "inline-flex",
+                              display: "flex",
+                              gap: 4,
                               alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: 8.5,
-                              fontWeight: 800,
-                              color: acentoColor,
-                              background: `${acentoColor}1f`,
-                              border: `1px solid ${acentoColor}55`,
                             }}
                           >
-                            {iniciales}
-                          </span>
+                            {c.estado === "Confirmada" && (
+                              <Icon name="check" size={10} color={TOKENS.success} />
+                            )}
+                            {cli?.tag === "VIP" && (
+                              <Icon name="star" size={10} color={TOKENS.warning} />
+                            )}
+                            {cli?.tag === "Habitual" && (
+                              <Icon name="star" size={10} color={TOKENS.primary} />
+                            )}
+                          </div>
                           <span
                             style={{
                               flex: 1,
@@ -18331,7 +18297,9 @@ function WeekView({
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
-                              textDecoration: cancel ? "line-through" : "none",
+                              textDecoration: cancel ? "line-through" : "underline",
+                              textDecorationColor: cancel ? "inherit" : "rgba(244,80,30,0.4)",
+                              textUnderlineOffset: 2,
                               minWidth: 0,
                             }}
                           >
