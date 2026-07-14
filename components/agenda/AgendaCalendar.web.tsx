@@ -769,11 +769,11 @@ export default function AgendaCalendar() {
   // La preferencia de mostrar/ocultar la tarjeta de IA se recuerda (localStorage):
   // si el usuario la oculta, no vuelve a aparecer sola en cada carga.
   const [iaHelperOpen, setIaHelperOpen] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
+    if (typeof window === "undefined") return false;
     const saved = window.localStorage.getItem("mecha-agenda-ia-helper");
     if (saved === "oculto") return false;
     if (saved === "visible") return true;
-    return window.innerWidth >= 768;
+    return false;
   });
   function setIaHelper(v: boolean) {
     setIaHelperOpen(v);
@@ -1454,7 +1454,6 @@ export default function AgendaCalendar() {
         className="m-fade-in"
         style={{
           display: "flex",
-          flexWrap: "wrap",
           justifyContent: "space-between",
           alignItems: "center",
           gap: isMobile ? 8 : 12,
@@ -1510,7 +1509,8 @@ export default function AgendaCalendar() {
             <p
               style={{
                 margin: 0,
-                fontSize: 12.5,
+                fontSize: 15,
+                fontWeight: 600,
                 color: TOKENS.textSec,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
@@ -6763,7 +6763,7 @@ function DayTimeline({
                   height: 0,
                   borderTop: `2px dashed ${TOKENS.danger}`,
                   pointerEvents: "none",
-                  zIndex: 10,
+                  zIndex: 60,
                 }}
               >
                 <div
@@ -7020,10 +7020,10 @@ function DayTimeline({
                           color: TOKENS.textTer,
                           fontVariantNumeric: "tabular-nums",
                           pointerEvents: "none",
-                          opacity: 0,
+                          opacity: mm === 30 ? 1 : 0,
                         }}
                       >
-                        {mm}
+                        {String(h).padStart(2, "0")}:{mm}
                       </span>
                     </div>
                   ))}
@@ -7775,7 +7775,6 @@ function DayTimeline({
                                         {timeStrCompact}
                                       </span>
                                     )}
-                                    {!estrecho && (
                                       <span
                                         style={{
                                           fontSize: 11,
@@ -7787,7 +7786,11 @@ function DayTimeline({
                                           minWidth: 0,
                                           overflow: "hidden",
                                           textOverflow: "ellipsis",
-                                          whiteSpace: "nowrap",
+                                          display: "-webkit-box",
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: "vertical",
+                                          whiteSpace: "normal",
+                                          wordBreak: "break-word",
                                           textDecoration: cancelada
                                             ? "line-through"
                                             : "none",
@@ -7795,7 +7798,6 @@ function DayTimeline({
                                       >
                                         {`${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ""}`}
                                       </span>
-                                    )}
                                     {isCol && (chainBadge || icon) && (
                                       <div
                                         style={{
@@ -7936,16 +7938,16 @@ function DayTimeline({
                                     >
                                       {identidad}
                                     </div>
-                                    {height >= 48 && (
+                                    {height > 32 && (
                                       <div
                                         style={{
                                           fontSize: 10,
                                           color: TOKENS.textSec,
-                                          whiteSpace: "nowrap",
+                                          whiteSpace: "normal",
                                           overflow: "hidden",
                                           textOverflow: "ellipsis",
                                           display: "flex",
-                                          alignItems: "center",
+                                          alignItems: "flex-start",
                                           gap: 4,
                                         }}
                                       >
@@ -7955,6 +7957,7 @@ function DayTimeline({
                                             style={{
                                               display: "inline-flex",
                                               flexShrink: 0,
+                                              marginTop: 2,
                                             }}
                                             title={catName}
                                           >
@@ -7969,6 +7972,7 @@ function DayTimeline({
                                                 borderRadius: 999,
                                                 background: catColor,
                                                 flexShrink: 0,
+                                                marginTop: 4,
                                               }}
                                               title={catName}
                                             />
@@ -7978,6 +7982,10 @@ function DayTimeline({
                                           style={{
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
+                                            display: "-webkit-box",
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: "vertical",
+                                            wordBreak: "break-word",
                                           }}
                                         >
                                           {nombreServicio ||

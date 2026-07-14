@@ -16,7 +16,7 @@ const json = (b: unknown, status = 200) =>
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 // Using Opus or Sonnet
-const MODEL = 'anthropic/claude-sonnet-4.6';
+const MODEL = 'anthropic/claude-3.5-sonnet';
 
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',

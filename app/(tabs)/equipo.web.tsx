@@ -236,7 +236,7 @@ export default function EquipoWeb() {
       const mesFin = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
       const [{ data: profsRaw }, { data: citsData }, { data: srvData }] = await Promise.all([
-        supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id').eq('negocio_id', negocioId),
+        supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id, foto_perfil').eq('negocio_id', negocioId),
         supabase.from('citas').select('id, profesional_id, cliente_id, servicio_id, inicio, estado')
           .eq('negocio_id', negocioId)
           .gte('inicio', mesInicio)

@@ -2280,6 +2280,11 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
             {estadoVoz === 'inactivo' ? 'Dictar Fórmula (Manos libres)' : 
              estadoVoz === 'escuchando' ? 'Escuchando... (pulsa para detener)' : 'Procesando dictado...'}
           </button>
+          {estadoVoz === 'escuchando' && transcripcionParcial && (
+            <div style={{ fontSize: 14, color: TOKENS.textSec, fontStyle: 'italic', marginTop: 8, padding: '0 10px', textAlign: 'center' }}>
+              "{transcripcionParcial}"
+            </div>
+          )}
           {errorVoz && <div style={{ fontSize: 12, color: TOKENS.danger, marginTop: 8, textAlign: 'center' }}>{errorVoz}</div>}
           {dictadoWarn && (
             <div style={{ padding: '12px 16px', background: TOKENS.danger, borderRadius: 12, color: '#fff', fontSize: 14, fontWeight: 600, marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, boxShadow: '0 4px 12px rgba(239,68,68,0.4)' }}>
