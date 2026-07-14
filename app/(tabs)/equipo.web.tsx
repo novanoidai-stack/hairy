@@ -55,6 +55,7 @@ interface Profesional {
   color: string;
   activo: boolean;
   profile_id?: string | null;
+  foto_perfil?: string | null;
   rol?: string;
   citas?: number;
   exp?: string;
@@ -523,23 +524,38 @@ export default function EquipoWeb() {
                   <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: 999, background: `radial-gradient(circle, ${p.color}22, transparent 70%)` }} />
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 14, marginBottom: isMobile ? 12 : 14, position: 'relative' }}>
-                    <div
-                      style={{
-                        width: isMobile ? 44 : 52,
-                        height: isMobile ? 44 : 52,
-                        borderRadius: 999,
-                        background: `linear-gradient(135deg, ${p.color}, ${p.color}aa)`,
-                        display: 'grid',
-                        placeItems: 'center',
-                        color: '#fff',
-                        fontWeight: 700,
-                        fontSize: isMobile ? 14 : 16,
-                        flexShrink: 0,
-                        boxShadow: `0 4px 12px ${p.color}55, 0 0 0 1px rgba(255,255,255,0.06)`,
-                      }}
-                    >
-                      {p.nombre.split(' ').map((n) => n[0]).slice(0, 2).join('')}
-                    </div>
+                    {p.foto_perfil ? (
+                      <img
+                        src={p.foto_perfil}
+                        alt={p.nombre}
+                        style={{
+                          width: isMobile ? 44 : 52,
+                          height: isMobile ? 44 : 52,
+                          borderRadius: 999,
+                          objectFit: "cover",
+                          flexShrink: 0,
+                          boxShadow: `0 4px 12px ${p.color}55, 0 0 0 1px rgba(255,255,255,0.06)`,
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: isMobile ? 44 : 52,
+                          height: isMobile ? 44 : 52,
+                          borderRadius: 999,
+                          background: `linear-gradient(135deg, ${p.color}, ${p.color}aa)`,
+                          display: 'grid',
+                          placeItems: 'center',
+                          color: '#fff',
+                          fontWeight: 700,
+                          fontSize: isMobile ? 14 : 16,
+                          flexShrink: 0,
+                          boxShadow: `0 4px 12px ${p.color}55, 0 0 0 1px rgba(255,255,255,0.06)`,
+                        }}
+                      >
+                        {p.nombre.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                      </div>
+                    )}
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{p.nombre}</div>
@@ -1413,7 +1429,9 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
   const [telefono, setTelefono] = useState(prof.telefono ?? '');
   const [email, setEmail] = useState(prof.email ?? '');
   const [tipoRelacion, setTipoRelacion] = useState(prof.tipo_relacion ?? 'empleado');
+  const [fotoPerfil, setFotoPerfil] = useState(prof.foto_perfil ?? '');
   const [loading, setLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // Cuenta de acceso: vincula esta ficha con una cuenta de login del negocio
   // (profesionales.profile_id). Permite vincular una existente o invitar una nueva.
@@ -1489,9 +1507,28 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
       email: email.trim() || null,
       tipo_relacion: tipoRelacion,
       profile_id: cuentaId || null,
+      foto_perfil: fotoPerfil || null,
     }).eq('id', prof.id);
     setLoading(false);
     onSaved();
+  };
+
+  const handleUploadFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${negocioId}/${prof.id}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('avatares').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: true });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('avatares').getPublicUrl(path);
+      setFotoPerfil(data.publicUrl);
+    } catch (err: any) {
+      alert('Error subiendo foto: ' + err.message);
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
 
   const handleEliminar = async () => {
@@ -1518,6 +1555,24 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
         </div>
 
         <div style={{ display: 'grid', gap: 14, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {fotoPerfil ? (
+              <img src={fotoPerfil} alt="Avatar" style={{ width: 64, height: 64, borderRadius: 32, objectFit: 'cover', border: `1px solid ${TOKENS.borderHi}` }} />
+            ) : (
+              <div style={{ width: 64, height: 64, borderRadius: 32, background: `linear-gradient(135deg, ${color}, ${color}aa)`, display: 'grid', placeItems: 'center', color: '#fff', fontSize: 20, fontWeight: 700 }}>
+                {nombre.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div>
+              <label style={{ cursor: uploadingAvatar ? 'not-allowed' : 'pointer', background: TOKENS.bgCard, padding: '6px 12px', borderRadius: 8, border: `1px solid ${TOKENS.border}`, fontSize: 13, fontWeight: 600, color: TOKENS.textSec, display: 'inline-block' }}>
+                {uploadingAvatar ? 'Subiendo...' : 'Cambiar foto'}
+                <input type="file" accept="image/*" onChange={handleUploadFoto} style={{ display: 'none' }} disabled={uploadingAvatar} />
+              </label>
+              {fotoPerfil && (
+                <button onClick={() => setFotoPerfil('')} style={{ marginLeft: 8, background: 'transparent', border: 'none', color: '#e0340e', fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>Quitar</button>
+              )}
+            </div>
+          </div>
           <div>
             <div style={labelStyle}>Nombre*</div>
             <input value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} />

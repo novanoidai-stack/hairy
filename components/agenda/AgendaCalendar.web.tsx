@@ -1454,6 +1454,7 @@ export default function AgendaCalendar() {
         className="m-fade-in"
         style={{
           display: "flex",
+          flexWrap: "wrap",
           justifyContent: "space-between",
           alignItems: "center",
           gap: isMobile ? 8 : 12,
@@ -6077,7 +6078,7 @@ function DayTimeline({
   const HOURS = [];
   for (let h = HORARIO_APERTURA.horas; h < HORARIO_CIERRE.horas; h++)
     HOURS.push(h);
-  const ROW_H = 64;
+  const ROW_H = 160;
   const START_H = HORARIO_APERTURA.horas;
   const now = new Date();
   const currentHourPercent =
@@ -6701,15 +6702,29 @@ function DayTimeline({
                   gap: 10,
                 }}
               >
-                <div
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 999,
-                    background: p.color,
-                    boxShadow: `0 0 8px ${p.color}`,
-                  }}
-                />
+                {p.foto_perfil ? (
+                  <img
+                    src={p.foto_perfil}
+                    alt={p.nombre}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      objectFit: "cover",
+                      boxShadow: `0 0 0 2px ${p.color}`,
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 999,
+                      background: p.color,
+                      boxShadow: `0 0 8px ${p.color}`,
+                    }}
+                  />
+                )}
                 <div
                   style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text }}
                 >
@@ -11245,14 +11260,28 @@ function NewCitaModal({
                     e.currentTarget.style.boxShadow = "none";
                   }}
                 >
-                  <div
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: 999,
-                      background: p.color,
-                    }}
-                  />
+                  {p.foto_perfil ? (
+                    <img
+                      src={p.foto_perfil}
+                      alt={p.nombre}
+                      style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: 8,
+                        objectFit: "cover",
+                        boxShadow: `0 0 0 1px ${p.color}`,
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 999,
+                        background: p.color,
+                      }}
+                    />
+                  )}
                   {p.nombre.split(" ")[0]}
                 </button>
               ))}
