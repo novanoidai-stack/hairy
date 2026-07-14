@@ -68,7 +68,7 @@ semanas o bloqueado por terceros.
 | **S3** ✅ | Holds / pre-autorizaciones (completa Pilar 3) | Pilar 3 | M | — |
 | **S4** ✅ | Propinas + pago dividido / grupal | Pilar 4 | L | — |
 | **S5** | Mecha Pay + Stripe Connect (modelo de tasas) | Pilar 1 | XL | KYC Stripe Connect |
-| **S6** | BYOP: Bizum + Redsýs (Fase 2) | Pilar 1 / Fase 2 | XL | Credenciales Redsýs del salón |
+| **S6** ✅ | BYOP: Bizum + Redsýs (Fase 2) — código completo, desplegado, sandbox-verificado | Pilar 1 / Fase 2 | XL | E2E real: credenciales Redsýs del salón |
 | **S7** ◐ | Datáfono virtual: Tap to Pay — backend S7.2 ✅; nativo (S7.1/3) pdte | Pilar 2 / Fase 3 | XL | App nativa + elegibilidad Stripe Terminal |
 | **S8** | Fiscalidad VeriFactu + factura simplificada | Pilar 4 / Cumplimiento | XL | Fiscalista / DPA |
 
@@ -280,10 +280,29 @@ El argumento de venta demoledor para salones de volumen.
 | S6.4 | Webhook/notificación Redsýs → conciliación idéntica a Stripe (marca `pagos` pagado, verifica firma, idempotencia) | [A] | M |
 | S6.5 | Config BYOP por salón: credenciales Redsýs (cifradas), cuota fija de conector, activación | [A] | M |
 
-**Estado:** no empezado. Fase 2 del roadmap. El modelo de datos ya soporta multi-pasarela.
+**Estado:** ✅ **CONSTRUIDO, DESPLEGADO Y VERIFICADO CONTRA SANDBOX (12 jul 2026).** El apunte
+anterior ("no empezado") era erróneo. Piezas reales:
+- Migración `s6_pasarela_redsys` aplicada al remoto: columnas `redsys_fuc`/`redsys_terminal`/`redsys_test`
+  en `negocio_pasarela`; RPCs `guardar_pasarela_redsys` (owner/admin, clave cifrada en Vault) +
+  `pasarela_redsys_secret` (service_role). `guardar_pasarela_stripe` fija `proveedor='stripe'` para poder
+  volver de redsys a stripe.
+- Firma: `node-forge` 3DES (zeropadding con NUL) + Web Crypto HMAC-SHA256 (node:crypto no soporta
+  des-ede3-cbc en Deno).
+- Edges `crear-checkout-cobro` v11 y `crear-checkout-senal` v21: si `proveedor='redsys'` devuelven los
+  params firmados del form Redsýs (redirección a `sis-t.redsys.es`/`sis.redsys.es`) en vez del Checkout
+  de Stripe; marcan `pagos.pasarela='redsys'` + `pasarela_ref=<order>`.
+- Edge `redsys-notificacion` v3: verifica la firma con la clave del salón (Vault) y concilia igual que el
+  webhook de Stripe (total → `registrar_cobro_online`; señal → cita `confirmada`+`deposito_pagado`),
+  detectando Bizum por `Ds_PayMethod='z'`. **Endurecido 12 jul:** devuelve 500 (no 200) ante fallo
+  transitorio de DB/Vault tras pago aprobado, para que Redsýs reintente sin perder el cobro; conciliación
+  idempotente ANTES de sellar el pago (`registrar_cobro_online` guarda por `cita.cobrada`+idempotency_key).
+- UI: sección "Pasarela de pago (Redsys/Bizum)" en `configuracion.web.tsx` + auto-submit del form en
+  `lib/redsysRedirect.ts`. Bizum = método dentro del gateway del salón (no se fuerza `DS_MERCHANT_PAYMETHODS`;
+  depende de que el banco lo tenga activo en el terminal).
+- `redsys-probe` fue el arnés de firma contra sandbox (ya neutralizado, responde 410).
 
 **Pendiente externo (tú/salón):** credenciales de comercio Redsýs del salón (código FUC, terminal,
-clave secreta), alta de Bizum con su banco. Sin esto no se puede probar E2E.
+clave secreta), alta de Bizum con su banco. Es lo ÚNICO que falta: el **E2E real** con un TPV de salón.
 
 **Verificación:** salón con Redsýs configurado → pago con tarjeta y Bizum llega a su TPV; webhook
 concilia el estado en Supabase igual que Stripe; la cuota fija se refleja en su plan.
@@ -381,7 +400,8 @@ Lo que tienes que resolver TÚ (fuera del código) para desbloquear cada sesión
       `payment_intent.canceled` (código ya desplegado).
 - [ ] **S4**: decidir % de propina sugeridos por defecto.
 - [ ] **S5**: decisión mono-cuenta vs Connect; si Connect → KYC plataforma + verificación por salón.
-- [ ] **S6**: credenciales de comercio Redsýs del salón (FUC, terminal, clave) + alta Bizum banco.
+- [x] **S6 (código)**: integración Redsýs + Bizum construida, desplegada y sandbox-verificada (12 jul).
+      **[ ] E2E real** pendiente: credenciales de comercio Redsýs del salón (FUC, terminal, clave) + alta Bizum banco.
 - [ ] **S7**: app nativa desplegada + elegibilidad Tap to Pay en Stripe + dispositivos NFC.
 - [ ] **S8**: fiscalista + estado normativo VeriFactu vigente.
 
