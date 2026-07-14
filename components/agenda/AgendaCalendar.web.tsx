@@ -3821,22 +3821,37 @@ export default function AgendaCalendar() {
                           padding: 0,
                         }}
                       >
-                        <span
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 9,
-                            background: curr.color,
-                            color: "#fff",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            display: "grid",
-                            placeItems: "center",
-                            flexShrink: 0,
-                          }}
-                        >
-                          {iniciales}
-                        </span>
+                        {curr.foto_perfil ? (
+                          <img
+                            src={curr.foto_perfil}
+                            alt=""
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 9,
+                              objectFit: "cover",
+                              flexShrink: 0,
+                              border: `1px solid rgba(255,255,255,0.15)`,
+                            }}
+                          />
+                        ) : (
+                          <span
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 9,
+                              background: curr.color,
+                              color: "#fff",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              display: "grid",
+                              placeItems: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {iniciales}
+                          </span>
+                        )}
                         <span
                           style={{
                             minWidth: 0,
@@ -5488,22 +5503,37 @@ export default function AgendaCalendar() {
                       textAlign: "left",
                     }}
                   >
-                    <span
-                      style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 9,
-                        background: p.color,
-                        color: "#fff",
-                        fontSize: 13,
-                        fontWeight: 700,
-                        display: "grid",
-                        placeItems: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {iniciales}
-                    </span>
+                    {p.foto_perfil ? (
+                      <img
+                        src={p.foto_perfil}
+                        alt=""
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 9,
+                          objectFit: "cover",
+                          flexShrink: 0,
+                          border: `1px solid rgba(255,255,255,0.15)`,
+                        }}
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 9,
+                          background: p.color,
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          display: "grid",
+                          placeItems: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {iniciales}
+                      </span>
+                    )}
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <span
                         style={{
