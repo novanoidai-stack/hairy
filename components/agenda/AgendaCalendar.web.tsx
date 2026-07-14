@@ -1546,20 +1546,18 @@ export default function AgendaCalendar() {
         >
           {!isMobile && reposoGlobal && (
             <div
-              title={`${reposoGlobal.usedMin} de ${reposoGlobal.totalMin} min de reposo aprovechados hoy (${reposoGlobal.pct}%)`}
+              title={`${reposoGlobal.usedMin} de ${reposoGlobal.totalMin} min de reposo aprovechados hoy`}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                justifyContent: "center",
-                width: 33,
-                height: 33,
-                background: "rgba(245,158,11,0.08)",
-                border: "1px solid rgba(245,158,11,0.25)",
+                gap: 4,
                 color: "#f59e0b",
-                borderRadius: 9,
+                fontSize: 12,
+                fontWeight: 600,
               }}
             >
-              <ChispaMascota size={18} mood="happy" />
+              <Icon name="zap" size={16} color="#f59e0b" />
+              {reposoGlobal.pct}% reposo
             </div>
           )}
           {!isMobile && sinConfirmar48h > 0 && (
@@ -1569,16 +1567,14 @@ export default function AgendaCalendar() {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                justifyContent: "center",
-                width: 33,
-                height: 33,
-                background: "rgba(239,68,68,0.10)",
-                border: "1px solid rgba(239,68,68,0.30)",
+                gap: 4,
                 color: "#ef4444",
-                borderRadius: 9,
+                fontSize: 12,
+                fontWeight: 600,
               }}
             >
-              <ChispaMascota size={18} mood="think" />
+              <Icon name="zap" size={16} color="#ef4444" />
+              {sinConfirmar48h} s/conf
             </div>
           )}
           {!isMobile && (
@@ -1615,6 +1611,7 @@ export default function AgendaCalendar() {
               </svg>
             </button>
           )}
+          <ListaEsperaDropdown negocioId={negocioId} />
           <div
             style={{ position: "relative" }}
             ref={(el) => {
@@ -1794,662 +1791,7 @@ export default function AgendaCalendar() {
         />
       )}
 
-      {/* 8.3+8.4: Barra de filtros y buscador */}
-      {!toolbarCollapsed && (
-        <div
-          className="m-fade-in"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: isMobile ? "8px 12px" : "8px 32px",
-            borderBottom: `1px solid ${TOKENS.border}`,
-            background: "rgba(148,163,184,0.02)",
-            position: "relative",
-            zIndex: 150, // Mayor que la cuadrícula del calendario
-            flexWrap: "wrap",
-          }}
-        >
-          {/* View switcher (8.5) movido abajo */}
-
-          {/* Lista de espera: en movil/tablet no hay sidebar, asi que este es su
-            unico punto de entrada (en la tab bar no cabe una sexta pestana). */}
-          <ListaEsperaDropdown negocioId={negocioId} />
-
-          <div
-            style={{
-              width: 1,
-              height: 20,
-              background: TOKENS.border,
-              opacity: 0.5,
-            }}
-          />
-
-          {/* Filtro servicio - dropdown custom */}
-          <div style={{ position: "relative" }}>
-            <button
-              onClick={() => {
-                setDropServicioOpen(!dropServicioOpen);
-                setDropEstadoOpen(false);
-              }}
-              onBlur={() => setTimeout(() => setDropServicioOpen(false), 150)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
-                background:
-                  filterServicio !== "todos"
-                    ? "rgba(244,80,30,0.10)"
-                    : TOKENS.bgCard,
-                border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
-                borderRadius: 10,
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 600,
-                color:
-                  filterServicio !== "todos"
-                    ? TOKENS.primaryHi
-                    : TOKENS.textSec,
-                transition: "all 0.2s ease",
-                minWidth: 120,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = TOKENS.primary;
-              }}
-              onMouseLeave={(e) => {
-                if (!dropServicioOpen)
-                  e.currentTarget.style.borderColor =
-                    filterServicio !== "todos"
-                      ? "rgba(244,80,30,0.30)"
-                      : TOKENS.border;
-              }}
-            >
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                <line x1="7" y1="7" x2="7.01" y2="7" />
-              </svg>
-              <span
-                style={{
-                  flex: 1,
-                  textAlign: "left",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {filterServicio === "todos"
-                  ? "Servicio"
-                  : servicios.find((s) => s.id === filterServicio)?.nombre ||
-                    "Servicio"}
-              </span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{
-                  transform: dropServicioOpen ? "rotate(180deg)" : "none",
-                  transition: "transform 0.2s ease",
-                  flexShrink: 0,
-                  opacity: 0.5,
-                }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            {dropServicioOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  marginTop: 4,
-                  minWidth: 200,
-                  maxHeight: 260,
-                  overflowY: "auto",
-                  background: TOKENS.bgCard,
-                  border: `1px solid ${TOKENS.border}`,
-                  borderRadius: 12,
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
-                  zIndex: 200,
-                  padding: 4,
-                  animation: "fadeIn 0.15s ease",
-                }}
-              >
-                <div
-                  onMouseDown={() => {
-                    setFilterServicio("todos");
-                    setDropServicioOpen(false);
-                  }}
-                  style={{
-                    padding: "8px 12px",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    fontSize: 12,
-                    fontWeight: filterServicio === "todos" ? 700 : 500,
-                    color:
-                      filterServicio === "todos"
-                        ? TOKENS.primaryHi
-                        : TOKENS.textSec,
-                    transition: "background 0.1s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  Todos los servicios
-                </div>
-                {servicios.map((s) => (
-                  <div
-                    key={s.id}
-                    onMouseDown={() => {
-                      setFilterServicio(s.id);
-                      setDropServicioOpen(false);
-                    }}
-                    style={{
-                      padding: "8px 12px",
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      fontSize: 12,
-                      fontWeight: filterServicio === s.id ? 700 : 500,
-                      color:
-                        filterServicio === s.id
-                          ? TOKENS.primaryHi
-                          : TOKENS.text,
-                      transition: "background 0.1s",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(244,80,30,0.08)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
-                  >
-                    <span>{s.nombre}</span>
-                    {s.precio != null && (
-                      <span style={{ fontSize: 10, color: TOKENS.textTer }}>
-                        {s.precio}EUR
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Filtro estado - dropdown custom */}
-          <div style={{ position: "relative" }}>
-            <button
-              onClick={() => {
-                setDropEstadoOpen(!dropEstadoOpen);
-                setDropServicioOpen(false);
-              }}
-              onBlur={() => setTimeout(() => setDropEstadoOpen(false), 150)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
-                background:
-                  filterEstado !== "todos"
-                    ? "rgba(244,80,30,0.10)"
-                    : TOKENS.bgCard,
-                border: `1px solid ${dropEstadoOpen ? TOKENS.primary : filterEstado !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
-                borderRadius: 10,
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 600,
-                color:
-                  filterEstado !== "todos" ? TOKENS.primaryHi : TOKENS.textSec,
-                transition: "all 0.2s ease",
-                minWidth: 110,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = TOKENS.primary;
-              }}
-              onMouseLeave={(e) => {
-                if (!dropEstadoOpen)
-                  e.currentTarget.style.borderColor =
-                    filterEstado !== "todos"
-                      ? "rgba(244,80,30,0.30)"
-                      : TOKENS.border;
-              }}
-            >
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 12l2.5 2.5L16 9" />
-              </svg>
-              <span style={{ flex: 1, textAlign: "left" }}>
-                {filterEstado === "todos"
-                  ? "Estado"
-                  : filterEstado === "no_presentada"
-                    ? "No presentada"
-                    : filterEstado.charAt(0).toUpperCase() +
-                      filterEstado.slice(1)}
-              </span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{
-                  transform: dropEstadoOpen ? "rotate(180deg)" : "none",
-                  transition: "transform 0.2s ease",
-                  flexShrink: 0,
-                  opacity: 0.5,
-                }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            {dropEstadoOpen &&
-              (() => {
-                const estados = [
-                  {
-                    value: "todos",
-                    label: "Todos los estados",
-                    dot: TOKENS.textTer,
-                  },
-                  {
-                    value: CITA_STATUS.CONFIRMADA,
-                    label: "Confirmada",
-                    dot: TOKENS.primaryHi,
-                  },
-                  {
-                    value: CITA_STATUS.COMPLETADA,
-                    label: "Completada",
-                    dot: "#22c55e",
-                  },
-                  {
-                    value: CITA_STATUS.CANCELADA,
-                    label: "Cancelada",
-                    dot: "#ef4444",
-                  },
-                  {
-                    value: CITA_STATUS.NO_PRESENTADA,
-                    label: "No presentada",
-                    dot: "#f59e0b",
-                  },
-                ];
-                return (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      left: 0,
-                      marginTop: 4,
-                      minWidth: 180,
-                      background: TOKENS.bgCard,
-                      border: `1px solid ${TOKENS.border}`,
-                      borderRadius: 12,
-                      boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
-                      zIndex: 200,
-                      padding: 4,
-                      animation: "fadeIn 0.15s ease",
-                    }}
-                  >
-                    {estados.map((e) => (
-                      <div
-                        key={e.value}
-                        onMouseDown={() => {
-                          setFilterEstado(e.value);
-                          setDropEstadoOpen(false);
-                        }}
-                        style={{
-                          padding: "8px 12px",
-                          borderRadius: 8,
-                          cursor: "pointer",
-                          fontSize: 12,
-                          fontWeight: filterEstado === e.value ? 700 : 500,
-                          color: filterEstado === e.value ? e.dot : TOKENS.text,
-                          transition: "background 0.1s",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                        }}
-                        onMouseEnter={(ev) => {
-                          ev.currentTarget.style.background =
-                            "rgba(244,80,30,0.08)";
-                        }}
-                        onMouseLeave={(ev) => {
-                          ev.currentTarget.style.background = "transparent";
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: 999,
-                            background: e.dot,
-                            flexShrink: 0,
-                          }}
-                        />
-                        {e.label}
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-          </div>
-
-          {(filterServicio !== "todos" || filterEstado !== "todos") && (
-            <button
-              onClick={() => {
-                setFilterServicio("todos");
-                setFilterEstado("todos");
-              }}
-              style={{
-                padding: "5px 10px",
-                fontSize: 11,
-                fontWeight: 600,
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.20)",
-                borderRadius: 8,
-                color: "#ef4444",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                animation: "fadeIn 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-              }}
-            >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-              Limpiar
-            </button>
-          )}
-
-          <div style={{ flex: 1 }} />
-
-          {/* Buscador global (8.4) */}
-          <div style={{ position: "relative" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                background: TOKENS.bgCard,
-                border: `1px solid ${searchOpen ? TOKENS.primary : TOKENS.border}`,
-                borderRadius: 10,
-                padding: "7px 12px",
-                transition: "all 0.25s ease",
-                width: searchOpen ? 280 : 180,
-                boxShadow: searchOpen
-                  ? `0 0 0 3px rgba(244,80,30,0.10)`
-                  : "none",
-              }}
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={searchOpen ? TOKENS.primaryHi : TOKENS.textTer}
-                strokeWidth="2"
-                style={{ transition: "stroke 0.2s ease", flexShrink: 0 }}
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => {
-                  setSearchOpen(true);
-                  setDropServicioOpen(false);
-                  setDropEstadoOpen(false);
-                }}
-                onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
-                placeholder="Buscar cita..."
-                style={{
-                  border: "none",
-                  outline: "none",
-                  background: "transparent",
-                  color: TOKENS.text,
-                  fontSize: 12,
-                  width: "100%",
-                }}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: TOKENS.textTer,
-                    padding: 2,
-                    display: "flex",
-                    transition: "color 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = TOKENS.text;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = TOKENS.textTer;
-                  }}
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            {searchOpen && searchResults.length > 0 && (
-              <div
-                onWheel={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.preventDefault()}
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  right: 0,
-                  marginTop: 6,
-                  width: 360,
-                  maxHeight: 340,
-                  overflowY: "auto",
-                  background: TOKENS.bgCard,
-                  border: `1px solid ${TOKENS.border}`,
-                  borderRadius: 14,
-                  boxShadow: "0 16px 50px rgba(0,0,0,0.55)",
-                  zIndex: 200,
-                  padding: 6,
-                  animation: "slideInUp 0.2s ease",
-                  overscrollBehavior: "contain",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "6px 10px 8px",
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: TOKENS.textTer,
-                    letterSpacing: 0.5,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {searchResults.length} resultado
-                  {searchResults.length !== 1 ? "s" : ""}
-                </div>
-                {searchResults.map((c: any) => {
-                  const cli = clientes.find(
-                    (cl: any) => cl.id === c.cliente_id,
-                  );
-                  const srv = servicios.find(
-                    (s: any) => s.id === c.servicio_id,
-                  );
-                  const prof = profesionales.find(
-                    (p: any) => p.id === c.profesional_id,
-                  );
-                  const fecha = new Date(c.inicio);
-                  return (
-                    <div
-                      key={c.id}
-                      onMouseDown={() => {
-                        const citaDate = new Date(c.inicio);
-                        setSelectedDate(citaDate.getDate());
-                        setCurrentMonth(
-                          new Date(citaDate.getFullYear(), citaDate.getMonth()),
-                        );
-                        setView("day");
-                        setSearchQuery("");
-                      }}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "8px 10px",
-                        borderRadius: 8,
-                        cursor: "pointer",
-                        transition: "all 0.15s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background =
-                          "rgba(244,80,30,0.08)";
-                        e.currentTarget.style.transform = "translateX(2px)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.transform = "none";
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 4,
-                          height: 32,
-                          borderRadius: 2,
-                          background: prof?.color || TOKENS.primary,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: TOKENS.text,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {cli?.nombre || "Sin cliente"}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 10,
-                            color: TOKENS.textTer,
-                            marginTop: 1,
-                          }}
-                        >
-                          {srv?.nombre} - {prof?.nombre?.split(" ")[0]}
-                        </div>
-                      </div>
-                      <div style={{ textAlign: "right", flexShrink: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: TOKENS.textSec,
-                          }}
-                        >
-                          {fecha.toLocaleDateString("es-ES", {
-                            day: "numeric",
-                            month: "short",
-                          })}
-                        </div>
-                        <div style={{ fontSize: 10, color: TOKENS.textTer }}>
-                          {fecha.toLocaleTimeString("es-ES", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
-                      </div>
-                      <button
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          setShowClienteHistorial(cli);
-                        }}
-                        style={{
-                          padding: "4px 8px",
-                          fontSize: 10,
-                          fontWeight: 600,
-                          background: "rgba(244,80,30,0.10)",
-                          border: "1px solid rgba(244,80,30,0.25)",
-                          borderRadius: 6,
-                          color: TOKENS.primaryHi,
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                          transition: "all 0.15s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background =
-                            "rgba(244,80,30,0.20)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background =
-                            "rgba(244,80,30,0.10)";
-                        }}
-                      >
-                        Historial
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      
 
       {/* AlertBar: citas vencidas */}
       {citasVencidas.length > 0 &&
@@ -3271,6 +2613,659 @@ export default function AgendaCalendar() {
                         >
                           <Icon name="sparkle" size={isMobile ? 12 : 14} color={TOKENS.text} />
                         </button>
+                        <div style={{ width: 1, height: 20, background: TOKENS.border, opacity: 0.5, marginLeft: 4, marginRight: 4 }} />
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => {
+                setDropServicioOpen(!dropServicioOpen);
+                setDropEstadoOpen(false);
+              }}
+              onBlur={() => setTimeout(() => setDropServicioOpen(false), 150)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 12px",
+                background:
+                  filterServicio !== "todos"
+                    ? "rgba(244,80,30,0.10)"
+                    : TOKENS.bgCard,
+                border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
+                borderRadius: 10,
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: 600,
+                color:
+                  filterServicio !== "todos"
+                    ? TOKENS.primaryHi
+                    : TOKENS.textSec,
+                transition: "all 0.2s ease",
+                minWidth: 120,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = TOKENS.primary;
+              }}
+              onMouseLeave={(e) => {
+                if (!dropServicioOpen)
+                  e.currentTarget.style.borderColor =
+                    filterServicio !== "todos"
+                      ? "rgba(244,80,30,0.30)"
+                      : TOKENS.border;
+              }}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                <line x1="7" y1="7" x2="7.01" y2="7" />
+              </svg>
+              <span
+                style={{
+                  flex: 1,
+                  textAlign: "left",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {filterServicio === "todos"
+                  ? "Servicio"
+                  : servicios.find((s) => s.id === filterServicio)?.nombre ||
+                    "Servicio"}
+              </span>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{
+                  transform: dropServicioOpen ? "rotate(180deg)" : "none",
+                  transition: "transform 0.2s ease",
+                  flexShrink: 0,
+                  opacity: 0.5,
+                }}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {dropServicioOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  marginTop: 4,
+                  minWidth: 200,
+                  maxHeight: 260,
+                  overflowY: "auto",
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 12,
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                  zIndex: 200,
+                  padding: 4,
+                  animation: "fadeIn 0.15s ease",
+                }}
+              >
+                <div
+                  onMouseDown={() => {
+                    setFilterServicio("todos");
+                    setDropServicioOpen(false);
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    cursor: "pointer",
+                    fontSize: 12,
+                    fontWeight: filterServicio === "todos" ? 700 : 500,
+                    color:
+                      filterServicio === "todos"
+                        ? TOKENS.primaryHi
+                        : TOKENS.textSec,
+                    transition: "background 0.1s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  Todos los servicios
+                </div>
+                {servicios.map((s) => (
+                  <div
+                    key={s.id}
+                    onMouseDown={() => {
+                      setFilterServicio(s.id);
+                      setDropServicioOpen(false);
+                    }}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontWeight: filterServicio === s.id ? 700 : 500,
+                      color:
+                        filterServicio === s.id
+                          ? TOKENS.primaryHi
+                          : TOKENS.text,
+                      transition: "background 0.1s",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <span>{s.nombre}</span>
+                    {s.precio != null && (
+                      <span style={{ fontSize: 10, color: TOKENS.textTer }}>
+                        {s.precio}EUR
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => {
+                setDropEstadoOpen(!dropEstadoOpen);
+                setDropServicioOpen(false);
+              }}
+              onBlur={() => setTimeout(() => setDropEstadoOpen(false), 150)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 12px",
+                background:
+                  filterEstado !== "todos"
+                    ? "rgba(244,80,30,0.10)"
+                    : TOKENS.bgCard,
+                border: `1px solid ${dropEstadoOpen ? TOKENS.primary : filterEstado !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
+                borderRadius: 10,
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: 600,
+                color:
+                  filterEstado !== "todos" ? TOKENS.primaryHi : TOKENS.textSec,
+                transition: "all 0.2s ease",
+                minWidth: 110,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = TOKENS.primary;
+              }}
+              onMouseLeave={(e) => {
+                if (!dropEstadoOpen)
+                  e.currentTarget.style.borderColor =
+                    filterEstado !== "todos"
+                      ? "rgba(244,80,30,0.30)"
+                      : TOKENS.border;
+              }}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M8 12l2.5 2.5L16 9" />
+              </svg>
+              <span style={{ flex: 1, textAlign: "left" }}>
+                {filterEstado === "todos"
+                  ? "Estado"
+                  : filterEstado === "no_presentada"
+                    ? "No presentada"
+                    : filterEstado.charAt(0).toUpperCase() +
+                      filterEstado.slice(1)}
+              </span>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{
+                  transform: dropEstadoOpen ? "rotate(180deg)" : "none",
+                  transition: "transform 0.2s ease",
+                  flexShrink: 0,
+                  opacity: 0.5,
+                }}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {dropEstadoOpen &&
+              (() => {
+                const estados = [
+                  {
+                    value: "todos",
+                    label: "Todos los estados",
+                    dot: TOKENS.textTer,
+                  },
+                  {
+                    value: CITA_STATUS.CONFIRMADA,
+                    label: "Confirmada",
+                    dot: TOKENS.primaryHi,
+                  },
+                  {
+                    value: CITA_STATUS.COMPLETADA,
+                    label: "Completada",
+                    dot: "#22c55e",
+                  },
+                  {
+                    value: CITA_STATUS.CANCELADA,
+                    label: "Cancelada",
+                    dot: "#ef4444",
+                  },
+                  {
+                    value: CITA_STATUS.NO_PRESENTADA,
+                    label: "No presentada",
+                    dot: "#f59e0b",
+                  },
+                ];
+                return (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      marginTop: 4,
+                      minWidth: 180,
+                      background: TOKENS.bgCard,
+                      border: `1px solid ${TOKENS.border}`,
+                      borderRadius: 12,
+                      boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                      zIndex: 200,
+                      padding: 4,
+                      animation: "fadeIn 0.15s ease",
+                    }}
+                  >
+                    {estados.map((e) => (
+                      <div
+                        key={e.value}
+                        onMouseDown={() => {
+                          setFilterEstado(e.value);
+                          setDropEstadoOpen(false);
+                        }}
+                        style={{
+                          padding: "8px 12px",
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          fontSize: 12,
+                          fontWeight: filterEstado === e.value ? 700 : 500,
+                          color: filterEstado === e.value ? e.dot : TOKENS.text,
+                          transition: "background 0.1s",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                        onMouseEnter={(ev) => {
+                          ev.currentTarget.style.background =
+                            "rgba(244,80,30,0.08)";
+                        }}
+                        onMouseLeave={(ev) => {
+                          ev.currentTarget.style.background = "transparent";
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: 999,
+                            background: e.dot,
+                            flexShrink: 0,
+                          }}
+                        />
+                        {e.label}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+          </div>
+
+
+          {(filterServicio !== "todos" || filterEstado !== "todos") && (
+            <button
+              onClick={() => {
+                setFilterServicio("todos");
+                setFilterEstado("todos");
+              }}
+              style={{
+                padding: "5px 10px",
+                fontSize: 11,
+                fontWeight: 600,
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.20)",
+                borderRadius: 8,
+                color: "#ef4444",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                animation: "fadeIn 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+              }}
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+              Limpiar
+            </button>
+          )}
+
+
+
+          <div style={{ position: "relative" }}>
+            {!searchOpen ? (
+              <button
+                onClick={() => setSearchOpen(true)}
+                title="Buscar cita"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 36,
+                  height: 36,
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 10,
+                  color: TOKENS.textSec,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease"
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.color = TOKENS.primaryHi; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.color = TOKENS.textSec; }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </button>
+            ) : (
+            <>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: TOKENS.bgCard,
+                border: `1px solid ${searchOpen ? TOKENS.primary : TOKENS.border}`,
+                borderRadius: 10,
+                padding: "7px 12px",
+                transition: "all 0.25s ease",
+                width: searchOpen ? 280 : 36,
+                boxShadow: searchOpen
+                  ? `0 0 0 3px rgba(244,80,30,0.10)`
+                  : "none",
+              }}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={searchOpen ? TOKENS.primaryHi : TOKENS.textTer}
+                strokeWidth="2"
+                style={{ transition: "stroke 0.2s ease", flexShrink: 0 }}
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  setSearchOpen(true);
+                  setDropServicioOpen(false);
+                  setDropEstadoOpen(false);
+                }}
+                onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
+                placeholder={searchOpen ? "Buscar cita..." : ""}
+                style={{
+                  border: "none",
+                  outline: "none",
+                  background: "transparent",
+                  color: TOKENS.text,
+                  fontSize: 12,
+                  width: "100%",
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: TOKENS.textTer,
+                    padding: 2,
+                    display: "flex",
+                    transition: "color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = TOKENS.text;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = TOKENS.textTer;
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {searchOpen && searchResults.length > 0 && (
+              <div
+                onWheel={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.preventDefault()}
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  marginTop: 6,
+                  width: 360,
+                  maxHeight: 340,
+                  overflowY: "auto",
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 14,
+                  boxShadow: "0 16px 50px rgba(0,0,0,0.55)",
+                  zIndex: 200,
+                  padding: 6,
+                  animation: "slideInUp 0.2s ease",
+                  overscrollBehavior: "contain",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "6px 10px 8px",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: TOKENS.textTer,
+                    letterSpacing: 0.5,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {searchResults.length} resultado
+                  {searchResults.length !== 1 ? "s" : ""}
+                </div>
+                {searchResults.map((c: any) => {
+                  const cli = clientes.find(
+                    (cl: any) => cl.id === c.cliente_id,
+                  );
+                  const srv = servicios.find(
+                    (s: any) => s.id === c.servicio_id,
+                  );
+                  const prof = profesionales.find(
+                    (p: any) => p.id === c.profesional_id,
+                  );
+                  const fecha = new Date(c.inicio);
+                  return (
+                    <div
+                      key={c.id}
+                      onMouseDown={() => {
+                        const citaDate = new Date(c.inicio);
+                        setSelectedDate(citaDate.getDate());
+                        setCurrentMonth(
+                          new Date(citaDate.getFullYear(), citaDate.getMonth()),
+                        );
+                        setView("day");
+                        setSearchQuery("");
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 10px",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background =
+                          "rgba(244,80,30,0.08)";
+                        e.currentTarget.style.transform = "translateX(2px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.transform = "none";
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 4,
+                          height: 32,
+                          borderRadius: 2,
+                          background: prof?.color || TOKENS.primary,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: TOKENS.text,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {cli?.nombre || "Sin cliente"}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: TOKENS.textTer,
+                            marginTop: 1,
+                          }}
+                        >
+                          {srv?.nombre} - {prof?.nombre?.split(" ")[0]}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: TOKENS.textSec,
+                          }}
+                        >
+                          {fecha.toLocaleDateString("es-ES", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </div>
+                        <div style={{ fontSize: 10, color: TOKENS.textTer }}>
+                          {fecha.toLocaleTimeString("es-ES", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                      </div>
+                      <button
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          setShowClienteHistorial(cli);
+                        }}
+                        style={{
+                          padding: "4px 8px",
+                          fontSize: 10,
+                          fontWeight: 600,
+                          background: "rgba(244,80,30,0.10)",
+                          border: "1px solid rgba(244,80,30,0.25)",
+                          borderRadius: 6,
+                          color: TOKENS.primaryHi,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(244,80,30,0.20)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(244,80,30,0.10)";
+                        }}
+                      >
+                        Historial
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            </>
+            )}
+          </div>
+
                       </div>
 
                     </div>
@@ -3357,48 +3352,7 @@ export default function AgendaCalendar() {
                       )}
                     </button>
                   )}
-                  <button
-                    onClick={() => setToolbarCollapsed((v) => !v)}
-                    title={
-                      toolbarCollapsed ? "Mostrar filtros" : "Ocultar filtros"
-                    }
-                    aria-label={
-                      toolbarCollapsed ? "Mostrar filtros" : "Ocultar filtros"
-                    }
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 7,
-                      padding: isMobile ? "7px 11px" : "7px 12px",
-                      background: toolbarCollapsed
-                        ? roleTheme.primarySoft
-                        : TOKENS.bgCard,
-                      border: `1px solid ${toolbarCollapsed ? roleTheme.primary + "40" : TOKENS.border}`,
-                      color: toolbarCollapsed
-                        ? roleTheme.primaryHi
-                        : TOKENS.textSec,
-                      borderRadius: 9,
-                      cursor: "pointer",
-                      fontSize: 12.5,
-                      fontWeight: 600,
-                      flexShrink: 0,
-                      minHeight: 33,
-                    }}
-                  >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                    </svg>
-                    {toolbarCollapsed ? "Filtros" : "Ocultar"}
-                  </button>
+
                 </div>
               </div>
 
