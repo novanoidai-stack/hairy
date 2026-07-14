@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import { ChispaMascota } from "@/components/ChispaMascota";
+import { ChispaMascota } from "@/components/chispa/ChispaMascota.web";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { supabase, IS_DEMO_MODE } from "@/lib/supabase";
 import { resolverSenalStaff } from "@/lib/senalStaff";
