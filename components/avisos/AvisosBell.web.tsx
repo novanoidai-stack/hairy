@@ -76,9 +76,9 @@ export function AvisosBell({ collapsed, mode = 'sidebar', children }: Props) {
 
   const dropdownStyle: React.CSSProperties = mode === 'header'
     ? (isMobile
-      ? { position: 'fixed', top: 58, left: 12, right: 12, maxHeight: '68vh', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 }
-      : { position: 'fixed', top: 58, right: 12, width: 620, maxHeight: 460, overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 })
-    : { position: 'fixed', top: 12, left: collapsed ? 84 : 248, width: 620, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 };
+      ? { position: 'fixed', top: 58, left: 12, right: 12, maxHeight: '68vh', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 }
+      : { position: 'fixed', top: 58, right: 12, width: '100%', maxWidth: 620, maxHeight: 460, overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 })
+    : { position: 'fixed', top: 12, left: collapsed ? 84 : 248, width: '100%', maxWidth: 620, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 };
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -137,9 +137,8 @@ export function AvisosBell({ collapsed, mode = 'sidebar', children }: Props) {
                     ))}
                   </div>
                   <div style={{
-                    display: isMobile ? 'flex' : 'grid',
-                    flexDirection: isMobile ? 'column' : undefined,
-                    gridTemplateColumns: isMobile ? undefined : '1fr 1fr',
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: 6,
                   }}>
                     {visibles.map((it) => (

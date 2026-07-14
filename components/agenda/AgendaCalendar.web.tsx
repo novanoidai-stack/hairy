@@ -57,6 +57,7 @@ import { TarjetaAyudaIA } from "@/components/chispa/TarjetaAyudaIA.web";
 import { registrarEventoIA } from "@/lib/registroUniversal";
 import { obtenerNivelCliente } from "@/lib/fidelizacion";
 import { AvisosBell } from "@/components/avisos/AvisosBell.web";
+import { ListaEsperaDropdown } from "./ListaEsperaDropdown.web";
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -1506,36 +1507,7 @@ export default function AgendaCalendar() {
               </span>
             )}
           </div>
-          {!isMobile && (
-            <p
-              style={{
-                margin: 0,
-                fontSize: 15,
-                fontWeight: 600,
-                color: TOKENS.textSec,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {selectedDateObj
-                .toLocaleDateString(LOCALE, {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                })
-                .charAt(0)
-                .toUpperCase() +
-                selectedDateObj
-                  .toLocaleDateString(LOCALE, {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })
-                  .slice(1)}{" "}
-              · {totalCitasHoy} citas · {confirmadasHoy} confirmadas
-            </p>
-          )}
+          {/* Fecha y estadisticas eliminadas del banner por redundancia */}
           {cierreHoy && (
             <div
               style={{
@@ -1574,43 +1546,39 @@ export default function AgendaCalendar() {
         >
           {!isMobile && reposoGlobal && (
             <div
-              title={`${reposoGlobal.usedMin} de ${reposoGlobal.totalMin} min de reposo aprovechados hoy`}
+              title={`${reposoGlobal.usedMin} de ${reposoGlobal.totalMin} min de reposo aprovechados hoy (${reposoGlobal.pct}%)`}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
+                justifyContent: "center",
+                width: 33,
+                height: 33,
                 background: "rgba(245,158,11,0.08)",
                 border: "1px solid rgba(245,158,11,0.25)",
                 color: "#f59e0b",
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 700,
+                borderRadius: 9,
               }}
             >
-              <ChispaMascota size={14} mood="happy" />
-              {reposoGlobal.pct}% reposo aprovechado
+              <ChispaMascota size={18} mood="happy" />
             </div>
           )}
           {!isMobile && sinConfirmar48h > 0 && (
             <div
-              title="Citas en las proximas 48h que el cliente aun no ha confirmado"
+              title={`${sinConfirmar48h} citas en las proximas 48h sin confirmar`}
               className="m-pulse-red"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
+                justifyContent: "center",
+                width: 33,
+                height: 33,
                 background: "rgba(239,68,68,0.10)",
                 border: "1px solid rgba(239,68,68,0.30)",
                 color: "#ef4444",
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 700,
+                borderRadius: 9,
               }}
             >
-              <ChispaMascota size={14} mood="think" />
-              {sinConfirmar48h} sin confirmar
+              <ChispaMascota size={18} mood="think" />
             </div>
           )}
           {!isMobile && (
@@ -1718,35 +1686,7 @@ export default function AgendaCalendar() {
             flexShrink: 0,
           }}
         >
-          <button
-            onClick={() => setToolbarCollapsed((v) => !v)}
-            title={toolbarCollapsed ? "Mostrar filtros" : "Ocultar filtros"}
-            style={{
-              padding: isMobile ? "7px 8px" : "7px 12px",
-              background: toolbarCollapsed
-                ? roleTheme.primarySoft
-                : TOKENS.bgCard,
-              border: `1px solid ${toolbarCollapsed ? roleTheme.primary + "40" : TOKENS.border}`,
-              color: toolbarCollapsed ? roleTheme.primaryHi : TOKENS.textSec,
-              borderRadius: 9,
-              cursor: "pointer",
-              fontSize: 12.5,
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              whiteSpace: "nowrap",
-              minHeight: 33,
-              transition: "all 0.15s ease",
-            }}
-          >
-            <Icon
-              name="filter"
-              size={15}
-              color={toolbarCollapsed ? roleTheme.primaryHi : TOKENS.textSec}
-            />
-            {!isMobile && (toolbarCollapsed ? "Filtros" : "Ocultar filtros")}
-          </button>
+          {/* Boton Ocultar Filtros eliminado */}
           {!isMobile && (
             <button
               onClick={() => setRailCollapsed((v) => !v)}
@@ -1781,29 +1721,7 @@ export default function AgendaCalendar() {
                 (railCollapsed ? "Mostrar lateral" : "Pantalla completa")}
             </button>
           )}
-          {/* Juntos/Scroll movido abajo a la filter bar */}
-          <button
-            onClick={() => setShowOrganizar(true)}
-            title="Organizar mi agenda: detecta retrasos, solapes y huecos de hoy"
-            style={{
-              padding: isMobile ? "7px 8px" : "7px 12px",
-              background: roleTheme.primarySoft,
-              border: `1px solid ${roleTheme.primary}40`,
-              color: roleTheme.primaryHi,
-              borderRadius: 9,
-              cursor: "pointer",
-              fontSize: 12.5,
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              whiteSpace: "nowrap",
-              minHeight: 33,
-            }}
-          >
-            <Icon name="sparkle" size={15} color={roleTheme.primaryHi} />
-            {!isMobile && "Organizar"}
-          </button>
+          {/* Boton Organizar movido abajo */}
           {/* Boton Hoy movido abajo */}
           <button
             onClick={() => setShowCierreSalon(true)}
@@ -1888,7 +1806,7 @@ export default function AgendaCalendar() {
             borderBottom: `1px solid ${TOKENS.border}`,
             background: "rgba(148,163,184,0.02)",
             position: "relative",
-            zIndex: 50,
+            zIndex: 150, // Mayor que la cuadrícula del calendario
             flexWrap: "wrap",
           }}
         >
@@ -1896,35 +1814,7 @@ export default function AgendaCalendar() {
 
           {/* Lista de espera: en movil/tablet no hay sidebar, asi que este es su
             unico punto de entrada (en la tab bar no cabe una sexta pestana). */}
-          <button
-            onClick={() => router.push("/(tabs)/lista-espera" as never)}
-            title="Lista de espera"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "7px 12px",
-              background: TOKENS.bgCard,
-              border: `1px solid ${TOKENS.border}`,
-              borderRadius: 10,
-              cursor: "pointer",
-              fontSize: 12,
-              fontWeight: 600,
-              color: TOKENS.textSec,
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = TOKENS.primary;
-              e.currentTarget.style.color = TOKENS.primaryHi;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = TOKENS.border;
-              e.currentTarget.style.color = TOKENS.textSec;
-            }}
-          >
-            <Icon name="clock" size={14} color="currentColor" />
-            {isMobile ? "Espera" : "Lista de espera"}
-          </button>
+          <ListaEsperaDropdown negocioId={negocioId} />
 
           <div
             style={{
@@ -3358,6 +3248,28 @@ export default function AgendaCalendar() {
                         >
                           <Icon name="calendar" size={isMobile ? 12 : 14} color={TOKENS.text} />
                           {!isMobile && "Hoy"}
+                        </button>
+                        <button
+                          onClick={() => setShowOrganizar(true)}
+                          title="Organizar la agenda"
+                          style={{
+                            padding: isMobile ? "5px 8px" : "7px 12px",
+                            background: TOKENS.bgCard,
+                            border: `1px solid ${TOKENS.borderHi}`,
+                            color: TOKENS.text,
+                            borderRadius: 10,
+                            cursor: "pointer",
+                            fontSize: isMobile ? 11 : 12,
+                            fontWeight: 700,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            transition: "all 0.2s ease"
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.bg; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = TOKENS.bgCard; }}
+                        >
+                          <Icon name="sparkle" size={isMobile ? 12 : 14} color={TOKENS.text} />
                         </button>
                       </div>
 

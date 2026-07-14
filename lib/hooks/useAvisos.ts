@@ -100,8 +100,7 @@ export function useAvisos(enabled = true): AvisosData {
             .eq('oculta_en_calendario', false)
             .gte('inicio', ahora.toISOString())
             .lte('inicio', en48h.toISOString())
-            .order('inicio', { ascending: true })
-            .limit(20),
+            .order('inicio', { ascending: true }),
           supabase.from('clientes').select('id, nombre, fecha_nacimiento').eq('negocio_id', negocioId).not('fecha_nacimiento', 'is', null),
           contarSinLeer(negocioId).catch(() => 0),
           esGestor && !IS_DEMO_MODE && negocioId !== 'demo_salon_001'
@@ -286,6 +285,7 @@ export function useAvisos(enabled = true): AvisosData {
 
     // Ineficiencias de agenda (huecos, retrasos severos)
     ineficiencias.forEach((prob) => {
+      if (prob.tipo === 'hueco_muerto') return; // The user asked to remove "huecos muertos" notifications
       out.push({
         id: `ineficiencia:${prob.id}`,
         categoria: 'ineficiencia',
