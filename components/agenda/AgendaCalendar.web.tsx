@@ -1609,7 +1609,7 @@ export default function AgendaCalendar() {
                 fontWeight: 700,
               }}
             >
-              <ChispaMascota size={14} mood="thinking" />
+              <ChispaMascota size={14} mood="think" />
               {sinConfirmar48h} sin confirmar
             </div>
           )}
@@ -1781,63 +1781,7 @@ export default function AgendaCalendar() {
                 (railCollapsed ? "Mostrar lateral" : "Pantalla completa")}
             </button>
           )}
-          {/* Toggle de densidad de la rejilla (solo dia, desktop, mas de un prof):
-              "Juntos" = todos a la vez sin scroll; "Scroll" = columnas anchas con scroll
-              horizontal. El usuario pidió poder elegir; ambos modos deben verse bien. */}
-          {!isMobile && view === "day" && (profesionales?.length || 0) > 1 && (
-            <div
-              style={{
-                display: "inline-flex",
-                background: TOKENS.bgCard,
-                border: `1px solid ${TOKENS.border}`,
-                borderRadius: 9,
-                padding: 2,
-                gap: 2,
-                minHeight: 33,
-                alignItems: "center",
-              }}
-              title="Como ver la rejilla de profesionales"
-            >
-              <button
-                onClick={() => setAgendaFit(true)}
-                title="Ver todos los profesionales juntos (sin scroll horizontal)"
-                style={{
-                  padding: "5px 10px",
-                  border: "none",
-                  borderRadius: 7,
-                  cursor: "pointer",
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                  background: agendaFit ? roleTheme.primarySoft : "transparent",
-                  color: agendaFit ? roleTheme.primaryHi : TOKENS.textSec,
-                  transition: "all 0.15s ease",
-                }}
-              >
-                Juntos
-              </button>
-              <button
-                onClick={() => setAgendaFit(false)}
-                title="Columnas anchas con scroll horizontal"
-                style={{
-                  padding: "5px 10px",
-                  border: "none",
-                  borderRadius: 7,
-                  cursor: "pointer",
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                  background: !agendaFit
-                    ? roleTheme.primarySoft
-                    : "transparent",
-                  color: !agendaFit ? roleTheme.primaryHi : TOKENS.textSec,
-                  transition: "all 0.15s ease",
-                }}
-              >
-                Scroll
-              </button>
-            </div>
-          )}
+          {/* Juntos/Scroll movido abajo a la filter bar */}
           <button
             onClick={() => setShowOrganizar(true)}
             title="Organizar mi agenda: detecta retrasos, solapes y huecos de hoy"
@@ -2690,7 +2634,7 @@ export default function AgendaCalendar() {
               }}
             >
               <style>{`@keyframes mechaVencMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}} .venc-marquee-track:hover,.venc-marquee-track:active{animation-play-state:paused}`}</style>
-              <ChispaMascota size={20} mood="thinking" />
+              <ChispaMascota size={20} mood="think" />
               <span
                 style={{
                   fontSize: 13,
@@ -6070,9 +6014,30 @@ function DayTimeline({
   agendaFit = true,
 }: any) {
   const { isMobile, isTablet } = useResponsive();
+  // Rango horario base = apertura..cierre. Si alguna cita del día seleccionado
+  // termina DESPUÉS del cierre (overtime, p.ej. 17:45-21:20 con cierre 20:00),
+  // ampliamos el rango hasta cubrirla. Sin esto, la cita rebasa la última fila
+  // del grid, la tarjeta del timeline se vuelve scroller vertical anidado dentro
+  // del pane principal (overflowY:auto) y aparece un DOBLE SCROLL. Ampliando
+  // HOURS, la tarjeta crece, la cita queda contenida y solo scrollea el pane.
+  // Días sin overtime: rango = base (sin filas vacías extra).
+  const overtimeEnd = citas.reduce((mx: number, c: any) => {
+    const f = c?.fin ? new Date(c.fin) : null;
+    if (!f) return mx;
+    const sd = selectedDateObj;
+    if (
+      f.getFullYear() === sd.getFullYear() &&
+      f.getMonth() === sd.getMonth() &&
+      f.getDate() === sd.getDate()
+    ) {
+      const eh = f.getHours() + f.getMinutes() / 60;
+      return eh > mx ? eh : mx;
+    }
+    return mx;
+  }, HORARIO_CIERRE.horas);
+  const hoursEnd = Math.max(HORARIO_CIERRE.horas, Math.ceil(overtimeEnd));
   const HOURS = [];
-  for (let h = HORARIO_APERTURA.horas; h < HORARIO_CIERRE.horas; h++)
-    HOURS.push(h);
+  for (let h = HORARIO_APERTURA.horas; h < hoursEnd; h++) HOURS.push(h);
   const ROW_H = 160;
   const START_H = HORARIO_APERTURA.horas;
   const now = new Date();
@@ -7922,6 +7887,11 @@ function DayTimeline({
                                         cursor: onClienteHistorial
                                           ? "pointer"
                                           : "default",
+                                        background: `${badgeColor}15`,
+                                        border: `1px solid ${badgeColor}40`,
+                                        padding: "1px 6px",
+                                        borderRadius: 4,
+                                        width: "fit-content",
                                       }}
                                       title="Ver historial de este cliente"
                                     >
@@ -8264,7 +8234,7 @@ function DayTimeline({
                 marginBottom: 8,
               }}
             >
-              <ChispaMascota size={30} mood="thinking" />
+              <ChispaMascota size={30} mood="think" />
               <div
                 style={{ fontSize: 15.5, fontWeight: 800, color: TOKENS.text }}
               >
