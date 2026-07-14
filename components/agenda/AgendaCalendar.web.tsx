@@ -8264,24 +8264,11 @@ function DayTimeline({
                 marginBottom: 8,
               }}
             >
-              <span
-                style={{
-                  display: "inline-flex",
-                  width: 30,
-                  height: 30,
-                  borderRadius: 8,
-                  background: "rgba(245,158,11,0.16)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>`,
-                }}
-              />
+              <ChispaMascota size={30} mood="thinking" />
               <div
                 style={{ fontSize: 15.5, fontWeight: 800, color: TOKENS.text }}
               >
-                No cabe del todo en el reposo
+                Chispa te avisa: no cabe del todo
               </div>
             </div>
             <p
