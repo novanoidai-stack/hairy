@@ -13,6 +13,7 @@ export type AvisoCategoria =
   | 'citas'        // citas sin confirmar
   | 'pagos'        // senales sin pagar
   | 'agenda'       // retrasos, solapes, huecos (familia operativa)
+  | 'ineficiencia' // ineficiencias de organizarAgenda (huecos, reposos desaprovechados)
   | 'mensajes'     // bandeja sin responder
   | 'clientes'     // riesgo de fuga, cumpleanos, recuperar
   | 'inventario'   // stock bajo
@@ -35,6 +36,7 @@ export interface AvisoItem {
   ruta: string;             // a donde navega al pulsarlo
   hallazgoId?: string;      // si es un hallazgo resoluble (resolver/descartar)
   meta?: string;            // etiqueta corta opcional (p.ej. "3 casos")
+  subItems?: AvisoItem[];   // para agrupar avisos del mismo tipo (ej. citas sin confirmar)
 }
 
 // Peso para ordenar por urgencia (mayor = mas arriba).
@@ -65,6 +67,7 @@ export const CATEGORIA_META: Record<AvisoCategoria, CategoriaMeta> = {
   citas:        { label: 'Citas',        ionicon: 'calendar-outline',      tint: T.primary },
   pagos:        { label: 'Señales',      ionicon: 'card-outline',          tint: T.warning },
   agenda:       { label: 'Agenda',       ionicon: 'time-outline',          tint: T.primaryHi },
+  ineficiencia: { label: 'Eficiencia',   ionicon: 'sparkles',              tint: T.primaryHi },
   mensajes:     { label: 'Mensajes',     ionicon: 'mail-outline',          tint: T.cyan },
   clientes:     { label: 'Clientas',     ionicon: 'people-outline',        tint: T.rose },
   inventario:   { label: 'Inventario',   ionicon: 'cube-outline',          tint: T.warning },
@@ -74,7 +77,7 @@ export const CATEGORIA_META: Record<AvisoCategoria, CategoriaMeta> = {
 
 // Orden de aparicion de los chips de categoria (los vacios se ocultan en la UI).
 export const CATEGORIA_ORDEN: AvisoCategoria[] = [
-  'citas', 'pagos', 'agenda', 'mensajes', 'clientes', 'inventario', 'presupuestos', 'otros',
+  'citas', 'pagos', 'agenda', 'ineficiencia', 'mensajes', 'clientes', 'inventario', 'presupuestos', 'otros',
 ];
 
 // Mapea un hallazgo del escaneo proactivo (S13) a una categoria de avisos. Se

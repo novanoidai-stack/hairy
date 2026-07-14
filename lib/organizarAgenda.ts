@@ -39,7 +39,7 @@ import { HORARIO_CIERRE } from './constants.ts';
 const MIN = 60000;
 const UMBRAL_RETRASO_MIN = 10; // por debajo, no merece abrir el flujo de retraso
 const MAX_RETRASO_MIN = 240; // citas "olvidadas" de hace horas no cuentan como retraso activo
-export const UMBRAL_HUECO_MIN_DEFAULT = 20; // huecos menores no merecen una propuesta
+export const UMBRAL_HUECO_MIN_DEFAULT = 5; // huecos menores no merecen una propuesta
 
 export type TipoProblemaAgenda = 'retraso' | 'solape' | 'hueco_muerto' | 'reposo_desaprovechado';
 
@@ -91,6 +91,15 @@ function fmtHora(iso: string): string {
   return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
 
+function fmtFechaHora(iso: string): string {
+  const d = new Date(iso);
+  const dia = d.toLocaleDateString('es-ES', { weekday: 'long' });
+  const fecha = d.getDate();
+  const time = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  // ej: "el martes 14 a las 10:30"
+  return `el ${dia} ${fecha} a las ${time}`;
+}
+
 // --- 1) Retraso real: la cita activa (pendiente/confirmada) mas antigua que
 //        ya deberia haber acabado (fin_activa/fin < ahora) y sigue abierta. ---
 function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: number): ProblemaAgenda | null {
@@ -114,7 +123,7 @@ function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: 
     profesionalId: candidata.c.profesional_id,
     profesionalNombre: '',
     titulo: `Retraso de ${minutos} min`,
-    descripcion: `${candidata.c.cliente ?? 'La clienta'} deberia haber terminado a las ${fmtHora(candidata.c.fin_activa || candidata.c.fin)} y la cita sigue abierta.`,
+    descripcion: `${candidata.c.cliente ?? 'La clienta'} deberia haber terminado ${fmtFechaHora(candidata.c.fin_activa || candidata.c.fin)} y la cita sigue abierta.`,
     citaIds: Array.from(citaIds),
     estrategias,
     minutos,
@@ -153,13 +162,13 @@ function detectarSolapes(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: 
         profesionalId: orig.profesional_id,
         profesionalNombre: '',
         titulo: 'Dos citas se solapan',
-        descripcion: `${orig.cliente ?? 'Una cita'} choca con ${citasProf[fijaIdx].cliente ?? 'otra cita'}. Puede moverse a las ${fmtHora(update.inicio)}.`,
+        descripcion: `${orig.cliente ?? 'Una cita'} choca con ${citasProf[fijaIdx].cliente ?? 'otra cita'}. Puede moverse a ${fmtFechaHora(update.inicio)}.`,
         citaIds: [orig.id, citasProf[fijaIdx].id],
         estrategias: [
           {
             tipo: 'mover_hueco',
-            titulo: `Mover a las ${fmtHora(update.inicio)}`,
-            resumen: `${orig.cliente ?? 'La cita'} pasa a las ${fmtHora(update.inicio)}; el resto del dia no cambia.`,
+            titulo: `Mover a ${fmtFechaHora(update.inicio)}`,
+            resumen: `${orig.cliente ?? 'La cita'} pasa a ${fmtFechaHora(update.inicio)}; el resto del dia no cambia.`,
             citasMovidas: 1,
             retrasoCierreMin: 0,
             updates: [update],
@@ -214,16 +223,16 @@ function detectarHuecos(
       profesionalNombre: '',
       titulo: enReposo ? 'Reposo desaprovechado' : 'Hueco muerto',
       descripcion: enReposo
-        ? `${cand.cliente ?? 'Una cita'} puede adelantarse a las ${fmtHora(update.inicio)}, aprovechando un reposo libre.`
-        : `Hay un hueco sin usar antes de ${cand.cliente ?? 'esta cita'}; puede adelantarse a las ${fmtHora(update.inicio)}.`,
+        ? `${cand.cliente ?? 'Una cita'} puede adelantarse a ${fmtFechaHora(update.inicio)}, aprovechando un reposo libre.`
+        : `Hay un hueco sin usar antes de ${cand.cliente ?? 'esta cita'}; puede adelantarse a ${fmtFechaHora(update.inicio)}.`,
       citaIds: [cand.id],
       estrategias: [
         {
           tipo: enReposo ? 'aprovechar_reposo' : 'mover_hueco',
-          titulo: `Adelantar ${desplazoMin} min (a las ${fmtHora(update.inicio)})`,
+          titulo: `Adelantar ${desplazoMin} min (a ${fmtFechaHora(update.inicio)})`,
           resumen: enReposo
-            ? `Aprovechas un tiempo muerto: ${cand.cliente ?? 'la cita'} pasa a las ${fmtHora(update.inicio)}.`
-            : `${cand.cliente ?? 'La cita'} pasa a las ${fmtHora(update.inicio)}, compactando el hueco.`,
+            ? `Aprovechas un tiempo muerto: ${cand.cliente ?? 'la cita'} pasa a ${fmtFechaHora(update.inicio)}.`
+            : `${cand.cliente ?? 'La cita'} pasa a ${fmtFechaHora(update.inicio)}, compactando el hueco.`,
           citasMovidas: 1,
           retrasoCierreMin: 0,
           updates: [update],

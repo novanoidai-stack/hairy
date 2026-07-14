@@ -1497,7 +1497,7 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
     if (!nombre.trim()) return;
     setLoading(true);
     const comision = comisionPct.trim() ? parseFloat(comisionPct.trim()) : null;
-    await supabase.from('profesionales').update({
+    const { error } = await supabase.from('profesionales').update({
       nombre: nombre.trim(),
       color,
       categoria,
@@ -1510,6 +1510,11 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
       foto_perfil: fotoPerfil || null,
     }).eq('id', prof.id);
     setLoading(false);
+    
+    if (error) {
+      alert('Error al guardar: ' + error.message);
+      return;
+    }
     onSaved();
   };
 
