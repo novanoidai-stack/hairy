@@ -3375,6 +3375,108 @@ function PasarelaRedsysSection({ negocioId }: { negocioId: string }) {
   );
 }
 
+function FiscalidadSection({ negocioId }: { negocioId: string }) {
+  const [nif, setNif] = useState('');
+  const [razon, setRazon] = useState('');
+  const [domicilio, setDomicilio] = useState('');
+  const [serie, setSerie] = useState('A');
+  const [iva, setIva] = useState(21);
+  const [territorio, setTerritorio] = useState('comun');
+  const [modalidad, setModalidad] = useState('verifactu');
+  const [aplica, setAplica] = useState(true);
+  const [activo, setActivo] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  useEffect(() => {
+    if (!negocioId) return;
+    supabase.from('config_fiscal')
+      .select('nif, razon_social, domicilio_fiscal, serie_defecto, tipo_iva_defecto, territorio, modalidad, aplica_verifactu, activo')
+      .eq('negocio_id', negocioId).maybeSingle()
+      .then(({ data }: any) => {
+        if (!data) return;
+        setNif(data.nif || ''); setRazon(data.razon_social || ''); setDomicilio(data.domicilio_fiscal || '');
+        setSerie(data.serie_defecto || 'A'); setIva(Number(data.tipo_iva_defecto ?? 21));
+        setTerritorio(data.territorio || 'comun'); setModalidad(data.modalidad || 'verifactu');
+        setAplica(data.aplica_verifactu !== false); setActivo(data.activo === true);
+      });
+  }, [negocioId]);
+
+  const foral = territorio !== 'comun';
+
+  async function guardar() {
+    setMsg('');
+    if (nif.trim().length < 8) { setMsg('Introduce un NIF/CIF valido.'); return; }
+    setSaving(true);
+    try {
+      const { error } = await supabase.rpc('upsert_config_fiscal', {
+        p_negocio_id: negocioId,
+        p_nif: nif.trim(),
+        p_razon_social: razon.trim() || null,
+        p_domicilio_fiscal: domicilio.trim() || null,
+        p_tipo_iva_defecto: iva,
+        p_territorio: territorio,
+        p_serie_defecto: serie.trim() || 'A',
+        p_modalidad: modalidad,
+        p_aplica_verifactu: foral ? false : aplica,
+      });
+      if (error) { setMsg('No se pudo guardar. Revisa los datos.'); setSaving(false); return; }
+      setMsg('Datos fiscales guardados.');
+    } catch { setMsg('Error al guardar.'); }
+    setSaving(false);
+  }
+
+  return (
+    <Section title="Fiscalidad (facturacion / VeriFactu)"
+      desc="Identidad fiscal de tu salon para tickets y facturas. La emision legal a Hacienda (VeriFactu) se activa mas adelante, cuando este el certificado; aqui defines tus datos.">
+      <FieldRow label="Estado de facturacion">
+        <span style={{ fontSize: 13, fontWeight: 700, color: activo ? '#0f9d6b' : '#736658' }}>{activo ? 'Facturacion activa' : 'No activa (solo configuracion)'}</span>
+      </FieldRow>
+      <FieldRow label="NIF / CIF" hint="Identificador fiscal del salon (obligado tributario).">
+        <STextInput value={nif} onChange={setNif} placeholder="B12345678" />
+      </FieldRow>
+      <FieldRow label="Razon social" hint="Nombre fiscal de la empresa o autonomo.">
+        <STextInput value={razon} onChange={setRazon} placeholder="Peluqueria Ejemplo S.L." />
+      </FieldRow>
+      <FieldRow label="Domicilio fiscal">
+        <STextInput value={domicilio} onChange={setDomicilio} placeholder="Calle, numero, CP, ciudad" />
+      </FieldRow>
+      <FieldRow label="Serie de factura" hint="Prefijo de la numeracion. Normalmente 'A'.">
+        <STextInput value={serie} onChange={setSerie} placeholder="A" width={90} />
+      </FieldRow>
+      <FieldRow label="Tipo de IVA por defecto" hint="Peluqueria suele ser 21%. Confirmalo con tu asesor.">
+        <NumberInput value={iva} onChange={(v) => setIva(Number(v) || 0)} unit="%" min={0} max={21} width={100} />
+      </FieldRow>
+      <FieldRow label="Territorio" hint="Pais Vasco y Navarra usan TicketBAI/Batuz, no VeriFactu.">
+        <Segmented value={territorio} onChange={(v) => setTerritorio(v)} options={[
+          { value: 'comun', label: 'Comun' },
+          { value: 'foral_pv', label: 'Pais Vasco' },
+          { value: 'foral_navarra', label: 'Navarra' },
+        ]} />
+      </FieldRow>
+      <FieldRow label="Modalidad" hint="VeriFactu: se remite a Hacienda en tiempo real. No VeriFactu: se conserva firmado.">
+        <Segmented disabled={foral} value={modalidad} onChange={(v) => setModalidad(v)} options={[
+          { value: 'verifactu', label: 'VeriFactu' },
+          { value: 'no_verifactu', label: 'No VeriFactu' },
+        ]} />
+      </FieldRow>
+      <FieldRow label="Aplica VeriFactu" hint="Desactivalo si el salon esta en SII, modulos o territorio foral.">
+        <Toggle on={foral ? false : aplica} onChange={setAplica} disabled={foral} />
+      </FieldRow>
+      {foral && <div style={{ fontSize: 12, color: '#e08a00', marginTop: 2 }}>Territorio foral: VeriFactu no aplica; se usara TicketBAI/Batuz (proximamente).</div>}
+      {!!msg && <div style={{ fontSize: 12.5, color: '#5c5249', marginTop: 4 }}>{msg}</div>}
+      <div style={{ marginTop: 10 }}>
+        <button onClick={guardar} disabled={saving}
+          onMouseEnter={(e) => { if (!saving) e.currentTarget.style.filter = 'brightness(1.06)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
+          style={{ padding: '10px 18px', background: '#f4501e', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1, boxShadow: '0 6px 16px rgba(244,80,30,0.28)', transition: 'filter 0.16s ease' }}>
+          {saving ? 'Guardando…' : 'Guardar datos fiscales'}
+        </button>
+      </div>
+    </Section>
+  );
+}
+
 function TabPoliticas({ config, setC, negocioId }: { config: ConfigState; setC: (k: keyof ConfigState, v: any) => void; negocioId: string }) {
   const on = config.depositoDinamicoActivo;
   return (
@@ -3441,6 +3543,8 @@ function TabPoliticas({ config, setC, negocioId }: { config: ConfigState; setC: 
       <PasarelaStripeSection negocioId={negocioId} />
 
       <PasarelaRedsysSection negocioId={negocioId} />
+
+      <FiscalidadSection negocioId={negocioId} />
 
       <SoonBanner icon="shield" title="Politicas de cancelacion -- fase 4"
         desc="Penalizaciones por cancelacion tardia. Se activaran junto con el modulo de pagos." />
