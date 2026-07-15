@@ -6028,33 +6028,9 @@ function DayTimeline({
         0,
         Math.round((((relY - d.offsetY) / ROW_H) * 60) / 15) * 15,
       );
-      // Encaje en reposo: si el punto de suelta cae DENTRO del reposo de otra cita
-      // del mismo profesional, alineamos el inicio al arranque del reposo (fin_activa)
-      // en vez de dejar la cita "a un lado" donde este el cursor (feedback Jose).
+      // Encaje en reposo: si el punto de suelta cae DENTRO del reposo de otra cita,
+      // permitimos que el usuario lo coloque en fracciones de 15 minutos (no forzamos alineación al tope).
       const targetProf = profs[profIndex];
-      if (targetProf) {
-        const dayStart = new Date(_dateRef.current);
-        dayStart.setHours(START_H, 0, 0, 0);
-        const candMs = dayStart.getTime() + minutesFromStart * 60000;
-        const host = _citasRef.current.find(
-          (c: any) =>
-            c.id !== d.cita.id &&
-            c.profesional_id === targetProf.id &&
-            c.fin_activa &&
-            c.fin_espera &&
-            candMs >= new Date(c.fin_activa).getTime() &&
-            candMs < new Date(c.fin_espera).getTime(),
-        );
-        if (host) {
-          minutesFromStart = Math.max(
-            0,
-            Math.round(
-              (new Date(host.fin_activa).getTime() - dayStart.getTime()) /
-                60000,
-            ),
-          );
-        }
-      }
       const sl = { profIndex, minutesFromStart, colW };
       dropRef.current = sl;
       setDropSlot(sl);
@@ -6160,8 +6136,8 @@ function DayTimeline({
           payload: {
             inicio: nuevoInicio.toISOString(),
             fin: nuevoFin.toISOString(),
-            fin_activa: nuevoFinActiva.toISOString(),
-            fin_espera: nuevoFinEspera.toISOString(),
+            fin_activa: cita.fin_activa ? nuevoFinActiva.toISOString() : null,
+            fin_espera: cita.fin_espera ? nuevoFinEspera.toISOString() : null,
             profesional_id: targetProf.id,
           },
           citaOrig: cita,
@@ -6239,8 +6215,8 @@ function DayTimeline({
                 payload: {
                   inicio: nuevoInicio.toISOString(),
                   fin: nuevoFin.toISOString(),
-                  fin_activa: nuevoFinActiva.toISOString(),
-                  fin_espera: nuevoFinEspera.toISOString(),
+                  fin_activa: cita.fin_activa ? nuevoFinActiva.toISOString() : null,
+                  fin_espera: cita.fin_espera ? nuevoFinEspera.toISOString() : null,
                   profesional_id: targetProf.id,
                 },
                 citaOrig: cita,
@@ -6258,8 +6234,8 @@ function DayTimeline({
           id: cita.id,
           inicio: nuevoInicio.toISOString(),
           fin: nuevoFin.toISOString(),
-          fin_activa: nuevoFinActiva.toISOString(),
-          fin_espera: nuevoFinEspera.toISOString(),
+          fin_activa: cita.fin_activa ? nuevoFinActiva.toISOString() : null,
+          fin_espera: cita.fin_espera ? nuevoFinEspera.toISOString() : null,
         };
         const destino: CitaRetraso[] = currentCitas
           .filter(
@@ -6306,8 +6282,8 @@ function DayTimeline({
             payload: {
               inicio: altIni.toISOString(),
               fin: altFin.toISOString(),
-              fin_activa: altFinActiva.toISOString(),
-              fin_espera: altFinEspera.toISOString(),
+              fin_activa: cita.fin_activa ? altFinActiva.toISOString() : null,
+              fin_espera: cita.fin_espera ? altFinEspera.toISOString() : null,
               profesional_id: targetProf.id,
             },
             citaOrig: cita,
@@ -6324,8 +6300,8 @@ function DayTimeline({
       const payload: any = {
         inicio: nuevoInicio.toISOString(),
         fin: nuevoFin.toISOString(),
-        fin_activa: nuevoFinActiva.toISOString(),
-        fin_espera: nuevoFinEspera.toISOString(),
+        fin_activa: cita.fin_activa ? nuevoFinActiva.toISOString() : null,
+        fin_espera: cita.fin_espera ? nuevoFinEspera.toISOString() : null,
         profesional_id: targetProf.id,
       };
       const { error } = await supabase
@@ -7220,7 +7196,9 @@ function DayTimeline({
                               zIndex: nested ? 15 : 10,
                               background: cancelada
                                 ? "linear-gradient(180deg, #3a3a3a18, #2a2a2a10)"
-                                : actualCitaBg,
+                                : (hasEspera && !nested)
+                                  ? `linear-gradient(to bottom, ${actualCitaBg} 0px, ${actualCitaBg} ${activaPx}px, transparent ${activaPx}px, transparent ${activaPx + esperaPx}px, ${actualCitaBg} ${activaPx + esperaPx}px, ${actualCitaBg} 100%)`
+                                  : actualCitaBg,
                               borderWidth: 1,
                               borderStyle: "solid",
                               borderColor: cancelada
@@ -7734,121 +7712,91 @@ function DayTimeline({
                                       </div>
                                     </div>
                                     <div
-                                      onMouseDown={(e) => {
-                                        if (onClienteHistorial)
-                                          e.stopPropagation();
-                                      }}
-                                      onClick={(e) => {
-                                        if (onClienteHistorial) {
-                                          e.stopPropagation();
-                                          const cli = clientes.find(
-                                            (cl: any) =>
-                                              cl.id === cita.cliente_id,
-                                          );
-                                          if (cli) onClienteHistorial(cli);
-                                        }
-                                      }}
                                       style={{
-                                        maxWidth: "100%",
-                                        minWidth: 0,
-                                        fontSize: 12,
-                                        fontWeight: 700,
-                                        color: cancelada
-                                          ? TOKENS.textTer
-                                          : TOKENS.text,
-                                        whiteSpace: "nowrap",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        textDecoration: cancelada
-                                          ? "line-through"
-                                          : "none",
-                                        cursor: onClienteHistorial
-                                          ? "pointer"
-                                          : "default",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 2,
                                         background: cancelada ? "transparent" : TOKENS.bgCard,
                                         border: cancelada ? "none" : `1px solid ${badgeColor}60`,
                                         borderLeft: cancelada ? "none" : `4px solid ${badgeColor}`,
-                                        padding: "2px 6px",
-                                        borderRadius: 4,
+                                        padding: "4px 6px",
+                                        borderRadius: 6,
                                         boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
                                         width: "fit-content",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 4,
+                                        maxWidth: "100%",
                                       }}
-                                      title="Ver historial de este cliente"
                                     >
-                                      {identidad}
-                                      {cita.encadenadoId && !cancelada && (
-                                        <Icon name="link" size={12} color={TOKENS.primary} />
-                                      )}
-                                      {(cita.fin_activa || cita.fin_espera) && !cancelada && (
-                                        <Icon name="coffee" size={12} color="#f59e0b" />
-                                      )}
-                                    </div>
-                                    {height > 32 && (
                                       <div
+                                        onMouseDown={(e) => {
+                                          if (onClienteHistorial) e.stopPropagation();
+                                        }}
+                                        onClick={(e) => {
+                                          if (onClienteHistorial) {
+                                            e.stopPropagation();
+                                            const cli = clientes.find((cl: any) => cl.id === cita.cliente_id);
+                                            if (cli) onClienteHistorial(cli);
+                                          }
+                                        }}
                                         style={{
-                                          fontSize: 10,
-                                          color: TOKENS.textSec,
-                                          whiteSpace: "normal",
+                                          fontSize: 12,
+                                          fontWeight: 700,
+                                          color: cancelada ? TOKENS.textTer : TOKENS.text,
+                                          whiteSpace: "nowrap",
                                           overflow: "hidden",
                                           textOverflow: "ellipsis",
+                                          textDecoration: cancelada ? "line-through" : "none",
+                                          cursor: onClienteHistorial ? "pointer" : "default",
                                           display: "flex",
-                                          alignItems: "flex-start",
+                                          alignItems: "center",
                                           gap: 4,
-                                          background: cancelada ? "transparent" : TOKENS.bgCard,
-                                          padding: cancelada ? 0 : "3px 6px",
-                                          borderRadius: 4,
-                                          border: cancelada ? "none" : `1px solid ${TOKENS.border}`,
-                                          boxShadow: cancelada ? "none" : "0 1px 2px rgba(0,0,0,0.05)",
-                                          width: "fit-content",
                                         }}
+                                        title="Ver historial de este cliente"
                                       >
-                                        {/* Icono/punto de categoria: refuerza el tipo de servicio. */}
-                                        {catIconChip ? (
-                                          <span
-                                            style={{
-                                              display: "inline-flex",
-                                              flexShrink: 0,
-                                              marginTop: 2,
-                                            }}
-                                            title={catName}
-                                          >
-                                            {catIconChip}
-                                          </span>
-                                        ) : (
-                                          catColor && (
-                                            <span
-                                              style={{
-                                                width: 6,
-                                                height: 6,
-                                                borderRadius: 999,
-                                                background: catColor,
-                                                flexShrink: 0,
-                                                marginTop: 4,
-                                              }}
-                                              title={catName}
-                                            />
-                                          )
+                                        {identidad}
+                                        {cita.encadenadoId && !cancelada && (
+                                          <Icon name="link" size={12} color={TOKENS.primary} />
                                         )}
-                                        <span
+                                        {(cita.fin_activa || cita.fin_espera) && !cancelada && (
+                                          <Icon name="coffee" size={12} color="#f59e0b" />
+                                        )}
+                                      </div>
+                                      {height > 32 && (
+                                        <div
                                           style={{
+                                            fontSize: 10,
+                                            color: TOKENS.textSec,
+                                            whiteSpace: "normal",
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
-                                            display: "-webkit-box",
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: "vertical",
-                                            wordBreak: "break-word",
+                                            display: "flex",
+                                            alignItems: "flex-start",
+                                            gap: 4,
                                           }}
                                         >
-                                          {nombreServicio ||
-                                            (cita.servicio_id
-                                              ? "Servicio eliminado"
-                                              : "Sin servicio")}
-                                        </span>
-                                      </div>
-                                    )}
+                                          {catIconChip ? (
+                                            <span style={{ display: "inline-flex", flexShrink: 0, marginTop: 2 }} title={catName}>
+                                              {catIconChip}
+                                            </span>
+                                          ) : (
+                                            catColor && (
+                                              <span style={{ width: 6, height: 6, borderRadius: 999, background: catColor, flexShrink: 0, marginTop: 4 }} title={catName} />
+                                            )
+                                          )}
+                                          <span
+                                            style={{
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              display: "-webkit-box",
+                                              WebkitLineClamp: 2,
+                                              WebkitBoxOrient: "vertical",
+                                              wordBreak: "break-word",
+                                            }}
+                                          >
+                                            {nombreServicio || (cita.servicio_id ? "Servicio eliminado" : "Sin servicio")}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
                                     {addonsStr && height >= 64 && (
                                       <div
                                         style={{
