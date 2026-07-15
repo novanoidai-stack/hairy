@@ -173,6 +173,7 @@ export type EstrategiaTipo =
   | 'cascada'
   | 'mover_hueco'
   | 'aprovechar_reposo'
+  | 'adelantar_otra'
   | 'pedir_retraso_siguiente';
 
 // Aviso a un cliente afectado (lo consume el motor WhatsApp via flag retraso_aviso_pendiente).
@@ -468,6 +469,181 @@ export function calcularEstrategiasRetraso(
       (e) => e.tipo === 'mover_hueco' && e.updates[1]?.inicio === reposo.updates[1]?.inicio,
     );
     if (dupIdx >= 0) out.splice(dupIdx, 1);
+  }
+
+  out.sort((a, b) => a.citasMovidas - b.citasMovidas || a.retrasoCierreMin - b.retrasoCierreMin);
+  if (out.length > 0) out[0].recomendada = true;
+  return out;
+}
+
+// =====================================================================================
+// Estrategias para un SOLAPE activa-activa entre 'fija' (empieza antes) e 'intrusa'
+// (empieza despues). Espeja calcularEstrategiasRetraso: varias palancas de
+// reposicionamiento PURO, cada una con tipo unico, ordenadas por menor disrupcion, la
+// primera recomendada. Cada estrategia se calcula contra el estado REAL (aplicable por
+// separado) y valida hayColision antes de emitirse. Fuera de v1: compresion de servicios
+// y reasignacion cross-profesional.
+// =====================================================================================
+
+// Palanca A/B: mueve solo la INTRUSA a un hueco (soloReposo=false) o dentro de un reposo
+// de otra cita (soloReposo=true); la fija y el resto se quedan.
+function estrategiaMoverIntrusa(
+  citas: CitaRetraso[],
+  intrusa: CitaRetraso,
+  fija: CitaRetraso,
+  ahoraMs: number,
+  cierreMs: number,
+  soloReposo: boolean,
+): EstrategiaRetraso | null {
+  if (intrusa.grupoId) return null; // no mover sola una cita encadenada
+  const intrusaFases = fasesDe(intrusa);
+  const obst = citas.filter((c) => c.id !== intrusa.id).map(fasesDe);
+  const desde = Math.max(ahoraMs, +new Date(fija.inicio));
+  const slot = buscarHueco(intrusaFases, obst, desde, cierreMs, soloReposo);
+  if (slot == null) return null;
+  const nueva = reubicar(intrusaFases, slot);
+  if (hayColision([...obst, nueva])) return null;
+  const update = toUpdate(intrusa, nueva);
+  const hora = new Date(slot).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const desplazoMin = Math.round((slot - intrusaFases.ini) / MIN);
+  const aviso: AvisoRetraso = {
+    cita_id: intrusa.id,
+    cliente: intrusa.cliente ?? null,
+    telefono: intrusa.telefono ?? null,
+    inicioNuevo: update.inicio,
+    minutos: desplazoMin,
+  };
+  return {
+    tipo: soloReposo ? 'aprovechar_reposo' : 'mover_hueco',
+    titulo: soloReposo
+      ? `Atender a ${intrusa.cliente ?? 'la intrusa'} en un reposo`
+      : `Mover a ${intrusa.cliente ?? 'la intrusa'} a otro hueco`,
+    resumen: soloReposo
+      ? `Aprovechas un tiempo muerto: ${intrusa.cliente ?? 'la cita'} pasa a las ${hora} (durante un reposo) y el resto del dia no se mueve.`
+      : `${intrusa.cliente ?? 'La cita'} pasa a las ${hora} y el resto del dia se mantiene.`,
+    citasMovidas: 0,
+    retrasoCierreMin: cierreDelta(citas, [update]),
+    updates: [update],
+    avisos: aviso.telefono ? [aviso] : [],
+  };
+}
+
+// Palanca C: adelanta la cita FIJA (la que empieza antes) para dejar sitio; la intrusa se
+// queda. Solo se emite si hay hueco anterior real (el slot resultante adelanta a la fija).
+function estrategiaAdelantarFija(
+  citas: CitaRetraso[],
+  intrusa: CitaRetraso,
+  fija: CitaRetraso,
+  ahoraMs: number,
+  cierreMs: number,
+): EstrategiaRetraso | null {
+  if (fija.grupoId) return null;
+  const fijaFases = fasesDe(fija);
+  const obst = citas.filter((c) => c.id !== fija.id).map(fasesDe);
+  const slot = buscarHueco(fijaFases, obst, ahoraMs, cierreMs, false);
+  if (slot == null || slot >= fijaFases.ini) return null; // solo cuenta si ADELANTA
+  const nueva = reubicar(fijaFases, slot);
+  if (hayColision([...obst, nueva])) return null;
+  const update = toUpdate(fija, nueva);
+  const hora = new Date(slot).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const desplazoMin = Math.round((slot - fijaFases.ini) / MIN); // negativo (adelanto)
+  const aviso: AvisoRetraso = {
+    cita_id: fija.id,
+    cliente: fija.cliente ?? null,
+    telefono: fija.telefono ?? null,
+    inicioNuevo: update.inicio,
+    minutos: desplazoMin,
+  };
+  return {
+    tipo: 'adelantar_otra',
+    titulo: `Adelantar a ${fija.cliente ?? 'la otra cita'}`,
+    resumen: `${fija.cliente ?? 'La otra cita'} se adelanta a las ${hora} para dejar sitio; ${intrusa.cliente ?? 'la intrusa'} se queda a su hora.`,
+    citasMovidas: 0,
+    retrasoCierreMin: cierreDelta(citas, [update]),
+    updates: [update],
+    avisos: aviso.telefono ? [aviso] : [],
+  };
+}
+
+// Palanca D: empuja la intrusa (y las citas pegadas detras) lo justo para deshacer el
+// choque. Fallback seguro; envuelve el motor de cascada existente.
+function estrategiaCascadaSolape(
+  citas: CitaRetraso[],
+  intrusa: CitaRetraso,
+  fija: CitaRetraso,
+  cierreMs: number,
+): EstrategiaRetraso | null {
+  if (intrusa.grupoId) return null; // no mover sola una cita encadenada
+  const fijaFases = fasesDe(fija);
+  const intrusaFases = fasesDe(intrusa);
+  const step = SLOT_MIN * MIN;
+  let minutos = 0;
+  for (let extra = step; intrusaFases.ini + extra <= cierreMs; extra += step) {
+    if (!chocaActivaActiva(fijaFases, reubicar(intrusaFases, intrusaFases.ini + extra))) {
+      minutos = Math.round(extra / MIN);
+      break;
+    }
+  }
+  if (minutos <= 0) return null;
+  const prop = proponerRetrasoPorCita(citas, intrusa.id, minutos);
+  if (prop.items.length === 0) return null;
+  const updates = construirUpdatesRetraso(prop, citas);
+  const otras = prop.items.filter((it) => it.cita_id !== intrusa.id);
+  const avisos: AvisoRetraso[] = otras
+    .filter((it) => it.telefono)
+    .map((it) => ({
+      cita_id: it.cita_id,
+      cliente: it.cliente,
+      telefono: it.telefono,
+      inicioNuevo: it.inicioNuevo,
+      minutos: it.empujeMin,
+    }));
+  return {
+    tipo: 'cascada',
+    titulo: 'Empujar todo en cascada',
+    resumen:
+      otras.length === 0
+        ? `${intrusa.cliente ?? 'La cita'} se retrasa lo justo para no solaparse; el resto del dia se mantiene.`
+        : `${intrusa.cliente ?? 'La cita'} y ${otras.length} cita${otras.length > 1 ? 's' : ''} siguiente${otras.length > 1 ? 's' : ''} se recolocan.`,
+    citasMovidas: otras.length,
+    retrasoCierreMin: cierreDelta(citas, updates),
+    updates,
+    avisos,
+  };
+}
+
+export function calcularEstrategiasSolape(
+  citasDelProfesional: CitaRetraso[],
+  intrusaId: string,
+  fijaId: string,
+  opts?: { cierreMs?: number; ahoraMs?: number },
+): EstrategiaRetraso[] {
+  const intrusa = citasDelProfesional.find((c) => c.id === intrusaId);
+  const fija = citasDelProfesional.find((c) => c.id === fijaId);
+  if (!intrusa || !fija) return [];
+
+  const ahoraMs = opts?.ahoraMs ?? Date.now();
+  const cierreMs = opts?.cierreMs ?? cierreDefault(citasDelProfesional);
+
+  const raw: EstrategiaRetraso[] = [];
+  const push = (e: EstrategiaRetraso | null) => {
+    if (e) raw.push(e);
+  };
+  // Orden de insercion = preferencia ante empate (reposo > hueco > adelantar > cascada).
+  push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, true));
+  push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, false));
+  push(estrategiaAdelantarFija(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs));
+  push(estrategiaCascadaSolape(citasDelProfesional, intrusa, fija, cierreMs));
+
+  // Dedup: quita estrategias cuyo efecto (updates) ya produce otra anterior. Garantiza
+  // ademas tipos unicos por lista (keys del RetrasoEstrategiasModal).
+  const seen = new Set<string>();
+  const out: EstrategiaRetraso[] = [];
+  for (const e of raw) {
+    const sig = e.updates.map((u) => `${u.id}@${u.inicio}`).sort().join('|');
+    if (seen.has(sig)) continue;
+    seen.add(sig);
+    out.push(e);
   }
 
   out.sort((a, b) => a.citasMovidas - b.citasMovidas || a.retrasoCierreMin - b.retrasoCierreMin);

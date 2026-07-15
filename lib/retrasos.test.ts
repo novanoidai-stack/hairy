@@ -7,6 +7,7 @@ import {
   proponerRetrasoPorCita,
   construirUpdatesRetraso,
   calcularEstrategiasRetraso,
+  calcularEstrategiasSolape,
   duracionRealAprendida,
   mejorAlternativaSlot,
   type CitaRetraso,
@@ -153,4 +154,76 @@ Deno.test('mejorAlternativaSlot: si el punto ya es valido lo devuelve tal cual',
     cierreMs: +new Date(iso(12, 0)),
   });
   assertEquals(alt, iso(11, 0));
+});
+
+// Helper local: ms de una hora del dia base D.
+function msD(h: number, m = 0): number {
+  return +new Date(iso(h, m));
+}
+
+Deno.test('solape: ofrece mover la intrusa y adelantar la fija; recomienda la de menor disrupcion', () => {
+  // A 10:00-11:00 (fija), B 10:30-11:00 (intrusa) chocan.
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  const tipos = est.map((e) => e.tipo).sort();
+  assertEquals(tipos, ['adelantar_otra', 'mover_hueco']);
+  // Recomendada unica y primera.
+  assertEquals(est.filter((e) => e.recomendada).length, 1);
+  assert(est[0].recomendada);
+  // La recomendada adelanta la fija A a las 9:00 (0 min de retraso de cierre).
+  assertEquals(est[0].tipo, 'adelantar_otra');
+  assertEquals(est[0].updates[0].id, 'A');
+  assertEquals(est[0].updates[0].inicio, iso(9, 0));
+  // La otra mueve la intrusa B al hueco de las 11:00.
+  const hueco = est.find((e) => e.tipo === 'mover_hueco')!;
+  assertEquals(hueco.updates[0].id, 'B');
+  assertEquals(hueco.updates[0].inicio, iso(11, 0));
+});
+
+Deno.test('solape: si la intrusa cabe en un reposo de otra cita, lo ofrece (y deduplica el hueco identico)', () => {
+  // A activa 10:00-10:20, reposo hasta 11:00, fin 11:15. B 10:10-10:30 choca con la activa de A.
+  const citas = [
+    cita('A', 10, 0, 75, { fin_activa: iso(10, 20), fin_espera: iso(11, 0) }),
+    cita('B', 10, 10, 20),
+  ];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  const reposo = est.find((e) => e.tipo === 'aprovechar_reposo');
+  assert(reposo, 'debe ofrecer aprovechar_reposo');
+  assertEquals(reposo!.updates[0].id, 'B');
+  // Primer slot alineado a 15 min dentro del reposo [10:20, 11:00) que no pisa la activa de A.
+  assertEquals(reposo!.updates[0].inicio, iso(10, 30));
+  // Tipos unicos (keys del modal): ninguna estrategia repite tipo.
+  assertEquals(new Set(est.map((e) => e.tipo)).size, est.length);
+  // El hueco que caeria en el mismo slot que el reposo se deduplica.
+  assertEquals(est.filter((e) => e.updates[0].id === 'B' && e.updates[0].inicio === iso(10, 30)).length, 1);
+});
+
+Deno.test('solape: la cascada arrastra las citas siguientes cuando hace falta', () => {
+  // A 10:00-11:00 (fija), B 10:30-11:00 (intrusa), C 11:00-11:30 pegada detras de B.
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30), cita('C', 11, 0, 30)];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  const cascada = est.find((e) => e.tipo === 'cascada');
+  assert(cascada, 'debe ofrecer cascada');
+  assert(cascada!.citasMovidas >= 1);
+  // La cascada recoloca B y C.
+  const ids = cascada!.updates.map((u) => u.id).sort();
+  assertEquals(ids, ['B', 'C']);
+});
+
+Deno.test('solape: una intrusa encadenada (grupoId) no se mueve sola', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30, { grupoId: 'cadena-1' })];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  // Ninguna estrategia toca la cita B (encadenada); solo cabe adelantar la fija A.
+  assert(est.every((e) => e.updates.every((u) => u.id !== 'B')));
+  assert(est.some((e) => e.tipo === 'adelantar_otra'));
+});
+
+Deno.test('solape: sin ninguna salida (ambas encadenadas, sin adelanto posible) devuelve []', () => {
+  const citas = [
+    cita('A', 10, 0, 60, { grupoId: 'cad-A' }),
+    cita('B', 10, 30, 30, { grupoId: 'cad-B' }),
+  ];
+  // Ambas encadenadas: no se puede mover sola ni la intrusa (hueco/reposo/cascada) ni la fija (adelantar).
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(10, 30) });
+  assertEquals(est.length, 0);
 });
