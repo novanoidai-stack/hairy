@@ -3395,94 +3395,7 @@ export default function AgendaCalendar() {
                 </div>
               </div>
 
-              {/* IA Helper Card. En movil arranca plegada tras un chip compacto
-                  para no comerse la agenda; en escritorio va desplegada. */}
-              <div style={{ margin: isMobile ? "0 12px 12px" : "0 14px 14px" }}>
-                {!iaHelperOpen ? (
-                  <button
-                    onClick={() => setIaHelper(true)}
-                    title="Mostrar la optimización de agenda de la IA"
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "9px 12px",
-                      background: TOKENS.bgCard,
-                      border: `1px solid ${TOKENS.border}`,
-                      borderRadius: 11,
-                      cursor: "pointer",
-                      textAlign: "left",
-                    }}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M12 3l1.8 5.6L19.5 10.4l-5.7 1.8L12 18l-1.8-5.8L4.5 10.4l5.7-1.8L12 3z"
-                        stroke={roleTheme.primary}
-                        strokeWidth="1.6"
-                        strokeLinejoin="round"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <span
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        fontSize: 12.5,
-                        fontWeight: 700,
-                        color: TOKENS.text,
-                      }}
-                    >
-                      Optimización de Agenda
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 11.5,
-                        fontWeight: 600,
-                        color: TOKENS.textTer,
-                      }}
-                    >
-                      {citasHoy.length} citas
-                    </span>
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={TOKENS.textTer}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
-                ) : (
-                  <TarjetaAyudaIA
-                    titulo="Optimización de Agenda"
-                    subtitulo="IA: Reduce tiempos muertos y mejora la ocupación del salón"
-                    estado={ayudaIA.estado}
-                    onAnalizar={handleAnalizarAgenda}
-                    onReintentar={ayudaIA.reintentar}
-                    botonLabel="Analizar jornada"
-                    onOcultar={() => setIaHelper(false)}
-                    resumenDeterminista={
-                      <div>
-                        Hay <b>{citasHoy.length}</b> citas programadas para el
-                        día seleccionado.
-                      </div>
-                    }
-                  />
-                )}
-              </div>
-
+              
               {/* Selector de profesional en movil: UNO a la vez (switcher con flechas
                   + toque para elegir de una lista). Evita las columnas aplastadas. */}
               {isMobile &&
@@ -4037,6 +3950,34 @@ export default function AgendaCalendar() {
           prefillWaitlistId={newCitaPrefill?.waitlistId}
         />
       )}
+      
+      {/* Modal de Optimizador IA */}
+      {iaHelperOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 99999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{ width: '90%', maxWidth: 400 }}>
+            <TarjetaAyudaIA
+              titulo="Optimización de Agenda"
+              subtitulo="IA: Reduce tiempos muertos y mejora la ocupación del salón"
+              estado={ayudaIA.estado}
+              onAnalizar={handleAnalizarAgenda}
+              onReintentar={ayudaIA.reintentar}
+              botonLabel="Analizar jornada"
+              onOcultar={() => setIaHelper(false)}
+              resumenDeterminista={
+                <div>
+                  Hay <b>{citasHoy.length}</b> citas programadas para el
+                  día seleccionado.
+                </div>
+              }
+            />
+          </div>
+        </div>
+      )}
+
       {showOrganizar && (
         <OrganizarAgendaPanel
           citas={citas}
@@ -4110,6 +4051,16 @@ export default function AgendaCalendar() {
       {showEditCita && selectedCitaEdit && (
         <DetalleCitaModal
           bloqueos={bloqueos}
+          onDuplicate={() => {
+            setShowEditCita(false);
+            setNewCitaPrefill({
+              clienteId: selectedCitaEdit.cliente_id,
+              servicioId: selectedCitaEdit.servicio_id,
+              profId: selectedCitaEdit.profesional_id,
+              notas: selectedCitaEdit.notas || ""
+            });
+            setShowNewCita(true);
+          }}
           onClose={() => {
             setShowEditCita(false);
             router.replace("/(tabs)/" as never);
@@ -12373,6 +12324,7 @@ function TimeNumBox({ value, label }: { value: string; label: string }) {
 export function DetalleCitaModal({
   onClose,
   onSaved,
+  onDuplicate,
   cita,
   servicios,
   categorias,
@@ -16532,6 +16484,25 @@ export function DetalleCitaModal({
             </div>
           ) : null}
           <div style={{ display: "flex", gap: 8 }}>
+            {onDuplicate && (
+            <button
+              className="m-btn-secondary"
+              onClick={onDuplicate}
+              disabled={guardando}
+              style={{
+                padding: "9px 18px",
+                background: TOKENS.bgCard,
+                border: `1px solid ${TOKENS.border}`,
+                color: TOKENS.text,
+                borderRadius: 8,
+                cursor: guardando ? "not-allowed" : "pointer",
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+            >
+              Duplicar cita
+            </button>
+            )}
             <button
               className="m-btn-secondary"
               onClick={onClose}
@@ -18507,7 +18478,17 @@ function MonthView({
 
               <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
                   {!isMobile && birthday && (
-                     <div className="m-birthday-link" onClick={() => alert("Ir a ficha de " + birthday)} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(139,92,246,0.1)", padding: "2px 4px", borderRadius: 4, color: "#8b5cf6", cursor: "pointer", maxWidth: "90%" }}>
+                     <div className="m-birthday-link" onClick={() => {
+          const [day, month] = dateStr.split("-").map(Number);
+          const bDay = new Date();
+          bDay.setMonth(month - 1);
+          bDay.setDate(day);
+          
+          if (typeof setDayViewType === "function") {
+             setDayViewType("grid");
+          }
+          alert("Debería navegar a la fecha del cumpleaños en el calendario. Redirigiendo a día...");
+        }} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(139,92,246,0.1)", padding: "2px 4px", borderRadius: 4, color: "#8b5cf6", cursor: "pointer", maxWidth: "90%" }}>
                          <Icon name="gift" size={10} color="#8b5cf6" style={{ flexShrink: 0 }} />
                          <span style={{ fontSize: 9, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{birthday}</span>
                      </div>
