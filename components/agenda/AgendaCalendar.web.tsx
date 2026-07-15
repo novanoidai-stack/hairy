@@ -8792,12 +8792,12 @@ function NewCitaModal({
   const [creandoCliente, setCreandoCliente] = useState(false);
   const [clienteSearch, setClienteSearch] = useState("");
   const [servicioSearch, setServicioSearch] = useState("");
-  const [historialClienteServicios, setHistorialClienteServicios] = useState<any[]>([]);
+  const [historialClienteServicios, setHistorialClienteServicios] = useState<{top: string[], last: string[]}>({top: [], last: []});
 
   // Buscar servicios más frecuentes del cliente
   useEffect(() => {
     let cancel = false;
-    setHistorialClienteServicios([]);
+    setHistorialClienteServicios({top: [], last: []});
     if (!selectedCliente) return;
     (async () => {
       let q = supabase
@@ -8817,13 +8817,14 @@ function NewCitaModal({
           counts[c.servicio_id] = (counts[c.servicio_id] || 0) + 1;
         }
       });
-      // Sort by frequency
       const topServices = Object.entries(counts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3)
         .map(([id]) => id);
       
-      setHistorialClienteServicios(topServices);
+      const lastServices = Array.from(new Set(data.map((c: any) => c.servicio_id).filter(Boolean))).slice(0, 3) as string[];
+      
+      setHistorialClienteServicios({ top: topServices, last: lastServices });
     })();
     return () => {
       cancel = true;
@@ -10728,35 +10729,70 @@ function NewCitaModal({
               }}
             />
 
-            {historialClienteServicios.length > 0 && (
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 700, textTransform: "uppercase", marginBottom: 6 }}>Servicios habituales</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {historialClienteServicios.map(sid => {
-                    const s = servicios.find((sv: any) => sv.id === sid);
-                    if (!s) return null;
-                    const sel = selectedServicio === s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => setSelectedServicio(s.id)}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: 8,
-                          background: sel ? "rgba(244,80,30,0.18)" : TOKENS.bgCard,
-                          border: `1px solid ${sel ? "rgba(244,80,30,0.4)" : TOKENS.border}`,
-                          color: sel ? TOKENS.primaryHi : TOKENS.textSec,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          cursor: "pointer",
-                          transition: "all 0.15s",
-                        }}
-                      >
-                        {s.nombre}
-                      </button>
-                    )
-                  })}
-                </div>
+            {(historialClienteServicios.top.length > 0 || historialClienteServicios.last.length > 0) && (
+              <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+                {historialClienteServicios.last.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 700, textTransform: "uppercase", marginBottom: 6 }}>Últimos servicios</div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {historialClienteServicios.last.map(sid => {
+                        const s = servicios.find((sv: any) => sv.id === sid);
+                        if (!s) return null;
+                        const sel = selectedServicio === s.id;
+                        return (
+                          <button
+                            key={`last-${s.id}`}
+                            onClick={() => setSelectedServicio(s.id)}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 8,
+                              background: sel ? "rgba(244,80,30,0.18)" : TOKENS.bgCard,
+                              border: `1px solid ${sel ? "rgba(244,80,30,0.4)" : TOKENS.border}`,
+                              color: sel ? TOKENS.primaryHi : TOKENS.textSec,
+                              fontSize: 11,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "all 0.15s",
+                            }}
+                          >
+                            {s.nombre}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                {historialClienteServicios.top.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 700, textTransform: "uppercase", marginBottom: 6 }}>Más habituales</div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {historialClienteServicios.top.map(sid => {
+                        const s = servicios.find((sv: any) => sv.id === sid);
+                        if (!s) return null;
+                        const sel = selectedServicio === s.id;
+                        return (
+                          <button
+                            key={`top-${s.id}`}
+                            onClick={() => setSelectedServicio(s.id)}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 8,
+                              background: sel ? "rgba(244,80,30,0.18)" : TOKENS.bgCard,
+                              border: `1px solid ${sel ? "rgba(244,80,30,0.4)" : TOKENS.border}`,
+                              color: sel ? TOKENS.primaryHi : TOKENS.textSec,
+                              fontSize: 11,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "all 0.15s",
+                            }}
+                          >
+                            {s.nombre}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
