@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
+import { esConfirmada, esPendiente, esNoShow, esCompletada } from '@/lib/citasMetrics';
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { SSelect, STextInput } from '@/components/ui/SettingsAtoms';
@@ -18,13 +19,15 @@ import { es } from 'date-fns/locale';
 
 const T = DESIGN_TOKENS;
 
-// Estados REALES en BD (no los del constants, que trae 'no_presentada' obsoleto).
+// Estados canonicos en BD (alineados con CITA_STATUS). El no-show es 'no_presentada'
+// (termino oficial del glosario); el antiguo 'no_show' se unifico en la migracion
+// kpi-a-unificar-no-show.
 const ESTADOS: Array<{ value: string; label: string; color: string }> = [
   { value: 'pendiente', label: 'Pendiente', color: T.warning },
   { value: 'confirmada', label: 'Confirmada', color: T.success },
   { value: 'completada', label: 'Completada', color: T.primary },
   { value: 'cancelada', label: 'Cancelada', color: T.danger },
-  { value: 'no_show', label: 'No presentada', color: T.danger },
+  { value: 'no_presentada', label: 'No presentada', color: T.danger },
 ];
 const ESTADO_META = new Map(ESTADOS.map((e) => [e.value, e]));
 
@@ -157,10 +160,10 @@ function CitasCRMScreen() {
   const stats = useMemo(() => {
     let confirmadas = 0, pendientes = 0, noshows = 0, ingresos = 0;
     for (const c of filteredCitas) {
-      if (c.estado === 'confirmada') confirmadas++;
-      else if (c.estado === 'pendiente') pendientes++;
-      else if (c.estado === 'no_show') noshows++;
-      if (c.estado === 'completada' || c.cobrada) {
+      if (esConfirmada(c)) confirmadas++;
+      else if (esPendiente(c)) pendientes++;
+      else if (esNoShow(c)) noshows++;
+      if (esCompletada(c) || c.cobrada) {
         const srv = c.servicio_id ? srvMap.get(c.servicio_id) : null;
         ingresos += c.importe_final != null ? Number(c.importe_final) : Number(srv?.precio || 0);
       }

@@ -9,6 +9,7 @@ import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { mensajeDeError } from '@/lib/errores';
 import { TAG_RESENO_SALON, TAG_RESENO_MECHA, TAGS_RESENA, CITA_STATUS_ACTIVOS } from '@/lib/constants';
+import { esCompletada, esCanceladaONoShow } from '@/lib/citasMetrics';
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { RiesgoNoShowIndicator, type RiesgoNoShow } from '@/components/clientes/RiesgoNoShowIndicator.web';
@@ -2479,10 +2480,10 @@ function HistorialTab({ cliente, citas, servicios, profesionales = [], fichasTec
     no_presentada: { bg: 'rgba(224,138,0,0.12)', color: TOKENS.warning, label: 'No presentada' },
   };
 
-  const completadas = clientCitas.filter((c) => c.estado === 'completada').length;
-  const canceladas = clientCitas.filter((c) => c.estado === 'cancelada' || c.estado === 'no_presentada').length;
+  const completadas = clientCitas.filter(esCompletada).length;
+  const canceladas = clientCitas.filter(esCanceladaONoShow).length;
   const totalGastado = clientCitas
-    .filter((c) => c.estado === 'completada')
+    .filter(esCompletada)
     .reduce((sum, c) => sum + (servicios.find((s) => s.id === c.servicio_id)?.precio || 0), 0);
 
   return (

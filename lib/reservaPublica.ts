@@ -281,7 +281,7 @@ export interface CitaPublica {
   cita_id: string;
   cliente_id?: string;
   consiente_ia?: boolean;
-  estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada' | 'no_show';
+  estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada' | 'no_presentada';
   servicio_id: string | null;
   servicio: string;
   categoria_nombre: string;

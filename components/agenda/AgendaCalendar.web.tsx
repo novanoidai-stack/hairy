@@ -71,6 +71,7 @@ import {
   TAG_RESENO_SALON,
   TAG_RESENO_MECHA,
 } from "@/lib/constants";
+import { cuentaComoConfirmada, esCanceladaONoShow } from "@/lib/citasMetrics";
 import { isTimeSlotOccupied } from "@/lib/utils/appointment";
 
 const ANIMATIONS = `
@@ -1312,12 +1313,7 @@ export default function AgendaCalendar() {
   // "Confirmadas" cuenta tambien las completadas: una cita completada SI estuvo confirmada,
   // asi que marcarla como completada no debe restar del contador.
   const confirmadasHoy = useMemo(
-    () =>
-      citasHoy.filter(
-        (c: any) =>
-          c.estado === CITA_STATUS.CONFIRMADA ||
-          c.estado === CITA_STATUS.COMPLETADA,
-      ).length,
+    () => citasHoy.filter(cuentaComoConfirmada).length,
     [citasHoy],
   );
 
@@ -2061,7 +2057,7 @@ export default function AgendaCalendar() {
                   <div style={{ animation: "slideInUp 0.5s ease 0.4s both" }}>
                     <StatCard
                       label="CANCELADAS"
-                      value={`${citas.filter((c) => (c.estado === CITA_STATUS.CANCELADA || c.estado === CITA_STATUS.NO_PRESENTADA) && new Date(c.inicio).getMonth() === month).length}`}
+                      value={`${citasMes.filter(esCanceladaONoShow).length}`}
                       sub="este mes"
                       tone={TOKENS.violet}
                       onClick={() => setShowStatsModal("canceladas")}
@@ -5439,18 +5435,9 @@ export default function AgendaCalendar() {
                 let list: any[] = [];
                 if (showStatsModal === "hoy") list = citasHoy;
                 else if (showStatsModal === "confirmadas")
-                  list = citasHoy.filter(
-                    (c) =>
-                      c.estado === CITA_STATUS.CONFIRMADA ||
-                      c.estado === CITA_STATUS.COMPLETADA,
-                  );
+                  list = citasHoy.filter(cuentaComoConfirmada);
                 else if (showStatsModal === "mes") list = citasMes;
-                else
-                  list = citasMes.filter(
-                    (c) =>
-                      c.estado === CITA_STATUS.CANCELADA ||
-                      c.estado === CITA_STATUS.NO_PRESENTADA,
-                  );
+                else list = citasMes.filter(esCanceladaONoShow);
 
                 if (list.length === 0)
                   return (

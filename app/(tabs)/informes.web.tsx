@@ -8,7 +8,8 @@ import { LiquidacionesSection } from '@/components/informes/LiquidacionesSection
 import { GastosSection } from '@/components/informes/GastosSection';
 import { getUserProfile, canAccessInformes } from '@/lib/auth';
 import { useResponsive } from '@/lib/hooks/useResponsive';
-import { NEGOCIO_ID_FALLBACK, CITA_STATUS, HORARIO_APERTURA, HORARIO_CIERRE } from '@/lib/constants';
+import { NEGOCIO_ID_FALLBACK, HORARIO_APERTURA, HORARIO_CIERRE } from '@/lib/constants';
+import { esCompletada, esConfirmada, esPendiente, esNoShow, esCancelada, esActiva } from '@/lib/citasMetrics';
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subMonths,
   differenceInMinutes, differenceInDays, format, parseISO, isValid,
@@ -485,12 +486,12 @@ function InformesScreen() {
   // Filter active professionals only
   const profsActivos = useMemo(() => profesionales.filter(p => p.activo), [profesionales]);
 
-  const completadas = useMemo(() => citas.filter(c => c.estado === CITA_STATUS.COMPLETADA), [citas]);
-  const confirmadas = useMemo(() => citas.filter(c => c.estado === CITA_STATUS.CONFIRMADA), [citas]);
-  const pendientes = useMemo(() => citas.filter(c => c.estado === CITA_STATUS.PENDIENTE), [citas]);
-  const noShows = useMemo(() => citas.filter(c => c.estado === CITA_STATUS.NO_PRESENTADA), [citas]);
-  const canceladas = useMemo(() => citas.filter(c => c.estado === CITA_STATUS.CANCELADA), [citas]);
-  const activas = useMemo(() => [...completadas, ...confirmadas, ...pendientes], [completadas, confirmadas, pendientes]);
+  const completadas = useMemo(() => citas.filter(esCompletada), [citas]);
+  const confirmadas = useMemo(() => citas.filter(esConfirmada), [citas]);
+  const pendientes = useMemo(() => citas.filter(esPendiente), [citas]);
+  const noShows = useMemo(() => citas.filter(esNoShow), [citas]);
+  const canceladas = useMemo(() => citas.filter(esCancelada), [citas]);
+  const activas = useMemo(() => citas.filter(esActiva), [citas]);
 
   // -- 9.10: KPIs --
   const totalCitas = citas.length;
