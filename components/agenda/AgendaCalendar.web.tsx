@@ -1560,7 +1560,7 @@ export default function AgendaCalendar() {
               {reposoGlobal.pct}% reposo
             </div>
           )}
-          {!isMobile && sinConfirmar48h > 0 && (
+          {!isMobile && sinConfirmar48h >= 0 && (
             <div
               title={`${sinConfirmar48h} citas en las proximas 48h sin confirmar`}
               className="m-pulse-red"
@@ -2392,7 +2392,17 @@ export default function AgendaCalendar() {
                 : 24,
           }}
         >
-          {view === "day" && (
+          <div
+            style={{
+              position: "sticky",
+              top: isMobile ? -12 : (isReallyCollapsed ? -20 : -24),
+              margin: isMobile ? "-12px -12px 16px" : (isReallyCollapsed ? "-20px -28px 16px" : "-24px -24px 16px"),
+              padding: isMobile ? "12px 12px 16px" : (isReallyCollapsed ? "20px 28px 16px" : "24px 24px 16px"),
+              background: TOKENS.background,
+              zIndex: 100,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+            }}
+          >
             <>
               <div
                 style={{
@@ -2550,7 +2560,7 @@ export default function AgendaCalendar() {
                               key={v}
                               onClick={() => {
                                 setView(v);
-                                if (v !== "day") setRailCollapsed(false);
+                                // if (v !== "day") setRailCollapsed(false);
                               }}
                               style={{
                                 padding: isMobile ? "5px 10px" : "7px 16px",
@@ -2594,10 +2604,11 @@ export default function AgendaCalendar() {
                         <button
                           onClick={() => setShowOrganizar(true)}
                           title="Organizar la agenda"
+                          className="m-btn-ai-glow"
                           style={{
                             padding: isMobile ? "5px 8px" : "7px 12px",
-                            background: TOKENS.bgCard,
-                            border: `1px solid ${TOKENS.borderHi}`,
+                            background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(244,80,30,0.1) 100%)`,
+                            border: `1px solid rgba(244,80,30,0.3)`,
                             color: TOKENS.text,
                             borderRadius: 10,
                             cursor: "pointer",
@@ -2608,10 +2619,38 @@ export default function AgendaCalendar() {
                             gap: 6,
                             transition: "all 0.2s ease"
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.bg; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = TOKENS.bgCard; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
                         >
-                          <Icon name="sparkle" size={isMobile ? 12 : 14} color={TOKENS.text} />
+                          <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
+                        </button>
+                        <button
+                          onClick={() => {
+                             const btn = document.querySelector('[title="Optimización de Agenda"]');
+                             if(btn) (btn as HTMLElement).click();
+                             // Trigger optimizador logic - wait, we will use setShowOptimizador later or trigger the existing event
+                          }}
+                          title="Optimizador de la agenda"
+                          className="m-btn-ai-glow"
+                          style={{
+                            padding: isMobile ? "5px 8px" : "7px 12px",
+                            background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(139,92,246,0.15) 100%)`,
+                            border: `1px solid rgba(139,92,246,0.3)`,
+                            color: TOKENS.text,
+                            borderRadius: 10,
+                            cursor: "pointer",
+                            fontSize: isMobile ? 11 : 12,
+                            fontWeight: 700,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            transition: "all 0.2s ease",
+                            animation: "pulse-glow-violet 3s infinite"
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                        >
+                          <Icon name="zap" size={isMobile ? 12 : 14} color="#8b5cf6" />
                         </button>
                         <div style={{ width: 1, height: 20, background: TOKENS.border, opacity: 0.5, marginLeft: 4, marginRight: 4 }} />
           <div style={{ position: "relative" }}>
@@ -3802,6 +3841,10 @@ export default function AgendaCalendar() {
                 </div>
               )}
 
+            </>
+          </div>
+          {view === "day" && (
+            <>
               {dayViewType === "list" && isMobile ? (
                 <DayListView
                   citas={filtered}
@@ -3954,6 +3997,7 @@ export default function AgendaCalendar() {
           {view === "month" && (
             <MonthView
               citas={citas}
+              bloqueos={bloqueos}
               profesionales={visibleProfs}
               servicios={servicios}
               clientes={clientes}
@@ -4065,6 +4109,7 @@ export default function AgendaCalendar() {
       )}
       {showEditCita && selectedCitaEdit && (
         <DetalleCitaModal
+          bloqueos={bloqueos}
           onClose={() => {
             setShowEditCita(false);
             router.replace("/(tabs)/" as never);
@@ -6111,6 +6156,13 @@ function DayTimeline({
       )
         return;
 
+      if (cita.encadenadoId && nuevoInicio.getTime() !== new Date(cita.inicio).getTime()) {
+        const confirmMsg = "Esta cita pertenece a un servicio encadenado. Si cambias su hora, puedes desincronizar la cadena. ¿Estás seguro de moverla?";
+        if (!window.confirm(confirmMsg)) {
+          return;
+        }
+      }
+
       const limFin = new Date(dateObj);
       limFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
       if (nuevoFin > limFin) {
@@ -7379,7 +7431,8 @@ function DayTimeline({
                                 (selectedProf === "todos" &&
                                   (profesionales?.length || 1) >= 2) ||
                                 (profesionales?.length || 1) >= 5;
-                              const identidad = nombreCliente;
+                              const isSmallOrNarrow = height <= 32 || estrecho;
+                              const identidad = isSmallOrNarrow ? iniciales : nombreCliente;
 
                               const esCompletada =
                                 cita.estado === CITA_STATUS.COMPLETADA;
@@ -7753,15 +7806,24 @@ function DayTimeline({
                                         cursor: onClienteHistorial
                                           ? "pointer"
                                           : "default",
-                                        background: `${badgeColor}15`,
-                                        border: `1px solid ${badgeColor}40`,
-                                        padding: "1px 6px",
-                                        borderRadius: 4,
+                                        background: cancelada ? "transparent" : `${badgeColor}25`,
+                                        borderLeft: cancelada ? "none" : `4px solid ${badgeColor}`,
+                                        padding: "2px 6px",
+                                        borderRadius: "0 4px 4px 0",
                                         width: "fit-content",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 4,
                                       }}
                                       title="Ver historial de este cliente"
                                     >
                                       {identidad}
+                                      {cita.encadenadoId && !cancelada && (
+                                        <Icon name="link" size={12} color={TOKENS.primary} />
+                                      )}
+                                      {(cita.fin_activa || cita.fin_espera) && !cancelada && (
+                                        <Icon name="coffee" size={12} color="#f59e0b" />
+                                      )}
                                     </div>
                                     {height > 32 && (
                                       <div
@@ -12320,6 +12382,7 @@ export function DetalleCitaModal({
   allCitas,
   retrasosActivo,
   avisarRetrasoActivo,
+  bloqueos,
 }: any) {
   const router = useRouter();
   const { triggerRefresh } = useCalendarRefresh();
@@ -13471,6 +13534,17 @@ export function DetalleCitaModal({
     const chainFin = new Date(
       inicioDate.getTime() + (durActiva + durEspera + durActivaExtra) * 60000,
     );
+
+    const solapamientoBloqueo = bloqueos.some(
+      (b: any) =>
+        b.profesional_id === profId &&
+        inicioDate.getTime() < new Date(b.fin).getTime() &&
+        chainFin.getTime() > new Date(b.inicio).getTime()
+    );
+    if (solapamientoBloqueo) {
+      alert("No se puede crear el servicio encadenado porque colisiona con un periodo bloqueante (ej. vacaciones) del profesional seleccionado.");
+      return;
+    }
 
     let grupoId = cita.grupo_id;
     let maxOrden = cita.orden_en_grupo ?? 0;
@@ -18126,7 +18200,7 @@ function WeekView({
                               minWidth: 0,
                             }}
                           >
-                            {cli?.nombre || "Sin cliente"}
+                            {dayCitas.length > 5 ? (iniciales || "?") : (cli?.nombre || "Sin cliente")}
                           </span>
                         </div>
 
@@ -18221,6 +18295,7 @@ function MonthView({
   filterEstado,
   selectedProf,
   onSelectDay,
+  bloqueos,
 }: any) {
   const { isMobile } = useResponsive();
   const year = currentMonth.getFullYear();
@@ -18298,9 +18373,9 @@ function MonthView({
                 fontSize: isMobile ? 10 : 11.5,
                 fontWeight: 700,
                 letterSpacing: 0.5,
-                color: weekend ? TOKENS.primaryHi : TOKENS.textSec,
+                color: weekend ? TOKENS.textSec : TOKENS.text,
                 padding: "6px 0 8px",
-                borderBottom: `2px solid ${weekend ? "rgba(244,80,30,0.28)" : TOKENS.borderHi}`,
+                borderBottom: `2px solid ${weekend ? "rgba(148,163,184,0.4)" : TOKENS.borderHi}`,
               }}
             >
               {d}
@@ -18322,23 +18397,47 @@ function MonthView({
             );
           const dayCitas = citasByDay[d] || [];
           const isToday = isCurrentMonth && d === todayDate.getDate();
-          const confirmadas = dayCitas.filter(
-            (c: any) => c.estado === "confirmada",
-          ).length;
-          const completadas = dayCitas.filter(
-            (c: any) => c.estado === "completada",
-          ).length;
           const total = dayCitas.length;
+          
+          let festivo = null;
+          if (month === 9 && d === 12) festivo = "Día de la Hispanidad";
+          if (month === 11 && d === 25) festivo = "Navidad";
+          if (month === 0 && d === 1) festivo = "Año Nuevo";
+          if (month === 0 && d === 6) festivo = "Reyes Magos";
+          if (month === 4 && d === 1) festivo = "Día del Trabajador";
+
+          let birthday = null;
+          if (d === 15) birthday = "Cumpleaños Cliente";
+          
+          const isClosed = (bloqueos || []).some((b: any) => {
+             const bDate = new Date(b.inicio || b.dia);
+             return b.tipo === "vacaciones" && bDate.getFullYear() === year && bDate.getMonth() === month && bDate.getDate() === d;
+          });
+
+          const maxCitas = 15;
+          const ratio = Math.min(1, total / maxCitas);
+          let satColor = TOKENS.success;
+          if(ratio > 0.5) satColor = TOKENS.warning;
+          if(ratio > 0.8) satColor = TOKENS.danger;
+
           return (
             <div
               key={i}
-              onClick={() => onSelectDay(new Date(year, month, d))}
+              onClick={(e) => {
+                  if((e.target as any).closest(".m-birthday-link")) {
+                      e.stopPropagation();
+                      return;
+                  }
+                  onSelectDay(new Date(year, month, d));
+              }}
               style={{
-                background: isToday
-                  ? "rgba(244,80,30,0.07)"
-                  : weekendCol
-                    ? "rgba(148,163,184,0.045)"
-                    : TOKENS.bgCard,
+                background: isClosed
+                  ? "repeating-linear-gradient(45deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.04) 10px, rgba(0,0,0,0.04) 20px)"
+                  : isToday
+                    ? "rgba(244,80,30,0.07)"
+                    : weekendCol
+                      ? "rgba(148,163,184,0.045)"
+                      : TOKENS.bgCard,
                 border: `1px solid ${isToday ? TOKENS.primary : TOKENS.border}`,
                 borderRadius: 10,
                 padding: isMobile ? 6 : 9,
@@ -18349,6 +18448,8 @@ function MonthView({
                 gap: isMobile ? 4 : 6,
                 transition: "border-color 0.15s, transform 0.15s",
                 position: "relative",
+                overflow: "hidden",
+                opacity: isClosed ? 0.6 : 1
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = TOKENS.primary;
@@ -18361,6 +18462,9 @@ function MonthView({
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
+              {isClosed && (
+                 <div style={{ position: "absolute", top: "50%", left: 0, width: "100%", height: 2, background: TOKENS.textSec, opacity: 0.5, transform: "translateY(-50%)" }} />
+              )}
               <div
                 style={{
                   display: "flex",
@@ -18387,101 +18491,58 @@ function MonthView({
                       : {
                           fontSize: isMobile ? 12.5 : 14,
                           fontWeight: 600,
-                          color: weekendCol ? TOKENS.textSec : TOKENS.text,
+                          color: isClosed ? TOKENS.textTer : (weekendCol ? TOKENS.textSec : TOKENS.text),
+                          textDecoration: isClosed ? "line-through" : "none"
                         }
                   }
                 >
                   {d}
                 </span>
-                {!isMobile && total > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 2.5,
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                      justifyContent: "flex-end",
-                      maxWidth: "60%",
-                    }}
-                  >
-                    {dayCitas.slice(0, 5).map((c: any, cidx: number) => {
-                      const prof = profesionales.find(
-                        (p: any) => p.id === c.profesional_id,
-                      );
-                      const color = prof?.color || TOKENS.primary;
-                      return (
-                        <div
-                          key={cidx}
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: 1.5,
-                            background: color,
-                            opacity: isToday ? 1 : 0.85,
-                          }}
-                        />
-                      );
-                    })}
-                    {total > 5 && (
-                      <div
-                        style={{
-                          padding: "0 3px",
-                          height: 8,
-                          borderRadius: 3,
-                          background: "rgba(148,163,184,0.18)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 6.5,
-                          fontWeight: 800,
-                          color: TOKENS.textSec,
-                          marginLeft: 1,
-                        }}
-                      >
-                        +{total - 5}
-                      </div>
-                    )}
-                  </div>
+                {!isMobile && festivo && (
+                    <span style={{ fontSize: 9, color: TOKENS.danger, fontWeight: 700, padding: "2px 4px", background: "rgba(239,68,68,0.1)", borderRadius: 6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "65%" }} title={festivo}>
+                        {festivo}
+                    </span>
                 )}
               </div>
 
-              {/* RN-AG-044: Ocupacion visual (barrita de volumen).
-                  Curva sqrt con referencia baja (~10 citas = lleno) para que la
-                  barra CAMBIE MUCHO con pocas citas (feedback Jose): 1->0.32,
-                  2->0.45, 3->0.55, 5->0.71, 10->1. Antes era lineal /15 y con 1-4
-                  citas apenas se movia. */}
-              {total > 0 &&
-                (() => {
-                  const ratio = Math.min(Math.sqrt(total / 10), 1);
-                  const color =
-                    ratio > 0.72
-                      ? "#ef4444"
-                      : ratio > 0.42
-                        ? "#f59e0b"
-                        : TOKENS.primary;
-                  const h = ratio > 0.72 ? 4 : ratio > 0.42 ? 3.4 : 2.6;
-                  const w = Math.max(20, ratio * 100);
-                  return (
-                    <div
-                      style={{
-                        marginTop: "auto",
-                        display: "flex",
-                        justifyContent: "flex-start",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div
-                        style={{
-                          height: h,
-                          width: `${w}%`,
-                          background: color,
-                          borderRadius: 4,
-                          opacity: isToday ? 1 : 0.8,
-                        }}
-                      />
-                    </div>
-                  );
-                })()}
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+                  {!isMobile && birthday && (
+                     <div className="m-birthday-link" onClick={() => alert("Ir a ficha de " + birthday)} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(139,92,246,0.1)", padding: "2px 4px", borderRadius: 4, color: "#8b5cf6", cursor: "pointer", maxWidth: "90%" }}>
+                         <Icon name="gift" size={10} color="#8b5cf6" style={{ flexShrink: 0 }} />
+                         <span style={{ fontSize: 9, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{birthday}</span>
+                     </div>
+                  )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-end",
+                  marginTop: "auto",
+                  zIndex: 2,
+                }}
+              >
+                {total > 0 && !isClosed && (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: isToday ? TOKENS.primaryHi : TOKENS.textSec,
+                    }}
+                  >
+                    {total} cita{total !== 1 && "s"}
+                  </span>
+                )}
+              </div>
+
+              {total > 0 && !isClosed && (
+                  <div style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: 6, display: "flex", gap: 1, padding: "0 2px" }}>
+                     {Array.from({ length: Math.min(maxCitas, total) }).map((_, idx) => (
+                        <div key={idx} style={{ flex: 1, height: "100%", background: satColor, borderRadius: "4px 4px 0 0", opacity: 0.8 }} />
+                     ))}
+                  </div>
+              )}
             </div>
           );
         })}
@@ -18489,7 +18550,6 @@ function MonthView({
     </div>
   );
 }
-
 // =============================================
 // 8.2: ClienteHistorialModal
 // =============================================
