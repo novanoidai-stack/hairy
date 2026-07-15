@@ -27,6 +27,7 @@ import {
   type EstrategiaRetraso,
   type Fases,
   calcularEstrategiasRetraso,
+  calcularEstrategiasSolape,
   fasesDe,
   chocaActivaActiva,
   reubicar,
@@ -130,52 +131,37 @@ function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: 
   };
 }
 
-// --- 2) Solape activa-activa: estado inconsistente (no deberia ocurrir, pero
-//        si aparece hay que poder arreglarlo desde aqui). Mueve la cita que
-//        empieza mas tarde de cada pareja al primer hueco valido. ---
+// --- 2) Solape activa-activa: estado inconsistente (no deberia ocurrir, pero si
+//        aparece hay que poder arreglarlo desde aqui). Por cada par que choca, la
+//        que empieza antes es la 'fija' y la de despues la 'intrusa'; delega en
+//        calcularEstrategiasSolape las multiples formas de resolverlo. ---
 function detectarSolapes(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: number): ProblemaAgenda[] {
   const problemas: ProblemaAgenda[] = [];
-  const movidas = new Set<string>();
+  const resueltas = new Set<string>();
   const fases = citasProf.map(fasesDe);
 
   for (let i = 0; i < citasProf.length; i++) {
     for (let j = i + 1; j < citasProf.length; j++) {
-      if (movidas.has(citasProf[i].id) || movidas.has(citasProf[j].id)) continue;
+      if (resueltas.has(citasProf[i].id) || resueltas.has(citasProf[j].id)) continue;
       if (!chocaActivaActiva(fases[i], fases[j])) continue;
 
-      // Deja fija la que empieza antes; mueve la "intrusa".
-      const [fijaIdx, moverIdx] = fases[i].ini <= fases[j].ini ? [i, j] : [j, i];
-      const obstaculos = fases.filter((_, k) => k !== moverIdx && !movidas.has(citasProf[k].id));
-      const desde = Math.max(ahoraMs, fases[fijaIdx].ini);
-      const slot = buscarHueco(fases[moverIdx], obstaculos, desde, cierreMs, false);
-      if (slot == null) continue;
+      const [fijaIdx, intrusaIdx] = fases[i].ini <= fases[j].ini ? [i, j] : [j, i];
+      const fija = citasProf[fijaIdx];
+      const intrusa = citasProf[intrusaIdx];
 
-      const nueva = reubicar(fases[moverIdx], slot);
-      if (hayColision([...obstaculos, nueva])) continue;
+      const estrategias = calcularEstrategiasSolape(citasProf, intrusa.id, fija.id, { cierreMs, ahoraMs });
+      if (estrategias.length === 0) continue;
 
-      const orig = citasProf[moverIdx];
-      const update = toUpdate(orig, nueva);
-      movidas.add(orig.id);
+      resueltas.add(intrusa.id);
       problemas.push({
-        id: `solape:${orig.id}`,
+        id: `solape:${intrusa.id}`,
         tipo: 'solape',
-        profesionalId: orig.profesional_id,
+        profesionalId: intrusa.profesional_id,
         profesionalNombre: '',
         titulo: 'Dos citas se solapan',
-        descripcion: `${orig.cliente ?? 'Una cita'} choca con ${citasProf[fijaIdx].cliente ?? 'otra cita'}. Puede moverse a ${fmtFechaHora(update.inicio)}.`,
-        citaIds: [orig.id, citasProf[fijaIdx].id],
-        estrategias: [
-          {
-            tipo: 'mover_hueco',
-            titulo: `Mover a ${fmtFechaHora(update.inicio)}`,
-            resumen: `${orig.cliente ?? 'La cita'} pasa a ${fmtFechaHora(update.inicio)}; el resto del dia no cambia.`,
-            citasMovidas: 1,
-            retrasoCierreMin: 0,
-            updates: [update],
-            avisos: [],
-            recomendada: true,
-          },
-        ],
+        descripcion: `${intrusa.cliente ?? 'Una cita'} choca con ${fija.cliente ?? 'otra cita'}. Hay ${estrategias.length} forma${estrategias.length > 1 ? 's' : ''} de resolverlo.`,
+        citaIds: [intrusa.id, fija.id],
+        estrategias,
       });
     }
   }

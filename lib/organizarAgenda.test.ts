@@ -85,14 +85,21 @@ Deno.test('hueco por debajo del umbral (20 min) no genera problema', () => {
   assertEquals(problemas.length, 0);
 });
 
-Deno.test('solape: dos citas activas que chocan se resuelven moviendo la segunda', () => {
+Deno.test('solape: dos citas activas que chocan ofrecen varias estrategias con tipos unicos', () => {
   const citas = [cita('A', 'P5', 10, 0, 60), cita('B', 'P5', 10, 30, 30)];
   const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(9, 0) });
   assertEquals(problemas.length, 1);
   assertEquals(problemas[0].tipo, 'solape');
   assertEquals(problemas[0].citaIds.sort(), ['A', 'B']);
-  assertEquals(problemas[0].estrategias[0].updates[0].id, 'B');
-  assertEquals(problemas[0].estrategias[0].updates[0].inicio, iso(11, 0));
+  // Varias estrategias, tipos unicos (keys del modal), exactamente una recomendada.
+  assert(problemas[0].estrategias.length >= 2);
+  assertEquals(
+    new Set(problemas[0].estrategias.map((e) => e.tipo)).size,
+    problemas[0].estrategias.length,
+  );
+  assertEquals(problemas[0].estrategias.filter((e) => e.recomendada).length, 1);
+  assert(problemas[0].estrategias.some((e) => e.tipo === 'mover_hueco'));
+  assert(problemas[0].estrategias.some((e) => e.tipo === 'adelantar_otra'));
 });
 
 Deno.test('cadena multiprofesional (grupoId) no se propone para compactar huecos', () => {
