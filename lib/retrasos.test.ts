@@ -12,6 +12,7 @@ import {
   mejorAlternativaSlot,
   type CitaRetraso,
 } from './retrasos.ts';
+import { categoriaCumple } from './constants.ts';
 
 // Helpers para construir citas de un dia (hora local del runner; solo importan los deltas).
 const D = '2026-07-06';
@@ -226,4 +227,13 @@ Deno.test('solape: sin ninguna salida (ambas encadenadas, sin adelanto posible) 
   // Ambas encadenadas: no se puede mover sola ni la intrusa (hueco/reposo/cascada) ni la fija (adelantar).
   const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(10, 30) });
   assertEquals(est.length, 0);
+});
+
+Deno.test('categoriaCumple: null minima cualquiera cumple; respeta la jerarquia', () => {
+  assertEquals(categoriaCumple('auxiliar', null), true);
+  assertEquals(categoriaCumple('auxiliar', undefined), true);
+  assertEquals(categoriaCumple('oficial', 'oficial'), true);
+  assertEquals(categoriaCumple('estilista_senior', 'oficial'), true);
+  assertEquals(categoriaCumple('auxiliar', 'oficial'), false);
+  assertEquals(categoriaCumple('desconocida', 'oficial'), false);
 });
