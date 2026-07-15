@@ -2,6 +2,7 @@
 // Funcion PURA y testeable: dado el dia de un profesional y un retraso, calcula como se
 // desplazan las citas siguientes ABSORBIENDO los huecos. No toca BD ni UI.
 // Spec: docs/superpowers/specs/2026-06-18-retrasos-encadenados-design.md
+import { categoriaCumple, CATEGORIA_ORDEN, type CategoriaProfesional } from './constants.ts';
 
 const MIN = 60000;
 
@@ -167,6 +168,7 @@ export interface UpdateRetraso {
   fin: string;
   fin_activa?: string;
   fin_espera?: string;
+  profesional_id?: string; // solo en updates de reasignacion (cambio de profesional)
 }
 
 export type EstrategiaTipo =
@@ -174,6 +176,7 @@ export type EstrategiaTipo =
   | 'mover_hueco'
   | 'aprovechar_reposo'
   | 'adelantar_otra'
+  | 'reasignar'
   | 'pedir_retraso_siguiente';
 
 // Aviso a un cliente afectado (lo consume el motor WhatsApp via flag retraso_aviso_pendiente).
@@ -612,11 +615,53 @@ function estrategiaCascadaSolape(
   };
 }
 
+// Palanca E: reasignar la intrusa a otro profesional libre a su MISMA hora, con
+// categoria suficiente. Elige la categoria cualificada mas baja (desempate por nombre).
+function estrategiaReasignar(
+  intrusa: CitaRetraso,
+  reasignacion: {
+    categoriaMinima?: string | null;
+    candidatos: { id: string; nombre: string; categoria?: string | null; ocupacion: CitaRetraso[] }[];
+  },
+): EstrategiaRetraso | null {
+  if (intrusa.grupoId) return null;
+  const intrusaFases = fasesDe(intrusa);
+  const elegibles = reasignacion.candidatos.filter(
+    (c) =>
+      categoriaCumple(c.categoria, reasignacion.categoriaMinima) &&
+      !c.ocupacion.some((o) => chocaActivaActiva(fasesDe(o), intrusaFases)),
+  );
+  if (elegibles.length === 0) return null;
+  const mejor = elegibles.slice().sort((a, b) => {
+    const ia = CATEGORIA_ORDEN.indexOf((a.categoria ?? '') as CategoriaProfesional);
+    const ib = CATEGORIA_ORDEN.indexOf((b.categoria ?? '') as CategoriaProfesional);
+    return ia - ib || a.nombre.localeCompare(b.nombre);
+  })[0];
+  const update: UpdateRetraso = { ...toUpdate(intrusa, intrusaFases), profesional_id: mejor.id };
+  const hora = new Date(intrusaFases.ini).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  return {
+    tipo: 'reasignar',
+    titulo: `Atender con ${mejor.nombre}`,
+    resumen: `${intrusa.cliente ?? 'La cita'} mantiene su hora (${hora}) pero la atiende ${mejor.nombre}, que esta libre; el resto del dia no cambia.`,
+    citasMovidas: 0,
+    retrasoCierreMin: 0,
+    updates: [update],
+    avisos: [],
+  };
+}
+
 export function calcularEstrategiasSolape(
   citasDelProfesional: CitaRetraso[],
   intrusaId: string,
   fijaId: string,
-  opts?: { cierreMs?: number; ahoraMs?: number },
+  opts?: {
+    cierreMs?: number;
+    ahoraMs?: number;
+    reasignacion?: {
+      categoriaMinima?: string | null;
+      candidatos: { id: string; nombre: string; categoria?: string | null; ocupacion: CitaRetraso[] }[];
+    };
+  },
 ): EstrategiaRetraso[] {
   const intrusa = citasDelProfesional.find((c) => c.id === intrusaId);
   const fija = citasDelProfesional.find((c) => c.id === fijaId);
@@ -629,9 +674,10 @@ export function calcularEstrategiasSolape(
   const push = (e: EstrategiaRetraso | null) => {
     if (e) raw.push(e);
   };
-  // Orden de insercion = preferencia ante empate (reposo > hueco > adelantar > cascada).
+  // Orden de insercion = preferencia ante empate (reposo > hueco > reasignar > adelantar > cascada).
   push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, true));
   push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, false));
+  if (opts?.reasignacion) push(estrategiaReasignar(intrusa, opts.reasignacion));
   push(estrategiaAdelantarFija(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs));
   push(estrategiaCascadaSolape(citasDelProfesional, intrusa, fija, cierreMs));
 
@@ -640,7 +686,7 @@ export function calcularEstrategiasSolape(
   const seen = new Set<string>();
   const out: EstrategiaRetraso[] = [];
   for (const e of raw) {
-    const sig = e.updates.map((u) => `${u.id}@${u.inicio}`).sort().join('|');
+    const sig = e.updates.map((u) => `${u.id}@${u.inicio}@${u.profesional_id ?? ''}`).sort().join('|');
     if (seen.has(sig)) continue;
     seen.add(sig);
     out.push(e);

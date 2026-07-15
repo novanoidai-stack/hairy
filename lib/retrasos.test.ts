@@ -237,3 +237,62 @@ Deno.test('categoriaCumple: null minima cualquiera cumple; respeta la jerarquia'
   assertEquals(categoriaCumple('auxiliar', 'oficial'), false);
   assertEquals(categoriaCumple('desconocida', 'oficial'), false);
 });
+
+Deno.test('reasignar: otro profesional libre a la misma hora (sin requisito) se ofrece', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: null,
+    candidatos: [{ id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [] as CitaRetraso[] }],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  const rea = est.find((e) => e.tipo === 'reasignar');
+  assert(rea, 'debe ofrecer reasignar');
+  assertEquals(rea!.updates[0].id, 'B');
+  assertEquals(rea!.updates[0].profesional_id, 'P2');
+  assertEquals(rea!.updates[0].inicio, iso(10, 30));
+  assertEquals(rea!.citasMovidas, 0);
+});
+
+Deno.test('reasignar: descarta candidato de categoria insuficiente', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: 'oficial',
+    candidatos: [{ id: 'P2', nombre: 'Bea', categoria: 'auxiliar', ocupacion: [] as CitaRetraso[] }],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  assert(!est.some((e) => e.tipo === 'reasignar'));
+});
+
+Deno.test('reasignar: elige la categoria cualificada mas baja', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: 'oficial',
+    candidatos: [
+      { id: 'P3', nombre: 'Cris', categoria: 'estilista_senior', ocupacion: [] as CitaRetraso[] },
+      { id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [] as CitaRetraso[] },
+    ],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  const rea = est.find((e) => e.tipo === 'reasignar')!;
+  assertEquals(rea.updates[0].profesional_id, 'P2');
+});
+
+Deno.test('reasignar: candidato ocupado en la ventana no cuenta', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: null,
+    candidatos: [{ id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [cita('X', 10, 30, 30)] }],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  assert(!est.some((e) => e.tipo === 'reasignar'));
+});
+
+Deno.test('reasignar: intrusa encadenada (grupoId) no se reasigna', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30, { grupoId: 'cad-1' })];
+  const reasignacion = {
+    categoriaMinima: null,
+    candidatos: [{ id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [] as CitaRetraso[] }],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  assert(!est.some((e) => e.tipo === 'reasignar'));
+});
