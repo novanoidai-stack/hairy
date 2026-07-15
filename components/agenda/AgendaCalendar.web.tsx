@@ -844,7 +844,7 @@ export default function AgendaCalendar() {
         ] = await Promise.all([
           supabase
             .from("profesionales")
-            .select("id, nombre, color, activo, foto_perfil")
+            .select("id, nombre, color, activo, foto_perfil, categoria")
             .eq("negocio_id", negocioId),
           supabase
             .from("citas")
@@ -856,7 +856,7 @@ export default function AgendaCalendar() {
           supabase
             .from("servicios")
             .select(
-              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria_id",
+              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria_id, categoria_minima",
             )
             .eq("negocio_id", negocioId),
           supabase

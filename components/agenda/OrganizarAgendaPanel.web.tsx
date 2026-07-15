@@ -59,9 +59,9 @@ interface CitaCruda {
 
 export interface OrganizarAgendaPanelProps {
   citas: CitaCruda[];
-  profesionales: { id: string; nombre: string }[];
+  profesionales: { id: string; nombre: string; categoria?: string | null; activo?: boolean }[];
   clientes: { id: string; nombre: string; telefono?: string | null }[];
-  servicios: { id: string; nombre: string }[];
+  servicios: { id: string; nombre: string; categoria_minima?: string | null }[];
   negocioId: string;
   isMobile?: boolean;
   onClose: () => void;
@@ -115,6 +115,7 @@ export default function OrganizarAgendaPanel({
   const citasHoy: CitaOrganizar[] = useMemo(() => {
     const clienteMap = new Map(clientes.map((c) => [c.id, c]));
     const servicioMap = new Map(servicios.map((s) => [s.id, s.nombre]));
+    const servicioCatMinMap = new Map(servicios.map((s) => [s.id, s.categoria_minima ?? null]));
     return citas.map((c) => {
       const cliente = c.cliente_id ? clienteMap.get(c.cliente_id) : undefined;
       return {
@@ -129,6 +130,7 @@ export default function OrganizarAgendaPanel({
         cliente: cliente?.nombre ?? null,
         telefono: cliente?.telefono ?? null,
         servicio: c.servicio_id ? (servicioMap.get(c.servicio_id) ?? null) : null,
+        categoriaMinima: c.servicio_id ? (servicioCatMinMap.get(c.servicio_id) ?? null) : null,
       };
     });
   }, [citas, clientes, servicios]);
