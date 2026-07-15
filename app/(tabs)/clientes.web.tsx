@@ -2106,7 +2106,7 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { estado: estadoVoz, errorVoz, iniciarEscucha, detenerEscucha } = useChispaVoz();
+  const { estado: estadoVoz, errorVoz, iniciarEscucha, detenerEscucha, transcripcionParcial } = useChispaVoz();
   const [dictadoWarn, setDictadoWarn] = useState('');
 
   async function procesarDictado(texto: string) {

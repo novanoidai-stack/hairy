@@ -155,6 +155,7 @@ interface Profesional {
   color: string;
   activo: boolean;
   rol?: string;
+  foto_perfil?: string;
 }
 
 // Normalizar texto: quitar tildes y pasar a minusculas para busquedas sin discriminar acentos
@@ -2389,21 +2390,21 @@ export default function AgendaCalendar() {
             overflowY: "auto",
             overscrollBehavior: "contain",
             padding: isMobile
-              ? "12px 12px 90px"
+              ? "0 12px 90px"
               : isReallyCollapsed
-                ? "20px 28px"
-                : 24,
+                ? "0 28px"
+                : "0 24px",
           }}
         >
           <div
             style={{
-              position: "sticky",
-              top: isMobile ? -12 : (isReallyCollapsed ? -20 : -24),
-              margin: isMobile ? "-12px -12px 16px" : (isReallyCollapsed ? "-20px -28px 16px" : "-24px -24px 16px"),
-              padding: isMobile ? "12px 12px 16px" : (isReallyCollapsed ? "20px 28px 16px" : "24px 24px 16px"),
-              background: TOKENS.background,
-              zIndex: 100,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+            position: "sticky",
+            top: 0,
+            padding: isMobile ? "12px 0 16px 0" : (isReallyCollapsed ? "20px 0 16px 0" : "24px 0 16px 0"),
+            marginBottom: 16,
+            background: TOKENS.bg,
+            zIndex: 100,
+            borderBottom: `1px solid ${TOKENS.borderHi}`,
             }}
           >
             <>
@@ -2570,8 +2571,8 @@ export default function AgendaCalendar() {
                                 // if (v !== "day") setRailCollapsed(false);
                               }}
                               style={{
-                                padding: isMobile ? "5px 10px" : "7px 16px",
-                                fontSize: isMobile ? 11 : 12,
+                                padding: isMobile ? "6px 12px" : "8px 18px",
+                                fontSize: isMobile ? 12 : 13,
                                 fontWeight: view === v ? 700 : 500,
                                 background: view === v ? roleTheme.primarySoft : "transparent",
                                 color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
@@ -2592,13 +2593,13 @@ export default function AgendaCalendar() {
                           onClick={handleToday}
                           title="Ir a hoy"
                           style={{
-                            padding: isMobile ? "5px 8px" : "7px 12px",
+                            padding: isMobile ? "6px 10px" : "8px 14px",
                             background: TOKENS.bgCard,
                             border: `1px solid ${TOKENS.border}`,
                             color: TOKENS.text,
                             borderRadius: 10,
                             cursor: "pointer",
-                            fontSize: isMobile ? 11 : 12,
+                            fontSize: isMobile ? 12 : 13,
                             fontWeight: 600,
                             display: "flex",
                             alignItems: "center",
@@ -2613,13 +2614,13 @@ export default function AgendaCalendar() {
                           title="Organizar la agenda"
                           className="m-btn-ai-glow"
                           style={{
-                            padding: isMobile ? "5px 8px" : "7px 12px",
+                            padding: isMobile ? "6px 10px" : "8px 14px",
                             background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(244,80,30,0.1) 100%)`,
                             border: `1px solid rgba(244,80,30,0.3)`,
                             color: TOKENS.text,
                             borderRadius: 10,
                             cursor: "pointer",
-                            fontSize: isMobile ? 11 : 12,
+                            fontSize: isMobile ? 12 : 13,
                             fontWeight: 700,
                             display: "flex",
                             alignItems: "center",
@@ -2638,13 +2639,13 @@ export default function AgendaCalendar() {
                           title="Optimizador de la agenda"
                           className="m-btn-ai-glow"
                           style={{
-                            padding: isMobile ? "5px 8px" : "7px 12px",
+                            padding: isMobile ? "6px 10px" : "8px 14px",
                             background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(139,92,246,0.15) 100%)`,
                             border: `1px solid rgba(139,92,246,0.3)`,
                             color: TOKENS.text,
                             borderRadius: 10,
                             cursor: "pointer",
-                            fontSize: isMobile ? 11 : 12,
+                            fontSize: isMobile ? 12 : 13,
                             fontWeight: 700,
                             display: "flex",
                             alignItems: "center",
@@ -7715,15 +7716,9 @@ function DayTimeline({
                                       style={{
                                         display: "flex",
                                         flexDirection: "column",
-                                        gap: 2,
-                                        background: cancelada ? "transparent" : TOKENS.bgCard,
-                                        border: cancelada ? "none" : `1px solid ${badgeColor}60`,
-                                        borderLeft: cancelada ? "none" : `4px solid ${badgeColor}`,
-                                        padding: "4px 6px",
-                                        borderRadius: 6,
-                                        boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
-                                        width: "fit-content",
-                                        maxWidth: "100%",
+                                        gap: height < 30 ? 0 : 2,
+                                        width: "100%",
+                                        overflow: "hidden"
                                       }}
                                     >
                                       <div
@@ -7738,7 +7733,16 @@ function DayTimeline({
                                           }
                                         }}
                                         style={{
-                                          fontSize: 12,
+                                          background: cancelada ? "transparent" : TOKENS.bgCard,
+                                          border: cancelada ? "none" : `1px solid ${badgeColor}60`,
+                                          borderLeft: cancelada ? "none" : `4px solid ${badgeColor}`,
+                                          padding: height < 30 ? "1px 4px" : "3px 6px",
+                                          borderRadius: 6,
+                                          boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
+                                          width: "fit-content",
+                                          maxWidth: "100%",
+                                          fontSize: height < 30 ? 11 : 12,
+                                          lineHeight: height < 30 ? "1.1" : "1.2",
                                           fontWeight: 700,
                                           color: cancelada ? TOKENS.textTer : TOKENS.text,
                                           whiteSpace: "nowrap",
@@ -18042,9 +18046,8 @@ function WeekView({
                   border: `1px solid ${TOKENS.border}`,
                   borderRadius: 12,
                   padding: 6,
-                  height: isMobile ? "auto" : 460,
-                  maxHeight: isMobile ? 320 : 460,
-                  overflowY: "auto",
+                  minHeight: 460,
+                  height: "auto",
                   display: "flex",
                   flexDirection: "column",
                   gap: 5,
@@ -18568,17 +18571,7 @@ function MonthView({
 
               <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
                   {!isMobile && birthday && (
-                     <div className="m-birthday-link" onClick={() => {
-          const [day, month] = dateStr.split("-").map(Number);
-          const bDay = new Date();
-          bDay.setMonth(month - 1);
-          bDay.setDate(day);
-          
-          if (typeof setDayViewType === "function") {
-             setDayViewType("grid");
-          }
-          alert("Debería navegar a la fecha del cumpleaños en el calendario. Redirigiendo a día...");
-        }} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(139,92,246,0.1)", padding: "2px 4px", borderRadius: 4, color: "#8b5cf6", cursor: "pointer", maxWidth: "90%" }}>
+                     <div className="m-birthday-link" style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(139,92,246,0.1)", padding: "2px 4px", borderRadius: 4, color: "#8b5cf6", maxWidth: "90%" }}>
                          <Icon name="gift" size={10} color="#8b5cf6" style={{ flexShrink: 0 }} />
                          <span style={{ fontSize: 9, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{birthday}</span>
                      </div>
@@ -18608,10 +18601,11 @@ function MonthView({
               </div>
 
               {total > 0 && !isClosed && (
-                  <div style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: 6, display: "flex", gap: 1, padding: "0 2px" }}>
-                     {Array.from({ length: Math.min(maxCitas, total) }).map((_, idx) => (
-                        <div key={idx} style={{ flex: 1, height: "100%", background: satColor, borderRadius: "4px 4px 0 0", opacity: 0.8 }} />
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+                     {Array.from({ length: Math.min(12, total) }).map((_, idx) => (
+                        <div key={idx} style={{ width: 6, height: 6, background: satColor, borderRadius: "50%", opacity: 0.8 }} />
                      ))}
+                     {total > 12 && <span style={{fontSize: 9, fontWeight: 700, color: TOKENS.textSec, lineHeight: "6px"}}>+</span>}
                   </div>
               )}
             </div>
