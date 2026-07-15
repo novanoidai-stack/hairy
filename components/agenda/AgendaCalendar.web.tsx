@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { ChispaMascota } from "@/components/chispa/ChispaMascota.web";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { supabase, IS_DEMO_MODE } from "@/lib/supabase";
 import { resolverSenalStaff } from "@/lib/senalStaff";
@@ -56,6 +57,7 @@ import { TarjetaAyudaIA } from "@/components/chispa/TarjetaAyudaIA.web";
 import { registrarEventoIA } from "@/lib/registroUniversal";
 import { obtenerNivelCliente } from "@/lib/fidelizacion";
 import { AvisosBell } from "@/components/avisos/AvisosBell.web";
+import { ListaEsperaDropdown } from "./ListaEsperaDropdown.web";
 
 import {
   NEGOCIO_ID_FALLBACK,
@@ -153,6 +155,7 @@ interface Profesional {
   color: string;
   activo: boolean;
   rol?: string;
+  foto_perfil?: string;
 }
 
 // Normalizar texto: quitar tildes y pasar a minusculas para busquedas sin discriminar acentos
@@ -195,6 +198,9 @@ const Icon = ({ name, size = 24, color = "#f8fafc" }: any) => {
     bell: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>`,
     alert: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
     cake: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8M4 11h16M12 2v4M12 6a1.5 1.5 0 0 0 0-3M16 6a1.5 1.5 0 0 0 0-3M8 6a1.5 1.5 0 0 0 0-3"/></svg>`,
+    list: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>`,
+    zap: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`,
+
     sparkle: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`,
     mic: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8"/></svg>`,
     calendar: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
@@ -769,11 +775,11 @@ export default function AgendaCalendar() {
   // La preferencia de mostrar/ocultar la tarjeta de IA se recuerda (localStorage):
   // si el usuario la oculta, no vuelve a aparecer sola en cada carga.
   const [iaHelperOpen, setIaHelperOpen] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
+    if (typeof window === "undefined") return false;
     const saved = window.localStorage.getItem("mecha-agenda-ia-helper");
     if (saved === "oculto") return false;
     if (saved === "visible") return true;
-    return window.innerWidth >= 768;
+    return false;
   });
   function setIaHelper(v: boolean) {
     setIaHelperOpen(v);
@@ -837,7 +843,7 @@ export default function AgendaCalendar() {
         ] = await Promise.all([
           supabase
             .from("profesionales")
-            .select("id, nombre, color, activo")
+            .select("id, nombre, color, activo, foto_perfil")
             .eq("negocio_id", negocioId),
           supabase
             .from("citas")
@@ -1454,7 +1460,6 @@ export default function AgendaCalendar() {
         className="m-fade-in"
         style={{
           display: "flex",
-          flexWrap: "wrap",
           justifyContent: "space-between",
           alignItems: "center",
           gap: isMobile ? 8 : 12,
@@ -1506,35 +1511,7 @@ export default function AgendaCalendar() {
               </span>
             )}
           </div>
-          {!isMobile && (
-            <p
-              style={{
-                margin: 0,
-                fontSize: 12.5,
-                color: TOKENS.textSec,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {selectedDateObj
-                .toLocaleDateString(LOCALE, {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                })
-                .charAt(0)
-                .toUpperCase() +
-                selectedDateObj
-                  .toLocaleDateString(LOCALE, {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })
-                  .slice(1)}{" "}
-              · {totalCitasHoy} citas · {confirmadasHoy} confirmadas
-            </p>
-          )}
+          {/* Fecha y estadisticas eliminadas del banner por redundancia */}
           {cierreHoy && (
             <div
               style={{
@@ -1577,53 +1554,31 @@ export default function AgendaCalendar() {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
-                background: "rgba(245,158,11,0.08)",
-                border: "1px solid rgba(245,158,11,0.25)",
+                gap: 4,
                 color: "#f59e0b",
-                borderRadius: 999,
                 fontSize: 12,
-                fontWeight: 700,
+                fontWeight: 600,
               }}
             >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: "#f59e0b",
-                }}
-              />
-              {reposoGlobal.pct}% reposo aprovechado
+              <Icon name="zap" size={16} color="#f59e0b" />
+              {reposoGlobal.pct}% reposo
             </div>
           )}
-          {!isMobile && sinConfirmar48h > 0 && (
+          {!isMobile && sinConfirmar48h >= 0 && (
             <div
-              title="Citas en las proximas 48h que el cliente aun no ha confirmado"
+              title={`${sinConfirmar48h} citas en las proximas 48h sin confirmar`}
               className="m-pulse-red"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
-                background: "rgba(239,68,68,0.10)",
-                border: "1px solid rgba(239,68,68,0.30)",
+                gap: 4,
                 color: "#ef4444",
-                borderRadius: 999,
                 fontSize: 12,
-                fontWeight: 700,
+                fontWeight: 600,
               }}
             >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: "#ef4444",
-                }}
-              />
-              {sinConfirmar48h} sin confirmar
+              <Icon name="zap" size={16} color="#ef4444" />
+              {sinConfirmar48h} s/conf
             </div>
           )}
           {!isMobile && (
@@ -1660,6 +1615,7 @@ export default function AgendaCalendar() {
               </svg>
             </button>
           )}
+          <ListaEsperaDropdown negocioId={negocioId} />
           <div
             style={{ position: "relative" }}
             ref={(el) => {
@@ -1731,35 +1687,7 @@ export default function AgendaCalendar() {
             flexShrink: 0,
           }}
         >
-          <button
-            onClick={() => setToolbarCollapsed((v) => !v)}
-            title={toolbarCollapsed ? "Mostrar filtros" : "Ocultar filtros"}
-            style={{
-              padding: isMobile ? "7px 8px" : "7px 12px",
-              background: toolbarCollapsed
-                ? roleTheme.primarySoft
-                : TOKENS.bgCard,
-              border: `1px solid ${toolbarCollapsed ? roleTheme.primary + "40" : TOKENS.border}`,
-              color: toolbarCollapsed ? roleTheme.primaryHi : TOKENS.textSec,
-              borderRadius: 9,
-              cursor: "pointer",
-              fontSize: 12.5,
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              whiteSpace: "nowrap",
-              minHeight: 33,
-              transition: "all 0.15s ease",
-            }}
-          >
-            <Icon
-              name="filter"
-              size={15}
-              color={toolbarCollapsed ? roleTheme.primaryHi : TOKENS.textSec}
-            />
-            {!isMobile && (toolbarCollapsed ? "Filtros" : "Ocultar filtros")}
-          </button>
+          {/* Boton Ocultar Filtros eliminado */}
           {!isMobile && (
             <button
               onClick={() => setRailCollapsed((v) => !v)}
@@ -1794,108 +1722,8 @@ export default function AgendaCalendar() {
                 (railCollapsed ? "Mostrar lateral" : "Pantalla completa")}
             </button>
           )}
-          {/* Toggle de densidad de la rejilla (solo dia, desktop, mas de un prof):
-              "Juntos" = todos a la vez sin scroll; "Scroll" = columnas anchas con scroll
-              horizontal. El usuario pidió poder elegir; ambos modos deben verse bien. */}
-          {!isMobile && view === "day" && (profesionales?.length || 0) > 1 && (
-            <div
-              style={{
-                display: "inline-flex",
-                background: TOKENS.bgCard,
-                border: `1px solid ${TOKENS.border}`,
-                borderRadius: 9,
-                padding: 2,
-                gap: 2,
-                minHeight: 33,
-                alignItems: "center",
-              }}
-              title="Como ver la rejilla de profesionales"
-            >
-              <button
-                onClick={() => setAgendaFit(true)}
-                title="Ver todos los profesionales juntos (sin scroll horizontal)"
-                style={{
-                  padding: "5px 10px",
-                  border: "none",
-                  borderRadius: 7,
-                  cursor: "pointer",
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                  background: agendaFit ? roleTheme.primarySoft : "transparent",
-                  color: agendaFit ? roleTheme.primaryHi : TOKENS.textSec,
-                  transition: "all 0.15s ease",
-                }}
-              >
-                Juntos
-              </button>
-              <button
-                onClick={() => setAgendaFit(false)}
-                title="Columnas anchas con scroll horizontal"
-                style={{
-                  padding: "5px 10px",
-                  border: "none",
-                  borderRadius: 7,
-                  cursor: "pointer",
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                  background: !agendaFit
-                    ? roleTheme.primarySoft
-                    : "transparent",
-                  color: !agendaFit ? roleTheme.primaryHi : TOKENS.textSec,
-                  transition: "all 0.15s ease",
-                }}
-              >
-                Scroll
-              </button>
-            </div>
-          )}
-          <button
-            onClick={() => setShowOrganizar(true)}
-            title="Organizar mi agenda: detecta retrasos, solapes y huecos de hoy"
-            style={{
-              padding: isMobile ? "7px 8px" : "7px 12px",
-              background: roleTheme.primarySoft,
-              border: `1px solid ${roleTheme.primary}40`,
-              color: roleTheme.primaryHi,
-              borderRadius: 9,
-              cursor: "pointer",
-              fontSize: 12.5,
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              whiteSpace: "nowrap",
-              minHeight: 33,
-            }}
-          >
-            <Icon name="sparkle" size={15} color={roleTheme.primaryHi} />
-            {!isMobile && "Organizar"}
-          </button>
-          <button
-            className="m-btn-secondary"
-            onClick={handleToday}
-            title="Ir a hoy"
-            style={{
-              padding: isMobile ? "7px 8px" : "7px 12px",
-              background: TOKENS.bgCard,
-              border: `1px solid ${TOKENS.border}`,
-              color: TOKENS.text,
-              borderRadius: 9,
-              cursor: "pointer",
-              fontSize: 12.5,
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              whiteSpace: "nowrap",
-              minHeight: 33,
-            }}
-          >
-            <Icon name="calendar" size={15} color={TOKENS.text} />
-            {!isMobile && "Hoy"}
-          </button>
+          {/* Boton Organizar movido abajo */}
+          {/* Boton Hoy movido abajo */}
           <button
             onClick={() => setShowCierreSalon(true)}
             title="Cerrar salon"
@@ -1967,733 +1795,7 @@ export default function AgendaCalendar() {
         />
       )}
 
-      {/* 8.3+8.4: Barra de filtros y buscador */}
-      {!toolbarCollapsed && (
-        <div
-          className="m-fade-in"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: isMobile ? "8px 12px" : "8px 32px",
-            borderBottom: `1px solid ${TOKENS.border}`,
-            background: "rgba(148,163,184,0.02)",
-            position: "relative",
-            zIndex: 50,
-            flexWrap: "wrap",
-          }}
-        >
-          {/* View switcher (8.5) */}
-          <div
-            style={{
-              display: "flex",
-              background: TOKENS.bgCard,
-              border: `1px solid ${TOKENS.border}`,
-              borderRadius: 10,
-              overflow: "hidden",
-            }}
-          >
-            {(["day", "week", "month"] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => {
-                  setView(v);
-                  if (v !== "day") setRailCollapsed(false);
-                }}
-                style={{
-                  padding: "7px 16px",
-                  fontSize: 12,
-                  fontWeight: view === v ? 700 : 500,
-                  background:
-                    view === v ? roleTheme.primarySoft : "transparent",
-                  color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
-                  border: "none",
-                  cursor: "pointer",
-                  borderRight:
-                    v !== "month" ? `1px solid ${TOKENS.border}` : "none",
-                  transition: "all 0.2s ease",
-                  position: "relative",
-                }}
-                onMouseEnter={(e) => {
-                  if (view !== v)
-                    e.currentTarget.style.background = roleTheme.primarySoft;
-                }}
-                onMouseLeave={(e) => {
-                  if (view !== v)
-                    e.currentTarget.style.background = "transparent";
-                }}
-              >
-                {v === "day" ? "Dia" : v === "week" ? "Semana" : "Mes"}
-              </button>
-            ))}
-          </div>
-
-          {/* Lista de espera: en movil/tablet no hay sidebar, asi que este es su
-            unico punto de entrada (en la tab bar no cabe una sexta pestana). */}
-          <button
-            onClick={() => router.push("/(tabs)/lista-espera" as never)}
-            title="Lista de espera"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "7px 12px",
-              background: TOKENS.bgCard,
-              border: `1px solid ${TOKENS.border}`,
-              borderRadius: 10,
-              cursor: "pointer",
-              fontSize: 12,
-              fontWeight: 600,
-              color: TOKENS.textSec,
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = TOKENS.primary;
-              e.currentTarget.style.color = TOKENS.primaryHi;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = TOKENS.border;
-              e.currentTarget.style.color = TOKENS.textSec;
-            }}
-          >
-            <Icon name="clock" size={14} color="currentColor" />
-            {isMobile ? "Espera" : "Lista de espera"}
-          </button>
-
-          <div
-            style={{
-              width: 1,
-              height: 20,
-              background: TOKENS.border,
-              opacity: 0.5,
-            }}
-          />
-
-          {/* Filtro servicio - dropdown custom */}
-          <div style={{ position: "relative" }}>
-            <button
-              onClick={() => {
-                setDropServicioOpen(!dropServicioOpen);
-                setDropEstadoOpen(false);
-              }}
-              onBlur={() => setTimeout(() => setDropServicioOpen(false), 150)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
-                background:
-                  filterServicio !== "todos"
-                    ? "rgba(244,80,30,0.10)"
-                    : TOKENS.bgCard,
-                border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
-                borderRadius: 10,
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 600,
-                color:
-                  filterServicio !== "todos"
-                    ? TOKENS.primaryHi
-                    : TOKENS.textSec,
-                transition: "all 0.2s ease",
-                minWidth: 120,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = TOKENS.primary;
-              }}
-              onMouseLeave={(e) => {
-                if (!dropServicioOpen)
-                  e.currentTarget.style.borderColor =
-                    filterServicio !== "todos"
-                      ? "rgba(244,80,30,0.30)"
-                      : TOKENS.border;
-              }}
-            >
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                <line x1="7" y1="7" x2="7.01" y2="7" />
-              </svg>
-              <span
-                style={{
-                  flex: 1,
-                  textAlign: "left",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {filterServicio === "todos"
-                  ? "Servicio"
-                  : servicios.find((s) => s.id === filterServicio)?.nombre ||
-                    "Servicio"}
-              </span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{
-                  transform: dropServicioOpen ? "rotate(180deg)" : "none",
-                  transition: "transform 0.2s ease",
-                  flexShrink: 0,
-                  opacity: 0.5,
-                }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            {dropServicioOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  marginTop: 4,
-                  minWidth: 200,
-                  maxHeight: 260,
-                  overflowY: "auto",
-                  background: TOKENS.bgCard,
-                  border: `1px solid ${TOKENS.border}`,
-                  borderRadius: 12,
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
-                  zIndex: 200,
-                  padding: 4,
-                  animation: "fadeIn 0.15s ease",
-                }}
-              >
-                <div
-                  onMouseDown={() => {
-                    setFilterServicio("todos");
-                    setDropServicioOpen(false);
-                  }}
-                  style={{
-                    padding: "8px 12px",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    fontSize: 12,
-                    fontWeight: filterServicio === "todos" ? 700 : 500,
-                    color:
-                      filterServicio === "todos"
-                        ? TOKENS.primaryHi
-                        : TOKENS.textSec,
-                    transition: "background 0.1s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  Todos los servicios
-                </div>
-                {servicios.map((s) => (
-                  <div
-                    key={s.id}
-                    onMouseDown={() => {
-                      setFilterServicio(s.id);
-                      setDropServicioOpen(false);
-                    }}
-                    style={{
-                      padding: "8px 12px",
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      fontSize: 12,
-                      fontWeight: filterServicio === s.id ? 700 : 500,
-                      color:
-                        filterServicio === s.id
-                          ? TOKENS.primaryHi
-                          : TOKENS.text,
-                      transition: "background 0.1s",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(244,80,30,0.08)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
-                  >
-                    <span>{s.nombre}</span>
-                    {s.precio != null && (
-                      <span style={{ fontSize: 10, color: TOKENS.textTer }}>
-                        {s.precio}EUR
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Filtro estado - dropdown custom */}
-          <div style={{ position: "relative" }}>
-            <button
-              onClick={() => {
-                setDropEstadoOpen(!dropEstadoOpen);
-                setDropServicioOpen(false);
-              }}
-              onBlur={() => setTimeout(() => setDropEstadoOpen(false), 150)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
-                background:
-                  filterEstado !== "todos"
-                    ? "rgba(244,80,30,0.10)"
-                    : TOKENS.bgCard,
-                border: `1px solid ${dropEstadoOpen ? TOKENS.primary : filterEstado !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
-                borderRadius: 10,
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 600,
-                color:
-                  filterEstado !== "todos" ? TOKENS.primaryHi : TOKENS.textSec,
-                transition: "all 0.2s ease",
-                minWidth: 110,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = TOKENS.primary;
-              }}
-              onMouseLeave={(e) => {
-                if (!dropEstadoOpen)
-                  e.currentTarget.style.borderColor =
-                    filterEstado !== "todos"
-                      ? "rgba(244,80,30,0.30)"
-                      : TOKENS.border;
-              }}
-            >
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 12l2.5 2.5L16 9" />
-              </svg>
-              <span style={{ flex: 1, textAlign: "left" }}>
-                {filterEstado === "todos"
-                  ? "Estado"
-                  : filterEstado === "no_presentada"
-                    ? "No presentada"
-                    : filterEstado.charAt(0).toUpperCase() +
-                      filterEstado.slice(1)}
-              </span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{
-                  transform: dropEstadoOpen ? "rotate(180deg)" : "none",
-                  transition: "transform 0.2s ease",
-                  flexShrink: 0,
-                  opacity: 0.5,
-                }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            {dropEstadoOpen &&
-              (() => {
-                const estados = [
-                  {
-                    value: "todos",
-                    label: "Todos los estados",
-                    dot: TOKENS.textTer,
-                  },
-                  {
-                    value: CITA_STATUS.CONFIRMADA,
-                    label: "Confirmada",
-                    dot: TOKENS.primaryHi,
-                  },
-                  {
-                    value: CITA_STATUS.COMPLETADA,
-                    label: "Completada",
-                    dot: "#22c55e",
-                  },
-                  {
-                    value: CITA_STATUS.CANCELADA,
-                    label: "Cancelada",
-                    dot: "#ef4444",
-                  },
-                  {
-                    value: CITA_STATUS.NO_PRESENTADA,
-                    label: "No presentada",
-                    dot: "#f59e0b",
-                  },
-                ];
-                return (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      left: 0,
-                      marginTop: 4,
-                      minWidth: 180,
-                      background: TOKENS.bgCard,
-                      border: `1px solid ${TOKENS.border}`,
-                      borderRadius: 12,
-                      boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
-                      zIndex: 200,
-                      padding: 4,
-                      animation: "fadeIn 0.15s ease",
-                    }}
-                  >
-                    {estados.map((e) => (
-                      <div
-                        key={e.value}
-                        onMouseDown={() => {
-                          setFilterEstado(e.value);
-                          setDropEstadoOpen(false);
-                        }}
-                        style={{
-                          padding: "8px 12px",
-                          borderRadius: 8,
-                          cursor: "pointer",
-                          fontSize: 12,
-                          fontWeight: filterEstado === e.value ? 700 : 500,
-                          color: filterEstado === e.value ? e.dot : TOKENS.text,
-                          transition: "background 0.1s",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                        }}
-                        onMouseEnter={(ev) => {
-                          ev.currentTarget.style.background =
-                            "rgba(244,80,30,0.08)";
-                        }}
-                        onMouseLeave={(ev) => {
-                          ev.currentTarget.style.background = "transparent";
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: 999,
-                            background: e.dot,
-                            flexShrink: 0,
-                          }}
-                        />
-                        {e.label}
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-          </div>
-
-          {(filterServicio !== "todos" || filterEstado !== "todos") && (
-            <button
-              onClick={() => {
-                setFilterServicio("todos");
-                setFilterEstado("todos");
-              }}
-              style={{
-                padding: "5px 10px",
-                fontSize: 11,
-                fontWeight: 600,
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.20)",
-                borderRadius: 8,
-                color: "#ef4444",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                animation: "fadeIn 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-              }}
-            >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-              Limpiar
-            </button>
-          )}
-
-          <div style={{ flex: 1 }} />
-
-          {/* Buscador global (8.4) */}
-          <div style={{ position: "relative" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                background: TOKENS.bgCard,
-                border: `1px solid ${searchOpen ? TOKENS.primary : TOKENS.border}`,
-                borderRadius: 10,
-                padding: "7px 12px",
-                transition: "all 0.25s ease",
-                width: searchOpen ? 280 : 180,
-                boxShadow: searchOpen
-                  ? `0 0 0 3px rgba(244,80,30,0.10)`
-                  : "none",
-              }}
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={searchOpen ? TOKENS.primaryHi : TOKENS.textTer}
-                strokeWidth="2"
-                style={{ transition: "stroke 0.2s ease", flexShrink: 0 }}
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => {
-                  setSearchOpen(true);
-                  setDropServicioOpen(false);
-                  setDropEstadoOpen(false);
-                }}
-                onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
-                placeholder="Buscar cita..."
-                style={{
-                  border: "none",
-                  outline: "none",
-                  background: "transparent",
-                  color: TOKENS.text,
-                  fontSize: 12,
-                  width: "100%",
-                }}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: TOKENS.textTer,
-                    padding: 2,
-                    display: "flex",
-                    transition: "color 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = TOKENS.text;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = TOKENS.textTer;
-                  }}
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            {searchOpen && searchResults.length > 0 && (
-              <div
-                onWheel={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.preventDefault()}
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  right: 0,
-                  marginTop: 6,
-                  width: 360,
-                  maxHeight: 340,
-                  overflowY: "auto",
-                  background: TOKENS.bgCard,
-                  border: `1px solid ${TOKENS.border}`,
-                  borderRadius: 14,
-                  boxShadow: "0 16px 50px rgba(0,0,0,0.55)",
-                  zIndex: 200,
-                  padding: 6,
-                  animation: "slideInUp 0.2s ease",
-                  overscrollBehavior: "contain",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "6px 10px 8px",
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: TOKENS.textTer,
-                    letterSpacing: 0.5,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {searchResults.length} resultado
-                  {searchResults.length !== 1 ? "s" : ""}
-                </div>
-                {searchResults.map((c: any) => {
-                  const cli = clientes.find(
-                    (cl: any) => cl.id === c.cliente_id,
-                  );
-                  const srv = servicios.find(
-                    (s: any) => s.id === c.servicio_id,
-                  );
-                  const prof = profesionales.find(
-                    (p: any) => p.id === c.profesional_id,
-                  );
-                  const fecha = new Date(c.inicio);
-                  return (
-                    <div
-                      key={c.id}
-                      onMouseDown={() => {
-                        const citaDate = new Date(c.inicio);
-                        setSelectedDate(citaDate.getDate());
-                        setCurrentMonth(
-                          new Date(citaDate.getFullYear(), citaDate.getMonth()),
-                        );
-                        setView("day");
-                        setSearchQuery("");
-                      }}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "8px 10px",
-                        borderRadius: 8,
-                        cursor: "pointer",
-                        transition: "all 0.15s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background =
-                          "rgba(244,80,30,0.08)";
-                        e.currentTarget.style.transform = "translateX(2px)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.transform = "none";
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 4,
-                          height: 32,
-                          borderRadius: 2,
-                          background: prof?.color || TOKENS.primary,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: TOKENS.text,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {cli?.nombre || "Sin cliente"}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 10,
-                            color: TOKENS.textTer,
-                            marginTop: 1,
-                          }}
-                        >
-                          {srv?.nombre} - {prof?.nombre?.split(" ")[0]}
-                        </div>
-                      </div>
-                      <div style={{ textAlign: "right", flexShrink: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: TOKENS.textSec,
-                          }}
-                        >
-                          {fecha.toLocaleDateString("es-ES", {
-                            day: "numeric",
-                            month: "short",
-                          })}
-                        </div>
-                        <div style={{ fontSize: 10, color: TOKENS.textTer }}>
-                          {fecha.toLocaleTimeString("es-ES", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
-                      </div>
-                      <button
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          setShowClienteHistorial(cli);
-                        }}
-                        style={{
-                          padding: "4px 8px",
-                          fontSize: 10,
-                          fontWeight: 600,
-                          background: "rgba(244,80,30,0.10)",
-                          border: "1px solid rgba(244,80,30,0.25)",
-                          borderRadius: 6,
-                          color: TOKENS.primaryHi,
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                          transition: "all 0.15s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background =
-                            "rgba(244,80,30,0.20)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background =
-                            "rgba(244,80,30,0.10)";
-                        }}
-                      >
-                        Historial
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      
 
       {/* AlertBar: citas vencidas */}
       {citasVencidas.length > 0 &&
@@ -2768,16 +1870,7 @@ export default function AgendaCalendar() {
               }}
             >
               <style>{`@keyframes mechaVencMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}} .venc-marquee-track:hover,.venc-marquee-track:active{animation-play-state:paused}`}</style>
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  background: "#ef4444",
-                  animation: "pulse 2s infinite",
-                  flexShrink: 0,
-                }}
-              />
+              <ChispaMascota size={20} mood="think" />
               <span
                 style={{
                   fontSize: 13,
@@ -2786,7 +1879,7 @@ export default function AgendaCalendar() {
                   flexShrink: 0,
                 }}
               >
-                {citasVencidas.length} cita{citasVencidas.length > 1 ? "s" : ""}{" "}
+                Chispa te avisa que tienes {citasVencidas.length} cita{citasVencidas.length > 1 ? "s" : ""}{" "}
                 sin atender
               </span>
               <div
@@ -3297,13 +2390,23 @@ export default function AgendaCalendar() {
             overflowY: "auto",
             overscrollBehavior: "contain",
             padding: isMobile
-              ? "12px 12px 90px"
+              ? "0 12px 90px"
               : isReallyCollapsed
-                ? "20px 28px"
-                : 24,
+                ? "0 28px"
+                : "0 24px",
           }}
         >
-          {view === "day" && (
+          <div
+            style={{
+            position: "sticky",
+            top: 0,
+            padding: isMobile ? "12px 0 16px 0" : (isReallyCollapsed ? "20px 0 16px 0" : "24px 0 16px 0"),
+            marginBottom: 16,
+            background: TOKENS.bg,
+            zIndex: 100,
+            borderBottom: `1px solid ${TOKENS.borderHi}`,
+            }}
+          >
             <>
               <div
                 style={{
@@ -3423,6 +2526,7 @@ export default function AgendaCalendar() {
                         alignItems: "center",
                         gap: 8,
                         marginBottom: 0,
+                        flexWrap: "wrap",
                       }}
                     >
                       <h2
@@ -3434,11 +2538,15 @@ export default function AgendaCalendar() {
                           textTransform: "capitalize",
                         }}
                       >
-                        {selectedDateObj.toLocaleDateString(LOCALE, {
-                          weekday: "long",
-                          day: "numeric",
-                          month: "short",
-                        })}
+                        {view === "month" ? 
+                          currentMonth.toLocaleDateString(LOCALE, { month: "long", year: "numeric" })
+                        :
+                          selectedDateObj.toLocaleDateString(LOCALE, {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "short",
+                          })
+                        }
                       </h2>
                       {selectedDateObj.toDateString() ===
                         today.toDateString() && (
@@ -3452,6 +2560,759 @@ export default function AgendaCalendar() {
                           HOY
                         </span>
                       )}
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: isMobile ? 0 : 12 }}>
+                        <div style={{ display: "flex", background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: "hidden" }}>
+                          {(["day", "week", "month"] as const).map((v) => (
+                            <button
+                              key={v}
+                              onClick={() => {
+                                setView(v);
+                                // if (v !== "day") setRailCollapsed(false);
+                              }}
+                              style={{
+                                padding: isMobile ? "6px 12px" : "8px 18px",
+                                fontSize: isMobile ? 12 : 13,
+                                fontWeight: view === v ? 700 : 500,
+                                background: view === v ? roleTheme.primarySoft : "transparent",
+                                color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
+                                border: "none",
+                                cursor: "pointer",
+                                borderRight: v !== "month" ? `1px solid ${TOKENS.border}` : "none",
+                                transition: "all 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => { if (view !== v) e.currentTarget.style.background = roleTheme.primarySoft; }}
+                              onMouseLeave={(e) => { if (view !== v) e.currentTarget.style.background = "transparent"; }}
+                            >
+                              {v === "day" ? "Dia" : v === "week" ? "Semana" : "Mes"}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          className="m-btn-secondary"
+                          onClick={handleToday}
+                          title="Ir a hoy"
+                          style={{
+                            padding: isMobile ? "6px 10px" : "8px 14px",
+                            background: TOKENS.bgCard,
+                            border: `1px solid ${TOKENS.border}`,
+                            color: TOKENS.text,
+                            borderRadius: 10,
+                            cursor: "pointer",
+                            fontSize: isMobile ? 12 : 13,
+                            fontWeight: 600,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          <Icon name="calendar" size={isMobile ? 12 : 14} color={TOKENS.text} />
+                          {!isMobile && "Hoy"}
+                        </button>
+                        <button
+                          onClick={() => setShowOrganizar(true)}
+                          title="Organizar la agenda"
+                          className="m-btn-ai-glow"
+                          style={{
+                            padding: isMobile ? "6px 10px" : "8px 14px",
+                            background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(244,80,30,0.1) 100%)`,
+                            border: `1px solid rgba(244,80,30,0.3)`,
+                            color: TOKENS.text,
+                            borderRadius: 10,
+                            cursor: "pointer",
+                            fontSize: isMobile ? 12 : 13,
+                            fontWeight: 700,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            transition: "all 0.2s ease"
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                        >
+                          <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
+                        </button>
+                        <button
+                          onClick={() => {
+                             setIaHelper(true);
+                          }}
+                          title="Optimizador de la agenda"
+                          className="m-btn-ai-glow"
+                          style={{
+                            padding: isMobile ? "6px 10px" : "8px 14px",
+                            background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(139,92,246,0.15) 100%)`,
+                            border: `1px solid rgba(139,92,246,0.3)`,
+                            color: TOKENS.text,
+                            borderRadius: 10,
+                            cursor: "pointer",
+                            fontSize: isMobile ? 12 : 13,
+                            fontWeight: 700,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            transition: "all 0.2s ease",
+                            animation: "pulse-glow-violet 3s infinite"
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                        >
+                          <Icon name="zap" size={isMobile ? 12 : 14} color="#8b5cf6" />
+                        </button>
+                        <div style={{ width: 1, height: 20, background: TOKENS.border, opacity: 0.5, marginLeft: 4, marginRight: 4 }} />
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => {
+                setDropServicioOpen(!dropServicioOpen);
+                setDropEstadoOpen(false);
+              }}
+              onBlur={() => setTimeout(() => setDropServicioOpen(false), 150)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 12px",
+                background:
+                  filterServicio !== "todos"
+                    ? "rgba(244,80,30,0.10)"
+                    : TOKENS.bgCard,
+                border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
+                borderRadius: 10,
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: 600,
+                color:
+                  filterServicio !== "todos"
+                    ? TOKENS.primaryHi
+                    : TOKENS.textSec,
+                transition: "all 0.2s ease",
+                minWidth: 120,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = TOKENS.primary;
+              }}
+              onMouseLeave={(e) => {
+                if (!dropServicioOpen)
+                  e.currentTarget.style.borderColor =
+                    filterServicio !== "todos"
+                      ? "rgba(244,80,30,0.30)"
+                      : TOKENS.border;
+              }}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                <line x1="7" y1="7" x2="7.01" y2="7" />
+              </svg>
+              <span
+                style={{
+                  flex: 1,
+                  textAlign: "left",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {filterServicio === "todos"
+                  ? "Servicio"
+                  : servicios.find((s) => s.id === filterServicio)?.nombre ||
+                    "Servicio"}
+              </span>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{
+                  transform: dropServicioOpen ? "rotate(180deg)" : "none",
+                  transition: "transform 0.2s ease",
+                  flexShrink: 0,
+                  opacity: 0.5,
+                }}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {dropServicioOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  marginTop: 4,
+                  minWidth: 200,
+                  maxHeight: 260,
+                  overflowY: "auto",
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 12,
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                  zIndex: 200,
+                  padding: 4,
+                  animation: "fadeIn 0.15s ease",
+                }}
+              >
+                <div
+                  onMouseDown={() => {
+                    setFilterServicio("todos");
+                    setDropServicioOpen(false);
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    cursor: "pointer",
+                    fontSize: 12,
+                    fontWeight: filterServicio === "todos" ? 700 : 500,
+                    color:
+                      filterServicio === "todos"
+                        ? TOKENS.primaryHi
+                        : TOKENS.textSec,
+                    transition: "background 0.1s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  Todos los servicios
+                </div>
+                {servicios.map((s) => (
+                  <div
+                    key={s.id}
+                    onMouseDown={() => {
+                      setFilterServicio(s.id);
+                      setDropServicioOpen(false);
+                    }}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontWeight: filterServicio === s.id ? 700 : 500,
+                      color:
+                        filterServicio === s.id
+                          ? TOKENS.primaryHi
+                          : TOKENS.text,
+                      transition: "background 0.1s",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <span>{s.nombre}</span>
+                    {s.precio != null && (
+                      <span style={{ fontSize: 10, color: TOKENS.textTer }}>
+                        {s.precio}EUR
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => {
+                setDropEstadoOpen(!dropEstadoOpen);
+                setDropServicioOpen(false);
+              }}
+              onBlur={() => setTimeout(() => setDropEstadoOpen(false), 150)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 12px",
+                background:
+                  filterEstado !== "todos"
+                    ? "rgba(244,80,30,0.10)"
+                    : TOKENS.bgCard,
+                border: `1px solid ${dropEstadoOpen ? TOKENS.primary : filterEstado !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
+                borderRadius: 10,
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: 600,
+                color:
+                  filterEstado !== "todos" ? TOKENS.primaryHi : TOKENS.textSec,
+                transition: "all 0.2s ease",
+                minWidth: 110,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = TOKENS.primary;
+              }}
+              onMouseLeave={(e) => {
+                if (!dropEstadoOpen)
+                  e.currentTarget.style.borderColor =
+                    filterEstado !== "todos"
+                      ? "rgba(244,80,30,0.30)"
+                      : TOKENS.border;
+              }}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M8 12l2.5 2.5L16 9" />
+              </svg>
+              <span style={{ flex: 1, textAlign: "left" }}>
+                {filterEstado === "todos"
+                  ? "Estado"
+                  : filterEstado === "no_presentada"
+                    ? "No presentada"
+                    : filterEstado.charAt(0).toUpperCase() +
+                      filterEstado.slice(1)}
+              </span>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{
+                  transform: dropEstadoOpen ? "rotate(180deg)" : "none",
+                  transition: "transform 0.2s ease",
+                  flexShrink: 0,
+                  opacity: 0.5,
+                }}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {dropEstadoOpen &&
+              (() => {
+                const estados = [
+                  {
+                    value: "todos",
+                    label: "Todos los estados",
+                    dot: TOKENS.textTer,
+                  },
+                  {
+                    value: CITA_STATUS.CONFIRMADA,
+                    label: "Confirmada",
+                    dot: TOKENS.primaryHi,
+                  },
+                  {
+                    value: CITA_STATUS.COMPLETADA,
+                    label: "Completada",
+                    dot: "#22c55e",
+                  },
+                  {
+                    value: CITA_STATUS.CANCELADA,
+                    label: "Cancelada",
+                    dot: "#ef4444",
+                  },
+                  {
+                    value: CITA_STATUS.NO_PRESENTADA,
+                    label: "No presentada",
+                    dot: "#f59e0b",
+                  },
+                ];
+                return (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      marginTop: 4,
+                      minWidth: 180,
+                      background: TOKENS.bgCard,
+                      border: `1px solid ${TOKENS.border}`,
+                      borderRadius: 12,
+                      boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                      zIndex: 200,
+                      padding: 4,
+                      animation: "fadeIn 0.15s ease",
+                    }}
+                  >
+                    {estados.map((e) => (
+                      <div
+                        key={e.value}
+                        onMouseDown={() => {
+                          setFilterEstado(e.value);
+                          setDropEstadoOpen(false);
+                        }}
+                        style={{
+                          padding: "8px 12px",
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          fontSize: 12,
+                          fontWeight: filterEstado === e.value ? 700 : 500,
+                          color: filterEstado === e.value ? e.dot : TOKENS.text,
+                          transition: "background 0.1s",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                        onMouseEnter={(ev) => {
+                          ev.currentTarget.style.background =
+                            "rgba(244,80,30,0.08)";
+                        }}
+                        onMouseLeave={(ev) => {
+                          ev.currentTarget.style.background = "transparent";
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: 999,
+                            background: e.dot,
+                            flexShrink: 0,
+                          }}
+                        />
+                        {e.label}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+          </div>
+
+
+          {(filterServicio !== "todos" || filterEstado !== "todos") && (
+            <button
+              onClick={() => {
+                setFilterServicio("todos");
+                setFilterEstado("todos");
+              }}
+              style={{
+                padding: "5px 10px",
+                fontSize: 11,
+                fontWeight: 600,
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.20)",
+                borderRadius: 8,
+                color: "#ef4444",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                animation: "fadeIn 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+              }}
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+              Limpiar
+            </button>
+          )}
+
+
+
+          <div style={{ position: "relative" }}>
+            {!searchOpen ? (
+              <button
+                onClick={() => setSearchOpen(true)}
+                title="Buscar cita"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 36,
+                  height: 36,
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 10,
+                  color: TOKENS.textSec,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease"
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.color = TOKENS.primaryHi; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.color = TOKENS.textSec; }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </button>
+            ) : (
+            <>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: TOKENS.bgCard,
+                border: `1px solid ${searchOpen ? TOKENS.primary : TOKENS.border}`,
+                borderRadius: 10,
+                padding: "7px 12px",
+                transition: "all 0.25s ease",
+                width: searchOpen ? 280 : 36,
+                boxShadow: searchOpen
+                  ? `0 0 0 3px rgba(244,80,30,0.10)`
+                  : "none",
+              }}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={searchOpen ? TOKENS.primaryHi : TOKENS.textTer}
+                strokeWidth="2"
+                style={{ transition: "stroke 0.2s ease", flexShrink: 0 }}
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  setSearchOpen(true);
+                  setDropServicioOpen(false);
+                  setDropEstadoOpen(false);
+                }}
+                onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
+                placeholder={searchOpen ? "Buscar cita..." : ""}
+                style={{
+                  border: "none",
+                  outline: "none",
+                  background: "transparent",
+                  color: TOKENS.text,
+                  fontSize: 12,
+                  width: "100%",
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: TOKENS.textTer,
+                    padding: 2,
+                    display: "flex",
+                    transition: "color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = TOKENS.text;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = TOKENS.textTer;
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {searchOpen && searchResults.length > 0 && (
+              <div
+                onWheel={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.preventDefault()}
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  marginTop: 6,
+                  width: 360,
+                  maxHeight: 340,
+                  overflowY: "auto",
+                  background: TOKENS.bgCard,
+                  border: `1px solid ${TOKENS.border}`,
+                  borderRadius: 14,
+                  boxShadow: "0 16px 50px rgba(0,0,0,0.55)",
+                  zIndex: 200,
+                  padding: 6,
+                  animation: "slideInUp 0.2s ease",
+                  overscrollBehavior: "contain",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "6px 10px 8px",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: TOKENS.textTer,
+                    letterSpacing: 0.5,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {searchResults.length} resultado
+                  {searchResults.length !== 1 ? "s" : ""}
+                </div>
+                {searchResults.map((c: any) => {
+                  const cli = clientes.find(
+                    (cl: any) => cl.id === c.cliente_id,
+                  );
+                  const srv = servicios.find(
+                    (s: any) => s.id === c.servicio_id,
+                  );
+                  const prof = profesionales.find(
+                    (p: any) => p.id === c.profesional_id,
+                  );
+                  const fecha = new Date(c.inicio);
+                  return (
+                    <div
+                      key={c.id}
+                      onMouseDown={() => {
+                        const citaDate = new Date(c.inicio);
+                        setSelectedDate(citaDate.getDate());
+                        setCurrentMonth(
+                          new Date(citaDate.getFullYear(), citaDate.getMonth()),
+                        );
+                        setView("day");
+                        setSearchQuery("");
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 10px",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background =
+                          "rgba(244,80,30,0.08)";
+                        e.currentTarget.style.transform = "translateX(2px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.transform = "none";
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 4,
+                          height: 32,
+                          borderRadius: 2,
+                          background: prof?.color || TOKENS.primary,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: TOKENS.text,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {cli?.nombre || "Sin cliente"}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: TOKENS.textTer,
+                            marginTop: 1,
+                          }}
+                        >
+                          {srv?.nombre} - {prof?.nombre?.split(" ")[0]}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: TOKENS.textSec,
+                          }}
+                        >
+                          {fecha.toLocaleDateString("es-ES", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </div>
+                        <div style={{ fontSize: 10, color: TOKENS.textTer }}>
+                          {fecha.toLocaleTimeString("es-ES", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                      </div>
+                      <button
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          setShowClienteHistorial(cli);
+                        }}
+                        style={{
+                          padding: "4px 8px",
+                          fontSize: 10,
+                          fontWeight: 600,
+                          background: "rgba(244,80,30,0.10)",
+                          border: "1px solid rgba(244,80,30,0.25)",
+                          borderRadius: 6,
+                          color: TOKENS.primaryHi,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(244,80,30,0.20)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(244,80,30,0.10)";
+                        }}
+                      >
+                        Historial
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            </>
+            )}
+          </div>
+
+                      </div>
+
                     </div>
                     <div
                       style={{
@@ -3536,139 +3397,11 @@ export default function AgendaCalendar() {
                       )}
                     </button>
                   )}
-                  <button
-                    onClick={() => setToolbarCollapsed((v) => !v)}
-                    title={
-                      toolbarCollapsed ? "Mostrar filtros" : "Ocultar filtros"
-                    }
-                    aria-label={
-                      toolbarCollapsed ? "Mostrar filtros" : "Ocultar filtros"
-                    }
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 7,
-                      padding: isMobile ? "7px 11px" : "7px 12px",
-                      background: toolbarCollapsed
-                        ? roleTheme.primarySoft
-                        : TOKENS.bgCard,
-                      border: `1px solid ${toolbarCollapsed ? roleTheme.primary + "40" : TOKENS.border}`,
-                      color: toolbarCollapsed
-                        ? roleTheme.primaryHi
-                        : TOKENS.textSec,
-                      borderRadius: 9,
-                      cursor: "pointer",
-                      fontSize: 12.5,
-                      fontWeight: 600,
-                      flexShrink: 0,
-                      minHeight: 33,
-                    }}
-                  >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                    </svg>
-                    {toolbarCollapsed ? "Filtros" : "Ocultar"}
-                  </button>
+
                 </div>
               </div>
 
-              {/* IA Helper Card. En movil arranca plegada tras un chip compacto
-                  para no comerse la agenda; en escritorio va desplegada. */}
-              <div style={{ margin: isMobile ? "0 12px 12px" : "0 14px 14px" }}>
-                {!iaHelperOpen ? (
-                  <button
-                    onClick={() => setIaHelper(true)}
-                    title="Mostrar la optimización de agenda de la IA"
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "9px 12px",
-                      background: TOKENS.bgCard,
-                      border: `1px solid ${TOKENS.border}`,
-                      borderRadius: 11,
-                      cursor: "pointer",
-                      textAlign: "left",
-                    }}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M12 3l1.8 5.6L19.5 10.4l-5.7 1.8L12 18l-1.8-5.8L4.5 10.4l5.7-1.8L12 3z"
-                        stroke={roleTheme.primary}
-                        strokeWidth="1.6"
-                        strokeLinejoin="round"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <span
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        fontSize: 12.5,
-                        fontWeight: 700,
-                        color: TOKENS.text,
-                      }}
-                    >
-                      Optimización de Agenda
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 11.5,
-                        fontWeight: 600,
-                        color: TOKENS.textTer,
-                      }}
-                    >
-                      {citasHoy.length} citas
-                    </span>
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={TOKENS.textTer}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
-                ) : (
-                  <TarjetaAyudaIA
-                    titulo="Optimización de Agenda"
-                    subtitulo="IA: Reduce tiempos muertos y mejora la ocupación del salón"
-                    estado={ayudaIA.estado}
-                    onAnalizar={handleAnalizarAgenda}
-                    onReintentar={ayudaIA.reintentar}
-                    botonLabel="Analizar jornada"
-                    onOcultar={() => setIaHelper(false)}
-                    resumenDeterminista={
-                      <div>
-                        Hay <b>{citasHoy.length}</b> citas programadas para el
-                        día seleccionado.
-                      </div>
-                    }
-                  />
-                )}
-              </div>
-
+              
               {/* Selector de profesional en movil: UNO a la vez (switcher con flechas
                   + toque para elegir de una lista). Evita las columnas aplastadas. */}
               {isMobile &&
@@ -3821,22 +3554,37 @@ export default function AgendaCalendar() {
                           padding: 0,
                         }}
                       >
-                        <span
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 9,
-                            background: curr.color,
-                            color: "#fff",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            display: "grid",
-                            placeItems: "center",
-                            flexShrink: 0,
-                          }}
-                        >
-                          {iniciales}
-                        </span>
+                        {curr.foto_perfil ? (
+                          <img
+                            src={curr.foto_perfil}
+                            alt=""
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 9,
+                              objectFit: "cover",
+                              flexShrink: 0,
+                              border: `1px solid rgba(255,255,255,0.15)`,
+                            }}
+                          />
+                        ) : (
+                          <span
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 9,
+                              background: curr.color,
+                              color: "#fff",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              display: "grid",
+                              placeItems: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {iniciales}
+                          </span>
+                        )}
                         <span
                           style={{
                             minWidth: 0,
@@ -4012,6 +3760,10 @@ export default function AgendaCalendar() {
                 </div>
               )}
 
+            </>
+          </div>
+          {view === "day" && (
+            <>
               {dayViewType === "list" && isMobile ? (
                 <DayListView
                   citas={filtered}
@@ -4164,6 +3916,7 @@ export default function AgendaCalendar() {
           {view === "month" && (
             <MonthView
               citas={citas}
+              bloqueos={bloqueos}
               profesionales={visibleProfs}
               servicios={servicios}
               clientes={clientes}
@@ -4203,6 +3956,34 @@ export default function AgendaCalendar() {
           prefillWaitlistId={newCitaPrefill?.waitlistId}
         />
       )}
+      
+      {/* Modal de Optimizador IA */}
+      {iaHelperOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 99999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{ width: '90%', maxWidth: 400 }}>
+            <TarjetaAyudaIA
+              titulo="Optimización de Agenda"
+              subtitulo="IA: Reduce tiempos muertos y mejora la ocupación del salón"
+              estado={ayudaIA.estado}
+              onAnalizar={handleAnalizarAgenda}
+              onReintentar={ayudaIA.reintentar}
+              botonLabel="Analizar jornada"
+              onOcultar={() => setIaHelper(false)}
+              resumenDeterminista={
+                <div>
+                  Hay <b>{citasHoy.length}</b> citas programadas para el
+                  día seleccionado.
+                </div>
+              }
+            />
+          </div>
+        </div>
+      )}
+
       {showOrganizar && (
         <OrganizarAgendaPanel
           citas={citas}
@@ -4275,6 +4056,17 @@ export default function AgendaCalendar() {
       )}
       {showEditCita && selectedCitaEdit && (
         <DetalleCitaModal
+          bloqueos={bloqueos}
+          onDuplicate={() => {
+            setShowEditCita(false);
+            setNewCitaPrefill({
+              clienteId: selectedCitaEdit.cliente_id,
+              servicioId: selectedCitaEdit.servicio_id,
+              profId: selectedCitaEdit.profesional_id,
+              notas: selectedCitaEdit.notas || ""
+            });
+            setShowNewCita(true);
+          }}
           onClose={() => {
             setShowEditCita(false);
             router.replace("/(tabs)/" as never);
@@ -5488,22 +5280,37 @@ export default function AgendaCalendar() {
                       textAlign: "left",
                     }}
                   >
-                    <span
-                      style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 9,
-                        background: p.color,
-                        color: "#fff",
-                        fontSize: 13,
-                        fontWeight: 700,
-                        display: "grid",
-                        placeItems: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {iniciales}
-                    </span>
+                    {p.foto_perfil ? (
+                      <img
+                        src={p.foto_perfil}
+                        alt=""
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 9,
+                          objectFit: "cover",
+                          flexShrink: 0,
+                          border: `1px solid rgba(255,255,255,0.15)`,
+                        }}
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 9,
+                          background: p.color,
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          display: "grid",
+                          placeItems: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {iniciales}
+                      </span>
+                    )}
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <span
                         style={{
@@ -6075,9 +5882,30 @@ function DayTimeline({
   agendaFit = true,
 }: any) {
   const { isMobile, isTablet } = useResponsive();
+  // Rango horario base = apertura..cierre. Si alguna cita del día seleccionado
+  // termina DESPUÉS del cierre (overtime, p.ej. 17:45-21:20 con cierre 20:00),
+  // ampliamos el rango hasta cubrirla. Sin esto, la cita rebasa la última fila
+  // del grid, la tarjeta del timeline se vuelve scroller vertical anidado dentro
+  // del pane principal (overflowY:auto) y aparece un DOBLE SCROLL. Ampliando
+  // HOURS, la tarjeta crece, la cita queda contenida y solo scrollea el pane.
+  // Días sin overtime: rango = base (sin filas vacías extra).
+  const overtimeEnd = citas.reduce((mx: number, c: any) => {
+    const f = c?.fin ? new Date(c.fin) : null;
+    if (!f) return mx;
+    const sd = selectedDateObj;
+    if (
+      f.getFullYear() === sd.getFullYear() &&
+      f.getMonth() === sd.getMonth() &&
+      f.getDate() === sd.getDate()
+    ) {
+      const eh = f.getHours() + f.getMinutes() / 60;
+      return eh > mx ? eh : mx;
+    }
+    return mx;
+  }, HORARIO_CIERRE.horas);
+  const hoursEnd = Math.max(HORARIO_CIERRE.horas, Math.ceil(overtimeEnd));
   const HOURS = [];
-  for (let h = HORARIO_APERTURA.horas; h < HORARIO_CIERRE.horas; h++)
-    HOURS.push(h);
+  for (let h = HORARIO_APERTURA.horas; h < hoursEnd; h++) HOURS.push(h);
   const ROW_H = 160;
   const START_H = HORARIO_APERTURA.horas;
   const now = new Date();
@@ -6201,33 +6029,9 @@ function DayTimeline({
         0,
         Math.round((((relY - d.offsetY) / ROW_H) * 60) / 15) * 15,
       );
-      // Encaje en reposo: si el punto de suelta cae DENTRO del reposo de otra cita
-      // del mismo profesional, alineamos el inicio al arranque del reposo (fin_activa)
-      // en vez de dejar la cita "a un lado" donde este el cursor (feedback Jose).
+      // Encaje en reposo: si el punto de suelta cae DENTRO del reposo de otra cita,
+      // permitimos que el usuario lo coloque en fracciones de 15 minutos (no forzamos alineación al tope).
       const targetProf = profs[profIndex];
-      if (targetProf) {
-        const dayStart = new Date(_dateRef.current);
-        dayStart.setHours(START_H, 0, 0, 0);
-        const candMs = dayStart.getTime() + minutesFromStart * 60000;
-        const host = _citasRef.current.find(
-          (c: any) =>
-            c.id !== d.cita.id &&
-            c.profesional_id === targetProf.id &&
-            c.fin_activa &&
-            c.fin_espera &&
-            candMs >= new Date(c.fin_activa).getTime() &&
-            candMs < new Date(c.fin_espera).getTime(),
-        );
-        if (host) {
-          minutesFromStart = Math.max(
-            0,
-            Math.round(
-              (new Date(host.fin_activa).getTime() - dayStart.getTime()) /
-                60000,
-            ),
-          );
-        }
-      }
       const sl = { profIndex, minutesFromStart, colW };
       dropRef.current = sl;
       setDropSlot(sl);
@@ -6285,6 +6089,13 @@ function DayTimeline({
       )
         return;
 
+      if (cita.encadenadoId && nuevoInicio.getTime() !== new Date(cita.inicio).getTime()) {
+        const confirmMsg = "Esta cita pertenece a un servicio encadenado. Si cambias su hora, puedes desincronizar la cadena. ¿Estás seguro de moverla?";
+        if (!window.confirm(confirmMsg)) {
+          return;
+        }
+      }
+
       const limFin = new Date(dateObj);
       limFin.setHours(HORARIO_CIERRE.horas, 0, 0, 0);
       if (nuevoFin > limFin) {
@@ -6326,8 +6137,8 @@ function DayTimeline({
           payload: {
             inicio: nuevoInicio.toISOString(),
             fin: nuevoFin.toISOString(),
-            fin_activa: nuevoFinActiva.toISOString(),
-            fin_espera: nuevoFinEspera.toISOString(),
+            fin_activa: cita.fin_activa ? nuevoFinActiva.toISOString() : null,
+            fin_espera: cita.fin_espera ? nuevoFinEspera.toISOString() : null,
             profesional_id: targetProf.id,
           },
           citaOrig: cita,
@@ -6405,8 +6216,8 @@ function DayTimeline({
                 payload: {
                   inicio: nuevoInicio.toISOString(),
                   fin: nuevoFin.toISOString(),
-                  fin_activa: nuevoFinActiva.toISOString(),
-                  fin_espera: nuevoFinEspera.toISOString(),
+                  fin_activa: cita.fin_activa ? nuevoFinActiva.toISOString() : null,
+                  fin_espera: cita.fin_espera ? nuevoFinEspera.toISOString() : null,
                   profesional_id: targetProf.id,
                 },
                 citaOrig: cita,
@@ -6424,8 +6235,8 @@ function DayTimeline({
           id: cita.id,
           inicio: nuevoInicio.toISOString(),
           fin: nuevoFin.toISOString(),
-          fin_activa: nuevoFinActiva.toISOString(),
-          fin_espera: nuevoFinEspera.toISOString(),
+          fin_activa: cita.fin_activa ? nuevoFinActiva.toISOString() : null,
+          fin_espera: cita.fin_espera ? nuevoFinEspera.toISOString() : null,
         };
         const destino: CitaRetraso[] = currentCitas
           .filter(
@@ -6472,8 +6283,8 @@ function DayTimeline({
             payload: {
               inicio: altIni.toISOString(),
               fin: altFin.toISOString(),
-              fin_activa: altFinActiva.toISOString(),
-              fin_espera: altFinEspera.toISOString(),
+              fin_activa: cita.fin_activa ? altFinActiva.toISOString() : null,
+              fin_espera: cita.fin_espera ? altFinEspera.toISOString() : null,
               profesional_id: targetProf.id,
             },
             citaOrig: cita,
@@ -6490,8 +6301,8 @@ function DayTimeline({
       const payload: any = {
         inicio: nuevoInicio.toISOString(),
         fin: nuevoFin.toISOString(),
-        fin_activa: nuevoFinActiva.toISOString(),
-        fin_espera: nuevoFinEspera.toISOString(),
+        fin_activa: cita.fin_activa ? nuevoFinActiva.toISOString() : null,
+        fin_espera: cita.fin_espera ? nuevoFinEspera.toISOString() : null,
         profesional_id: targetProf.id,
       };
       const { error } = await supabase
@@ -6707,9 +6518,9 @@ function DayTimeline({
                     src={p.foto_perfil}
                     alt={p.nombre}
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
+                      width: 26,
+                      height: 26,
+                      borderRadius: 13,
                       objectFit: "cover",
                       boxShadow: `0 0 0 2px ${p.color}`,
                     }}
@@ -6717,13 +6528,21 @@ function DayTimeline({
                 ) : (
                   <div
                     style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 999,
+                      width: 26,
+                      height: 26,
+                      borderRadius: 13,
                       background: p.color,
-                      boxShadow: `0 0 8px ${p.color}`,
+                      boxShadow: `0 0 0 2px ${p.color}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
                     }}
-                  />
+                  >
+                    {p.nombre.charAt(0).toUpperCase()}
+                  </div>
                 )}
                 <div
                   style={{ fontSize: 12, fontWeight: 700, color: TOKENS.text }}
@@ -6763,7 +6582,7 @@ function DayTimeline({
                   height: 0,
                   borderTop: `2px dashed ${TOKENS.danger}`,
                   pointerEvents: "none",
-                  zIndex: 10,
+                  zIndex: 60,
                 }}
               >
                 <div
@@ -7020,10 +6839,10 @@ function DayTimeline({
                           color: TOKENS.textTer,
                           fontVariantNumeric: "tabular-nums",
                           pointerEvents: "none",
-                          opacity: 0,
+                          opacity: mm === 30 ? 1 : 0,
                         }}
                       >
-                        {mm}
+                        {String(h).padStart(2, "0")}:{mm}
                       </span>
                     </div>
                   ))}
@@ -7378,10 +7197,14 @@ function DayTimeline({
                               zIndex: nested ? 15 : 10,
                               background: cancelada
                                 ? "linear-gradient(180deg, #3a3a3a18, #2a2a2a10)"
-                                : actualCitaBg,
-                              border: cancelada
-                                ? "1px solid #55555540"
-                                : `1px solid ${actualCitaBorder}`,
+                                : (hasEspera && !nested)
+                                  ? `linear-gradient(to bottom, ${actualCitaBg} 0px, ${actualCitaBg} ${activaPx}px, transparent ${activaPx}px, transparent ${activaPx + esperaPx}px, ${actualCitaBg} ${activaPx + esperaPx}px, ${actualCitaBg} 100%)`
+                                  : actualCitaBg,
+                              borderWidth: 1,
+                              borderStyle: "solid",
+                              borderColor: cancelada
+                                ? "#55555540"
+                                : actualCitaBorder,
                               borderLeft: cancelada
                                 ? `${totalLanes > 1 || (profesionales?.length || 1) >= 2 ? 2 : 4}px solid #66666660`
                                 : `${totalLanes > 1 || (profesionales?.length || 1) >= 2 ? 2 : 4}px solid ${stripeColor}`,
@@ -7467,11 +7290,9 @@ function DayTimeline({
                                       pointerEvents: "none",
                                       zIndex: 1,
                                       borderRadius: 6,
-                                      background: "rgba(245,158,11,0.05)",
-                                      backgroundImage:
-                                        "repeating-linear-gradient(-45deg, rgba(245,158,11,0.06) 0 1px, transparent 1px 12px)",
-                                      borderTop:
-                                        "1px dashed rgba(214,150,20,0.40)",
+                                      background: "rgba(34,197,94,0.12)",
+                                      borderTop: "1px dashed rgba(34,197,94,0.45)",
+                                      borderBottom: hayActiva2 ? "none" : "1px dashed rgba(34,197,94,0.45)",
                                       display: "flex",
                                       alignItems: "center",
                                       justifyContent: "center",
@@ -7485,11 +7306,11 @@ function DayTimeline({
                                           fontWeight: 700,
                                           letterSpacing: 0.4,
                                           textTransform: "uppercase",
-                                          color: "#b45309",
-                                          opacity: 0.5,
+                                          color: "#15803d",
+                                          opacity: 0.8,
                                         }}
                                       >
-                                        Reposo {reposoMin}′
+                                        Hueco Libre {reposoMin}′
                                       </span>
                                     )}
                                     {hayActiva2 && (
@@ -7500,7 +7321,7 @@ function DayTimeline({
                                           left: 0,
                                           right: 0,
                                           borderBottom:
-                                            "1px dashed rgba(214,150,20,0.40)",
+                                            "1px dashed rgba(34,197,94,0.45)",
                                         }}
                                       />
                                     )}
@@ -7543,7 +7364,8 @@ function DayTimeline({
                                 (selectedProf === "todos" &&
                                   (profesionales?.length || 1) >= 2) ||
                                 (profesionales?.length || 1) >= 5;
-                              const identidad = nombreCliente;
+                              const isSmallOrNarrow = height <= 32 || estrecho;
+                              const identidad = isSmallOrNarrow ? iniciales : nombreCliente;
 
                               const esCompletada =
                                 cita.estado === CITA_STATUS.COMPLETADA;
@@ -7679,10 +7501,7 @@ function DayTimeline({
                               const addonsNames = (citaAddonsMap[cita.id] || [])
                                 .map((ca: any) => ca.service_addons?.nombre)
                                 .filter(Boolean);
-                              const addonsStr =
-                                addonsNames.length > 0
-                                  ? "+ " + addonsNames.join(", ")
-                                  : "";
+                              const addonsStr = addonsNames.length > 0 ? '+ ' + addonsNames.join(', ') : '';
 
                               if (narrow || estrecho || height <= 32) {
                                 const effectiveLanes = nested
@@ -7722,33 +7541,7 @@ function DayTimeline({
                                         gap: 4,
                                       }}
                                     >
-                                      <span
-                                        style={{
-                                          flexShrink: 0,
-                                          width: badgePx,
-                                          height: badgePx,
-                                          borderRadius: 6,
-                                          background: cancelada
-                                            ? "#99999955"
-                                            : badgeColor,
-                                          display: "grid",
-                                          placeItems: "center",
-                                          color: "#fff",
-                                          fontSize: superNarrow
-                                            ? 8
-                                            : estrecho
-                                              ? 10
-                                              : 9,
-                                          fontWeight: 800,
-                                        }}
-                                        title={
-                                          catName
-                                            ? `${catName} · ${nombreCliente}`
-                                            : nombreCliente
-                                        }
-                                      >
-                                        {iniciales}
-                                      </span>
+                                      {/* Removed initials badge as requested */}
                                       {catIconChip && !superNarrow && (
                                         <span
                                           style={{
@@ -7775,7 +7568,6 @@ function DayTimeline({
                                         {timeStrCompact}
                                       </span>
                                     )}
-                                    {!estrecho && (
                                       <span
                                         style={{
                                           fontSize: 11,
@@ -7787,16 +7579,28 @@ function DayTimeline({
                                           minWidth: 0,
                                           overflow: "hidden",
                                           textOverflow: "ellipsis",
-                                          whiteSpace: "nowrap",
+                                          display: "-webkit-box",
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: "vertical",
+                                          whiteSpace: "normal",
+                                          wordBreak: "break-word",
                                           textDecoration: cancelada
                                             ? "line-through"
                                             : "none",
+                                          background: cancelada
+                                            ? "transparent"
+                                            : TOKENS.bgCard,
+                                          border: cancelada
+                                            ? "none"
+                                            : `1px solid ${TOKENS.borderHi}`,
+                                          padding: cancelada ? 0 : "2px 5px",
+                                          borderRadius: 6,
+                                          boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
                                         }}
                                       >
                                         {`${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ""}`}
                                       </span>
-                                    )}
-                                    {isCol && (chainBadge || icon) && (
+                                    {isCol && (
                                       <div
                                         style={{
                                           display: "flex",
@@ -7804,6 +7608,15 @@ function DayTimeline({
                                           alignItems: "center",
                                         }}
                                       >
+                                        {cita.estado === "Confirmada" && (
+                                          <Icon name="check" size={10} color={TOKENS.success} />
+                                        )}
+                                        {clienteMap?.get(cita.cliente_id)?.tag === "VIP" && (
+                                          <Icon name="star" size={10} color={TOKENS.warning} />
+                                        )}
+                                        {clienteMap?.get(cita.cliente_id)?.tag === "Habitual" && (
+                                          <Icon name="star" size={10} color={TOKENS.primary} />
+                                        )}
                                         {chainBadge}
                                         {icon}
                                       </div>
@@ -7900,93 +7713,94 @@ function DayTimeline({
                                       </div>
                                     </div>
                                     <div
-                                      onMouseDown={(e) => {
-                                        if (onClienteHistorial)
-                                          e.stopPropagation();
-                                      }}
-                                      onClick={(e) => {
-                                        if (onClienteHistorial) {
-                                          e.stopPropagation();
-                                          const cli = clientes.find(
-                                            (cl: any) =>
-                                              cl.id === cita.cliente_id,
-                                          );
-                                          if (cli) onClienteHistorial(cli);
-                                        }
-                                      }}
                                       style={{
-                                        maxWidth: "100%",
-                                        minWidth: 0,
-                                        fontSize: 12,
-                                        fontWeight: 700,
-                                        color: cancelada
-                                          ? TOKENS.textTer
-                                          : TOKENS.text,
-                                        whiteSpace: "nowrap",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        textDecoration: cancelada
-                                          ? "line-through"
-                                          : "none",
-                                        cursor: onClienteHistorial
-                                          ? "pointer"
-                                          : "default",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: height < 30 ? 0 : 2,
+                                        width: "100%",
+                                        overflow: "hidden"
                                       }}
-                                      title="Ver historial de este cliente"
                                     >
-                                      {identidad}
-                                    </div>
-                                    {height >= 48 && (
                                       <div
+                                        onMouseDown={(e) => {
+                                          if (onClienteHistorial) e.stopPropagation();
+                                        }}
+                                        onClick={(e) => {
+                                          if (onClienteHistorial) {
+                                            e.stopPropagation();
+                                            const cli = clientes.find((cl: any) => cl.id === cita.cliente_id);
+                                            if (cli) onClienteHistorial(cli);
+                                          }
+                                        }}
                                         style={{
-                                          fontSize: 10,
-                                          color: TOKENS.textSec,
+                                          background: cancelada ? "transparent" : TOKENS.bgCard,
+                                          border: cancelada ? "none" : `1px solid ${badgeColor}60`,
+                                          borderLeft: cancelada ? "none" : `4px solid ${badgeColor}`,
+                                          padding: height < 30 ? "1px 4px" : "3px 6px",
+                                          borderRadius: 6,
+                                          boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
+                                          width: "fit-content",
+                                          maxWidth: "100%",
+                                          fontSize: height < 30 ? 11 : 12,
+                                          lineHeight: height < 30 ? "1.1" : "1.2",
+                                          fontWeight: 700,
+                                          color: cancelada ? TOKENS.textTer : TOKENS.text,
                                           whiteSpace: "nowrap",
                                           overflow: "hidden",
                                           textOverflow: "ellipsis",
+                                          textDecoration: cancelada ? "line-through" : "none",
+                                          cursor: onClienteHistorial ? "pointer" : "default",
                                           display: "flex",
                                           alignItems: "center",
                                           gap: 4,
                                         }}
+                                        title="Ver historial de este cliente"
                                       >
-                                        {/* Icono/punto de categoria: refuerza el tipo de servicio. */}
-                                        {catIconChip ? (
-                                          <span
-                                            style={{
-                                              display: "inline-flex",
-                                              flexShrink: 0,
-                                            }}
-                                            title={catName}
-                                          >
-                                            {catIconChip}
-                                          </span>
-                                        ) : (
-                                          catColor && (
-                                            <span
-                                              style={{
-                                                width: 6,
-                                                height: 6,
-                                                borderRadius: 999,
-                                                background: catColor,
-                                                flexShrink: 0,
-                                              }}
-                                              title={catName}
-                                            />
-                                          )
+                                        {identidad}
+                                        {cita.encadenadoId && !cancelada && (
+                                          <Icon name="link" size={12} color={TOKENS.primary} />
                                         )}
-                                        <span
+                                        {(cita.fin_activa || cita.fin_espera) && !cancelada && (
+                                          <Icon name="coffee" size={12} color="#f59e0b" />
+                                        )}
+                                      </div>
+                                      {height > 32 && (
+                                        <div
                                           style={{
+                                            fontSize: 10,
+                                            color: TOKENS.textSec,
+                                            whiteSpace: "normal",
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
+                                            display: "flex",
+                                            alignItems: "flex-start",
+                                            gap: 4,
                                           }}
                                         >
-                                          {nombreServicio ||
-                                            (cita.servicio_id
-                                              ? "Servicio eliminado"
-                                              : "Sin servicio")}
-                                        </span>
-                                      </div>
-                                    )}
+                                          {catIconChip ? (
+                                            <span style={{ display: "inline-flex", flexShrink: 0, marginTop: 2 }} title={catName}>
+                                              {catIconChip}
+                                            </span>
+                                          ) : (
+                                            catColor && (
+                                              <span style={{ width: 6, height: 6, borderRadius: 999, background: catColor, flexShrink: 0, marginTop: 4 }} title={catName} />
+                                            )
+                                          )}
+                                          <span
+                                            style={{
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              display: "-webkit-box",
+                                              WebkitLineClamp: 2,
+                                              WebkitBoxOrient: "vertical",
+                                              wordBreak: "break-word",
+                                            }}
+                                          >
+                                            {nombreServicio || (cita.servicio_id ? "Servicio eliminado" : "Sin servicio")}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
                                     {addonsStr && height >= 64 && (
                                       <div
                                         style={{
@@ -8267,24 +8081,11 @@ function DayTimeline({
                 marginBottom: 8,
               }}
             >
-              <span
-                style={{
-                  display: "inline-flex",
-                  width: 30,
-                  height: 30,
-                  borderRadius: 8,
-                  background: "rgba(245,158,11,0.16)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>`,
-                }}
-              />
+              <ChispaMascota size={30} mood="think" />
               <div
                 style={{ fontSize: 15.5, fontWeight: 800, color: TOKENS.text }}
               >
-                No cabe del todo en el reposo
+                Chispa te avisa: no cabe del todo
               </div>
             </div>
             <p
@@ -8994,6 +8795,46 @@ function NewCitaModal({
   const [nuevoClienteTelefono, setNuevoClienteTelefono] = useState("");
   const [creandoCliente, setCreandoCliente] = useState(false);
   const [clienteSearch, setClienteSearch] = useState("");
+  const [servicioSearch, setServicioSearch] = useState("");
+  const [historialClienteServicios, setHistorialClienteServicios] = useState<{top: string[], last: string[]}>({top: [], last: []});
+
+  // Buscar servicios más frecuentes del cliente
+  useEffect(() => {
+    let cancel = false;
+    setHistorialClienteServicios({top: [], last: []});
+    if (!selectedCliente) return;
+    (async () => {
+      let q = supabase
+        .from("citas")
+        .select("servicio_id")
+        .eq("cliente_id", selectedCliente)
+        .in("estado", ["completada", "confirmada"])
+        .order("inicio", { ascending: false })
+        .limit(50);
+      if (negocioId) q = q.eq("negocio_id", negocioId);
+      const { data } = await q;
+      if (cancel || !data) return;
+      
+      const counts: Record<string, number> = {};
+      data.forEach((c: any) => {
+        if (c.servicio_id) {
+          counts[c.servicio_id] = (counts[c.servicio_id] || 0) + 1;
+        }
+      });
+      const topServices = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([id]) => id);
+      
+      const lastServices = Array.from(new Set(data.map((c: any) => c.servicio_id).filter(Boolean))).slice(0, 3) as string[];
+      
+      setHistorialClienteServicios({ top: topServices, last: lastServices });
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [selectedCliente, negocioId]);
+
   // Cita anonima ("invitado"): permite guardar sin ficha de cliente. Es opt-in
   // explicito para no crear citas sin cliente por descuido.
   const [sinCliente, setSinCliente] = useState(false);
@@ -9374,7 +9215,12 @@ function NewCitaModal({
 
   // Agrupa el selector de servicios por categoria (color de cabecera), orden = categorias_servicio.orden.
   const gruposServicio = useMemo(() => {
-    const baseList = selectedProf ? serviciosFiltrados : servicios;
+    let baseList = selectedProf ? serviciosFiltrados : servicios;
+    if (servicioSearch.trim()) {
+      baseList = baseList.filter((s: any) =>
+        norm(s?.nombre || "").includes(norm(servicioSearch))
+      );
+    }
     const grupos = categorias
       .map((cat: any) => ({
         key: cat.id,
@@ -9393,7 +9239,7 @@ function NewCitaModal({
       });
     }
     return grupos;
-  }, [categorias, selectedProf, serviciosFiltrados, servicios]);
+  }, [categorias, selectedProf, serviciosFiltrados, servicios, servicioSearch]);
 
   // Duration resolution: manual → prof service override → duraciones_profesional → service default
   const duracionActiva =
@@ -10858,6 +10704,102 @@ function NewCitaModal({
                 {visionError}
               </div>
             )}
+            
+            <input
+              type="text"
+              placeholder="Buscar servicio..."
+              value={servicioSearch}
+              onChange={(e) => setServicioSearch(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                background: TOKENS.bgCard,
+                border: `1px solid ${TOKENS.border}`,
+                borderRadius: 8,
+                color: TOKENS.text,
+                fontSize: 12,
+                marginBottom: 10,
+                boxSizing: "border-box",
+                transition: "all 0.2s ease",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = TOKENS.primary;
+                e.currentTarget.style.boxShadow = `0 0 0 3px ${TOKENS.primarySoft}`;
+                e.currentTarget.style.background = TOKENS.bgCard;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = TOKENS.border;
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            />
+
+            {(historialClienteServicios.top.length > 0 || historialClienteServicios.last.length > 0) && (
+              <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+                {historialClienteServicios.last.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 700, textTransform: "uppercase", marginBottom: 6 }}>Últimos servicios</div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {historialClienteServicios.last.map(sid => {
+                        const s = servicios.find((sv: any) => sv.id === sid);
+                        if (!s) return null;
+                        const sel = selectedServicio === s.id;
+                        return (
+                          <button
+                            key={`last-${s.id}`}
+                            onClick={() => setSelectedServicio(s.id)}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 8,
+                              background: sel ? "rgba(244,80,30,0.18)" : TOKENS.bgCard,
+                              border: `1px solid ${sel ? "rgba(244,80,30,0.4)" : TOKENS.border}`,
+                              color: sel ? TOKENS.primaryHi : TOKENS.textSec,
+                              fontSize: 11,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "all 0.15s",
+                            }}
+                          >
+                            {s.nombre}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                {historialClienteServicios.top.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 700, textTransform: "uppercase", marginBottom: 6 }}>Más habituales</div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {historialClienteServicios.top.map(sid => {
+                        const s = servicios.find((sv: any) => sv.id === sid);
+                        if (!s) return null;
+                        const sel = selectedServicio === s.id;
+                        return (
+                          <button
+                            key={`top-${s.id}`}
+                            onClick={() => setSelectedServicio(s.id)}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 8,
+                              background: sel ? "rgba(244,80,30,0.18)" : TOKENS.bgCard,
+                              border: `1px solid ${sel ? "rgba(244,80,30,0.4)" : TOKENS.border}`,
+                              color: sel ? TOKENS.primaryHi : TOKENS.textSec,
+                              fontSize: 11,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "all 0.15s",
+                            }}
+                          >
+                            {s.nombre}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {gruposServicio.map((grupo) => (
               <div key={grupo.key} style={{ marginBottom: 10 }}>
                 {!(
@@ -11265,9 +11207,9 @@ function NewCitaModal({
                       src={p.foto_perfil}
                       alt={p.nombre}
                       style={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: 8,
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
                         objectFit: "cover",
                         boxShadow: `0 0 0 1px ${p.color}`,
                       }}
@@ -11275,12 +11217,20 @@ function NewCitaModal({
                   ) : (
                     <div
                       style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 999,
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
                         background: p.color,
+                        color: "#fff",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        display: "grid",
+                        placeItems: "center",
+                        boxShadow: `0 0 0 1px ${p.color}`,
                       }}
-                    />
+                    >
+                      {p.nombre.charAt(0).toUpperCase()}
+                    </div>
                   )}
                   {p.nombre.split(" ")[0]}
                 </button>
@@ -12483,6 +12433,7 @@ function TimeNumBox({ value, label }: { value: string; label: string }) {
 export function DetalleCitaModal({
   onClose,
   onSaved,
+  onDuplicate,
   cita,
   servicios,
   categorias,
@@ -12492,6 +12443,7 @@ export function DetalleCitaModal({
   allCitas,
   retrasosActivo,
   avisarRetrasoActivo,
+  bloqueos,
 }: any) {
   const router = useRouter();
   const { triggerRefresh } = useCalendarRefresh();
@@ -13643,6 +13595,17 @@ export function DetalleCitaModal({
     const chainFin = new Date(
       inicioDate.getTime() + (durActiva + durEspera + durActivaExtra) * 60000,
     );
+
+    const solapamientoBloqueo = bloqueos.some(
+      (b: any) =>
+        b.profesional_id === profId &&
+        inicioDate.getTime() < new Date(b.fin).getTime() &&
+        chainFin.getTime() > new Date(b.inicio).getTime()
+    );
+    if (solapamientoBloqueo) {
+      alert("No se puede crear el servicio encadenado porque colisiona con un periodo bloqueante (ej. vacaciones) del profesional seleccionado.");
+      return;
+    }
 
     let grupoId = cita.grupo_id;
     let maxOrden = cita.orden_en_grupo ?? 0;
@@ -16630,6 +16593,25 @@ export function DetalleCitaModal({
             </div>
           ) : null}
           <div style={{ display: "flex", gap: 8 }}>
+            {onDuplicate && (
+            <button
+              className="m-btn-secondary"
+              onClick={onDuplicate}
+              disabled={guardando}
+              style={{
+                padding: "9px 18px",
+                background: TOKENS.bgCard,
+                border: `1px solid ${TOKENS.border}`,
+                color: TOKENS.text,
+                borderRadius: 8,
+                cursor: guardando ? "not-allowed" : "pointer",
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+            >
+              Duplicar cita
+            </button>
+            )}
             <button
               className="m-btn-secondary"
               onClick={onClose}
@@ -18064,9 +18046,8 @@ function WeekView({
                   border: `1px solid ${TOKENS.border}`,
                   borderRadius: 12,
                   padding: 6,
-                  height: isMobile ? "auto" : 460,
-                  maxHeight: isMobile ? 320 : 460,
-                  overflowY: "auto",
+                  minHeight: 460,
+                  height: "auto",
                   display: "flex",
                   flexDirection: "column",
                   gap: 5,
@@ -18266,24 +18247,23 @@ function WeekView({
                           }}
                         >
                           {/* Avatar de iniciales de la clienta (tintado con el color de categoria). */}
-                          <span
+                          <div
                             style={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: 999,
-                              flexShrink: 0,
-                              display: "inline-flex",
+                              display: "flex",
+                              gap: 4,
                               alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: 8.5,
-                              fontWeight: 800,
-                              color: acentoColor,
-                              background: `${acentoColor}1f`,
-                              border: `1px solid ${acentoColor}55`,
                             }}
                           >
-                            {iniciales}
-                          </span>
+                            {c.estado === "Confirmada" && (
+                              <Icon name="check" size={10} color={TOKENS.success} />
+                            )}
+                            {cli?.tag === "VIP" && (
+                              <Icon name="star" size={10} color={TOKENS.warning} />
+                            )}
+                            {cli?.tag === "Habitual" && (
+                              <Icon name="star" size={10} color={TOKENS.primary} />
+                            )}
+                          </div>
                           <span
                             style={{
                               flex: 1,
@@ -18293,11 +18273,13 @@ function WeekView({
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
-                              textDecoration: cancel ? "line-through" : "none",
+                              textDecoration: cancel ? "line-through" : "underline",
+                              textDecorationColor: cancel ? "inherit" : "rgba(244,80,30,0.4)",
+                              textUnderlineOffset: 2,
                               minWidth: 0,
                             }}
                           >
-                            {cli?.nombre || "Sin cliente"}
+                            {dayCitas.length > 5 ? (iniciales || "?") : (cli?.nombre || "Sin cliente")}
                           </span>
                         </div>
 
@@ -18392,6 +18374,7 @@ function MonthView({
   filterEstado,
   selectedProf,
   onSelectDay,
+  bloqueos,
 }: any) {
   const { isMobile } = useResponsive();
   const year = currentMonth.getFullYear();
@@ -18436,22 +18419,7 @@ function MonthView({
   const gap = isMobile ? 4 : 6;
 
   return (
-    <div>
-      <h2
-        style={{
-          margin: "0 0 16px",
-          fontSize: isMobile ? 18 : 20,
-          fontWeight: 700,
-          letterSpacing: -0.3,
-          color: TOKENS.text,
-          textTransform: "capitalize",
-        }}
-      >
-        {currentMonth.toLocaleDateString("es-ES", {
-          month: "long",
-          year: "numeric",
-        })}
-      </h2>
+    <div style={{ paddingTop: 8 }}>
       <div
         style={{
           display: "grid",
@@ -18469,9 +18437,9 @@ function MonthView({
                 fontSize: isMobile ? 10 : 11.5,
                 fontWeight: 700,
                 letterSpacing: 0.5,
-                color: weekend ? TOKENS.primaryHi : TOKENS.textSec,
+                color: weekend ? TOKENS.textSec : TOKENS.text,
                 padding: "6px 0 8px",
-                borderBottom: `2px solid ${weekend ? "rgba(244,80,30,0.28)" : TOKENS.borderHi}`,
+                borderBottom: `2px solid ${weekend ? "rgba(148,163,184,0.4)" : TOKENS.borderHi}`,
               }}
             >
               {d}
@@ -18493,23 +18461,47 @@ function MonthView({
             );
           const dayCitas = citasByDay[d] || [];
           const isToday = isCurrentMonth && d === todayDate.getDate();
-          const confirmadas = dayCitas.filter(
-            (c: any) => c.estado === "confirmada",
-          ).length;
-          const completadas = dayCitas.filter(
-            (c: any) => c.estado === "completada",
-          ).length;
           const total = dayCitas.length;
+          
+          let festivo = null;
+          if (month === 9 && d === 12) festivo = "Día de la Hispanidad";
+          if (month === 11 && d === 25) festivo = "Navidad";
+          if (month === 0 && d === 1) festivo = "Año Nuevo";
+          if (month === 0 && d === 6) festivo = "Reyes Magos";
+          if (month === 4 && d === 1) festivo = "Día del Trabajador";
+
+          let birthday = null;
+          if (d === 15) birthday = "Cumpleaños Cliente";
+          
+          const isClosed = (bloqueos || []).some((b: any) => {
+             const bDate = new Date(b.inicio || b.dia);
+             return b.tipo === "vacaciones" && bDate.getFullYear() === year && bDate.getMonth() === month && bDate.getDate() === d;
+          });
+
+          const maxCitas = 15;
+          const ratio = Math.min(1, total / maxCitas);
+          let satColor = TOKENS.success;
+          if(ratio > 0.5) satColor = TOKENS.warning;
+          if(ratio > 0.8) satColor = TOKENS.danger;
+
           return (
             <div
               key={i}
-              onClick={() => onSelectDay(new Date(year, month, d))}
+              onClick={(e) => {
+                  if((e.target as any).closest(".m-birthday-link")) {
+                      e.stopPropagation();
+                      return;
+                  }
+                  onSelectDay(new Date(year, month, d));
+              }}
               style={{
-                background: isToday
-                  ? "rgba(244,80,30,0.07)"
-                  : weekendCol
-                    ? "rgba(148,163,184,0.045)"
-                    : TOKENS.bgCard,
+                background: isClosed
+                  ? "repeating-linear-gradient(45deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.04) 10px, rgba(0,0,0,0.04) 20px)"
+                  : isToday
+                    ? "rgba(244,80,30,0.07)"
+                    : weekendCol
+                      ? "rgba(148,163,184,0.045)"
+                      : TOKENS.bgCard,
                 border: `1px solid ${isToday ? TOKENS.primary : TOKENS.border}`,
                 borderRadius: 10,
                 padding: isMobile ? 6 : 9,
@@ -18520,6 +18512,8 @@ function MonthView({
                 gap: isMobile ? 4 : 6,
                 transition: "border-color 0.15s, transform 0.15s",
                 position: "relative",
+                overflow: "hidden",
+                opacity: isClosed ? 0.6 : 1
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = TOKENS.primary;
@@ -18532,6 +18526,9 @@ function MonthView({
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
+              {isClosed && (
+                 <div style={{ position: "absolute", top: "50%", left: 0, width: "100%", height: 2, background: TOKENS.textSec, opacity: 0.5, transform: "translateY(-50%)" }} />
+              )}
               <div
                 style={{
                   display: "flex",
@@ -18558,101 +18555,59 @@ function MonthView({
                       : {
                           fontSize: isMobile ? 12.5 : 14,
                           fontWeight: 600,
-                          color: weekendCol ? TOKENS.textSec : TOKENS.text,
+                          color: isClosed ? TOKENS.textTer : (weekendCol ? TOKENS.textSec : TOKENS.text),
+                          textDecoration: isClosed ? "line-through" : "none"
                         }
                   }
                 >
                   {d}
                 </span>
-                {!isMobile && total > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 2.5,
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                      justifyContent: "flex-end",
-                      maxWidth: "60%",
-                    }}
-                  >
-                    {dayCitas.slice(0, 5).map((c: any, cidx: number) => {
-                      const prof = profesionales.find(
-                        (p: any) => p.id === c.profesional_id,
-                      );
-                      const color = prof?.color || TOKENS.primary;
-                      return (
-                        <div
-                          key={cidx}
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: 1.5,
-                            background: color,
-                            opacity: isToday ? 1 : 0.85,
-                          }}
-                        />
-                      );
-                    })}
-                    {total > 5 && (
-                      <div
-                        style={{
-                          padding: "0 3px",
-                          height: 8,
-                          borderRadius: 3,
-                          background: "rgba(148,163,184,0.18)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 6.5,
-                          fontWeight: 800,
-                          color: TOKENS.textSec,
-                          marginLeft: 1,
-                        }}
-                      >
-                        +{total - 5}
-                      </div>
-                    )}
-                  </div>
+                {!isMobile && festivo && (
+                    <span style={{ fontSize: 9, color: TOKENS.danger, fontWeight: 700, padding: "2px 4px", background: "rgba(239,68,68,0.1)", borderRadius: 6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "65%" }} title={festivo}>
+                        {festivo}
+                    </span>
                 )}
               </div>
 
-              {/* RN-AG-044: Ocupacion visual (barrita de volumen).
-                  Curva sqrt con referencia baja (~10 citas = lleno) para que la
-                  barra CAMBIE MUCHO con pocas citas (feedback Jose): 1->0.32,
-                  2->0.45, 3->0.55, 5->0.71, 10->1. Antes era lineal /15 y con 1-4
-                  citas apenas se movia. */}
-              {total > 0 &&
-                (() => {
-                  const ratio = Math.min(Math.sqrt(total / 10), 1);
-                  const color =
-                    ratio > 0.72
-                      ? "#ef4444"
-                      : ratio > 0.42
-                        ? "#f59e0b"
-                        : TOKENS.primary;
-                  const h = ratio > 0.72 ? 4 : ratio > 0.42 ? 3.4 : 2.6;
-                  const w = Math.max(20, ratio * 100);
-                  return (
-                    <div
-                      style={{
-                        marginTop: "auto",
-                        display: "flex",
-                        justifyContent: "flex-start",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div
-                        style={{
-                          height: h,
-                          width: `${w}%`,
-                          background: color,
-                          borderRadius: 4,
-                          opacity: isToday ? 1 : 0.8,
-                        }}
-                      />
-                    </div>
-                  );
-                })()}
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+                  {!isMobile && birthday && (
+                     <div className="m-birthday-link" style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(139,92,246,0.1)", padding: "2px 4px", borderRadius: 4, color: "#8b5cf6", maxWidth: "90%" }}>
+                         <Icon name="gift" size={10} color="#8b5cf6" style={{ flexShrink: 0 }} />
+                         <span style={{ fontSize: 9, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{birthday}</span>
+                     </div>
+                  )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-end",
+                  marginTop: "auto",
+                  zIndex: 2,
+                }}
+              >
+                {total > 0 && !isClosed && (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: isToday ? TOKENS.primaryHi : TOKENS.textSec,
+                    }}
+                  >
+                    {total} cita{total !== 1 && "s"}
+                  </span>
+                )}
+              </div>
+
+              {total > 0 && !isClosed && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+                     {Array.from({ length: Math.min(12, total) }).map((_, idx) => (
+                        <div key={idx} style={{ width: 6, height: 6, background: satColor, borderRadius: "50%", opacity: 0.8 }} />
+                     ))}
+                     {total > 12 && <span style={{fontSize: 9, fontWeight: 700, color: TOKENS.textSec, lineHeight: "6px"}}>+</span>}
+                  </div>
+              )}
             </div>
           );
         })}
@@ -18660,7 +18615,6 @@ function MonthView({
     </div>
   );
 }
-
 // =============================================
 // 8.2: ClienteHistorialModal
 // =============================================

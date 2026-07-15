@@ -236,7 +236,7 @@ export default function EquipoWeb() {
       const mesFin = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
       const [{ data: profsRaw }, { data: citsData }, { data: srvData }] = await Promise.all([
-        supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id').eq('negocio_id', negocioId),
+        supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id, foto_perfil').eq('negocio_id', negocioId),
         supabase.from('citas').select('id, profesional_id, cliente_id, servicio_id, inicio, estado')
           .eq('negocio_id', negocioId)
           .gte('inicio', mesInicio)
@@ -1497,7 +1497,7 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
     if (!nombre.trim()) return;
     setLoading(true);
     const comision = comisionPct.trim() ? parseFloat(comisionPct.trim()) : null;
-    await supabase.from('profesionales').update({
+    const { error } = await supabase.from('profesionales').update({
       nombre: nombre.trim(),
       color,
       categoria,
@@ -1510,6 +1510,11 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
       foto_perfil: fotoPerfil || null,
     }).eq('id', prof.id);
     setLoading(false);
+    
+    if (error) {
+      alert('Error al guardar: ' + error.message);
+      return;
+    }
     onSaved();
   };
 
@@ -1518,9 +1523,33 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
     if (!file) return;
     setUploadingAvatar(true);
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const path = `${negocioId}/${prof.id}-${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from('avatares').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: true });
+      // Compresión en el cliente para acelerar subida
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      await new Promise(resolve => { img.onload = resolve; });
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      const maxSize = 400;
+      if (width > maxSize || height > maxSize) {
+        if (width > height) {
+          height = Math.round((height * maxSize) / width);
+          width = maxSize;
+        } else {
+          width = Math.round((width * maxSize) / height);
+          height = maxSize;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+      
+      const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/jpeg', 0.8));
+      if (!blob) throw new Error('No se pudo comprimir la imagen');
+
+      const path = `${negocioId}/${prof.id}-${Date.now()}.jpg`;
+      const { error: uploadError } = await supabase.storage.from('avatares').upload(path, blob, { contentType: 'image/jpeg', upsert: true });
       if (uploadError) throw uploadError;
       const { data } = supabase.storage.from('avatares').getPublicUrl(path);
       setFotoPerfil(data.publicUrl);
@@ -1662,7 +1691,7 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={onClose} style={{ padding: '9px 14px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.text, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
-            <button onClick={handleGuardar} disabled={loading} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(244,80,30,0.45)', opacity: loading ? 0.6 : 1 }}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
+            <button onClick={handleGuardar} disabled={loading || uploadingAvatar} style={{ padding: '9px 14px', background: 'linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: (loading || uploadingAvatar) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(244,80,30,0.45)', opacity: (loading || uploadingAvatar) ? 0.6 : 1 }}>{loading ? 'Guardando...' : uploadingAvatar ? 'Subiendo foto...' : 'Guardar cambios'}</button>
           </div>
         </div>
       </div>

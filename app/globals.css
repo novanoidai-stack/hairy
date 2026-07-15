@@ -63,6 +63,7 @@ option {
 body, html {
   color: var(--color-text);
   background-color: var(--color-bg);
+  overflow: hidden; /* Fix double scroll bug */
 }
 
 #root, [data-expo-router-root] {

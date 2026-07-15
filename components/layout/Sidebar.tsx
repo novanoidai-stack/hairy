@@ -304,11 +304,15 @@ export function Sidebar() {
             return acc;
           }, {} as Record<string, { item: typeof NAV_ITEMS[0]; index: number }[]>);
 
-          return Object.entries(groups).map(([groupName, items], groupIndex) => (
-            <View key={groupName}>
-              {groupIndex > 0 && !collapsed && <View style={s.navDivider} />}
+          const groupColors = ["#f4501e", "#e85d04", "#dc2f02", "#d00000"];
+
+          return Object.entries(groups).map(([groupName, items], groupIndex) => {
+            const gColor = groupColors[groupIndex % groupColors.length];
+            return (
+            <View key={groupName} style={collapsed ? { borderLeftWidth: 2, borderLeftColor: gColor, marginLeft: 6, paddingLeft: 6, marginBottom: 12 } : {}}>
+              {groupIndex > 0 && <View style={[s.navDivider, collapsed && { width: 24, alignSelf: 'center', marginVertical: 8, backgroundColor: 'rgba(92,82,73,0.1)' }]} />}
               {!collapsed && (
-                <TText style={[s.navSectionLabel, groupIndex > 0 && { marginTop: tokens.spacing.xs }]}>
+                <TText style={[s.navSectionLabel, groupIndex > 0 && { marginTop: tokens.spacing.xs }, { color: gColor, opacity: 0.8 }]}>
                   {groupName}
                 </TText>
               )}
@@ -319,7 +323,8 @@ export function Sidebar() {
                 })}
               </View>
             </View>
-          ));
+            );
+          });
         })()}
       </ScrollView>
 

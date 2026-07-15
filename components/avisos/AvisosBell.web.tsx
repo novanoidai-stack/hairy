@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'expo-router';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { useAvisos } from '@/lib/hooks/useAvisos';
+import ChispaMascota from '@/components/chispa/ChispaMascota.web';
 import {
   CATEGORIA_META, CATEGORIA_ORDEN, urgenciaColor, tiempoRelativo,
   type AvisoCategoria, type AvisoItem,
@@ -19,6 +20,9 @@ interface Props {
 // Icono de categoria (SVG inline, tinte por categoria). El nativo usa Ionicons
 // por su nombre en CATEGORIA_META.ionicon; aqui, SVG lucide-style equivalente.
 function IconoCategoria({ cat, size = 15, color }: { cat: AvisoCategoria; size?: number; color: string }) {
+  if (cat === 'ineficiencia') {
+    return <ChispaMascota size={size * 1.2} showLabel={false} animar={false} />;
+  }
   const p = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: color, strokeWidth: 1.9, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
   switch (cat) {
     case 'citas': return (<svg {...p}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>);
@@ -72,9 +76,9 @@ export function AvisosBell({ collapsed, mode = 'sidebar', children }: Props) {
 
   const dropdownStyle: React.CSSProperties = mode === 'header'
     ? (isMobile
-      ? { position: 'fixed', top: 58, left: 12, right: 12, maxHeight: '68vh', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 }
-      : { position: 'fixed', top: 58, right: 12, width: 620, maxHeight: 460, overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 })
-    : { position: 'fixed', top: 12, left: collapsed ? 84 : 248, width: 620, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.border}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 };
+      ? { position: 'fixed', top: 58, left: 12, right: 12, maxHeight: '68vh', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 }
+      : { position: 'fixed', top: 58, right: 12, width: '100%', maxWidth: 620, maxHeight: 460, overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 })
+    : { position: 'fixed', top: 12, left: collapsed ? 84 : 248, width: '100%', maxWidth: 620, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 14, boxShadow: '0 20px 50px rgba(20,12,6,0.30)', zIndex: 99999, padding: 12 };
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -110,7 +114,10 @@ export function AvisosBell({ collapsed, mode = 'sidebar', children }: Props) {
           {createPortal(
             <div style={dropdownStyle} className="animate-pop-in">
               <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span>Avisos</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <ChispaMascota size={16} showLabel={false} animar={false} />
+                  Avisos
+                </span>
                 {avisos.total > 0 && (
                   <span style={{ fontSize: 11, fontWeight: 700, color: hayUrgente ? T.danger : '#fb923c', background: hayUrgente ? T.dangerSoft : 'rgba(251,146,60,0.14)', borderRadius: 999, padding: '2px 8px' }}>{avisos.total}</span>
                 )}
@@ -130,16 +137,16 @@ export function AvisosBell({ collapsed, mode = 'sidebar', children }: Props) {
                     ))}
                   </div>
                   <div style={{
-                    display: isMobile ? 'flex' : 'grid',
-                    flexDirection: isMobile ? 'column' : undefined,
-                    gridTemplateColumns: isMobile ? undefined : '1fr 1fr',
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: 6,
                   }}>
                     {visibles.map((it) => (
                       <FilaAviso
                         key={it.id}
                         item={it}
-                        onOpen={() => go(it.ruta)}
+                        onOpen={() => { if (it.ruta) go(it.ruta); }}
+                        onOpenSubItem={(ruta) => { if (ruta) go(ruta); }}
                         onResolver={it.hallazgoId ? () => { void avisos.resolverHallazgo(it.hallazgoId!, 'resuelto'); } : undefined}
                         onDescartar={it.hallazgoId ? () => { void avisos.resolverHallazgo(it.hallazgoId!, 'descartado'); } : undefined}
                       />
@@ -175,54 +182,80 @@ function Chip({ label, count, active, onClick }: { label: string; count: number;
   );
 }
 
-function FilaAviso({ item, onOpen, onResolver, onDescartar }: {
+function FilaAviso({ item, onOpen, onOpenSubItem, onResolver, onDescartar }: {
   item: AvisoItem;
   onOpen: () => void;
+  onOpenSubItem?: (ruta: string) => void;
   onResolver?: () => void;
   onDescartar?: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const u = urgenciaColor(item.urgencia);
   const meta = CATEGORIA_META[item.categoria];
   const cuando = tiempoRelativo(item.ts);
   const mostrarBadge = item.urgencia === 'urgente' || item.urgencia === 'alta';
+  const hasSubItems = item.subItems && item.subItems.length > 0;
+
   return (
-    <div style={{ display: 'flex', alignItems: 'stretch', gap: 4 }}>
-      <button
-        onClick={onOpen}
-        title={item.subtitulo || item.titulo}
-        style={{
-          flex: 1, minWidth: 0, textAlign: 'left', cursor: 'pointer',
-          background: T.bgCard, border: `1px solid ${T.border}`, borderLeft: `3px solid ${u.fg}`,
-          borderRadius: 10, padding: '6px 8px', display: 'flex', alignItems: 'center', gap: 6,
-        }}
-      >
-        <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 8, background: `${meta.tint}14` }}>
-          <IconoCategoria cat={item.categoria} size={14} color={meta.tint} />
-        </span>
-        <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flex: 1 }}>
-          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.titulo}</span>
-              {mostrarBadge && (
-                <span style={{ flexShrink: 0, fontSize: 8, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: u.fg, background: u.bg, borderRadius: 999, padding: '1px 5px' }}>{u.label}</span>
-              )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: 4 }}>
+        <button
+          onClick={() => {
+            if (hasSubItems) {
+              setExpanded(!expanded);
+            } else {
+              onOpen();
+            }
+          }}
+          title={item.subtitulo || item.titulo}
+          style={{
+            flex: 1, minWidth: 0, textAlign: 'left', cursor: 'pointer',
+            background: T.bgCard, border: `1px solid ${T.border}`, borderLeft: `3px solid ${u.fg}`,
+            borderRadius: 10, padding: '6px 8px', display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 8, background: `${meta.tint}14` }}>
+            <IconoCategoria cat={item.categoria} size={14} color={meta.tint} />
+          </span>
+          <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flex: 1 }}>
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.titulo}</span>
+                {mostrarBadge && (
+                  <span style={{ flexShrink: 0, fontSize: 8, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: u.fg, background: u.bg, borderRadius: 999, padding: '1px 5px' }}>{u.label}</span>
+                )}
+              </span>
+              <span style={{ fontSize: 9.5, color: T.textTertiary, whiteSpace: 'nowrap', flexShrink: 0 }}>{cuando}</span>
             </span>
-            <span style={{ fontSize: 9.5, color: T.textTertiary, whiteSpace: 'nowrap', flexShrink: 0 }}>{cuando}</span>
+            <span style={{ fontSize: 10, color: T.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {item.meta ? item.meta : item.subtitulo || meta.label}
+            </span>
           </span>
-          <span style={{ fontSize: 10, color: T.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {item.meta ? item.meta : item.subtitulo || meta.label}
-          </span>
-        </span>
-      </button>
-      {onResolver && (
-        <button onClick={onResolver} title="Marcar como resuelto" style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.success, cursor: 'pointer', padding: 0 }}>
-          <IconoCheck size={13} color={T.success} />
+          {hasSubItems && (
+            <span style={{ flexShrink: 0, marginLeft: 4, transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textTertiary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </span>
+          )}
         </button>
-      )}
-      {onDescartar && (
-        <button onClick={onDescartar} title="Descartar este aviso" style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.textTertiary, cursor: 'pointer', padding: 0 }}>
-          <IconoX size={12} color={T.textTertiary} />
-        </button>
+        {onResolver && (
+          <button onClick={onResolver} title="Marcar como resuelto" style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.success, cursor: 'pointer', padding: 0 }}>
+            <IconoCheck size={13} color={T.success} />
+          </button>
+        )}
+        {onDescartar && (
+          <button onClick={onDescartar} title="Descartar este aviso" style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 26, background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.textTertiary, cursor: 'pointer', padding: 0 }}>
+            <IconoX size={12} color={T.textTertiary} />
+          </button>
+        )}
+      </div>
+      {expanded && hasSubItems && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginLeft: 20, paddingLeft: 10, borderLeft: `2px solid ${T.border}` }}>
+          {item.subItems!.map(sub => (
+            <FilaAviso key={sub.id} item={sub} onOpen={() => onOpenSubItem?.(sub.ruta)} />
+          ))}
+        </div>
       )}
     </div>
   );

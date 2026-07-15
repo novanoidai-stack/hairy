@@ -66,7 +66,7 @@ export function useOnboardingStatus(negocioId: string | null, enabled: boolean):
         next.horario_salon = horarios.some((h) => h.abierto && h.apertura && h.cierre);
         next.datos_negocio = Boolean(cfg.nombre && cfg.direccion && cfg.telefono);
         next.reserva_online = Boolean(portal && portal.slug && portal.portal_activo);
-        next.fotos_servicios = activeServicios.length > 0 && activeServicios.every((s) => !!s.foto_url);
+        next.fotos_servicios = activeServicios.length > 0 && activeServicios.some((s) => !!s.foto_url);
         next.notificaciones = cfg.notifRecordatorioActiva === true;
 
         if (!cancel) { setDone(next); setReady(true); }

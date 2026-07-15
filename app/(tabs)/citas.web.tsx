@@ -80,7 +80,7 @@ function CitasCRMScreen() {
       const [cliRes, srvRes, profRes, catRes] = await Promise.all([
         supabase.from('clientes').select('id, nombre, telefono, email, notas, bloqueado, etiquetas'),
         supabase.from('servicios').select('id, nombre, duracion_activa_min, duracion_espera_min, precio, categoria_id'),
-        supabase.from('profesionales').select('id, nombre, color, activo').eq('activo', true),
+        supabase.from('profesionales').select('id, nombre, color, activo, foto_perfil').eq('activo', true),
         supabase.from('categorias_servicio').select('id, nombre, color, icono'),
       ]);
       if (cliRes.data) setClientes(cliRes.data);

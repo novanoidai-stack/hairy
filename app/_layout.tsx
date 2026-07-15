@@ -21,6 +21,7 @@ import { TourLauncher } from '@/components/chispa/TourLauncher';
 import { useTheme } from '@/lib/theme';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
+import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 
 // Load Google Fonts for web + inject default text color
@@ -223,6 +224,7 @@ export default function RootLayout() {
         <Stack.Screen name="screens/nueva-cita" options={{ ...webModal, headerShown: Platform.OS !== 'web', title: 'Nueva cita', headerBackTitle: 'Agenda', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
         <Stack.Screen name="screens/configuracion" options={{ headerShown: true, title: 'Configuración', headerStyle: { backgroundColor: '#fffdfb' }, headerTintColor: '#1c1814' }} />
       </Stack>
+      {isWeb && <Analytics />}
     </ThemedRoot>
     </SafeAreaProvider>
     </ThemeProvider>

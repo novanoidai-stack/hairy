@@ -129,8 +129,10 @@ export function CobroSheet(props: CobroSheetProps) {
   const [profesionalId, setProfesionalId] = useState('');
   const [profesionales, setProfesionales] = useState<Array<{ id: string; nombre: string }>>([]);
 
+  const [productos, setProductos] = useState<Array<{ id: string; nombre: string; precio: number }>>([]);
+
   useEffect(() => {
-    if (!isWalkin) return;
+    if (props.mode !== 'walkin' && props.mode !== 'cita') return;
     (async () => {
       const profile = await getUserProfile();
       if (!profile?.negocio_id) return;
@@ -141,8 +143,14 @@ export function CobroSheet(props: CobroSheetProps) {
         .eq('activo', true)
         .order('nombre');
       setProfesionales(data ?? []);
+      const { data: prods } = await supabase
+        .from('productos')
+        .select('id, nombre, precio')
+        .eq('negocio_id', profile.negocio_id)
+        .order('nombre');
+      setProductos(prods ?? []);
     })();
-  }, [isWalkin]);
+  }, [props.mode]);
 
   useEffect(() => {
     if (props.mode !== 'cita') return;
@@ -168,12 +176,15 @@ export function CobroSheet(props: CobroSheetProps) {
 
   const aEntero = (s: string) => Math.max(0, parseFloat((s || '0').replace(',', '.')) || 0);
 
+  const [lineaProductoId, setLineaProductoId] = useState('');
+
   const agregarLinea = () => {
     const precio = aEntero(lineaPrecio);
     if (!lineaNombre.trim() || precio <= 0) return;
-    setLineas((prev) => [...prev, { nombre: lineaNombre.trim(), precio: lineaPrecio, cantidad: '1' }]);
+    setLineas((prev) => [...prev, { nombre: lineaNombre.trim(), precio: lineaPrecio, cantidad: '1', ref_id: lineaProductoId || undefined }]);
     setLineaNombre('');
     setLineaPrecio('');
+    setLineaProductoId('');
   };
   const quitarLinea = (idx: number) => setLineas((prev) => prev.filter((_, i) => i !== idx));
   const cambiarCantidad = (idx: number, cantidad: string) => {
@@ -185,7 +196,8 @@ export function CobroSheet(props: CobroSheetProps) {
     0
   );
 
-  const pendienteCents = props.mode === 'walkin' ? lineasBaseCents : props.pendienteCents;
+  const pendienteBaseCents = 'pendienteCents' in props ? props.pendienteCents : 0;
+  const pendienteCents = pendienteBaseCents + lineasBaseCents;
   const senalCents = props.mode === 'cita' ? (props.senalCents ?? 0) : 0;
   const descuentoCents = Math.round(aEntero(descuento) * 100);
   const propinaCents = Math.round(aEntero(propina) * 100);
@@ -229,6 +241,7 @@ export function CobroSheet(props: CobroSheetProps) {
           nombre: l.nombre,
           precio_cents: Math.round(aEntero(l.precio) * 100),
           cantidad: Math.max(1, parseInt(l.cantidad || '1', 10)),
+          ref_id: (l as any).ref_id
         }));
         const { data, error: rpcErr } = await supabase.rpc('crear_cobro_walkin', {
           p_lineas: lineasPayload,
@@ -269,6 +282,13 @@ export function CobroSheet(props: CobroSheetProps) {
                 p_metodo: metodo,
                 p_propina_cents: propinaCents,
                 p_descuento_cents: descuentoCents,
+                p_lineas_extra: props.citaIds.length === 1 ? lineas.map((l) => ({
+                  nombre: l.nombre,
+                  precio_cents: Math.round(aEntero(l.precio) * 100),
+                  cantidad: Math.max(1, parseInt(l.cantidad || '1', 10)),
+                  ref_id: (l as any).ref_id,
+                  tipo: 'producto'
+                })) : [],
                 ...(metodo === 'mixto'
                   ? { p_efectivo_cents: efectivoSplitCents, p_datafono_cents: datafonoSplitCents }
                   : {}),
@@ -357,9 +377,9 @@ export function CobroSheet(props: CobroSheetProps) {
           </div>
         )}
 
-        {isWalkin && (
+        {(isWalkin || props.mode === 'cita') && (
           <div style={{ marginBottom: 14, marginTop: subtitulo ? 0 : 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Líneas</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>{isWalkin ? 'Líneas' : 'Añadir Extra/Producto'}</div>
             {lineas.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                 {lineas.map((l, idx) => (
@@ -377,10 +397,28 @@ export function CobroSheet(props: CobroSheetProps) {
               </div>
             )}
             <div style={{ display: 'flex', gap: 6 }}>
-              <input
-                type="text" value={lineaNombre} onChange={(e) => setLineaNombre(e.target.value)} placeholder="Nombre (ej. Champú)"
-                style={{ flex: 1, padding: '8px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
-              />
+              <div style={{ flex: 1, position: 'relative' }}>
+                <input
+                  type="text" value={lineaNombre} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setLineaNombre(val);
+                    const p = productos.find(x => x.nombre.toLowerCase() === val.toLowerCase());
+                    if (p) {
+                      setLineaProductoId(p.id);
+                      setLineaPrecio(p.precio.toString());
+                    } else {
+                      setLineaProductoId('');
+                    }
+                  }} 
+                  placeholder="Nombre o busca producto..."
+                  style={{ width: '100%', padding: '8px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
+                  list="productos-list"
+                />
+                <datalist id="productos-list">
+                  {productos.map(p => <option key={p.id} value={p.nombre} />)}
+                </datalist>
+              </div>
               <input
                 type="text" inputMode="decimal" value={lineaPrecio} onChange={(e) => setLineaPrecio(e.target.value)} placeholder="€"
                 style={{ width: 70, padding: '8px 10px', textAlign: 'right', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
@@ -388,15 +426,18 @@ export function CobroSheet(props: CobroSheetProps) {
               <button onClick={agregarLinea} style={{ padding: '8px 14px', background: T.bgCard, border: `1px solid ${T.borderHi}`, borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+</button>
             </div>
 
-
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 16, marginBottom: 8 }}>Profesional (opcional)</div>
-            <select
-              value={profesionalId} onChange={(e) => setProfesionalId(e.target.value)}
-              style={{ width: '100%', padding: '8px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
-            >
-              <option value="">Sin profesional asignado</option>
-              {profesionales.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-            </select>
+            {isWalkin && (
+              <>
+                <div style={{ fontSize: 11, fontWeight: 700, color: T.textTer, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 16, marginBottom: 8 }}>Profesional (opcional)</div>
+                <select
+                  value={profesionalId} onChange={(e) => setProfesionalId(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
+                >
+                  <option value="">Sin profesional asignado</option>
+                  {profesionales.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                </select>
+              </>
+            )}
           </div>
         )}
 
