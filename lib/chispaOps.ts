@@ -215,7 +215,7 @@ export type AccionPropuesta =
       // mi agenda" (Sesion 5) siempre las manda (desplaza las 4 marcas juntas,
       // ver lib/organizarAgenda.ts); el chatbot (Modo Tetris) solo da
       // inicio/fin, y el ejecutor completa fin_activa por compatibilidad.
-      movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; nuevo_fin_activa?: string; nuevo_fin_espera?: string; cliente_nombre: string }[];
+      movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; nuevo_fin_activa?: string; nuevo_fin_espera?: string; nuevo_profesional_id?: string; cliente_nombre: string }[];
       resumen: string;
     }
   // --- Lista de espera (Sesion 8-B) ---
@@ -383,7 +383,7 @@ async function capturarEstadoPrevio(
       const ids = a.movimientos.map((m) => m.cita_id);
       const { data } = await supabase
         .from('citas')
-        .select('id, inicio, fin, fin_activa, fin_espera')
+        .select('id, inicio, fin, fin_activa, fin_espera, profesional_id')
         .in('id', ids);
       return data ?? [];
     }
@@ -893,7 +893,7 @@ export async function ejecutarAccion(
         // el comportamiento previo (fin_activa = fin) para no romper ese camino.
         let exito = 0;
         for (const mov of a.movimientos) {
-          const { data: prev } = await supabase.from('citas').select('inicio').eq('id', mov.cita_id).maybeSingle();
+          const { data: prev } = await supabase.from('citas').select('inicio, profesional_id').eq('id', mov.cita_id).maybeSingle();
           const patch: Record<string, string | boolean> = {
             inicio: mov.nuevo_inicio,
             fin: mov.nuevo_fin,
@@ -901,12 +901,17 @@ export async function ejecutarAccion(
             confirmacion_enviada: false, // para que n8n vuelva a avisar
           };
           if (mov.nuevo_fin_espera) patch.fin_espera = mov.nuevo_fin_espera;
+          if (mov.nuevo_profesional_id) patch.profesional_id = mov.nuevo_profesional_id;
           const { error } = await supabase.from('citas').update(patch).eq('id', mov.cita_id);
           if (!error) {
             exito++;
-            await registrarHistorialIA(a.negocio_id, mov.cita_id, [
+            const cambios: CambioHist[] = [
               { campo: 'inicio', anterior: (prev?.inicio as string) ?? null, nuevo: mov.nuevo_inicio },
-            ], 'Reorganizada por Chispa');
+            ];
+            if (mov.nuevo_profesional_id) {
+              cambios.push({ campo: 'profesional_id', anterior: (prev?.profesional_id as string) ?? null, nuevo: mov.nuevo_profesional_id });
+            }
+            await registrarHistorialIA(a.negocio_id, mov.cita_id, cambios, 'Reorganizada por Chispa');
           }
         }
         // Registrar accion reversible (optimizar → volver a marcas previas)
@@ -1317,17 +1322,16 @@ export async function deshacerAccion(accionId: string, userId: string): Promise<
       case 'optimizar_agenda': {
         // Inversa: volver al estado previo de cada cita movida
         if (!previo || !Array.isArray(previo)) return { ok: false, error: 'No hay estado previo para restaurar las citas.' };
-        for (const cita of previo as Array<{ id: string; inicio: string; fin: string; fin_activa?: string; fin_espera?: string }>) {
-          await supabase
-            .from('citas')
-            .update({
-              inicio: cita.inicio,
-              fin: cita.fin,
-              fin_activa: cita.fin_activa ?? cita.fin,
-              fin_espera: cita.fin_espera ?? cita.fin,
-              confirmacion_enviada: false,
-            })
-            .eq('id', cita.id);
+        for (const cita of previo as Array<{ id: string; inicio: string; fin: string; fin_activa?: string; fin_espera?: string; profesional_id?: string }>) {
+          const patch: Record<string, string | boolean> = {
+            inicio: cita.inicio,
+            fin: cita.fin,
+            fin_activa: cita.fin_activa ?? cita.fin,
+            fin_espera: cita.fin_espera ?? cita.fin,
+            confirmacion_enviada: false,
+          };
+          if (cita.profesional_id) patch.profesional_id = cita.profesional_id;
+          await supabase.from('citas').update(patch).eq('id', cita.id);
           await registrarHistorialIA(negocioId, cita.id, [
             { campo: 'inicio', anterior: cita.inicio, nuevo: cita.inicio },
           ], 'Deshacer: optimizacion revertida por Chispa');
