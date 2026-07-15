@@ -52,6 +52,7 @@ export type TipoProblemaAgenda = 'retraso' | 'solape' | 'hueco_muerto' | 'reposo
 export interface CitaOrganizar extends CitaRetraso {
   profesional_id: string;
   estado: string;
+  categoriaMinima?: string | null;
 }
 
 export interface ProblemaAgenda {
@@ -135,7 +136,12 @@ function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: 
 //        aparece hay que poder arreglarlo desde aqui). Por cada par que choca, la
 //        que empieza antes es la 'fija' y la de despues la 'intrusa'; delega en
 //        calcularEstrategiasSolape las multiples formas de resolverlo. ---
-function detectarSolapes(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: number): ProblemaAgenda[] {
+function detectarSolapes(
+  citasProf: CitaOrganizar[],
+  ahoraMs: number,
+  cierreMs: number,
+  candidatos: { id: string; nombre: string; categoria?: string | null; ocupacion: CitaRetraso[] }[],
+): ProblemaAgenda[] {
   const problemas: ProblemaAgenda[] = [];
   const resueltas = new Set<string>();
   const fases = citasProf.map(fasesDe);
@@ -149,7 +155,11 @@ function detectarSolapes(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: 
       const fija = citasProf[fijaIdx];
       const intrusa = citasProf[intrusaIdx];
 
-      const estrategias = calcularEstrategiasSolape(citasProf, intrusa.id, fija.id, { cierreMs, ahoraMs });
+      const estrategias = calcularEstrategiasSolape(citasProf, intrusa.id, fija.id, {
+        cierreMs,
+        ahoraMs,
+        reasignacion: { categoriaMinima: intrusa.categoriaMinima ?? null, candidatos },
+      });
       if (estrategias.length === 0) continue;
 
       resueltas.add(intrusa.id);
@@ -235,7 +245,7 @@ function detectarHuecos(
 //     filtra al dia de ahoraMs y rellena el nombre del profesional. ---
 export function analizarAgendaDia(
   citas: CitaOrganizar[],
-  profesionales: { id: string; nombre: string }[],
+  profesionales: { id: string; nombre: string; categoria?: string | null; activo?: boolean }[],
   opts?: AnalisisAgendaOpts,
 ): ProblemaAgenda[] {
   const ahoraMs = opts?.ahoraMs ?? Date.now();
@@ -252,8 +262,10 @@ export function analizarAgendaDia(
     porProfesional.set(c.profesional_id, lista);
   }
 
+  const activos = profesionales.filter((p) => p.activo !== false);
+
   const problemas: ProblemaAgenda[] = [];
-  for (const [, citasProfSinOrdenar] of porProfesional) {
+  for (const [profId, citasProfSinOrdenar] of porProfesional) {
     const citasProf = [...citasProfSinOrdenar].sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
     const cierreMs = cierreDelDia(citasProf[0].inicio);
 
@@ -263,7 +275,16 @@ export function analizarAgendaDia(
       continue;
     }
 
-    const solapes = detectarSolapes(citasProf, ahoraMs, cierreMs);
+    const candidatos = activos
+      .filter((p) => p.id !== profId)
+      .map((p) => ({
+        id: p.id,
+        nombre: p.nombre,
+        categoria: p.categoria ?? null,
+        ocupacion: (porProfesional.get(p.id) ?? []) as CitaRetraso[],
+      }));
+
+    const solapes = detectarSolapes(citasProf, ahoraMs, cierreMs, candidatos);
     if (solapes.length > 0) {
       problemas.push(...solapes);
       continue;
@@ -282,13 +303,14 @@ export function analizarAgendaDia(
 export function estrategiaAMovimientos(
   estrategia: EstrategiaRetraso,
   citasPorId: Map<string, CitaOrganizar>,
-): { cita_id: string; nuevo_inicio: string; nuevo_fin: string; nuevo_fin_activa?: string; nuevo_fin_espera?: string; cliente_nombre: string }[] {
+): { cita_id: string; nuevo_inicio: string; nuevo_fin: string; nuevo_fin_activa?: string; nuevo_fin_espera?: string; nuevo_profesional_id?: string; cliente_nombre: string }[] {
   return estrategia.updates.map((u: UpdateRetraso) => ({
     cita_id: u.id,
     nuevo_inicio: u.inicio,
     nuevo_fin: u.fin,
     nuevo_fin_activa: u.fin_activa,
     nuevo_fin_espera: u.fin_espera,
+    nuevo_profesional_id: u.profesional_id,
     cliente_nombre: citasPorId.get(u.id)?.cliente ?? '',
   }));
 }

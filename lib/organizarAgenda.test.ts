@@ -133,3 +133,18 @@ Deno.test('retraso tiene prioridad: no reporta huecos del mismo profesional en l
   assertEquals(problemas.length, 1);
   assertEquals(problemas[0].tipo, 'retraso');
 });
+
+Deno.test('solape: si otro profesional esta libre a la misma hora, ofrece reasignar', () => {
+  const citas = [cita('A', 'P5', 10, 0, 60), cita('B', 'P5', 10, 30, 30)];
+  const profs = [
+    { id: 'P5', nombre: 'Eva', categoria: 'oficial' },
+    { id: 'P6', nombre: 'Fer', categoria: 'oficial' },
+  ];
+  const problemas = analizarAgendaDia(citas, profs, { ahoraMs: ms(9, 0) });
+  const solape = problemas.find((p) => p.tipo === 'solape')!;
+  const rea = solape.estrategias.find((e) => e.tipo === 'reasignar');
+  assert(rea, 'debe ofrecer reasignar');
+  assertEquals(rea!.updates[0].id, 'B');
+  assertEquals(rea!.updates[0].profesional_id, 'P6');
+  assertEquals(rea!.updates[0].inicio, iso(10, 30));
+});
