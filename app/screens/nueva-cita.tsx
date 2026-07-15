@@ -35,6 +35,8 @@ export default function NuevaCitaScreen() {
   const [servicioSeleccionado, setServicioSeleccionado] = useState('');
   const [clienteSeleccionado, setClienteSeleccionado] = useState(params.clienteId ?? '');
   const [clienteSearch, setClienteSearch] = useState('');
+  const [servicioSearch, setServicioSearch] = useState('');
+  const [historialClienteServicios, setHistorialClienteServicios] = useState<any[]>([]);
   const [inicio, setInicio] = useState<Date>(params.hora ? new Date(params.hora) : new Date());
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -111,6 +113,40 @@ export default function NuevaCitaScreen() {
       });
   }, [profSeleccionado]);
 
+  // Load past top services for client
+  useEffect(() => {
+    let cancel = false;
+    setHistorialClienteServicios([]);
+    if (!clienteSeleccionado) return;
+    (async () => {
+      let q = supabase
+        .from('citas')
+        .select('servicio_id')
+        .eq('cliente_id', clienteSeleccionado)
+        .in('estado', ['completada', 'confirmada'])
+        .order('inicio', { ascending: false })
+        .limit(50);
+      if (negocioId) q = q.eq('negocio_id', negocioId);
+      const { data } = await q;
+      if (cancel || !data) return;
+
+      const counts: Record<string, number> = {};
+      data.forEach((c: any) => {
+        if (c.servicio_id) {
+          counts[c.servicio_id] = (counts[c.servicio_id] || 0) + 1;
+        }
+      });
+      // Sort by frequency
+      const topServices = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([id]) => id);
+
+      setHistorialClienteServicios(topServices);
+    })();
+    return () => { cancel = true; };
+  }, [clienteSeleccionado, negocioId]);
+
   // Load citas del dia when prof or date changes (para detectar reposos aprovechables)
   useEffect(() => {
     if (!profSeleccionado || !negocioId) { setCitasDia([]); return; }
@@ -161,13 +197,18 @@ export default function NuevaCitaScreen() {
 
   // Agrupa el selector de servicios por categoria (color de cabecera), orden = categorias_servicio.orden.
   const gruposServicio: { key: string; nombre: string; color: string | null; items: any[] }[] = (() => {
+    let baseList = serviciosFiltrados;
+    if (servicioSearch.trim()) {
+      const q = servicioSearch.trim().toLowerCase();
+      baseList = baseList.filter(sv => (sv?.nombre || "").toLowerCase().includes(q));
+    }
     const grupos = categorias
       .map((cat) => ({
         key: cat.id, nombre: cat.nombre, color: cat.color as string | null,
-        items: serviciosFiltrados.filter((sv) => sv.categoria_id === cat.id),
+        items: baseList.filter((sv) => sv.categoria_id === cat.id),
       }))
       .filter((g) => g.items.length > 0);
-    const sinCategoria = serviciosFiltrados.filter((sv) => !sv.categoria_id);
+    const sinCategoria = baseList.filter((sv) => !sv.categoria_id);
     if (sinCategoria.length > 0) {
       grupos.push({ key: '__sin_categoria__', nombre: 'Sin categoria', color: null, items: sinCategoria });
     }
@@ -418,6 +459,53 @@ export default function NuevaCitaScreen() {
 
         {/* ── Servicio ── */}
         <Section title="Servicio" required>
+          <View style={[s.searchBox, { backgroundColor: c.surface, borderColor: c.border, marginBottom: spacing.md }]}>
+            <Ionicons name="search-outline" size={16} color={c.textTertiary} />
+            <TTextInput
+              style={[s.searchInput, { color: c.text }]}
+              placeholder="Buscar servicio..."
+              placeholderTextColor={c.textTertiary}
+              value={servicioSearch}
+              onChangeText={setServicioSearch}
+            />
+            {servicioSearch.length > 0 && (
+              <TouchableOpacity onPress={() => setServicioSearch('')}>
+                <Ionicons name="close-circle" size={16} color={c.textTertiary} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {historialClienteServicios.length > 0 && (
+            <View style={{ marginBottom: spacing.md }}>
+              <TText style={{ fontSize: 10, color: c.textTertiary, fontWeight: '700', textTransform: 'uppercase', marginBottom: spacing.xs }}>Servicios habituales</TText>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
+                {historialClienteServicios.map(sid => {
+                  const sv = servicios.find((s: any) => s.id === sid);
+                  if (!sv) return null;
+                  const sel = servicioSeleccionado === sv.id;
+                  return (
+                    <TouchableOpacity
+                      key={sv.id}
+                      style={{
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: radius.sm,
+                        backgroundColor: sel ? '#f4501e22' : c.surface,
+                        borderColor: sel ? '#f4501e' : c.border,
+                        borderWidth: 1,
+                      }}
+                      onPress={() => setServicioSeleccionado(sv.id)}
+                    >
+                      <TText style={{ fontSize: 11, fontWeight: '600', color: sel ? '#f4501e' : c.textSecondary }}>
+                        {sv.nombre}
+                      </TText>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
           <View style={s.serviceList}>
             {gruposServicio.map((grupo) => (
               <View key={grupo.key} style={{ marginBottom: spacing.sm }}>

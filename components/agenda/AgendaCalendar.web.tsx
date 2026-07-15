@@ -7313,11 +7313,9 @@ function DayTimeline({
                                       pointerEvents: "none",
                                       zIndex: 1,
                                       borderRadius: 6,
-                                      background: "rgba(245,158,11,0.05)",
-                                      backgroundImage:
-                                        "repeating-linear-gradient(-45deg, rgba(245,158,11,0.06) 0 1px, transparent 1px 12px)",
-                                      borderTop:
-                                        "1px dashed rgba(214,150,20,0.40)",
+                                      background: "rgba(34,197,94,0.12)",
+                                      borderTop: "1px dashed rgba(34,197,94,0.45)",
+                                      borderBottom: hayActiva2 ? "none" : "1px dashed rgba(34,197,94,0.45)",
                                       display: "flex",
                                       alignItems: "center",
                                       justifyContent: "center",
@@ -7331,11 +7329,11 @@ function DayTimeline({
                                           fontWeight: 700,
                                           letterSpacing: 0.4,
                                           textTransform: "uppercase",
-                                          color: "#b45309",
-                                          opacity: 0.5,
+                                          color: "#15803d",
+                                          opacity: 0.8,
                                         }}
                                       >
-                                        Reposo {reposoMin}′
+                                        Hueco Libre {reposoMin}′
                                       </span>
                                     )}
                                     {hayActiva2 && (
@@ -7346,7 +7344,7 @@ function DayTimeline({
                                           left: 0,
                                           right: 0,
                                           borderBottom:
-                                            "1px dashed rgba(214,150,20,0.40)",
+                                            "1px dashed rgba(34,197,94,0.45)",
                                         }}
                                       />
                                     )}
@@ -7611,11 +7609,16 @@ function DayTimeline({
                                           wordBreak: "break-word",
                                           textDecoration: cancelada
                                             ? "line-through"
-                                            : "underline",
-                                          textDecorationColor: cancelada
-                                            ? "inherit"
-                                            : "rgba(244,80,30,0.4)",
-                                          textUnderlineOffset: 2,
+                                            : "none",
+                                          background: cancelada
+                                            ? "transparent"
+                                            : TOKENS.bgCard,
+                                          border: cancelada
+                                            ? "none"
+                                            : `1px solid ${TOKENS.borderHi}`,
+                                          padding: cancelada ? 0 : "2px 5px",
+                                          borderRadius: 6,
+                                          boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
                                         }}
                                       >
                                         {`${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ""}`}
@@ -7764,10 +7767,12 @@ function DayTimeline({
                                         cursor: onClienteHistorial
                                           ? "pointer"
                                           : "default",
-                                        background: cancelada ? "transparent" : `${badgeColor}25`,
+                                        background: cancelada ? "transparent" : TOKENS.bgCard,
+                                        border: cancelada ? "none" : `1px solid ${badgeColor}60`,
                                         borderLeft: cancelada ? "none" : `4px solid ${badgeColor}`,
                                         padding: "2px 6px",
-                                        borderRadius: "0 4px 4px 0",
+                                        borderRadius: 4,
+                                        boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
                                         width: "fit-content",
                                         display: "flex",
                                         alignItems: "center",
@@ -7794,6 +7799,12 @@ function DayTimeline({
                                           display: "flex",
                                           alignItems: "flex-start",
                                           gap: 4,
+                                          background: cancelada ? "transparent" : TOKENS.bgCard,
+                                          padding: cancelada ? 0 : "3px 6px",
+                                          borderRadius: 4,
+                                          border: cancelada ? "none" : `1px solid ${TOKENS.border}`,
+                                          boxShadow: cancelada ? "none" : "0 1px 2px rgba(0,0,0,0.05)",
+                                          width: "fit-content",
                                         }}
                                       >
                                         {/* Icono/punto de categoria: refuerza el tipo de servicio. */}
@@ -8834,6 +8845,45 @@ function NewCitaModal({
   const [nuevoClienteTelefono, setNuevoClienteTelefono] = useState("");
   const [creandoCliente, setCreandoCliente] = useState(false);
   const [clienteSearch, setClienteSearch] = useState("");
+  const [servicioSearch, setServicioSearch] = useState("");
+  const [historialClienteServicios, setHistorialClienteServicios] = useState<any[]>([]);
+
+  // Buscar servicios más frecuentes del cliente
+  useEffect(() => {
+    let cancel = false;
+    setHistorialClienteServicios([]);
+    if (!selectedCliente) return;
+    (async () => {
+      let q = supabase
+        .from("citas")
+        .select("servicio_id")
+        .eq("cliente_id", selectedCliente)
+        .in("estado", ["completada", "confirmada"])
+        .order("inicio", { ascending: false })
+        .limit(50);
+      if (negocioId) q = q.eq("negocio_id", negocioId);
+      const { data } = await q;
+      if (cancel || !data) return;
+      
+      const counts: Record<string, number> = {};
+      data.forEach((c: any) => {
+        if (c.servicio_id) {
+          counts[c.servicio_id] = (counts[c.servicio_id] || 0) + 1;
+        }
+      });
+      // Sort by frequency
+      const topServices = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([id]) => id);
+      
+      setHistorialClienteServicios(topServices);
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [selectedCliente, negocioId]);
+
   // Cita anonima ("invitado"): permite guardar sin ficha de cliente. Es opt-in
   // explicito para no crear citas sin cliente por descuido.
   const [sinCliente, setSinCliente] = useState(false);
@@ -9214,7 +9264,12 @@ function NewCitaModal({
 
   // Agrupa el selector de servicios por categoria (color de cabecera), orden = categorias_servicio.orden.
   const gruposServicio = useMemo(() => {
-    const baseList = selectedProf ? serviciosFiltrados : servicios;
+    let baseList = selectedProf ? serviciosFiltrados : servicios;
+    if (servicioSearch.trim()) {
+      baseList = baseList.filter((s: any) =>
+        norm(s?.nombre || "").includes(norm(servicioSearch))
+      );
+    }
     const grupos = categorias
       .map((cat: any) => ({
         key: cat.id,
@@ -9233,7 +9288,7 @@ function NewCitaModal({
       });
     }
     return grupos;
-  }, [categorias, selectedProf, serviciosFiltrados, servicios]);
+  }, [categorias, selectedProf, serviciosFiltrados, servicios, servicioSearch]);
 
   // Duration resolution: manual → prof service override → duraciones_profesional → service default
   const duracionActiva =
@@ -10698,6 +10753,67 @@ function NewCitaModal({
                 {visionError}
               </div>
             )}
+            
+            <input
+              type="text"
+              placeholder="Buscar servicio..."
+              value={servicioSearch}
+              onChange={(e) => setServicioSearch(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                background: TOKENS.bgCard,
+                border: `1px solid ${TOKENS.border}`,
+                borderRadius: 8,
+                color: TOKENS.text,
+                fontSize: 12,
+                marginBottom: 10,
+                boxSizing: "border-box",
+                transition: "all 0.2s ease",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = TOKENS.primary;
+                e.currentTarget.style.boxShadow = `0 0 0 3px ${TOKENS.primarySoft}`;
+                e.currentTarget.style.background = TOKENS.bgCard;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = TOKENS.border;
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            />
+
+            {historialClienteServicios.length > 0 && (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 700, textTransform: "uppercase", marginBottom: 6 }}>Servicios habituales</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {historialClienteServicios.map(sid => {
+                    const s = servicios.find((sv: any) => sv.id === sid);
+                    if (!s) return null;
+                    const sel = selectedServicio === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => setSelectedServicio(s.id)}
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: 8,
+                          background: sel ? "rgba(244,80,30,0.18)" : TOKENS.bgCard,
+                          border: `1px solid ${sel ? "rgba(244,80,30,0.4)" : TOKENS.border}`,
+                          color: sel ? TOKENS.primaryHi : TOKENS.textSec,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        {s.nombre}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {gruposServicio.map((grupo) => (
               <div key={grupo.key} style={{ marginBottom: 10 }}>
                 {!(
