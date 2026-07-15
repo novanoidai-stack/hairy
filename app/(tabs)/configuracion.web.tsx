@@ -4452,7 +4452,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
 
 const CONFIG_CATEGORY_ICONS: Record<string, (color: string, size?: number) => React.ReactNode> = {
   general: (color, size = 14) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
@@ -4460,7 +4460,7 @@ const CONFIG_CATEGORY_ICONS: Record<string, (color: string, size?: number) => Re
     </svg>
   ),
   scissors: (color, size = 14) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
       <circle cx="6" cy="6" r="3" />
       <circle cx="6" cy="18" r="3" />
       <line x1="9.8" y1="8.2" x2="21" y2="19" />
@@ -4468,7 +4468,7 @@ const CONFIG_CATEGORY_ICONS: Record<string, (color: string, size?: number) => Re
     </svg>
   ),
   brush: (color, size = 14) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
       <path d="m18 11-8-8H6v4l8 8Z" />
       <path d="m6 7 1-1" />
       <path d="m9 10 1-1" />
@@ -4476,23 +4476,23 @@ const CONFIG_CATEGORY_ICONS: Record<string, (color: string, size?: number) => Re
     </svg>
   ),
   droplet: (color, size = 14) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
       <path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-11-7-11S5 10.7 5 15a7 7 0 0 0 7 7z" />
     </svg>
   ),
   sparkles: (color, size = 14) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
       <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
     </svg>
   ),
   razor: (color, size = 14) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
       <path d="M3 7h18M6 7V3h12v4M12 7v14M9 21h6" />
       <path d="M9 11h6M9 15h6" />
     </svg>
   ),
   spa: (color, size = 14) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
       <path d="M12 12c2 0 4-1 5-3a6 6 0 0 0-10 0c1 2 3 3 5 3Z" />
       <path d="M12 12c-2 0-4 1-5 3a6 6 0 0 0 10 0c-1-2-3-3-5-3Z" />
       <path d="M12 2a15 15 0 0 0-3 10 15 15 0 0 0 3 10 15 15 0 0 0 3-10A15 15 0 0 0 12 2Z" />

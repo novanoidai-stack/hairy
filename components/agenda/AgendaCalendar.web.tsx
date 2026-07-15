@@ -2633,9 +2633,7 @@ export default function AgendaCalendar() {
                         </button>
                         <button
                           onClick={() => {
-                             const btn = document.querySelector('[title="Optimización de Agenda"]');
-                             if(btn) (btn as HTMLElement).click();
-                             // Trigger optimizador logic - wait, we will use setShowOptimizador later or trigger the existing event
+                             setIaHelper(true);
                           }}
                           title="Optimizador de la agenda"
                           className="m-btn-ai-glow"
