@@ -119,7 +119,7 @@ export function useAvisos(enabled = true): AvisosData {
             .gte('inicio', hoy0.toISOString())
             .lt('inicio', manana0.toISOString()),
           // Profesionales para analizar la agenda
-          supabase.from('profesionales').select('id, nombre').eq('negocio_id', negocioId).eq('activo', true),
+          supabase.from('profesionales').select('id, nombre, categoria').eq('negocio_id', negocioId).eq('activo', true),
         ]);
         if (!alive) return;
 
@@ -174,7 +174,15 @@ export function useAvisos(enabled = true): AvisosData {
           servicio: 'Servicio', 
         }));
         
-        const problemas = analizarAgendaDia(citasOrganizar, profesionales, { ahoraMs: ahora.getTime() });
+        const { data: bloqueosData } = await supabase
+          .from('bloqueos_profesional')
+          .select('profesional_id, inicio, fin')
+          .eq('negocio_id', negocioId);
+
+        const problemas = analizarAgendaDia(citasOrganizar, profesionales, {
+          ahoraMs: ahora.getTime(),
+          bloqueos: bloqueosData ?? [],
+        });
         setIneficiencias(problemas);
         // --- Fin ineficiencias ---
 

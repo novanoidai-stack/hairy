@@ -3986,6 +3986,7 @@ export default function AgendaCalendar() {
           profesionales={profesionales}
           clientes={clientes}
           servicios={servicios}
+          bloqueos={bloqueos}
           negocioId={negocioId}
           isMobile={isMobile}
           onClose={() => setShowOrganizar(false)}
