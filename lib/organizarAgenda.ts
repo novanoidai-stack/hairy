@@ -26,6 +26,7 @@ import {
   type UpdateRetraso,
   type EstrategiaRetraso,
   type Fases,
+  type CandidatoReasignacion,
   calcularEstrategiasRetraso,
   calcularEstrategiasSolape,
   fasesDe,
@@ -72,9 +73,18 @@ export interface ProblemaAgenda {
   minutos?: number;
 }
 
+// Bloqueo tal cual viene de la tabla bloqueos_profesional (no hace falta filtrarlos al dia:
+// uno que no intersecta el dia nunca choca con un slot de ese dia).
+export interface BloqueoOrganizar {
+  profesional_id: string;
+  inicio: string;
+  fin: string;
+}
+
 export interface AnalisisAgendaOpts {
   ahoraMs?: number;
   umbralHuecoMin?: number;
+  bloqueos?: BloqueoOrganizar[];
 }
 
 function cierreDelDia(fechaRefIso: string): number {
@@ -140,7 +150,7 @@ function detectarSolapes(
   citasProf: CitaOrganizar[],
   ahoraMs: number,
   cierreMs: number,
-  candidatos: { id: string; nombre: string; categoria?: string | null; ocupacion: CitaRetraso[] }[],
+  candidatos: CandidatoReasignacion[],
 ): ProblemaAgenda[] {
   const problemas: ProblemaAgenda[] = [];
   const resueltas = new Set<string>();
@@ -264,6 +274,13 @@ export function analizarAgendaDia(
 
   const activos = profesionales.filter((p) => p.activo !== false);
 
+  const bloqueosPorProf = new Map<string, { inicio: string; fin: string }[]>();
+  for (const b of opts?.bloqueos ?? []) {
+    const lista = bloqueosPorProf.get(b.profesional_id) ?? [];
+    lista.push({ inicio: b.inicio, fin: b.fin });
+    bloqueosPorProf.set(b.profesional_id, lista);
+  }
+
   const problemas: ProblemaAgenda[] = [];
   for (const [profId, citasProfSinOrdenar] of porProfesional) {
     const citasProf = [...citasProfSinOrdenar].sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
@@ -282,6 +299,7 @@ export function analizarAgendaDia(
         nombre: p.nombre,
         categoria: p.categoria ?? null,
         ocupacion: (porProfesional.get(p.id) ?? []) as CitaRetraso[],
+        bloqueos: bloqueosPorProf.get(p.id) ?? [],
       }));
 
     const solapes = detectarSolapes(citasProf, ahoraMs, cierreMs, candidatos);
