@@ -7521,9 +7521,9 @@ function DayTimeline({
                                       alignItems: isCol
                                         ? "flex-start"
                                         : "center",
-                                      justifyContent: isCol
-                                        ? "center"
-                                        : "flex-start",
+                                      // En columna el contenido va arriba. El "center" de antes no
+                                      // se notaba porque el nombre llevaba flex:1 y llenaba el alto.
+                                      justifyContent: "flex-start",
                                       gap: isCol ? 2 : 5,
                                       overflow: "hidden",
                                       height: "100%",
