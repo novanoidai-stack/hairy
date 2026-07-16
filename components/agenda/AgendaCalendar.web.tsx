@@ -24,6 +24,15 @@ import {
   type CitaRetraso,
   type CitaHistorial,
 } from "@/lib/retrasos";
+import {
+  PILA_VACIA,
+  registrar as registrarPaso,
+  deshacer as deshacerPaso,
+  rehacer as rehacerPaso,
+  snapshotDe,
+  type PilaAgenda,
+  type PasoAgenda,
+} from "@/lib/agendaUndo";
 import RetrasoEstrategiasModal from "./RetrasoEstrategiasModal";
 import OrganizarAgendaPanel from "./OrganizarAgendaPanel.web";
 import ListaEsperaPropuestaModal, {
@@ -402,6 +411,10 @@ export default function AgendaCalendar() {
   profesionalesRef.current = profesionales;
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   const [horarios, setHorarios] = useState<any[]>([]);
+  // Pila de deshacer/rehacer de movimientos de citas (solo esta sesion).
+  const [pilaAgenda, setPilaAgenda] = useState<PilaAgenda>(PILA_VACIA);
+  const [undoBusy, setUndoBusy] = useState(false);
+  const [undoError, setUndoError] = useState<string | null>(null);
   // Limites del organizador configurables por salon (undefined = usar los defaults).
   const [limitesAgenda, setLimitesAgenda] = useState<{ maxAdelantoMin?: number; umbralHuecoMin?: number }>({});
   // Cierres del salon completo (festivos/vacaciones): la agenda pinta el dia cerrado.
@@ -1104,6 +1117,73 @@ export default function AgendaCalendar() {
       motivo: motivo || null,
     }));
     if (rows.length > 0) await supabase.from("citas_historial").insert(rows);
+  }
+
+  // Aplica un lote de movimientos (deshacer o rehacer) usando el snapshot indicado.
+  // Solo mueve marcas horarias y profesional: no toca estado, cobros ni notificaciones.
+  async function aplicarPasoAgenda(paso: PasoAgenda, sentido: "antes" | "despues") {
+    setUndoBusy(true);
+    try {
+      const profile = await getUserProfile();
+      const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
+      for (const cambio of paso) {
+        const destino = cambio[sentido];
+        const origen = sentido === "antes" ? cambio.despues : cambio.antes;
+        const payload = {
+          inicio: destino.inicio,
+          fin: destino.fin,
+          fin_activa: destino.fin_activa,
+          fin_espera: destino.fin_espera,
+          profesional_id: destino.profesional_id,
+        };
+        const { error } = await supabase
+          .from("citas")
+          .update(payload)
+          .eq("id", cambio.citaId);
+        if (error) {
+          setUndoError(
+            "No se ha podido " + (sentido === "antes" ? "deshacer" : "rehacer") + ": " + error.message,
+          );
+          setTimeout(() => setUndoError(null), 3000);
+          return false;
+        }
+        setCitas((prev: any[]) =>
+          prev.map((c) => (c.id === cambio.citaId ? { ...c, ...payload } : c)),
+        );
+        const cambios = [
+          { campo: "inicio", anterior: origen.inicio, nuevo: destino.inicio },
+          { campo: "fin", anterior: origen.fin, nuevo: destino.fin },
+        ];
+        if (origen.profesional_id !== destino.profesional_id) {
+          cambios.push({
+            campo: "profesional_id",
+            anterior: origen.profesional_id,
+            nuevo: destino.profesional_id,
+          });
+        }
+        await registrarHistorial(
+          cambio.citaId,
+          nId,
+          cambios,
+          sentido === "antes" ? "Deshacer movimiento" : "Rehacer movimiento",
+        );
+      }
+      return true;
+    } finally {
+      setUndoBusy(false);
+    }
+  }
+
+  async function handleDeshacer() {
+    const r = deshacerPaso(pilaAgenda);
+    if (!r) return;
+    if (await aplicarPasoAgenda(r.aplicar, "antes")) setPilaAgenda(r.pila);
+  }
+
+  async function handleRehacer() {
+    const r = rehacerPaso(pilaAgenda);
+    if (!r) return;
+    if (await aplicarPasoAgenda(r.aplicar, "despues")) setPilaAgenda(r.pila);
   }
 
   async function cierreMasivoSalon() {
@@ -2597,6 +2677,36 @@ export default function AgendaCalendar() {
                             </button>
                           ))}
                         </div>
+                        {/* Deshacer / rehacer movimientos de citas de esta sesion */}
+                        <div style={{ display: "flex", background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: "hidden" }}>
+                          {([
+                            { k: "undo", on: handleDeshacer, hay: pilaAgenda.deshacer.length > 0, icon: "chevronLeft", t: "Deshacer el ultimo movimiento" },
+                            { k: "redo", on: handleRehacer, hay: pilaAgenda.rehacer.length > 0, icon: "chevronRight", t: "Rehacer el movimiento deshecho" },
+                          ] as const).map((b) => (
+                            <button
+                              key={b.k}
+                              onClick={b.on}
+                              disabled={!b.hay || undoBusy}
+                              title={b.hay ? b.t : (b.k === "undo" ? "No hay movimientos que deshacer" : "No hay nada que rehacer")}
+                              style={{
+                                padding: isMobile ? "6px 9px" : "8px 11px",
+                                background: "transparent",
+                                border: "none",
+                                borderRight: b.k === "undo" ? `1px solid ${TOKENS.border}` : "none",
+                                color: b.hay && !undoBusy ? TOKENS.text : TOKENS.textTer,
+                                cursor: b.hay && !undoBusy ? "pointer" : "default",
+                                display: "flex",
+                                alignItems: "center",
+                                opacity: b.hay && !undoBusy ? 1 : 0.4,
+                                transition: "all 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => { if (b.hay && !undoBusy) e.currentTarget.style.background = roleTheme.primarySoft; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                            >
+                              <Icon name={b.icon} size={isMobile ? 14 : 16} color="currentColor" />
+                            </button>
+                          ))}
+                        </div>
                         <button
                           className="m-btn-secondary"
                           onClick={handleToday}
@@ -3823,6 +3933,9 @@ export default function AgendaCalendar() {
                   bloqueos={bloqueos}
                   selectedDateObj={selectedDateObj}
                   registrarHistorial={registrarHistorial}
+                  onMovimientoCita={(paso: PasoAgenda) =>
+                    setPilaAgenda((prev) => registrarPaso(prev, paso))
+                  }
                   onClienteHistorial={(cli: any) =>
                     setShowClienteHistorial(cli)
                   }
@@ -3993,6 +4106,28 @@ export default function AgendaCalendar() {
         </div>
       )}
 
+      {undoError && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 32,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "rgba(239,68,68,0.95)",
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: 10,
+            fontSize: 13,
+            fontWeight: 600,
+            boxShadow: "0 8px 24px rgba(239,68,68,0.4)",
+            pointerEvents: "none",
+            zIndex: 9999,
+          }}
+        >
+          {undoError}
+        </div>
+      )}
+
       {showOrganizar && (
         <OrganizarAgendaPanel
           citas={citas}
@@ -4006,6 +4141,24 @@ export default function AgendaCalendar() {
           isMobile={isMobile}
           onClose={() => setShowOrganizar(false)}
           onAplicado={(updates) => {
+            // La cascada del organizador es UN paso: deshacerla a medias dejaria la agenda peor.
+            const paso: PasoAgenda = [];
+            for (const u of updates) {
+              const orig = (citas as any[]).find((c) => c.id === u.id);
+              if (!orig) continue;
+              paso.push({
+                citaId: u.id,
+                antes: snapshotDe(orig),
+                despues: snapshotDe({
+                  inicio: u.inicio,
+                  fin: u.fin,
+                  fin_activa: u.fin_activa ?? orig.fin_activa,
+                  fin_espera: u.fin_espera ?? orig.fin_espera,
+                  profesional_id: u.profesional_id ?? orig.profesional_id,
+                }),
+              });
+            }
+            if (paso.length > 0) setPilaAgenda((prev) => registrarPaso(prev, paso));
             setCitas((prev: any[]) =>
               prev.map((c) => {
                 const u = updates.find((x) => x.id === c.id);
@@ -4016,6 +4169,9 @@ export default function AgendaCalendar() {
                       fin: u.fin,
                       fin_activa: u.fin_activa ?? c.fin_activa,
                       fin_espera: u.fin_espera ?? c.fin_espera,
+                      // Sin esto, una estrategia que cambia de profesional (reasignar /
+                      // mover_reasignar) no movia la cita de columna hasta recargar.
+                      profesional_id: u.profesional_id ?? c.profesional_id,
                     }
                   : c;
               }),
@@ -5875,6 +6031,7 @@ function DayTimeline({
   bloqueos = [],
   selectedDateObj = new Date(),
   registrarHistorial,
+  onMovimientoCita,
   onClienteHistorial,
   vivid = false,
   completarManual = false,
@@ -6328,6 +6485,13 @@ function DayTimeline({
           });
         }
         registrarHistorial(cita.id, nId, cambios, "Reagendado (drag & drop)");
+        onMovimientoCita?.([
+          {
+            citaId: cita.id,
+            antes: snapshotDe(cita),
+            despues: snapshotDe({ ...cita, ...payload }),
+          },
+        ]);
       }
     };
 
