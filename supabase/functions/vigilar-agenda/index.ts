@@ -42,10 +42,15 @@ const SEVERIDAD: Record<string, string> = {
 
 Deno.serve(async (req) => {
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
+    const url = Deno.env.get('SUPABASE_URL');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!url || !serviceKey) {
+      return new Response(
+        JSON.stringify({ error: 'faltan secrets', url: !!url, serviceKey: !!serviceKey }),
+        { status: 500 },
+      );
+    }
+    const supabase = createClient(url, serviceKey);
 
     const body = await req.json().catch(() => ({}));
     const soloNegocio: string | null = body?.negocio_id ?? null;
@@ -82,6 +87,15 @@ Deno.serve(async (req) => {
         supabase.from('negocio_horarios').select('dia_semana, abierto, apertura, cierre').eq('negocio_id', negocioId),
         supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
       ]);
+
+      // Fallos ruidosos: sin esto, un error de permisos se veria como "0 citas" y la
+      // vigilancia diria que todo va bien mientras esta ciega.
+      const errores = [citasRes.error, profsRes.error, srvRes.error, bloqRes.error, horRes.error]
+        .filter(Boolean)
+        .map((e) => e!.message);
+      if (errores.length > 0) {
+        return new Response(JSON.stringify({ error: 'consulta fallida', negocioId, errores }), { status: 500 });
+      }
 
       const citas = citasRes.data ?? [];
       if (citas.length === 0) { salida.push({ negocioId, citas: 0, hallazgos: 0 }); continue; }
