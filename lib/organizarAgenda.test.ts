@@ -148,3 +148,42 @@ Deno.test('solape: si otro profesional esta libre a la misma hora, ofrece reasig
   assertEquals(rea!.updates[0].profesional_id, 'P6');
   assertEquals(rea!.updates[0].inicio, iso(10, 30));
 });
+
+// --- Integracion del slice 3: la palanca mover_reasignar llega end-to-end hasta el panel ---
+
+Deno.test('solape: analizarAgendaDia ofrece mover_reasignar con el hueco de otro profesional', () => {
+  const citas = [
+    // P1 tiene el solape: A 10:00-11:00 y B (intrusa) 10:30-11:00.
+    cita('A', 'P1', 10, 0, 60),
+    cita('B', 'P1', 10, 30, 30),
+    // P2 esta ocupada a la hora de B (10:00-11:00) -> no vale reasignar a misma hora,
+    // pero queda libre a las 11:00 -> mover_reasignar debe encontrar ese hueco.
+    cita('X', 'P2', 10, 0, 60),
+  ];
+  const profs = [{ id: 'P1', nombre: 'Ana' }, { id: 'P2', nombre: 'Bea' }];
+  const problemas = analizarAgendaDia(citas, profs, { ahoraMs: ms(9, 0) });
+  const solape = problemas.find((p) => p.tipo === 'solape');
+  assert(solape, 'debe detectar el solape');
+  const mv = solape!.estrategias.find((e) => e.tipo === 'mover_reasignar');
+  assert(mv, 'la estrategia mover_reasignar debe llegar hasta el panel');
+  assertEquals(mv!.updates[0].id, 'B');
+  assertEquals(mv!.updates[0].profesional_id, 'P2');
+  assertEquals(mv!.updates[0].inicio, iso(11, 0));
+});
+
+Deno.test('solape: los bloqueos de opts llegan al candidato y tapan su hueco', () => {
+  const citas = [
+    cita('A', 'P1', 10, 0, 60),
+    cita('B', 'P1', 10, 30, 30),
+    cita('X', 'P2', 10, 0, 60),
+  ];
+  const profs = [{ id: 'P1', nombre: 'Ana' }, { id: 'P2', nombre: 'Bea' }];
+  const problemas = analizarAgendaDia(citas, profs, {
+    ahoraMs: ms(9, 0),
+    // Bea tiene reunion de 11:00 a 12:00 -> su primer hueco pasa a ser las 12:00.
+    bloqueos: [{ profesional_id: 'P2', inicio: iso(11, 0), fin: iso(12, 0) }],
+  });
+  const solape = problemas.find((p) => p.tipo === 'solape')!;
+  const mv = solape.estrategias.find((e) => e.tipo === 'mover_reasignar')!;
+  assertEquals(mv.updates[0].inicio, iso(12, 0));
+});
