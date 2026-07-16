@@ -515,8 +515,7 @@ export function calcularEstrategiasRetraso(
 // (empieza despues). Espeja calcularEstrategiasRetraso: varias palancas de
 // reposicionamiento PURO, cada una con tipo unico, ordenadas por menor disrupcion, la
 // primera recomendada. Cada estrategia se calcula contra el estado REAL (aplicable por
-// separado) y valida hayColision antes de emitirse. Fuera de v1: compresion de servicios
-// y reasignacion cross-profesional.
+// separado) y valida hayColision antes de emitirse. Fuera de v1: compresion de servicios.
 // =====================================================================================
 
 // Palanca A/B: mueve solo la INTRUSA a un hueco (soloReposo=false) o dentro de un reposo
@@ -678,6 +677,73 @@ function estrategiaReasignar(
   };
 }
 
+// Palanca F: mover la intrusa al hueco de OTRO profesional (su tiempo muerto o un hueco
+// libre), a partir de su hora original. Cierra el ejemplo del informe "mover la cita a un
+// empleado con tiempo muerto". Esquiva las citas Y los bloqueos del destino (RN-AG-010).
+function estrategiaMoverAOtroProfesional(
+  intrusa: CitaRetraso,
+  reasignacion: ReasignacionOpts,
+  ahoraMs: number,
+  cierreMs: number,
+): EstrategiaRetraso | null {
+  if (intrusa.grupoId) return null; // no mover sola una cita encadenada
+  const intrusaFases = fasesDe(intrusa);
+  // Solo hacia adelante: no se adelanta a la clienta (y asi el primer hueco ES el mas cercano).
+  const desde = Math.max(ahoraMs, intrusaFases.ini);
+
+  const opciones: { cand: CandidatoReasignacion; slot: number; obst: Fases[] }[] = [];
+  for (const c of reasignacion.candidatos) {
+    if (!categoriaCumple(c.categoria, reasignacion.categoriaMinima)) continue;
+    const obst = [...c.ocupacion.map(fasesDe), ...(c.bloqueos ?? []).map(fasesDeBloqueo)];
+    const slot = buscarHueco(intrusaFases, obst, desde, cierreMs, false);
+    if (slot == null) continue;
+    if (hayColision([...obst, reubicar(intrusaFases, slot)])) continue;
+    opciones.push({ cand: c, slot, obst });
+  }
+  if (opciones.length === 0) return null;
+
+  // Mejor = hueco mas temprano; desempate por categoria cualificada mas baja, luego nombre.
+  const mejor = opciones.slice().sort((a, b) => {
+    if (a.slot !== b.slot) return a.slot - b.slot;
+    const ia = CATEGORIA_ORDEN.indexOf((a.cand.categoria ?? '') as CategoriaProfesional);
+    const ib = CATEGORIA_ORDEN.indexOf((b.cand.categoria ?? '') as CategoriaProfesional);
+    return ia - ib || a.cand.nombre.localeCompare(b.cand.nombre);
+  })[0];
+
+  const nueva = reubicar(intrusaFases, mejor.slot);
+  const update: UpdateRetraso = { ...toUpdate(intrusa, nueva), profesional_id: mejor.cand.id };
+  const hora = new Date(mejor.slot).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const desplazoMin = Math.round((mejor.slot - intrusaFases.ini) / MIN);
+  // Solo para redactar el resumen: el slot cae dentro del reposo de una cita del destino.
+  const enReposo = mejor.obst.some(
+    (o) => o.finE > o.finA && mejor.slot >= o.finA && mejor.slot < o.finE,
+  );
+  // Cuanto se alarga el dia del profesional DESTINO por acoger esta cita. No sirve cierreDelta:
+  // castea updates por id contra la lista del profesional ORIGEN, y la intrusa deja de ser suya.
+  const finesDestino = mejor.cand.ocupacion.map((c) => +new Date(c.fin));
+  const retrasoCierreMin = finesDestino.length
+    ? Math.max(0, Math.round((nueva.fin - Math.max(...finesDestino)) / MIN))
+    : 0;
+  const aviso: AvisoRetraso = {
+    cita_id: intrusa.id,
+    cliente: intrusa.cliente ?? null,
+    telefono: intrusa.telefono ?? null,
+    inicioNuevo: update.inicio,
+    minutos: desplazoMin,
+  };
+  return {
+    tipo: 'mover_reasignar',
+    titulo: `Pasar a ${intrusa.cliente ?? 'la intrusa'} con ${mejor.cand.nombre}`,
+    resumen: enReposo
+      ? `${intrusa.cliente ?? 'La cita'} pasa a las ${hora} con ${mejor.cand.nombre}, aprovechando un tiempo muerto suyo; el resto del dia no se mueve.`
+      : `${intrusa.cliente ?? 'La cita'} pasa a las ${hora} y la atiende ${mejor.cand.nombre}, que tiene el hueco libre; el resto del dia no se mueve.`,
+    citasMovidas: 0,
+    retrasoCierreMin,
+    updates: [update],
+    avisos: aviso.telefono ? [aviso] : [],
+  };
+}
+
 export function calcularEstrategiasSolape(
   citasDelProfesional: CitaRetraso[],
   intrusaId: string,
@@ -699,10 +765,14 @@ export function calcularEstrategiasSolape(
   const push = (e: EstrategiaRetraso | null) => {
     if (e) raw.push(e);
   };
-  // Orden de insercion = preferencia ante empate (reposo > hueco > reasignar > adelantar > cascada).
+  // Orden de insercion = preferencia ante empate (reposo > hueco > reasignar > mover_reasignar
+  // > adelantar > cascada). Mantener la hora de la clienta es preferible a moverla.
   push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, true));
   push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, false));
-  if (opts?.reasignacion) push(estrategiaReasignar(intrusa, opts.reasignacion));
+  if (opts?.reasignacion) {
+    push(estrategiaReasignar(intrusa, opts.reasignacion));
+    push(estrategiaMoverAOtroProfesional(intrusa, opts.reasignacion, ahoraMs, cierreMs));
+  }
   push(estrategiaAdelantarFija(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs));
   push(estrategiaCascadaSolape(citasDelProfesional, intrusa, fija, cierreMs));
 

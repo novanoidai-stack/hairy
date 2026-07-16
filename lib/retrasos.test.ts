@@ -296,3 +296,150 @@ Deno.test('reasignar: intrusa encadenada (grupoId) no se reasigna', () => {
   const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
   assert(!est.some((e) => e.tipo === 'reasignar'));
 });
+
+// --- Palanca mover_reasignar: mover la intrusa al hueco de OTRO profesional (slice 3) ---
+
+Deno.test('mover_reasignar: nadie libre a la hora exacta, pero uno tiene hueco despues', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: null,
+    candidatos: [
+      // Ocupado a las 10:30 (tapa la reasignacion a misma hora), libre a partir de las 11:00.
+      { id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [cita('X', 10, 0, 60)] },
+    ],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  assert(!est.some((e) => e.tipo === 'reasignar'), 'no debe haber reasignar a misma hora');
+  const mv = est.find((e) => e.tipo === 'mover_reasignar');
+  assert(mv, 'debe ofrecer mover_reasignar');
+  assertEquals(mv!.updates.length, 1);
+  assertEquals(mv!.updates[0].id, 'B');
+  assertEquals(mv!.updates[0].profesional_id, 'P2');
+  assertEquals(mv!.updates[0].inicio, iso(11, 0));
+  assertEquals(mv!.citasMovidas, 0);
+});
+
+Deno.test('mover_reasignar: elige el hueco mas temprano entre candidatos', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: null,
+    candidatos: [
+      // Cris se libera a las 12:00; Bea a las 11:00 -> gana Bea aunque este antes en la lista.
+      { id: 'P3', nombre: 'Cris', categoria: 'oficial', ocupacion: [cita('Y', 10, 0, 120)] },
+      { id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [cita('X', 10, 0, 60)] },
+    ],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  const mv = est.find((e) => e.tipo === 'mover_reasignar')!;
+  assertEquals(mv.updates[0].profesional_id, 'P2');
+  assertEquals(mv.updates[0].inicio, iso(11, 0));
+});
+
+Deno.test('mover_reasignar: no adelanta a la clienta a un hueco anterior', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: null,
+    // Bea esta libre TODA la manana pero ocupada justo en la ventana de B (10:30-11:00).
+    candidatos: [
+      { id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [cita('X', 10, 30, 30)] },
+    ],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  const mv = est.find((e) => e.tipo === 'mover_reasignar');
+  assert(mv, 'debe ofrecer mover_reasignar');
+  // El hueco de las 9:00 existe, pero la busqueda arranca en la hora original (10:30).
+  assertEquals(mv!.updates[0].inicio, iso(11, 0));
+});
+
+Deno.test('mover_reasignar: un bloqueo del destino tapa el hueco', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: null,
+    candidatos: [
+      {
+        id: 'P2',
+        nombre: 'Bea',
+        categoria: 'oficial',
+        ocupacion: [cita('X', 10, 0, 60)],
+        // Reunion de 11:00 a 12:00 -> el primer hueco pasa a ser las 12:00.
+        bloqueos: [{ inicio: iso(11, 0), fin: iso(12, 0) }],
+      },
+    ],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  const mv = est.find((e) => e.tipo === 'mover_reasignar')!;
+  assertEquals(mv.updates[0].inicio, iso(12, 0));
+});
+
+Deno.test('mover_reasignar: descarta candidato de categoria insuficiente', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: 'oficial',
+    candidatos: [
+      { id: 'P2', nombre: 'Bea', categoria: 'auxiliar', ocupacion: [cita('X', 10, 0, 60)] },
+    ],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  assert(!est.some((e) => e.tipo === 'mover_reasignar'));
+});
+
+Deno.test('mover_reasignar: intrusa encadenada (grupoId) no se mueve', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30, { grupoId: 'cad-1' })];
+  const reasignacion = {
+    categoriaMinima: null,
+    candidatos: [
+      { id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [cita('X', 10, 0, 60)] },
+    ],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  assert(!est.some((e) => e.tipo === 'mover_reasignar'));
+});
+
+Deno.test('mover_reasignar: reasignar a misma hora gana (dedup por firma)', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: null,
+    // Bea libre del todo: el hueco mas temprano ES la hora original -> misma firma que reasignar.
+    candidatos: [{ id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [] as CitaRetraso[] }],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  assert(est.some((e) => e.tipo === 'reasignar'), 'reasignar debe estar');
+  assert(!est.some((e) => e.tipo === 'mover_reasignar'), 'mover_reasignar es el mismo efecto: dedup');
+});
+
+Deno.test('mover_reasignar: determinista ante huecos equivalentes (categoria, luego nombre)', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const base = [
+    { id: 'P3', nombre: 'Cris', categoria: 'estilista_senior', ocupacion: [cita('Y', 10, 0, 60)] },
+    { id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [cita('X', 10, 0, 60)] },
+  ];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', {
+    ahoraMs: msD(9, 0),
+    reasignacion: { categoriaMinima: 'oficial', candidatos: base },
+  });
+  const inv = calcularEstrategiasSolape(citas, 'B', 'A', {
+    ahoraMs: msD(9, 0),
+    reasignacion: { categoriaMinima: 'oficial', candidatos: base.slice().reverse() },
+  });
+  const a = est.find((e) => e.tipo === 'mover_reasignar')!;
+  const b = inv.find((e) => e.tipo === 'mover_reasignar')!;
+  // Mismo hueco (11:00) para ambos -> gana la categoria cualificada mas baja, sea cual sea el orden.
+  assertEquals(a.updates[0].profesional_id, 'P2');
+  assertEquals(b.updates[0].profesional_id, 'P2');
+});
+
+Deno.test('mover_reasignar: avisa a la clienta del cambio de hora', () => {
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const reasignacion = {
+    categoriaMinima: null,
+    candidatos: [
+      { id: 'P2', nombre: 'Bea', categoria: 'oficial', ocupacion: [cita('X', 10, 0, 60)] },
+    ],
+  };
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0), reasignacion });
+  const mv = est.find((e) => e.tipo === 'mover_reasignar')!;
+  assertEquals(mv.avisos.length, 1);
+  assertEquals(mv.avisos[0].cita_id, 'B');
+  assertEquals(mv.avisos[0].inicioNuevo, iso(11, 0));
+  assertEquals(mv.avisos[0].minutos, 30);
+});
