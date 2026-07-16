@@ -203,6 +203,7 @@ export interface EstrategiaRetraso {
 
 export interface EstrategiasOpts {
   cierreMs?: number; // instante de cierre del dia (ms). Default: ultimo fin + 3h.
+  aperturaMs?: number; // instante de apertura (ms). Default: sin restriccion por abajo.
 }
 
 // Bloqueo de un profesional (vacaciones, reunion, baja). Ocupa todo su tramo.
@@ -405,7 +406,8 @@ function estrategiaMoverUna(
     obst.push(c.id === citaId ? shiftedC : fasesDe(c));
   }
   const cierreMs = opts?.cierreMs ?? cierreDefault(citas);
-  const desde = marcadaFases.ini + minutos * MIN; // no antes de que empiece el retraso
+  // no antes de que empiece el retraso, ni antes de que abra el salon (RN-AG-010)
+  const desde = Math.max(marcadaFases.ini + minutos * MIN, opts?.aperturaMs ?? -Infinity);
   const slot = buscarHueco(bFases, obst, desde, cierreMs, soloReposo);
   if (slot == null) return null;
 
@@ -527,11 +529,12 @@ function estrategiaMoverIntrusa(
   ahoraMs: number,
   cierreMs: number,
   soloReposo: boolean,
+  aperturaMs: number,
 ): EstrategiaRetraso | null {
   if (intrusa.grupoId) return null; // no mover sola una cita encadenada
   const intrusaFases = fasesDe(intrusa);
   const obst = citas.filter((c) => c.id !== intrusa.id).map(fasesDe);
-  const desde = Math.max(ahoraMs, +new Date(fija.inicio));
+  const desde = Math.max(ahoraMs, +new Date(fija.inicio), aperturaMs);
   const slot = buscarHueco(intrusaFases, obst, desde, cierreMs, soloReposo);
   if (slot == null) return null;
   const nueva = reubicar(intrusaFases, slot);
@@ -569,11 +572,12 @@ function estrategiaAdelantarFija(
   fija: CitaRetraso,
   ahoraMs: number,
   cierreMs: number,
+  aperturaMs: number,
 ): EstrategiaRetraso | null {
   if (fija.grupoId) return null;
   const fijaFases = fasesDe(fija);
   const obst = citas.filter((c) => c.id !== fija.id).map(fasesDe);
-  const slot = buscarHueco(fijaFases, obst, ahoraMs, cierreMs, false);
+  const slot = buscarHueco(fijaFases, obst, Math.max(ahoraMs, aperturaMs), cierreMs, false);
   if (slot == null || slot >= fijaFases.ini) return null; // solo cuenta si ADELANTA
   const nueva = reubicar(fijaFases, slot);
   if (hayColision([...obst, nueva])) return null;
@@ -685,11 +689,12 @@ function estrategiaMoverAOtroProfesional(
   reasignacion: ReasignacionOpts,
   ahoraMs: number,
   cierreMs: number,
+  aperturaMs: number,
 ): EstrategiaRetraso | null {
   if (intrusa.grupoId) return null; // no mover sola una cita encadenada
   const intrusaFases = fasesDe(intrusa);
   // Solo hacia adelante: no se adelanta a la clienta (y asi el primer hueco ES el mas cercano).
-  const desde = Math.max(ahoraMs, intrusaFases.ini);
+  const desde = Math.max(ahoraMs, intrusaFases.ini, aperturaMs);
 
   const opciones: { cand: CandidatoReasignacion; slot: number; obst: Fases[] }[] = [];
   for (const c of reasignacion.candidatos) {
@@ -751,6 +756,7 @@ export function calcularEstrategiasSolape(
   opts?: {
     cierreMs?: number;
     ahoraMs?: number;
+    aperturaMs?: number;
     reasignacion?: ReasignacionOpts;
   },
 ): EstrategiaRetraso[] {
@@ -760,6 +766,7 @@ export function calcularEstrategiasSolape(
 
   const ahoraMs = opts?.ahoraMs ?? Date.now();
   const cierreMs = opts?.cierreMs ?? cierreDefault(citasDelProfesional);
+  const aperturaMs = opts?.aperturaMs ?? -Infinity;
 
   const raw: EstrategiaRetraso[] = [];
   const push = (e: EstrategiaRetraso | null) => {
@@ -767,13 +774,13 @@ export function calcularEstrategiasSolape(
   };
   // Orden de insercion = preferencia ante empate (reposo > hueco > reasignar > mover_reasignar
   // > adelantar > cascada). Mantener la hora de la clienta es preferible a moverla.
-  push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, true));
-  push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, false));
+  push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, true, aperturaMs));
+  push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, false, aperturaMs));
   if (opts?.reasignacion) {
     push(estrategiaReasignar(intrusa, opts.reasignacion));
-    push(estrategiaMoverAOtroProfesional(intrusa, opts.reasignacion, ahoraMs, cierreMs));
+    push(estrategiaMoverAOtroProfesional(intrusa, opts.reasignacion, ahoraMs, cierreMs, aperturaMs));
   }
-  push(estrategiaAdelantarFija(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs));
+  push(estrategiaAdelantarFija(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, aperturaMs));
   push(estrategiaCascadaSolape(citasDelProfesional, intrusa, fija, cierreMs));
 
   // Dedup: quita estrategias cuyo efecto (updates) ya produce otra anterior. Garantiza
