@@ -63,6 +63,7 @@ export interface OrganizarAgendaPanelProps {
   clientes: { id: string; nombre: string; telefono?: string | null }[];
   servicios: { id: string; nombre: string; categoria_minima?: string | null }[];
   bloqueos?: { profesional_id: string; inicio: string; fin: string }[];
+  horarios?: { dia_semana: number; abierto: boolean; apertura: string | null; cierre: string | null }[];
   negocioId: string;
   isMobile?: boolean;
   onClose: () => void;
@@ -86,7 +87,7 @@ function fondoTipo(tipo: ProblemaAgenda['tipo']): string {
 }
 
 export default function OrganizarAgendaPanel({
-  citas, profesionales, clientes, servicios, bloqueos, negocioId, isMobile, onClose, onAplicado,
+  citas, profesionales, clientes, servicios, bloqueos, horarios, negocioId, isMobile, onClose, onAplicado,
 }: OrganizarAgendaPanelProps) {
   const esDemoCompartida = IS_DEMO_MODE || negocioId === 'demo_salon_001';
   // Arnes de pruebas SOLO con ?orgnow=<ISO> en la URL (mismo espiritu que
@@ -139,8 +140,8 @@ export default function OrganizarAgendaPanel({
   const citasPorId = useMemo(() => new Map(citasHoy.map((c) => [c.id, c])), [citasHoy]);
 
   const problemas = useMemo(
-    () => analizarAgendaDia(citasHoy, profesionales, { ahoraMs: ahoraOverrideMs, bloqueos }),
-    [citasHoy, profesionales, ahoraOverrideMs, bloqueos],
+    () => analizarAgendaDia(citasHoy, profesionales, { ahoraMs: ahoraOverrideMs, bloqueos, horarios }),
+    [citasHoy, profesionales, ahoraOverrideMs, bloqueos, horarios],
   );
   const pendientes = problemas.filter((p) => !resueltasDemo.has(p.id));
 

@@ -136,5 +136,12 @@ el fallo preexistente conocido "dia limpio".
 ## Fuera de alcance
 
 Pausas de comida (0 usos) · recurrencia de bloqueos (0 usos) · jornada por profesional (no existe
-tal tabla: la jornada es del negocio y las ausencias individuales son `bloqueos_profesional`) ·
-festivos y cierres puntuales (no hay modelo).
+tal tabla: la jornada es del negocio y las ausencias individuales son `bloqueos_profesional`).
+
+**Festivos y cierres puntuales: fuera, pero el modelo SI existe.** (Correccion: una version previa
+de esta spec decia "no hay modelo".) La tabla es `cierres_negocio (fecha, motivo)` y
+`AgendaCalendar.web.tsx` ya la carga en su `Promise.all` (estado `cierres`). El organizador no la
+mira: en un dia marcado como cierre seguiria proponiendo movimientos con el horario normal de ese
+dia de la semana. Es un slice pequeno y natural encima de `ventanaDelDia` (si la fecha esta en
+`cierres_negocio`, no hay jornada). No se mete aqui para no mezclar dos fuentes de verdad en el
+mismo cambio, y porque un dia de cierre no deberia tener citas que reorganizar.

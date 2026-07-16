@@ -174,14 +174,21 @@ export function useAvisos(enabled = true): AvisosData {
           servicio: 'Servicio', 
         }));
         
-        const { data: bloqueosData } = await supabase
-          .from('bloqueos_profesional')
-          .select('profesional_id, inicio, fin')
-          .eq('negocio_id', negocioId);
+        const [{ data: bloqueosData }, { data: horariosData }] = await Promise.all([
+          supabase
+            .from('bloqueos_profesional')
+            .select('profesional_id, inicio, fin')
+            .eq('negocio_id', negocioId),
+          supabase
+            .from('negocio_horarios')
+            .select('dia_semana, abierto, apertura, cierre')
+            .eq('negocio_id', negocioId),
+        ]);
 
         const problemas = analizarAgendaDia(citasOrganizar, profesionales, {
           ahoraMs: ahora.getTime(),
           bloqueos: bloqueosData ?? [],
+          horarios: horariosData ?? [],
         });
         setIneficiencias(problemas);
         // --- Fin ineficiencias ---

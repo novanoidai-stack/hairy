@@ -401,6 +401,7 @@ export default function AgendaCalendar() {
   const profesionalesRef = useRef<Profesional[]>([]);
   profesionalesRef.current = profesionales;
   const [bloqueos, setBloqueos] = useState<any[]>([]);
+  const [horarios, setHorarios] = useState<any[]>([]);
   // Cierres del salon completo (festivos/vacaciones): la agenda pinta el dia cerrado.
   const [cierres, setCierres] = useState<
     { fecha: string; motivo: string | null }[]
@@ -841,6 +842,7 @@ export default function AgendaCalendar() {
           cfgResult,
           catResult,
           cierreResult,
+          horarioResult,
         ] = await Promise.all([
           supabase
             .from("profesionales")
@@ -887,6 +889,10 @@ export default function AgendaCalendar() {
             .from("cierres_negocio")
             .select("fecha, motivo")
             .eq("negocio_id", negocioId),
+          supabase
+            .from("negocio_horarios")
+            .select("dia_semana, abierto, apertura, cierre")
+            .eq("negocio_id", negocioId),
         ]);
         const cfg = ((cfgResult as any)?.data?.config ?? {}) as any;
         setRecolocarRetraso(cfg.recolocarRetraso !== false);
@@ -907,6 +913,7 @@ export default function AgendaCalendar() {
         setCategorias(catResult.data ?? []);
         setClientes(cltResult.data ?? []);
         setBloqueos(bloqueoResult.data ?? []);
+        setHorarios(horarioResult.data ?? []);
         setCierres((cierreResult as any)?.data ?? []);
         const addonMap: Record<string, any[]> = {};
         for (const row of addonsResult.data ?? []) {
@@ -3987,6 +3994,7 @@ export default function AgendaCalendar() {
           clientes={clientes}
           servicios={servicios}
           bloqueos={bloqueos}
+          horarios={horarios}
           negocioId={negocioId}
           isMobile={isMobile}
           onClose={() => setShowOrganizar(false)}
