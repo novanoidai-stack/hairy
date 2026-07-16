@@ -61,9 +61,6 @@ import { AvisoPrimeraVisita } from "@/components/manuals/AvisoPrimeraVisita.web"
 import { ManualPanel } from "@/components/manuals/ManualPanel.web";
 import { useChispaVoz } from "@/lib/hooks/useChispaVoz.web";
 import { FichaColorModal } from "@/app/(tabs)/clientes.web";
-import { useAyudaIA } from "@/lib/hooks/useAyudaIA";
-import { TarjetaAyudaIA } from "@/components/chispa/TarjetaAyudaIA.web";
-import { registrarEventoIA } from "@/lib/registroUniversal";
 import { obtenerNivelCliente } from "@/lib/fidelizacion";
 import { AvisosBell } from "@/components/avisos/AvisosBell.web";
 import { ListaEsperaDropdown } from "./ListaEsperaDropdown.web";
@@ -448,61 +445,6 @@ export default function AgendaCalendar() {
   // userId (extracted explicitly for event tracking)
   const userId = userProfile?.id || "";
 
-  // --- INYECCIÓN IA: AGENDA ---
-  const ayudaIA = useAyudaIA();
-
-  const handleAnalizarAgenda = () => {
-    // Collect contextual data for the deterministic summary
-    const slots = generarSlotsHorarios();
-    const slotsTotales = slots.length;
-
-    // Un slot esta ocupado si alguna cita se solapa con el
-    const slotsOcupados = slots.filter((slotTime) => {
-      const [sh, sm] = slotTime.split(":").map(Number);
-      return citasHoy.some((c: any) => {
-        if (c.estado === "cancelada") return false;
-        const cInicio = new Date(c.inicio);
-        const cFin = new Date(c.fin);
-
-        // Creamos una fecha para el slot en base al dia de la cita
-        const slotDate = new Date(cInicio);
-        slotDate.setHours(sh, sm, 0, 0);
-        return slotDate >= cInicio && slotDate < cFin;
-      });
-    }).length;
-
-    const ocupacion =
-      slotsTotales > 0 ? (slotsOcupados / slotsTotales) * 100 : 0;
-
-    const entrada = {
-      citasHoy: citasHoy.length,
-      huecosLibres: slotsTotales - slotsOcupados,
-      ocupacion: ocupacion.toFixed(0) + "%",
-      profesionales: visibleProfs.length,
-      fecha: currentMonth.toISOString(),
-    };
-
-    const prompt = `Analiza el estado de mi agenda para el día seleccionado. 
-    Estado actual:
-    - Citas hoy: ${entrada.citasHoy}
-    - Profesionales disponibles: ${entrada.profesionales}
-    - Ocupación de agenda: ${entrada.ocupacion}
-    - Hay huecos libres: ${entrada.huecosLibres > 0 ? "Sí" : "No"}
-    
-    Identifica cuellos de botella (muchas citas simultáneas) o tiempos muertos importantes (huecos largos sin citas) y sugiere acciones para optimizar la ocupación (como avisar a clientes en espera o reasignar descansos). Usa bloques de texto.`;
-
-    ayudaIA.analizar(prompt, entrada).then(() => {
-      registrarEventoIA({
-        negocio_id: negocioId ?? "",
-        usuario_id: userId ?? "",
-        funcion_ia: "analizar_agenda_dia",
-        entrada,
-        resultado: "Completado",
-        por_que: "Solicitud manual de análisis de agenda",
-      });
-    });
-  };
-  // -----------------------------------
 
   const roleTheme = useMemo(() => {
     const role = userProfile?.role;
@@ -789,23 +731,6 @@ export default function AgendaCalendar() {
   // Tarjeta de "Optimización de Agenda" (IA): en movil ocupaba media pantalla
   // encima de la rejilla (queja de ruido visual). Arranca plegada tras un chip
   // compacto y solo se despliega si el usuario la pide; en escritorio sigue abierta.
-  // La preferencia de mostrar/ocultar la tarjeta de IA se recuerda (localStorage):
-  // si el usuario la oculta, no vuelve a aparecer sola en cada carga.
-  const [iaHelperOpen, setIaHelperOpen] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    const saved = window.localStorage.getItem("mecha-agenda-ia-helper");
-    if (saved === "oculto") return false;
-    if (saved === "visible") return true;
-    return false;
-  });
-  function setIaHelper(v: boolean) {
-    setIaHelperOpen(v);
-    if (typeof window !== "undefined")
-      window.localStorage.setItem(
-        "mecha-agenda-ia-helper",
-        v ? "visible" : "oculto",
-      );
-  }
   // Colapso independiente de los bloques del rail lateral (KPIs y mini-calendario)
   const [kpisCollapsed, setKpisCollapsed] = useState(false);
   const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
@@ -2751,32 +2676,9 @@ export default function AgendaCalendar() {
                         >
                           <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
                         </button>
-                        <button
-                          onClick={() => {
-                             setIaHelper(true);
-                          }}
-                          title="Optimizador de la agenda"
-                          className="m-btn-ai-glow"
-                          style={{
-                            padding: isMobile ? "6px 10px" : "8px 14px",
-                            background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(139,92,246,0.15) 100%)`,
-                            border: `1px solid rgba(139,92,246,0.3)`,
-                            color: TOKENS.text,
-                            borderRadius: 10,
-                            cursor: "pointer",
-                            fontSize: isMobile ? 12 : 13,
-                            fontWeight: 700,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 6,
-                            transition: "all 0.2s ease",
-                            animation: "pulse-glow-violet 3s infinite"
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
-                        >
-                          <Icon name="zap" size={isMobile ? 12 : 14} color="#8b5cf6" />
-                        </button>
+                        {/* Retirado el boton del "Optimizador de la agenda" (tarjeta de IA con
+                            prompt de texto libre): duplicaba "Organizar mi agenda", que hace lo
+                            mismo de forma determinista y con propuestas aplicables a un clic. */}
                         <div style={{ width: 1, height: 20, background: TOKENS.border, opacity: 0.5, marginLeft: 4, marginRight: 4 }} />
           <div style={{ position: "relative" }}>
             <button
@@ -4079,32 +3981,6 @@ export default function AgendaCalendar() {
         />
       )}
       
-      {/* Modal de Optimizador IA */}
-      {iaHelperOpen && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 99999,
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{ width: '90%', maxWidth: 400 }}>
-            <TarjetaAyudaIA
-              titulo="Optimización de Agenda"
-              subtitulo="IA: Reduce tiempos muertos y mejora la ocupación del salón"
-              estado={ayudaIA.estado}
-              onAnalizar={handleAnalizarAgenda}
-              onReintentar={ayudaIA.reintentar}
-              botonLabel="Analizar jornada"
-              onOcultar={() => setIaHelper(false)}
-              resumenDeterminista={
-                <div>
-                  Hay <b>{citasHoy.length}</b> citas programadas para el
-                  día seleccionado.
-                </div>
-              }
-            />
-          </div>
-        </div>
-      )}
 
       {undoError && (
         <div

@@ -204,10 +204,10 @@ export const CATALOGO_IA: FuncionIA[] = [
   },
   {
     id: 'agenda-optimizacion',
-    titulo: 'Optimización de Agenda Diaria',
-    descripcion: 'Identifica tiempos muertos y solapes en el día, ofreciendo sugerencias para mover citas y llenar huecos de manera inteligente.',
+    titulo: 'Organizar mi agenda',
+    descripcion: 'Detecta retrasos, solapes, huecos muertos y reposos desaprovechados del dia, y propone varias formas de resolver cada uno (mover a otro hueco, atender en un reposo, cambiar de profesional, adelantar la otra cita o empujar en cascada), listas para aplicar a un clic y deshacer.',
     ubicacion: '/app/agenda',
-    uso: 'En la pestaña Agenda, abre los filtros y pulsa "Analizar jornada".',
+    uso: 'En la pestaña Agenda, pulsa "Organizar mi agenda".',
     categoria: 'agenda',
   },
   {
