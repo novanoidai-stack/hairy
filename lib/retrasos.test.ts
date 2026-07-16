@@ -443,3 +443,89 @@ Deno.test('mover_reasignar: avisa a la clienta del cambio de hora', () => {
   assertEquals(mv.avisos[0].inicioNuevo, iso(11, 0));
   assertEquals(mv.avisos[0].minutos, 30);
 });
+
+// --- Palanca comprimir: acortar la cita fija para que la intrusa quepa a su hora ---
+// Es la palanca MENOS disruptiva: nadie cambia de hora, asi que no hay avisos a clientas.
+// Solo se ofrece si el salon lo ha permitido en ese servicio (duracion_minima_min).
+
+Deno.test('comprimir: no se ofrece si el salon no lo ha permitido (default)', () => {
+  // A 10:00-11:00 y B (intrusa) 10:30-11:00. Sin duracionMinimaMin no se toca nada.
+  const citas = [cita('A', 10, 0, 60), cita('B', 10, 30, 30)];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  assert(!est.some((e) => e.tipo === 'comprimir'), 'sin permiso del salon, jamas comprimir');
+});
+
+Deno.test('comprimir: acorta la fija justo hasta donde empieza la intrusa', () => {
+  // A dura 60 min pero el salon permite bajarla a 30 -> cabe acortarla a 10:00-10:30.
+  const citas = [
+    cita('A', 10, 0, 60, { duracionMinimaMin: 30 }),
+    cita('B', 10, 30, 30),
+  ];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  const c = est.find((e) => e.tipo === 'comprimir');
+  assert(c, 'debe ofrecer comprimir');
+  assertEquals(c!.updates.length, 1);
+  assertEquals(c!.updates[0].id, 'A', 'se comprime la fija, no la intrusa');
+  assertEquals(c!.updates[0].inicio, iso(10, 0), 'la fija NO se mueve de hora');
+  assertEquals(c!.updates[0].fin, iso(10, 30), 'acaba justo cuando empieza la intrusa');
+});
+
+Deno.test('comprimir: nadie cambia de hora -> ningun aviso a clientas', () => {
+  const citas = [
+    cita('A', 10, 0, 60, { duracionMinimaMin: 30 }),
+    cita('B', 10, 30, 30),
+  ];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  const c = est.find((e) => e.tipo === 'comprimir')!;
+  assertEquals(c.avisos.length, 0, 'comprimir no mueve a nadie: no hay a quien avisar');
+  assertEquals(c.citasMovidas, 0);
+  assertEquals(c.retrasoCierreMin, 0);
+});
+
+Deno.test('comprimir: respeta el minimo del salon (no comprime de mas)', () => {
+  // Haria falta bajar A a 30 min, pero el salon no la baja de 45 -> imposible.
+  const citas = [
+    cita('A', 10, 0, 60, { duracionMinimaMin: 45 }),
+    cita('B', 10, 30, 30),
+  ];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  assert(!est.some((e) => e.tipo === 'comprimir'), 'comprimir a 30 rompe el minimo de 45');
+});
+
+Deno.test('comprimir: el minimo exacto SI vale', () => {
+  const citas = [
+    cita('A', 10, 0, 60, { duracionMinimaMin: 30 }),
+    cita('B', 10, 30, 30),
+  ];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  assert(est.some((e) => e.tipo === 'comprimir'), 'justo en el minimo es aceptable');
+});
+
+Deno.test('comprimir: una fija con reposo no se comprime (v1)', () => {
+  // Acortar la fase activa de un tinte cambiaria cuando empieza a procesar: fuera de v1.
+  const citas = [
+    cita('A', 10, 0, 90, { duracionMinimaMin: 20, fin_activa: iso(10, 30), fin_espera: iso(11, 0) }),
+    cita('B', 10, 30, 30),
+  ];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  assert(!est.some((e) => e.tipo === 'comprimir'), 'con reposo no se toca la fase activa en v1');
+});
+
+Deno.test('comprimir: una fija encadenada (grupoId) no se comprime', () => {
+  const citas = [
+    cita('A', 10, 0, 60, { duracionMinimaMin: 30, grupoId: 'cad-1' }),
+    cita('B', 10, 30, 30),
+  ];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  assert(!est.some((e) => e.tipo === 'comprimir'));
+});
+
+Deno.test('comprimir: es la recomendada cuando existe (no mueve a nadie)', () => {
+  const citas = [
+    cita('A', 10, 0, 60, { duracionMinimaMin: 30 }),
+    cita('B', 10, 30, 30),
+  ];
+  const est = calcularEstrategiasSolape(citas, 'B', 'A', { ahoraMs: msD(9, 0) });
+  assertEquals(est[0].tipo, 'comprimir', 'la menos disruptiva va primero');
+  assertEquals(est[0].recomendada, true);
+});

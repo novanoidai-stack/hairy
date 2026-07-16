@@ -159,6 +159,10 @@ export interface CitaRetraso {
   telefono?: string | null;
   servicio?: string | null;
   grupoId?: string | null;
+  // servicios.duracion_minima_min: hasta donde se puede acortar la fase activa para hacer
+  // hueco. null/undefined = NO se comprime (default: el sistema no acorta el trabajo de
+  // nadie salvo que el salon lo diga).
+  duracionMinimaMin?: number | null;
 }
 
 // Update puro para aplicar (el llamador ejecuta el .update() con la sesion del usuario).
@@ -178,6 +182,7 @@ export type EstrategiaTipo =
   | 'adelantar_otra'
   | 'reasignar'
   | 'mover_reasignar'
+  | 'comprimir'
   | 'pedir_retraso_siguiente';
 
 // Aviso a un cliente afectado (lo consume el motor WhatsApp via flag retraso_aviso_pendiente).
@@ -757,6 +762,55 @@ function estrategiaMoverAOtroProfesional(
   };
 }
 
+// Palanca G: comprimir la cita FIJA para que la intrusa quepa a su hora. Cierra el ejemplo
+// del informe "alargar reposo a costa de comprimir la Cita C".
+//
+// Es la MENOS disruptiva de todas: nadie cambia de hora, asi que no hay que avisar a ninguna
+// clienta. Por eso va la primera. A cambio, es la unica que toca la DURACION del trabajo, y
+// por eso solo se ofrece si el salon lo ha autorizado en ese servicio concreto
+// (servicios.duracion_minima_min). Sin ese permiso explicito, jamas se comprime nada.
+function estrategiaComprimirFija(
+  citas: CitaRetraso[],
+  intrusa: CitaRetraso,
+  fija: CitaRetraso,
+): EstrategiaRetraso | null {
+  if (fija.grupoId) return null; // encadenada: comprimir un eslabon descuadra la cadena
+  const minima = fija.duracionMinimaMin;
+  if (!minima || minima <= 0) return null; // el salon no permite comprimir este servicio
+
+  const f = fasesDe(fija);
+  // v1: solo servicios sin reposo. Acortar la fase activa de un tinte cambiaria cuando
+  // empieza a procesar, y eso no es "ir mas rapido": es otro servicio.
+  if (f.finA !== f.fin || f.finE !== f.fin) return null;
+
+  const intrusaIni = fasesDe(intrusa).ini;
+  if (intrusaIni <= f.ini) return null; // la intrusa no empieza despues: comprimir no ayuda
+  if (intrusaIni >= f.fin) return null; // no se pisan: no hay nada que comprimir
+
+  const nuevaDurMin = Math.round((intrusaIni - f.ini) / MIN);
+  if (nuevaDurMin < minima) return null; // comprimir tanto rompe el minimo del salon
+
+  const durOrigMin = Math.round((f.fin - f.ini) / MIN);
+  const update: UpdateRetraso = {
+    id: fija.id,
+    inicio: fija.inicio,
+    fin: new Date(intrusaIni).toISOString(),
+  };
+  if (fija.fin_activa) update.fin_activa = update.fin;
+  if (fija.fin_espera) update.fin_espera = update.fin;
+
+  const hora = new Date(intrusaIni).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  return {
+    tipo: 'comprimir',
+    titulo: `Acortar la cita de ${fija.cliente ?? 'la otra clienta'}`,
+    resumen: `${fija.servicio ?? 'El servicio'} de ${fija.cliente ?? 'la otra clienta'} pasa de ${durOrigMin} a ${nuevaDurMin} min y acaba a las ${hora}. Nadie cambia de hora.`,
+    citasMovidas: 0,
+    retrasoCierreMin: 0,
+    updates: [update],
+    avisos: [], // nadie se mueve de su hora: no hay a quien avisar
+  };
+}
+
 export function calcularEstrategiasSolape(
   citasDelProfesional: CitaRetraso[],
   intrusaId: string,
@@ -782,8 +836,10 @@ export function calcularEstrategiasSolape(
   const push = (e: EstrategiaRetraso | null) => {
     if (e) raw.push(e);
   };
-  // Orden de insercion = preferencia ante empate (reposo > hueco > reasignar > mover_reasignar
-  // > adelantar > cascada). Mantener la hora de la clienta es preferible a moverla.
+  // Orden de insercion = preferencia ante empate (comprimir > reposo > hueco > reasignar >
+  // mover_reasignar > adelantar > cascada). Comprimir va primero porque es la unica que no
+  // mueve a NADIE de hora; el resto siempre desplaza a alguien.
+  push(estrategiaComprimirFija(citasDelProfesional, intrusa, fija));
   push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, true, aperturaMs, maxAdelantoMs));
   push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, false, aperturaMs, maxAdelantoMs));
   if (opts?.reasignacion) {

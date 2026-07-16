@@ -61,7 +61,7 @@ export interface OrganizarAgendaPanelProps {
   citas: CitaCruda[];
   profesionales: { id: string; nombre: string; categoria?: string | null; activo?: boolean }[];
   clientes: { id: string; nombre: string; telefono?: string | null }[];
-  servicios: { id: string; nombre: string; categoria_minima?: string | null }[];
+  servicios: { id: string; nombre: string; categoria_minima?: string | null; duracion_minima_min?: number | null }[];
   bloqueos?: { profesional_id: string; inicio: string; fin: string }[];
   horarios?: { dia_semana: number; abierto: boolean; apertura: string | null; cierre: string | null }[];
   limites?: { maxAdelantoMin?: number; umbralHuecoMin?: number };
@@ -119,6 +119,7 @@ export default function OrganizarAgendaPanel({
     const clienteMap = new Map(clientes.map((c) => [c.id, c]));
     const servicioMap = new Map(servicios.map((s) => [s.id, s.nombre]));
     const servicioCatMinMap = new Map(servicios.map((s) => [s.id, s.categoria_minima ?? null]));
+    const servicioDurMinMap = new Map(servicios.map((s) => [s.id, s.duracion_minima_min ?? null]));
     return citas.map((c) => {
       const cliente = c.cliente_id ? clienteMap.get(c.cliente_id) : undefined;
       return {
@@ -134,6 +135,7 @@ export default function OrganizarAgendaPanel({
         telefono: cliente?.telefono ?? null,
         servicio: c.servicio_id ? (servicioMap.get(c.servicio_id) ?? null) : null,
         categoriaMinima: c.servicio_id ? (servicioCatMinMap.get(c.servicio_id) ?? null) : null,
+        duracionMinimaMin: c.servicio_id ? (servicioDurMinMap.get(c.servicio_id) ?? null) : null,
       };
     });
   }, [citas, clientes, servicios]);

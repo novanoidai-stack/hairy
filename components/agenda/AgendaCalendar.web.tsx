@@ -798,7 +798,7 @@ export default function AgendaCalendar() {
           supabase
             .from("servicios")
             .select(
-              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria_id, categoria_minima",
+              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria_id, categoria_minima, duracion_minima_min",
             )
             .eq("negocio_id", negocioId),
           supabase

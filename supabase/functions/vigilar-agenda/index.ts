@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
           .gte('inicio', desde.toISOString())
           .lt('inicio', hasta.toISOString()),
         supabase.from('profesionales').select('id, nombre, categoria, activo').eq('negocio_id', negocioId),
-        supabase.from('servicios').select('id, nombre, categoria_minima').eq('negocio_id', negocioId),
+        supabase.from('servicios').select('id, nombre, categoria_minima, duracion_minima_min').eq('negocio_id', negocioId),
         supabase.from('bloqueos_profesional').select('profesional_id, inicio, fin').eq('negocio_id', negocioId),
         supabase.from('negocio_horarios').select('dia_semana, abierto, apertura, cierre').eq('negocio_id', negocioId),
         supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
@@ -106,7 +106,11 @@ Deno.serve(async (req) => {
       const fila = horarios.find((h: { dia_semana: number }) => h.dia_semana === dia);
       if (fila && !fila.abierto) { salida.push({ negocioId, cerrado: true }); continue; }
 
-      const srvMap = new Map((srvRes.data ?? []).map((s: { id: string; nombre: string; categoria_minima: string | null }) => [s.id, s]));
+      const srvMap = new Map(
+        (srvRes.data ?? []).map(
+          (s: { id: string; nombre: string; categoria_minima: string | null; duracion_minima_min: number | null }) => [s.id, s],
+        ),
+      );
       const citasOrg: CitaOrganizar[] = citas.map((c: Record<string, unknown>) => {
         const srv = c.servicio_id ? srvMap.get(c.servicio_id as string) : undefined;
         return {
@@ -122,6 +126,7 @@ Deno.serve(async (req) => {
           telefono: null,  // sin telefono no se generan avisos a clientas desde aqui
           servicio: srv?.nombre ?? null,
           categoriaMinima: srv?.categoria_minima ?? null,
+          duracionMinimaMin: srv?.duracion_minima_min ?? null,
         };
       });
 
