@@ -174,7 +174,7 @@ export function useAvisos(enabled = true): AvisosData {
           servicio: 'Servicio', 
         }));
         
-        const [{ data: bloqueosData }, { data: horariosData }] = await Promise.all([
+        const [{ data: bloqueosData }, { data: horariosData }, { data: cfgData }] = await Promise.all([
           supabase
             .from('bloqueos_profesional')
             .select('profesional_id, inicio, fin')
@@ -183,12 +183,20 @@ export function useAvisos(enabled = true): AvisosData {
             .from('negocio_horarios')
             .select('dia_semana, abierto, apertura, cierre')
             .eq('negocio_id', negocioId),
+          supabase
+            .from('negocio_config')
+            .select('config')
+            .eq('negocio_id', negocioId)
+            .maybeSingle(),
         ]);
+        const cfgAgenda = ((cfgData as any)?.config ?? {}) as any;
 
         const problemas = analizarAgendaDia(citasOrganizar, profesionales, {
           ahoraMs: ahora.getTime(),
           bloqueos: bloqueosData ?? [],
           horarios: horariosData ?? [],
+          maxAdelantoMin: cfgAgenda.agendaMaxAdelantoMin,
+          umbralHuecoMin: cfgAgenda.agendaUmbralHuecoMin,
         });
         setIneficiencias(problemas);
         // --- Fin ineficiencias ---

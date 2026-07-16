@@ -12,6 +12,15 @@ export const HORARIO_CIERRE = {
 
 export const INTERVALO_MINUTOS = 15;
 
+// Limites del organizador de agenda. Configurables por salon en negocio_config
+// (claves agendaMaxAdelantoMin / agendaUmbralHuecoMin); estos son los defaults.
+// Cuanto se puede adelantar una cita como maximo: mas de una hora antes no lo
+// acepta una clienta que ya tiene su hora dada.
+export const AGENDA_MAX_ADELANTO_MIN_DEFAULT = 60;
+// Ganancia minima para proponer mover a una clienta: media hora justifica el
+// aviso, un slot (15 min) es ruido.
+export const AGENDA_UMBRAL_HUECO_MIN_DEFAULT = 30;
+
 export const CITA_CARD_DETAILS_MIN_HEIGHT = 38;
 
 export const CITA_STATUS = {

@@ -36,12 +36,19 @@ import {
   buscarHueco,
   hayColision,
 } from './retrasos.ts';
-import { HORARIO_APERTURA, HORARIO_CIERRE } from './constants.ts';
+import {
+  HORARIO_APERTURA,
+  HORARIO_CIERRE,
+  AGENDA_MAX_ADELANTO_MIN_DEFAULT,
+  AGENDA_UMBRAL_HUECO_MIN_DEFAULT,
+} from './constants.ts';
 
 const MIN = 60000;
 const UMBRAL_RETRASO_MIN = 10; // por debajo, no merece abrir el flujo de retraso
 const MAX_RETRASO_MIN = 240; // citas "olvidadas" de hace horas no cuentan como retraso activo
-export const UMBRAL_HUECO_MIN_DEFAULT = 5; // huecos menores no merecen una propuesta
+// Re-export por compatibilidad: el default vive en constants.ts junto al techo de adelanto,
+// porque los dos son ajustes de salon (claves agendaUmbralHuecoMin / agendaMaxAdelantoMin).
+export const UMBRAL_HUECO_MIN_DEFAULT = AGENDA_UMBRAL_HUECO_MIN_DEFAULT;
 
 export type TipoProblemaAgenda = 'retraso' | 'solape' | 'hueco_muerto' | 'reposo_desaprovechado';
 
@@ -100,6 +107,8 @@ export interface AnalisisAgendaOpts {
   umbralHuecoMin?: number;
   bloqueos?: BloqueoOrganizar[];
   horarios?: HorarioNegocio[];
+  // Techo de adelanto en minutos (ajuste del salon). Default: AGENDA_MAX_ADELANTO_MIN_DEFAULT.
+  maxAdelantoMin?: number;
 }
 
 // 'HH:MM' o 'HH:MM:SS' -> ms sobre la fecha de referencia (hora local del salon).
@@ -156,7 +165,7 @@ function fmtFechaHora(iso: string): string {
 
 // --- 1) Retraso real: la cita activa (pendiente/confirmada) mas antigua que
 //        ya deberia haber acabado (fin_activa/fin < ahora) y sigue abierta. ---
-function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: number, aperturaMs: number): ProblemaAgenda | null {
+function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: number, aperturaMs: number, maxAdelantoMs: number): ProblemaAgenda | null {
   const candidata = citasProf
     .filter((c) => +new Date(c.inicio) <= ahoraMs)
     .map((c) => ({ c, retrasoMin: (ahoraMs - +new Date(c.fin_activa || c.fin)) / MIN }))
@@ -165,7 +174,7 @@ function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: 
   if (!candidata) return null;
 
   const minutos = Math.max(5, Math.round(candidata.retrasoMin / 5) * 5);
-  const estrategias = calcularEstrategiasRetraso(citasProf, candidata.c.id, minutos, { cierreMs, aperturaMs });
+  const estrategias = calcularEstrategiasRetraso(citasProf, candidata.c.id, minutos, { cierreMs, aperturaMs, maxAdelantoMs });
   if (estrategias.length === 0) return null; // algun hueco ya absorbe el retraso: nada que reorganizar
 
   const citaIds = new Set<string>([candidata.c.id]);
@@ -194,6 +203,7 @@ function detectarSolapes(
   cierreMs: number,
   candidatos: CandidatoReasignacion[],
   aperturaMs: number,
+  maxAdelantoMs: number,
 ): ProblemaAgenda[] {
   const problemas: ProblemaAgenda[] = [];
   const resueltas = new Set<string>();
@@ -212,6 +222,7 @@ function detectarSolapes(
         cierreMs,
         ahoraMs,
         aperturaMs,
+        maxAdelantoMs,
         reasignacion: { categoriaMinima: intrusa.categoriaMinima ?? null, candidatos },
       });
       if (estrategias.length === 0) continue;
@@ -245,6 +256,7 @@ function detectarHuecos(
   cierreMs: number,
   umbralMs: number,
   aperturaMs: number,
+  maxAdelantoMs: number,
 ): ProblemaAgenda[] {
   const problemas: ProblemaAgenda[] = [];
   const efectivo = new Map<string, Fases>(citasProf.map((c) => [c.id, fasesDe(c)]));
@@ -256,7 +268,10 @@ function detectarHuecos(
   for (const cand of movibles) {
     const propia = efectivo.get(cand.id)!;
     const obstaculos = citasProf.filter((c) => c.id !== cand.id).map((c) => efectivo.get(c.id)!);
-    const slot = buscarHueco(propia, obstaculos, Math.max(ahoraMs, aperturaMs), cierreMs, false);
+    // El techo acota la busqueda: sin el, una cita de las 17:00 con la manana libre se
+    // proponia adelantar 180 min, que ningun salon aplica.
+    const desde = Math.max(ahoraMs, aperturaMs, propia.ini - maxAdelantoMs);
+    const slot = buscarHueco(propia, obstaculos, desde, cierreMs, false);
     if (slot == null) continue;
     if (propia.ini - slot < umbralMs) continue; // no merece la pena
 
@@ -304,7 +319,8 @@ export function analizarAgendaDia(
   opts?: AnalisisAgendaOpts,
 ): ProblemaAgenda[] {
   const ahoraMs = opts?.ahoraMs ?? Date.now();
-  const umbralHuecoMs = (opts?.umbralHuecoMin ?? UMBRAL_HUECO_MIN_DEFAULT) * MIN;
+  const umbralHuecoMs = (opts?.umbralHuecoMin ?? AGENDA_UMBRAL_HUECO_MIN_DEFAULT) * MIN;
+  const maxAdelantoMs = (opts?.maxAdelantoMin ?? AGENDA_MAX_ADELANTO_MIN_DEFAULT) * MIN;
   const nombrePorId = new Map(profesionales.map((p) => [p.id, p.nombre]));
   const inicioPorId = new Map(citas.map((c) => [c.id, +new Date(c.inicio)]));
 
@@ -331,7 +347,7 @@ export function analizarAgendaDia(
     const citasProf = [...citasProfSinOrdenar].sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
     const { aperturaMs, cierreMs } = ventanaDelDia(citasProf[0].inicio, opts?.horarios);
 
-    const retraso = detectarRetraso(citasProf, ahoraMs, cierreMs, aperturaMs);
+    const retraso = detectarRetraso(citasProf, ahoraMs, cierreMs, aperturaMs, maxAdelantoMs);
     if (retraso) {
       problemas.push(retraso);
       continue;
@@ -347,13 +363,13 @@ export function analizarAgendaDia(
         bloqueos: bloqueosPorProf.get(p.id) ?? [],
       }));
 
-    const solapes = detectarSolapes(citasProf, ahoraMs, cierreMs, candidatos, aperturaMs);
+    const solapes = detectarSolapes(citasProf, ahoraMs, cierreMs, candidatos, aperturaMs, maxAdelantoMs);
     if (solapes.length > 0) {
       problemas.push(...solapes);
       continue;
     }
 
-    problemas.push(...detectarHuecos(citasProf, ahoraMs, cierreMs, umbralHuecoMs, aperturaMs));
+    problemas.push(...detectarHuecos(citasProf, ahoraMs, cierreMs, umbralHuecoMs, aperturaMs, maxAdelantoMs));
   }
 
   return problemas

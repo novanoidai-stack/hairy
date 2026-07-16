@@ -204,6 +204,9 @@ export interface EstrategiaRetraso {
 export interface EstrategiasOpts {
   cierreMs?: number; // instante de cierre del dia (ms). Default: ultimo fin + 3h.
   aperturaMs?: number; // instante de apertura (ms). Default: sin restriccion por abajo.
+  // Cuanto se puede adelantar una cita como maximo (ms). Default: sin techo.
+  // Solo afecta a las palancas que ADELANTAN; las que retrasan no lo miran.
+  maxAdelantoMs?: number;
 }
 
 // Bloqueo de un profesional (vacaciones, reunion, baja). Ocupa todo su tramo.
@@ -530,11 +533,14 @@ function estrategiaMoverIntrusa(
   cierreMs: number,
   soloReposo: boolean,
   aperturaMs: number,
+  maxAdelantoMs: number,
 ): EstrategiaRetraso | null {
   if (intrusa.grupoId) return null; // no mover sola una cita encadenada
   const intrusaFases = fasesDe(intrusa);
   const obst = citas.filter((c) => c.id !== intrusa.id).map(fasesDe);
-  const desde = Math.max(ahoraMs, +new Date(fija.inicio), aperturaMs);
+  // El ultimo termino acota cuanto se puede adelantar a la clienta (RN-AG-024: los
+  // cambios del salon se le comunican; adelantarla de mas es inaplicable).
+  const desde = Math.max(ahoraMs, +new Date(fija.inicio), aperturaMs, intrusaFases.ini - maxAdelantoMs);
   const slot = buscarHueco(intrusaFases, obst, desde, cierreMs, soloReposo);
   if (slot == null) return null;
   const nueva = reubicar(intrusaFases, slot);
@@ -573,11 +579,13 @@ function estrategiaAdelantarFija(
   ahoraMs: number,
   cierreMs: number,
   aperturaMs: number,
+  maxAdelantoMs: number,
 ): EstrategiaRetraso | null {
   if (fija.grupoId) return null;
   const fijaFases = fasesDe(fija);
   const obst = citas.filter((c) => c.id !== fija.id).map(fasesDe);
-  const slot = buscarHueco(fijaFases, obst, Math.max(ahoraMs, aperturaMs), cierreMs, false);
+  const desde = Math.max(ahoraMs, aperturaMs, fijaFases.ini - maxAdelantoMs);
+  const slot = buscarHueco(fijaFases, obst, desde, cierreMs, false);
   if (slot == null || slot >= fijaFases.ini) return null; // solo cuenta si ADELANTA
   const nueva = reubicar(fijaFases, slot);
   if (hayColision([...obst, nueva])) return null;
@@ -757,6 +765,7 @@ export function calcularEstrategiasSolape(
     cierreMs?: number;
     ahoraMs?: number;
     aperturaMs?: number;
+    maxAdelantoMs?: number;
     reasignacion?: ReasignacionOpts;
   },
 ): EstrategiaRetraso[] {
@@ -767,6 +776,7 @@ export function calcularEstrategiasSolape(
   const ahoraMs = opts?.ahoraMs ?? Date.now();
   const cierreMs = opts?.cierreMs ?? cierreDefault(citasDelProfesional);
   const aperturaMs = opts?.aperturaMs ?? -Infinity;
+  const maxAdelantoMs = opts?.maxAdelantoMs ?? Infinity;
 
   const raw: EstrategiaRetraso[] = [];
   const push = (e: EstrategiaRetraso | null) => {
@@ -774,13 +784,13 @@ export function calcularEstrategiasSolape(
   };
   // Orden de insercion = preferencia ante empate (reposo > hueco > reasignar > mover_reasignar
   // > adelantar > cascada). Mantener la hora de la clienta es preferible a moverla.
-  push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, true, aperturaMs));
-  push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, false, aperturaMs));
+  push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, true, aperturaMs, maxAdelantoMs));
+  push(estrategiaMoverIntrusa(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, false, aperturaMs, maxAdelantoMs));
   if (opts?.reasignacion) {
     push(estrategiaReasignar(intrusa, opts.reasignacion));
     push(estrategiaMoverAOtroProfesional(intrusa, opts.reasignacion, ahoraMs, cierreMs, aperturaMs));
   }
-  push(estrategiaAdelantarFija(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, aperturaMs));
+  push(estrategiaAdelantarFija(citasDelProfesional, intrusa, fija, ahoraMs, cierreMs, aperturaMs, maxAdelantoMs));
   push(estrategiaCascadaSolape(citasDelProfesional, intrusa, fija, cierreMs));
 
   // Dedup: quita estrategias cuyo efecto (updates) ya produce otra anterior. Garantiza

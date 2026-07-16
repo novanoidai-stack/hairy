@@ -402,6 +402,8 @@ export default function AgendaCalendar() {
   profesionalesRef.current = profesionales;
   const [bloqueos, setBloqueos] = useState<any[]>([]);
   const [horarios, setHorarios] = useState<any[]>([]);
+  // Limites del organizador configurables por salon (undefined = usar los defaults).
+  const [limitesAgenda, setLimitesAgenda] = useState<{ maxAdelantoMin?: number; umbralHuecoMin?: number }>({});
   // Cierres del salon completo (festivos/vacaciones): la agenda pinta el dia cerrado.
   const [cierres, setCierres] = useState<
     { fecha: string; motivo: string | null }[]
@@ -899,6 +901,10 @@ export default function AgendaCalendar() {
         setAvisarRetraso(cfg.notifRetrasoActiva !== false);
         setCompletarManual(cfg.completarManual === true);
         setCapturaHoldAuto(cfg.depositoNoShowCapturaAuto !== false);
+        setLimitesAgenda({
+          maxAdelantoMin: cfg.agendaMaxAdelantoMin,
+          umbralHuecoMin: cfg.agendaUmbralHuecoMin,
+        });
         setNegocioId(negocioId);
         setUserProfile(profile || null);
 
@@ -3995,6 +4001,7 @@ export default function AgendaCalendar() {
           servicios={servicios}
           bloqueos={bloqueos}
           horarios={horarios}
+          limites={limitesAgenda}
           negocioId={negocioId}
           isMobile={isMobile}
           onClose={() => setShowOrganizar(false)}

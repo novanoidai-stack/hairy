@@ -72,11 +72,31 @@ Deno.test('reposo_desaprovechado: adelanta una cita al reposo libre de otra', ()
     cita('A', 'P3', 10, 0, 75, { fin_activa: iso(10, 20), fin_espera: iso(11, 0) }), // activa 10:00-10:20, reposo hasta 11:00, fin 11:15
     cita('B', 'P3', 12, 0, 20),
   ];
-  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 20) });
+  // Adelantar B de 12:00 a 10:30 son 90 min: por encima del techo por defecto (60), asi que
+  // este escenario necesita un salon que permita adelantos largos. Ver el test siguiente.
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 20), maxAdelantoMin: 120 });
   assertEquals(problemas.length, 1);
   assertEquals(problemas[0].tipo, 'reposo_desaprovechado');
   assertEquals(problemas[0].estrategias[0].updates[0].id, 'B');
   assertEquals(problemas[0].estrategias[0].updates[0].inicio, iso(10, 30));
+});
+
+Deno.test('reposo_desaprovechado: el techo manda tambien sobre los reposos', () => {
+  // Mismo caso, con el techo por defecto. Aprovechar un tiempo muerto es valioso (PA-03),
+  // pero no justifica pedirle a la clienta que venga 90 min antes: eso lo decide el salon.
+  const citas = [
+    cita('A', 'P3', 10, 0, 75, { fin_activa: iso(10, 20), fin_espera: iso(11, 0) }),
+    cita('B', 'P3', 12, 0, 20),
+  ];
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 20) });
+  assert(
+    !problemas.some((p) => p.tipo === 'reposo_desaprovechado'),
+    'el reposo de las 10:30 esta a 90 min: fuera del techo por defecto',
+  );
+  // Pero el techo acota, no cancela: B si puede adelantarse hasta donde el techo permite.
+  const hueco = problemas.find((p) => p.tipo === 'hueco_muerto');
+  assert(hueco, 'dentro del techo (45 min) la propuesta sigue siendo valida');
+  assertEquals(hueco!.estrategias[0].updates[0].inicio, iso(11, 15));
 });
 
 Deno.test('hueco por debajo del umbral (20 min) no genera problema', () => {
@@ -297,4 +317,64 @@ Deno.test('jornada: acepta el formato HH:MM:SS que devuelve Postgres', () => {
       assert(+new Date(u.fin) <= +new Date(iso(14, 0)), `${e.tipo} ignora el cierre en HH:MM:SS`);
     }
   }
+});
+
+// --- Limites de adelanto configurables por salon ---
+// El caso real de produccion (16 jul, prueba_46980): el organizador proponia adelantar
+// a cuatro clientas 180 min. Ningun salon aplica eso.
+
+Deno.test('limites: el caso real de produccion, adelantar 180 min, queda acotado al techo', () => {
+  // Cita a las 17:00 y el dia entero libre por delante -> el hueco "natural" son 180 min,
+  // que es lo que se proponia el 16 jul en prueba_46980. El techo NO cancela la propuesta:
+  // la acota, asi que como mucho se adelanta 60 min (a las 16:00), nunca a las 14:00.
+  const citas = [cita('A', 'P1', 17, 0, 60)];
+  const problemas = analizarAgendaDia(citas, [{ id: 'P1', nombre: 'Ana' }], { ahoraMs: ms(14, 0) });
+  const hueco = problemas.find((p) => p.tipo === 'hueco_muerto');
+  assert(hueco, 'sigue habiendo propuesta, pero razonable');
+  assertEquals(hueco!.estrategias[0].updates[0].inicio, iso(16, 0));
+});
+
+Deno.test('limites: un adelanto de 45 min si se propone (dentro del techo, sobre el umbral)', () => {
+  const citas = [cita('A', 'P1', 14, 45, 60)];
+  const problemas = analizarAgendaDia(citas, [{ id: 'P1', nombre: 'Ana' }], { ahoraMs: ms(14, 0) });
+  const hueco = problemas.find((p) => p.tipo === 'hueco_muerto');
+  assert(hueco, 'adelantar 45 min es razonable: debe proponerse');
+  assertEquals(hueco!.estrategias[0].updates[0].inicio, iso(14, 0));
+});
+
+Deno.test('limites: el techo es configurable por salon', () => {
+  // Un salon que no quiere adelantar mas de 15 min: la cita de las 17:00 solo puede
+  // llegar a las 16:45, no a las 16:00 como con el techo por defecto.
+  const citas = [cita('A', 'P1', 17, 0, 60)];
+  const problemas = analizarAgendaDia(citas, [{ id: 'P1', nombre: 'Ana' }], {
+    ahoraMs: ms(14, 0),
+    maxAdelantoMin: 15,
+    umbralHuecoMin: 10,
+  });
+  const hueco = problemas.find((p) => p.tipo === 'hueco_muerto')!;
+  assertEquals(hueco.estrategias[0].updates[0].inicio, iso(16, 45));
+});
+
+Deno.test('limites: la ganancia minima es configurable por salon', () => {
+  // Salon que si quiere que le avisen por ganancias pequenas (umbral 5, el default viejo).
+  const citas = [cita('A', 'P1', 14, 20, 60)];
+  const problemas = analizarAgendaDia(citas, [{ id: 'P1', nombre: 'Ana' }], {
+    ahoraMs: ms(14, 0),
+    umbralHuecoMin: 5,
+  });
+  assert(problemas.some((p) => p.tipo === 'hueco_muerto'), 'con umbral 5 una ganancia de 20 min cuenta');
+});
+
+Deno.test('limites: el techo no afecta a mover_reasignar (solo va hacia adelante)', () => {
+  const citas = [
+    cita('A', 'P1', 10, 0, 60),
+    cita('B', 'P1', 10, 30, 30),
+    cita('X', 'P2', 10, 0, 60),
+  ];
+  const profs = [{ id: 'P1', nombre: 'Ana' }, { id: 'P2', nombre: 'Bea' }];
+  const problemas = analizarAgendaDia(citas, profs, { ahoraMs: ms(9, 0), maxAdelantoMin: 0 });
+  const solape = problemas.find((p) => p.tipo === 'solape')!;
+  const mv = solape.estrategias.find((e) => e.tipo === 'mover_reasignar');
+  assert(mv, 'mover_reasignar retrasa, no adelanta: el techo no le aplica');
+  assertEquals(mv!.updates[0].inicio, iso(11, 0));
 });
