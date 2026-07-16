@@ -7571,7 +7571,11 @@ function DayTimeline({
                                           color: cancelada
                                             ? TOKENS.textTer
                                             : TOKENS.text,
-                                          flex: 1,
+                                          // En fila, flex:1 le da el ancho sobrante (para el ellipsis).
+                                          // En columna crecia en ALTURA y estiraba el fondo blanco
+                                          // hasta el fondo del bloque: ahi se cine al contenido.
+                                          flex: isCol ? "0 1 auto" : 1,
+                                          maxWidth: isCol ? "100%" : undefined,
                                           minWidth: 0,
                                           overflow: "hidden",
                                           textOverflow: "ellipsis",
