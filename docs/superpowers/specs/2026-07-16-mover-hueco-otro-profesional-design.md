@@ -33,8 +33,11 @@ Tomadas de forma autónoma contra los documentos (el usuario delegó explícitam
   entran como obstáculos más en `buscarHueco`.
 - **Recurrencia de bloqueos: fuera del slice.** `bloqueos_profesional.recurrencia` existe pero
   **nadie la expande hoy** (solo hay CRUD en `equipo.*`); ningún validador del producto la respeta.
-  Se consumen solo los bloqueos cuyo `[inicio, fin]` intersecta el día analizado. Arreglar la
-  recurrencia es deuda transversal y merece su propio ciclo.
+  Se consume `[inicio, fin]` tal cual (la primera ocurrencia), sin expandir repeticiones. Arreglar
+  la recurrencia es deuda transversal y merece su propio ciclo.
+  No hace falta filtrar los bloqueos al día analizado: uno que no intersecta el día nunca puede
+  chocar con un slot de ese día, así que el filtro sería una optimización sin efecto sobre el
+  resultado. Se pasan todos y se agrupan por profesional.
 - **Ventana de jornada del negocio: fuera del slice.** `cierreDefault` = último fin + 3h, no el
   horario real de `negocio_horarios`. Es un defecto **preexistente y compartido por todas las
   palancas** (`mover_hueco` ya puede proponer las 23:00 hoy). No es regresión de este slice y
