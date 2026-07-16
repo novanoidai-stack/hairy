@@ -36,7 +36,7 @@ import {
   buscarHueco,
   hayColision,
 } from './retrasos.ts';
-import { HORARIO_CIERRE } from './constants.ts';
+import { HORARIO_APERTURA, HORARIO_CIERRE } from './constants.ts';
 
 const MIN = 60000;
 const UMBRAL_RETRASO_MIN = 10; // por debajo, no merece abrir el flujo de retraso
@@ -81,16 +81,58 @@ export interface BloqueoOrganizar {
   fin: string;
 }
 
+// Fila cruda de negocio_horarios. OJO: dia_semana es 0 = LUNES ... 6 = DOMINGO (ver DAY_LABELS
+// en configuracion.web.tsx), mientras que Date.getDay() es 0 = domingo. De ahi el (+6) % 7.
+export interface HorarioNegocio {
+  dia_semana: number;
+  abierto: boolean;
+  apertura: string | null; // 'HH:MM' o 'HH:MM:SS'
+  cierre: string | null;
+}
+
+export interface JornadaDia {
+  aperturaMs: number;
+  cierreMs: number;
+}
+
 export interface AnalisisAgendaOpts {
   ahoraMs?: number;
   umbralHuecoMin?: number;
   bloqueos?: BloqueoOrganizar[];
+  horarios?: HorarioNegocio[];
 }
 
-function cierreDelDia(fechaRefIso: string): number {
+// 'HH:MM' o 'HH:MM:SS' -> ms sobre la fecha de referencia (hora local del salon).
+function horaSobreFecha(fechaRefIso: string, hhmm: string): number | null {
+  const m = /^(\d{1,2}):(\d{2})/.exec(hhmm);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (h > 23 || min > 59) return null;
   const d = new Date(fechaRefIso);
-  d.setHours(HORARIO_CIERRE.horas, HORARIO_CIERRE.minutos, 0, 0);
+  d.setHours(h, min, 0, 0);
   return d.getTime();
+}
+
+// Ventana [apertura, cierre] del dia. Fallback a las constantes globales cuando no hay horario
+// util: sin fila, dia cerrado (apertura excepcional: mejor reorganizar que no ofrecer nada),
+// campos a NULL, formato invalido o cierre <= apertura.
+function ventanaDelDia(fechaRefIso: string, horarios?: HorarioNegocio[]): JornadaDia {
+  const porDefecto = (): JornadaDia => {
+    const a = new Date(fechaRefIso);
+    a.setHours(HORARIO_APERTURA.horas, HORARIO_APERTURA.minutos, 0, 0);
+    const c = new Date(fechaRefIso);
+    c.setHours(HORARIO_CIERRE.horas, HORARIO_CIERRE.minutos, 0, 0);
+    return { aperturaMs: a.getTime(), cierreMs: c.getTime() };
+  };
+  if (!horarios || horarios.length === 0) return porDefecto();
+  const dia = (new Date(fechaRefIso).getDay() + 6) % 7; // JS 0=domingo -> tabla 0=lunes
+  const fila = horarios.find((h) => h.dia_semana === dia);
+  if (!fila || !fila.abierto || !fila.apertura || !fila.cierre) return porDefecto();
+  const aperturaMs = horaSobreFecha(fechaRefIso, fila.apertura);
+  const cierreMs = horaSobreFecha(fechaRefIso, fila.cierre);
+  if (aperturaMs == null || cierreMs == null || cierreMs <= aperturaMs) return porDefecto();
+  return { aperturaMs, cierreMs };
 }
 
 function esMismoDiaLocal(iso: string, refMs: number): boolean {
@@ -114,7 +156,7 @@ function fmtFechaHora(iso: string): string {
 
 // --- 1) Retraso real: la cita activa (pendiente/confirmada) mas antigua que
 //        ya deberia haber acabado (fin_activa/fin < ahora) y sigue abierta. ---
-function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: number): ProblemaAgenda | null {
+function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: number, aperturaMs: number): ProblemaAgenda | null {
   const candidata = citasProf
     .filter((c) => +new Date(c.inicio) <= ahoraMs)
     .map((c) => ({ c, retrasoMin: (ahoraMs - +new Date(c.fin_activa || c.fin)) / MIN }))
@@ -123,7 +165,7 @@ function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: 
   if (!candidata) return null;
 
   const minutos = Math.max(5, Math.round(candidata.retrasoMin / 5) * 5);
-  const estrategias = calcularEstrategiasRetraso(citasProf, candidata.c.id, minutos, { cierreMs });
+  const estrategias = calcularEstrategiasRetraso(citasProf, candidata.c.id, minutos, { cierreMs, aperturaMs });
   if (estrategias.length === 0) return null; // algun hueco ya absorbe el retraso: nada que reorganizar
 
   const citaIds = new Set<string>([candidata.c.id]);
@@ -151,6 +193,7 @@ function detectarSolapes(
   ahoraMs: number,
   cierreMs: number,
   candidatos: CandidatoReasignacion[],
+  aperturaMs: number,
 ): ProblemaAgenda[] {
   const problemas: ProblemaAgenda[] = [];
   const resueltas = new Set<string>();
@@ -168,6 +211,7 @@ function detectarSolapes(
       const estrategias = calcularEstrategiasSolape(citasProf, intrusa.id, fija.id, {
         cierreMs,
         ahoraMs,
+        aperturaMs,
         reasignacion: { categoriaMinima: intrusa.categoriaMinima ?? null, candidatos },
       });
       if (estrategias.length === 0) continue;
@@ -200,6 +244,7 @@ function detectarHuecos(
   ahoraMs: number,
   cierreMs: number,
   umbralMs: number,
+  aperturaMs: number,
 ): ProblemaAgenda[] {
   const problemas: ProblemaAgenda[] = [];
   const efectivo = new Map<string, Fases>(citasProf.map((c) => [c.id, fasesDe(c)]));
@@ -211,7 +256,7 @@ function detectarHuecos(
   for (const cand of movibles) {
     const propia = efectivo.get(cand.id)!;
     const obstaculos = citasProf.filter((c) => c.id !== cand.id).map((c) => efectivo.get(c.id)!);
-    const slot = buscarHueco(propia, obstaculos, ahoraMs, cierreMs, false);
+    const slot = buscarHueco(propia, obstaculos, Math.max(ahoraMs, aperturaMs), cierreMs, false);
     if (slot == null) continue;
     if (propia.ini - slot < umbralMs) continue; // no merece la pena
 
@@ -284,9 +329,9 @@ export function analizarAgendaDia(
   const problemas: ProblemaAgenda[] = [];
   for (const [profId, citasProfSinOrdenar] of porProfesional) {
     const citasProf = [...citasProfSinOrdenar].sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
-    const cierreMs = cierreDelDia(citasProf[0].inicio);
+    const { aperturaMs, cierreMs } = ventanaDelDia(citasProf[0].inicio, opts?.horarios);
 
-    const retraso = detectarRetraso(citasProf, ahoraMs, cierreMs);
+    const retraso = detectarRetraso(citasProf, ahoraMs, cierreMs, aperturaMs);
     if (retraso) {
       problemas.push(retraso);
       continue;
@@ -302,13 +347,13 @@ export function analizarAgendaDia(
         bloqueos: bloqueosPorProf.get(p.id) ?? [],
       }));
 
-    const solapes = detectarSolapes(citasProf, ahoraMs, cierreMs, candidatos);
+    const solapes = detectarSolapes(citasProf, ahoraMs, cierreMs, candidatos, aperturaMs);
     if (solapes.length > 0) {
       problemas.push(...solapes);
       continue;
     }
 
-    problemas.push(...detectarHuecos(citasProf, ahoraMs, cierreMs, umbralHuecoMs));
+    problemas.push(...detectarHuecos(citasProf, ahoraMs, cierreMs, umbralHuecoMs, aperturaMs));
   }
 
   return problemas
