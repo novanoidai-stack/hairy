@@ -38,10 +38,18 @@ Tomadas de forma autónoma contra los documentos (el usuario delegó explícitam
   No hace falta filtrar los bloqueos al día analizado: uno que no intersecta el día nunca puede
   chocar con un slot de ese día, así que el filtro sería una optimización sin efecto sobre el
   resultado. Se pasan todos y se agrupan por profesional.
-- **Ventana de jornada del negocio: fuera del slice.** `cierreDefault` = último fin + 3h, no el
-  horario real de `negocio_horarios`. Es un defecto **preexistente y compartido por todas las
-  palancas** (`mover_hueco` ya puede proponer las 23:00 hoy). No es regresión de este slice y
-  arrastrarlo aquí mezclaría dos problemas.
+- **Ventana de jornada del negocio: fuera del slice.** El cierre que usan las palancas sale de la
+  constante global `HORARIO_CIERRE` (20:00), no del horario real de `negocio_horarios`. Es un
+  defecto preexistente y compartido por todas las palancas. No es regresión de este slice y
+  arrastrarlo aquí mezclaría dos problemas. Se aborda en
+  `2026-07-16-jornada-real-agenda-design.md`.
+
+  > **CORRECCION (16 jul, mismo dia):** una version anterior de esta spec decia que `cierreDefault`
+  > (= ultimo fin + 3h) hacia que `mover_hueco` "pudiera proponer las 23:00". **Es falso.**
+  > `analizarAgendaDia` ya calcula `cierreMs = cierreDelDia(...)` (20:00 via `HORARIO_CIERRE`) y lo
+  > pasa a todas las palancas; `cierreDefault` solo actua si el llamador no pasa `cierreMs`, que en
+  > la practica son solo los tests. El error vino de leer `cierreDefault` sin seguir el flujo hasta
+  > sus llamadores.
 - **Sin cita encadenada:** `intrusa.grupoId != null` → no se emite (consistente con el resto).
 
 ## Estado actual (lo que se reutiliza)
