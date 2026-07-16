@@ -177,6 +177,7 @@ export type EstrategiaTipo =
   | 'aprovechar_reposo'
   | 'adelantar_otra'
   | 'reasignar'
+  | 'mover_reasignar'
   | 'pedir_retraso_siguiente';
 
 // Aviso a un cliente afectado (lo consume el motor WhatsApp via flag retraso_aviso_pendiente).
@@ -204,6 +205,28 @@ export interface EstrategiasOpts {
   cierreMs?: number; // instante de cierre del dia (ms). Default: ultimo fin + 3h.
 }
 
+// Bloqueo de un profesional (vacaciones, reunion, baja). Ocupa todo su tramo.
+export interface BloqueoProfesional {
+  inicio: string;
+  fin: string;
+}
+
+// Profesional alternativo al que se puede pasar una cita. `bloqueos` es opcional: si el
+// llamador no los cablea, la palanca solo esquiva citas y puede proponer un hueco que en
+// realidad esta bloqueado.
+export interface CandidatoReasignacion {
+  id: string;
+  nombre: string;
+  categoria?: string | null;
+  ocupacion: CitaRetraso[];
+  bloqueos?: BloqueoProfesional[];
+}
+
+export interface ReasignacionOpts {
+  categoriaMinima?: string | null;
+  candidatos: CandidatoReasignacion[];
+}
+
 // ---- Modelo de fases en ms (compartido con lib/organizarAgenda.ts) ----
 export interface Fases {
   id: string;
@@ -219,6 +242,14 @@ export function fasesDe(c: CitaRetraso): Fases {
   const finA = c.fin_activa ? +new Date(c.fin_activa) : fin;
   const finE = c.fin_espera ? +new Date(c.fin_espera) : finA;
   return { id: c.id, ini, finA, finE, fin };
+}
+
+// Un bloqueo ocupa TODO su tramo: sin fase de reposo aprovechable (finE === fin hace que
+// ventanasActivas devuelva una sola ventana [ini, fin]).
+export function fasesDeBloqueo(b: BloqueoProfesional): Fases {
+  const ini = +new Date(b.inicio);
+  const fin = +new Date(b.fin);
+  return { id: `bloqueo:${b.inicio}:${b.fin}`, ini, finA: fin, finE: fin, fin };
 }
 
 // Ventanas en que el profesional esta OCUPADO de verdad (fase activa 1 y, si existe, 2).
@@ -619,10 +650,7 @@ function estrategiaCascadaSolape(
 // categoria suficiente. Elige la categoria cualificada mas baja (desempate por nombre).
 function estrategiaReasignar(
   intrusa: CitaRetraso,
-  reasignacion: {
-    categoriaMinima?: string | null;
-    candidatos: { id: string; nombre: string; categoria?: string | null; ocupacion: CitaRetraso[] }[];
-  },
+  reasignacion: ReasignacionOpts,
 ): EstrategiaRetraso | null {
   if (intrusa.grupoId) return null;
   const intrusaFases = fasesDe(intrusa);
@@ -657,10 +685,7 @@ export function calcularEstrategiasSolape(
   opts?: {
     cierreMs?: number;
     ahoraMs?: number;
-    reasignacion?: {
-      categoriaMinima?: string | null;
-      candidatos: { id: string; nombre: string; categoria?: string | null; ocupacion: CitaRetraso[] }[];
-    };
+    reasignacion?: ReasignacionOpts;
   },
 ): EstrategiaRetraso[] {
   const intrusa = citasDelProfesional.find((c) => c.id === intrusaId);
