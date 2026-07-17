@@ -1232,17 +1232,19 @@ export default function AgendaCalendar() {
 
   // Paginacion de columnas en la vista Dia: con "Todos" y muchos profesionales, las
   // columnas se aprietan. Se muestran de PROF_PAGE_SIZE en PROF_PAGE_SIZE con un pager.
-  const PROF_PAGE_SIZE = 4;
+  // En tablet caben menos columnas comodas -> 3; en escritorio 4.
+  const PROF_PAGE_SIZE = isTablet ? 3 : 4;
   const [profPage, setProfPage] = useState(0);
   const profPageCount = Math.max(
     1,
     Math.ceil(timelineProfs.length / PROF_PAGE_SIZE),
   );
   // Volver a la primera pagina si el conjunto cambia (cambio de profesional/dia/filtro)
-  // para no quedarse en una pagina que ya no existe.
+  // o si cambia el tamano de pagina al pasar tablet<->escritorio, para no quedarse en
+  // una pagina que ya no existe.
   useEffect(() => {
     setProfPage(0);
-  }, [selectedProf, selectedDate, currentMonth]);
+  }, [selectedProf, selectedDate, currentMonth, PROF_PAGE_SIZE]);
   useEffect(() => {
     if (profPage > profPageCount - 1) setProfPage(0);
   }, [profPageCount, profPage]);
