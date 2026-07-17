@@ -16,12 +16,14 @@ import { mensajeDeError } from "@/lib/errores";
 import { ejecutarAccion, type AccionPropuesta } from "@/lib/chispaOps";
 import {
   proponerRetrasoPorCita,
+  calcularCascada,
   construirUpdatesRetraso,
   calcularEstrategiasRetraso,
   mejorAlternativaSlot,
   duracionRealAprendida,
   type EstrategiaRetraso,
   type CitaRetraso,
+  type CitaTiempos,
   type CitaHistorial,
 } from "@/lib/retrasos";
 import {
@@ -2599,36 +2601,6 @@ export default function AgendaCalendar() {
                               onMouseLeave={(e) => { if (view !== v) e.currentTarget.style.background = "transparent"; }}
                             >
                               {v === "day" ? "Dia" : v === "week" ? "Semana" : "Mes"}
-                            </button>
-                          ))}
-                        </div>
-                        {/* Deshacer / rehacer movimientos de citas de esta sesion */}
-                        <div style={{ display: "flex", background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: "hidden" }}>
-                          {([
-                            { k: "undo", on: handleDeshacer, hay: pilaAgenda.deshacer.length > 0, icon: "chevronLeft", t: "Deshacer el ultimo movimiento" },
-                            { k: "redo", on: handleRehacer, hay: pilaAgenda.rehacer.length > 0, icon: "chevronRight", t: "Rehacer el movimiento deshecho" },
-                          ] as const).map((b) => (
-                            <button
-                              key={b.k}
-                              onClick={b.on}
-                              disabled={!b.hay || undoBusy}
-                              title={b.hay ? b.t : (b.k === "undo" ? "No hay movimientos que deshacer" : "No hay nada que rehacer")}
-                              style={{
-                                padding: isMobile ? "6px 9px" : "8px 11px",
-                                background: "transparent",
-                                border: "none",
-                                borderRight: b.k === "undo" ? `1px solid ${TOKENS.border}` : "none",
-                                color: b.hay && !undoBusy ? TOKENS.text : TOKENS.textTer,
-                                cursor: b.hay && !undoBusy ? "pointer" : "default",
-                                display: "flex",
-                                alignItems: "center",
-                                opacity: b.hay && !undoBusy ? 1 : 0.4,
-                                transition: "all 0.2s ease",
-                              }}
-                              onMouseEnter={(e) => { if (b.hay && !undoBusy) e.currentTarget.style.background = roleTheme.primarySoft; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                            >
-                              <Icon name={b.icon} size={isMobile ? 14 : 16} color="currentColor" />
                             </button>
                           ))}
                         </div>
@@ -13346,36 +13318,37 @@ export function DetalleCitaModal({
 
         const delayMs = fin.getTime() - originalFin.getTime();
         if (delayMs > 0 && citasHoy) {
-          const siguientes = (citasHoy as any[]).filter(
+          const posteriores = (citasHoy as any[]).filter(
             (c: any) =>
               c.profesional_id === selectedProf.id &&
               c.id !== cita.id &&
               new Date(c.inicio) >= originalFin,
           );
-          if (siguientes.length > 0) {
+          // El nuevo fin es la barrera: la cascada absorbe los huecos y se corta en la
+          // primera cita a la que el alargamiento ya no llega. Alargar sin solapar con
+          // nadie no mueve nada, y cada afectada se desplaza solo lo justo.
+          const propuesta = calcularCascada(
+            posteriores.map((c: any) => ({
+              id: c.id,
+              inicio: c.inicio,
+              fin: c.fin,
+            })),
+            fin.getTime(),
+          );
+          const n = propuesta.totalAfectadas;
+          if (n > 0) {
             const delayMin = Math.round(delayMs / 60000);
             const ok = window.confirm(
-              `Esta cita se ha alargado ${delayMin} min.\n\nHay ${siguientes.length} cita${siguientes.length > 1 ? "s" : ""} siguiente${siguientes.length > 1 ? "s" : ""} de ${selectedProf.nombre} que pueden verse afectadas.\n\n¿Desplazarlas tambien?`,
+              `Esta cita se ha alargado ${delayMin} min.\n\nSe solapa con ${n} cita${n > 1 ? "s" : ""} siguiente${n > 1 ? "s" : ""} de ${selectedProf.nombre}.\n\n¿Desplazar${n > 1 ? "las" : "la"} tambien?`,
             );
             if (ok) {
-              for (const sig of siguientes) {
-                const payload: any = {
-                  inicio: new Date(
-                    new Date(sig.inicio).getTime() + delayMs,
-                  ).toISOString(),
-                  fin: new Date(
-                    new Date(sig.fin).getTime() + delayMs,
-                  ).toISOString(),
-                };
-                if (sig.fin_activa)
-                  payload.fin_activa = new Date(
-                    new Date(sig.fin_activa).getTime() + delayMs,
-                  ).toISOString();
-                if (sig.fin_espera)
-                  payload.fin_espera = new Date(
-                    new Date(sig.fin_espera).getTime() + delayMs,
-                  ).toISOString();
-                await supabase.from("citas").update(payload).eq("id", sig.id);
+              const updates = construirUpdatesRetraso(
+                propuesta,
+                posteriores as CitaTiempos[],
+              );
+              for (const u of updates) {
+                const { id, ...campos } = u;
+                await supabase.from("citas").update(campos).eq("id", id);
               }
             }
           }
