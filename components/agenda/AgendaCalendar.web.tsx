@@ -1230,6 +1230,28 @@ export default function AgendaCalendar() {
     return visibleProfs.filter((p) => p.id === selectedProf);
   }, [visibleProfs, selectedProf]);
 
+  // Paginacion de columnas en la vista Dia: con "Todos" y muchos profesionales, las
+  // columnas se aprietan. Se muestran de PROF_PAGE_SIZE en PROF_PAGE_SIZE con un pager.
+  const PROF_PAGE_SIZE = 4;
+  const [profPage, setProfPage] = useState(0);
+  const profPageCount = Math.max(
+    1,
+    Math.ceil(timelineProfs.length / PROF_PAGE_SIZE),
+  );
+  // Volver a la primera pagina si el conjunto cambia (cambio de profesional/dia/filtro)
+  // para no quedarse en una pagina que ya no existe.
+  useEffect(() => {
+    setProfPage(0);
+  }, [selectedProf, selectedDate, currentMonth]);
+  useEffect(() => {
+    if (profPage > profPageCount - 1) setProfPage(0);
+  }, [profPageCount, profPage]);
+  const pagedTimelineProfs = useMemo(() => {
+    if (timelineProfs.length <= PROF_PAGE_SIZE) return timelineProfs;
+    const start = profPage * PROF_PAGE_SIZE;
+    return timelineProfs.slice(start, start + PROF_PAGE_SIZE);
+  }, [timelineProfs, profPage]);
+
   const filtered = useMemo(() => {
     let result =
       selectedProf === "todos"
@@ -3757,10 +3779,81 @@ export default function AgendaCalendar() {
           </div>
           {view === "day" && (
             <>
+              {timelineProfs.length > PROF_PAGE_SIZE && (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "8px 4px 6px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: TOKENS.textSec,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {`${profPage * PROF_PAGE_SIZE + 1}–${Math.min(
+                      (profPage + 1) * PROF_PAGE_SIZE,
+                      timelineProfs.length,
+                    )} de ${timelineProfs.length}`}
+                  </span>
+                  <div
+                    style={{
+                      display: "flex",
+                      background: TOKENS.bgCard,
+                      border: `1px solid ${TOKENS.border}`,
+                      borderRadius: 10,
+                      overflow: "hidden",
+                    }}
+                  >
+                    {([
+                      { k: "prev", dis: profPage <= 0, icon: "chevronLeft", d: -1, t: "Profesionales anteriores" },
+                      { k: "next", dis: profPage >= profPageCount - 1, icon: "chevronRight", d: 1, t: "Siguientes profesionales" },
+                    ] as const).map((b) => (
+                      <button
+                        key={b.k}
+                        onClick={() =>
+                          setProfPage((p) =>
+                            Math.min(Math.max(p + b.d, 0), profPageCount - 1),
+                          )
+                        }
+                        disabled={b.dis}
+                        title={b.t}
+                        style={{
+                          padding: "6px 11px",
+                          background: "transparent",
+                          border: "none",
+                          borderRight:
+                            b.k === "prev" ? `1px solid ${TOKENS.border}` : "none",
+                          color: b.dis ? TOKENS.textTer : TOKENS.text,
+                          cursor: b.dis ? "default" : "pointer",
+                          opacity: b.dis ? 0.4 : 1,
+                          display: "flex",
+                          alignItems: "center",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!b.dis)
+                            e.currentTarget.style.background = roleTheme.primarySoft;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "transparent";
+                        }}
+                      >
+                        <Icon name={b.icon} size={16} color="currentColor" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {dayViewType === "list" && isMobile ? (
                 <DayListView
                   citas={filtered}
-                  profesionales={timelineProfs}
+                  profesionales={pagedTimelineProfs}
                   servicios={servicios}
                   clientes={clientes}
                   servicioMap={servicioMap}
@@ -3786,7 +3879,7 @@ export default function AgendaCalendar() {
               ) : (
                 <DayTimeline
                   citas={filtered}
-                  profesionales={timelineProfs}
+                  profesionales={pagedTimelineProfs}
                   servicios={servicios}
                   clientes={clientes}
                   servicioMap={servicioMap}
