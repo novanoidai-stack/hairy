@@ -68,6 +68,7 @@ function Icon({ name, size = 18, color = T.text }: { name: string; size?: number
     x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>',
+    chevron: '<polyline points="6 9 12 15 18 9"/>',
   };
   return (
     <span style={{ display: 'inline-flex', color, flexShrink: 0 }} dangerouslySetInnerHTML={{
@@ -83,6 +84,7 @@ interface CitaPendiente {
   id: string;
   fecha: string;
   hora_inicio: string;
+  cliente_id: string | null;
   cliente_nombre: string | null;
   profesional_nombre: string | null;
   servicio_nombre: string | null;
@@ -119,6 +121,8 @@ function CajaScreen() {
   const [citas, setCitas] = useState<CitaPendiente[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // Conceptos (grupos por cliente) desplegados para cobrar servicios por separado.
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [showCobroModal, setShowCobroModal] = useState(false);
   const [showWalkin, setShowWalkin] = useState(false);
   // Presupuestos aceptados pendientes de cobro (se cobran con el mismo motor).
@@ -158,8 +162,53 @@ function CajaScreen() {
     const totalServicios = seleccionadas.reduce((s, c) => s + (c.servicio_precio || 0), 0);
     const totalSenas = seleccionadas.reduce((s, c) => s + c.sena_pagada, 0);
     const pendiente = totalServicios - totalSenas;
-    return { count: seleccionadas.length, totalServicios, totalSenas, pendiente };
+    // Nombre del cliente si toda la seleccion es del mismo cliente (para el titulo del cobro).
+    const clientesUnicos = new Set(seleccionadas.map(c => c.cliente_id ?? `solo:${c.id}`));
+    const clienteNombre = clientesUnicos.size === 1 ? (seleccionadas[0]?.cliente_nombre ?? null) : null;
+    return { count: seleccionadas.length, totalServicios, totalSenas, pendiente, clienteNombre };
   }, [citas, selectedIds]);
+
+  // Conceptos: agrupa las citas pendientes por cliente (servicios encadenados de un
+  // mismo cliente caen juntos). Sin cliente -> concepto propio (no se agrupan anonimos).
+  const conceptos = useMemo(() => {
+    const map = new Map<string, CitaPendiente[]>();
+    const orden: string[] = [];
+    for (const c of citas) {
+      const key = c.cliente_id ? `cli:${c.cliente_id}` : `solo:${c.id}`;
+      if (!map.has(key)) { map.set(key, []); orden.push(key); }
+      map.get(key)!.push(c);
+    }
+    return orden.map((key) => {
+      const items = map.get(key)!;
+      return {
+        key,
+        cliente_nombre: items[0].cliente_nombre,
+        items,
+        totalPendiente: items.reduce((s, i) => s + i.total_pendiente, 0),
+        totalSenas: items.reduce((s, i) => s + i.sena_pagada, 0),
+      };
+    });
+  }, [citas]);
+
+  const contarSeleccionados = (items: CitaPendiente[]) => items.filter(i => selectedIds.has(i.id)).length;
+
+  const toggleConcepto = (items: CitaPendiente[]) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      const todosSel = items.every(i => next.has(i.id));
+      if (todosSel) items.forEach(i => next.delete(i.id));
+      else items.forEach(i => next.add(i.id));
+      return next;
+    });
+  };
+
+  const toggleExpand = (key: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
 
   // Cargar citas pendientes de cobro (hoy)
   const cargarCitas = useCallback(async () => {
@@ -214,6 +263,7 @@ function CajaScreen() {
           id: cita.id,
           fecha: cita.inicio,
           hora_inicio: cita.inicio,
+          cliente_id: cita.cliente_id || null,
           cliente_nombre: cita.clientes?.nombre || null,
           profesional_nombre: cita.profesionales?.nombre || null,
           servicio_nombre: servicio.nombre || null,
@@ -648,68 +698,200 @@ function CajaScreen() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {citas.map((cita, idx) => {
-            const isSelected = selectedIds.has(cita.id);
-            const hora = cita.hora_inicio ? format(parseISO(cita.hora_inicio), 'HH:mm', { locale: es }) : '--:--';
+          {conceptos.map((concepto, idx) => {
+            const animDelay = `${idx * 0.03}s`;
+
+            // Concepto de un solo servicio: fila simple (igual que antes).
+            if (concepto.items.length === 1) {
+              const cita = concepto.items[0];
+              const isSelected = selectedIds.has(cita.id);
+              const hora = cita.hora_inicio ? format(parseISO(cita.hora_inicio), 'HH:mm', { locale: es }) : '--:--';
+              return (
+                <div
+                  key={concepto.key}
+                  className={`ca-row ${isSelected ? 'selected' : ''}`}
+                  onClick={() => toggleSeleccion(cita.id)}
+                  style={{
+                    display: 'grid', gridTemplateColumns: 'auto 1fr auto',
+                    gap: 16, padding: '14px 18px', background: T.card,
+                    borderRadius: 12, border: `1px solid ${isSelected ? T.primary : T.border}`,
+                    cursor: 'pointer', animationDelay: animDelay,
+                  }}
+                >
+                  <div style={{ display: 'grid', placeItems: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSeleccion(cita.id)}
+                      style={{ width: 18, height: 18, cursor: 'pointer' }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: T.text }}>
+                        {cita.cliente_nombre || 'Sin cliente'}
+                      </span>
+                      {cita.profesional_nombre && (
+                        <span style={{ fontSize: 12, color: T.textSec, padding: '2px 8px', background: T.bg, borderRadius: 6 }}>
+                          {cita.profesional_nombre}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 13, color: T.textSec, display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Icon name="clock" size={13} />
+                        {hora}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        {cita.categoria_color && <span style={{ width: 6, height: 6, borderRadius: 99, background: cita.categoria_color, flexShrink: 0 }} />}
+                        {cita.servicio_nombre || 'Servicio'}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>
+                      {(cita.total_pendiente / 100).toFixed(2)}€
+                    </div>
+                    {cita.sena_pagada > 0 && (
+                      <div style={{ fontSize: 11, color: T.success }}>
+                        señal {(cita.sena_pagada / 100).toFixed(2)}€
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
+            // Concepto con varios servicios encadenados del mismo cliente.
+            const seleccionados = contarSeleccionados(concepto.items);
+            const estado = seleccionados === 0 ? 'none' : seleccionados === concepto.items.length ? 'all' : 'some';
+            const expanded = expandedIds.has(concepto.key);
+            const primeraHora = concepto.items[0].hora_inicio ? format(parseISO(concepto.items[0].hora_inicio), 'HH:mm', { locale: es }) : '--:--';
 
             return (
               <div
-                key={cita.id}
-                className={`ca-row ${isSelected ? 'selected' : ''}`}
-                onClick={() => toggleSeleccion(cita.id)}
+                key={concepto.key}
+                className={`ca-row ${estado !== 'none' ? 'selected' : ''}`}
                 style={{
-                  display: 'grid', gridTemplateColumns: 'auto 1fr auto',
-                  gap: 16, padding: '14px 18px', background: T.card,
-                  borderRadius: 12, border: `1px solid ${isSelected ? T.primary : T.border}`,
-                  cursor: 'pointer', animationDelay: `${idx * 0.03}s`,
+                  padding: '14px 18px', background: T.card, borderRadius: 12,
+                  border: `1px solid ${estado !== 'none' ? T.primary : T.border}`,
+                  animationDelay: animDelay,
                 }}
               >
-                {/* Checkbox */}
-                <div style={{ display: 'grid', placeItems: 'center' }}>
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleSeleccion(cita.id)}
-                    style={{ width: 18, height: 18, cursor: 'pointer' }}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
+                {/* Cabecera del concepto: pulsar la fila despliega los servicios */}
+                <div
+                  onClick={() => toggleExpand(concepto.key)}
+                  style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 16, alignItems: 'center', cursor: 'pointer' }}
+                >
+                  {/* Checkbox tri-estado: selecciona/deselecciona todo el concepto */}
+                  <div style={{ display: 'grid', placeItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={estado === 'all'}
+                      ref={(el) => { if (el) el.indeterminate = estado === 'some'; }}
+                      onChange={() => toggleConcepto(concepto.items)}
+                      style={{ width: 18, height: 18, cursor: 'pointer' }}
+                    />
+                  </div>
 
-                {/* Info */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: T.text }}>
-                      {cita.cliente_nombre || 'Sin cliente'}
-                    </span>
-                    {cita.profesional_nombre && (
-                      <span style={{ fontSize: 12, color: T.textSec, padding: '2px 8px', background: T.bg, borderRadius: 6 }}>
-                        {cita.profesional_nombre}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: T.text }}>
+                        {concepto.cliente_nombre || 'Sin cliente'}
                       </span>
-                    )}
+                      <span style={{ fontSize: 12, fontWeight: 700, color: T.primary, padding: '2px 8px', background: T.primarySoft, borderRadius: 6 }}>
+                        {concepto.items.length} servicios
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 13, color: T.textSec, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Icon name="clock" size={13} />
+                        {primeraHora}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        {concepto.items.slice(0, 5).map((it, i) => (
+                          <span key={i} style={{ width: 7, height: 7, borderRadius: 99, background: it.categoria_color || T.border, flexShrink: 0 }} />
+                        ))}
+                      </span>
+                      {estado === 'some' && (
+                        <span style={{ fontSize: 12, fontWeight: 600, color: T.primary }}>
+                          {seleccionados}/{concepto.items.length} seleccionados
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 13, color: T.textSec, display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Icon name="clock" size={13} />
-                      {hora}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      {cita.categoria_color && <span style={{ width: 6, height: 6, borderRadius: 99, background: cita.categoria_color, flexShrink: 0 }} />}
-                      {cita.servicio_nombre || 'Servicio'}
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>
+                        {(concepto.totalPendiente / 100).toFixed(2)}€
+                      </div>
+                      {concepto.totalSenas > 0 && (
+                        <div style={{ fontSize: 11, color: T.success }}>
+                          señal {(concepto.totalSenas / 100).toFixed(2)}€
+                        </div>
+                      )}
+                    </div>
+                    <span style={{ display: 'inline-flex', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
+                      <Icon name="chevron" size={18} color={T.textSec} />
                     </span>
                   </div>
                 </div>
 
-                {/* Importe */}
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>
-                    {(cita.total_pendiente / 100).toFixed(2)}€
+                {/* Servicios individuales: cobrar por separado marcando solo algunos */}
+                {expanded && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.border}` }}>
+                    {concepto.items.map((sub) => {
+                      const subSel = selectedIds.has(sub.id);
+                      const subHora = sub.hora_inicio ? format(parseISO(sub.hora_inicio), 'HH:mm', { locale: es }) : '--:--';
+                      return (
+                        <div
+                          key={sub.id}
+                          onClick={() => toggleSeleccion(sub.id)}
+                          style={{
+                            display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 12, alignItems: 'center',
+                            padding: '8px 10px', borderRadius: 8, cursor: 'pointer',
+                            background: subSel ? T.primarySoft : T.bg,
+                            border: `1px solid ${subSel ? T.primary : 'transparent'}`,
+                          }}
+                        >
+                          <div style={{ display: 'grid', placeItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={subSel}
+                              onChange={() => toggleSeleccion(sub.id)}
+                              style={{ width: 16, height: 16, cursor: 'pointer' }}
+                            />
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5, color: T.text }}>
+                              {sub.categoria_color && <span style={{ width: 6, height: 6, borderRadius: 99, background: sub.categoria_color, flexShrink: 0 }} />}
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.servicio_nombre || 'Servicio'}</span>
+                            </div>
+                            <div style={{ fontSize: 12, color: T.textSec, display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <Icon name="clock" size={12} />
+                                {subHora}
+                              </span>
+                              {sub.profesional_nombre && <span>{sub.profesional_nombre}</span>}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: T.text }}>
+                              {(sub.total_pendiente / 100).toFixed(2)}€
+                            </div>
+                            {sub.sena_pagada > 0 && (
+                              <div style={{ fontSize: 10, color: T.success }}>
+                                señal {(sub.sena_pagada / 100).toFixed(2)}€
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  {cita.sena_pagada > 0 && (
-                    <div style={{ fontSize: 11, color: T.success }}>
-                      señal {(cita.sena_pagada / 100).toFixed(2)}€
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             );
           })}
@@ -752,7 +934,7 @@ function CajaScreen() {
           citaIds={Array.from(selectedIds)}
           pendienteCents={seleccion.pendiente}
           senalCents={seleccion.totalSenas}
-          titulo={`Cobrar ${seleccion.count} cita${seleccion.count > 1 ? 's' : ''}`}
+          titulo={`Cobrar ${seleccion.count} servicio${seleccion.count > 1 ? 's' : ''}${seleccion.clienteNombre ? ` · ${seleccion.clienteNombre}` : ''}`}
           onClose={() => setShowCobroModal(false)}
           onSuccess={handleCobroSuccess}
         />
