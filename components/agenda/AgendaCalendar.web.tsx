@@ -1176,10 +1176,14 @@ export default function AgendaCalendar() {
     return countsMap;
   }, [citas, month, year]);
 
-  const selectedDateObj = new Date(
-    currentMonth.getFullYear(),
-    currentMonth.getMonth(),
-    selectedDate,
+  const selectedDateObj = useMemo(
+    () =>
+      new Date(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth(),
+        selectedDate,
+      ),
+    [currentMonth, selectedDate],
   );
 
   // Cierre del salon completo para el dia visible (festivo/vacaciones). Comparamos por
@@ -3789,6 +3793,10 @@ export default function AgendaCalendar() {
                     alignItems: "center",
                     gap: 8,
                     padding: "8px 4px 6px",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 30,
+                    background: TOKENS.bg,
                   }}
                 >
                   <span
@@ -7081,7 +7089,7 @@ function DayTimeline({
             >
               {profesionales.map((prof: any) => {
                 const profColor = prof.color || TOKENS.primary;
-                const citaBg = `linear-gradient(180deg, ${profColor}22, ${profColor}11)`;
+                const citaBg = `linear-gradient(180deg, ${profColor}2e, ${profColor}1c)`;
                 const citaBorder = `${profColor}33`;
                 const citaBorderHover = `${profColor}66`;
                 const citaShadow = `0 4px 12px -2px rgba(0,0,0,0.04), 0 2px 4px -2px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 0 1px ${profColor}1a`;
@@ -7381,6 +7389,9 @@ function DayTimeline({
                                 const reposoMin = Math.round(
                                   (esperaPx / ROW_H) * 60,
                                 );
+                                const hayActiva2 = !!(
+                                  finEspera && finEspera < end
+                                );
                                 const hasNested = profCitas.some(
                                   (c: any) =>
                                     c._hostId === cita.id &&
@@ -7391,16 +7402,16 @@ function DayTimeline({
                                     style={{
                                       position: "absolute",
                                       top: activaPx,
-                                      left: 3,
-                                      right: 3,
+                                      left: 0,
+                                      right: 0,
                                       height: esperaPx,
                                       pointerEvents: "none",
                                       zIndex: 1,
-                                      borderRadius: 7,
-                                      background: "rgba(240,253,244,0.9)",
-                                      border: "1px solid rgba(34,197,94,0.38)",
-                                      boxShadow:
-                                        "inset 0 2px 5px rgba(15,23,42,0.12), inset 0 -1px 0 rgba(255,255,255,0.7)",
+                                      background: "transparent",
+                                      borderTop: `1px dashed ${stripeColor}`,
+                                      borderBottom: hayActiva2
+                                        ? `1px dashed ${stripeColor}`
+                                        : "none",
                                       display: "flex",
                                       alignItems: "center",
                                       justifyContent: "center",
@@ -7410,32 +7421,17 @@ function DayTimeline({
                                     {!hasNested && esperaPx >= 16 && (
                                       <span
                                         style={{
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          gap: 5,
-                                          padding: "2px 9px",
+                                          padding: "1px 8px",
                                           borderRadius: 999,
-                                          background: "#ffffff",
-                                          border: "1px solid rgba(34,197,94,0.55)",
-                                          boxShadow:
-                                            "0 1px 2px rgba(15,23,42,0.1)",
+                                          background: "rgba(255,255,255,0.72)",
                                           fontSize: 9,
-                                          fontWeight: 700,
+                                          fontWeight: 600,
                                           letterSpacing: 0.4,
                                           textTransform: "uppercase",
-                                          color: "#15803d",
+                                          color: TOKENS.textTer,
                                           whiteSpace: "nowrap",
                                         }}
                                       >
-                                        <span
-                                          style={{
-                                            width: 5,
-                                            height: 5,
-                                            borderRadius: 999,
-                                            background: "#22c55e",
-                                            flexShrink: 0,
-                                          }}
-                                        />
                                         Libre {reposoMin}′
                                       </span>
                                     )}
@@ -9185,11 +9181,6 @@ function NewCitaModal({
       if (prfsErr) console.error("Profesionales error:", prfsErr);
       if (citsErr) console.error("Citas error:", citsErr);
 
-      console.log("Servicios data:", srvs);
-      console.log("Clientes data:", clts);
-      console.log("Profesionales data:", prfs);
-      console.log("Citas hoy data:", cits);
-
       setClientes(clts ?? []);
       setServicios(srvs ?? []);
       setCategorias(cats ?? []);
@@ -9200,7 +9191,7 @@ function NewCitaModal({
       setLoading(false);
     }
     cargar();
-  }, [today, selectedDate]);
+  }, [selectedDate]);
 
   // Load per-professional duration override when both prof + service are selected
   useEffect(() => {
