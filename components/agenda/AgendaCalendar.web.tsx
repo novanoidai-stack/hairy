@@ -7381,9 +7381,6 @@ function DayTimeline({
                                 const reposoMin = Math.round(
                                   (esperaPx / ROW_H) * 60,
                                 );
-                                const hayActiva2 = !!(
-                                  finEspera && finEspera < end
-                                );
                                 const hasNested = profCitas.some(
                                   (c: any) =>
                                     c._hostId === cita.id &&
@@ -7399,10 +7396,11 @@ function DayTimeline({
                                       height: esperaPx,
                                       pointerEvents: "none",
                                       zIndex: 1,
-                                      borderRadius: 6,
-                                      background: "rgba(34,197,94,0.12)",
-                                      borderTop: "1px dashed rgba(34,197,94,0.45)",
-                                      borderBottom: hayActiva2 ? "none" : "1px dashed rgba(34,197,94,0.45)",
+                                      borderRadius: 7,
+                                      background: "rgba(240,253,244,0.9)",
+                                      border: "1px solid rgba(34,197,94,0.38)",
+                                      boxShadow:
+                                        "inset 0 2px 5px rgba(15,23,42,0.12), inset 0 -1px 0 rgba(255,255,255,0.7)",
                                       display: "flex",
                                       alignItems: "center",
                                       justifyContent: "center",
@@ -7412,28 +7410,34 @@ function DayTimeline({
                                     {!hasNested && esperaPx >= 16 && (
                                       <span
                                         style={{
-                                          fontSize: 8.5,
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: 5,
+                                          padding: "2px 9px",
+                                          borderRadius: 999,
+                                          background: "#ffffff",
+                                          border: "1px solid rgba(34,197,94,0.55)",
+                                          boxShadow:
+                                            "0 1px 2px rgba(15,23,42,0.1)",
+                                          fontSize: 9,
                                           fontWeight: 700,
                                           letterSpacing: 0.4,
                                           textTransform: "uppercase",
                                           color: "#15803d",
-                                          opacity: 0.8,
+                                          whiteSpace: "nowrap",
                                         }}
                                       >
-                                        Hueco Libre {reposoMin}′
+                                        <span
+                                          style={{
+                                            width: 5,
+                                            height: 5,
+                                            borderRadius: 999,
+                                            background: "#22c55e",
+                                            flexShrink: 0,
+                                          }}
+                                        />
+                                        Libre {reposoMin}′
                                       </span>
-                                    )}
-                                    {hayActiva2 && (
-                                      <span
-                                        style={{
-                                          position: "absolute",
-                                          bottom: -1,
-                                          left: 0,
-                                          right: 0,
-                                          borderBottom:
-                                            "1px dashed rgba(34,197,94,0.45)",
-                                        }}
-                                      />
                                     )}
                                   </div>
                                 );
