@@ -12539,6 +12539,112 @@ function TimeNumBox({ value, label }: { value: string; label: string }) {
   );
 }
 
+// --- Rail de secciones del DetalleCitaModal (patron maestro-detalle, estilo Booksy) ---
+type SeccionCita =
+  | "resumen"
+  | "cliente"
+  | "servicio"
+  | "color"
+  | "notas"
+  | "pagos"
+  | "historial";
+
+const RAIL_ICONS: Record<SeccionCita, (c: string) => React.ReactNode> = {
+  resumen: (c) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  ),
+  cliente: (c) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
+    </svg>
+  ),
+  servicio: (c) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15.5 14" />
+    </svg>
+  ),
+  color: (c) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-11-7-11S5 10.7 5 15a7 7 0 0 0 7 7z" />
+    </svg>
+  ),
+  notas: (c) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 20l3.5-1L18 8.5a1.5 1.5 0 0 0 0-2.1l-.4-.4a1.5 1.5 0 0 0-2.1 0L5 16.5 4 20z" />
+    </svg>
+  ),
+  pagos: (c) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" />
+    </svg>
+  ),
+  historial: (c) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 16 14" />
+    </svg>
+  ),
+};
+
+const RAIL_ITEMS: { id: SeccionCita; label: string }[] = [
+  { id: "resumen", label: "Resumen" },
+  { id: "cliente", label: "Cliente" },
+  { id: "servicio", label: "Servicio y tiempos" },
+  { id: "color", label: "Ficha de color" },
+  { id: "notas", label: "Notas" },
+  { id: "pagos", label: "Pagos" },
+  { id: "historial", label: "Historial" },
+];
+
+function SeccionRailItem({
+  id,
+  label,
+  active,
+  onClick,
+  vertical,
+}: {
+  id: SeccionCita;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  vertical: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        width: vertical ? "100%" : "auto",
+        padding: vertical ? "10px 14px" : "8px 14px",
+        borderRadius: 10,
+        border: "none",
+        background: active ? "rgba(244,80,30,0.10)" : "transparent",
+        color: active ? TOKENS.primaryHi : TOKENS.textSec,
+        fontSize: 13,
+        fontWeight: active ? 700 : 500,
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+        textAlign: "left",
+        transition: "background 0.15s ease, color 0.15s ease",
+      }}
+      onMouseEnter={(e) => {
+        if (!active) e.currentTarget.style.background = "rgba(244,80,30,0.06)";
+      }}
+      onMouseLeave={(e) => {
+        if (!active) e.currentTarget.style.background = "transparent";
+      }}
+    >
+      {RAIL_ICONS[id](active ? TOKENS.primaryHi : TOKENS.textTer)}
+      {label}
+    </button>
+  );
+}
+
 export function DetalleCitaModal({
   onClose,
   onSaved,
@@ -12578,6 +12684,8 @@ export function DetalleCitaModal({
   const [openEst, setOpenEst] = useState(false);
 
   const [showFichaColor, setShowFichaColor] = useState(false);
+  // Seccion activa del rail (patron maestro-detalle estilo Booksy)
+  const [seccionActiva, setSeccionActiva] = useState<SeccionCita>("resumen");
   const {
     estado: estadoVoz,
     errorVoz,
@@ -13910,6 +14018,19 @@ export function DetalleCitaModal({
       const a = (e as CustomEvent).detail?.action;
       if (typeof a !== "string" || a.indexOf("detalle-") !== 0) return;
       const zone = a.slice("detalle-".length);
+      // Rail maestro-detalle: activar la seccion que contiene la zona antes de
+      // hacer scroll a su ref, para que ya este montada y visible.
+      const seccionPorZona: Record<string, SeccionCita> = {
+        cliente: "cliente",
+        servicio: "servicio",
+        estado: "resumen",
+        secuencia: "servicio",
+        "secuencia-activo": "servicio",
+        "secuencia-reposo": "servicio",
+        "secuencia-activo2": "servicio",
+        formula: "color",
+      };
+      if (seccionPorZona[zone]) setSeccionActiva(seccionPorZona[zone]);
       if (zone === "formula") setShowFormula(true);
       setDemoZone(zone);
     };
@@ -13990,7 +14111,7 @@ export function DetalleCitaModal({
         style={{
           background: TOKENS.bgPanel,
           borderRadius: isMobileOrTablet ? "24px 24px 0 0" : 16,
-          maxWidth: 900,
+          maxWidth: 1040,
           width: isMobileOrTablet ? "100%" : "95%",
           maxHeight: isMobileOrTablet ? "90dvh" : "90vh",
           overflow: "hidden",
@@ -14008,9 +14129,9 @@ export function DetalleCitaModal({
         <div
           style={{
             flex: 1,
-            overflowY: "auto",
-            overflowX: "hidden",
-            paddingBottom: 60,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
             minWidth: 0,
           }}
         >
@@ -14332,7 +14453,24 @@ export function DetalleCitaModal({
             );
           })()}
 
-          {/* 5.5: Servicios encadenados info */}
+          {/* Cuerpo maestro-detalle: rail de secciones + panel (estilo Booksy) */}
+          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: isMobileOrTablet ? "column" : "row" }}>
+            {isMobileOrTablet ? (
+              <div style={{ display: "flex", gap: 4, padding: "10px 12px", overflowX: "auto", borderBottom: `1px solid ${TOKENS.border}`, background: TOKENS.bgPanel, flexShrink: 0 }}>
+                {RAIL_ITEMS.map((it) => (
+                  <SeccionRailItem key={it.id} id={it.id} label={it.label} active={seccionActiva === it.id} onClick={() => setSeccionActiva(it.id)} vertical={false} />
+                ))}
+              </div>
+            ) : (
+              <div style={{ width: 220, flexShrink: 0, borderRight: `1px solid ${TOKENS.border}`, padding: "16px 10px", display: "flex", flexDirection: "column", gap: 2, overflowY: "auto" }}>
+                {RAIL_ITEMS.map((it) => (
+                  <SeccionRailItem key={it.id} id={it.id} label={it.label} active={seccionActiva === it.id} onClick={() => setSeccionActiva(it.id)} vertical />
+                ))}
+              </div>
+            )}
+            <div style={{ flex: 1, minWidth: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 18, padding: isMobileOrTablet ? "18px 18px 24px" : "24px 32px 28px" }}>
+              {seccionActiva === "servicio" && (<>
+              {/* 5.5: Servicios encadenados info */}
           {cita.grupo_id &&
             allCitas &&
             (() => {
@@ -14422,7 +14560,9 @@ export function DetalleCitaModal({
               );
             })()}
 
-          {/* Chain overlap detection */}
+          </>)}
+              {seccionActiva === "servicio" && (<>
+              {/* Chain overlap detection */}
           {chainOverlapInfo &&
             (chainOverlapInfo.before || chainOverlapInfo.after) && (
               <div
@@ -14565,7 +14705,9 @@ export function DetalleCitaModal({
               </div>
             )}
 
-          {/* Encadenar servicio */}
+          </>)}
+              {seccionActiva === "servicio" && (<>
+              {/* Encadenar servicio */}
           {estado === CITA_STATUS.CONFIRMADA && (
             <div
               style={{
@@ -14841,24 +14983,9 @@ export function DetalleCitaModal({
             </div>
           )}
 
-          {/* Body */}
-          <div
-            style={{
-              padding: isMobileOrTablet ? "20px 20px 40px" : "28px 32px",
-              display: "grid",
-              gridTemplateColumns: isMobileOrTablet ? "1fr" : "1fr 1fr",
-              gap: isMobileOrTablet ? 20 : 28,
-            }}
-          >
-            {/* Left column */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 18,
-                minWidth: 0,
-              }}
-            >
+
+              </>)}
+              {seccionActiva === "cliente" && (<>
               {/* Cliente */}
               <div
                 ref={(el) => {
@@ -15074,6 +15201,8 @@ export function DetalleCitaModal({
                 )}
               </div>
 
+              </>)}
+              {seccionActiva === "cliente" && (<>
               {/* Confirmacion del cliente */}
               <div>
                 <Label>Confirmacion de asistencia (cliente)</Label>
@@ -15202,6 +15331,8 @@ export function DetalleCitaModal({
                 </button>
               </div>
 
+              </>)}
+              {seccionActiva === "cliente" && (<>
               {/* Seguimiento de resena (las resenas del portal son anonimas; marcado manual) */}
               {selectedCliente?.id && (
                 <div>
@@ -15261,6 +15392,8 @@ export function DetalleCitaModal({
                 </div>
               )}
 
+              </>)}
+              {seccionActiva === "servicio" && (<>
               {/* Servicio */}
               <div
                 ref={(el) => {
@@ -15446,6 +15579,8 @@ export function DetalleCitaModal({
                 )}
               </div>
 
+              </>)}
+              {seccionActiva === "servicio" && (<>
               {/* Profesional */}
               <div>
                 <Label>Profesional</Label>
@@ -15508,6 +15643,8 @@ export function DetalleCitaModal({
                 </div>
               </div>
 
+              </>)}
+              {seccionActiva === "cliente" && (<>
               {/* Aviso de alergias del cliente */}
               {(() => {
                 const alergiasTexto = (selectedCliente?.alergias ?? "").trim();
@@ -15574,6 +15711,8 @@ export function DetalleCitaModal({
                 );
               })()}
 
+              </>)}
+              {seccionActiva === "notas" && (<>
               {/* Alergias de la cita */}
               <div>
                 <Label>Alergias</Label>
@@ -15598,6 +15737,8 @@ export function DetalleCitaModal({
                 />
               </div>
 
+              </>)}
+              {seccionActiva === "resumen" && (<>
               {/* Estado */}
               <div
                 ref={(el) => {
@@ -15726,6 +15867,8 @@ export function DetalleCitaModal({
                 </div>
               </div>
 
+              </>)}
+              {seccionActiva === "resumen" && (<>
               {/* Resumen */}
               <div
                 style={{
@@ -15789,17 +15932,9 @@ export function DetalleCitaModal({
                   />
                 </div>
               </div>
-            </div>
 
-            {/* Right column */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 14,
-                minWidth: 0,
-              }}
-            >
+              </>)}
+              {seccionActiva === "resumen" && (<>
               {/* Intervalo y duracion GRANDES: lo primero que se ve, se actualiza en vivo. */}
               <div
                 style={{
@@ -15892,6 +16027,8 @@ export function DetalleCitaModal({
                   </div>
                 </div>
               </div>
+              </>)}
+              {seccionActiva === "servicio" && (<>
               {/* Fecha */}
               <div>
                 <Label>Fecha</Label>
@@ -15949,6 +16086,8 @@ export function DetalleCitaModal({
                 </div>
               </div>
 
+              </>)}
+              {seccionActiva === "servicio" && (<>
               {/* Hora */}
               <div>
                 <Label>Hora</Label>
@@ -15982,6 +16121,8 @@ export function DetalleCitaModal({
                 </div>
               </div>
 
+              </>)}
+              {seccionActiva === "servicio" && (<>
               {/* Secuencia */}
               <div
                 ref={(el) => {
@@ -16082,6 +16223,8 @@ export function DetalleCitaModal({
                 </div>
               </div>
 
+              </>)}
+              {seccionActiva === "color" && (<>
               {/* Fórmula de color / química */}
               <div
                 ref={(el) => {
@@ -16225,11 +16368,12 @@ export function DetalleCitaModal({
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Historial de cambios */}
+            </>)}
+            {seccionActiva === "historial" && (<>
+            {historial.length === 0 && (
+              <div style={{ fontSize: 13, color: TOKENS.textTer, padding: "8px 2px" }}>Sin cambios registrados todavia.</div>
+            )}
+            {/* Historial de cambios */}
         {historial.length > 0 && (
           <div style={{ padding: "0 32px 12px" }}>
             <div
@@ -16389,118 +16533,11 @@ export function DetalleCitaModal({
             </div>
           </div>
         )}
-
-        {/* Footer — barra inferior fija (sticky) para que las acciones (descartar,
-            guardar, cobrar) sigan a la vista en movil aunque el contenido sea largo. */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            position: isMobileOrTablet ? "sticky" : "relative",
-            bottom: 0,
-            zIndex: 4,
-            background: TOKENS.bgPanel,
-            padding: isMobileOrTablet
-              ? "12px 18px calc(18px + env(safe-area-inset-bottom, 0px))"
-              : "20px 32px",
-            borderTop: `1px solid ${TOKENS.border}`,
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              flexWrap: "wrap",
-            }}
-          >
-            {cita.estado === CITA_STATUS.CONFIRMADA && (
-              <button
-                className="m-btn-danger"
-                onClick={() => setShowCancelModal(true)}
-                disabled={guardando}
-                style={{
-                  padding: "9px 14px",
-                  background: "rgba(239,68,68,0.08)",
-                  color: TOKENS.danger,
-                  border: `1px solid ${TOKENS.danger}88`,
-                  borderRadius: 8,
-                  cursor: guardando ? "not-allowed" : "pointer",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <IconTrash /> Cancelar cita
-              </button>
-            )}
-            {retrasosActivo &&
-              cita.estado === CITA_STATUS.CONFIRMADA &&
-              new Date(cita.inicio) > new Date() && (
-                <div style={{ position: "relative" }}>
-                  <button
-                    onClick={() => setRetrasoPickerOpen((v) => !v)}
-                    disabled={guardando}
-                    style={{
-                      padding: "9px 14px",
-                      background: "rgba(245,158,11,0.10)",
-                      color: "#b45309",
-                      border: "1px solid rgba(245,158,11,0.55)",
-                      borderRadius: 8,
-                      cursor: guardando ? "not-allowed" : "pointer",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
-                    Marcar retraso
-                  </button>
-                  {retrasoPickerOpen && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: "112%",
-                        left: 0,
-                        zIndex: 10,
-                        display: "flex",
-                        gap: 6,
-                        background: TOKENS.bgCard,
-                        border: `1px solid ${TOKENS.border}`,
-                        borderRadius: 10,
-                        padding: 6,
-                        boxShadow: "0 10px 26px rgba(40,30,24,0.16)",
-                      }}
-                    >
-                      {[10, 15, 30].map((m) => (
-                        <button
-                          key={m}
-                          onClick={() => abrirRetraso(m)}
-                          style={{
-                            padding: "7px 10px",
-                            background: "rgba(245,158,11,0.12)",
-                            color: "#b45309",
-                            border: "1px solid rgba(245,158,11,0.4)",
-                            borderRadius: 7,
-                            cursor: "pointer",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          +{m} min
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+            </>)}
+            {seccionActiva === "pagos" && (<>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: TOKENS.textTer }}>Cobros y pagos</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             {holdPagoId && (
               <>
                 <button
@@ -16687,6 +16724,125 @@ export function DetalleCitaModal({
                 <IconCheck /> Cobrada
               </span>
             )}
+
+                </div>
+              </div>
+            </>)}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer — barra inferior fija (sticky) para que las acciones (descartar,
+            guardar, cobrar) sigan a la vista en movil aunque el contenido sea largo. */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            position: isMobileOrTablet ? "sticky" : "relative",
+            bottom: 0,
+            zIndex: 4,
+            background: TOKENS.bgPanel,
+            padding: isMobileOrTablet
+              ? "12px 18px calc(18px + env(safe-area-inset-bottom, 0px))"
+              : "20px 32px",
+            borderTop: `1px solid ${TOKENS.border}`,
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            {cita.estado === CITA_STATUS.CONFIRMADA && (
+              <button
+                className="m-btn-danger"
+                onClick={() => setShowCancelModal(true)}
+                disabled={guardando}
+                style={{
+                  padding: "9px 14px",
+                  background: "rgba(239,68,68,0.08)",
+                  color: TOKENS.danger,
+                  border: `1px solid ${TOKENS.danger}88`,
+                  borderRadius: 8,
+                  cursor: guardando ? "not-allowed" : "pointer",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <IconTrash /> Cancelar cita
+              </button>
+            )}
+            {retrasosActivo &&
+              cita.estado === CITA_STATUS.CONFIRMADA &&
+              new Date(cita.inicio) > new Date() && (
+                <div style={{ position: "relative" }}>
+                  <button
+                    onClick={() => setRetrasoPickerOpen((v) => !v)}
+                    disabled={guardando}
+                    style={{
+                      padding: "9px 14px",
+                      background: "rgba(245,158,11,0.10)",
+                      color: "#b45309",
+                      border: "1px solid rgba(245,158,11,0.55)",
+                      borderRadius: 8,
+                      cursor: guardando ? "not-allowed" : "pointer",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    Marcar retraso
+                  </button>
+                  {retrasoPickerOpen && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "112%",
+                        left: 0,
+                        zIndex: 10,
+                        display: "flex",
+                        gap: 6,
+                        background: TOKENS.bgCard,
+                        border: `1px solid ${TOKENS.border}`,
+                        borderRadius: 10,
+                        padding: 6,
+                        boxShadow: "0 10px 26px rgba(40,30,24,0.16)",
+                      }}
+                    >
+                      {[10, 15, 30].map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => abrirRetraso(m)}
+                          style={{
+                            padding: "7px 10px",
+                            background: "rgba(245,158,11,0.12)",
+                            color: "#b45309",
+                            border: "1px solid rgba(245,158,11,0.4)",
+                            borderRadius: 7,
+                            cursor: "pointer",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          +{m} min
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
           {errMsg ? (
             <div
