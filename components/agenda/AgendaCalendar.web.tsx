@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback, memo } from "react";
 import { ChispaMascota } from "@/components/chispa/ChispaMascota.web";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { supabase, IS_DEMO_MODE } from "@/lib/supabase";
@@ -1029,22 +1029,50 @@ export default function AgendaCalendar() {
     return () => clearInterval(interval);
   }, [citas]);
 
-  async function registrarHistorial(
-    citaId: string,
-    negocioId: string,
-    cambios: { campo: string; anterior: string; nuevo: string }[],
-    motivo?: string,
-  ) {
-    const rows = cambios.map((c) => ({
-      cita_id: citaId,
-      negocio_id: negocioId,
-      campo: c.campo,
-      valor_anterior: c.anterior,
-      valor_nuevo: c.nuevo,
-      motivo: motivo || null,
-    }));
-    if (rows.length > 0) await supabase.from("citas_historial").insert(rows);
-  }
+  const registrarHistorial = useCallback(
+    async (
+      citaId: string,
+      negocioId: string,
+      cambios: { campo: string; anterior: string; nuevo: string }[],
+      motivo?: string,
+    ) => {
+      const rows = cambios.map((c) => ({
+        cita_id: citaId,
+        negocio_id: negocioId,
+        campo: c.campo,
+        valor_anterior: c.anterior,
+        valor_nuevo: c.nuevo,
+        motivo: motivo || null,
+      }));
+      if (rows.length > 0) await supabase.from("citas_historial").insert(rows);
+    },
+    [],
+  );
+  // Callbacks estables para poder memoizar DayTimeline: sin esto la agenda
+  // entera se re-renderiza al abrir modales o cambiar cualquier estado del
+  // padre (causa del lag al crear cita). Solo usan setters, deps [].
+  const dtEditCita = useCallback((cita: any) => {
+    setSelectedCitaEdit(cita);
+    setShowEditCita(true);
+  }, []);
+  const dtCreateSlot = useCallback(
+    ({ hora, profId }: { hora: string; profId: string }) => {
+      setNewCitaPrefill({ hora, profId });
+      setShowNewCita(true);
+    },
+    [],
+  );
+  const dtCitaUpdated = useCallback((updated: any) => {
+    setCitas((prev) =>
+      prev.map((c: any) => (c.id === updated.id ? { ...c, ...updated } : c)),
+    );
+  }, []);
+  const dtMovimientoCita = useCallback((paso: PasoAgenda) => {
+    setPilaAgenda((prev) => registrarPaso(prev, paso));
+  }, []);
+  const dtClienteHistorial = useCallback((cli: any) => {
+    setShowClienteHistorial(cli);
+  }, []);
 
   // Aplica un lote de movimientos (deshacer o rehacer) usando el snapshot indicado.
   // Solo mueve marcas horarias y profesional: no toca estado, cobros ni notificaciones.
@@ -3887,7 +3915,7 @@ export default function AgendaCalendar() {
                   theme={roleTheme}
                 />
               ) : (
-                <DayTimeline
+                <DayTimelineMemo
                   citas={filtered}
                   profesionales={pagedTimelineProfs}
                   servicios={servicios}
@@ -3896,38 +3924,16 @@ export default function AgendaCalendar() {
                   clienteMap={clienteMap}
                   profesionalMap={profesionalMap}
                   citaAddonsMap={citaAddonsMap}
-                  onEditCita={(cita: any) => {
-                    setSelectedCitaEdit(cita);
-                    setShowEditCita(true);
-                  }}
-                  onCitaUpdated={(updated: any) =>
-                    setCitas((prev) =>
-                      prev.map((c: any) =>
-                        c.id === updated.id ? { ...c, ...updated } : c,
-                      ),
-                    )
-                  }
+                  onEditCita={dtEditCita}
+                  onCitaUpdated={dtCitaUpdated}
                   bloqueos={bloqueos}
                   selectedDateObj={selectedDateObj}
                   registrarHistorial={registrarHistorial}
-                  onMovimientoCita={(paso: PasoAgenda) =>
-                    setPilaAgenda((prev) => registrarPaso(prev, paso))
-                  }
-                  onClienteHistorial={(cli: any) =>
-                    setShowClienteHistorial(cli)
-                  }
+                  onMovimientoCita={dtMovimientoCita}
+                  onClienteHistorial={dtClienteHistorial}
                   vivid={isReallyCollapsed}
                   completarManual={completarManual}
-                  onCreateSlot={({
-                    hora,
-                    profId,
-                  }: {
-                    hora: string;
-                    profId: string;
-                  }) => {
-                    setNewCitaPrefill({ hora, profId });
-                    setShowNewCita(true);
-                  }}
+                  onCreateSlot={dtCreateSlot}
                   theme={roleTheme}
                   categorias={categorias}
                   selectedProf={selectedProf}
@@ -5968,6 +5974,11 @@ const BLOQUEO_LABELS: Record<string, string> = {
   descanso: "Descanso",
 };
 
+// Memoizado: no re-renderiza la agenda entera cuando el padre cambia estado
+// no relacionado (abrir modales, hover, etc.). Sus props ya son estables
+// (useMemo en maps/filtered + useCallback en las callbacks).
+const DayTimelineMemo = memo(DayTimeline);
+
 function DayTimeline({
   citas,
   profesionales,
@@ -6019,7 +6030,13 @@ function DayTimeline({
   for (let h = HORARIO_APERTURA.horas; h < hoursEnd; h++) HOURS.push(h);
   const ROW_H = 160;
   const START_H = HORARIO_APERTURA.horas;
-  const now = new Date();
+  // Reloj propio: al estar memoizado, DayTimeline no re-renderiza con el padre,
+  // asi que la linea AHORA necesita su propio tick para seguir viva.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(t);
+  }, []);
   const currentHourPercent =
     (now.getHours() - START_H + now.getMinutes() / 60) / HOURS.length;
   const isToday =
