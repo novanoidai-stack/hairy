@@ -7089,7 +7089,7 @@ function DayTimeline({
             >
               {profesionales.map((prof: any) => {
                 const profColor = prof.color || TOKENS.primary;
-                const citaBg = `linear-gradient(180deg, ${profColor}2e, ${profColor}1c)`;
+                const citaBg = `linear-gradient(180deg, ${profColor}4d, ${profColor}33)`;
                 const citaBorder = `${profColor}33`;
                 const citaBorderHover = `${profColor}66`;
                 const citaShadow = `0 4px 12px -2px rgba(0,0,0,0.04), 0 2px 4px -2px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 0 1px ${profColor}1a`;
