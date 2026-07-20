@@ -12546,6 +12546,7 @@ type SeccionCita =
   | "servicio"
   | "color"
   | "notas"
+  | "productos"
   | "pagos"
   | "historial";
 
@@ -12581,6 +12582,11 @@ const RAIL_ICONS: Record<SeccionCita, (c: string) => React.ReactNode> = {
       <rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" />
     </svg>
   ),
+  productos: (c) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.3 7 12 12 20.7 7" /><line x1="12" y1="22" x2="12" y2="12" />
+    </svg>
+  ),
   historial: (c) => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 16 14" />
@@ -12594,6 +12600,7 @@ const RAIL_ITEMS: { id: SeccionCita; label: string }[] = [
   { id: "servicio", label: "Servicio y tiempos" },
   { id: "color", label: "Ficha de color" },
   { id: "notas", label: "Notas" },
+  { id: "productos", label: "Productos" },
   { id: "pagos", label: "Pagos" },
   { id: "historial", label: "Historial" },
 ];
@@ -12630,13 +12637,18 @@ function SeccionRailItem({
         whiteSpace: "nowrap",
         flexShrink: 0,
         textAlign: "left",
-        transition: "background 0.15s ease, color 0.15s ease",
+        transition:
+          "background 0.15s ease, color 0.15s ease, transform 0.15s ease",
       }}
       onMouseEnter={(e) => {
         if (!active) e.currentTarget.style.background = "rgba(244,80,30,0.06)";
+        e.currentTarget.style.transform = vertical
+          ? "translateX(3px)"
+          : "translateY(-1px)";
       }}
       onMouseLeave={(e) => {
         if (!active) e.currentTarget.style.background = "transparent";
+        e.currentTarget.style.transform = "none";
       }}
     >
       {RAIL_ICONS[id](active ? TOKENS.primaryHi : TOKENS.textTer)}
@@ -12755,6 +12767,70 @@ export function DetalleCitaModal({
   const [cobrada, setCobrada] = useState<boolean>(!!cita.cobrada);
   const [showCobro, setShowCobro] = useState(false);
   const [cobroSenalCents, setCobroSenalCents] = useState(0);
+  // Inventario del salon (pestaña Productos)
+  const [inventarioProductos, setInventarioProductos] = useState<any[]>([]);
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      const prof = await getUserProfile();
+      if (cancel || !prof?.negocio_id) return;
+      const { data } = await supabase
+        .from("productos")
+        .select("*")
+        .eq("negocio_id", prof.negocio_id)
+        .order("nombre");
+      if (!cancel) setInventarioProductos(data ?? []);
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, []);
+  // Señal ya pagada: para que el cobro inline (pestaña Pagos) descuente bien.
+  useEffect(() => {
+    if (cobrada) return;
+    let cancel = false;
+    (async () => {
+      const { data } = await supabase
+        .from("pagos")
+        .select("tipo, importe_cents, estado")
+        .eq("cita_id", cita.id);
+      if (cancel) return;
+      const senal = (data || [])
+        .filter(
+          (p: any) =>
+            p.tipo === "senal" &&
+            ["completado", "pagado", "succeeded", "paid"].includes(p.estado),
+        )
+        .reduce((s: number, p: any) => s + (p.importe_cents || 0), 0);
+      setCobroSenalCents(senal);
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [cita.id, cobrada]);
+  // Historial del cliente (citas anteriores) para la pestaña Cliente
+  const [clienteHistorial, setClienteHistorial] = useState<any[]>([]);
+  useEffect(() => {
+    const cid = selectedCliente?.id;
+    if (!cid) {
+      setClienteHistorial([]);
+      return;
+    }
+    let cancel = false;
+    (async () => {
+      const { data } = await supabase
+        .from("citas")
+        .select("id, inicio, servicio_id, profesional_id, estado")
+        .eq("cliente_id", cid)
+        .neq("id", cita.id)
+        .order("inicio", { ascending: false })
+        .limit(15);
+      if (!cancel) setClienteHistorial(data ?? []);
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [selectedCliente?.id, cita.id]);
   // Citas del MISMO profesional (pendientes/confirmadas) mapeadas para el calculo de cascada.
   function citasDelProfParaCascada() {
     return (allCitas || [])
@@ -13148,7 +13224,7 @@ export function DetalleCitaModal({
     cita.formula_resultado ||
     cita.formula_notas
   );
-  const [showFormula, setShowFormula] = useState(hasFormula);
+  const [showFormula, setShowFormula] = useState(true);
   const [confirmadaCliente, setConfirmadaCliente] = useState<boolean>(
     !!cita.confirmada_cliente,
   );
@@ -13161,7 +13237,7 @@ export function DetalleCitaModal({
   const [chainGuardando, setChainGuardando] = useState(false);
   const [chainErr, setChainErr] = useState("");
   const [historial, setHistorial] = useState<any[]>([]);
-  const [showHistorial, setShowHistorial] = useState(false);
+  const [showHistorial, setShowHistorial] = useState(true);
 
   useEffect(() => {
     supabase
@@ -14113,7 +14189,8 @@ export function DetalleCitaModal({
           borderRadius: isMobileOrTablet ? "24px 24px 0 0" : 16,
           maxWidth: 1040,
           width: isMobileOrTablet ? "100%" : "95%",
-          maxHeight: isMobileOrTablet ? "90dvh" : "90vh",
+          height: isMobileOrTablet ? undefined : "86vh",
+          maxHeight: isMobileOrTablet ? "90dvh" : "86vh",
           overflow: "hidden",
           border: isMobileOrTablet ? "none" : `1px solid ${TOKENS.border}`,
           boxShadow: `0 20px 60px rgba(0,0,0,0.4)`,
@@ -15203,6 +15280,35 @@ export function DetalleCitaModal({
 
               </>)}
               {seccionActiva === "cliente" && (<>
+              {/* Historial del cliente (citas anteriores) */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: TOKENS.textTer }}>Historial del cliente</div>
+                {clienteHistorial.length === 0 ? (
+                  <div style={{ fontSize: 13, color: TOKENS.textTer }}>Sin citas anteriores registradas.</div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {clienteHistorial.map((c: any) => {
+                      const srv = servicios.find((s: any) => s.id === c.servicio_id);
+                      const pr = profesionales.find((p: any) => p.id === c.profesional_id);
+                      const d = new Date(c.inicio);
+                      return (
+                        <div
+                          key={c.id}
+                          style={{ display: "flex", alignItems: "center", gap: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: "8px 12px", transition: "border-color 0.15s ease, transform 0.15s ease" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = "none"; }}
+                        >
+                          <div style={{ fontSize: 12, fontWeight: 700, color: TOKENS.textSec, minWidth: 64 }}>{d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "2-digit" })}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12.5, color: TOKENS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{srv?.nombre || "Servicio"}</div>
+                            {pr?.nombre && <div style={{ fontSize: 11, color: TOKENS.textTer }}>{pr.nombre}</div>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
               {/* Confirmacion del cliente */}
               <div>
                 <Label>Confirmacion de asistencia (cliente)</Label>
@@ -16534,6 +16640,52 @@ export function DetalleCitaModal({
           </div>
         )}
             </>)}
+            {seccionActiva === "productos" && (<>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: TOKENS.textTer }}>Inventario del salón</div>
+                <div style={{ fontSize: 12, color: TOKENS.textSec, lineHeight: 1.5 }}>
+                  Los productos usados en la cita se añaden al cobro desde la
+                  pestaña <span style={{ fontWeight: 700, color: TOKENS.text }}>Pagos</span> ("Añadir Extra/Producto"): su precio se suma al total.
+                </div>
+                {inventarioProductos.length === 0 ? (
+                  <div style={{ fontSize: 13, color: TOKENS.textTer, padding: "8px 2px" }}>No hay productos en el inventario todavía.</div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {inventarioProductos.map((p: any) => (
+                      <div
+                        key={p.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          background: TOKENS.bgCard,
+                          border: `1px solid ${TOKENS.border}`,
+                          borderRadius: 10,
+                          padding: "10px 12px",
+                          transition: "border-color 0.15s ease, transform 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = TOKENS.primary;
+                          e.currentTarget.style.transform = "translateY(-1px)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = TOKENS.border;
+                          e.currentTarget.style.transform = "none";
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</div>
+                          {(p.stock != null || p.unidades != null) && (
+                            <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2 }}>Stock: {p.stock ?? p.unidades}</div>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, flexShrink: 0 }}>{Number(p.precio ?? 0).toFixed(2)} €</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              </>)}
             {seccionActiva === "pagos" && (<>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: TOKENS.textTer }}>Cobros y pagos</div>
@@ -16651,60 +16803,39 @@ export function DetalleCitaModal({
               </button>
             )}
             {!cobrada && cita.estado !== CITA_STATUS.CANCELADA && (
-              <button
-                onClick={async () => {
-                  // Señal ya pagada (si la hubiera): se descuenta del total, igual que en Caja.
-                  // Se calcula ANTES de abrir para no mostrar un total provisional incorrecto.
-                  const { data: pagosData } = await supabase
-                    .from("pagos")
-                    .select("tipo, importe_cents, estado")
-                    .eq("cita_id", cita.id);
-                  const senal = (pagosData || [])
-                    .filter(
-                      (p: any) =>
-                        p.tipo === "senal" &&
-                        ["completado", "pagado", "succeeded", "paid"].includes(
-                          p.estado,
-                        ),
-                    )
-                    .reduce(
-                      (s: number, p: any) => s + (p.importe_cents || 0),
-                      0,
-                    );
-                  setCobroSenalCents(senal);
-                  setShowCobro(true);
-                }}
-                disabled={guardando}
-                style={{
-                  padding: "9px 16px",
-                  background: "linear-gradient(180deg,#16a34a,#15803d)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  cursor: guardando ? "not-allowed" : "pointer",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  boxShadow: "0 4px 12px rgba(22,163,74,0.35)",
-                }}
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2.2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="2" y="5" width="20" height="14" rx="2" />
-                  <line x1="2" y1="10" x2="22" y2="10" />
-                </svg>
-                Cobrar
-              </button>
+              <div style={{ width: "100%" }}>
+                {(() => {
+                  const baseCents = Math.round(
+                    Number(selectedServicio?.precio ?? servicio?.precio ?? 0) *
+                      100,
+                  );
+                  const pendienteCents = Math.max(
+                    0,
+                    baseCents - cobroSenalCents,
+                  );
+                  return (
+                    <CobroSheet
+                      mode="cita"
+                      inline
+                      citaIds={[cita.id]}
+                      pendienteCents={pendienteCents}
+                      senalCents={cobroSenalCents}
+                      subtitulo={`${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`}
+                      subtituloColor={selectedServicioColor ?? undefined}
+                      onClose={() => {}}
+                      onSuccess={(cobroIds) => {
+                        setCobrada(true);
+                        onSaved?.({
+                          id: cita.id,
+                          cobrada: true,
+                          cobro_id: cobroIds[0],
+                        });
+                        triggerRefresh?.();
+                      }}
+                    />
+                  );
+                })()}
+              </div>
             )}
             {cobrada && (
               <span

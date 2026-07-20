@@ -19,6 +19,8 @@ interface CobroSheetCitaProps {
   subtitulo?: string;
   // Color de la categoria del servicio cobrado (punto junto al subtitulo). Opcional.
   subtituloColor?: string;
+  // Render embebido (sin overlay), p.ej. en la pestaña Pagos de la ficha de cita.
+  inline?: boolean;
   onClose: () => void;
   onSuccess: (cobroIds: string[]) => void;
 }
@@ -357,14 +359,11 @@ export function CobroSheet(props: CobroSheetProps) {
     : props.subtitulo;
   const subtituloColor = props.mode === 'walkin' ? undefined : props.subtituloColor;
 
-  return (
-    <div
-      onClick={() => { if (!enviando) onClose(); }}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 210, display: 'grid', placeItems: 'center', padding: 16 }}
-    >
+  const inline = (props as any).inline === true;
+  const sheetBody = (
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ background: T.bgPanel, border: `1px solid ${T.borderHi}`, borderRadius: 16, padding: 22, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 70px rgba(40,30,24,0.35)' }}
+        style={{ background: inline ? 'transparent' : T.bgPanel, border: inline ? 'none' : `1px solid ${T.borderHi}`, borderRadius: inline ? 0 : 16, padding: inline ? 0 : 22, width: '100%', maxWidth: inline ? '100%' : 420, maxHeight: inline ? 'none' : '90vh', overflowY: inline ? 'visible' : 'auto', boxShadow: inline ? 'none' : '0 24px 70px rgba(40,30,24,0.35)' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <h4 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: T.text }}>{titulo}</h4>
@@ -588,6 +587,15 @@ export function CobroSheet(props: CobroSheetProps) {
           </>
         )}
       </div>
+  );
+  return inline ? (
+    sheetBody
+  ) : (
+    <div
+      onClick={() => { if (!enviando) onClose(); }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 210, display: 'grid', placeItems: 'center', padding: 16 }}
+    >
+      {sheetBody}
     </div>
   );
 }
