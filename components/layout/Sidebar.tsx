@@ -407,8 +407,9 @@ const s = StyleSheet.create({
     paddingTop: tokens.spacing.md,
     paddingBottom: tokens.spacing.lg,
     justifyContent: 'space-between',
-    transition: 'width 0.2s ease' as any,
-    overflow: 'hidden',
+    // overflow visible: el rail ya no anima su ancho, y si recorta se come la
+    // etiqueta flotante que sale al pasar el raton por los iconos.
+    overflow: 'visible',
   },
   sidebarCollapsed: {
     width: 76,
