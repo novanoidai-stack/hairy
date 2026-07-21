@@ -231,7 +231,7 @@ export function Sidebar() {
           activeOpacity={0.8}
           {...webTitle('Mecha — Inicio')}
         >
-          <MechaMark size={collapsed ? 30 : 32} />
+          <MechaMark size={collapsed ? 38 : 32} />
           {!collapsed && (
             <View style={{ flexDirection: 'column', gap: 2 }}>
               <View style={s.brandRow}>
@@ -283,7 +283,7 @@ export function Sidebar() {
           return Object.entries(groups).map(([groupName, items], groupIndex) => {
             const gColor = groupColors[groupIndex % groupColors.length];
             return (
-            <View key={groupName} style={collapsed ? { borderLeftWidth: 2, borderLeftColor: gColor, marginLeft: 6, paddingLeft: 6, marginBottom: 12 } : {}}>
+            <View key={groupName} style={collapsed ? { borderLeftWidth: 2, borderLeftColor: gColor, marginLeft: 2, paddingLeft: 2, marginBottom: 12 } : {}}>
               {groupIndex > 0 && <View style={[s.navDivider, collapsed && { width: 24, alignSelf: 'center', marginVertical: 8, backgroundColor: 'rgba(92,82,73,0.1)' }]} />}
               {!collapsed && (
                 <TText style={[s.navSectionLabel, groupIndex > 0 && { marginTop: tokens.spacing.xs }, { color: gColor, opacity: 0.8 }]}>
