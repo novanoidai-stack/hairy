@@ -117,16 +117,30 @@ export function Sidebar() {
   const [configHovered, setConfigHovered] = useState(false);
 
   useEffect(() => {
-    Animated.stagger(
+    const entrada = Animated.stagger(
       60,
       navAnimations.map((anim) =>
         Animated.timing(anim, {
           toValue: 1,
           duration: 400,
-          useNativeDriver: true,
+          // JS driver: con el driver nativo, en web el valor puede quedarse a 0
+          // y los iconos se quedan invisibles y 20px a la izquierda.
+          useNativeDriver: false,
         })
       )
-    ).start();
+    );
+    entrada.start();
+    // Salvavidas: si la animacion no llega a correr (pestana en segundo plano,
+    // requestAnimationFrame pausado) los iconos se quedarian con opacidad 0 y
+    // desplazados. setTimeout si dispara en segundo plano, asi que fijamos el
+    // estado final pasado un tiempo prudencial.
+    const finFallback = setTimeout(() => {
+      navAnimations.forEach((anim) => anim.setValue(1));
+    }, 1500);
+    return () => {
+      clearTimeout(finFallback);
+      entrada.stop();
+    };
   }, []);
 
   const hoverIn = (anim: Animated.Value) => {
