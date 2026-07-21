@@ -4186,6 +4186,10 @@ export default function AgendaCalendar() {
       )}
       {showEditCita && selectedCitaEdit && (
         <DetalleCitaModal
+          // key por cita: al saltar a otro eslabon de la cadena el modal se
+          // vuelve a montar y sus campos se reinicializan con la nueva cita.
+          key={selectedCitaEdit.id}
+          onAbrirCita={(c: any) => setSelectedCitaEdit(c)}
           bloqueos={bloqueos}
           onDuplicate={() => {
             setShowEditCita(false);
@@ -12680,6 +12684,7 @@ export function DetalleCitaModal({
   onClose,
   onSaved,
   onDuplicate,
+  onAbrirCita,
   cita,
   servicios,
   categorias,
@@ -15425,16 +15430,39 @@ export function DetalleCitaModal({
                       const sibInicio = new Date(sib.inicio);
                       const sibFin = new Date(sib.fin);
                       return (
-                        <div
+                        <button
                           key={sib.id}
+                          type="button"
+                          onClick={() => {
+                            if (!isCurrent) onAbrirCita?.(sib);
+                          }}
+                          title={
+                            isCurrent
+                              ? "Estas viendo este servicio"
+                              : "Ver este servicio de la cadena"
+                          }
                           style={{
                             padding: "6px 10px",
+                            textAlign: "left",
                             background: isCurrent
                               ? "rgba(192,38,10,0.15)"
                               : TOKENS.bgCard,
                             border: `1px solid ${isCurrent ? "#e0340e" : TOKENS.border}`,
                             borderRadius: 8,
                             minWidth: 0,
+                            cursor: isCurrent ? "default" : "pointer",
+                            transition:
+                              "border-color 0.15s ease, transform 0.15s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (isCurrent) return;
+                            e.currentTarget.style.borderColor = "#e0340e";
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (isCurrent) return;
+                            e.currentTarget.style.borderColor = TOKENS.border;
+                            e.currentTarget.style.transform = "none";
                           }}
                         >
                           <div
@@ -15464,7 +15492,7 @@ export function DetalleCitaModal({
                               minute: "2-digit",
                             })}
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
