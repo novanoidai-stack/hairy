@@ -15395,8 +15395,9 @@ export function DetalleCitaModal({
               return (
                 <div
                   style={{
-                    padding: "12px 32px",
-                    borderBottom: `1px solid ${TOKENS.border}`,
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(192,38,10,0.25)",
                     background: "rgba(192,38,10,0.04)",
                   }}
                 >
@@ -15478,8 +15479,9 @@ export function DetalleCitaModal({
             (chainOverlapInfo.before || chainOverlapInfo.after) && (
               <div
                 style={{
-                  padding: "12px 32px",
-                  borderBottom: `1px solid ${TOKENS.border}`,
+                  padding: "12px 14px",
+                  borderRadius: 12,
+                  border: "1px solid rgba(239,68,68,0.25)",
                   background: "rgba(239,68,68,0.04)",
                 }}
               >
@@ -15622,8 +15624,7 @@ export function DetalleCitaModal({
           {estado === CITA_STATUS.CONFIRMADA && (
             <div
               style={{
-                padding: showChainForm ? "10px 32px" : "0 32px",
-                borderBottom: `1px solid ${TOKENS.border}`,
+                padding: showChainForm ? "10px 0" : "0",
                 ...(showChainForm
                   ? {}
                   : { display: "flex", alignItems: "center", minHeight: 36 }),
