@@ -12790,6 +12790,45 @@ export function DetalleCitaModal({
   const [cobroSenalCents, setCobroSenalCents] = useState(0);
   // Inventario del salon (pestaña Productos)
   const [inventarioProductos, setInventarioProductos] = useState<any[]>([]);
+  // Productos elegidos para esta cita: se pasan al cobro como lineas y su
+  // precio se suma al total. No se persisten hasta que se cobra.
+  const [productosCita, setProductosCita] = useState<
+    Array<{ id: string; nombre: string; precio: number; cantidad: number }>
+  >([]);
+  const addProductoCita = useCallback((p: any) => {
+    setProductosCita((prev) => {
+      const i = prev.findIndex((x) => x.id === p.id);
+      if (i >= 0)
+        return prev.map((x, j) =>
+          j === i ? { ...x, cantidad: x.cantidad + 1 } : x,
+        );
+      return [
+        ...prev,
+        {
+          id: p.id,
+          nombre: p.nombre,
+          precio: Number(p.precio ?? 0),
+          cantidad: 1,
+        },
+      ];
+    });
+  }, []);
+  const quitarProductoCita = useCallback((id: string) => {
+    setProductosCita((prev) => {
+      const i = prev.findIndex((x) => x.id === id);
+      if (i < 0) return prev;
+      const actual = prev[i];
+      if (actual.cantidad > 1)
+        return prev.map((x, j) =>
+          j === i ? { ...x, cantidad: x.cantidad - 1 } : x,
+        );
+      return prev.filter((_, j) => j !== i);
+    });
+  }, []);
+  const totalProductosCita = productosCita.reduce(
+    (s, p) => s + p.precio * p.cantidad,
+    0,
+  );
   useEffect(() => {
     let cancel = false;
     (async () => {
@@ -16665,44 +16704,82 @@ export function DetalleCitaModal({
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: TOKENS.textTer }}>Inventario del salón</div>
                 <div style={{ fontSize: 12, color: TOKENS.textSec, lineHeight: 1.5 }}>
-                  Los productos usados en la cita se añaden al cobro desde la
-                  pestaña <span style={{ fontWeight: 700, color: TOKENS.text }}>Pagos</span> ("Añadir Extra/Producto"): su precio se suma al total.
+                  Haz clic en un producto para añadirlo a esta cita. Su precio se
+                  suma al total del cobro (lo verás en la pestaña <span style={{ fontWeight: 700, color: TOKENS.text }}>Pagos</span>).
                 </div>
+                {productosCita.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 10, borderRadius: 12, background: "rgba(244,80,30,0.06)", border: `1px solid ${TOKENS.primary}40` }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: TOKENS.primaryHi }}>Usados en esta cita</div>
+                    {productosCita.map((p) => (
+                      <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, padding: "7px 10px" }}>
+                        <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: TOKENS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: TOKENS.textSec }}>x{p.cantidad}</span>
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text, minWidth: 58, textAlign: "right" }}>{(p.precio * p.cantidad).toFixed(2)} €</span>
+                        <button
+                          type="button"
+                          onClick={() => quitarProductoCita(p.id)}
+                          title="Quitar uno"
+                          style={{ background: "none", border: "none", color: TOKENS.danger, cursor: "pointer", fontSize: 15, fontWeight: 700, padding: "0 4px", lineHeight: 1 }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 2 }}>
+                      <span style={{ fontSize: 12, color: TOKENS.textSec }}>Suma productos</span>
+                      <span style={{ fontSize: 13.5, fontWeight: 800, color: TOKENS.primaryHi }}>{totalProductosCita.toFixed(2)} €</span>
+                    </div>
+                  </div>
+                )}
                 {inventarioProductos.length === 0 ? (
                   <div style={{ fontSize: 13, color: TOKENS.textTer, padding: "8px 2px" }}>No hay productos en el inventario todavía.</div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {inventarioProductos.map((p: any) => (
-                      <div
-                        key={p.id}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          background: TOKENS.bgCard,
-                          border: `1px solid ${TOKENS.border}`,
-                          borderRadius: 10,
-                          padding: "10px 12px",
-                          transition: "border-color 0.15s ease, transform 0.15s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = TOKENS.primary;
-                          e.currentTarget.style.transform = "translateY(-1px)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = TOKENS.border;
-                          e.currentTarget.style.transform = "none";
-                        }}
-                      >
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</div>
-                          {(p.stock != null || p.unidades != null) && (
-                            <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2 }}>Stock: {p.stock ?? p.unidades}</div>
+                    {inventarioProductos.map((p: any) => {
+                      const enCita = productosCita.find((x) => x.id === p.id);
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => addProductoCita(p)}
+                          title="Añadir a la cita"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            width: "100%",
+                            textAlign: "left",
+                            background: TOKENS.bgCard,
+                            border: `1px solid ${enCita ? TOKENS.primary : TOKENS.border}`,
+                            borderRadius: 10,
+                            padding: "10px 12px",
+                            cursor: "pointer",
+                            transition: "border-color 0.15s ease, transform 0.15s ease, background 0.15s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = TOKENS.primary;
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                            e.currentTarget.style.background = "rgba(244,80,30,0.05)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = enCita ? TOKENS.primary : TOKENS.border;
+                            e.currentTarget.style.transform = "none";
+                            e.currentTarget.style.background = TOKENS.bgCard;
+                          }}
+                        >
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</div>
+                            {(p.stock != null || p.unidades != null) && (
+                              <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2 }}>Stock: {p.stock ?? p.unidades}</div>
+                            )}
+                          </div>
+                          {enCita && (
+                            <span style={{ fontSize: 11, fontWeight: 800, color: TOKENS.primaryHi, background: "rgba(244,80,30,0.12)", borderRadius: 999, padding: "2px 8px" }}>x{enCita.cantidad}</span>
                           )}
-                        </div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, flexShrink: 0 }}>{Number(p.precio ?? 0).toFixed(2)} €</div>
-                      </div>
-                    ))}
+                          <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, flexShrink: 0 }}>{Number(p.precio ?? 0).toFixed(2)} €</div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -16839,6 +16916,12 @@ export function DetalleCitaModal({
                       mode="cita"
                       inline
                       citaIds={[cita.id]}
+                      lineasIniciales={productosCita.map((p) => ({
+                        nombre: p.nombre,
+                        precio: String(p.precio),
+                        cantidad: String(p.cantidad),
+                        ref_id: p.id,
+                      }))}
                       pendienteCents={pendienteCents}
                       senalCents={cobroSenalCents}
                       subtitulo={`${selectedCliente?.nombre || "Cliente"} · ${selectedServicio?.nombre || servicio?.nombre || "Servicio"}`}
@@ -16846,6 +16929,7 @@ export function DetalleCitaModal({
                       onClose={() => {}}
                       onSuccess={(cobroIds) => {
                         setCobrada(true);
+                        setProductosCita([]);
                         onSaved?.({
                           id: cita.id,
                           cobrada: true,

@@ -21,6 +21,13 @@ interface CobroSheetCitaProps {
   subtituloColor?: string;
   // Render embebido (sin overlay), p.ej. en la pestaña Pagos de la ficha de cita.
   inline?: boolean;
+  // Lineas precargadas (productos elegidos en la pestaña Productos de la cita).
+  lineasIniciales?: Array<{
+    nombre: string;
+    precio: string;
+    cantidad: string;
+    ref_id?: string;
+  }>;
   onClose: () => void;
   onSuccess: (cobroIds: string[]) => void;
 }
@@ -125,7 +132,9 @@ export function CobroSheet(props: CobroSheetProps) {
   }, [qrEnlace]);
 
   // --- Solo walk-in: lineas libres + profesional opcional (comision) ---
-  const [lineas, setLineas] = useState<LineaWalkin[]>([]);
+  const [lineas, setLineas] = useState<LineaWalkin[]>(
+    () => ((props as any).lineasIniciales as LineaWalkin[] | undefined) ?? [],
+  );
   const [lineaNombre, setLineaNombre] = useState('');
   const [lineaPrecio, setLineaPrecio] = useState('');
   const [profesionalId, setProfesionalId] = useState('');
