@@ -1638,19 +1638,24 @@ export default function AgendaCalendar() {
           )}
           {!isMobile && sinConfirmar48h >= 0 && (
             <div
-              title={`${sinConfirmar48h} citas en las proximas 48h sin confirmar`}
-              className="m-pulse-red"
+              title={`${sinConfirmar48h} cita${sinConfirmar48h === 1 ? "" : "s"} de las proximas 48h que la clienta aun no ha confirmado`}
+              // Solo alarma si hay algo pendiente: en 0 se queda neutro.
+              className={sinConfirmar48h > 0 ? "m-pulse-red" : undefined}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
-                color: "#ef4444",
+                color: sinConfirmar48h > 0 ? "#ef4444" : TOKENS.textTer,
                 fontSize: 12,
                 fontWeight: 600,
               }}
             >
-              <Icon name="zap" size={16} color="#ef4444" />
-              {sinConfirmar48h} s/conf
+              <Icon
+                name="alert"
+                size={16}
+                color={sinConfirmar48h > 0 ? "#ef4444" : TOKENS.textTer}
+              />
+              {sinConfirmar48h} sin confirmar
             </div>
           )}
           {!isMobile && (
