@@ -12616,8 +12616,8 @@ const RAIL_ICONS: Record<SeccionCita, (c: string) => React.ReactNode> = {
 };
 
 const RAIL_ITEMS: { id: SeccionCita; label: string }[] = [
-  { id: "cliente", label: "Cliente" },
   { id: "servicio", label: "Servicio y tiempos" },
+  { id: "cliente", label: "Cliente" },
   { id: "color", label: "Ficha de color" },
   { id: "productos", label: "Productos" },
   { id: "pagos", label: "Pagos" },
@@ -14702,541 +14702,6 @@ export function DetalleCitaModal({
               </div>
             )}
             <div style={{ flex: 1, minWidth: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 18, padding: isMobileOrTablet ? "18px 18px 24px" : "24px 32px 28px" }}>
-              {seccionActiva === "servicio" && (<>
-              {/* 5.5: Servicios encadenados info */}
-          {cita.grupo_id &&
-            allCitas &&
-            (() => {
-              const siblings = (allCitas as any[])
-                .filter((c: any) => c.grupo_id === cita.grupo_id)
-                .sort(
-                  (a: any, b: any) =>
-                    (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0),
-                );
-              if (siblings.length <= 1) return null;
-              return (
-                <div
-                  style={{
-                    padding: "12px 32px",
-                    borderBottom: `1px solid ${TOKENS.border}`,
-                    background: "rgba(192,38,10,0.04)",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: "#e0340e",
-                      textTransform: "uppercase",
-                      letterSpacing: 1,
-                      marginBottom: 8,
-                    }}
-                  >
-                    Servicio encadenado ({siblings.length} servicios)
-                  </div>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {siblings.map((sib: any, idx: number) => {
-                      const sibSrv = servicios.find(
-                        (s: any) => s.id === sib.servicio_id,
-                      );
-                      const sibProf = profesionales.find(
-                        (p: any) => p.id === sib.profesional_id,
-                      );
-                      const isCurrent = sib.id === cita.id;
-                      const sibInicio = new Date(sib.inicio);
-                      const sibFin = new Date(sib.fin);
-                      return (
-                        <div
-                          key={sib.id}
-                          style={{
-                            padding: "6px 10px",
-                            background: isCurrent
-                              ? "rgba(192,38,10,0.15)"
-                              : TOKENS.bgCard,
-                            border: `1px solid ${isCurrent ? "#e0340e" : TOKENS.border}`,
-                            borderRadius: 8,
-                            minWidth: 0,
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: isCurrent ? "#e0340e" : TOKENS.text,
-                            }}
-                          >
-                            {idx + 1}. {sibSrv?.nombre || "Servicio"}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 9,
-                              color: TOKENS.textTer,
-                              marginTop: 2,
-                            }}
-                          >
-                            {sibProf?.nombre?.split(" ")[0]} ·{" "}
-                            {sibInicio.toLocaleTimeString("es-ES", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                            -
-                            {sibFin.toLocaleTimeString("es-ES", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
-          </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Chain overlap detection */}
-          {chainOverlapInfo &&
-            (chainOverlapInfo.before || chainOverlapInfo.after) && (
-              <div
-                style={{
-                  padding: "12px 32px",
-                  borderBottom: `1px solid ${TOKENS.border}`,
-                  background: "rgba(239,68,68,0.04)",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: "#ef4444",
-                    textTransform: "uppercase",
-                    letterSpacing: 1,
-                    marginBottom: 8,
-                  }}
-                >
-                  Conflicto en cadena
-                </div>
-                <div
-                  style={{ display: "flex", flexDirection: "column", gap: 6 }}
-                >
-                  {chainOverlapInfo.before &&
-                    chainOverlapInfo.beforeCita &&
-                    (() => {
-                      const prevSrv = servicios.find(
-                        (s: any) =>
-                          s.id === chainOverlapInfo.beforeCita.servicio_id,
-                      );
-                      const prevProf = profesionales.find(
-                        (p: any) =>
-                          p.id === chainOverlapInfo.beforeCita.profesional_id,
-                      );
-                      const prevFin = new Date(chainOverlapInfo.beforeCita.fin);
-                      const currentInicio = new Date(cita.inicio);
-                      const overlap =
-                        prevFin > currentInicio
-                          ? Math.round(
-                              (prevFin.getTime() - currentInicio.getTime()) /
-                                60000,
-                            )
-                          : 0;
-                      return (
-                        <div
-                          style={{
-                            padding: "8px 10px",
-                            background: TOKENS.bgCard,
-                            border: `1px solid #ef4444`,
-                            borderRadius: 6,
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: "#ef4444",
-                            }}
-                          >
-                            Anterior finaliza tarde
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 10,
-                              color: TOKENS.text,
-                              marginTop: 4,
-                            }}
-                          >
-                            {prevSrv?.nombre} ({prevProf?.nombre?.split(" ")[0]}
-                            ) finaliza a{" "}
-                            {prevFin.toLocaleTimeString("es-ES", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}{" "}
-                            - Solapamiento: {overlap} min
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  {chainOverlapInfo.after &&
-                    chainOverlapInfo.afterCita &&
-                    (() => {
-                      const nextSrv = servicios.find(
-                        (s: any) =>
-                          s.id === chainOverlapInfo.afterCita.servicio_id,
-                      );
-                      const nextProf = profesionales.find(
-                        (p: any) =>
-                          p.id === chainOverlapInfo.afterCita.profesional_id,
-                      );
-                      const nextInicio = new Date(
-                        chainOverlapInfo.afterCita.inicio,
-                      );
-                      const currentFin = new Date(cita.fin);
-                      const overlap =
-                        currentFin > nextInicio
-                          ? Math.round(
-                              (currentFin.getTime() - nextInicio.getTime()) /
-                                60000,
-                            )
-                          : 0;
-                      return (
-                        <div
-                          style={{
-                            padding: "8px 10px",
-                            background: TOKENS.bgCard,
-                            border: `1px solid #ef4444`,
-                            borderRadius: 6,
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: "#ef4444",
-                            }}
-                          >
-                            Siguiente comienza temprano
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 10,
-                              color: TOKENS.text,
-                              marginTop: 4,
-                            }}
-                          >
-                            {nextSrv?.nombre} ({nextProf?.nombre?.split(" ")[0]}
-                            ) comienza a{" "}
-                            {nextInicio.toLocaleTimeString("es-ES", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}{" "}
-                            - Solapamiento: {overlap} min
-                          </div>
-                        </div>
-                      );
-                    })()}
-                </div>
-              </div>
-            )}
-
-          </>)}
-              {seccionActiva === "servicio" && (<>
-              {/* Encadenar servicio */}
-          {estado === CITA_STATUS.CONFIRMADA && (
-            <div
-              style={{
-                padding: showChainForm ? "10px 32px" : "0 32px",
-                borderBottom: `1px solid ${TOKENS.border}`,
-                ...(showChainForm
-                  ? {}
-                  : { display: "flex", alignItems: "center", minHeight: 36 }),
-              }}
-            >
-              {!showChainForm ? (
-                <button
-                  onClick={() => {
-                    setShowChainForm(true);
-                    setChainServicioId(null);
-                    setChainProfId(null);
-                    setChainErr("");
-                  }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    alignSelf: "flex-start",
-                    background: "rgba(244,80,30,0.08)",
-                    border: "1px solid rgba(244,80,30,0.35)",
-                    borderRadius: 10,
-                    padding: "10px 16px",
-                    color: "#e0340e",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    transition: "background 0.15s ease, transform 0.15s ease",
-                    textAlign: "left",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(244,80,30,0.14)";
-                    e.currentTarget.style.transform = "translateY(-1px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
-                    e.currentTarget.style.transform = "none";
-                  }}
-                >
-                  <svg
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                  >
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  Encadenar servicio
-                </button>
-              ) : (
-                <div
-                  style={{
-                    borderLeft: "3px solid #e0340e",
-                    paddingLeft: 14,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 10,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: "#e0340e",
-                        textTransform: "uppercase",
-                        letterSpacing: 0.8,
-                      }}
-                    >
-                      Encadenar servicio
-                    </div>
-                    <button
-                      onClick={() => setShowChainForm(false)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: TOKENS.textTer,
-                        cursor: "pointer",
-                        fontSize: 16,
-                        lineHeight: 1,
-                      }}
-                    >
-                      x
-                    </button>
-                  </div>
-
-                  {/* Servicio */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 600,
-                        color: TOKENS.textTer,
-                        letterSpacing: 0.6,
-                        marginBottom: 6,
-                      }}
-                    >
-                      Servicio
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                      {servicios.map((s: any) => (
-                        <button
-                          key={s.id}
-                          onClick={() => {
-                            setChainServicioId(s.id);
-                            setChainErr("");
-                          }}
-                          style={{
-                            padding: "5px 10px",
-                            borderRadius: 6,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            border:
-                              chainServicioId === s.id
-                                ? "1px solid #e0340e"
-                                : `1px solid ${TOKENS.border}`,
-                            background:
-                              chainServicioId === s.id
-                                ? "rgba(192,38,10,0.15)"
-                                : TOKENS.bgCard,
-                            color:
-                              chainServicioId === s.id
-                                ? "#e0340e"
-                                : TOKENS.text,
-                            transition: "all 0.15s",
-                          }}
-                        >
-                          {s.nombre}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Profesional */}
-                  {chainServicioId && (
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 600,
-                          color: TOKENS.textTer,
-                          letterSpacing: 0.6,
-                          marginBottom: 6,
-                        }}
-                      >
-                        Profesional
-                      </div>
-                      <div
-                        style={{ display: "flex", flexWrap: "wrap", gap: 5 }}
-                      >
-                        {profesionales.map((p: any) => (
-                          <button
-                            key={p.id}
-                            onClick={() => {
-                              setChainProfId(p.id);
-                              setChainErr("");
-                            }}
-                            style={{
-                              padding: "5px 10px",
-                              borderRadius: 6,
-                              fontSize: 11,
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              border:
-                                chainProfId === p.id
-                                  ? `1px solid ${p.color || "#e0340e"}`
-                                  : `1px solid ${TOKENS.border}`,
-                              background:
-                                chainProfId === p.id
-                                  ? `${p.color || "#e0340e"}22`
-                                  : TOKENS.bgCard,
-                              color:
-                                chainProfId === p.id
-                                  ? p.color || "#e0340e"
-                                  : TOKENS.text,
-                              transition: "all 0.15s",
-                            }}
-                          >
-                            {p.nombre}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Preview de horario */}
-                  {chainTimingPreview && chainProfId && (
-                    <div
-                      style={{
-                        padding: "8px 10px",
-                        background: "rgba(192,38,10,0.06)",
-                        borderRadius: 6,
-                        border: `1px solid rgba(192,38,10,0.15)`,
-                      }}
-                    >
-                      <div style={{ fontSize: 10, color: TOKENS.textTer }}>
-                        {chainTimingPreview.inicio.toLocaleTimeString("es-ES", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
-                        -{" "}
-                        {chainTimingPreview.fin.toLocaleTimeString("es-ES", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
-                        ({chainTimingPreview.durTotal} min) ·{" "}
-                        {chainTimingPreview.precio}
-                      </div>
-                    </div>
-                  )}
-
-                  {chainErr && (
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: TOKENS.danger,
-                        padding: "6px 10px",
-                        background: `${TOKENS.danger}15`,
-                        borderRadius: 6,
-                        border: `1px solid ${TOKENS.danger}44`,
-                      }}
-                    >
-                      {chainErr}
-                    </div>
-                  )}
-
-                  {/* Botones */}
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 8,
-                      justifyContent: "flex-end",
-                    }}
-                  >
-                    <button
-                      onClick={() => setShowChainForm(false)}
-                      style={{
-                        padding: "6px 14px",
-                        background: TOKENS.bgCard,
-                        border: `1px solid ${TOKENS.border}`,
-                        color: TOKENS.textSec,
-                        borderRadius: 6,
-                        cursor: "pointer",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      onClick={handleEncadenar}
-                      disabled={
-                        !chainServicioId || !chainProfId || chainGuardando
-                      }
-                      style={{
-                        padding: "6px 14px",
-                        background:
-                          !chainServicioId || !chainProfId || chainGuardando
-                            ? "rgba(192,38,10,0.3)"
-                            : "linear-gradient(180deg,#9b8afb 0%,#c0260a 100%)",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: 6,
-                        cursor:
-                          !chainServicioId || !chainProfId || chainGuardando
-                            ? "not-allowed"
-                            : "pointer",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {chainGuardando ? "..." : "Encadenar"}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-
-              </>)}
               {seccionActiva === "cliente" && (<>
               {/* Cliente */}
               <div
@@ -15913,6 +15378,541 @@ export function DetalleCitaModal({
                   </div>
                 )}
               </div>
+
+              </>)}
+              {seccionActiva === "servicio" && (<>
+              {/* 5.5: Servicios encadenados info */}
+          {cita.grupo_id &&
+            allCitas &&
+            (() => {
+              const siblings = (allCitas as any[])
+                .filter((c: any) => c.grupo_id === cita.grupo_id)
+                .sort(
+                  (a: any, b: any) =>
+                    (a.orden_en_grupo ?? 0) - (b.orden_en_grupo ?? 0),
+                );
+              if (siblings.length <= 1) return null;
+              return (
+                <div
+                  style={{
+                    padding: "12px 32px",
+                    borderBottom: `1px solid ${TOKENS.border}`,
+                    background: "rgba(192,38,10,0.04)",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "#e0340e",
+                      textTransform: "uppercase",
+                      letterSpacing: 1,
+                      marginBottom: 8,
+                    }}
+                  >
+                    Servicio encadenado ({siblings.length} servicios)
+                  </div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {siblings.map((sib: any, idx: number) => {
+                      const sibSrv = servicios.find(
+                        (s: any) => s.id === sib.servicio_id,
+                      );
+                      const sibProf = profesionales.find(
+                        (p: any) => p.id === sib.profesional_id,
+                      );
+                      const isCurrent = sib.id === cita.id;
+                      const sibInicio = new Date(sib.inicio);
+                      const sibFin = new Date(sib.fin);
+                      return (
+                        <div
+                          key={sib.id}
+                          style={{
+                            padding: "6px 10px",
+                            background: isCurrent
+                              ? "rgba(192,38,10,0.15)"
+                              : TOKENS.bgCard,
+                            border: `1px solid ${isCurrent ? "#e0340e" : TOKENS.border}`,
+                            borderRadius: 8,
+                            minWidth: 0,
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: isCurrent ? "#e0340e" : TOKENS.text,
+                            }}
+                          >
+                            {idx + 1}. {sibSrv?.nombre || "Servicio"}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 9,
+                              color: TOKENS.textTer,
+                              marginTop: 2,
+                            }}
+                          >
+                            {sibProf?.nombre?.split(" ")[0]} ·{" "}
+                            {sibInicio.toLocaleTimeString("es-ES", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                            -
+                            {sibFin.toLocaleTimeString("es-ES", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+          </>)}
+              {seccionActiva === "servicio" && (<>
+              {/* Chain overlap detection */}
+          {chainOverlapInfo &&
+            (chainOverlapInfo.before || chainOverlapInfo.after) && (
+              <div
+                style={{
+                  padding: "12px 32px",
+                  borderBottom: `1px solid ${TOKENS.border}`,
+                  background: "rgba(239,68,68,0.04)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "#ef4444",
+                    textTransform: "uppercase",
+                    letterSpacing: 1,
+                    marginBottom: 8,
+                  }}
+                >
+                  Conflicto en cadena
+                </div>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 6 }}
+                >
+                  {chainOverlapInfo.before &&
+                    chainOverlapInfo.beforeCita &&
+                    (() => {
+                      const prevSrv = servicios.find(
+                        (s: any) =>
+                          s.id === chainOverlapInfo.beforeCita.servicio_id,
+                      );
+                      const prevProf = profesionales.find(
+                        (p: any) =>
+                          p.id === chainOverlapInfo.beforeCita.profesional_id,
+                      );
+                      const prevFin = new Date(chainOverlapInfo.beforeCita.fin);
+                      const currentInicio = new Date(cita.inicio);
+                      const overlap =
+                        prevFin > currentInicio
+                          ? Math.round(
+                              (prevFin.getTime() - currentInicio.getTime()) /
+                                60000,
+                            )
+                          : 0;
+                      return (
+                        <div
+                          style={{
+                            padding: "8px 10px",
+                            background: TOKENS.bgCard,
+                            border: `1px solid #ef4444`,
+                            borderRadius: 6,
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: "#ef4444",
+                            }}
+                          >
+                            Anterior finaliza tarde
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 10,
+                              color: TOKENS.text,
+                              marginTop: 4,
+                            }}
+                          >
+                            {prevSrv?.nombre} ({prevProf?.nombre?.split(" ")[0]}
+                            ) finaliza a{" "}
+                            {prevFin.toLocaleTimeString("es-ES", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}{" "}
+                            - Solapamiento: {overlap} min
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  {chainOverlapInfo.after &&
+                    chainOverlapInfo.afterCita &&
+                    (() => {
+                      const nextSrv = servicios.find(
+                        (s: any) =>
+                          s.id === chainOverlapInfo.afterCita.servicio_id,
+                      );
+                      const nextProf = profesionales.find(
+                        (p: any) =>
+                          p.id === chainOverlapInfo.afterCita.profesional_id,
+                      );
+                      const nextInicio = new Date(
+                        chainOverlapInfo.afterCita.inicio,
+                      );
+                      const currentFin = new Date(cita.fin);
+                      const overlap =
+                        currentFin > nextInicio
+                          ? Math.round(
+                              (currentFin.getTime() - nextInicio.getTime()) /
+                                60000,
+                            )
+                          : 0;
+                      return (
+                        <div
+                          style={{
+                            padding: "8px 10px",
+                            background: TOKENS.bgCard,
+                            border: `1px solid #ef4444`,
+                            borderRadius: 6,
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: "#ef4444",
+                            }}
+                          >
+                            Siguiente comienza temprano
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 10,
+                              color: TOKENS.text,
+                              marginTop: 4,
+                            }}
+                          >
+                            {nextSrv?.nombre} ({nextProf?.nombre?.split(" ")[0]}
+                            ) comienza a{" "}
+                            {nextInicio.toLocaleTimeString("es-ES", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}{" "}
+                            - Solapamiento: {overlap} min
+                          </div>
+                        </div>
+                      );
+                    })()}
+                </div>
+              </div>
+            )}
+
+          </>)}
+              {seccionActiva === "servicio" && (<>
+              {/* Encadenar servicio */}
+          {estado === CITA_STATUS.CONFIRMADA && (
+            <div
+              style={{
+                padding: showChainForm ? "10px 32px" : "0 32px",
+                borderBottom: `1px solid ${TOKENS.border}`,
+                ...(showChainForm
+                  ? {}
+                  : { display: "flex", alignItems: "center", minHeight: 36 }),
+              }}
+            >
+              {!showChainForm ? (
+                <button
+                  onClick={() => {
+                    setShowChainForm(true);
+                    setChainServicioId(null);
+                    setChainProfId(null);
+                    setChainErr("");
+                  }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    alignSelf: "flex-start",
+                    background: "rgba(244,80,30,0.08)",
+                    border: "1px solid rgba(244,80,30,0.35)",
+                    borderRadius: 10,
+                    padding: "10px 16px",
+                    color: "#e0340e",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "background 0.15s ease, transform 0.15s ease",
+                    textAlign: "left",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(244,80,30,0.14)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+                    e.currentTarget.style.transform = "none";
+                  }}
+                >
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Encadenar servicio
+                </button>
+              ) : (
+                <div
+                  style={{
+                    borderLeft: "3px solid #e0340e",
+                    paddingLeft: 14,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "#e0340e",
+                        textTransform: "uppercase",
+                        letterSpacing: 0.8,
+                      }}
+                    >
+                      Encadenar servicio
+                    </div>
+                    <button
+                      onClick={() => setShowChainForm(false)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: TOKENS.textTer,
+                        cursor: "pointer",
+                        fontSize: 16,
+                        lineHeight: 1,
+                      }}
+                    >
+                      x
+                    </button>
+                  </div>
+
+                  {/* Servicio */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: TOKENS.textTer,
+                        letterSpacing: 0.6,
+                        marginBottom: 6,
+                      }}
+                    >
+                      Servicio
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                      {servicios.map((s: any) => (
+                        <button
+                          key={s.id}
+                          onClick={() => {
+                            setChainServicioId(s.id);
+                            setChainErr("");
+                          }}
+                          style={{
+                            padding: "5px 10px",
+                            borderRadius: 6,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            border:
+                              chainServicioId === s.id
+                                ? "1px solid #e0340e"
+                                : `1px solid ${TOKENS.border}`,
+                            background:
+                              chainServicioId === s.id
+                                ? "rgba(192,38,10,0.15)"
+                                : TOKENS.bgCard,
+                            color:
+                              chainServicioId === s.id
+                                ? "#e0340e"
+                                : TOKENS.text,
+                            transition: "all 0.15s",
+                          }}
+                        >
+                          {s.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Profesional */}
+                  {chainServicioId && (
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 600,
+                          color: TOKENS.textTer,
+                          letterSpacing: 0.6,
+                          marginBottom: 6,
+                        }}
+                      >
+                        Profesional
+                      </div>
+                      <div
+                        style={{ display: "flex", flexWrap: "wrap", gap: 5 }}
+                      >
+                        {profesionales.map((p: any) => (
+                          <button
+                            key={p.id}
+                            onClick={() => {
+                              setChainProfId(p.id);
+                              setChainErr("");
+                            }}
+                            style={{
+                              padding: "5px 10px",
+                              borderRadius: 6,
+                              fontSize: 11,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              border:
+                                chainProfId === p.id
+                                  ? `1px solid ${p.color || "#e0340e"}`
+                                  : `1px solid ${TOKENS.border}`,
+                              background:
+                                chainProfId === p.id
+                                  ? `${p.color || "#e0340e"}22`
+                                  : TOKENS.bgCard,
+                              color:
+                                chainProfId === p.id
+                                  ? p.color || "#e0340e"
+                                  : TOKENS.text,
+                              transition: "all 0.15s",
+                            }}
+                          >
+                            {p.nombre}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Preview de horario */}
+                  {chainTimingPreview && chainProfId && (
+                    <div
+                      style={{
+                        padding: "8px 10px",
+                        background: "rgba(192,38,10,0.06)",
+                        borderRadius: 6,
+                        border: `1px solid rgba(192,38,10,0.15)`,
+                      }}
+                    >
+                      <div style={{ fontSize: 10, color: TOKENS.textTer }}>
+                        {chainTimingPreview.inicio.toLocaleTimeString("es-ES", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}{" "}
+                        -{" "}
+                        {chainTimingPreview.fin.toLocaleTimeString("es-ES", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}{" "}
+                        ({chainTimingPreview.durTotal} min) ·{" "}
+                        {chainTimingPreview.precio}
+                      </div>
+                    </div>
+                  )}
+
+                  {chainErr && (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: TOKENS.danger,
+                        padding: "6px 10px",
+                        background: `${TOKENS.danger}15`,
+                        borderRadius: 6,
+                        border: `1px solid ${TOKENS.danger}44`,
+                      }}
+                    >
+                      {chainErr}
+                    </div>
+                  )}
+
+                  {/* Botones */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    <button
+                      onClick={() => setShowChainForm(false)}
+                      style={{
+                        padding: "6px 14px",
+                        background: TOKENS.bgCard,
+                        border: `1px solid ${TOKENS.border}`,
+                        color: TOKENS.textSec,
+                        borderRadius: 6,
+                        cursor: "pointer",
+                        fontSize: 11,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleEncadenar}
+                      disabled={
+                        !chainServicioId || !chainProfId || chainGuardando
+                      }
+                      style={{
+                        padding: "6px 14px",
+                        background:
+                          !chainServicioId || !chainProfId || chainGuardando
+                            ? "rgba(192,38,10,0.3)"
+                            : "linear-gradient(180deg,#9b8afb 0%,#c0260a 100%)",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        cursor:
+                          !chainServicioId || !chainProfId || chainGuardando
+                            ? "not-allowed"
+                            : "pointer",
+                        fontSize: 11,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {chainGuardando ? "..." : "Encadenar"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
 
               </>)}
               {seccionActiva === "servicio" && (<>
