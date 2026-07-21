@@ -82,9 +82,10 @@ export function Sidebar() {
   const { t } = useAppLang();
   const configActive = pathname.includes('configuracion');
 
-  // Rail siempre compacto: solo se despliega mientras el raton esta encima.
-  const [hovered, setHovered] = useState(false);
-  const collapsed = !hovered;
+  // Rail fijo y compacto: no se ensancha. Al pasar el raton por un icono se
+  // muestra su nombre en una etiqueta flotante (patron tipo Booksy).
+  const collapsed = true;
+  const [tip, setTip] = useState<{ top: number; label: string } | null>(null);
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const roleTheme = getRoleTheme(profile);
 
@@ -184,8 +185,12 @@ export function Sidebar() {
           ]}
           onPress={() => router.push(item.href as any)}
           {...{
-            onMouseEnter: () => { hoverIn(hoverAnim); setHoveredIdx(idx); },
-            onMouseLeave: () => { hoverOut(hoverAnim); setHoveredIdx(null); },
+            onMouseEnter: (e: any) => {
+              hoverIn(hoverAnim); setHoveredIdx(idx);
+              const r = e?.currentTarget?.getBoundingClientRect?.();
+              if (r) setTip({ top: r.top + r.height / 2, label: t(item.labelKey) || item.label });
+            },
+            onMouseLeave: () => { hoverOut(hoverAnim); setHoveredIdx(null); setTip(null); },
             // Ancla para el coach intra-pagina (S16): data-coach="nav-<slug>".
             dataSet: { coach: `nav-${item.href === '/(tabs)' ? 'agenda' : hrefSlug}` },
             ...webTitle(t(item.labelKey) || item.label)
@@ -215,22 +220,7 @@ export function Sidebar() {
   return (
     // El hueco reserva SOLO el ancho del rail; la barra va flotando encima,
     // asi al desplegarse con el raton no empuja el contenido de la pagina.
-    <View style={{ width: 76, height: '100%' }}>
-    <View
-      style={[
-        s.sidebar,
-        collapsed && s.sidebarCollapsed,
-        s.sidebarFloat,
-        // Ancho explicito al final: manda sobre los estilos de arriba, que es
-        // lo que fallaba (salian las etiquetas pero la barra no se ensanchaba).
-        { width: collapsed ? 76 : 240 },
-        !collapsed && s.sidebarFloatOpen,
-      ]}
-      {...({
-        onMouseEnter: () => setHovered(true),
-        onMouseLeave: () => setHovered(false),
-      } as any)}
-    >
+    <View style={[s.sidebar, s.sidebarCollapsed]}>
       {/* Logo + toggle */}
       <View style={[s.logoContainer, collapsed && s.logoContainerCollapsed]}>
         <TouchableOpacity
@@ -401,7 +391,17 @@ export function Sidebar() {
           </TouchableOpacity>
         </Animated.View>
       </View>
-    </View>
+
+      {/* Etiqueta flotante con el nombre de la seccion. position fixed para que
+          no la recorte ni el scroll de la navegacion ni el propio rail. */}
+      {tip && (
+        <View
+          pointerEvents="none"
+          style={[s.navTip, { top: tip.top - 15 }] as any}
+        >
+          <TText style={s.navTipText} numberOfLines={1}>{tip.label}</TText>
+        </View>
+      )}
     </View>
   );
 }
@@ -425,17 +425,23 @@ const s = StyleSheet.create({
     paddingHorizontal: tokens.spacing.sm,
     alignItems: 'center',
   },
-  // La barra flota sobre el contenido (el hueco del layout solo reserva el rail)
-  sidebarFloat: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    zIndex: 60,
+  // Etiqueta flotante del rail (nombre de la seccion al pasar el raton)
+  navTip: {
+    position: 'fixed' as any,
+    left: 84,
+    zIndex: 9999,
+    backgroundColor: '#2b2320',
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    borderRadius: 8,
+    boxShadow: '0 6px 18px rgba(40,30,24,0.28)' as any,
   },
-  // Sombra solo cuando esta desplegada por hover, para que se lea "encima"
-  sidebarFloatOpen: {
-    boxShadow: '0 12px 40px rgba(40,30,24,0.18)' as any,
+  navTipText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    whiteSpace: 'nowrap' as any,
   },
   logoContainer: {
     flexDirection: 'row',
