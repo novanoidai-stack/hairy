@@ -85,7 +85,12 @@ export function Sidebar() {
   const { t } = useAppLang();
   const configActive = pathname.includes('configuracion');
 
-  const [collapsed, setCollapsed] = useState(false);
+  // Rail por defecto: la barra va estrecha y se despliega al pasar el raton.
+  // collapsedPref = preferencia guardada (si la fijas abierta, se queda abierta).
+  // collapsed = estado efectivo que usa todo el render.
+  const [collapsedPref, setCollapsedPref] = useState(true);
+  const [hovered, setHovered] = useState(false);
+  const collapsed = collapsedPref && !hovered;
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const roleTheme = getRoleTheme(profile);
 
@@ -100,12 +105,12 @@ export function Sidebar() {
 
   useEffect(() => {
     AsyncStorage.getItem(COLLAPSE_KEY)
-      .then(v => { if (v === '1') setCollapsed(true); })
+      .then(v => { if (v === '0') setCollapsedPref(false); })
       .catch(() => {});
   }, []);
 
   const toggleCollapsed = () => {
-    setCollapsed(prev => {
+    setCollapsedPref(prev => {
       const next = !prev;
       AsyncStorage.setItem(COLLAPSE_KEY, next ? '1' : '0').catch(() => {});
       return next;
@@ -209,7 +214,7 @@ export function Sidebar() {
           {isActive && !collapsed && <View style={[s.navItemBar, { backgroundColor: roleTheme.accent }]} />}
           <Ionicons
             name={(isActive ? item.activeIcon : item.icon) as any}
-            size={collapsed ? 20 : 16}
+            size={collapsed ? 26 : 20}
             color={isActive ? roleTheme.accent : 'rgba(92,82,73,0.5)'}
           />
           {!collapsed && (
@@ -228,7 +233,21 @@ export function Sidebar() {
   };
 
   return (
-    <View style={[s.sidebar, collapsed && s.sidebarCollapsed]}>
+    // El hueco reserva SOLO el ancho del rail; la barra va flotando encima,
+    // asi al desplegarse con el raton no empuja el contenido de la pagina.
+    <View style={{ width: collapsedPref ? 76 : 240, height: '100%' }}>
+    <View
+      style={[
+        s.sidebar,
+        collapsed && s.sidebarCollapsed,
+        s.sidebarFloat,
+        !collapsed && collapsedPref && s.sidebarFloatOpen,
+      ]}
+      {...({
+        onMouseEnter: () => setHovered(true),
+        onMouseLeave: () => setHovered(false),
+      } as any)}
+    >
       {/* Logo + toggle */}
       <View style={[s.logoContainer, collapsed && s.logoContainerCollapsed]}>
         <TouchableOpacity
@@ -271,7 +290,7 @@ export function Sidebar() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {/* Campana global de avisos: visible en todas las paginas, no solo la agenda */}
             <AvisosBell collapsed={false} />
-            <TouchableOpacity style={s.collapseBtn} onPress={toggleCollapsed} {...({ title: 'Contraer menú' } as any)}>
+            <TouchableOpacity style={s.collapseBtn} onPress={toggleCollapsed} {...({ title: collapsedPref ? 'Fijar menú abierto' : 'Volver al menú compacto' } as any)}>
               <Ionicons name="chevron-back" size={16} color={tokens.textTertiary} />
             </TouchableOpacity>
           </View>
@@ -408,6 +427,7 @@ export function Sidebar() {
         </Animated.View>
       </View>
     </View>
+    </View>
   );
 }
 
@@ -429,6 +449,18 @@ const s = StyleSheet.create({
     width: 76,
     paddingHorizontal: tokens.spacing.sm,
     alignItems: 'center',
+  },
+  // La barra flota sobre el contenido (el hueco del layout solo reserva el rail)
+  sidebarFloat: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    zIndex: 60,
+  },
+  // Sombra solo cuando esta desplegada por hover, para que se lea "encima"
+  sidebarFloatOpen: {
+    boxShadow: '0 12px 40px rgba(40,30,24,0.18)' as any,
   },
   logoContainer: {
     flexDirection: 'row',
