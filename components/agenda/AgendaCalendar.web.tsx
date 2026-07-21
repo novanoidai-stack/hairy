@@ -12787,63 +12787,94 @@ export function DetalleCitaModal({
   const [cobroSenalCents, setCobroSenalCents] = useState(0);
   // Inventario del salon (pestaña Productos)
   const [inventarioProductos, setInventarioProductos] = useState<any[]>([]);
-  // Productos elegidos para esta cita: se pasan al cobro como lineas y su
-  // precio se suma al total. No se persisten hasta que se cobra.
+  // Productos gastados en esta cita: persistidos en cita_productos. Al anadir
+  // se descuenta stock (RPC atomica) y su precio entra en el cobro.
   const [productosCita, setProductosCita] = useState<
     Array<{ id: string; nombre: string; precio: number; cantidad: number }>
   >([]);
-  const addProductoCita = useCallback((p: any) => {
-    setProductosCita((prev) => {
-      const i = prev.findIndex((x) => x.id === p.id);
-      if (i >= 0)
-        return prev.map((x, j) =>
-          j === i ? { ...x, cantidad: x.cantidad + 1 } : x,
-        );
-      return [
-        ...prev,
-        {
-          id: p.id,
-          nombre: p.nombre,
-          precio: Number(p.precio_cents ?? 0) / 100,
-          cantidad: 1,
-        },
-      ];
-    });
+  const cargarInventario = useCallback(async () => {
+    const prof = await getUserProfile();
+    if (!prof?.negocio_id) return;
+    // precio_cents (no "precio") y el stock vive en inventario.unidades
+    const { data } = await supabase
+      .from("productos")
+      .select("id, nombre, precio_cents, stock_minimo, inventario(unidades)")
+      .eq("negocio_id", prof.negocio_id)
+      .eq("activo", true)
+      .order("nombre");
+    setInventarioProductos(data ?? []);
   }, []);
-  const quitarProductoCita = useCallback((id: string) => {
-    setProductosCita((prev) => {
-      const i = prev.findIndex((x) => x.id === id);
-      if (i < 0) return prev;
-      const actual = prev[i];
-      if (actual.cantidad > 1)
-        return prev.map((x, j) =>
-          j === i ? { ...x, cantidad: x.cantidad - 1 } : x,
-        );
-      return prev.filter((_, j) => j !== i);
-    });
-  }, []);
+  const cargarProductosCita = useCallback(async () => {
+    const { data } = await supabase
+      .from("cita_productos")
+      .select("producto_id, nombre, precio_cents, cantidad")
+      .eq("cita_id", cita.id);
+    setProductosCita(
+      (data ?? []).map((r: any) => ({
+        id: r.producto_id,
+        nombre: r.nombre,
+        precio: Number(r.precio_cents ?? 0) / 100,
+        cantidad: r.cantidad,
+      })),
+    );
+  }, [cita.id]);
+  useEffect(() => {
+    cargarInventario();
+    cargarProductosCita();
+  }, [cargarInventario, cargarProductosCita]);
+  const addProductoCita = useCallback(
+    async (p: any) => {
+      // Optimista; la RPC hace alta/incremento + descuento de stock + movimiento
+      setProductosCita((prev) => {
+        const i = prev.findIndex((x) => x.id === p.id);
+        if (i >= 0)
+          return prev.map((x, j) =>
+            j === i ? { ...x, cantidad: x.cantidad + 1 } : x,
+          );
+        return [
+          ...prev,
+          {
+            id: p.id,
+            nombre: p.nombre,
+            precio: Number(p.precio_cents ?? 0) / 100,
+            cantidad: 1,
+          },
+        ];
+      });
+      const { error } = await supabase.rpc("cita_producto_add", {
+        p_cita_id: cita.id,
+        p_producto_id: p.id,
+      });
+      if (error) await cargarProductosCita();
+      await cargarInventario();
+    },
+    [cita.id, cargarProductosCita, cargarInventario],
+  );
+  const quitarProductoCita = useCallback(
+    async (id: string) => {
+      setProductosCita((prev) => {
+        const i = prev.findIndex((x) => x.id === id);
+        if (i < 0) return prev;
+        const actual = prev[i];
+        if (actual.cantidad > 1)
+          return prev.map((x, j) =>
+            j === i ? { ...x, cantidad: x.cantidad - 1 } : x,
+          );
+        return prev.filter((_, j) => j !== i);
+      });
+      const { error } = await supabase.rpc("cita_producto_remove", {
+        p_cita_id: cita.id,
+        p_producto_id: id,
+      });
+      if (error) await cargarProductosCita();
+      await cargarInventario();
+    },
+    [cita.id, cargarProductosCita, cargarInventario],
+  );
   const totalProductosCita = productosCita.reduce(
     (s, p) => s + p.precio * p.cantidad,
     0,
   );
-  useEffect(() => {
-    let cancel = false;
-    (async () => {
-      const prof = await getUserProfile();
-      if (cancel || !prof?.negocio_id) return;
-      // precio_cents (no "precio") y el stock vive en inventario.unidades
-      const { data } = await supabase
-        .from("productos")
-        .select("id, nombre, precio_cents, stock_minimo, inventario(unidades)")
-        .eq("negocio_id", prof.negocio_id)
-        .eq("activo", true)
-        .order("nombre");
-      if (!cancel) setInventarioProductos(data ?? []);
-    })();
-    return () => {
-      cancel = true;
-    };
-  }, []);
   // Señal ya pagada: para que el cobro inline (pestaña Pagos) descuente bien.
   useEffect(() => {
     if (cobrada) return;
@@ -16934,7 +16965,6 @@ export function DetalleCitaModal({
                       onClose={() => {}}
                       onSuccess={(cobroIds) => {
                         setCobrada(true);
-                        setProductosCita([]);
                         onSaved?.({
                           id: cita.id,
                           cobrada: true,
