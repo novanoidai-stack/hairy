@@ -6613,8 +6613,6 @@ function DayTimeline({
           overflowX: agendaFit ? "hidden" : "auto",
           width: "100%",
           WebkitOverflowScrolling: "touch",
-          boxShadow:
-            "0 10px 34px -12px rgba(40,30,24,0.20), 0 2px 8px rgba(40,30,24,0.06)",
         }}
       >
         <div
@@ -12622,7 +12620,6 @@ const RAIL_ITEMS: { id: SeccionCita; label: string }[] = [
   { id: "cliente", label: "Cliente" },
   { id: "servicio", label: "Servicio y tiempos" },
   { id: "color", label: "Ficha de color" },
-  { id: "notas", label: "Notas" },
   { id: "productos", label: "Productos" },
   { id: "pagos", label: "Pagos" },
   { id: "historial", label: "Historial" },
@@ -14899,24 +14896,43 @@ export function DetalleCitaModal({
                     setChainErr("");
                   }}
                   style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    alignSelf: "flex-start",
+                    background: "rgba(244,80,30,0.08)",
+                    border: "1px solid rgba(244,80,30,0.35)",
+                    borderRadius: 10,
+                    padding: "10px 16px",
                     color: "#e0340e",
-                    fontSize: 11,
-                    fontWeight: 600,
+                    fontSize: 13,
+                    fontWeight: 700,
                     cursor: "pointer",
-                    transition: "opacity 0.15s",
+                    transition: "background 0.15s ease, transform 0.15s ease",
                     textAlign: "left",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = "0.7";
+                    e.currentTarget.style.background = "rgba(244,80,30,0.14)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = "1";
+                    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+                    e.currentTarget.style.transform = "none";
                   }}
                 >
-                  + Encadenar servicio
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Encadenar servicio
                 </button>
               ) : (
                 <div
@@ -15845,7 +15861,7 @@ export function DetalleCitaModal({
               </div>
 
               </>)}
-              {seccionActiva === "cliente" && (<>
+              {seccionActiva === "color" && (<>
               {/* Aviso de alergias del cliente */}
               {(() => {
                 const alergiasTexto = (selectedCliente?.alergias ?? "").trim();
@@ -15913,7 +15929,7 @@ export function DetalleCitaModal({
               })()}
 
               </>)}
-              {seccionActiva === "notas" && (<>
+              {seccionActiva === "color" && (<>
               {/* Alergias de la cita */}
               <div>
                 <Label>Alergias</Label>
