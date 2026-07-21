@@ -7250,19 +7250,16 @@ function DayTimeline({
                         const nestedLeft = `calc(${nestL}% + 6px)`;
                         const nestedRight = `calc(${nestR}% + 6px)`;
                         const cancelada = cita.estado === CITA_STATUS.CANCELADA;
-                        const esCompletada =
-                          cita.estado === CITA_STATUS.COMPLETADA;
-                        const esNoShow =
-                          cita.estado === CITA_STATUS.NO_PRESENTADA;
+                        // El fondo del bloque lleva SIEMPRE el color del
+                        // profesional, tenga reposo o no. Antes los estados
+                        // completada/no-presentada lo pisaban (verde/ambar) y las
+                        // citas terminadas salian todas verdes. El estado se
+                        // distingue por el borde y la etiqueta, no tinendo el bloque.
                         const actualCitaBg = cancelada
                           ? "rgba(226,59,52,0.04)"
                           : nested
                             ? "#ffffff"
-                            : esCompletada
-                              ? "rgba(15,157,107,0.05)"
-                              : esNoShow
-                                ? "rgba(224,138,0,0.05)"
-                                : citaBg;
+                            : citaBg;
                         const actualCitaBorder = nested
                           ? "rgba(34,197,94,0.45)"
                           : cita.estado === "confirmada"
