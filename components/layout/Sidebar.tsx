@@ -297,7 +297,7 @@ export function Sidebar() {
           return Object.entries(groups).map(([groupName, items], groupIndex) => {
             const gColor = groupColors[groupIndex % groupColors.length];
             return (
-            <View key={groupName} style={collapsed ? { borderLeftWidth: 2, borderLeftColor: gColor, marginLeft: 2, paddingLeft: 2, marginBottom: 12 } : {}}>
+            <View key={groupName} style={collapsed ? { borderLeftWidth: 2, borderLeftColor: gColor, marginLeft: 0, paddingLeft: 2, marginBottom: 12 } : {}}>
               {groupIndex > 0 && <View style={[s.navDivider, collapsed && { width: 24, alignSelf: 'center', marginVertical: 8, backgroundColor: 'rgba(92,82,73,0.1)' }]} />}
               {!collapsed && (
                 <TText style={[s.navSectionLabel, groupIndex > 0 && { marginTop: tokens.spacing.xs }, { color: gColor, opacity: 0.8 }]}>
@@ -424,6 +424,9 @@ const s = StyleSheet.create({
     // overflow visible: el rail ya no anima su ancho, y si recorta se come la
     // etiqueta flotante que sale al pasar el raton por los iconos.
     overflow: 'visible',
+    // zIndex: sin el, el contenido de la pagina (hermano posterior) se pinta
+    // encima y tapa la etiqueta flotante en cuanto sale del rail.
+    zIndex: 100,
   },
   sidebarCollapsed: {
     width: 76,
@@ -457,6 +460,7 @@ const s = StyleSheet.create({
   logoContainerCollapsed: {
     justifyContent: 'center',
     marginBottom: tokens.spacing.sm,
+    transform: [{ translateX: -4 }],
   },
   brand: {
     flexDirection: 'row',
