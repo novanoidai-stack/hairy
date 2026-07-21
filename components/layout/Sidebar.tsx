@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
-import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { getUserProfile, can, roleOf, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
 import { IS_DEMO_MODE } from '@/lib/supabase';
 import { useAppLang } from '@/lib/hooks/useAppLang';
@@ -85,7 +84,7 @@ export function Sidebar() {
   // Rail fijo y compacto: no se ensancha. Al pasar el raton por un icono se
   // muestra su nombre en una etiqueta flotante (patron tipo Booksy).
   const collapsed = true;
-  const [tip, setTip] = useState<{ top: number; label: string } | null>(null);
+  const [tip, setTip] = useState<{ x: number; y: number; label: string } | null>(null);
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const roleTheme = getRoleTheme(profile);
 
@@ -187,8 +186,11 @@ export function Sidebar() {
           {...{
             onMouseEnter: (e: any) => {
               hoverIn(hoverAnim); setHoveredIdx(idx);
-              const r = e?.currentTarget?.getBoundingClientRect?.();
-              if (r) setTip({ top: r.top + r.height / 2, label: t(item.labelKey) || item.label });
+              setTip({ x: e?.clientX ?? 0, y: e?.clientY ?? 0, label: t(item.labelKey) || item.label });
+            },
+            onMouseMove: (e: any) => {
+              const x = e?.clientX, y = e?.clientY;
+              setTip((prev) => (prev ? { ...prev, x: x ?? prev.x, y: y ?? prev.y } : prev));
             },
             onMouseLeave: () => { hoverOut(hoverAnim); setHoveredIdx(null); setTip(null); },
             // Ancla para el coach intra-pagina (S16): data-coach="nav-<slug>".
@@ -259,19 +261,7 @@ export function Sidebar() {
             </View>
           )}
         </TouchableOpacity>
-        {!collapsed && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            {/* Campana global de avisos: visible en todas las paginas, no solo la agenda */}
-            <AvisosBell collapsed={false} />
-          </View>
-        )}
       </View>
-
-      {collapsed && (
-        <View style={{ marginBottom: tokens.spacing.xs }}>
-          <AvisosBell collapsed />
-        </View>
-      )}
 
       {/* Navigation Scroll Container */}
       <ScrollView
@@ -397,7 +387,7 @@ export function Sidebar() {
       {tip && (
         <View
           pointerEvents="none"
-          style={[s.navTip, { top: tip.top - 15 }] as any}
+          style={[s.navTip, { left: tip.x + 16, top: tip.y + 12 }] as any}
         >
           <TText style={s.navTipText} numberOfLines={1}>{tip.label}</TText>
         </View>
@@ -428,7 +418,6 @@ const s = StyleSheet.create({
   // Etiqueta flotante del rail (nombre de la seccion al pasar el raton)
   navTip: {
     position: 'fixed' as any,
-    left: 84,
     zIndex: 9999,
     backgroundColor: '#2b2320',
     paddingHorizontal: 11,
