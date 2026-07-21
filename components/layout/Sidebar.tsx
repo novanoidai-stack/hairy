@@ -297,7 +297,7 @@ export function Sidebar() {
           return Object.entries(groups).map(([groupName, items], groupIndex) => {
             const gColor = groupColors[groupIndex % groupColors.length];
             return (
-            <View key={groupName} style={collapsed ? { borderLeftWidth: 2, borderLeftColor: gColor, marginLeft: -8, paddingLeft: 6, marginBottom: 12 } : {}}>
+            <View key={groupName} style={collapsed ? { borderLeftWidth: 2, borderLeftColor: gColor, alignSelf: 'stretch', marginLeft: 0, paddingLeft: 2, marginBottom: 12 } : {}}>
               {groupIndex > 0 && <View style={[s.navDivider, collapsed && { width: 24, alignSelf: 'center', marginVertical: 8, backgroundColor: 'rgba(92,82,73,0.1)' }]} />}
               {!collapsed && (
                 <TText style={[s.navSectionLabel, groupIndex > 0 && { marginTop: tokens.spacing.xs }, { color: gColor, opacity: 0.8 }]}>
@@ -517,6 +517,9 @@ const s = StyleSheet.create({
   navScroll: {
     flex: 1,
     marginVertical: tokens.spacing.xs,
+    // El rail centra a sus hijos y encogia el scroll al ancho del contenido
+    // (52px), lo que impedia que la barra de grupo llegase al borde.
+    alignSelf: 'stretch',
   },
   navScrollContent: {
     paddingBottom: tokens.spacing.lg,
