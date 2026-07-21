@@ -12616,7 +12616,6 @@ const RAIL_ICONS: Record<SeccionCita, (c: string) => React.ReactNode> = {
 };
 
 const RAIL_ITEMS: { id: SeccionCita; label: string }[] = [
-  { id: "resumen", label: "Resumen" },
   { id: "cliente", label: "Cliente" },
   { id: "servicio", label: "Servicio y tiempos" },
   { id: "color", label: "Ficha de color" },
@@ -12717,7 +12716,7 @@ export function DetalleCitaModal({
 
   const [showFichaColor, setShowFichaColor] = useState(false);
   // Seccion activa del rail (patron maestro-detalle estilo Booksy)
-  const [seccionActiva, setSeccionActiva] = useState<SeccionCita>("resumen");
+  const [seccionActiva, setSeccionActiva] = useState<SeccionCita>("servicio");
   const {
     estado: estadoVoz,
     errorVoz,
@@ -12900,8 +12899,12 @@ export function DetalleCitaModal({
       cancel = true;
     };
   }, [cita.id, cobrada]);
-  // Historial del cliente (citas anteriores) para la pestaña Cliente
+  // Historial del cliente (citas anteriores) para la pestaña Cliente.
+  // Se muestran de 3 en 3; al cerrar la ficha el modal se desmonta y el
+  // contador vuelve solo a 3.
   const [clienteHistorial, setClienteHistorial] = useState<any[]>([]);
+  const HIST_PASO = 3;
+  const [histVisibles, setHistVisibles] = useState(HIST_PASO);
   useEffect(() => {
     const cid = selectedCliente?.id;
     if (!cid) {
@@ -12916,8 +12919,11 @@ export function DetalleCitaModal({
         .eq("cliente_id", cid)
         .neq("id", cita.id)
         .order("inicio", { ascending: false })
-        .limit(15);
-      if (!cancel) setClienteHistorial(data ?? []);
+        .limit(100);
+      if (!cancel) {
+        setClienteHistorial(data ?? []);
+        setHistVisibles(HIST_PASO);
+      }
     })();
     return () => {
       cancel = true;
@@ -14191,7 +14197,7 @@ export function DetalleCitaModal({
       const seccionPorZona: Record<string, SeccionCita> = {
         cliente: "cliente",
         servicio: "servicio",
-        estado: "resumen",
+        estado: "servicio",
         secuencia: "servicio",
         "secuencia-activo": "servicio",
         "secuencia-reposo": "servicio",
@@ -14460,6 +14466,64 @@ export function DetalleCitaModal({
                   <span>
                     {citaDate} · {citaHora} - {citaFinHora}
                   </span>
+                </div>
+                {/* Resumen de la cita: antes vivia en su propia pestana, ahora
+                    va en la tarjeta de cabecera y algo mas grande. */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: 10,
+                    marginTop: 8,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 800,
+                      color: TOKENS.text,
+                      letterSpacing: -0.2,
+                    }}
+                  >
+                    {totalMin} min
+                  </span>
+                  <span
+                    style={{
+                      width: 3,
+                      height: 3,
+                      borderRadius: 99,
+                      background: TOKENS.textTer,
+                      alignSelf: "center",
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 800,
+                      color: TOKENS.primaryHi,
+                      letterSpacing: -0.2,
+                    }}
+                  >
+                    {selectedServicio?.precio ?? 0} €
+                  </span>
+                  {espera > 0 && (
+                    <>
+                      <span
+                        style={{
+                          width: 3,
+                          height: 3,
+                          borderRadius: 99,
+                          background: TOKENS.textTer,
+                          alignSelf: "center",
+                        }}
+                      />
+                      <span style={{ fontSize: 12.5, color: TOKENS.textSec }}>
+                        {activo}m activo · {espera}m reposo
+                        {activo2 > 0 ? ` · ${activo2}m activo` : ""}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -15398,7 +15462,7 @@ export function DetalleCitaModal({
                   <div style={{ fontSize: 13, color: TOKENS.textTer }}>Sin citas anteriores registradas.</div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {clienteHistorial.map((c: any) => {
+                    {clienteHistorial.slice(0, histVisibles).map((c: any) => {
                       const srv = servicios.find((s: any) => s.id === c.servicio_id);
                       const pr = profesionales.find((p: any) => p.id === c.profesional_id);
                       const d = new Date(c.inicio);
@@ -15417,6 +15481,60 @@ export function DetalleCitaModal({
                         </div>
                       );
                     })}
+                    {(clienteHistorial.length > histVisibles ||
+                      histVisibles > HIST_PASO) && (
+                      <div style={{ display: "flex", gap: 8, marginTop: 2 }}>
+                        {clienteHistorial.length > histVisibles && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setHistVisibles((v) => v + HIST_PASO)
+                            }
+                            style={{
+                              flex: 1,
+                              padding: "8px 12px",
+                              background: "rgba(244,80,30,0.08)",
+                              border: "1px solid rgba(244,80,30,0.35)",
+                              borderRadius: 9,
+                              color: TOKENS.primaryHi,
+                              fontSize: 12.5,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              transition: "background 0.15s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background =
+                                "rgba(244,80,30,0.14)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background =
+                                "rgba(244,80,30,0.08)";
+                            }}
+                          >
+                            Ver más ({clienteHistorial.length - histVisibles})
+                          </button>
+                        )}
+                        {histVisibles > HIST_PASO && (
+                          <button
+                            type="button"
+                            onClick={() => setHistVisibles(HIST_PASO)}
+                            style={{
+                              flex: 1,
+                              padding: "8px 12px",
+                              background: TOKENS.bgCard,
+                              border: `1px solid ${TOKENS.border}`,
+                              borderRadius: 9,
+                              color: TOKENS.textSec,
+                              fontSize: 12.5,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Ver menos
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -15955,7 +16073,7 @@ export function DetalleCitaModal({
               </div>
 
               </>)}
-              {seccionActiva === "resumen" && (<>
+              {seccionActiva === "servicio" && (<>
               {/* Estado */}
               <div
                 ref={(el) => {
@@ -16085,7 +16203,7 @@ export function DetalleCitaModal({
               </div>
 
               </>)}
-              {seccionActiva === "resumen" && (<>
+              {seccionActiva === "servicio" && (<>
               {/* Resumen */}
               <div
                 style={{
@@ -16151,7 +16269,7 @@ export function DetalleCitaModal({
               </div>
 
               </>)}
-              {seccionActiva === "resumen" && (<>
+              {seccionActiva === "servicio" && (<>
               {/* Intervalo y duracion GRANDES: lo primero que se ve, se actualiza en vivo. */}
               <div
                 style={{
