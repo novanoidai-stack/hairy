@@ -4,7 +4,6 @@ import { MechaMark } from '@/components/ui/MechaMark';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
 import { getUserProfile, can, roleOf, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
@@ -12,8 +11,6 @@ import { IS_DEMO_MODE } from '@/lib/supabase';
 import { useAppLang } from '@/lib/hooks/useAppLang';
 
 const tokens = DESIGN_TOKENS;
-
-const COLLAPSE_KEY = '@mecha:sidebar';
 
 const WORDMARK_FONT = Platform.select({
   web: "'Bricolage Grotesque', 'Inter', system-ui, sans-serif",
@@ -85,12 +82,9 @@ export function Sidebar() {
   const { t } = useAppLang();
   const configActive = pathname.includes('configuracion');
 
-  // Rail por defecto: la barra va estrecha y se despliega al pasar el raton.
-  // collapsedPref = preferencia guardada (si la fijas abierta, se queda abierta).
-  // collapsed = estado efectivo que usa todo el render.
-  const [collapsedPref, setCollapsedPref] = useState(true);
+  // Rail siempre compacto: solo se despliega mientras el raton esta encima.
   const [hovered, setHovered] = useState(false);
-  const collapsed = collapsedPref && !hovered;
+  const collapsed = !hovered;
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const roleTheme = getRoleTheme(profile);
 
@@ -102,20 +96,6 @@ export function Sidebar() {
   }, []);
   const allows = (cap?: Capability) =>
     !cap || profile === undefined || profile === null || can(profile, cap);
-
-  useEffect(() => {
-    AsyncStorage.getItem(COLLAPSE_KEY)
-      .then(v => { if (v === '0') setCollapsedPref(false); })
-      .catch(() => {});
-  }, []);
-
-  const toggleCollapsed = () => {
-    setCollapsedPref(prev => {
-      const next = !prev;
-      AsyncStorage.setItem(COLLAPSE_KEY, next ? '1' : '0').catch(() => {});
-      return next;
-    });
-  };
 
   // Salir del software de vuelta a la web publica, sin cerrar sesion.
   const exitToWeb = () => {
@@ -235,13 +215,16 @@ export function Sidebar() {
   return (
     // El hueco reserva SOLO el ancho del rail; la barra va flotando encima,
     // asi al desplegarse con el raton no empuja el contenido de la pagina.
-    <View style={{ width: collapsedPref ? 76 : 240, height: '100%' }}>
+    <View style={{ width: 76, height: '100%' }}>
     <View
       style={[
         s.sidebar,
         collapsed && s.sidebarCollapsed,
         s.sidebarFloat,
-        !collapsed && collapsedPref && s.sidebarFloatOpen,
+        // Ancho explicito al final: manda sobre los estilos de arriba, que es
+        // lo que fallaba (salian las etiquetas pero la barra no se ensanchaba).
+        { width: collapsed ? 76 : 240 },
+        !collapsed && s.sidebarFloatOpen,
       ]}
       {...({
         onMouseEnter: () => setHovered(true),
@@ -290,22 +273,14 @@ export function Sidebar() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {/* Campana global de avisos: visible en todas las paginas, no solo la agenda */}
             <AvisosBell collapsed={false} />
-            <TouchableOpacity style={s.collapseBtn} onPress={toggleCollapsed} {...({ title: collapsedPref ? 'Fijar menú abierto' : 'Volver al menú compacto' } as any)}>
-              <Ionicons name="chevron-back" size={16} color={tokens.textTertiary} />
-            </TouchableOpacity>
           </View>
         )}
       </View>
 
       {collapsed && (
-        <>
-          <TouchableOpacity style={s.collapseBtnFull} onPress={toggleCollapsed} {...({ title: 'Expandir menú' } as any)}>
-            <Ionicons name="chevron-forward" size={16} color={tokens.textTertiary} />
-          </TouchableOpacity>
-          <View style={{ marginBottom: tokens.spacing.xs }}>
-            <AvisosBell collapsed />
-          </View>
-        </>
+        <View style={{ marginBottom: tokens.spacing.xs }}>
+          <AvisosBell collapsed />
+        </View>
       )}
 
       {/* Navigation Scroll Container */}
