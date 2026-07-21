@@ -12804,7 +12804,7 @@ export function DetalleCitaModal({
         {
           id: p.id,
           nombre: p.nombre,
-          precio: Number(p.precio ?? 0),
+          precio: Number(p.precio_cents ?? 0) / 100,
           cantidad: 1,
         },
       ];
@@ -12831,10 +12831,12 @@ export function DetalleCitaModal({
     (async () => {
       const prof = await getUserProfile();
       if (cancel || !prof?.negocio_id) return;
+      // precio_cents (no "precio") y el stock vive en inventario.unidades
       const { data } = await supabase
         .from("productos")
-        .select("*")
+        .select("id, nombre, precio_cents, stock_minimo, inventario(unidades)")
         .eq("negocio_id", prof.negocio_id)
+        .eq("activo", true)
         .order("nombre");
       if (!cancel) setInventarioProductos(data ?? []);
     })();
@@ -16766,14 +16768,20 @@ export function DetalleCitaModal({
                         >
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 13, fontWeight: 600, color: TOKENS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</div>
-                            {(p.stock != null || p.unidades != null) && (
-                              <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 2 }}>Stock: {p.stock ?? p.unidades}</div>
-                            )}
+                            {(() => {
+                              const stock = p.inventario?.[0]?.unidades ?? 0;
+                              const bajo = stock <= (p.stock_minimo ?? 0);
+                              return (
+                                <div style={{ fontSize: 11, color: bajo ? TOKENS.danger : TOKENS.textTer, marginTop: 2, fontWeight: bajo ? 700 : 400 }}>
+                                  Stock: {stock}{bajo ? " · bajo" : ""}
+                                </div>
+                              );
+                            })()}
                           </div>
                           {enCita && (
                             <span style={{ fontSize: 11, fontWeight: 800, color: TOKENS.primaryHi, background: "rgba(244,80,30,0.12)", borderRadius: 999, padding: "2px 8px" }}>x{enCita.cantidad}</span>
                           )}
-                          <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, flexShrink: 0 }}>{Number(p.precio ?? 0).toFixed(2)} €</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, flexShrink: 0 }}>{(Number(p.precio_cents ?? 0) / 100).toFixed(2)} €</div>
                         </button>
                       );
                     })}
