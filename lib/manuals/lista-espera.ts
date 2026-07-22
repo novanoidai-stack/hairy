@@ -13,15 +13,19 @@ export const manualListaEspera: ManualContent = {
     },
     {
       titulo: 'Avisar cuando hay hueco',
-      texto: 'El botón de WhatsApp abre una conversación directa con esa persona. "Avisar" cambia su estado para saber a quién ya has contactado.',
+      texto: 'El icono de teléfono (solo aparece si guardaste su número) abre WhatsApp con esa persona. "Avisar" cambia su estado a avisada para saber a quién ya has contactado. Desde el ordenador, "Agendar" abre la agenda con sus datos ya rellenos para darle el hueco de un clic.',
     },
     {
       titulo: 'Marcar como resuelta',
-      texto: 'Cuando consigue su cita, márcala como "Resuelta" para que salga de la lista activa sin perder el historial.',
+      texto: 'Cuando consigue su cita, pulsa "Resuelta": deja de contar como activa y la fila queda atenuada, sin perder el historial (la sigues viendo con el chip "Todas").',
+    },
+    {
+      titulo: 'Quitar de la lista',
+      texto: 'La "X" la borra de la lista para siempre y te pide confirmación antes. Si solo quieres dejar constancia de que ya está atendida, usa "Resuelta" en su lugar.',
     },
     {
       titulo: 'Filtrar la lista',
-      texto: 'Los chips de arriba ("Activas", "Esperando", "Avisadas", "Todas") acotan qué personas ves según su estado.',
+      texto: 'Los chips de arriba ("Activas", "Esperando", "Avisadas", "Todas") acotan qué personas ves según su estado, con el número de cada grupo entre paréntesis.',
     },
   ],
 };

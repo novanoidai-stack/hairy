@@ -11,18 +11,22 @@ export const manualResenas: ManualContent = {
       captura: '/manuals/resenas/lista.png',
     },
     {
-      titulo: 'Dos puntuaciones distintas',
-      texto: 'Cada reseña valora dos cosas por separado: la experiencia en el salón y la experiencia de reservar con Mecha (rapidez, recordatorios...). El filtro "Con Mecha" aísla solo las que puntuaron esto último.',
+      titulo: 'Qué valora cada reseña',
+      texto: 'Cada reseña puntúa el salón (valoración general, trato recibido, limpieza y productos) y la experiencia de reservar con Mecha (general, facilidad de reserva, disponibilidad de huecos y pagos). Arriba tienes la media de cada apartado; el filtro "Con Mecha" aísla las que puntuaron esto último.',
     },
     {
-      titulo: 'Filtrar por periodo y valoración',
-      texto: 'Puedes acotar a los últimos 7, 30 o 90 días, por número de llamas (puntuación) o solo las que tienen comentario escrito.',
+      titulo: 'Filtrar y buscar',
+      texto: 'Acota por "Fueguitos" (de 5 a 1), por "Periodo" (Todo, 7, 30 o 90 días) y por "Tipo" ("Con Mecha" o "Con comentario"). Arriba del todo hay un buscador por comentario, sugerencia o nombre.',
       captura: '/manuals/resenas/filtros.png',
       highlight: { top: '28%', left: '23%', width: '68%', height: '8%' },
     },
     {
-      titulo: 'Ocultar una reseña',
-      texto: 'Una reseña marcada "Oculta al público" no aparece en tu portal de reservas, pero sigue visible aquí para ti.',
+      titulo: 'Qué mejorar',
+      texto: 'Bajo las medias verás "Lo que mejor hacéis" y "A mejorar", calculados con los filtros que tengas puestos, y el botón "Resumir temas (IA)" para que Chispa saque los temas que más se repiten en los comentarios.',
+    },
+    {
+      titulo: 'Ocultar o eliminar una reseña',
+      texto: 'El icono del ojo, arriba a la derecha de cada reseña, la quita de tu portal de reservas: queda marcada "Oculta al público" pero sigue visible aquí para ti, y el mismo icono la vuelve a publicar. El icono de papelera la borra definitivamente.',
     },
   ],
 };

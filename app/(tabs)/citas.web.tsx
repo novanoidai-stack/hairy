@@ -7,6 +7,10 @@ import { esConfirmada, esPendiente, esNoShow, esCompletada } from '@/lib/citasMe
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { SSelect, STextInput } from '@/components/ui/SettingsAtoms';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualCitas } from '@/lib/manuals/citas';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { format, parseISO, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -77,6 +81,8 @@ function CitasCRMScreen() {
   const [search, setSearch] = useState('');
 
   const [selectedCita, setSelectedCita] = useState<Cita | null>(null);
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('citas');
 
   const fetchBaseData = useCallback(async () => {
     try {
@@ -183,9 +189,34 @@ function CitasCRMScreen() {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: T.bg, height: '100vh', overflow: 'hidden' }}>
       {/* Header */}
       <div style={{ padding: isMobile ? '16px' : '20px 32px', background: T.bgPanel, borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
-        <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 24, fontWeight: 800, color: T.text, letterSpacing: -0.5 }}>Citas</h1>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 24, fontWeight: 800, color: T.text, letterSpacing: -0.5, display: 'flex', alignItems: 'center', gap: 10 }}>
+          Citas
+          <button
+            className="m-btn-icon"
+            onClick={() => setShowManualPanel(true)}
+            title="Manual de esta pagina"
+            style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: T.bgCard, border: `1px solid ${T.borderHi}`, color: T.textSec, cursor: 'pointer', flexShrink: 0 }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </button>
+        </h1>
         <p style={{ margin: '4px 0 0', fontSize: isMobile ? 12.5 : 14, color: T.textSec }}>Historial unificado y filtros de todas las citas del salon.</p>
       </div>
+
+      {!paginaManual.loading && !paginaManual.visto && (
+        <div style={{ flexShrink: 0 }}>
+          <AvisoPrimeraVisita
+            content={manualCitas}
+            isMobile={isMobile}
+            onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+            onCerrar={paginaManual.marcarVisto}
+          />
+        </div>
+      )}
 
       {/* Resumen */}
       <div style={{ display: 'flex', gap: isMobile ? 8 : 12, padding: isMobile ? '12px 16px' : '14px 32px', background: T.bg, flexShrink: 0, overflowX: 'auto' }}>
@@ -383,6 +414,14 @@ function CitasCRMScreen() {
           </div>
         );
       })()}
+
+      {showManualPanel && (
+        <ManualPanel
+          content={manualCitas}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
+        />
+      )}
     </div>
   );
 }

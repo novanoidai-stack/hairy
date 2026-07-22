@@ -12,12 +12,20 @@ export const manualPresupuestos: ManualContent = {
       highlight: { top: '10%', left: '85%', width: '13%', height: '6%' },
     },
     {
+      titulo: 'Crearlo escribiéndolo',
+      texto: 'En "Crear presupuesto rápido" describe lo que quieres ("presupuesto para María, balayage y corte") y pulsa "Crear": Chispa propone las líneas con los precios de tu catálogo y las abre en el editor para que las revises antes de guardar.',
+    },
+    {
       titulo: 'Enviarlo a la clienta',
-      texto: 'Desde la ficha del presupuesto puedes descargarlo en PDF, enviarlo por correo o copiar un enlace para mandarlo por WhatsApp.',
+      texto: 'Desde la ficha puedes descargarlo en PDF o pulsar "Enviar por correo" (necesita el email del cliente; al enviarlo pasa a estado "Enviado"). Para mandarlo por WhatsApp usa el icono de enlace de la fila en la lista: copia el enlace y pégalo tú en el chat.',
     },
     {
       titulo: 'Filtrar por estado',
-      texto: 'Los chips "Borradores", "Enviados", "Aceptados" y "Cobrados" filtran la lista según en qué punto está cada presupuesto.',
+      texto: 'Los chips "Todos", "Borradores", "Enviados", "Aceptados" y "Cobrados" filtran la lista según en qué punto está cada presupuesto; los rechazados y caducados solo aparecen en "Todos". Al lado tienes un buscador por nombre, número o título.',
+    },
+    {
+      titulo: 'Presupuestos sin respuesta',
+      texto: 'Si uno enviado lleva tres días o más sin contestación, aparece arriba en el aviso de presupuestos sin respuesta, con un botón "Reenviar" que se lo manda otra vez por correo.',
     },
     {
       titulo: 'Cobrar un presupuesto aceptado',

@@ -10,6 +10,10 @@ import {
   contarSegmento, crearYEncolarCampana, cancelarCampana, listarCampanas,
   personalizarPreview, CAMPANA_ESTADO_META,
 } from '@/lib/campanas';
+import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
+import { manualCampanas } from '@/lib/manuals/campanas';
+import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
+import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
@@ -69,6 +73,8 @@ function CampanasScreen() {
   const [aviso, setAviso] = useState<string | null>(null);
   const [campanas, setCampanas] = useState<Campana[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showManualPanel, setShowManualPanel] = useState(false);
+  const paginaManual = usePaginaManualVista('campanas');
 
   useEffect(() => {
     (async () => {
@@ -139,8 +145,17 @@ function CampanasScreen() {
 
   return (
     <div style={{ height: '100%', minHeight: '100%', background: T.bg, overflowY: 'auto', paddingBottom: isMobile ? 96 : 40 }}>
-      <Header onBack={() => router.back()} isMobile={isMobile} />
+      <Header onBack={() => router.back()} isMobile={isMobile} onManual={() => setShowManualPanel(true)} />
       <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '0 14px' : '0 24px', display: 'grid', gap: 16 }}>
+
+        {!paginaManual.loading && !paginaManual.visto && (
+          <AvisoPrimeraVisita
+            content={manualCampanas}
+            isMobile={isMobile}
+            onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
+            onCerrar={paginaManual.marcarVisto}
+          />
+        )}
 
         {/* Plantillas rapidas */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 10 }}>
@@ -246,17 +261,37 @@ function CampanasScreen() {
           </div>
         )}
       </div>
+
+      {showManualPanel && (
+        <ManualPanel
+          content={manualCampanas}
+          isMobile={isMobile}
+          onClose={() => setShowManualPanel(false)}
+        />
+      )}
     </div>
   );
 }
 
-function Header({ onBack, isMobile }: { onBack: () => void; isMobile: boolean }) {
+function Header({ onBack, isMobile, onManual }: { onBack: () => void; isMobile: boolean; onManual?: () => void }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: isMobile ? '16px 14px' : '20px 24px', maxWidth: 900, margin: '0 auto' }}>
-      <button onClick={onBack} aria-label="Volver"
+      <button className="m-btn-icon" onClick={onBack} aria-label="Volver"
         style={{ width: 36, height: 36, borderRadius: 10, border: `1.5px solid ${T.border}`, background: T.panel, color: T.textSec, cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>‹</button>
       <div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: T.text }}>Campañas</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: T.text, display: 'flex', alignItems: 'center', gap: 10 }}>
+          Campañas
+          {onManual && (
+            <button className="m-btn-icon" onClick={onManual} title="Manual de esta pagina"
+              style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: T.card, border: `1px solid ${T.borderHi}`, color: T.textSec, cursor: 'pointer', flexShrink: 0 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
+          )}
+        </div>
         <div style={{ fontSize: 12.5, color: T.textTer }}>Reactiva clientas y difunde ofertas</div>
       </div>
     </div>

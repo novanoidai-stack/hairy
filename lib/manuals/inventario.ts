@@ -7,21 +7,25 @@ export const manualInventario: ManualContent = {
   secciones: [
     {
       titulo: 'Añadir un producto',
-      texto: 'Da de alta cada producto con su nombre, categoría y stock inicial. A partir de ahí, el sistema lleva la cuenta sola.',
+      texto: 'Pulsa "Nuevo Producto" (arriba a la derecha) y rellena nombre, categoría, precio PVP, inventario inicial y, sobre todo, el stock mínimo de alerta: ese mínimo es el que dispara los avisos de reposición. Confirma con "Crear Referencia" y a partir de ahí el sistema lleva la cuenta sola.',
       captura: '/manuals/inventario/kpis.png',
       highlight: { top: '63%', left: '71%', width: '14%', height: '6%' },
     },
     {
       titulo: 'Registrar un movimiento',
-      texto: 'Cada vez que entra stock nuevo (compra) o sale (uso, venta o merma), registra un movimiento: el stock del producto se actualiza al momento.',
+      texto: 'Pulsa "Ajustar Stock" en el producto y elige "Entrada" (llega mercancía), "Salida" (uso, venta o merma) o "Ajuste" (recuento: escribes el inventario total que has contado). Antes de confirmar ves el stock resultante y si quedará bajo mínimo.',
     },
     {
       titulo: 'Alertas de stock bajo',
-      texto: 'La tarjeta de alertas cuenta los productos por debajo de su mínimo. El filtro "Solo stock bajo" los aísla para que sepas qué reponer.',
+      texto: 'La tarjeta "Bajo Mínimo" cuenta los productos por debajo de su mínimo. Cuando hay alguno aparece el aviso de stock insuficiente con el botón "Ver Sólo Críticos", que deja en pantalla solo esos productos (vuelves con "Mostrar Todos"). Al cambiar de categoría el filtro se desactiva.',
+    },
+    {
+      titulo: 'Qué reponer, propuesto por Chispa',
+      texto: 'La predicción de pedido mira tus productos críticos y su consumo para proponerte qué comprar y en qué cantidad. Es una propuesta: la revisas antes de darla por buena.',
     },
     {
       titulo: 'Buscar, filtrar y ver el historial',
-      texto: 'Busca por nombre, filtra por categoría y cambia entre vista de cuadrícula o tabla. El historial de cada producto muestra todos sus movimientos pasados.',
+      texto: 'Busca por nombre, código de barras o descripción; las pestañas de arriba filtran por categoría y con "Mosaico" o "Tabla" cambias de vista (en móvil siempre se ve en mosaico). El icono de reloj de cada producto abre su historial con todos los movimientos pasados.',
     },
   ],
 };
