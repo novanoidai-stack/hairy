@@ -1787,7 +1787,26 @@ export default function AgendaCalendar() {
                 gap: 6,
                 whiteSpace: "nowrap",
                 minHeight: 33,
-                transition: "all 0.15s ease",
+                transition:
+                  "transform 0.18s cubic-bezier(0.16,1,0.3,1), background 0.18s ease, border-color 0.18s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.background = railCollapsed
+                  ? roleTheme.primary + "2e"
+                  : TOKENS.bgCardHi;
+                e.currentTarget.style.borderColor = railCollapsed
+                  ? roleTheme.primary + "80"
+                  : roleTheme.primary + "40";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.background = railCollapsed
+                  ? roleTheme.primarySoft
+                  : TOKENS.bgCard;
+                e.currentTarget.style.borderColor = railCollapsed
+                  ? roleTheme.primary + "40"
+                  : TOKENS.border;
               }}
             >
               <Icon
@@ -14842,6 +14861,7 @@ export function DetalleCitaModal({
                   >
                     <button
                       type="button"
+                      className="m-row-hover"
                       onClick={() => setShowFichaColor(true)}
                       style={{
                         width: "100%",
@@ -14865,6 +14885,7 @@ export function DetalleCitaModal({
                     </button>
                     <button
                       type="button"
+                      className="m-row-hover"
                       onClick={() => {
                         if (estadoVoz === "inactivo")
                           iniciarEscucha(procesarDictadoNotas);
@@ -14987,6 +15008,7 @@ export function DetalleCitaModal({
                         {histVisibles > HIST_PASO && (
                           <button
                             type="button"
+                            className="m-btn-secondary"
                             onClick={() => setHistVisibles(HIST_PASO)}
                             style={{
                               flex: 1,
@@ -15152,6 +15174,7 @@ export function DetalleCitaModal({
                         <button
                           key={tag}
                           type="button"
+                          className="m-chip"
                           onClick={() => toggleResenaTag(tag)}
                           disabled={savingResena}
                           style={{
@@ -15734,6 +15757,7 @@ export function DetalleCitaModal({
                       Encadenar servicio
                     </div>
                     <button
+                      className="m-btn-icon"
                       onClick={() => setShowChainForm(false)}
                       style={{
                         background: "none",
@@ -15765,6 +15789,7 @@ export function DetalleCitaModal({
                       {servicios.map((s: any) => (
                         <button
                           key={s.id}
+                          className="m-chip"
                           onClick={() => {
                             setChainServicioId(s.id);
                             setChainErr("");
@@ -15816,6 +15841,7 @@ export function DetalleCitaModal({
                         {profesionales.map((p: any) => (
                           <button
                             key={p.id}
+                            className="m-chip"
                             onClick={() => {
                               setChainProfId(p.id);
                               setChainErr("");
@@ -15898,6 +15924,7 @@ export function DetalleCitaModal({
                     }}
                   >
                     <button
+                      className="m-btn-secondary"
                       onClick={() => setShowChainForm(false)}
                       style={{
                         padding: "6px 14px",
@@ -15913,6 +15940,7 @@ export function DetalleCitaModal({
                       Cancelar
                     </button>
                     <button
+                      className="m-btn-primary"
                       onClick={handleEncadenar}
                       disabled={
                         !chainServicioId || !chainProfId || chainGuardando
@@ -16112,6 +16140,7 @@ export function DetalleCitaModal({
                 <Label>Estado</Label>
                 <div style={{ position: "relative" }}>
                   <button
+                    className="m-row-hover"
                     onClick={() => setOpenEst(!openEst)}
                     style={{
                       width: "100%",
@@ -16606,6 +16635,7 @@ export function DetalleCitaModal({
               >
                 <button
                   type="button"
+                  className="m-row-hover"
                   onClick={() => setShowFormula((v) => !v)}
                   style={{
                     width: "100%",
@@ -16915,6 +16945,7 @@ export function DetalleCitaModal({
                         <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text, minWidth: 58, textAlign: "right" }}>{(p.precio * p.cantidad).toFixed(2)} €</span>
                         <button
                           type="button"
+                          className="m-btn-icon"
                           onClick={() => quitarProductoCita(p.id)}
                           title="Quitar uno"
                           style={{ background: "none", border: "none", color: TOKENS.danger, cursor: "pointer", fontSize: 15, fontWeight: 700, padding: "0 4px", lineHeight: 1 }}
@@ -17084,6 +17115,7 @@ export function DetalleCitaModal({
             )}
             {puedeMarcarNoShow && (
               <button
+                className="m-btn-warn"
                 onClick={marcarNoShow}
                 disabled={guardando}
                 title="Registrar que la clienta no acudio a su cita. Se usa para el riesgo de no-show (tono neutro, solo el equipo lo ve)."
@@ -17225,6 +17257,7 @@ export function DetalleCitaModal({
               new Date(cita.inicio) > new Date() && (
                 <div style={{ position: "relative" }}>
                   <button
+                    className="m-btn-warn"
                     onClick={() => setRetrasoPickerOpen((v) => !v)}
                     disabled={guardando}
                     style={{
@@ -17262,6 +17295,7 @@ export function DetalleCitaModal({
                       {[10, 15, 30].map((m) => (
                         <button
                           key={m}
+                          className="m-btn-warn"
                           onClick={() => abrirRetraso(m)}
                           style={{
                             padding: "7px 10px",
@@ -17507,6 +17541,7 @@ export function DetalleCitaModal({
                 {(["clienta", "negocio"] as const).map((op) => (
                   <button
                     key={op}
+                    className="m-chip"
                     onClick={() => setCanceladoPor(op)}
                     style={{
                       flex: 1,
@@ -17568,6 +17603,7 @@ export function DetalleCitaModal({
               style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}
             >
               <button
+                className="m-btn-secondary"
                 onClick={() => setShowCancelModal(false)}
                 disabled={guardando}
                 style={{
@@ -17584,6 +17620,7 @@ export function DetalleCitaModal({
                 Volver
               </button>
               <button
+                className="m-btn-primary"
                 onClick={handleEliminar}
                 disabled={guardando}
                 style={{
@@ -17744,6 +17781,7 @@ export function DetalleCitaModal({
                       </a>
                     )}
                     <button
+                      className="m-btn-primary"
                       onClick={() => asignarCandidato(cand.id)}
                       disabled={asignandoCand !== null}
                       style={{
@@ -17768,6 +17806,7 @@ export function DetalleCitaModal({
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
               <button
+                className="m-btn-secondary"
                 onClick={() => {
                   setCandidatosHueco(null);
                   onSaved?.() ?? onClose();
@@ -17924,6 +17963,7 @@ function SearchDropdown({
   return (
     <div style={{ position: "relative" }}>
       <button
+        className="m-row-hover"
         onClick={() => setOpen(!open)}
         style={{
           width: "100%",
@@ -19402,6 +19442,7 @@ function ClienteHistorialModal({
             </p>
           </div>
           <button
+            className="m-btn-icon m-btn-icon-close"
             onClick={onClose}
             style={{
               background: "none",

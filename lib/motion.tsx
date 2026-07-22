@@ -116,6 +116,37 @@ const MOTION_CSS = `
     cursor: not-allowed;
   }
 
+  /* Botones de aviso (ambar: no-show, retrasos) */
+  .m-btn-warn {
+    transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), background 0.18s ease, border-color 0.18s ease;
+  }
+  .m-btn-warn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: rgba(245,158,11,0.22) !important;
+    border-color: rgba(245,158,11,0.75) !important;
+  }
+  .m-btn-warn:active:not(:disabled) {
+    transform: translateY(0);
+    transition-duration: 0.08s;
+  }
+  .m-btn-warn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Filas a ancho completo (acordeones, cabeceras plegables): sin desplazamiento */
+  .m-row-hover {
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+  .m-row-hover:hover:not(:disabled) {
+    background: rgba(244,80,30,0.06) !important;
+    border-color: rgba(244,80,30,0.35) !important;
+  }
+  .m-row-hover:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   /* Botones de icono pequenos (cerrar, chevrons) */
   .m-btn-icon {
     transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), background 0.18s ease, border-color 0.18s ease;
@@ -200,8 +231,8 @@ const MOTION_CSS = `
     .m-tab-content, .m-pulse-red, .m-pulse {
       animation: none !important;
     }
-    .m-btn-primary, .m-btn-secondary, .m-btn-danger, .m-btn-icon,
-    .m-card-hover, .m-chip, .m-stat, .m-input {
+    .m-btn-primary, .m-btn-secondary, .m-btn-danger, .m-btn-warn, .m-btn-icon,
+    .m-row-hover, .m-card-hover, .m-chip, .m-stat, .m-input {
       transition: none !important;
     }
   }
