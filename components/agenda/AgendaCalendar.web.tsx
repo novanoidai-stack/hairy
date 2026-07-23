@@ -800,7 +800,7 @@ export default function AgendaCalendar() {
           supabase
             .from("servicios")
             .select(
-              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria_id, categoria_minima, duracion_minima_min",
+              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria_id, categoria_minima, duracion_minima_min, min_antelacion_min",
             )
             .eq("negocio_id", negocioId),
           supabase
@@ -4067,6 +4067,12 @@ export default function AgendaCalendar() {
 
       {showNewCita && (
         <NewCitaModal
+          negocioIdIni={negocioId}
+          userIdIni={userProfile?.id ?? null}
+          clientesIni={clientes}
+          serviciosIni={servicios}
+          profesionalesIni={profesionales}
+          categoriasIni={categorias}
           onClose={() => {
             setShowNewCita(false);
             setNewCitaPrefill(null);
@@ -8855,14 +8861,37 @@ function NewCitaModal({
   prefillServicioId,
   prefillNotas,
   prefillWaitlistId,
+  negocioIdIni,
+  userIdIni,
+  clientesIni,
+  serviciosIni,
+  profesionalesIni,
+  categoriasIni,
 }: any) {
   const { triggerRefresh } = useCalendarRefresh();
   const { isMobile, isTablet } = useResponsive();
-  const [clientes, setClientes] = useState<any[]>([]);
-  const [servicios, setServicios] = useState<any[]>([]);
-  const [categorias, setCategorias] = useState<any[]>([]);
-  const [profesionales, setProfesionales] = useState<any[]>([]);
+  // La agenda ya tiene negocio, usuario y catalogos cargados: sembramos el estado
+  // con lo que nos pasa en vez de volver a pedirlo. Antes el modal se abria detras
+  // de un spinner mientras repetia getUserProfile (round-trip a /auth/v1/user, y la
+  // cache de auth dura 8 s) + 7 consultas que el padre ya habia hecho.
+  const [clientes, setClientes] = useState<any[]>(() =>
+    [...(clientesIni ?? [])].sort((a: any, b: any) =>
+      String(a?.nombre ?? "").localeCompare(String(b?.nombre ?? ""), LOCALE),
+    ),
+  );
+  const [servicios, setServicios] = useState<any[]>(() =>
+    [...(serviciosIni ?? [])].sort((a: any, b: any) =>
+      String(a?.nombre ?? "").localeCompare(String(b?.nombre ?? ""), LOCALE),
+    ),
+  );
+  const [categorias, setCategorias] = useState<any[]>(categoriasIni ?? []);
+  const [profesionales, setProfesionales] = useState<any[]>(() =>
+    (profesionalesIni ?? []).filter((p: any) => p?.activo !== false),
+  );
   const [citasHoy, setCitasHoy] = useState<any[]>([]);
+  // Las horas libres dependen de las citas del dia: hasta que llegan no se puede
+  // decir que huecos estan libres ni cuales aprovechan un reposo.
+  const [citasHoyListas, setCitasHoyListas] = useState(false);
   const [selectedCliente, setSelectedCliente] = useState(
     prefillClienteId || "",
   );
@@ -8877,9 +8906,10 @@ function NewCitaModal({
   );
   const [horaPersonalizada, setHoraPersonalizada] = useState<string>("");
   const [useCustomHora, setUseCustomHora] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [negocioId, setNegocioId] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
+  // Solo hay spinner si nadie nos ha sembrado los catalogos (no pasa desde la agenda).
+  const [loading, setLoading] = useState(!clientesIni);
+  const [negocioId, setNegocioId] = useState(negocioIdIni || "");
+  const [userId, setUserId] = useState<string | null>(userIdIni ?? null);
   const [duracionOverride, setDuracionOverride] = useState<any>(null);
 
   // States para la búsqueda visual (Sesión 13 B)
@@ -9143,14 +9173,19 @@ function NewCitaModal({
   const ahoraStr = `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`;
 
   useEffect(() => {
+    let cancel = false;
     async function cargar() {
-      let negocioId = "prueba_46980";
-      const profile = await getUserProfile();
-      if (profile?.negocio_id) {
-        negocioId = profile.negocio_id;
+      let negocioId = negocioIdIni || "";
+      // Solo preguntamos por el perfil si la agenda no nos lo dio: ese getUserProfile
+      // era el tramo mas caro de abrir el modal (la cache de auth dura 8 s, asi que
+      // al crear una cita casi siempre estaba caducada).
+      if (!negocioId) {
+        const profile = await getUserProfile();
+        if (cancel) return;
+        negocioId = profile?.negocio_id || "prueba_46980";
+        if (profile?.id) setUserId(profile.id);
       }
       setNegocioId(negocioId);
-      if (profile?.id) setUserId(profile.id);
 
       // Construir fecha local sin conversión a UTC
       const todayStr =
@@ -9167,32 +9202,13 @@ function NewCitaModal({
         "-" +
         String(tomorrow.getDate()).padStart(2, "0");
 
+      // Esto es lo unico que la agenda no tiene ya: las citas confirmadas del dia
+      // (para saber que huecos quedan libres) y los overrides de duracion.
       const [
-        { data: clts, error: cltsErr },
-        { data: srvs, error: srvsErr },
-        { data: prfs, error: prfsErr },
         { data: cits, error: citsErr },
         { data: durOverrides },
         { data: profSrvOverrides },
-        { data: cats },
       ] = await Promise.all([
-        supabase
-          .from("clientes")
-          .select("id, nombre, telefono, alergias")
-          .eq("negocio_id", negocioId)
-          .order("nombre"),
-        supabase
-          .from("servicios")
-          .select(
-            "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, min_antelacion_min, categoria_id",
-          )
-          .eq("negocio_id", negocioId)
-          .order("nombre"),
-        supabase
-          .from("profesionales")
-          .select("id, nombre, color")
-          .eq("negocio_id", negocioId)
-          .eq("activo", true),
         supabase
           .from("citas")
           .select(
@@ -9212,29 +9228,67 @@ function NewCitaModal({
           .select(
             "professional_id, service_id, duracion, duracion_espera_min, duracion_activa_extra_min, precio, activo",
           ),
-        supabase
-          .from("categorias_servicio")
-          .select("id, nombre, color, orden, icono")
-          .eq("negocio_id", negocioId)
-          .eq("activo", true)
-          .order("orden"),
       ]);
+      if (cancel) return;
 
-      if (srvsErr) console.error("Servicios error:", srvsErr);
-      if (cltsErr) console.error("Clientes error:", cltsErr);
-      if (prfsErr) console.error("Profesionales error:", prfsErr);
       if (citsErr) console.error("Citas error:", citsErr);
 
-      setClientes(clts ?? []);
-      setServicios(srvs ?? []);
-      setCategorias(cats ?? []);
-      setProfesionales(prfs ?? []);
       setCitasHoy(cits ?? []);
+      setCitasHoyListas(true);
       setAllDurOverrides(durOverrides ?? []);
       setAllProfSrvOverrides(profSrvOverrides ?? []);
+
+      // Red de seguridad: si alguien monta el modal sin sembrar los catalogos,
+      // se piden aqui (desde la agenda nunca entra por este camino).
+      if (!clientesIni) {
+        const [
+          { data: clts, error: cltsErr },
+          { data: srvs, error: srvsErr },
+          { data: prfs, error: prfsErr },
+          { data: cats },
+        ] = await Promise.all([
+          supabase
+            .from("clientes")
+            .select("id, nombre, telefono, alergias")
+            .eq("negocio_id", negocioId)
+            .order("nombre"),
+          supabase
+            .from("servicios")
+            .select(
+              "id, nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, min_antelacion_min, categoria_id",
+            )
+            .eq("negocio_id", negocioId)
+            .order("nombre"),
+          supabase
+            .from("profesionales")
+            .select("id, nombre, color")
+            .eq("negocio_id", negocioId)
+            .eq("activo", true),
+          supabase
+            .from("categorias_servicio")
+            .select("id, nombre, color, orden, icono")
+            .eq("negocio_id", negocioId)
+            .eq("activo", true)
+            .order("orden"),
+        ]);
+        if (cancel) return;
+
+        if (srvsErr) console.error("Servicios error:", srvsErr);
+        if (cltsErr) console.error("Clientes error:", cltsErr);
+        if (prfsErr) console.error("Profesionales error:", prfsErr);
+
+        setClientes(clts ?? []);
+        setServicios(srvs ?? []);
+        setCategorias(cats ?? []);
+        setProfesionales(prfs ?? []);
+      }
+
       setLoading(false);
     }
     cargar();
+    return () => {
+      cancel = true;
+    };
   }, [selectedDate]);
 
   // Load per-professional duration override when both prof + service are selected
@@ -11417,6 +11471,20 @@ function NewCitaModal({
                 })}
               </div>
               {(() => {
+                // Sin las citas del dia no se puede decir que hueco esta libre ni
+                // cual cae dentro de un reposo: mejor no pintar horas que pintarlas mal.
+                if (!citasHoyListas)
+                  return (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: TOKENS.textTer,
+                        padding: "10px 0",
+                      }}
+                    >
+                      Cargando horas disponibles...
+                    </div>
+                  );
                 const slots = generarSlotsHorarios();
                 // RN-AG-070/071: añadir fin_activa exacto como slot extra si no es múltiplo de 15
                 const slotsSet = new Set(slots);
