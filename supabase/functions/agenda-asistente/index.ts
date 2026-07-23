@@ -2520,7 +2520,8 @@ async function procesarRecuerdos(inp: Record<string, string>, negocioId: string,
       fecha: new Date(e.creado_en).toISOString().split('T')[0],
       titulo: (e.tipo || 'Evento').replace(/_/g, ' ').toUpperCase(),
       descripcion: (e.resumen || '') + (motivo ? ` — Motivo: ${motivo}` : ''),
-      icono: (e.tipo || '').includes('cita') ? '📅' : (e.tipo || '').includes('caja') ? '💶' : '📌',
+      // Sin icono: el tipo ya va en el titulo, asi que el emoji solo repetia lo mismo
+      // (y la regla del proyecto es no usar emojis). El renderer ya lo trata opcional.
       color: esIA(e) ? '#f4501e' : undefined,
     };
   });
