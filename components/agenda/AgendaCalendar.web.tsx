@@ -850,8 +850,6 @@ export default function AgendaCalendar() {
 
         if (profResult.error) console.error("Prof error:", profResult.error);
         if (citaResult.error) console.error("Cita error:", citaResult.error);
-        console.log("Prof data:", profResult.data);
-        console.log("Cita data:", citaResult.data);
 
         setProfesionales(profResult.data ?? []);
         setCitas(citaResult.data ?? []);

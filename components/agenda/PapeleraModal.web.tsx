@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabase";
-import { useAuth } from "../../context/AuthContext";
-import { CITA_STATUS } from "../../constants/citas";
+import { supabase } from "@/lib/supabase";
+import { getUserProfile } from "@/lib/auth";
+import { CITA_STATUS, NEGOCIO_ID_FALLBACK } from "@/lib/constants";
 
 export default function PapeleraModal({
   onClose,
@@ -10,7 +10,6 @@ export default function PapeleraModal({
   onClose: () => void;
   onRestored: () => void;
 }) {
-  const { session } = useAuth();
   const [citasBorradas, setCitasBorradas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [restaurando, setRestaurando] = useState<string | null>(null);
@@ -24,11 +23,14 @@ export default function PapeleraModal({
   const fetchPapelera = async () => {
     setLoading(true);
     try {
+      const profile = await getUserProfile();
+      const negocioId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
+
       // Obtener citas ocultas (borradas) recientes
       const { data, error } = await supabase
         .from("citas")
         .select("*")
-        .eq("tenant_id", session?.user.id)
+        .eq("negocio_id", negocioId)
         .eq("oculta_en_calendario", true)
         .order("created_at", { ascending: false })
         .limit(50);
