@@ -69,6 +69,20 @@ export function ManualPanel({ content, isMobile, onClose }: Props) {
           </div>
 
           <div style={{ overflowY: 'auto', padding: isMobile ? '14px 16px 24px' : '16px 22px 22px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {/* Intro: para que sirve la pestana. Reutiliza el avisoTexto (que hasta
+                ahora solo se veia en el banner de primera visita) para que al abrir
+                el manual quede claro de un vistazo el proposito de la pantalla. */}
+            {content.avisoTexto && (
+              <div style={{ display: 'flex', gap: 10, padding: isMobile ? '12px 14px' : '13px 16px', borderRadius: 12, background: T.primarySoft, border: `1px solid ${T.primary}22` }}>
+                <span style={{ display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 1, color: T.primary }}
+                  dangerouslySetInnerHTML={{ __html: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>` }}
+                />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: T.primaryHi, marginBottom: 3 }}>Para qué sirve</div>
+                  <div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>{content.avisoTexto}</div>
+                </div>
+              </div>
+            )}
             {content.secciones.map((s, i) => (
               <div key={i}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 6 }}>{s.titulo}</div>

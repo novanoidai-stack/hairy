@@ -29,8 +29,6 @@ const ANIM = `
   @keyframes mjUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
   @keyframes mjSpin { to { transform: rotate(360deg) } }
   .mj-row { animation: mjUp 0.32s cubic-bezier(0.16,1,0.3,1) both; }
-  .mj-btn { transition: all 0.15s ease; cursor: pointer; }
-  .mj-btn:hover { filter: brightness(1.05); }
 `;
 
 // Iconos en linea (mismo set que caja.web.tsx, sin dependencias extra).
@@ -641,6 +639,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
             <button
               onClick={() => setShowManualPanel(true)}
               title="Manual de esta pagina"
+              className="btn-interactive"
               style={{ display: 'grid', placeItems: 'center', width: 33, height: 33, borderRadius: 9, background: T.bgCard, border: `1px solid ${T.border}`, color: T.textSec, cursor: 'pointer', flexShrink: 0 }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -651,6 +650,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
             </button>
             <button
               onClick={() => setShowAusenciaModal(true)}
+              className="btn-interactive"
               style={{ padding: '6px 12px', borderRadius: 9, background: T.bgCard, border: `1px solid ${T.border}`, color: T.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6 }}
             >
               <Icon name="calendar" size={16} />
@@ -796,7 +796,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
               <button
                 onClick={abrirNuevoObjetivo}
                 disabled={profesionalesActivos.length === 0}
-                className="mj-btn"
+                className="btn-interactive"
                 style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primary}`, background: T.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: profesionalesActivos.length === 0 ? 'not-allowed' : 'pointer' }}
               >
                 + Nuevo objetivo
@@ -820,7 +820,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
                         <div style={{ fontSize: 12, color: done ? T.success : T.textSec, fontWeight: 700 }}>
                           {fmtMetrica(o.metrica, o.actual)} / {fmtMetrica(o.metrica, o.objetivo_valor)}
                         </div>
-                        <button onClick={() => eliminarObjetivoEquipo(o.id)} className="mj-btn" title="Eliminar objetivo" style={{ background: 'transparent', border: 'none', color: T.textTer, fontSize: 18, cursor: 'pointer', padding: '0 6px' }}>×</button>
+                        <button onClick={() => eliminarObjetivoEquipo(o.id)} className="btn-interactive" title="Eliminar objetivo" style={{ background: 'transparent', border: 'none', color: T.textTer, fontSize: 18, cursor: 'pointer', padding: '0 6px' }}>×</button>
                       </div>
                       <div style={{ height: 6, borderRadius: 999, background: T.bg, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${pct}%`, background: done ? T.success : T.primary, borderRadius: 999, transition: 'width 0.4s ease' }} />
@@ -860,22 +860,22 @@ para proponerla completa, así que no llames a esa herramienta.`;
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {!fichado && (
-                <button onClick={() => fichar('entrada')} disabled={fichando} className="mj-btn" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <button onClick={() => fichar('entrada')} disabled={fichando} className="btn-interactive" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   <Icon name="clock" size={15} color="#fff" /> {fichando ? '...' : 'Fichar entrada'}
                 </button>
               )}
               {trabajando && (
-                <button onClick={() => fichar('pausa_inicio')} disabled={fichando} className="mj-btn" style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${T.warning}`, background: T.warningSoft, color: T.warning, fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <button onClick={() => fichar('pausa_inicio')} disabled={fichando} className="btn-interactive" style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${T.warning}`, background: T.warningSoft, color: T.warning, fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   <Icon name="pause" size={14} color={T.warning} /> Pausa
                 </button>
               )}
               {enPausa && (
-                <button onClick={() => fichar('pausa_fin')} disabled={fichando} className="mj-btn" style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <button onClick={() => fichar('pausa_fin')} disabled={fichando} className="btn-interactive" style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: T.success, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   <Icon name="play" size={14} color="#fff" /> Reanudar
                 </button>
               )}
               {fichado && (
-                <button onClick={() => fichar('salida')} disabled={fichando} className="mj-btn" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: T.danger, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <button onClick={() => fichar('salida')} disabled={fichando} className="btn-interactive" style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: T.danger, color: '#fff', fontSize: 14, fontWeight: 700, cursor: fichando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   <Icon name="clock" size={15} color="#fff" /> {fichando ? '...' : 'Fichar salida'}
                 </button>
               )}
@@ -903,6 +903,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
           {isMobile && !resumenIaOpen ? (
             <button
               onClick={() => setResumenIaOpen(true)}
+              className="btn-interactive"
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 11, cursor: 'pointer', textAlign: 'left' }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l1.8 5.6L19.5 10.4l-5.7 1.8L12 18l-1.8-5.8L4.5 10.4l5.7-1.8L12 3z" stroke={T.primary} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" /></svg>
@@ -934,6 +935,8 @@ para proponerla completa, así que no llames a esa herramienta.`;
           <div style={{ display: 'flex', background: T.bgCard, borderRadius: 10, padding: 4, marginBottom: 16, border: `1px solid ${T.border}` }}>
             <button
               onClick={() => setSubTab('citas')}
+              onMouseEnter={(e) => { if (subTab !== 'citas') e.currentTarget.style.background = T.primarySoft; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'citas' ? T.primary : 'transparent'; }}
               style={{
                 flex: 1,
                 padding: '8px 4px',
@@ -952,6 +955,8 @@ para proponerla completa, así que no llames a esa herramienta.`;
             </button>
             <button
               onClick={() => setSubTab('numeros')}
+              onMouseEnter={(e) => { if (subTab !== 'numeros') e.currentTarget.style.background = T.primarySoft; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'numeros' ? T.primary : 'transparent'; }}
               style={{
                 flex: 1,
                 padding: '8px 4px',
@@ -970,6 +975,8 @@ para proponerla completa, así que no llames a esa herramienta.`;
             </button>
             <button
               onClick={() => setSubTab('ausencias')}
+              onMouseEnter={(e) => { if (subTab !== 'ausencias') e.currentTarget.style.background = T.primarySoft; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'ausencias' ? T.primary : 'transparent'; }}
               style={{
                 flex: 1,
                 padding: '8px 4px',
@@ -1134,7 +1141,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
                           {format(parseISO(a.inicio), 'd MMM', { locale: es })} — {format(parseISO(a.fin), 'd MMM yyyy', { locale: es })}
                         </span>
                         {!isPast && (
-                          <button onClick={() => eliminarAusencia(a.id)} className="mj-btn" title="Eliminar" style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 16, cursor: 'pointer', padding: '0 4px' }}>×</button>
+                          <button onClick={() => eliminarAusencia(a.id)} className="btn-interactive" title="Eliminar" style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 16, cursor: 'pointer', padding: '0 4px' }}>×</button>
                         )}
                       </div>
                       {a.motivo && <div style={{ fontSize: 12, color: T.textSec, marginTop: 6, paddingLeft: 18 }}>{a.motivo}</div>}
@@ -1159,7 +1166,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
                 <button
                   onClick={abrirNuevoIntercambio}
                   disabled={profesionalesActivos.length < 2}
-                  className="mj-btn"
+                  className="btn-interactive"
                   style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.primary}`, background: T.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: profesionalesActivos.length < 2 ? 'not-allowed' : 'pointer' }}
                 >
                   + Pedir cambio
@@ -1190,18 +1197,18 @@ para proponerla completa, así que no llames a esa herramienta.`;
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         {it.es_companero && it.estado === 'pendiente_companero' && (
                           <>
-                            <button onClick={() => responderCompanero(it.id, true)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: T.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Acepto el cambio</button>
-                            <button onClick={() => responderCompanero(it.id, false)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rechazar</button>
+                            <button onClick={() => responderCompanero(it.id, true)} className="btn-interactive" style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: T.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Acepto el cambio</button>
+                            <button onClick={() => responderCompanero(it.id, false)} className="btn-interactive" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rechazar</button>
                           </>
                         )}
                         {it.es_gestor && it.estado === 'pendiente_gestor' && (
                           <>
-                            <button onClick={() => responderGestor(it.id, true)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: T.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Aprobar</button>
-                            <button onClick={() => responderGestor(it.id, false)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rechazar</button>
+                            <button onClick={() => responderGestor(it.id, true)} className="btn-interactive" style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: T.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Aprobar</button>
+                            <button onClick={() => responderGestor(it.id, false)} className="btn-interactive" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Rechazar</button>
                           </>
                         )}
                         {it.es_solicitante && (it.estado === 'pendiente_companero' || it.estado === 'pendiente_gestor') && (
-                          <button onClick={() => cancelarIntercambio(it.id)} className="mj-btn" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Cancelar solicitud</button>
+                          <button onClick={() => cancelarIntercambio(it.id)} className="btn-interactive" style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Cancelar solicitud</button>
                         )}
                       </div>
                     </div>
@@ -1271,10 +1278,10 @@ para proponerla completa, así que no llames a esa herramienta.`;
               </label>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-              <button onClick={() => setShowObjetivoModal(false)} className="mj-btn" style={{ padding: '9px 16px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={() => setShowObjetivoModal(false)} className="btn-interactive" style={{ padding: '9px 16px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                 Cancelar
               </button>
-              <button onClick={guardarObjetivo} className="mj-btn" style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={guardarObjetivo} className="btn-interactive" style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                 Guardar
               </button>
             </div>
@@ -1336,10 +1343,10 @@ para proponerla completa, así que no llames a esa herramienta.`;
               </label>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-              <button onClick={() => setShowIntercambioModal(false)} className="mj-btn" style={{ padding: '9px 16px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={() => setShowIntercambioModal(false)} className="btn-interactive" style={{ padding: '9px 16px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                 Cancelar
               </button>
-              <button onClick={enviarIntercambio} className="mj-btn" style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={enviarIntercambio} className="btn-interactive" style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: T.primary, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                 Enviar solicitud
               </button>
             </div>
@@ -1425,8 +1432,8 @@ function SolicitudAusenciaModal({ onClose }: { onClose: () => void }) {
           <STextInput value={notas} onChange={setNotas} placeholder="Ej. Viaje familiar..." />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-          <button onClick={onClose} style={{ padding: '8px 16px', background: 'transparent', border: 'none', cursor: 'pointer', color: c.textSec, fontWeight: 600 }}>Cancelar</button>
-          <button onClick={submit} disabled={loading} style={{ padding: '8px 16px', background: c.primary, border: 'none', borderRadius: 8, cursor: 'pointer', color: '#fff', fontWeight: 600 }}>
+          <button onClick={onClose} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }} style={{ padding: '8px 16px', background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', color: c.textSec, fontWeight: 600, transition: 'background 0.15s ease' }}>Cancelar</button>
+          <button onClick={submit} disabled={loading} className="btn-interactive" style={{ padding: '8px 16px', background: c.primary, border: 'none', borderRadius: 8, cursor: 'pointer', color: '#fff', fontWeight: 600 }}>
             {loading ? 'Enviando...' : 'Solicitar'}
           </button>
         </div>
