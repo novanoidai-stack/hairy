@@ -38,8 +38,9 @@ const ANIM = `
   @keyframes pUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
   .p-row { animation: pUp 0.3s cubic-bezier(0.16,1,0.3,1) both; transition: background 0.15s ease; }
   .p-row:hover { background: ${T.cardHi} !important; }
-  .p-btn { transition: all 0.15s ease; cursor: pointer; }
-  .p-btn:hover { filter: brightness(1.04); }
+  .p-btn { transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease; cursor: pointer; }
+  .p-btn:hover { transform: scale(0.97); filter: brightness(0.95); box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
+  .p-btn:active { transform: scale(0.94); opacity: 0.8; }
   .p-modal-overlay { animation: pFade 0.2s ease; }
   .p-modal { animation: pUp 0.3s cubic-bezier(0.16,1,0.3,1) both; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -678,6 +679,7 @@ function PresupuestosScreen() {
               <button
                 onClick={() => setShowManualPanel(true)}
                 title="Manual de esta pagina"
+                className="p-btn"
                 style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: T.card, border: `1px solid ${T.borderHi}`, color: T.textSec, cursor: 'pointer', flexShrink: 0 }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
