@@ -10668,49 +10668,78 @@ function NewCitaModal({
                   overflowY: "auto",
                 }}
               >
-                {clientes
-                  .filter((c) => norm(c.nombre).includes(norm(clienteSearch)))
-                  .map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => {
-                        setSelectedCliente(c.id);
-                        setSinCliente(false);
-                      }}
-                      style={{
-                        padding: "8px 12px",
-                        background:
-                          selectedCliente === c.id
-                            ? "rgba(244,80,30,0.18)"
-                            : TOKENS.bgCard,
-                        border: `1px solid ${selectedCliente === c.id ? "rgba(244,80,30,0.4)" : TOKENS.border}`,
-                        borderRadius: 8,
-                        color:
-                          selectedCliente === c.id
-                            ? TOKENS.primaryHi
-                            : TOKENS.textSec,
-                        cursor: "pointer",
-                        fontSize: 11,
-                        fontWeight: selectedCliente === c.id ? 600 : 500,
-                        whiteSpace: "nowrap",
-                        transition: "all 0.15s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.boxShadow = `0 4px 12px rgba(244,80,30,0.2)`;
-                        e.currentTarget.style.borderColor =
-                          "rgba(244,80,30,0.4)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.boxShadow = "none";
-                        e.currentTarget.style.borderColor =
-                          selectedCliente === c.id
-                            ? "rgba(244,80,30,0.4)"
-                            : TOKENS.border;
-                      }}
-                    >
-                      {c.nombre}
-                    </button>
-                  ))}
+                {/* No pintar los N clientes de golpe: con carteras grandes (cientos)
+                    eso disparaba el Rendering+Painting al abrir. Se muestra un tope y
+                    el resto aparece al escribir en el buscador (este bloque solo se
+                    renderiza cuando aun no hay cliente elegido). */}
+                {(() => {
+                  const CLIENTES_TOPE = 30;
+                  const matches = clientes.filter((c) =>
+                    norm(c.nombre).includes(norm(clienteSearch)),
+                  );
+                  const visibles = matches.slice(0, CLIENTES_TOPE);
+                  const ocultos = matches.length - visibles.length;
+                  return (
+                    <>
+                      {visibles.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => {
+                            setSelectedCliente(c.id);
+                            setSinCliente(false);
+                          }}
+                          style={{
+                            padding: "8px 12px",
+                            background:
+                              selectedCliente === c.id
+                                ? "rgba(244,80,30,0.18)"
+                                : TOKENS.bgCard,
+                            border: `1px solid ${selectedCliente === c.id ? "rgba(244,80,30,0.4)" : TOKENS.border}`,
+                            borderRadius: 8,
+                            color:
+                              selectedCliente === c.id
+                                ? TOKENS.primaryHi
+                                : TOKENS.textSec,
+                            cursor: "pointer",
+                            fontSize: 11,
+                            fontWeight: selectedCliente === c.id ? 600 : 500,
+                            whiteSpace: "nowrap",
+                            transition: "all 0.15s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.boxShadow = `0 4px 12px rgba(244,80,30,0.2)`;
+                            e.currentTarget.style.borderColor =
+                              "rgba(244,80,30,0.4)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.boxShadow = "none";
+                            e.currentTarget.style.borderColor =
+                              selectedCliente === c.id
+                                ? "rgba(244,80,30,0.4)"
+                                : TOKENS.border;
+                          }}
+                        >
+                          {c.nombre}
+                        </button>
+                      ))}
+                      {ocultos > 0 && (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            padding: "8px 12px",
+                            fontSize: 11,
+                            fontWeight: 500,
+                            color: TOKENS.textTer,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          +{ocultos} mas · escribe para filtrar
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
                 <button
                   onClick={() => setShowCreateCliente(true)}
                   style={{
