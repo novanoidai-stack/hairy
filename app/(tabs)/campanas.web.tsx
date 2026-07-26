@@ -160,7 +160,7 @@ function CampanasScreen() {
         {/* Plantillas rapidas */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 10 }}>
           {PLANTILLAS.map((p) => (
-            <button key={p.titulo} onClick={() => aplicarPlantilla(p)}
+            <button key={p.titulo} className="m-card-hover" onClick={() => aplicarPlantilla(p)}
               style={{ textAlign: 'left', background: T.card, border: `1.5px solid ${T.border}`, borderRadius: 14, padding: '12px 14px', cursor: 'pointer' }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text }}>{p.titulo}</div>
               <div style={{ fontSize: 12, color: T.textTer, marginTop: 3 }}>{p.desc}</div>
@@ -208,7 +208,7 @@ function CampanasScreen() {
 
           {/* Mensaje */}
           <Campo label="Mensaje" hint="Usa {nombre} para personalizar con el nombre de cada clienta.">
-            <textarea value={mensaje} onChange={(e) => setMensaje(e.target.value)} rows={4}
+            <textarea className="m-input" value={mensaje} onChange={(e) => setMensaje(e.target.value)} rows={4}
               placeholder="Hola {nombre}, ..."
               style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${T.borderHi}`, fontSize: 13.5, color: T.text, fontFamily: 'Inter, system-ui, sans-serif', lineHeight: 1.5 }} />
           </Campo>
@@ -222,7 +222,7 @@ function CampanasScreen() {
           {error && <div style={{ fontSize: 13, color: T.danger, fontWeight: 600 }}>{error}</div>}
           {aviso && <div style={{ fontSize: 13, color: T.success, fontWeight: 600 }}>{aviso}</div>}
 
-          <button onClick={encolar} disabled={!puedeEncolar}
+          <button className="m-btn-primary" onClick={encolar} disabled={!puedeEncolar}
             style={{ padding: '12px 0', borderRadius: 12, border: 'none', background: puedeEncolar ? T.fire : T.cardHi, color: puedeEncolar ? '#fff' : T.textMuted, fontSize: 14.5, fontWeight: 700, cursor: puedeEncolar ? 'pointer' : 'not-allowed', boxShadow: puedeEncolar ? '0 6px 18px rgba(192,38,10,0.22)' : 'none' }}>
             {encolando ? 'Encolando…' : `Encolar campaña${conteo ? ` (${conteo})` : ''}`}
           </button>
@@ -249,7 +249,7 @@ function CampanasScreen() {
                     </div>
                     <span style={{ fontSize: 11.5, fontWeight: 700, color: meta.color }}>{meta.label}</span>
                     {cancelable && (
-                      <button onClick={() => cancelar(c.id)}
+                      <button className="m-btn-secondary" onClick={() => cancelar(c.id)}
                         style={{ padding: '6px 10px', borderRadius: 8, border: `1.5px solid ${T.border}`, background: T.panel, color: T.textSec, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                         Cancelar
                       </button>

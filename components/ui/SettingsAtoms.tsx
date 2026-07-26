@@ -288,9 +288,10 @@ export function NumberInput({ value, onChange, unit, min = 0, max = 9999, step =
             flex: 1, width: 22, background: 'transparent', border: 'none', color: T.textSec,
             cursor: disabled ? 'not-allowed' : 'pointer', display: 'grid', placeItems: 'center',
             borderBottom: `1px solid ${T.border}`, padding: 0,
+            transition: 'background .15s, color .15s',
           }}
-          onMouseEnter={e => { if (!disabled) (e.currentTarget as HTMLElement).style.color = T.text; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = T.textSec; }}
+          onMouseEnter={e => { if (!disabled) { const el = e.currentTarget as HTMLElement; el.style.color = T.text; el.style.background = T.primarySoft; } }}
+          onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = T.textSec; el.style.background = 'transparent'; }}
         >
           <Ionicons name="chevron-up" size={10} color="currentColor" />
         </button>
@@ -300,9 +301,10 @@ export function NumberInput({ value, onChange, unit, min = 0, max = 9999, step =
           style={{
             flex: 1, width: 22, background: 'transparent', border: 'none', color: T.textSec,
             cursor: disabled ? 'not-allowed' : 'pointer', display: 'grid', placeItems: 'center', padding: 0,
+            transition: 'background .15s, color .15s',
           }}
-          onMouseEnter={e => { if (!disabled) (e.currentTarget as HTMLElement).style.color = T.text; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = T.textSec; }}
+          onMouseEnter={e => { if (!disabled) { const el = e.currentTarget as HTMLElement; el.style.color = T.text; el.style.background = T.primarySoft; } }}
+          onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = T.textSec; el.style.background = 'transparent'; }}
         >
           <Ionicons name="chevron-down" size={10} color="currentColor" />
         </button>
