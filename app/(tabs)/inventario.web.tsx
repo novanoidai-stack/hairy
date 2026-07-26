@@ -408,7 +408,7 @@ export default function InventarioScreen() {
               </div>
               <h3 style={styles.modalTitle}>{t('inv_nuevo_prod')}</h3>
             </div>
-            <button style={styles.modalClose} onClick={() => setShowNuevoProducto(false)}>
+            <button className="m-btn-icon m-btn-icon-close" style={styles.modalClose} onClick={() => setShowNuevoProducto(false)}>
               <Icon name="x" size={20} color={TOKENS.textSec} />
             </button>
           </div>
@@ -417,7 +417,7 @@ export default function InventarioScreen() {
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Nombre del Producto *</label>
               <input
-                style={styles.formInput}
+                className="m-input" style={styles.formInput}
                 value={nuevoProducto.nombre}
                 onChange={(e) => setNuevoProducto({ ...nuevoProducto, nombre: e.target.value })}
                 placeholder="Ej: Champú Orgánico Hidratante 500ml"
@@ -428,7 +428,7 @@ export default function InventarioScreen() {
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Descripción</label>
               <textarea
-                style={styles.formTextarea}
+                className="m-input" style={styles.formTextarea}
                 value={nuevoProducto.descripcion}
                 onChange={(e) => setNuevoProducto({ ...nuevoProducto, descripcion: e.target.value })}
                 placeholder="Describe el producto (ingredientes, modo de uso...)"
@@ -440,7 +440,7 @@ export default function InventarioScreen() {
               <div style={styles.formGroup}>
                 <label style={styles.formLabel}>Categoría</label>
                 <select
-                  style={styles.formSelect}
+                  className="m-input" style={styles.formSelect}
                   value={nuevoProducto.categoria}
                   onChange={(e) => setNuevoProducto({ ...nuevoProducto, categoria: e.target.value })}
                 >
@@ -455,7 +455,7 @@ export default function InventarioScreen() {
               <div style={styles.formGroup}>
                 <label style={styles.formLabel}>Precio PVP (€)</label>
                 <input
-                  style={styles.formInput}
+                  className="m-input" style={styles.formInput}
                   type="number"
                   step="0.01"
                   value={(nuevoProducto.precio_cents / 100).toFixed(2)}
@@ -469,7 +469,7 @@ export default function InventarioScreen() {
               <div style={styles.formGroup}>
                 <label style={styles.formLabel}>Stock Mínimo Alerta</label>
                 <input
-                  style={styles.formInput}
+                  className="m-input" style={styles.formInput}
                   type="number"
                   value={nuevoProducto.stock_minimo}
                   onChange={(e) => setNuevoProducto({ ...nuevoProducto, stock_minimo: parseInt(e.target.value) || 0 })}
@@ -480,7 +480,7 @@ export default function InventarioScreen() {
               <div style={styles.formGroup}>
                 <label style={styles.formLabel}>Inventario Inicial</label>
                 <input
-                  style={styles.formInput}
+                  className="m-input" style={styles.formInput}
                   type="number"
                   value={nuevoProducto.inicial_unidades}
                   onChange={(e) => setNuevoProducto({ ...nuevoProducto, inicial_unidades: parseInt(e.target.value) || 0 })}
@@ -491,10 +491,10 @@ export default function InventarioScreen() {
           </div>
 
           <div style={styles.modalFooter}>
-            <button style={styles.buttonSecondary} onClick={() => setShowNuevoProducto(false)}>
+            <button className="m-btn-secondary" style={styles.buttonSecondary} onClick={() => setShowNuevoProducto(false)}>
               {t('cancelar')}
             </button>
-            <button style={{ ...styles.buttonPrimary, padding: '10px 20px' }} onClick={crearProducto}>
+            <button className="m-btn-primary" style={{ ...styles.buttonPrimary, padding: '10px 20px' }} onClick={crearProducto}>
               {t('inv_btn_crear')}
             </button>
           </div>
@@ -529,7 +529,7 @@ export default function InventarioScreen() {
                 <span style={{ fontSize: '12px', color: TOKENS.textTer }}>{productoSeleccionado.nombre}</span>
               </div>
             </div>
-            <button style={styles.modalClose} onClick={() => setShowMovimiento(false)}>
+            <button className="m-btn-icon m-btn-icon-close" style={styles.modalClose} onClick={() => setShowMovimiento(false)}>
               <Icon name="x" size={20} color={TOKENS.textSec} />
             </button>
           </div>
@@ -551,6 +551,7 @@ export default function InventarioScreen() {
                 {(['entrada', 'salida', 'ajuste'] as const).map((tipo) => (
                   <button
                     key={tipo}
+                    className="btn-tab"
                     style={{
                       ...styles.tipoButton,
                       ...(nuevoMovimiento.tipo === tipo ? styles.tipoButtonActive : {}),
@@ -568,7 +569,7 @@ export default function InventarioScreen() {
                 {nuevoMovimiento.tipo === 'ajuste' ? 'Inventario Total Final' : 'Cantidad de unidades'}
               </label>
               <input
-                style={styles.formInput}
+                className="m-input" style={styles.formInput}
                 type="number"
                 min={0}
                 value={nuevoMovimiento.unidades}
@@ -580,7 +581,7 @@ export default function InventarioScreen() {
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Motivo del movimiento</label>
               <input
-                style={styles.formInput}
+                className="m-input" style={styles.formInput}
                 value={nuevoMovimiento.motivo}
                 onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, motivo: e.target.value })}
                 placeholder={nuevoMovimiento.tipo === 'entrada' ? 'Ej: Pedido proveedor, stock inicial...' : nuevoMovimiento.tipo === 'salida' ? 'Ej: Venta, producto roto, caducado...' : 'Ej: Recuento de inventario...'}
@@ -590,7 +591,7 @@ export default function InventarioScreen() {
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Notas adicionales</label>
               <textarea
-                style={styles.formTextarea}
+                className="m-input" style={styles.formTextarea}
                 value={nuevoMovimiento.notas || ''}
                 onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, notas: e.target.value })}
                 placeholder="Añade notas complementarias si es necesario"
@@ -611,10 +612,10 @@ export default function InventarioScreen() {
           </div>
 
           <div style={styles.modalFooter}>
-            <button style={styles.buttonSecondary} onClick={() => setShowMovimiento(false)}>
+            <button className="m-btn-secondary" style={styles.buttonSecondary} onClick={() => setShowMovimiento(false)}>
               {t('cancelar')}
             </button>
-            <button style={{ ...styles.buttonPrimary, padding: '10px 20px' }} onClick={registrarMovimiento}>
+            <button className="m-btn-primary" style={{ ...styles.buttonPrimary, padding: '10px 20px' }} onClick={registrarMovimiento}>
               {t('aceptar')}
             </button>
           </div>
@@ -644,7 +645,7 @@ export default function InventarioScreen() {
                 )}
               </div>
             </div>
-            <button style={styles.modalClose} onClick={() => setShowHistorial(false)}>
+            <button className="m-btn-icon m-btn-icon-close" style={styles.modalClose} onClick={() => setShowHistorial(false)}>
               <Icon name="x" size={20} color={TOKENS.textSec} />
             </button>
           </div>
@@ -707,7 +708,7 @@ export default function InventarioScreen() {
           </div>
 
           <div style={styles.modalFooter}>
-            <button style={styles.buttonSecondary} onClick={() => setShowHistorial(false)}>
+            <button className="m-btn-secondary" style={styles.buttonSecondary} onClick={() => setShowHistorial(false)}>
               {t('cerrar')}
             </button>
           </div>
@@ -763,6 +764,7 @@ export default function InventarioScreen() {
         }
         .btn-action-premium {
           transition: all 0.15s;
+        }
         .btn-action-premium:hover {
           background-color: rgba(40, 30, 24, 0.05) !important;
           transform: scale(1.05);
@@ -904,7 +906,8 @@ export default function InventarioScreen() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button 
+              <button
+                className="m-btn-primary"
                 style={{
                   ...styles.alertBannerBtn,
                   ...(soloStockBajo ? styles.alertBannerBtnActive : {})
@@ -919,6 +922,7 @@ export default function InventarioScreen() {
           <div style={{ marginTop: 16 }}>
             {!prediccionOpen ? (
               <button
+                className="m-row-hover"
                 onClick={() => setPrediccionOpen(true)}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 11, cursor: 'pointer', textAlign: 'left' }}
               >
@@ -930,6 +934,7 @@ export default function InventarioScreen() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
                   <button
+                    className="m-btn-secondary"
                     onClick={() => setPrediccionOpen(false)}
                     title="Ocultar predicción"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: TOKENS.textSec }}
@@ -998,13 +1003,13 @@ export default function InventarioScreen() {
         <div style={styles.searchBox}>
           <Icon name="search" size={18} color={TOKENS.textTer} />
           <input
-            style={styles.searchInput}
+            className="m-input" style={styles.searchInput}
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder={t('inv_buscar_placeholder')}
           />
           {busqueda && (
-            <button style={styles.clearSearch} onClick={() => setBusqueda('')}>
+            <button className="m-btn-icon" style={styles.clearSearch} onClick={() => setBusqueda('')}>
               <Icon name="x" size={14} color={TOKENS.textTer} />
             </button>
           )}
@@ -1013,6 +1018,7 @@ export default function InventarioScreen() {
         <div style={styles.toolbarRight}>
           <div style={{ ...styles.viewToggleGroup, display: isMobile ? 'none' : undefined }}>
             <button
+              className="btn-tab"
               style={{
                 ...styles.toggleBtn,
                 ...(viewMode === 'grid' ? styles.toggleBtnActive : {}),
@@ -1024,6 +1030,7 @@ export default function InventarioScreen() {
               {!isMobile && <span style={styles.toggleBtnText}>{t('inv_mosaico')}</span>}
             </button>
             <button
+              className="btn-tab"
               style={{
                 ...styles.toggleBtn,
                 ...(viewMode === 'table' ? styles.toggleBtnActive : {}),
@@ -1036,7 +1043,7 @@ export default function InventarioScreen() {
             </button>
           </div>
 
-          <button style={styles.buttonPrimary} onClick={() => setShowNuevoProducto(true)}>
+          <button className="m-btn-primary" style={styles.buttonPrimary} onClick={() => setShowNuevoProducto(true)}>
             <Icon name="plus" size={18} color="#fff" />
             <span>{t('inv_nuevo_prod')}</span>
           </button>
@@ -1059,7 +1066,7 @@ export default function InventarioScreen() {
                 : t('inv_vacio_desc')}
             </p>
             {!busqueda && !soloStockBajo && (
-              <button style={{ ...styles.buttonSecondary, marginTop: '8px' }} onClick={() => setShowNuevoProducto(true)}>
+              <button className="m-btn-secondary" style={{ ...styles.buttonSecondary, marginTop: '8px' }} onClick={() => setShowNuevoProducto(true)}>
                 {t('inv_btn_crear')}
               </button>
             )}
@@ -1281,6 +1288,9 @@ export default function InventarioScreen() {
 // ────────────────────────────────────────────────────────────────────────────────
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
+    // width 100% es obligatorio: como flex item, el margin auto anula el stretch y el
+    // contenedor se encogeria a su contenido (columna estrecha con el inventario vacio).
+    width: '100%',
     maxWidth: '1280px',
     margin: '0 auto',
     padding: '24px',
