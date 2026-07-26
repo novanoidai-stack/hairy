@@ -48,7 +48,24 @@ if (typeof document !== 'undefined') {
   if (!document.getElementById(id)) {
     const style = document.createElement('style');
     style.id = id;
-    style.textContent = '.cfg-fields input, .cfg-fields textarea { background-color: #f6f1ea !important; }';
+    style.textContent = `
+      .cfg-fields input, .cfg-fields textarea { background-color: #f6f1ea !important; }
+      /* Chips e interruptores de esta pantalla: el fondo va inline, asi que el hover
+         necesita !important y distinguir el activo para no volverlo gris. */
+      .cfg-chip:hover:not(.is-active) {
+        background: rgba(40,30,24,0.06) !important;
+        border-color: rgba(40,30,24,0.20) !important;
+      }
+      .cfg-chip.is-active:hover { filter: brightness(0.96); }
+      .cfg-chip { transition: all 0.15s ease; }
+      /* Muestras de color: NO pueden usar m-btn-icon, su hover pisa el background. */
+      .cfg-swatch { transition: transform 0.15s cubic-bezier(0.16,1,0.3,1); }
+      .cfg-swatch:hover { transform: scale(1.15); }
+      .cfg-link { transition: filter 0.15s ease; }
+      .cfg-link:hover { text-decoration: underline; filter: brightness(0.9); }
+      .cfg-switch { transition: filter 0.15s ease; }
+      .cfg-switch:hover { filter: brightness(1.06); }
+    `;
     document.head.appendChild(style);
   }
 }
@@ -1003,6 +1020,7 @@ export default function ConfiguracionWeb() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
           {isMobile && tab !== null && (
             <button
+              className="m-btn-icon"
               onClick={() => setTab(null)}
               style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -1147,6 +1165,7 @@ export default function ConfiguracionWeb() {
               Solo en movil: en escritorio esta accion vive en el Sidebar. */}
           {isMobile && !IS_DEMO_MODE && (
             <button
+              className="m-btn-secondary"
               onClick={() => { try { (window.top || window).location.href = '/'; } catch (e) { window.location.href = '/'; } }}
               style={{
                 marginTop: 10, padding: '12px 14px', borderRadius: 12, width: '100%',
@@ -1187,6 +1206,7 @@ export default function ConfiguracionWeb() {
             {tab === 'general' && (
               <>
                 <button
+                  className="m-btn-secondary"
                   onClick={() => router.push({ pathname: '/(tabs)', params: { onboarding: '1' } } as any)}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 18, padding: '8px 12px', background: 'transparent', border: `1px solid ${T.border}`, borderRadius: 10, color: T.textSecondary, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
                 >
@@ -1915,6 +1935,7 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
               return (
                 <button
                   key={l.code}
+                  className={activo ? 'cfg-chip is-active' : 'cfg-chip'}
                   onClick={() => setLang(l.code as AppLang)}
                   style={{
                     padding: '7px 12px', borderRadius: 999,
@@ -3055,6 +3076,7 @@ function TabPlantillas({ config, setC }: { config: ConfigState; setC: (k: keyof 
             }}>
               {a}
               <button
+                className="m-btn-danger"
                 onClick={() => removeAlergia(i)}
                 title="Quitar"
                 style={{ display: 'grid', placeItems: 'center', width: 18, height: 18, borderRadius: 999, border: 'none', background: 'rgba(226,59,52,0.16)', color: T.danger, cursor: 'pointer', padding: 0 }}
@@ -4103,7 +4125,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
               <FormField label="Tiempo activo (min)">
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {[15, 30, 45, 60, 90].map(m => (
-                    <button key={m} onClick={() => setOvDur(m)}
+                    <button key={m} className={ovDur === m ? 'cfg-chip is-active' : 'cfg-chip'} onClick={() => setOvDur(m)}
                       style={{ flex: '1 1 calc(20% - 5px)', padding: '8px 6px', borderRadius: 8, background: ovDur === m ? accentSoft : 'rgba(148,163,184,0.06)', border: `1px solid ${ovDur === m ? accentBorder : T.border}`, color: ovDur === m ? accentText : T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
                       {m}
                     </button>
@@ -4146,7 +4168,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                       <input type="file" accept="image/*" disabled={subiendoFoto} onChange={e => subirFoto(e.target.files)} style={{ display: 'none' }} />
                     </label>
                     {fotoUrl && !subiendoFoto && (
-                      <button onClick={() => setFotoUrl(null)} style={{ background: 'none', border: 'none', color: T.danger, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0, textAlign: 'left' }}>Quitar</button>
+                      <button className="m-btn-danger" onClick={() => setFotoUrl(null)} style={{ background: 'none', border: 'none', color: T.danger, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0, textAlign: 'left' }}>Quitar</button>
                     )}
                   </div>
                 </div>
@@ -4159,18 +4181,18 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                     const hex = categoryColorHex(cat.color);
                     const sel = categoriaId === cat.id;
                     return (
-                      <button key={cat.id} onClick={() => setCategoriaId(cat.id)}
+                      <button key={cat.id} className={sel ? 'cfg-chip is-active' : 'cfg-chip'} onClick={() => setCategoriaId(cat.id)}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, background: sel ? `${hex}22` : 'rgba(148,163,184,0.06)', border: `1px solid ${sel ? `${hex}66` : T.border}`, color: sel ? hex : T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
                         <span style={{ width: 7, height: 7, borderRadius: 999, background: hex, flexShrink: 0 }} />
                         {cat.nombre}
                       </button>
                     );
                   })}
-                  <button onClick={() => setCategoriaId(null)}
+                  <button className={categoriaId === null ? 'cfg-chip is-active' : 'cfg-chip'} onClick={() => setCategoriaId(null)}
                     style={{ padding: '6px 12px', borderRadius: 999, background: categoriaId === null ? 'rgba(148,163,184,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${T.border}`, color: T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
                     Sin categoria
                   </button>
-                  <button onClick={() => setCreandoCategoria(v => !v)}
+                  <button className="cfg-chip" onClick={() => setCreandoCategoria(v => !v)}
                     style={{ padding: '6px 12px', borderRadius: 999, background: 'transparent', border: `1px dashed ${T.borderHi}`, color: T.textTertiary, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
                     + Nueva
                   </button>
@@ -4179,7 +4201,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 10, padding: 10, borderRadius: 10, background: T.bg }}>
                     <STextInput value={nuevaCategoriaNombre} onChange={setNuevaCategoriaNombre} placeholder="Nombre (ej. Mechas)" width={160} />
                     {CATEGORY_COLOR_TOKENS.map(token => (
-                      <button key={token} onClick={() => setNuevaCategoriaColor(token)} title={token}
+                      <button key={token} className="cfg-swatch" onClick={() => setNuevaCategoriaColor(token)} title={token}
                         style={{ width: 22, height: 22, borderRadius: 999, background: categoryColorHex(token), border: nuevaCategoriaColor === token ? `2px solid ${T.text}` : '2px solid transparent', cursor: 'pointer', padding: 0 }} />
                     ))}
                     <Btn variant="primary" size="sm" onClick={async () => {
@@ -4202,7 +4224,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
               <FormField label="Tiempo activo (min)">
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {[15, 30, 45, 60, 90].map(m => (
-                    <button key={m} onClick={() => setDurActiva(m)}
+                    <button key={m} className={durActiva === m ? 'cfg-chip is-active' : 'cfg-chip'} onClick={() => setDurActiva(m)}
                       style={{ flex: '1 1 calc(20% - 5px)', padding: '8px 6px', borderRadius: 8, background: durActiva === m ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.06)', border: `1px solid ${durActiva === m ? 'rgba(244,80,30,0.4)' : T.border}`, color: durActiva === m ? T.primaryHi : T.textSecondary, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}>
                       {m}
                     </button>
@@ -4232,15 +4254,15 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                       {addons.map((a: any) => editingAddonId === a.id ? (
                         <div key={a.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: '1px solid rgba(244,80,30,0.4)' }}>
-                          <input value={editAddonNombre} onChange={e => setEditAddonNombre(e.target.value)} placeholder="Nombre" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
+                          <input className="m-input" value={editAddonNombre} onChange={e => setEditAddonNombre(e.target.value)} placeholder="Nombre" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                           <div style={{ display: 'flex', gap: 8 }}>
                             <div style={{ flex: 1 }}>
                               <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Duracion (min)</div>
-                              <input value={editAddonDur} onChange={e => setEditAddonDur(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
+                              <input className="m-input" value={editAddonDur} onChange={e => setEditAddonDur(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                             </div>
                             <div style={{ flex: 1 }}>
                               <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div>
-                              <input value={editAddonPrecio} onChange={e => setEditAddonPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
+                              <input className="m-input" value={editAddonPrecio} onChange={e => setEditAddonPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
@@ -4267,7 +4289,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                             <span style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{a.nombre}</span>
                             <span style={{ fontSize: 10, color: T.textTertiary, marginLeft: 8 }}>+{a.duracion_min}min -- {a.precio}EUR</span>
                           </div>
-                          <button onClick={async (ev) => { ev.stopPropagation(); await supabase.from('service_addons').delete().eq('id', a.id); setAddons(prev => prev.filter(x => x.id !== a.id)); }}
+                          <button className="m-btn-danger" onClick={async (ev) => { ev.stopPropagation(); await supabase.from('service_addons').delete().eq('id', a.id); setAddons(prev => prev.filter(x => x.id !== a.id)); }}
                             style={{ background: 'none', border: 'none', color: T.danger, cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>
                             x
                           </button>
@@ -4277,21 +4299,21 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                   )}
 
                   {!addingAddon ? (
-                    <button onClick={() => setAddingAddon(true)}
+                    <button className="cfg-link" onClick={() => setAddingAddon(true)}
                       style={{ background: 'none', border: 'none', color: T.primary, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
                       + Nuevo add-on
                     </button>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: `1px solid ${T.border}` }}>
-                      <input value={newAddonNombre} onChange={e => setNewAddonNombre(e.target.value)} placeholder="Nombre (ej: Hidratacion profunda)" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
+                      <input className="m-input" value={newAddonNombre} onChange={e => setNewAddonNombre(e.target.value)} placeholder="Nombre (ej: Hidratacion profunda)" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                       <div style={{ display: 'flex', gap: 8 }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Duracion (min)</div>
-                          <input value={newAddonDur} onChange={e => setNewAddonDur(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
+                          <input className="m-input" value={newAddonDur} onChange={e => setNewAddonDur(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div>
-                          <input value={newAddonPrecio} onChange={e => setNewAddonPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
+                          <input className="m-input" value={newAddonPrecio} onChange={e => setNewAddonPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
@@ -4324,14 +4346,14 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                       {variants.map((v: any) => editingVarId === v.id ? (
                         <div key={v.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: '1px solid rgba(244,80,30,0.4)' }}>
-                          <input value={editVarNombre} onChange={e => setEditVarNombre(e.target.value)} placeholder="Nombre variante" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
+                          <input className="m-input" value={editVarNombre} onChange={e => setEditVarNombre(e.target.value)} placeholder="Nombre variante" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                           <div style={{ display: 'flex', gap: 8 }}>
-                            <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div><input value={editVarPrecio} onChange={e => setEditVarPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
-                            <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Activo (min)</div><input value={editVarDur} onChange={e => setEditVarDur(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
+                            <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div><input className="m-input" value={editVarPrecio} onChange={e => setEditVarPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
+                            <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Activo (min)</div><input className="m-input" value={editVarDur} onChange={e => setEditVarDur(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
                           </div>
                           <div style={{ display: 'flex', gap: 8 }}>
-                            <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Reposo (min)</div><input value={editVarEspera} onChange={e => setEditVarEspera(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
-                            <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Extra (min)</div><input value={editVarExtra} onChange={e => setEditVarExtra(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
+                            <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Reposo (min)</div><input className="m-input" value={editVarEspera} onChange={e => setEditVarEspera(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
+                            <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Extra (min)</div><input className="m-input" value={editVarExtra} onChange={e => setEditVarExtra(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
                           </div>
                           <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                             <Btn variant="ghost" size="sm" onClick={() => setEditingVarId(null)}>Cancelar</Btn>
@@ -4358,7 +4380,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                             <span style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{v.nombre}</span>
                             <span style={{ fontSize: 10, color: T.textTertiary, marginLeft: 8 }}>{v.duracion_activa_min + v.duracion_espera_min + v.duracion_activa_extra_min}min -- {v.precio}EUR</span>
                           </div>
-                          <button onClick={async (ev) => { ev.stopPropagation(); await supabase.from('service_variants').delete().eq('id', v.id); setVariants(prev => prev.filter(x => x.id !== v.id)); }}
+                          <button className="m-btn-danger" onClick={async (ev) => { ev.stopPropagation(); await supabase.from('service_variants').delete().eq('id', v.id); setVariants(prev => prev.filter(x => x.id !== v.id)); }}
                             style={{ background: 'none', border: 'none', color: T.danger, cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>
                             x
                           </button>
@@ -4368,20 +4390,20 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                   )}
 
                   {!addingVariant ? (
-                    <button onClick={() => setAddingVariant(true)}
+                    <button className="cfg-link" onClick={() => setAddingVariant(true)}
                       style={{ background: 'none', border: 'none', color: T.primary, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
                       + Nueva variante
                     </button>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: T.bgCard, borderRadius: 8, border: `1px solid ${T.border}` }}>
-                      <input value={newVarNombre} onChange={e => setNewVarNombre(e.target.value)} placeholder="Nombre (ej: Tinte raiz)" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
+                      <input className="m-input" value={newVarNombre} onChange={e => setNewVarNombre(e.target.value)} placeholder="Nombre (ej: Tinte raiz)" style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} />
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div><input value={newVarPrecio} onChange={e => setNewVarPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
-                        <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Activo (min)</div><input value={newVarDur} onChange={e => setNewVarDur(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
+                        <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Precio (EUR)</div><input className="m-input" value={newVarPrecio} onChange={e => setNewVarPrecio(e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
+                        <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Activo (min)</div><input className="m-input" value={newVarDur} onChange={e => setNewVarDur(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Reposo (min)</div><input value={newVarEspera} onChange={e => setNewVarEspera(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
-                        <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Extra (min)</div><input value={newVarExtra} onChange={e => setNewVarExtra(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
+                        <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Reposo (min)</div><input className="m-input" value={newVarEspera} onChange={e => setNewVarEspera(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
+                        <div style={{ flex: 1 }}><div style={{ fontSize: 9, color: T.textTertiary, marginBottom: 3 }}>Extra (min)</div><input className="m-input" value={newVarExtra} onChange={e => setNewVarExtra(parseInt(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', fontSize: 12 }} /></div>
                       </div>
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                         <Btn variant="ghost" size="sm" onClick={() => { setAddingVariant(false); setNewVarNombre(''); setNewVarPrecio(''); setNewVarDur(30); setNewVarEspera(0); setNewVarExtra(0); }}>Cancelar</Btn>
@@ -4455,6 +4477,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                     <div style={{ fontSize: 10, color: T.textTertiary }}>Visible en el portal de reservas del salon</div>
                   </div>
                   <button
+                    className="cfg-switch"
                     onClick={() => setReservableOnline(!reservableOnline)}
                     style={{ padding: '11px 8px', margin: '-11px -8px', border: 'none', background: 'none', cursor: 'pointer' }}
                   >
@@ -4470,6 +4493,7 @@ function EditServiceModal({ service, onClose, onSave, onDelete, prof, override, 
                     <div style={{ fontSize: 10, color: T.textTertiary }}>Cobrar senal al reservar este servicio</div>
                   </div>
                   <button
+                    className="cfg-switch"
                     onClick={() => setPrepagoRequerido(!prepagoRequerido)}
                     style={{ padding: '11px 8px', margin: '-11px -8px', border: 'none', background: 'none', cursor: 'pointer' }}
                   >
@@ -4661,6 +4685,7 @@ function CategoriasModal({ categorias, services, onClose, onSave, onDelete, onRe
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 22px', paddingBottom: 0 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: T.text }}>Categorias de servicio</h3>
           <button
+            className="m-btn-icon m-btn-icon-close"
             onClick={onClose}
             style={{ width: 32, height: 32, borderRadius: 8, background: T.bgCard, border: `1px solid ${T.border}`, color: T.textSecondary, display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 16 }}
           >x</button>
@@ -4680,9 +4705,9 @@ function CategoriasModal({ categorias, services, onClose, onSave, onDelete, onRe
               return (
                 <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderBottom: idx < categorias.length - 1 ? `1px solid ${T.border}` : 'none' }}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <button onClick={() => mover(idx, -1)} disabled={idx === 0}
+                    <button className="m-btn-icon" onClick={() => mover(idx, -1)} disabled={idx === 0}
                       style={{ background: 'none', border: 'none', color: idx === 0 ? T.textMuted : T.textTertiary, cursor: idx === 0 ? 'default' : 'pointer', padding: 0, lineHeight: 1, fontSize: 12 }}>^</button>
-                    <button onClick={() => mover(idx, 1)} disabled={idx === categorias.length - 1}
+                    <button className="m-btn-icon" onClick={() => mover(idx, 1)} disabled={idx === categorias.length - 1}
                       style={{ background: 'none', border: 'none', color: idx === categorias.length - 1 ? T.textMuted : T.textTertiary, cursor: idx === categorias.length - 1 ? 'default' : 'pointer', padding: 0, lineHeight: 1, fontSize: 12 }}>v</button>
                   </div>
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: hex + '20', display: 'grid', placeItems: 'center', color: hex, flexShrink: 0 }}>
@@ -4709,7 +4734,7 @@ function CategoriasModal({ categorias, services, onClose, onSave, onDelete, onRe
                 <div style={{ fontSize: 10, letterSpacing: 0.5, color: T.textTertiary, textTransform: 'uppercase', fontWeight: 600 }}>Color de la categoría</div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {CATEGORY_COLOR_TOKENS.map(token => (
-                    <button key={token} type="button" onClick={() => setColor(token)} title={token}
+                    <button key={token} type="button" className="cfg-swatch" onClick={() => setColor(token)} title={token}
                       style={{ width: 22, height: 22, borderRadius: 999, background: categoryColorHex(token), border: color === token ? `2px solid ${T.text}` : '2px solid transparent', cursor: 'pointer', padding: 0 }} />
                   ))}
                 </div>
@@ -4726,6 +4751,7 @@ function CategoriasModal({ categorias, services, onClose, onSave, onDelete, onRe
                       <button
                         key={iconToken}
                         type="button"
+                        className={active ? 'cfg-chip is-active' : 'cfg-chip'}
                         onClick={() => setIcono(iconToken)}
                         title={iconToken === 'general' ? 'General' : iconToken === 'scissors' ? 'Corte' : iconToken === 'brush' ? 'Color' : iconToken === 'droplet' ? 'Lavado' : iconToken === 'sparkles' ? 'Uñas' : iconToken === 'razor' ? 'Barba' : iconToken === 'spa' ? 'Masaje' : 'Especial'}
                         style={{
