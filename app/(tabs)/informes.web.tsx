@@ -142,6 +142,15 @@ const ANIMATIONS = `
   .metric-row {
     transition: all 0.2s ease;
   }
+  /* Selectores segmentados (periodo, agrupacion del eje X, comision): el fondo va
+     inline, asi que el hover necesita !important y separar el activo. */
+  .seg-btn:hover:not(.is-active) {
+    background: rgba(40, 30, 24, 0.06) !important;
+    color: ${TOKENS.text} !important;
+  }
+  .seg-btn.is-active:hover {
+    filter: brightness(0.96);
+  }
   @keyframes infoPop {
     from { opacity: 0; transform: translate(-50%, 4px) scale(0.96); }
     to { opacity: 1; transform: translate(-50%, 0) scale(1); }
@@ -1396,6 +1405,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             {periodos.map(p => (
               <button
                 key={p.key}
+                className={periodo === p.key ? 'seg-btn is-active' : 'seg-btn'}
                 onClick={() => setPeriodo(p.key)}
                 style={{
                   padding: isMobile ? '6px 11px' : '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
@@ -1553,6 +1563,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                     {(['dia', 'semana', 'mes'] as const).map(g => (
                       <button
                         key={g}
+                        className={agrupacionEjeX === g ? 'seg-btn is-active' : 'seg-btn'}
                         onClick={() => setAgrupacionEjeX(g)}
                         style={{
                           padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
@@ -1999,6 +2010,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                     {[20, 25, 30, 35, 40].map(pct => (
                       <button
                         key={pct}
+                        className={comisionPct === pct && !comisionCustom ? 'seg-btn is-active' : 'seg-btn'}
                         onClick={() => { setComisionPct(pct); setComisionCustom(''); }}
                         style={{
                           padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
@@ -2013,6 +2025,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                     ))}
                     <div style={{ width: 1, height: 18, background: TOKENS.border, margin: '0 4px' }} />
                     <input
+                      className="m-input"
                       type="number"
                       min={0}
                       max={100}
