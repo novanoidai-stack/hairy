@@ -551,7 +551,7 @@ export default function InventarioScreen() {
                 {(['entrada', 'salida', 'ajuste'] as const).map((tipo) => (
                   <button
                     key={tipo}
-                    className="btn-tab"
+                    className={nuevoMovimiento.tipo === tipo ? 'btn-tab is-active' : 'btn-tab'}
                     style={{
                       ...styles.tipoButton,
                       ...(nuevoMovimiento.tipo === tipo ? styles.tipoButtonActive : {}),
@@ -752,9 +752,14 @@ export default function InventarioScreen() {
         .btn-tab {
           transition: all 0.2s;
         }
-        .btn-tab:hover {
-          background-color: rgba(40, 30, 24, 0.03);
+        /* Estos botones fijan backgroundColor inline, asi que el hover necesita
+           !important; y el activo se distingue con .is-active para no volverlo gris. */
+        .btn-tab:hover:not(.is-active) {
+          background-color: rgba(40, 30, 24, 0.06) !important;
           border-color: rgba(40, 30, 24, 0.2);
+        }
+        .btn-tab.is-active:hover {
+          filter: brightness(0.96);
         }
         .row-hover {
           transition: background-color 0.15s;
@@ -979,7 +984,7 @@ export default function InventarioScreen() {
                 ...styles.categoryTab,
                 ...(isSelected ? styles.categoryTabActive : {}),
               }}
-              className="btn-tab"
+              className={isSelected ? 'btn-tab is-active' : 'btn-tab'}
             >
               <span style={{ textTransform: 'capitalize' }}>
                 {cat === 'todas' ? t('inv_todos') : cat}
@@ -1016,9 +1021,9 @@ export default function InventarioScreen() {
         </div>
 
         <div style={styles.toolbarRight}>
-          <div style={{ ...styles.viewToggleGroup, display: isMobile ? 'none' : undefined }}>
+          <div style={{ ...styles.viewToggleGroup, display: isMobile ? 'none' : 'flex' }}>
             <button
-              className="btn-tab"
+              className={viewMode === 'grid' ? 'btn-tab is-active' : 'btn-tab'}
               style={{
                 ...styles.toggleBtn,
                 ...(viewMode === 'grid' ? styles.toggleBtnActive : {}),
@@ -1030,7 +1035,7 @@ export default function InventarioScreen() {
               {!isMobile && <span style={styles.toggleBtnText}>{t('inv_mosaico')}</span>}
             </button>
             <button
-              className="btn-tab"
+              className={viewMode === 'table' ? 'btn-tab is-active' : 'btn-tab'}
               style={{
                 ...styles.toggleBtn,
                 ...(viewMode === 'table' ? styles.toggleBtnActive : {}),

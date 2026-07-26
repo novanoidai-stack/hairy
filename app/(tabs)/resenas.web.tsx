@@ -45,9 +45,21 @@ const ANIMATIONS = `
   .resena-card { animation: slideInUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
   .stat-card { animation: slideInUp 0.35s cubic-bezier(0.16,1,0.3,1) both; }
   .rs-chip { transition: all 0.16s cubic-bezier(0.16,1,0.3,1); }
+  /* El fondo de los chips va inline (naranja el activo, crema el resto), asi que el
+     hover necesita !important y separar activo de inactivo. */
+  .rs-chip:hover:not(.is-active) {
+    background: #ffffff !important;
+    border-color: rgba(244,80,30,0.35) !important;
+    color: #1c1810 !important;
+    transform: translateY(-1px);
+  }
+  .rs-chip.is-active:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .rs-link { transition: color 0.16s ease; }
+  .rs-link:hover { color: #f4501e !important; text-decoration: underline; }
   @media (prefers-reduced-motion: reduce) {
     .resena-card, .stat-card { animation: none !important; }
     .rs-chip { transition: none !important; }
+    .rs-chip:hover:not(.is-active), .rs-chip.is-active:hover { transform: none; }
   }
 `;
 
@@ -500,7 +512,7 @@ ${comentarios}`;
                   style={{ flex: 1, border: 'none', background: 'none', outline: 'none', fontSize: 14, color: TOKENS.text, fontFamily: 'inherit', minWidth: 0 }}
                 />
                 {fSearch && (
-                  <button onClick={() => setFSearch('')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: TOKENS.textTer, fontSize: 13, fontWeight: 700 }}>Limpiar</button>
+                  <button className="rs-link" onClick={() => setFSearch('')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: TOKENS.textTer, fontSize: 13, fontWeight: 700 }}>Limpiar</button>
                 )}
               </div>
 
@@ -534,7 +546,7 @@ ${comentarios}`;
             {/* LISTADO */}
             {filtradas.length === 0 ? (
               <div style={{ padding: 48, textAlign: 'center', background: TOKENS.bgPanel, border: `1px dashed ${TOKENS.borderHi}`, borderRadius: 16, color: TOKENS.textSec }}>
-                Ninguna reseña coincide con los filtros. <button onClick={() => { setFRating(0); setFPeriod('all'); setFScope('all'); setFSearch(''); }} style={{ border: 'none', background: 'none', color: TOKENS.primary, fontWeight: 700, cursor: 'pointer', fontSize: 'inherit' }}>Quitar filtros</button>
+                Ninguna reseña coincide con los filtros. <button className="rs-link" onClick={() => { setFRating(0); setFPeriod('all'); setFScope('all'); setFSearch(''); }} style={{ border: 'none', background: 'none', color: TOKENS.primary, fontWeight: 700, cursor: 'pointer', fontSize: 'inherit' }}>Quitar filtros</button>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
@@ -670,7 +682,7 @@ ${comentarios}`;
                       </div>
                     )}
                     {isMobile && (
-                      <button onClick={() => toggleExpandida(r.id)} style={{ marginTop: 12, alignSelf: 'flex-start', background: 'none', border: 'none', color: TOKENS.textTer, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}>Ver menos</button>
+                      <button className="rs-link" onClick={() => toggleExpandida(r.id)} style={{ marginTop: 12, alignSelf: 'flex-start', background: 'none', border: 'none', color: TOKENS.textTer, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}>Ver menos</button>
                     )}
                     </>
                     )}
@@ -704,7 +716,7 @@ function FilterGroup({ label, children }: { label: string; children: React.React
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
-      className="rs-chip"
+      className={active ? 'rs-chip is-active' : 'rs-chip'}
       onClick={onClick}
       style={{
         border: `1px solid ${active ? TOKENS.primary : TOKENS.border}`,
