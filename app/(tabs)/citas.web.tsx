@@ -240,30 +240,31 @@ function CitasCRMScreen() {
           <STextInput value={search} onChange={setSearch} placeholder="Buscar cliente, telefono o servicio..." />
         </div>
         <div style={{ width: 150, flexShrink: 0 }}>
-          <SSelect value={dateRange} onChange={(v) => setDateRange(v as any)} options={[
+          <SSelect width="100%" value={dateRange} onChange={(v) => setDateRange(v as any)} options={[
             { value: 'hoy', label: 'Hoy' }, { value: 'semana', label: 'Esta semana' },
             { value: 'mes', label: 'Este mes' }, { value: 'todo', label: 'Historico' },
           ]} />
         </div>
         <div style={{ width: 170, flexShrink: 0 }}>
-          <SSelect value={statusFilter} onChange={setStatusFilter} options={[
+          <SSelect width="100%" value={statusFilter} onChange={setStatusFilter} options={[
             { value: 'todos', label: 'Todos los estados' },
             ...ESTADOS.map((e) => ({ value: e.value, label: e.label })),
           ]} />
         </div>
         <div style={{ width: 170, flexShrink: 0 }}>
-          <SSelect value={profFilter} onChange={setProfFilter} options={[
+          <SSelect width="100%" value={profFilter} onChange={setProfFilter} options={[
             { value: 'todos', label: 'Todo el equipo' },
             ...profesionales.map((p) => ({ value: p.id, label: p.nombre })),
           ]} />
         </div>
         <div style={{ width: 180, flexShrink: 0 }}>
-          <SSelect value={srvFilter} onChange={setSrvFilter} options={[
+          <SSelect width="100%" value={srvFilter} onChange={setSrvFilter} options={[
             { value: 'todos', label: 'Todos los servicios' },
             ...servicios.map((s) => ({ value: s.id, label: s.nombre })),
           ]} />
         </div>
         <button
+          className="btn-interactive"
           onClick={() => setSoloSinConfirmar((v) => !v)}
           style={{ flexShrink: 0, padding: '9px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
             background: soloSinConfirmar ? T.primary : T.bgPanel, color: soloSinConfirmar ? '#fff' : T.textSec, border: `1px solid ${soloSinConfirmar ? T.primary : T.border}` }}

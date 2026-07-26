@@ -405,6 +405,7 @@ interface SelectProps {
 
 export function SSelect({ value, onChange, options, width = 200, disabled, placeholder = 'Selecciona...' }: SelectProps) {
   const [open, setOpen] = useState(false);
+  const [hover, setHover] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -416,6 +417,9 @@ export function SSelect({ value, onChange, options, width = 200, disabled, place
   }, []);
 
   const current = options.find(o => o.value === value);
+  // El hover va por estado (no mutando el DOM): al abrir/cerrar React reaplica el estilo
+  // completo y no queda el tinte del hover pegado.
+  const hot = hover && !open && !disabled;
 
   return (
     <div ref={ref} style={{ position: 'relative' as const, width, zIndex: open ? 1000 : 1 }}>
@@ -424,23 +428,24 @@ export function SSelect({ value, onChange, options, width = 200, disabled, place
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', height: 36, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: T.bg, border: `1px solid ${open ? T.primary : T.border}`, borderRadius: 9,
+          background: hot ? T.bgCardHi : T.bg,
+          border: `1px solid ${open ? T.primary : hot ? T.borderHiHi : T.border}`, borderRadius: 9,
           color: current ? T.text : T.textTer, padding: '0 12px',
           cursor: disabled ? 'not-allowed' : 'pointer',
           fontSize: 13, fontWeight: 500, transition: 'all .15s',
-          boxShadow: open ? `0 0 0 3px ${T.primarySoft}` : 'none',
+          boxShadow: open ? `0 0 0 3px ${T.primarySoft}` : hot ? '0 2px 10px rgba(28,24,20,0.10)' : 'none',
         }}
-        onMouseEnter={e => { if (!disabled && !open) (e.currentTarget as HTMLElement).style.borderColor = T.borderHi; }}
-        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLElement).style.borderColor = T.border; }}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
       >
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
           {current?.label || placeholder}
         </span>
         <span style={{
-          display: 'inline-flex', color: T.textSec,
+          display: 'inline-flex', color: hot ? T.text : T.textSec,
           transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'rotate(0)',
         }}>
-          <Ionicons name="chevron-down" size={12} color={T.textSec} />
+          <Ionicons name="chevron-down" size={12} color={hot ? T.text : T.textSec} />
         </span>
       </button>
 
