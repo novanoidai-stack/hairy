@@ -37,10 +37,10 @@ const ANIM = `
   @keyframes pFade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes pUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
   .p-row { animation: pUp 0.3s cubic-bezier(0.16,1,0.3,1) both; transition: background 0.15s ease; }
-  .p-row:hover { background: ${T.cardHi} !important; }
+  .p-row:hover { background: rgba(244,80,30,0.06) !important; }
   .p-btn { transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease; cursor: pointer; }
-  .p-btn:hover { transform: scale(0.97); filter: brightness(0.95); box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
-  .p-btn:active { transform: scale(0.94); opacity: 0.8; }
+  .p-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.04); box-shadow: 0 4px 14px rgba(40,30,24,0.12); }
+  .p-btn:active:not(:disabled) { transform: translateY(0) scale(0.97); opacity: 0.9; transition-duration: 0.08s; }
   .p-modal-overlay { animation: pFade 0.2s ease; }
   .p-modal { animation: pUp 0.3s cubic-bezier(0.16,1,0.3,1) both; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -298,7 +298,7 @@ function EditorModal({ profile, salon, profesionales, servicios, conceptos, init
 
         {/* Profesional */}
         <label style={labelBase}>Profesional (opcional)</label>
-        <select value={profesionalId} onChange={e => setProfesionalId(e.target.value)} style={{ ...inputBase, marginBottom: 14 }}>
+        <select className="m-control" value={profesionalId} onChange={e => setProfesionalId(e.target.value)} style={{ ...inputBase, marginBottom: 14 }}>
           <option value="">Sin asignar</option>
           {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
         </select>

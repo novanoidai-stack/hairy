@@ -69,6 +69,7 @@ export function ListaEsperaDropdown({ negocioId }: { negocioId: string }) {
   return (
     <div style={{ position: "relative" }} ref={dropdownRef}>
       <button
+        className="m-control"
         onClick={() => setOpen(!open)}
         title="Lista de espera"
         style={{

@@ -745,9 +745,9 @@ export default function InventarioScreen() {
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .card-premium:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 10px 20px rgba(40, 30, 24, 0.06);
-          border-color: rgba(244, 80, 30, 0.25) !important;
+          transform: translateY(-2px);
+          box-shadow: 0 12px 28px rgba(40, 30, 24, 0.10);
+          border-color: rgba(244, 80, 30, 0.30) !important;
         }
         .btn-tab {
           transition: all 0.2s;
@@ -762,17 +762,18 @@ export default function InventarioScreen() {
           filter: brightness(0.96);
         }
         .row-hover {
-          transition: background-color 0.15s;
+          transition: background-color 0.18s ease;
         }
         .row-hover:hover {
-          background-color: rgba(251, 246, 240, 0.6) !important;
+          background-color: rgba(244, 80, 30, 0.06) !important;
         }
         .btn-action-premium {
           transition: all 0.15s;
         }
         .btn-action-premium:hover {
-          background-color: rgba(40, 30, 24, 0.05) !important;
-          transform: scale(1.05);
+          background-color: rgba(148, 163, 184, 0.12) !important;
+          border-color: rgba(244, 80, 30, 0.40) !important;
+          transform: scale(1.12);
         }
         .no-scrollbar::-webkit-scrollbar {
           display: none;

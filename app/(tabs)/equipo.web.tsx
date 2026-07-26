@@ -506,7 +506,7 @@ export default function EquipoWeb() {
                   key={p.id}
                   className="equipo-card"
                   onClick={() => setSelected(p.id)}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; e.currentTarget.style.boxShadow = `0 12px 40px ${p.color}33, 0 0 0 1px ${p.color}44`; e.currentTarget.style.borderColor = `${p.color}88`; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 12px 40px ${p.color}33, 0 0 0 1px ${p.color}44`; e.currentTarget.style.borderColor = `${p.color}88`; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = isSel ? `0 0 0 1px ${p.color}66, 0 8px 30px ${p.color}22` : 'none'; e.currentTarget.style.borderColor = isSel ? `${p.color}66` : TOKENS.border; }}
                   style={{
                     background: TOKENS.bgCard,
@@ -668,7 +668,7 @@ export default function EquipoWeb() {
             {/* Add card */}
             <div
               onClick={() => setShowNewProf(true)}
-              onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.primarySoft; e.currentTarget.style.borderColor = `rgba(244,80,30,0.4)`; e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.primarySoft; e.currentTarget.style.borderColor = `rgba(244,80,30,0.4)`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
               style={{
                 background: 'transparent',
@@ -702,7 +702,7 @@ export default function EquipoWeb() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22, flexWrap: 'wrap' }}>
               <button
                 onClick={() => setSelected(null)}
-                onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.transform = 'translateX(-2px)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.transform = 'none'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = 'translateX(0)'; }}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 14px', background: 'transparent', border: `1px solid ${TOKENS.border}`, borderRadius: 10, color: TOKENS.textSec, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s ease, border-color 0.15s ease, transform 0.15s ease' }}>
                 <Icon name="arrowLeft" size={16} color={TOKENS.textSec} />
@@ -859,7 +859,7 @@ export default function EquipoWeb() {
                     return (
                       <div key={i}
                         onClick={() => openEditDia(dbDia)}
-                        onMouseEnter={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.background = hasH ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.1)'; }}}
+                        onMouseEnter={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.background = hasH ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.1)'; }}}
                         onMouseLeave={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.05)'; }}}
                         style={{ textAlign: 'center', padding: 6, borderRadius: 8, background: isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.05)', transition: 'transform 0.15s ease, background 0.15s ease', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
                         <div style={{ fontSize: 10, fontWeight: 700, color: isEditing ? TOKENS.text : hasH ? TOKENS.primaryHi : TOKENS.textTer }}>{dia}</div>
@@ -967,10 +967,10 @@ export default function EquipoWeb() {
               <div style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>Bloqueos próximos</div>
               <button
                 onClick={() => setShowNewBloqueo(true)}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)'; e.currentTarget.style.background = 'rgba(244,80,30,0.18)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(244,80,30,0.35)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.background = 'rgba(244,80,30,0.18)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(244,80,30,0.35)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.background = 'rgba(244,80,30,0.10)'; e.currentTarget.style.boxShadow = 'none'; }}
                 onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.96)'; }}
-                onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)'; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
@@ -1005,7 +1005,7 @@ export default function EquipoWeb() {
                   : '';
                 return (
                 <div key={b.id}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(148,163,184,0.06)'; e.currentTarget.style.borderColor = 'rgba(148,163,184,0.18)'; e.currentTarget.style.transform = 'translateX(3px)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(148,163,184,0.06)'; e.currentTarget.style.borderColor = 'rgba(148,163,184,0.18)'; e.currentTarget.style.transform = 'none'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = TOKENS.bgCard; e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = 'translateX(0)'; }}
                   style={{ display: 'flex', alignItems: 'stretch', gap: 12, padding: 12, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, transition: 'background 0.15s ease, border-color 0.15s ease, transform 0.15s ease' }}>
                   <div style={{ width: 4, borderRadius: 2, background: cfg.color }} />
@@ -1653,7 +1653,7 @@ function EditProfModal({ prof, negocioId, onClose, onSaved }: { prof: Profesiona
           {/* Cuenta de acceso al software: vincula esta ficha con un login del negocio */}
           <div>
             <div style={labelStyle}>Cuenta de acceso</div>
-            <select value={cuentaId} onChange={(e) => setCuentaId(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+            <select className="m-control" value={cuentaId} onChange={(e) => setCuentaId(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
               <option value="">Sin cuenta vinculada</option>
               {cuentas.map((c) => {
                 const taken = linkedIds.has(c.id);

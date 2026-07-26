@@ -48,18 +48,16 @@ const ANIMATIONS = `
   /* El fondo de los chips va inline (naranja el activo, crema el resto), asi que el
      hover necesita !important y separar activo de inactivo. */
   .rs-chip:hover:not(.is-active) {
-    background: #ffffff !important;
-    border-color: rgba(244,80,30,0.35) !important;
+    background: rgba(40,30,24,0.06) !important;
+    border-color: rgba(40,30,24,0.20) !important;
     color: #1c1810 !important;
-    transform: translateY(-1px);
   }
-  .rs-chip.is-active:hover { filter: brightness(1.08); transform: translateY(-1px); }
-  .rs-link { transition: color 0.16s ease; }
-  .rs-link:hover { color: #f4501e !important; text-decoration: underline; }
+  .rs-chip.is-active:hover { filter: brightness(0.96); }
+  .rs-link { transition: filter 0.15s ease, color 0.15s ease; }
+  .rs-link:hover { text-decoration: underline; filter: brightness(0.9); }
   @media (prefers-reduced-motion: reduce) {
     .resena-card, .stat-card { animation: none !important; }
     .rs-chip { transition: none !important; }
-    .rs-chip:hover:not(.is-active), .rs-chip.is-active:hover { transform: none; }
   }
 `;
 

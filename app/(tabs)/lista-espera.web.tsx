@@ -45,14 +45,15 @@ const ANIM = `
   @keyframes leFade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes leUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
   .le-row { animation: leUp 0.35s cubic-bezier(0.16,1,0.3,1) both; transition: background 0.15s ease; }
-  .le-row:hover { background: ${T.cardHi} !important; }
+  .le-row:hover { background: rgba(244,80,30,0.06) !important; }
   .le-btn { transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease; cursor: pointer; }
-  .le-btn:hover { transform: scale(0.97); filter: brightness(0.95); box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
-  .le-btn:active { transform: scale(0.94); opacity: 0.8; }
-  .le-chip { transition: all 0.15s ease; cursor: pointer; }
-  .le-chip:hover { transform: translateY(-1px); }
+  .le-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.04); box-shadow: 0 4px 14px rgba(40,30,24,0.12); }
+  .le-btn:active:not(:disabled) { transform: translateY(0) scale(0.97); opacity: 0.9; transition-duration: 0.08s; }
+  .le-chip { transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.15s ease; cursor: pointer; }
+  .le-chip:hover:not(.is-active) { background: rgba(40,30,24,0.06) !important; border-color: rgba(40,30,24,0.20) !important; }
+  .le-chip.is-active:hover { filter: brightness(0.96); }
   .le-opt { transition: background 0.12s ease; }
-  .le-opt:hover { background: ${T.cardHi} !important; }
+  .le-opt:hover { background: rgba(244,80,30,0.06) !important; }
 `;
 
 function Icon({ name, size = 16, color = T.text }: { name: string; size?: number; color?: string }) {
@@ -246,7 +247,7 @@ function ListaEsperaScreen() {
           ] as { k: FiltroEstado; label: string }[]).map(f => {
             const on = filtro === f.k;
             return (
-              <button key={f.k} className="le-chip" onClick={() => setFiltro(f.k)} style={{
+              <button key={f.k} className={on ? "le-chip is-active" : "le-chip"} onClick={() => setFiltro(f.k)} style={{
                 padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
                 border: `1.5px solid ${on ? T.primary : T.border}`, background: on ? T.primary : T.card, color: on ? '#fff' : T.textSec,
               }}>{f.label}</button>
@@ -562,7 +563,7 @@ function AddModal({ negocioId, servicios, profesionales, clientes, onClose, onSa
             <label style={labelStyle}>Franja preferida</label>
             <div style={{ display: 'flex', gap: 8 }}>
               {(['manana', 'tarde', 'cualquiera'] as const).map(f => (
-                <button key={f} className="le-chip" onClick={() => setFranja(f)} style={{
+                <button key={f} className={franja === f ? "le-chip is-active" : "le-chip"} onClick={() => setFranja(f)} style={{
                   flex: 1, padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 600,
                   border: `1.5px solid ${franja === f ? T.primary : T.border}`, background: franja === f ? T.primary : T.card, color: franja === f ? '#fff' : T.textSec,
                 }}>{FRANJA_LABEL[f]}</button>

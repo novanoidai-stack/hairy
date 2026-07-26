@@ -15,9 +15,9 @@ const ANIM = `
   @keyframes rsPop { from { opacity:0; transform: scale(0.8) } to { opacity:1; transform: scale(1) } }
   .rs-step { animation: rsUp 0.45s cubic-bezier(0.16,1,0.3,1) both }
   .rs-flame { animation: rsFlicker 3.4s ease-in-out infinite; transform-origin: 50% 80%; display: inline-flex }
-  .rs-cta { transition: transform 0.16s ease, filter 0.16s ease; cursor: pointer }
-  .rs-cta:hover { filter: brightness(1.05) }
-  .rs-cta:active { transform: translateY(1px) }
+  .rs-cta { transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), filter 0.18s ease, box-shadow 0.18s ease; cursor: pointer }
+  .rs-cta:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.06); box-shadow: 0 6px 18px rgba(40,30,24,0.14) }
+  .rs-cta:active:not(:disabled) { transform: translateY(0) scale(0.97) }
   .rs-star { transition: transform 0.14s cubic-bezier(0.16,1,0.3,1); cursor: pointer; background: none; border: none; padding: 3px }
   .rs-star:hover { transform: scale(1.18) }
   .rs-field { color: #f6f8ff !important; background-color: #101729 !important; }

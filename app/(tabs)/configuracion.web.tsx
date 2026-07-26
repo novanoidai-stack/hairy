@@ -63,6 +63,7 @@ if (typeof document !== 'undefined') {
       .cfg-swatch:hover { transform: scale(1.15); }
       .cfg-link { transition: filter 0.15s ease; }
       .cfg-link:hover { text-decoration: underline; filter: brightness(0.9); }
+      /* Alineadas al canon de lib/motion.tsx (.m-seg, .m-link). */
       .cfg-switch { transition: filter 0.15s ease; }
       .cfg-switch:hover { filter: brightness(1.06); }
     `;
@@ -1435,7 +1436,7 @@ function TabGeneral({ config, setC }: { config: ConfigState; setC: (k: keyof Con
               const active = config.brandColor === c.v;
               return (
                 <button key={c.v} title={c.name} onClick={() => setC('brandColor', c.v)}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.15)'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
                   style={{
                     width: 34, height: 34, borderRadius: 10,

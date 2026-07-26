@@ -42,8 +42,8 @@ const ANIM = `
   .rp-day { transition: transform 0.14s ease, border-color 0.14s ease; cursor: pointer }
   .rp-day:hover { transform: translateY(-2px) }
   .rp-day-off { opacity: 0.32; cursor: default !important; filter: grayscale(0.4) }
-  .rp-cta { transition: transform 0.16s ease, filter 0.16s ease; cursor: pointer }
-  .rp-cta:hover { filter: brightness(1.05) }
+  .rp-cta { transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), filter 0.18s ease, box-shadow 0.18s ease; cursor: pointer }
+  .rp-cta:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.06); box-shadow: 0 6px 18px rgba(40,30,24,0.14) }
   .rp-cta:active { transform: translateY(1px) }
   .rp-link { cursor: pointer; transition: color 0.15s ease }
   .rp-link:hover { color: ${T.primaryHi} !important }

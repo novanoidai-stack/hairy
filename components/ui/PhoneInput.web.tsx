@@ -79,7 +79,7 @@ export function PhoneInput({ value, onChange, defaultCountry = 'ES', placeholder
 
   return (
     <div ref={rootRef} style={{ position: 'relative', display: 'flex', gap: 8 }}>
-      <button type="button" disabled={disabled} onClick={() => setOpen(o => !o)}
+      <button type="button" className="m-control" disabled={disabled} onClick={() => setOpen(o => !o)}
         style={{ display: 'flex', alignItems: 'center', gap: 6, padding: compact ? '0 10px' : '0 12px', height: H, borderRadius: R,
           border: '1px solid rgba(28,24,20,0.14)', background: '#f6f1ea', cursor: disabled ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
         <span style={{ fontSize: 14, color: '#1c1814' }}>+{cur?.code}</span>

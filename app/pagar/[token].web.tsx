@@ -29,7 +29,7 @@ const ANIM = `
   .pg-step { animation: pgUp 0.45s cubic-bezier(0.16,1,0.3,1) both }
   .pg-flame { animation: pgFlicker 3.4s ease-in-out infinite; transform-origin: 50% 80% }
   .pg-cta { transition: transform 0.16s ease, filter 0.16s ease; cursor: pointer }
-  .pg-cta:hover { filter: brightness(1.05) }
+  .pg-cta:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.06); box-shadow: 0 6px 18px rgba(40,30,24,0.14) }
   .pg-cta:active { transform: translateY(1px) }
   .pg-inp { width: 100%; box-sizing: border-box; padding: 12px 13px; border-radius: 12px; border: 1px solid rgba(40,30,24,0.16); background: #fff; font-size: 15px; color: #241a14; outline: none }
   .pg-inp:focus { border-color: #f4501e }

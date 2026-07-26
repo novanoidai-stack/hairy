@@ -1236,6 +1236,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
               <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
                 Profesional
                 <select
+                  className="m-control"
                   value={objetivoEnCurso.profesional_id}
                   onChange={(e) => setObjetivoEnCurso({ ...objetivoEnCurso, profesional_id: e.target.value })}
                   style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
@@ -1246,6 +1247,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
               <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
                 Métrica
                 <select
+                  className="m-control"
                   value={objetivoEnCurso.metrica}
                   onChange={(e) => setObjetivoEnCurso({ ...objetivoEnCurso, metrica: e.target.value as MetricaObjetivo })}
                   style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}
@@ -1303,6 +1305,7 @@ para proponerla completa, así que no llames a esa herramienta.`;
               <label style={{ fontSize: 12, color: T.textSec, fontWeight: 600 }}>
                 Compañero
                 <select
+                  className="m-control"
                   value={nuevoIntercambio.companero_id}
                   onChange={(e) => setNuevoIntercambio({ ...nuevoIntercambio, companero_id: e.target.value })}
                   style={{ marginTop: 6, width: '100%', padding: '9px 10px', borderRadius: 9, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: 13 }}

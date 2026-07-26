@@ -61,14 +61,29 @@ const MOTION_CSS = `
   .m-stagger > *:nth-child(11) { animation: slideInUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.40s both; }
   .m-stagger > *:nth-child(12) { animation: slideInUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.44s both; }
 
+  /* =========================================================================
+     CANON DE HOVER DE MECHA (jul 2026) — un solo idioma para toda la app.
+     Regla: HOVER ELEVA, CLICK HUNDE.
+       - superficie (relleno/borde): translateY(-1px) + sombra; :active baja y encoge
+       - icono: scale(1.12); :active 0.95
+       - chip/segmentado (.m-seg): tine el inactivo, el activo NO se mueve
+       - fila (.m-row-hover): solo tinte, sin desplazar
+       - tarjeta (.m-card-hover): translateY(-2px) + sombra
+       - enlace (.m-link): subraya y oscurece
+       - control (.m-control, .m-select): borde + fondo + sombra; abierto/foco = anillo
+     Las clases locales de cada pantalla (.b-btn, .ca-btn, .btn-tab, .cfg-chip...)
+     se redefinen para igualar a estas. No inventar efectos nuevos por pantalla.
+     ========================================================================= */
+
   /* Botones primarios (CTAs con gradiente) */
   .m-btn-primary {
     transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), box-shadow 0.18s ease, filter 0.18s ease;
     will-change: transform;
   }
   .m-btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(-1px);
     filter: brightness(1.06);
+    box-shadow: 0 6px 18px rgba(40,30,24,0.14);
   }
   .m-btn-primary:active:not(:disabled) {
     transform: translateY(0) scale(0.97);
@@ -85,11 +100,12 @@ const MOTION_CSS = `
   }
   .m-btn-secondary:hover:not(:disabled) {
     transform: translateY(-1px);
-    background: rgba(148,163,184,0.08) !important;
-    border-color: rgba(148,163,184,0.25) !important;
+    background: rgba(40,30,24,0.06) !important;
+    border-color: rgba(40,30,24,0.20) !important;
+    box-shadow: 0 4px 12px rgba(40,30,24,0.08);
   }
   .m-btn-secondary:active:not(:disabled) {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.97);
     transition-duration: 0.08s;
   }
   .m-btn-secondary:disabled {
@@ -106,9 +122,10 @@ const MOTION_CSS = `
     background: rgba(239,68,68,0.14) !important;
     border-color: rgba(239,68,68,0.55) !important;
     color: #ef4444 !important;
+    box-shadow: 0 4px 12px rgba(239,68,68,0.16);
   }
   .m-btn-danger:active:not(:disabled) {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.97);
     transition-duration: 0.08s;
   }
   .m-btn-danger:disabled {
@@ -124,9 +141,10 @@ const MOTION_CSS = `
     transform: translateY(-1px);
     background: rgba(245,158,11,0.22) !important;
     border-color: rgba(245,158,11,0.75) !important;
+    box-shadow: 0 4px 12px rgba(245,158,11,0.18);
   }
   .m-btn-warn:active:not(:disabled) {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.97);
     transition-duration: 0.08s;
   }
   .m-btn-warn:disabled {
@@ -191,6 +209,47 @@ const MOTION_CSS = `
     transform: translateY(-1px);
   }
 
+  /* Chips y segmentados con estado activo (.is-active en el seleccionado).
+     El fondo suele ir inline en el JSX, de ahi el !important. El activo NO se
+     mueve: dentro de un segmentado el desplazamiento delata cual esta elegido. */
+  .m-seg {
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.15s ease;
+  }
+  .m-seg:hover:not(.is-active):not(:disabled) {
+    background: rgba(40,30,24,0.06) !important;
+    border-color: rgba(40,30,24,0.20) !important;
+  }
+  .m-seg.is-active:hover:not(:disabled) {
+    filter: brightness(0.96);
+  }
+
+  /* Enlaces de texto (acciones sin superficie: "Quitar", "+ Nueva variante") */
+  .m-link {
+    transition: filter 0.15s ease, color 0.15s ease;
+  }
+  .m-link:hover:not(:disabled) {
+    text-decoration: underline;
+    filter: brightness(0.9);
+  }
+
+  /* Controles: disparador de desplegable, select nativo y campos con marco.
+     Reposo -> hover: sube el contraste del borde y aparece una sombra suave.
+     Abierto o con foco: borde de marca + anillo (lo pone el propio componente
+     cuando es un desplegable a medida; aqui se cubre el foco por teclado). */
+  .m-control {
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .m-control:hover:not(:disabled):not(:focus) {
+    background: #fbf6f0 !important;
+    border-color: rgba(40,30,24,0.25) !important;
+    box-shadow: 0 2px 10px rgba(28,24,20,0.10);
+  }
+  .m-control:focus, .m-control:focus-visible {
+    border-color: rgba(244,80,30,0.55) !important;
+    box-shadow: 0 0 0 3px rgba(244,80,30,0.12);
+    outline: none;
+  }
+
   /* Stat cards / metricas pequenas */
   .m-stat {
     transition: transform 0.18s ease, border-color 0.18s ease;
@@ -232,8 +291,13 @@ const MOTION_CSS = `
       animation: none !important;
     }
     .m-btn-primary, .m-btn-secondary, .m-btn-danger, .m-btn-warn, .m-btn-icon,
-    .m-row-hover, .m-card-hover, .m-chip, .m-stat, .m-input {
+    .m-row-hover, .m-card-hover, .m-chip, .m-seg, .m-link, .m-control,
+    .m-stat, .m-input {
       transition: none !important;
+    }
+    .m-btn-primary:hover, .m-btn-secondary:hover, .m-btn-danger:hover,
+    .m-btn-warn:hover, .m-card-hover:hover, .m-chip:hover {
+      transform: none !important;
     }
   }
 `;

@@ -1051,6 +1051,7 @@ function ClientesWeb() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                         <span title="Cuanto paga de senal este cliente al reservar online. 'Automatico' lo decide su historial (no-shows / citas completadas); las demas opciones lo fuerzan a mano. El comportamiento global se ajusta en Ajustes > Politicas." style={{ fontSize: 12, fontWeight: 600, color: TOKENS.textSec }}>Deposito (senal):</span>
                         <select
+                          className="m-control"
                           value={c.deposito_perfil_override ?? ''}
                           onChange={async (e) => {
                             const v = e.target.value || null;
@@ -2311,7 +2312,7 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
         <SectionLabel>Profesional</SectionLabel>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, marginBottom: 14 }}>
           <Field label="Profesional">
-            <select value={profesionalId} onChange={(e) => setProfesionalId(e.target.value)} style={selectStyle}>
+            <select className="m-control" value={profesionalId} onChange={(e) => setProfesionalId(e.target.value)} style={selectStyle}>
               <option value="">Sin asignar</option>
               {profesionales.map((p: any) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
             </select>
@@ -2320,7 +2321,7 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
         {citasCliente.length > 0 && (
           <div style={{ marginBottom: 14 }}>
             <Field label="Asociar a cita (opcional)">
-              <select value={citaId} onChange={(e) => setCitaId(e.target.value)} style={selectStyle}>
+              <select className="m-control" value={citaId} onChange={(e) => setCitaId(e.target.value)} style={selectStyle}>
                 <option value="">Sin cita asociada</option>
                 {citasCliente.map((cit) => {
                   const srv = servicios.find((s: any) => s.id === cit.servicio_id);
@@ -2336,7 +2337,7 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
         <SectionLabel>Formula</SectionLabel>
         <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
           <Field label="Tipo de servicio">
-            <select value={tipoServicio} onChange={(e) => setTipoServicio(e.target.value)} style={selectStyle}>
+            <select className="m-control" value={tipoServicio} onChange={(e) => setTipoServicio(e.target.value)} style={selectStyle}>
               {TIPOS_SERVICIO.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
             </select>
           </Field>
@@ -2536,7 +2537,7 @@ function HistorialTab({ cliente, citas, servicios, profesionales = [], fichasTec
               transition: 'all 0.15s ease', cursor: 'pointer',
               animation: `fadeIn 0.2s ease ${idx * 0.03}s both`,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.transform = 'translateX(2px)'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.transform = 'none'; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.transform = 'none'; }}
           >
             <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: prof?.color || TOKENS.primary, flexShrink: 0 }} />

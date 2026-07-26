@@ -136,8 +136,7 @@ const ANIMATIONS = `
     transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
   }
   .metric-row:hover {
-    background: ${TOKENS.bgCardHi} !important;
-    transform: translateX(2px);
+    background: rgba(244,80,30,0.06) !important;
   }
   .metric-row {
     transition: all 0.2s ease;

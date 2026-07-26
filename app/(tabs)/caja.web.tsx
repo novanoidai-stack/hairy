@@ -47,11 +47,11 @@ const ANIM = `
   @keyframes caFade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes caUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
   .ca-row { animation: caUp 0.35s cubic-bezier(0.16,1,0.3,1) both; transition: background 0.15s ease; }
-  .ca-row:hover { background: ${T.cardHi} !important; }
+  .ca-row:hover { background: rgba(244,80,30,0.06) !important; }
   .ca-row.selected { background: ${T.primarySoft} !important; border-color: ${T.primary} !important; }
   .ca-btn { transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease; cursor: pointer; }
-  .ca-btn:hover { transform: scale(0.97); filter: brightness(0.95); box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
-  .ca-btn:active { transform: scale(0.94); opacity: 0.8; }
+  .ca-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.04); box-shadow: 0 4px 14px rgba(40,30,24,0.12); }
+  .ca-btn:active:not(:disabled) { transform: translateY(0) scale(0.97); opacity: 0.9; transition-duration: 0.08s; }
   .ca-modal-overlay { animation: caFade 0.2s ease; }
   .ca-modal { animation: caUp 0.3s cubic-bezier(0.16,1,0.3,1) both; }
 `;

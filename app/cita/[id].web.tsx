@@ -45,11 +45,11 @@ const ANIM = `
   .gc-blob2 { animation: gcFloat2 26s ease-in-out infinite alternate; filter: blur(72px) }
   .gc-step { animation: gcUp 0.45s cubic-bezier(0.16,1,0.3,1) both }
   .gc-flame { animation: gcFlicker 3.4s ease-in-out infinite; transform-origin: 50% 80% }
-  .gc-cta { transition: transform 0.16s ease, filter 0.16s ease; cursor: pointer }
-  .gc-cta:hover { filter: brightness(1.05) }
-  .gc-cta:active { transform: translateY(1px) }
+  .gc-cta { transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), filter 0.18s ease, box-shadow 0.18s ease; cursor: pointer }
+  .gc-cta:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.06); box-shadow: 0 6px 18px rgba(40,30,24,0.14) }
+  .gc-cta:active:not(:disabled) { transform: translateY(0) scale(0.97) }
   .gc-ghost { transition: background 0.15s ease, border-color 0.15s ease; cursor: pointer }
-  .gc-ghost:hover { background: ${T.cardHi} !important }
+  .gc-ghost:hover:not(:disabled) { transform: translateY(-1px); background: rgba(40,30,24,0.06) !important; box-shadow: 0 4px 12px rgba(40,30,24,0.08) }
   .gc-field:focus { border-color: ${T.primary} !important; box-shadow: 0 0 0 3px ${T.primarySoft} }
   .gc-day { transition: transform 0.14s ease, border-color 0.14s ease; cursor: pointer }
   .gc-day:hover { transform: translateY(-2px) }
@@ -58,7 +58,7 @@ const ANIM = `
   .gc-slot.gc-on, .gc-slot.gc-on:hover { background: ${T.primary} !important; border-color: ${T.primary} !important; color: #fff !important; transform: none }
   .gc-rail::-webkit-scrollbar { height: 0 }
   .gc-link { cursor: pointer; transition: color 0.15s ease }
-  .gc-link:hover { color: ${T.primaryHi} !important }
+  .gc-link:hover { text-decoration: underline; filter: brightness(0.9) }
   @media (prefers-reduced-motion: reduce) {
     .gc-step, .gc-flame, .gc-blob1, .gc-blob2 { animation: none !important }
     .gc-cta, .gc-day, .gc-slot { transition: none !important }

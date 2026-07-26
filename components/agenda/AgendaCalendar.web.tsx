@@ -2721,7 +2721,7 @@ export default function AgendaCalendar() {
                             gap: 6,
                             transition: "all 0.2s ease"
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.12)"; }}
                           onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
                         >
                           <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
@@ -3286,7 +3286,7 @@ export default function AgendaCalendar() {
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background =
                           "rgba(244,80,30,0.08)";
-                        e.currentTarget.style.transform = "translateX(2px)";
+                        e.currentTarget.style.transform = "none";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
@@ -5703,7 +5703,7 @@ function StatCard({ label, value, sub, tone, progress, onClick }: any) {
         cursor: "pointer",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "scale(1.02)";
+        e.currentTarget.style.transform = "translateY(-2px)";
         e.currentTarget.style.borderColor = TOKENS.borderHi;
       }}
       onMouseLeave={(e) => {
@@ -5802,7 +5802,7 @@ function ProfRow({
         e.currentTarget.style.background = selected
           ? "rgba(244,80,30,0.15)"
           : "rgba(244,80,30,0.05)";
-        e.currentTarget.style.transform = "translateX(4px)";
+        e.currentTarget.style.transform = "translateY(-1px)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = selected
@@ -5970,7 +5970,7 @@ function ViewTab({ children, active, onClick }: any) {
         transform: "scale(1)",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "scale(1.05)";
+        e.currentTarget.style.transform = "none";
         e.currentTarget.style.borderColor = TOKENS.primary;
         if (!active) {
           e.currentTarget.style.background = "rgba(244,80,30,0.05)";
@@ -7401,7 +7401,7 @@ function DayTimeline({
                               if (!cancelada) startDrag(cita, e);
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "scale(1.05)";
+                              e.currentTarget.style.transform = "scale(1.02)";
                               e.currentTarget.style.boxShadow = cancelada
                                 ? "none"
                                 : actualCitaShadowHover;
@@ -11126,7 +11126,7 @@ function NewCitaModal({
                           transform: "translateY(0)",
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = "translateY(-2px)";
+                          e.currentTarget.style.transform = "translateY(-1px)";
                           e.currentTarget.style.borderColor = TOKENS.primary;
                           e.currentTarget.style.boxShadow = `0 4px 16px rgba(244,80,30,0.15)`;
                         }}
@@ -11423,7 +11423,7 @@ function NewCitaModal({
                     transform: "scale(1)",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "scale(1.08)";
+                    e.currentTarget.style.transform = "none";
                     e.currentTarget.style.background = `${p.color}2a`;
                     e.currentTarget.style.boxShadow = `0 4px 12px ${p.color}33`;
                   }}
@@ -11772,7 +11772,7 @@ function NewCitaModal({
                               gap: 1,
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "scale(1.08)";
+                              e.currentTarget.style.transform = "translateY(-1px)";
                               if (!selected) {
                                 e.currentTarget.style.borderColor = esReposo
                                   ? "#f59e0b"
@@ -12588,7 +12588,7 @@ function NewCitaModal({
                 }}
                 onMouseEnter={(e) => {
                   if (puedeGuardar) {
-                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
                     e.currentTarget.style.boxShadow = `0 8px 24px rgba(244,80,30,0.6)`;
                   }
                 }}
@@ -15155,7 +15155,7 @@ export function DetalleCitaModal({
                   }}
                   onMouseEnter={(e) => {
                     if (!togglingConfirma) {
-                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.transform = "translateY(-1px)";
                       e.currentTarget.style.boxShadow = confirmadaCliente
                         ? "0 8px 22px rgba(16,185,129,0.30)"
                         : "0 8px 22px rgba(239,68,68,0.30)";
@@ -15468,7 +15468,7 @@ export function DetalleCitaModal({
                               e.currentTarget.style.background =
                                 "rgba(16,185,129,0.06)";
                             }
-                            e.currentTarget.style.transform = "scale(1.05)";
+                            e.currentTarget.style.transform = "none";
                           }}
                           onMouseLeave={(e) => {
                             if (!active) {
@@ -18058,7 +18058,7 @@ function SearchDropdown({
   return (
     <div style={{ position: "relative" }}>
       <button
-        className="m-row-hover"
+        className="m-control"
         onClick={() => setOpen(!open)}
         style={{
           width: "100%",
