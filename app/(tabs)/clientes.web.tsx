@@ -651,6 +651,7 @@ function ClientesWeb() {
           <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4, display: 'flex', alignItems: 'center', gap: 10 }}>
             Clientes
             <button
+              className="m-btn-icon"
               onClick={() => setShowManualPanel(true)}
               title="Manual de esta pagina"
               style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
@@ -668,6 +669,7 @@ function ClientesWeb() {
         <div style={{ display: 'flex', gap: isMobile ? 8 : 12, alignItems: 'center' }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <button
+              className="m-btn-secondary"
               onClick={() => setShowImportModal(true)}
               title="Importar Excel"
               style={{ padding: isMobile ? '9px 11px' : '9px 14px', background: '#ffffff', color: TOKENS.text, border: `1px solid ${TOKENS.border}`, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: isMobile ? 0 : 6, transition: 'all 0.15s ease' }}

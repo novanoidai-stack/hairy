@@ -34,12 +34,14 @@ export function AvisoPrimeraVisita({ content, isMobile, onVerManual, onCerrar }:
       </div>
       <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: isMobile ? 42 : 0 }}>
         <button
+          className="m-btn-primary"
           onClick={onVerManual}
           style={{ padding: '7px 14px', background: T.primary, border: 'none', borderRadius: 8, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
         >
           Ver manual
         </button>
         <button
+          className="m-btn-icon m-btn-icon-close"
           onClick={onCerrar}
           title="Cerrar"
           style={{ width: 30, height: 30, display: 'grid', placeItems: 'center', background: 'transparent', border: 'none', borderRadius: 8, color: T.textSec, cursor: 'pointer' }}

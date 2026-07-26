@@ -86,6 +86,7 @@ export function AvisosBell({ collapsed, mode = 'sidebar', children }: Props) {
   return (
     <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
       <button
+        className="m-btn-icon"
         onClick={() => { setOpen((v) => !v); if (!open) { avisos.refresh(); setCat('todos'); } }}
         title="Avisos"
         style={{

@@ -444,6 +444,7 @@ export default function EquipoWeb() {
             Equipo
             <button
               onClick={() => setShowManualPanel(true)}
+              className="m-btn-icon"
               title="Manual de esta pagina"
               style={{ display: 'grid', placeItems: 'center', width: 28, height: 28, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
             >

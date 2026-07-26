@@ -794,6 +794,7 @@ export default function InventarioScreen() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, zIndex: 100 }}>
           <button
             onClick={() => setShowManualPanel(true)}
+            className="m-btn-icon"
             title="Manual de esta pagina"
             style={{ display: 'grid', placeItems: 'center', width: 32, height: 32, borderRadius: 8, background: '#fff', border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
           >

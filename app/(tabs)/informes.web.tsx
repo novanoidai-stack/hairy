@@ -1374,6 +1374,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             Informes
             <button
               onClick={() => setShowManualPanel(true)}
+              className="m-btn-icon"
               title="Manual de esta pagina"
               style={{ display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 7, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
             >

@@ -1032,6 +1032,7 @@ export default function ConfiguracionWeb() {
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentTab ? currentTab.label : 'Ajustes'}</span>
               <button
                 onClick={() => setShowManualPanel(true)}
+                className="m-btn-icon"
                 title="Manual de esta pagina"
                 style={{ display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 7, background: T.bgCard, border: `1px solid ${T.border}`, color: T.textSecondary, cursor: 'pointer', flexShrink: 0 }}
               >

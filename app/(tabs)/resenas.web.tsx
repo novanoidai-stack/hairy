@@ -315,6 +315,7 @@ ${comentarios}`;
               Reseñas de clientes
               <button
                 onClick={() => setShowManualPanel(true)}
+                className="m-btn-icon"
                 title="Manual de esta pagina"
                 style={{ display: 'grid', placeItems: 'center', width: 30, height: 30, borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.borderHi}`, color: TOKENS.textSec, cursor: 'pointer', flexShrink: 0 }}
               >
