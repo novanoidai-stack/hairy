@@ -19,7 +19,7 @@ import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import BriefingAgenda from '@/components/agenda/BriefingAgenda';
 import {
   TEMA_ORDEN, TEMA_TITULO_SECCION, TEMA_DESTINO_MANUAL, TEMA_FALLBACK, HORARIO_PRESETS,
-  pedirPregunta, ejecutarAccion as ejecutarAccionOnboarding,
+  pedirPregunta, ejecutarAccion as ejecutarAccionOnboarding, puedeAplicarHorarioEquipo,
   type TemaId, type ContextoEjecucion, type PerfilAgente, type ResultadoAccion,
 } from '@/lib/onboardingAgent';
 import { BIBLIOTECA_PROMPTS, obtenerTipCarga, normalizarPathname, type PromptBiblioteca } from '@/lib/chispaPrompts';
@@ -309,6 +309,7 @@ function resumenDemoOnboarding(tipo: string, args: Record<string, any>): string 
     case 'crear_servicio': return `${args.nombre} · ${Number(args.precio).toFixed(2)} € · ${args.duracion_min} min`;
     case 'crear_profesional': return `${args.nombre} · ${String(args.categoria).replace('_', ' ')}`;
     case 'fijar_horario_salon': return 'Horario guardado.';
+    case 'aplicar_horario_profesionales': return args.aplicar ? 'Horario del salon aplicado a tu equipo.' : 'Horario del equipo sin aplicar por ahora.';
     case 'activar_reserva_online': return args.activar ? 'Reserva online activada.' : 'Reserva online sin activar por ahora.';
     case 'activar_notificaciones': return args.activar ? 'Recordatorios por WhatsApp activados.' : 'Recordatorios sin activar por ahora.';
     default: return 'Hecho.';
@@ -398,6 +399,21 @@ function construirPasoTema(
           opciones: HORARIO_PRESETS.map((p, i) => ({ valor: String(i), label: p.label })),
         },
         kind: 'horario_opciones',
+      };
+    }
+    case 'horarios_profesional': {
+      const id = idPasoOnboarding(tema);
+      return {
+        id,
+        previos: [{ tipo: 'texto', texto: 'Falta el horario de alguien de tu equipo. De ahí salen los huecos reservables con esa persona.' }],
+        interactivo: {
+          tipo: 'opciones', id, titulo: TEMA_TITULO_SECCION[tema],
+          opciones: [
+            { valor: 'si', label: 'Aplicar el horario del salón', descripcion: 'Solo a quien no tenga uno propio; podrás afinarlo en Equipo' },
+            { valor: 'no', label: 'Ahora no' },
+          ],
+        },
+        kind: 'horarios_prof_opciones',
       };
     }
     case 'reserva_online': {
@@ -1257,6 +1273,14 @@ export default function ChispaPanel({
     let i = idx;
     while (i < TEMA_ORDEN.length && omit[TEMA_ORDEN[i]]) i++;
     if (i >= TEMA_ORDEN.length) { finalizarConfigGuiada(); return; }
+    // fijar_horario_salon ya copia el horario a los profesionales creados en esta
+    // sesion, asi que el tema puede haber dejado de hacer falta despues de
+    // congelar el snapshot: no preguntar por algo que ya esta resuelto. En la
+    // demo se muestra siempre (las escrituras son simuladas, es el showcase).
+    if (!IS_DEMO_MODE && TEMA_ORDEN[i] === 'horarios_profesional') {
+      const procede = await puedeAplicarHorarioEquipo(negocioId).catch(() => false);
+      if (!procede) { void avanzarTemaGuiado(i + 1); return; }
+    }
     setTemaIdx(i);
     const tema = TEMA_ORDEN[i];
     setCargando(true);
@@ -1358,6 +1382,11 @@ export default function ChispaPanel({
       case 'horario_opciones': {
         const preset = HORARIO_PRESETS[Number((payload as string[])[0])];
         await ejecutarPasoOnboarding('fijar_horario_salon', { dias: preset?.dias ?? [] });
+        void avanzarTemaGuiado(temaIdx + 1);
+        return;
+      }
+      case 'horarios_prof_opciones': {
+        await ejecutarPasoOnboarding('aplicar_horario_profesionales', { aplicar: (payload as string[])[0] === 'si' });
         void avanzarTemaGuiado(temaIdx + 1);
         return;
       }

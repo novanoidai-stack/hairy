@@ -13,14 +13,19 @@ export type TemaId =
   | 'servicios'
   | 'equipo'
   | 'horario_salon'
+  | 'horarios_profesional'
   | 'reserva_online'
   | 'fotos_servicios'
   | 'notificaciones';
 
-// Orden fijo: lo decide el cliente, no el modelo. horarios_profesional del
-// checklist no es un tema aparte: se aplica solo al fijar horario_salon.
+// Orden fijo: lo decide el cliente, no el modelo. horarios_profesional va
+// DESPUES de horario_salon porque copia el horario del salon a quien no tenga
+// uno propio. fijar_horario_salon ya cubre a los profesionales creados en esta
+// misma sesion; este tema existe para los que ya estaban dados de alta antes
+// (sin el, el paso nucleo del checklist se quedaba pendiente para siempre).
 export const TEMA_ORDEN: TemaId[] = [
-  'datos_negocio', 'servicios', 'equipo', 'horario_salon', 'reserva_online', 'fotos_servicios', 'notificaciones',
+  'datos_negocio', 'servicios', 'equipo', 'horario_salon', 'horarios_profesional',
+  'reserva_online', 'fotos_servicios', 'notificaciones',
 ];
 
 export const TEMA_TITULO_SECCION: Record<TemaId, string> = {
@@ -28,6 +33,7 @@ export const TEMA_TITULO_SECCION: Record<TemaId, string> = {
   servicios: 'Tus servicios',
   equipo: 'Tu equipo',
   horario_salon: 'El horario del salon',
+  horarios_profesional: 'El horario de tu equipo',
   reserva_online: 'La reserva online',
   fotos_servicios: 'Fotos de tus servicios',
   notificaciones: 'Recordatorios por WhatsApp',
@@ -41,6 +47,7 @@ export const TEMA_FALLBACK: Record<TemaId, { titulo: string; placeholder_ejemplo
   servicios: { titulo: 'Que servicio ofreces primero?', placeholder_ejemplo: 'p. ej. "Corte de caballero, 15 euros, 30 min"', modoInput: 'texto' },
   equipo: { titulo: 'Quien es el primer profesional de tu equipo?', placeholder_ejemplo: 'p. ej. "Marta, oficial, marta@email.com"', modoInput: 'texto' },
   horario_salon: { titulo: 'Que dias y horas abre tu salon?', placeholder_ejemplo: 'p. ej. "Lunes a viernes de 9 a 20, sabado de 9 a 14, domingo cerrado"', modoInput: 'texto' },
+  horarios_profesional: { titulo: 'Aplico el horario del salon a quien aun no tiene horario propio?', modoInput: 'botones' },
   reserva_online: { titulo: 'Activamos ya la reserva online publica?', modoInput: 'botones' },
   fotos_servicios: { titulo: 'Sube una foto de alguno de tus servicios', modoInput: 'foto' },
   notificaciones: { titulo: 'Activamos los recordatorios automaticos por WhatsApp?', modoInput: 'botones' },
@@ -54,6 +61,7 @@ export const TEMA_DESTINO_MANUAL: Record<TemaId, string> = {
   servicios: 'Mas tarde en: Ajustes -> Servicios',
   equipo: 'Mas tarde en: Equipo',
   horario_salon: 'Mas tarde en: Ajustes -> Horarios',
+  horarios_profesional: 'Mas tarde en: Equipo -> Horarios',
   reserva_online: 'Mas tarde en: Ajustes -> Reserva online',
   fotos_servicios: 'Mas tarde en: Ajustes -> Servicios',
   notificaciones: 'Mas tarde en: Ajustes -> Notificaciones',
@@ -145,7 +153,9 @@ export async function pedirPregunta(
   perfil: PerfilAgente,
 ): Promise<{ titulo: string; subtitulo?: string; placeholder_ejemplo?: string }> {
   const fallback = TEMA_FALLBACK[tema];
-  if (tema === 'fotos_servicios') return fallback; // no hace falta la IA para este tema
+  // Temas que no pasan por la IA: no hace falta redactar nada (y la Edge Function
+  // ni siquiera los conoce, devolveria invalid_tema).
+  if (tema === 'fotos_servicios' || tema === 'horarios_profesional') return fallback;
   const call = supabase.functions.invoke('onboarding-agent', {
     body: { modo: 'enriquecer_pregunta', tema, estado, perfil },
   }).then(({ data, error }) => {
@@ -169,6 +179,24 @@ export async function interpretarRespuesta(
     return data.accion as { tipo: string; args: Record<string, any> };
   });
   return conTimeout(call, 6000);
+}
+
+// Si tiene sentido ofrecer el tema 'horarios_profesional': hace falta que
+// alguien del equipo activo no tenga horario Y que haya un horario de salon del
+// que copiarlo. Sin lo segundo el paso solo podria fallar (p.ej. si el gestor
+// acaba de saltarse el horario del salon), asi que mejor no preguntarlo.
+export async function puedeAplicarHorarioEquipo(negocioId: string): Promise<boolean> {
+  const { data: profs } = await supabase
+    .from('profesionales').select('id').eq('negocio_id', negocioId).eq('activo', true);
+  const ids = (profs ?? []).map((p: any) => p.id);
+  if (ids.length === 0) return false;
+  const { data: horarios } = await supabase
+    .from('horarios_profesional').select('profesional_id').in('profesional_id', ids);
+  const conHorario = new Set((horarios ?? []).map((h: any) => h.profesional_id));
+  if (ids.every((id) => conHorario.has(id))) return false;
+  const { data: dias } = await supabase
+    .from('negocio_horarios').select('abierto, apertura, cierre').eq('negocio_id', negocioId);
+  return (dias ?? []).some((d: any) => d.abierto && d.apertura && d.cierre);
 }
 
 export interface ContextoEjecucion {
@@ -359,6 +387,37 @@ export async function ejecutarAccion(
         return { ok: true, resumen: `Horario establecido: ${resumenAbiertos}` };
       }
 
+      // Copia el horario del salon a los profesionales que NO tienen ninguno.
+      // A los que ya lo tienen configurado a mano no se les toca nunca.
+      case 'aplicar_horario_profesionales': {
+        if (args.aplicar !== true) return { ok: true, resumen: 'Horario del equipo sin aplicar por ahora.' };
+        const { data: profs } = await supabase
+          .from('profesionales').select('id, nombre').eq('negocio_id', ctx.negocioId).eq('activo', true);
+        const activos = (profs ?? []) as { id: string; nombre: string }[];
+        if (activos.length === 0) return { ok: false, resumen: 'No hay profesionales activos a los que aplicarselo.' };
+
+        const { data: horarios } = await supabase
+          .from('horarios_profesional').select('profesional_id').in('profesional_id', activos.map((p) => p.id));
+        const conHorario = new Set((horarios ?? []).map((h: any) => h.profesional_id));
+        const sinHorario = activos.filter((p) => !conHorario.has(p.id));
+        if (sinHorario.length === 0) return { ok: true, resumen: 'Todo el equipo ya tenia su horario.' };
+
+        const { data: dias } = await supabase
+          .from('negocio_horarios').select('dia_semana, abierto, apertura, cierre').eq('negocio_id', ctx.negocioId);
+        const abiertos = (dias ?? []).filter((d: any) => d.abierto && d.apertura && d.cierre);
+        if (abiertos.length === 0) return { ok: false, resumen: 'Fija antes el horario del salon.' };
+
+        const rows = sinHorario.flatMap((p) =>
+          abiertos.map((d: any) => ({
+            profesional_id: p.id, dia_semana: d.dia_semana, turno: 1,
+            hora_inicio: d.apertura, hora_fin: d.cierre,
+          })),
+        );
+        const { error } = await supabase.from('horarios_profesional').insert(rows);
+        if (error) throw error;
+        return { ok: true, resumen: `Horario del salon aplicado a: ${sinHorario.map((p) => p.nombre).join(', ')}` };
+      }
+
       case 'activar_reserva_online': {
         if (args.activar !== true) return { ok: true, resumen: 'Reserva online sin activar por ahora.' };
         const datos = ctx.datosNegocioSesion;
@@ -369,20 +428,35 @@ export async function ejecutarAccion(
           ctx.datosNegocioSesion = { nombre: cfg.nombre, direccion: cfg.direccion ?? '', telefono: cfg.telefono ?? '' };
         }
         const d = ctx.datosNegocioSesion!;
-        const slug = slugifyNombre(d.nombre);
-        // Quitar la columna captcha_activo que no existe en negocio_portal!
-        const { error } = await supabase.from('negocio_portal').upsert({
-          negocio_id: ctx.negocioId,
-          slug,
-          nombre_publico: d.nombre,
-          direccion: d.direccion || null,
-          telefono: d.telefono || null,
-          portal_activo: true,
-          idioma: 'es',
-          mostrar_precios: 'catalogo',
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'negocio_id' });
-        if (error) throw error;
+        // negocio_portal.slug es UNIQUE en toda la plataforma y aqui se genera
+        // solo (el usuario no lo elige, a diferencia de Ajustes -> Reserva
+        // online). Dos salones con el mismo nombre chocarian, asi que se
+        // reintenta con sufijo: RLS no deja consultar los slugs de otros
+        // negocios, el conflicto solo se puede detectar al escribir.
+        const base = slugifyNombre(d.nombre) || 'salon';
+        let slug = base;
+        let guardado = false;
+        for (let intento = 0; intento < 5 && !guardado; intento++) {
+          const { error } = await supabase.from('negocio_portal').upsert({
+            negocio_id: ctx.negocioId,
+            slug,
+            nombre_publico: d.nombre,
+            direccion: d.direccion || null,
+            telefono: d.telefono || null,
+            portal_activo: true,
+            idioma: 'es',
+            mostrar_precios: 'catalogo',
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'negocio_id' });
+          if (!error) { guardado = true; break; }
+          const code = (error as { code?: string }).code;
+          // onConflict resuelve el choque por negocio_id, asi que un 23505 aqui
+          // solo puede venir del UNIQUE del slug.
+          if (code !== '23505' && !/duplicate|unique/i.test(error.message)) throw error;
+          const sufijo = intento < 3 ? String(intento + 2) : Math.random().toString(36).slice(2, 6);
+          slug = `${base.slice(0, 40 - sufijo.length - 1)}-${sufijo}`;
+        }
+        if (!guardado) return { ok: false, resumen: 'No se pudo reservar un enlace publico libre. Elige uno en Ajustes -> Reserva online.' };
 
         // Fusión segura de config para no borrar datos del negocio!
         const { data: cfgRow } = await supabase.from('negocio_config').select('config').eq('negocio_id', ctx.negocioId).maybeSingle();

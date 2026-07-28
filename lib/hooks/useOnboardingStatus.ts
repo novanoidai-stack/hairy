@@ -67,7 +67,10 @@ export function useOnboardingStatus(negocioId: string | null, enabled: boolean):
         next.datos_negocio = Boolean(cfg.nombre && cfg.direccion && cfg.telefono);
         next.reserva_online = Boolean(portal && portal.slug && portal.portal_activo);
         next.fotos_servicios = activeServicios.length > 0 && activeServicios.some((s) => !!s.foto_url);
-        next.notificaciones = cfg.notifRecordatorioActiva === true;
+        // Ausente = activo: ese es el default de Ajustes (DEFAULT_CONFIG) y el del
+        // motor de envio (coalesce(..., true) en notificaciones-config-y-aviso-retraso.sql).
+        // Exigir === true marcaba el paso como pendiente con el interruptor ya encendido.
+        next.notificaciones = cfg.notifRecordatorioActiva !== false;
 
         if (!cancel) { setDone(next); setReady(true); }
       } catch {
