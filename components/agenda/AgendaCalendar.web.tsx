@@ -13040,6 +13040,9 @@ export function DetalleCitaModal({
     setLoadingDictado(false);
   }
 
+  // Citas sin fases (fin_activa/fin_espera NULL, p.ej. importadas o sembradas):
+  // el tiempo activo es TODA la cita y no hay reposo. Sin estas guardas, un
+  // new Date(null) es 1970 y salian duraciones de millones de minutos.
   const [activo, setActivo] = useState(
     cita.fin_activa
       ? Math.round(
@@ -13047,10 +13050,19 @@ export function DetalleCitaModal({
             new Date(cita.inicio).getTime()) /
             60000,
         )
-      : 30,
+      : cita.fin
+        ? Math.max(
+            5,
+            Math.round(
+              (new Date(cita.fin).getTime() -
+                new Date(cita.inicio).getTime()) /
+                60000,
+            ),
+          )
+        : 30,
   );
   const [espera, setEspera] = useState(
-    cita.fin_espera
+    cita.fin_espera && cita.fin_activa
       ? Math.round(
           (new Date(cita.fin_espera).getTime() -
             new Date(cita.fin_activa).getTime()) /
@@ -13059,10 +13071,14 @@ export function DetalleCitaModal({
       : 0,
   );
   const [activo2, setActivo2] = useState(
-    cita.fin
-      ? Math.round(
-          (new Date(cita.fin).getTime() - new Date(cita.fin_espera).getTime()) /
-            60000,
+    cita.fin && cita.fin_espera
+      ? Math.max(
+          0,
+          Math.round(
+            (new Date(cita.fin).getTime() -
+              new Date(cita.fin_espera).getTime()) /
+              60000,
+          ),
         )
       : 0,
   );
