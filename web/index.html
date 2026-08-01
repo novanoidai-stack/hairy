@@ -1417,9 +1417,11 @@ window.MECHA_CHAT = [
     showTyping();
 
     try {
-      if (!window.api || !window.api.client) throw new Error("No API client");
-      
-      const { data, error } = await window.api.client.functions.invoke('chispa-landing', {
+      // auth.js expone window.MechaAPI (no window.api): con el nombre antiguo el
+      // widget moria SIEMPRE en el catch y Chispa "no funcionaba" en la landing.
+      if (!window.MechaAPI || !window.MechaAPI.client) throw new Error("No API client");
+
+      const { data, error } = await window.MechaAPI.client.functions.invoke('chispa-landing', {
         body: { message: text, history: chatHistory }
       });
 

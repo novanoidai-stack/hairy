@@ -16,6 +16,16 @@ const WORDMARK_FONT = Platform.select({
   default: undefined,
 }) as string | undefined;
 
+// Color distintivo por sector: tinta iconos, etiquetas de seccion y estado activo
+// para que cada bloque de navegacion se reconozca de un vistazo (tambien plegado).
+const GROUP_META: Record<string, { color: string }> = {
+  'Operativa': { color: '#f4501e' },
+  'CRM & Marketing': { color: '#e11d6b' },
+  'Gestión': { color: '#0891b2' },
+  'Análisis': { color: '#8b5cf6' },
+  'General': { color: '#f4501e' },
+};
+
 const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: string; href: string; cap?: Capability; group?: string }[] = [
   { label: 'Agenda', labelKey: 'nav_agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)', group: 'Operativa' },
   { label: 'Mi jornada', labelKey: 'nav_mi_jornada', icon: 'person-circle-outline', activeIcon: 'person-circle', href: '/(tabs)/mi-jornada', group: 'Operativa' },
@@ -81,7 +91,25 @@ export function Sidebar() {
   const { t } = useAppLang();
   const configActive = pathname.includes('configuracion');
 
-  const [collapsed, setCollapsed] = useState(false);
+  // Sin desplegar por defecto (rail de iconos); la eleccion del usuario persiste.
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      try {
+        const saved = window.localStorage.getItem('mecha-sidebar-collapsed');
+        if (saved != null) return saved === '1';
+      } catch {}
+    }
+    return true;
+  });
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        try { window.localStorage.setItem('mecha-sidebar-collapsed', next ? '1' : '0'); } catch {}
+      }
+      return next;
+    });
+  };
   const [tip, setTip] = useState<{ x: number; y: number; label: string } | null>(null);
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const roleTheme = getRoleTheme(profile);
@@ -177,6 +205,11 @@ export function Sidebar() {
     );
 
     const isPrincipal = idx < 4;
+    // Acento del item = color de su sector (no del rol): asi Operativa, CRM,
+    // Gestion y Analisis se distinguen aun con el rail plegado.
+    const gColor = (GROUP_META[item.group || 'General'] || GROUP_META.General).color;
+    const gSoft = `${gColor}14`;
+    const gBorder = `${gColor}3d`;
 
     return (
       <Animated.View
@@ -188,11 +221,10 @@ export function Sidebar() {
             s.navItem,
             collapsed && s.navItemCollapsed,
             isActive && s.navItemActive,
-            isActive && { backgroundColor: roleTheme.accentGlow, borderColor: roleTheme.accentGlow },
+            isActive && { backgroundColor: gSoft, borderColor: gBorder },
             !isActive && hoveredIdx === idx && s.navItemHovered,
             isPrincipal && !collapsed && s.navItemPrincipal,
-            isPrincipal && !collapsed && isActive && s.navItemPrincipalActive,
-            isPrincipal && !collapsed && isActive && { backgroundColor: roleTheme.accentGlow, borderColor: roleTheme.accentGlow },
+            isPrincipal && !collapsed && isActive && { backgroundColor: gSoft, borderColor: gBorder },
           ]}
           onPress={() => router.replace(item.href as any)}
           {...{
@@ -210,17 +242,17 @@ export function Sidebar() {
             ...webTitle(t(item.labelKey) || item.label)
           } as any}
         >
-          {isActive && !collapsed && <View style={[s.navItemBar, { backgroundColor: roleTheme.accent }]} />}
+          {isActive && !collapsed && <View style={[s.navItemBar, { backgroundColor: gColor }]} />}
           <Ionicons
             name={(isActive ? item.activeIcon : item.icon) as any}
-            size={collapsed ? 26 : 20}
-            color={isActive ? roleTheme.accent : 'rgba(92,82,73,0.5)'}
+            size={collapsed ? 24 : 20}
+            color={isActive ? gColor : `${gColor}b3`}
           />
           {!collapsed && (
             <TText style={[
               s.navLabel,
               isActive && s.navLabelActive,
-              isActive && { color: roleTheme.accent },
+              isActive && { color: gColor },
               isPrincipal && s.navLabelPrincipal,
             ]}>
               {t(item.labelKey) || item.label}
@@ -273,16 +305,15 @@ export function Sidebar() {
           )}
         </TouchableOpacity>
         <TouchableOpacity
-          style={{
-            padding: 6,
-            borderRadius: 8,
-            backgroundColor: 'transparent',
-            cursor: 'pointer',
-          } as any}
-          onPress={() => setCollapsed(!collapsed)}
-          {...webTitle(collapsed ? 'Expandir menú lateral' : 'Contraer menú lateral')}
+          style={[s.collapseBtnFull, collapsed && s.collapseBtnCollapsed]}
+          onPress={toggleCollapsed}
+          activeOpacity={0.7}
+          {...({
+            title: collapsed ? 'Expandir menú lateral' : 'Contraer menú lateral',
+            dataSet: { coach: 'sidebar-toggle' },
+          } as any)}
         >
-          <Ionicons name={collapsed ? 'chevron-forward' : 'chevron-back'} size={18} color={tokens.textSecondary} />
+          <Ionicons name={collapsed ? 'chevron-forward' : 'chevron-back'} size={16} color={tokens.textSecondary} />
         </TouchableOpacity>
       </View>
       {/* Navigation Scroll Container */}
@@ -300,15 +331,13 @@ export function Sidebar() {
             return acc;
           }, {} as Record<string, { item: typeof NAV_ITEMS[0]; index: number }[]>);
 
-          const groupColors = ["#f4501e", "#e85d04", "#dc2f02", "#d00000"];
-
           return Object.entries(groups).map(([groupName, items], groupIndex) => {
-            const gColor = groupColors[groupIndex % groupColors.length];
+            const gColor = (GROUP_META[groupName] || GROUP_META.General).color;
             return (
             <View key={groupName} style={collapsed ? { marginBottom: 12 } : {}}>
-              {groupIndex > 0 && <View style={[s.navDivider, collapsed && { width: 24, alignSelf: 'center', marginVertical: 8, backgroundColor: 'rgba(92,82,73,0.1)' }]} />}
+              {groupIndex > 0 && <View style={[s.navDivider, collapsed && { width: 24, alignSelf: 'center', marginVertical: 8, backgroundColor: `${gColor}2e` }]} />}
               {!collapsed && (
-                <TText style={[s.navSectionLabel, groupIndex > 0 && { marginTop: tokens.spacing.xs }, { color: gColor, opacity: 0.8 }]}>
+                <TText style={[s.navSectionLabel, groupIndex > 0 && { marginTop: tokens.spacing.xs }, { color: gColor, opacity: 0.85 }]}>
                   {groupName}
                 </TText>
               )}
@@ -465,10 +494,15 @@ const s = StyleSheet.create({
     gap: tokens.spacing.md,
     marginBottom: tokens.spacing.lg,
   },
+  // Plegado: logo arriba y boton de expandir debajo, bien visible (antes el
+  // chevron quedaba pegado al logo y costaba encontrarlo/pincharlo).
   logoContainerCollapsed: {
+    flexDirection: 'column',
     justifyContent: 'center',
+    alignItems: 'center',
+    gap: tokens.spacing.sm,
     marginBottom: tokens.spacing.sm,
-    transform: [{ translateX: -4 }],
+    transform: [],
   },
   brand: {
     flexDirection: 'row',
@@ -512,15 +546,21 @@ const s = StyleSheet.create({
     borderColor: tokens.border,
   },
   collapseBtnFull: {
-    width: 32,
-    height: 32,
+    width: 30,
+    height: 30,
     borderRadius: tokens.radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: tokens.bgCardHi,
     borderWidth: 1,
     borderColor: tokens.border,
-    marginBottom: tokens.spacing.xs,
+    cursor: 'pointer' as any,
+    flexShrink: 0,
+  },
+  collapseBtnCollapsed: {
+    width: 36,
+    height: 30,
+    borderColor: tokens.borderHi,
   },
   navScroll: {
     flex: 1,

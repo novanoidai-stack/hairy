@@ -70,28 +70,18 @@ const ESCRITURA_AGENDA = new Set([
   'crear_cita',
   // Batch de confirmacion: opera sobre citas -> mismo gating de agenda (scope).
   'confirmar_citas',
-  // Matching de lista de espera (Sesion 8-B): tras cancelar, busca candidatas
-  // y propone avisar. Opera sobre citas y lista de espera -> mismo scope de agenda.
-  'avisar_lista_espera',
   // Reenviar recordatorio a las citas sin confirmar POR EL CLIENTE (resetea el
   // flag para que el motor reavise). Opera sobre citas -> mismo scope de agenda.
   'reenviar_confirmacion',
-  // Gestionar un retraso del dia (rework KISS 2026-07): recoloca citas del
-  // profesional en cascada/hueco/reposo. Opera sobre citas -> mismo scope de agenda.
-  'gestionar_retraso',
 ]);
 
 // Tools de escritura de GESTION (Sesion 3): cada una requiere su capacidad
 // concreta (independiente del scope de agenda).
 const ESCRITURA_GESTION: Record<string, Capability> = {
-  // Solo se conservan las escrituras de gestion que alguna superficie del cliente
-  // ofrece (rework KISS): presupuestos (bandeja/presupuestos) y recuperar_cliente
-  // (clientes). El resto de gestion (catalogo/turnos/config/idioma/festivos/macros)
-  // se retiro del chat y vive en su propia pantalla.
+  // Solo se conserva la escritura de gestion que alguna superficie del cliente
+  // ofrece (rework KISS): presupuestos (bandeja/presupuestos). El resto de
+  // gestion se retiro del chat y vive en su propia pantalla.
   crear_presupuesto: 'presupuestos.crear',
-  // Recuperacion de clienta en fuga (Sesion 7): deja el registro/borrador para el
-  // motor de envio (WhatsApp real = Alexandro). Misma capacidad que la Bandeja.
-  recuperar_cliente: 'bandeja.escribir',
 };
 
 // Capacidad requerida por cada tool de LECTURA/NAVEGACION. null = cualquier rol.
@@ -175,10 +165,14 @@ export function toolPermitida(name: string, role: Role, scope: WriteScope): bool
 // pantalla intra-pagina conserva su tool concreta (no se ofrece en el chat).
 // ---------------------------------------------------------------------------
 export const SUPERFICIE_ACCIONES: Record<string, string[]> = {
-  chat: ['confirmar_citas', 'reenviar_confirmacion', 'avisar_lista_espera', 'gestionar_retraso'],
-  agenda: ['optimizar_agenda', 'gestionar_retraso'],
+  // Decision de producto (ago 2026): el CHAT es informativo salvo la gestion de
+  // confirmaciones en bloque (confirmar pendientes + reenviar recordatorios),
+  // con filtros por dia/franja/profesional/servicio/exclusiones. El resto de
+  // escrituras se retiraron del chat: avisar_lista_espera, gestionar_retraso,
+  // optimizar_agenda y recuperar_cliente eran superficies que ningun cliente
+  // enviaba ya (obsoletas) y se han purgado.
+  chat: ['confirmar_citas', 'reenviar_confirmacion'],
   presupuestos: ['crear_presupuesto'],
-  clientes: ['recuperar_cliente'],
   // Bandeja convierte un hilo de conversacion en cita o presupuesto (feature
   // intra-pagina existente): conserva ambas tools acotadas aqui, NO en el chat.
   bandeja: ['crear_cita', 'crear_presupuesto'],

@@ -21,7 +21,7 @@ export const CATALOGO_IA: FuncionIA[] = [
   {
     id: 'chispa-panel',
     titulo: 'Chispa (asistente de IA)',
-    descripcion: 'Panel conversacional que atiende dudas, reserva citas y ejecuta acciones por voz o texto. Responde siempre en la mejor superficie (acción de un clic, gráfica, opciones, enlace o formulario), casi nunca en texto plano, y nunca te deja sin un siguiente paso accionable. La conversación muestra siempre quién habla y cuándo (nombre y hora por turno, con los mensajes agrupados) y se puede abrir a pantalla completa.',
+    descripcion: 'Panel conversacional informativo por voz o texto: consulta y lista todo el negocio (citas, clientes, caja, informes, inventario, reseñas...), explica cómo usar y configurar el software, y como única operación puede confirmar citas en bloque o reenviar recordatorios (por día, franja horaria, profesional, servicio o con exclusiones), siempre proponiendo y tú confirmas. Responde en la mejor superficie (gráfica, tabla, opciones, enlace o tarjeta de acción), casi nunca en texto plano. La conversación muestra quién habla y cuándo, y se puede abrir a pantalla completa.',
     ubicacion: '/app?chispa=1',
     uso: 'Pulsa la pestaña Chispa (icono de estrella) o escribe "?chispa=1" en la URL.',
     categoria: 'panel',

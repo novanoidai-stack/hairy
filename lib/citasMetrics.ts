@@ -27,6 +27,27 @@ export const esActiva = (c: ConEstado) => esPendiente(c) || esConfirmada(c) || e
 // del rail de la agenda.
 export const esCanceladaONoShow = (c: ConEstado) => esCancelada(c) || esNoShow(c);
 
+// --- "Sin confirmar" (definicion canonica compartida) ---
+// Una cita cuenta como "sin confirmar" si el salon la tiene confirmada pero el
+// cliente aun no ha respondido, no esta oculta del calendario y empieza en las
+// proximas 48 horas. Campana de avisos, banner de la agenda y pagina de Citas
+// DEBEN usar este predicado (o su equivalente SQL) para que las cifras cuadren.
+export const VENTANA_SIN_CONFIRMAR_MS = 48 * 3600000;
+
+type CitaConfirmable = ConEstado & {
+  inicio?: string | Date | null;
+  confirmada_cliente?: boolean | null;
+  oculta_en_calendario?: boolean | null;
+};
+
+export const esSinConfirmar48h = (c: CitaConfirmable, ahoraMs: number = Date.now()) => {
+  if (!esConfirmada(c) || c.confirmada_cliente) return false;
+  if (c.oculta_en_calendario) return false;
+  const ts = c.inicio instanceof Date ? c.inicio.getTime() : new Date(c.inicio ?? 0).getTime();
+  if (isNaN(ts)) return false;
+  return ts > ahoraMs && ts - ahoraMs <= VENTANA_SIN_CONFIRMAR_MS;
+};
+
 // --- Helper de periodo ---
 // Mes natural en hora local, comprobando mes Y anio (evita mezclar el mismo mes de otro anio).
 export const enMes = (inicio: string | Date, year: number, month: number) => {

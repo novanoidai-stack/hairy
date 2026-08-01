@@ -79,7 +79,7 @@ import {
   TAG_RESENO_SALON,
   TAG_RESENO_MECHA,
 } from "@/lib/constants";
-import { cuentaComoConfirmada, esCanceladaONoShow } from "@/lib/citasMetrics";
+import { cuentaComoConfirmada, esCanceladaONoShow, esSinConfirmar48h } from "@/lib/citasMetrics";
 import { isTimeSlotOccupied } from "@/lib/utils/appointment";
 
 const ANIMATIONS = `
@@ -380,6 +380,12 @@ export default function AgendaCalendar() {
   );
   const [view, setView] = useState<"day" | "week" | "month">("day");
   const [loading, setLoading] = useState(true);
+  // Ventana de citas cargada (arranque rapido): en vez de traer TODAS las citas
+  // del negocio (miles en un salon real), se carga -60/+120 dias alrededor del
+  // dia visible y se recarga si el usuario navega fuera. El historico completo
+  // vive en la pagina Citas.
+  const selectedDateRef = useRef<Date>(new Date());
+  const loadedRangeRef = useRef<{ desde: Date; hasta: Date } | null>(null);
   const [showNewCita, setShowNewCita] = useState(false);
   const [showEditCita, setShowEditCita] = useState(false);
   const [selectedCitaEdit, setSelectedCitaEdit] = useState<any>(null);
@@ -772,6 +778,17 @@ export default function AgendaCalendar() {
           negocioId = profile.negocio_id;
         }
 
+        // Ventana de carga alrededor del dia visible (y siempre incluyendo hoy).
+        const centro = selectedDateRef.current || new Date();
+        const ahoraW = new Date();
+        const desdeW = new Date(Math.min(centro.getTime(), ahoraW.getTime()));
+        desdeW.setDate(desdeW.getDate() - 60);
+        desdeW.setHours(0, 0, 0, 0);
+        const hastaW = new Date(Math.max(centro.getTime(), ahoraW.getTime()));
+        hastaW.setDate(hastaW.getDate() + 120);
+        hastaW.setHours(23, 59, 59, 999);
+        loadedRangeRef.current = { desde: desdeW, hasta: hastaW };
+
         const [
           profResult,
           citaResult,
@@ -794,7 +811,9 @@ export default function AgendaCalendar() {
               "id, inicio, fin, fin_activa, fin_espera, estado, profesional_id, servicio_id, cliente_id, notas, confirmada_cliente, confirmada_at, formula_producto, formula_tono, formula_tiempo_min, formula_resultado, formula_notas, oculta_en_calendario, grupo_id, orden_en_grupo, serie_id",
             )
             .eq("negocio_id", negocioId)
-            .eq("oculta_en_calendario", false),
+            .eq("oculta_en_calendario", false)
+            .gte("inicio", desdeW.toISOString())
+            .lte("inicio", hastaW.toISOString()),
           supabase
             .from("servicios")
             .select(
@@ -1209,6 +1228,20 @@ export default function AgendaCalendar() {
       ),
     [currentMonth, selectedDate],
   );
+  selectedDateRef.current = selectedDateObj;
+
+  // Si el usuario navega fuera de la ventana de citas cargada (-60/+120 dias),
+  // recargamos centrando la ventana en el nuevo dia. Margen de 7 dias para
+  // recargar ANTES de llegar al borde y no ensenar un hueco vacio.
+  useEffect(() => {
+    const r = loadedRangeRef.current;
+    if (!r) return;
+    const margenMs = 7 * 86400000;
+    const t = selectedDateObj.getTime();
+    if (t < r.desde.getTime() + margenMs || t > r.hasta.getTime() - margenMs) {
+      triggerRefresh();
+    }
+  }, [selectedDateObj, triggerRefresh]);
 
   // Cierre del salon completo para el dia visible (festivo/vacaciones). Comparamos por
   // fecha local YYYY-MM-DD (cierres_negocio guarda date, sin hora).
@@ -1315,20 +1348,12 @@ export default function AgendaCalendar() {
       .slice(0, 12);
   }, [searchQuery, citas, clientes, servicios, profesionales]);
 
-  // Citas en proximas 48h sin confirmar por el cliente (excluye canceladas)
+  // Citas sin confirmar por el cliente: MISMA definicion canonica que la campana
+  // de avisos y la pagina de Citas (esSinConfirmar48h en lib/citasMetrics).
   const sinConfirmarList = useMemo(() => {
     const ahora = Date.now();
     return citas
-      .filter((c: any) => {
-        const ts = new Date(c.inicio).getTime();
-        const horas = (ts - ahora) / 3600000;
-        return (
-          horas > 0 &&
-          horas <= 48 &&
-          !c.confirmada_cliente &&
-          c.estado === CITA_STATUS.CONFIRMADA
-        );
-      })
+      .filter((c: any) => esSinConfirmar48h(c, ahora))
       .sort(
         (a: any, b: any) =>
           new Date(a.inicio).getTime() - new Date(b.inicio).getTime(),
@@ -1941,17 +1966,19 @@ export default function AgendaCalendar() {
               }}
             >
               <style>{`@keyframes mechaVencMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}} .venc-marquee-track:hover,.venc-marquee-track:active{animation-play-state:paused}`}</style>
-              <ChispaMascota size={20} mood="think" />
               <span
                 style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
                   fontSize: 13,
-                  fontWeight: 600,
+                  fontWeight: 700,
                   color: "#ef4444",
                   flexShrink: 0,
                 }}
               >
-                Chispa te avisa que tienes {citasVencidas.length} cita{citasVencidas.length > 1 ? "s" : ""}{" "}
-                sin atender
+                <Icon name="clock" size={15} color="#ef4444" />
+                {citasVencidas.length} retraso{citasVencidas.length > 1 ? "s" : ""}
               </span>
               <div
                 style={{
@@ -6167,8 +6194,46 @@ function DayTimeline({
         Math.round((((relY - d.offsetY) / ROW_H) * 60) / 15) * 15,
       );
       // Encaje en reposo: si el punto de suelta cae DENTRO del reposo de otra cita,
-      // permitimos que el usuario lo coloque en fracciones de 15 minutos (no forzamos alineación al tope).
+      // el snap pasa a 5 minutos y se ajusta para que la fase activa QUEPA en el
+      // hueco (clamp al inicio del reposo y, si se pasa por el final, se retrasa
+      // el inicio para que encaje justo). Antes el snap de 15' dejaba la cita
+      // descolgada del hueco y "no encajaba".
       const targetProf = profs[profIndex];
+      const dCita = d.cita;
+      if (targetProf && dCita) {
+        const fineMin = Math.max(
+          0,
+          Math.round((((relY - d.offsetY) / ROW_H) * 60) / 5) * 5,
+        );
+        const dayStart0 = new Date(_dateRef.current);
+        dayStart0.setHours(START_H, 0, 0, 0);
+        const fineMs = dayStart0.getTime() + fineMin * 60000;
+        const activaMsDrag = dCita.fin_activa
+          ? new Date(dCita.fin_activa).getTime() -
+            new Date(dCita.inicio).getTime()
+          : new Date(dCita.fin).getTime() - new Date(dCita.inicio).getTime();
+        const hostRep = _citasRef.current.find(
+          (c: any) =>
+            c.id !== dCita.id &&
+            c.profesional_id === targetProf.id &&
+            c.estado !== "cancelada" &&
+            c.fin_activa &&
+            c.fin_espera &&
+            fineMs >= new Date(c.fin_activa).getTime() &&
+            fineMs < new Date(c.fin_espera).getTime(),
+        );
+        if (hostRep) {
+          const repIni = new Date(hostRep.fin_activa).getTime();
+          const repFin = new Date(hostRep.fin_espera).getTime();
+          let startMs = fineMs;
+          if (startMs + activaMsDrag > repFin && repFin - activaMsDrag >= repIni)
+            startMs = repFin - activaMsDrag;
+          if (startMs < repIni) startMs = repIni;
+          minutesFromStart = Math.round(
+            (startMs - dayStart0.getTime()) / 60000,
+          );
+        }
+      }
       const sl = { profIndex, minutesFromStart, colW };
       dropRef.current = sl;
       setDropSlot(sl);
@@ -6839,8 +6904,8 @@ function DayTimeline({
                   const hostW = dropSlot.colW / hostTotalLanes;
 
                   // Nested bounds inside the host (insets simetricos, igual que el render real)
-                  const NEST_INSET_L = 13,
-                    NEST_INSET_R = 13;
+                  const NEST_INSET_L = 6,
+                    NEST_INSET_R = 6;
                   const nLane = 0; // assume first lane for preview
                   const nTotal = 1; // assume 1 total nested for preview
                   const nArea = 100 - NEST_INSET_L - NEST_INSET_R;
@@ -7147,9 +7212,9 @@ function DayTimeline({
                 // de color dentro de otro linear-gradient (bloques con reposo);
                 // si aqui hubiera un gradiente, ese CSS es invalido y el bloque
                 // se queda sin fondo (se veia "sin color").
-                const citaBg = `${profColor}1f`;
-                const citaBorder = `${profColor}33`;
-                const citaBorderHover = `${profColor}66`;
+                const citaBg = `${profColor}2b`;
+                const citaBorder = `${profColor}45`;
+                const citaBorderHover = `${profColor}77`;
                 const citaShadow = `0 4px 12px -2px rgba(0,0,0,0.04), 0 2px 4px -2px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 0 1px ${profColor}1a`;
                 const citaShadowHover = `0 12px 20px -4px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 0 1px ${profColor}33`;
                 const profCitas = citasWithLanes.filter(
@@ -7272,8 +7337,10 @@ function DayTimeline({
                         const hostTotalLanes = hostCita?._totalLanes ?? 1;
                         const hostL = (hostLane / hostTotalLanes) * 100;
                         const hostW = 100 / hostTotalLanes;
-                        const NEST_INSET_L = 13,
-                          NEST_INSET_R = 13;
+                        // Insets pequenos: la cita encajada ocupa casi todo el ancho
+                        // del reposo (con 13% quedaba flotando, descolgada del hueco).
+                        const NEST_INSET_L = 6,
+                          NEST_INSET_R = 6;
                         const nArea = 100 - NEST_INSET_L - NEST_INSET_R;
                         const nLane = cita._nestedLane ?? 0;
                         const nTotal = cita._nestedTotal ?? 1;
@@ -7441,17 +7508,46 @@ function DayTimeline({
                             {hasEspera &&
                               !cancelada &&
                               (() => {
-                                const reposoMin = Math.round(
-                                  (esperaPx / ROW_H) * 60,
-                                );
+                                const reposoIniMs = finActiva!.getTime();
+                                const reposoFinMs = finEspera!.getTime();
                                 const hayActiva2 = !!(
                                   finEspera && finEspera < end
                                 );
-                                const hasNested = profCitas.some(
-                                  (c: any) =>
-                                    c._hostId === cita.id &&
-                                    c.estado !== CITA_STATUS.CANCELADA,
-                                );
+                                // Huecos LIBRES del reposo = reposo menos las citas
+                                // anidadas. Si un reposo de 60' tiene una cita de 30'
+                                // encajada, los 30' restantes se ven claramente
+                                // disponibles (cada hueco con su propia etiqueta).
+                                const ocupados = profCitas
+                                  .filter(
+                                    (c: any) =>
+                                      c._hostId === cita.id &&
+                                      c.estado !== CITA_STATUS.CANCELADA,
+                                  )
+                                  .map(
+                                    (c: any) =>
+                                      [
+                                        new Date(c.inicio).getTime(),
+                                        new Date(c.fin).getTime(),
+                                      ] as [number, number],
+                                  )
+                                  .sort(
+                                    (a: [number, number], b: [number, number]) =>
+                                      a[0] - b[0],
+                                  );
+                                const libres: [number, number][] = [];
+                                let cursor = reposoIniMs;
+                                for (const [ini, fin] of ocupados) {
+                                  if (ini > cursor)
+                                    libres.push([
+                                      cursor,
+                                      Math.min(ini, reposoFinMs),
+                                    ]);
+                                  cursor = Math.max(cursor, fin);
+                                }
+                                if (cursor < reposoFinMs)
+                                  libres.push([cursor, reposoFinMs]);
+                                const msToPx = (ms: number) =>
+                                  (ms / 3600000) * ROW_H;
                                 return (
                                   <div
                                     style={{
@@ -7462,35 +7558,64 @@ function DayTimeline({
                                       height: esperaPx,
                                       pointerEvents: "none",
                                       zIndex: 1,
-                                      background: "rgba(16, 185, 129, 0.12)",
-                                      borderTop: `1px dashed rgba(16, 185, 129, 0.4)`,
+                                      // Trama diagonal: el reposo se lee como "fase
+                                      // distinta" aunque el bloque sea del color del
+                                      // profesional (antes era un velo plano).
+                                      background:
+                                        "repeating-linear-gradient(135deg, rgba(16,185,129,0.15) 0px, rgba(16,185,129,0.15) 5px, rgba(16,185,129,0.04) 5px, rgba(16,185,129,0.04) 11px)",
+                                      borderTop:
+                                        "1.5px dashed rgba(16,185,129,0.55)",
                                       borderBottom: hayActiva2
-                                        ? `1px dashed rgba(16, 185, 129, 0.4)`
+                                        ? "1.5px dashed rgba(16,185,129,0.55)"
                                         : "none",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
                                       overflow: "hidden",
                                     }}
                                   >
-                                    {!hasNested && esperaPx >= 16 && (
-                                      <span
-                                        style={{
-                                          padding: "2px 8px",
-                                          borderRadius: 999,
-                                          background: "#10b981",
-                                          fontSize: 9.5,
-                                          fontWeight: 700,
-                                          letterSpacing: 0.4,
-                                          textTransform: "uppercase",
-                                          color: "#ffffff",
-                                          whiteSpace: "nowrap",
-                                          boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
-                                        }}
-                                      >
-                                        Hueco libre {reposoMin}′
-                                      </span>
-                                    )}
+                                    {libres.map(([ini, fin], i) => {
+                                      const gapMin = Math.round(
+                                        (fin - ini) / 60000,
+                                      );
+                                      if (gapMin < 5) return null;
+                                      const gapTop = msToPx(ini - reposoIniMs);
+                                      const gapH = msToPx(fin - ini);
+                                      return (
+                                        <div
+                                          key={i}
+                                          style={{
+                                            position: "absolute",
+                                            top: gapTop,
+                                            left: 0,
+                                            right: 0,
+                                            height: gapH,
+                                            background:
+                                              "rgba(16,185,129,0.10)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                          }}
+                                        >
+                                          {gapH >= 15 && (
+                                            <span
+                                              style={{
+                                                padding: "2px 8px",
+                                                borderRadius: 999,
+                                                background: "#10b981",
+                                                fontSize: 9.5,
+                                                fontWeight: 700,
+                                                letterSpacing: 0.4,
+                                                textTransform: "uppercase",
+                                                color: "#ffffff",
+                                                whiteSpace: "nowrap",
+                                                boxShadow:
+                                                  "0 1px 3px rgba(0,0,0,0.15)",
+                                              }}
+                                            >
+                                              Hueco libre {gapMin}′
+                                            </span>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
                                 );
                               })()}
@@ -7525,6 +7650,57 @@ function DayTimeline({
                                   .slice(0, 2)
                                   .join("")
                                   .toUpperCase() || "·";
+                              // Avatar del estilista dentro del bloque: foto de
+                              // perfil si la tiene, iniciales sobre su color si no.
+                              const profIni =
+                                (prof?.nombre || "?")
+                                  .split(/\s+/)
+                                  .map((w: string) => w[0])
+                                  .filter(Boolean)
+                                  .slice(0, 2)
+                                  .join("")
+                                  .toUpperCase() || "?";
+                              const stylistAvatar = (
+                                <span
+                                  title={`Estilista: ${prof?.nombre || ""}`}
+                                  style={{
+                                    width: 18,
+                                    height: 18,
+                                    borderRadius: 999,
+                                    overflow: "hidden",
+                                    flexShrink: 0,
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    background: profColor,
+                                    border: "1.5px solid rgba(255,255,255,0.9)",
+                                    boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
+                                  }}
+                                >
+                                  {prof?.foto_perfil ? (
+                                    <img
+                                      src={prof.foto_perfil}
+                                      alt=""
+                                      style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                      }}
+                                    />
+                                  ) : (
+                                    <span
+                                      style={{
+                                        fontSize: 8,
+                                        fontWeight: 800,
+                                        color: "#ffffff",
+                                        lineHeight: 1,
+                                      }}
+                                    >
+                                      {profIni}
+                                    </span>
+                                  )}
+                                </span>
+                              );
                               const estrecho =
                                 totalLanes > 1 ||
                                 (selectedProf === "todos" &&
@@ -7715,20 +7891,23 @@ function DayTimeline({
                                       {!superNarrow && (
                                         <span
                                           style={{
-                                            fontSize: 9.5,
-                                            fontWeight: 700,
+                                            fontSize: 10.5,
+                                            fontWeight: 800,
                                             color: cancelada
                                               ? TOKENS.textTer
-                                              : TOKENS.textSec,
+                                              : TOKENS.text,
                                             flexShrink: 0,
                                             whiteSpace: "nowrap",
                                             lineHeight: 1,
+                                            fontVariantNumeric:
+                                              "tabular-nums" as any,
                                           }}
                                         >
                                           {timeStrCompact}
                                         </span>
                                       )}
                                       {chainBadge}
+                                      {!superNarrow && height > 30 && stylistAvatar}
                                       {icon}
                                     </div>
                                     <div
@@ -7760,20 +7939,23 @@ function DayTimeline({
                                       {nombreServicio && height > 32 && (
                                         <span
                                           style={{
-                                            fontSize: 9.5,
-                                            fontWeight: 600,
+                                            fontSize: 10,
+                                            fontWeight: 700,
                                             color: cancelada
                                               ? TOKENS.textTer
-                                              : TOKENS.textSec,
+                                              : TOKENS.text,
                                             background: cancelada
                                               ? "transparent"
                                               : TOKENS.bgCard,
                                             border: cancelada
                                               ? "none"
-                                              : `1px solid ${TOKENS.borderHi}`,
+                                              : `1px solid ${(catColor || profColor)}55`,
+                                            borderLeft: cancelada
+                                              ? "none"
+                                              : `2px solid ${catColor || profColor}`,
                                             padding: "1px 4px",
                                             borderRadius: 4,
-                                            boxShadow: cancelada ? "none" : "0 1px 2px rgba(0,0,0,0.06)",
+                                            boxShadow: cancelada ? "none" : "0 1px 2px rgba(0,0,0,0.08)",
                                             whiteSpace: "nowrap",
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
@@ -7846,12 +8028,15 @@ function DayTimeline({
                                       {height > 24 && (
                                         <span
                                           style={{
-                                            fontSize: 11.5,
+                                            fontSize: 12.5,
                                             color: cancelada
                                               ? TOKENS.textTer
-                                              : TOKENS.textSec,
-                                            fontWeight: 700,
+                                              : TOKENS.text,
+                                            fontWeight: 800,
+                                            letterSpacing: -0.2,
                                             whiteSpace: "nowrap",
+                                            fontVariantNumeric:
+                                              "tabular-nums" as any,
                                           }}
                                         >
                                           {height <= 32 ? timeStrCompact : timeStr}
@@ -7861,11 +8046,12 @@ function DayTimeline({
                                         style={{
                                           display: "flex",
                                           alignItems: "center",
-                                          gap: 4,
+                                          gap: 5,
                                           flexShrink: 0,
                                         }}
                                       >
                                         {chainBadge}
+                                        {height > 30 && stylistAvatar}
                                         {icon}
                                       </div>
                                     </div>
@@ -7919,15 +8105,20 @@ function DayTimeline({
                                         <div
                                           style={{
                                             background: cancelada ? "transparent" : TOKENS.bgCard,
-                                            border: cancelada ? "none" : `1px solid ${TOKENS.borderHi}`,
+                                            border: cancelada
+                                              ? "none"
+                                              : `1px solid ${(catColor || profColor)}55`,
+                                            borderLeft: cancelada
+                                              ? "none"
+                                              : `3px solid ${catColor || profColor}`,
                                             padding: "2px 6px",
                                             borderRadius: 6,
-                                            boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.06)",
+                                            boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
                                             width: "fit-content",
                                             maxWidth: "100%",
-                                            fontSize: 10,
-                                            fontWeight: 600,
-                                            color: cancelada ? TOKENS.textTer : TOKENS.textSec,
+                                            fontSize: 10.5,
+                                            fontWeight: 700,
+                                            color: cancelada ? TOKENS.textTer : TOKENS.text,
                                             whiteSpace: "normal",
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
@@ -14812,10 +15003,75 @@ export function DetalleCitaModal({
                 ))}
               </div>
             ) : (
-              <div style={{ width: 220, flexShrink: 0, borderRight: `1px solid ${TOKENS.border}`, padding: "16px 10px", display: "flex", flexDirection: "column", gap: 2, overflowY: "auto" }}>
+              <div style={{ width: 220, flexShrink: 0, borderRight: `1px solid ${TOKENS.border}`, padding: "16px 10px 14px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto" }}>
                 {RAIL_ITEMS.map((it) => (
                   <SeccionRailItem key={it.id} id={it.id} label={it.label} active={seccionActiva === it.id} onClick={() => setSeccionActiva(it.id)} vertical />
                 ))}
+                {/* Resumen anclado abajo: reparte el alto del rail (antes quedaba
+                    todo acumulado arriba con un vacio enorme debajo). */}
+                <div style={{ marginTop: "auto", paddingTop: 14 }}>
+                  <div
+                    style={{
+                      borderTop: `1px solid ${TOKENS.border}`,
+                      paddingTop: 12,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 9,
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 999,
+                          overflow: "hidden",
+                          flexShrink: 0,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: selectedProf?.color || TOKENS.primary,
+                        }}
+                      >
+                        {selectedProf?.foto_perfil ? (
+                          <img src={selectedProf.foto_perfil} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <span style={{ fontSize: 9, fontWeight: 800, color: "#fff" }}>
+                            {(selectedProf?.nombre || "?").split(/\s+/).map((w: string) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+                          </span>
+                        )}
+                      </span>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: TOKENS.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {selectedProf?.nombre || "Sin asignar"}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                      <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>Duración</span>
+                      <span style={{ fontSize: 12.5, fontWeight: 800, color: TOKENS.text }}>{totalMin} min</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                      <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>Precio</span>
+                      <span style={{ fontSize: 12.5, fontWeight: 800, color: TOKENS.primaryHi }}>{selectedServicio?.precio ?? 0} €</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 11.5, color: TOKENS.textSec }}>Estado</span>
+                      <span
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 800,
+                          color: meta.color,
+                          background: meta.soft,
+                          padding: "3px 8px",
+                          borderRadius: 999,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.4,
+                        }}
+                      >
+                        {meta.label}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
             <div style={{ flex: 1, minWidth: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 18, padding: isMobileOrTablet ? "18px 18px 24px" : "24px 32px 28px" }}>

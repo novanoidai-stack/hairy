@@ -9,9 +9,6 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { can, roleOf, toolPermitida, esEscritura, accionPermitidaEnSuperficie, esLectura, SUPERFICIE_ACCIONES, type Role } from './permisos.ts';
 import { assertSinCamposProhibidos, proyectarClienteIA } from './whitelist.ts';
 import { CATALOGO_IA } from '../../../lib/iaCatalogo.ts';
-// Retrasos: logica PURA ya testeada (lib/retrasos.test.ts). El edge solo la consume
-// para gestionar_retraso; no se toca la logica, solo se mapea a movimientos.
-import { calcularEstrategiasRetraso, type CitaRetraso } from '../../../lib/retrasos.ts';
 
 // ---------------------------------------------------------------------------
 // CORS + helper
@@ -71,34 +68,11 @@ type AccionPropuesta =
       titulo: string | null; lineas: { nombre: string; precio_cents: number; cantidad: number }[];
       total_cents: number; resumen: string;
     }
-  // --- Recuperacion de fuga (Sesion 7) ---
-  | {
-      tipo: 'recuperar_cliente';
-      negocio_id: string; cliente_id: string; cliente_nombre: string | null;
-      dias_sin_venir: number; resumen: string;
-    }
-  | {
-      tipo: 'avisar_lista_espera_match';
-      negocio_id: string;
-      lista_espera_id: string;
-      cita_origen_id: string;
-      cliente_nombre: string;
-      servicio_nombre: string;
-      profesional_nombre: string;
-      inicio: string;
-      fidelidad_citas: number;
-      resumen: string;
-    }
-  | {
-      tipo: 'optimizar_agenda';
-      negocio_id: string;
-      fecha: string;
-      // nuevo_fin_activa/nuevo_fin_espera opcionales (espejo del cliente en
-      // lib/chispaOps.ts): el Modo Tetris del chat solo da inicio/fin, pero
-      // gestionar_retraso SI las manda para conservar las fases activa/reposo.
-      movimientos: { cita_id: string; nuevo_inicio: string; nuevo_fin: string; nuevo_fin_activa?: string; nuevo_fin_espera?: string; cliente_nombre: string }[];
-      resumen: string;
-    };
+  // (Purgadas ago 2026: recuperar_cliente, avisar_lista_espera_match y
+  //  optimizar_agenda. El chat quedo como informativo + confirmaciones en bloque;
+  //  el aplicador del cliente en lib/chispaOps.ts conserva sus ejecutores para
+  //  las superficies internas deterministas, pero este edge ya no las emite.)
+  ;
 
 // ---------------------------------------------------------------------------
 // Bloques tipados (deben coincidir con lib/chispaBloques.ts en el cliente).
@@ -395,12 +369,15 @@ const TOOLS = [
   // --- GESTION (Sesion 3): la funcion NO ejecuta; devuelve accion_propuesta ---
   {
     name: 'confirmar_citas',
-    description: 'Propone confirmar EN BLOQUE las citas pendientes. Si no se pasa fecha, se proponen todas las pendientes desde hoy. Permite excluir clientes específicos.',
+    description: 'Propone confirmar EN BLOQUE las citas pendientes, con cualquier combinacion de filtros: dia, franja horaria (desde_hora/hasta_hora), profesional, servicio y exclusiones de clientes. Si no se pasa fecha, se proponen todas las pendientes desde hoy. Ejemplos: "confirma las de manana por la tarde" -> fecha + desde_hora "15:00"; "confirma los cortes de Maria" -> servicio "corte" + profesional "Maria".',
     parameters: {
       type: 'object' as const,
       properties: {
         fecha: { type: 'string', description: 'Dia a confirmar en YYYY-MM-DD (opcional; si se omite, se confirman todas las pendientes desde hoy)' },
         profesional: { type: 'string', description: 'Opcional: limitar a un profesional (nombre parcial)' },
+        servicio: { type: 'string', description: 'Opcional: limitar a un servicio (nombre parcial, ej. "corte", "tinte")' },
+        desde_hora: { type: 'string', description: 'Opcional: solo citas que empiezan a partir de esta hora local HH:mm (ej. "15:00" para "por la tarde")' },
+        hasta_hora: { type: 'string', description: 'Opcional: solo citas que empiezan antes de esta hora local HH:mm (ej. "14:00" para "por la manana")' },
         excluir_clientes: {
           type: 'array',
           description: 'Nombres de clientes a excluir de la confirmacion (opcional, ej. ["Juan Carlos", "Nuria"])',
@@ -445,68 +422,9 @@ const TOOLS = [
       required: ['lineas'],
     },
   },
-  {
-    name: 'recuperar_cliente',
-    description: 'Propone lanzar una PROPUESTA DE VUELTA a una clienta que lleva tiempo sin venir (en riesgo de fuga). Deja el registro/borrador para el equipo; el envio real por WhatsApp lo gestiona el equipo, tu no lo mandas. Usalo cuando el usuario quiera recuperar/reenganchar a una clienta concreta.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        cliente: { type: 'string', description: 'Nombre o telefono de la clienta a recuperar' },
-      },
-      required: ['cliente'],
-    },
-  },
-  // --- LISTA DE ESPERA (Sesion 8-B) ---
-  {
-    name: 'avisar_lista_espera',
-    description: 'Tras cancelar una cita, busca la mejor candidata en la lista de espera y propone avisarle por WhatsApp (la IA no envia nada, solo deja el registro). Chispa puede sugerirlo automaticamente tras una cancelacion si el usuario lo menciona. Devuelve la candidata con su prioridad, fidelidad y datos del hueco.',
-    parameters: {
-      type: 'object' as const,
-      properties: { cita_id: { type: 'string', description: 'UUID de la cita que se acaba de cancelar' } },
-      required: ['cita_id'],
-    },
-  },
-  // --- MODO TETRIS (OPTIMIZACION DE AGENDA) ---
-  {
-    name: 'optimizar_agenda',
-    description: 'Propone reorganizar en bloque varias citas de un dia para compactar huecos muertos (Modo Tetris). El profesional revisara y confirmara los movimientos propuestos. Antes debes leer la disponibilidad y decidir que citas encajan.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        fecha: { type: 'string', description: 'YYYY-MM-DD' },
-        movimientos: {
-          type: 'array',
-          description: 'Lista de citas a desplazar para eliminar los huecos muertos.',
-          items: {
-            type: 'object',
-            properties: {
-              cita_id: { type: 'string' },
-              nuevo_inicio: { type: 'string', description: 'ISO 8601' },
-              nuevo_fin: { type: 'string', description: 'ISO 8601' },
-              cliente_nombre: { type: 'string' },
-            },
-            required: ['cita_id', 'nuevo_inicio', 'nuevo_fin', 'cliente_nombre'],
-          },
-        },
-      },
-      required: ['fecha', 'movimientos'],
-    },
-  },
-  // --- GESTIONAR RETRASO (absorber un retraso del dia) ---
-  {
-    name: 'gestionar_retraso',
-    description: 'Propone como absorber un retraso del dia: dado un profesional (o una cita) y los minutos de retraso, calcula la mejor estrategia (empujar en cascada, mover a un hueco, aprovechar un reposo o pedir a la siguiente venir mas tarde) y propone los movimientos. No ejecuta: el usuario confirma. Usala para "vengo con 20 min de retraso" o "la de las 5 llega tarde". Los movimientos los calcula el edge; tu solo pasa profesional/cita y los minutos.',
-    parameters: {
-      type: 'object' as const,
-      properties: {
-        profesional: { type: 'string', description: 'Nombre parcial del profesional (opcional si se da cita_id)' },
-        cita_id: { type: 'string', description: 'UUID de la cita que se retrasa (opcional; si no, retraso a nivel profesional desde su primera cita pendiente del dia)' },
-        minutos: { type: 'string', description: 'Minutos de retraso (ej. "20")' },
-        fecha: { type: 'string', description: 'YYYY-MM-DD (por defecto hoy)' },
-      },
-      required: ['minutos'],
-    },
-  },
+  // (Purgadas ago 2026: recuperar_cliente, avisar_lista_espera, optimizar_agenda
+  //  y gestionar_retraso. Ninguna superficie del cliente las enviaba ya y la
+  //  decision de producto dejo el chat como informativo + confirmaciones en bloque.)
   // --- NAVEGACION (no escribe nada; anade un chip que lleva a otra pantalla) ---
   {
     name: 'sugerir_enlace',
@@ -607,7 +525,7 @@ const TOOLS = [
   },
   {
     name: 'consultar_lista_espera',
-    description: 'Quien esta en la lista de espera de un hueco: clientas apuntadas, el servicio/profesional que quieren, su franja preferida, la prioridad y si ya se les aviso. Usala para "quien espera hueco", "mira la lista de espera", "a quien puedo avisar si se libera algo". Distinto de avisar_lista_espera (que propone el aviso tras una cancelacion): esta solo consulta.',
+    description: 'Quien esta en la lista de espera de un hueco: clientas apuntadas, el servicio/profesional que quieren, su franja preferida, la prioridad y si ya se les aviso. Usala para "quien espera hueco", "mira la lista de espera", "a quien puedo avisar si se libera algo". Solo consulta: para avisar de un hueco, guia a la pantalla Lista de espera con sugerir_enlace.',
     parameters: {
       type: 'object' as const,
       properties: {
@@ -745,13 +663,9 @@ RESTRICCIONES (GUARDRAILS): Tienes estrictamente PROHIBIDO hablar de temas medic
 // actual (SUPERFICIE_ACCIONES): asi Chispa nunca promete operaciones que no se
 // le han declarado (evita el "auto-conocimiento a la deriva" -> mentir).
 const DESC_ACCION: Record<string, string> = {
-  confirmar_citas: 'confirmar_citas: confirma EN BLOQUE las citas pendientes del salon (opcionalmente excluyendo clientes con excluir_clientes).',
+  confirmar_citas: 'confirmar_citas: confirma EN BLOQUE las citas pendientes del salon, filtrando por dia, franja horaria (desde_hora/hasta_hora), profesional, servicio o excluyendo clientes concretos.',
   reenviar_confirmacion: 'reenviar_confirmacion: reenvia el recordatorio a las citas que el CLIENTE aun no ha confirmado (el envio real lo hace el motor del salon).',
-  avisar_lista_espera: 'avisar_lista_espera: tras una cancelacion, busca la mejor candidata de la lista de espera y propone avisarla del hueco liberado.',
-  gestionar_retraso: 'gestionar_retraso: absorbe un retraso del dia ("vengo con 20 min de retraso", "la de las 5 llega tarde"). Pasa el profesional (o cita_id) y los minutos; el sistema calcula los movimientos y propone la mejor estrategia.',
-  optimizar_agenda: 'optimizar_agenda (Modo Tetris): reorganiza EN BLOQUE las citas de un dia para compactar huecos muertos.',
   crear_presupuesto: 'crear_presupuesto: borrador de presupuesto con precios REALES del catalogo (nunca inventes precios).',
-  recuperar_cliente: 'recuperar_cliente: deja el registro para que el equipo mande una propuesta de vuelta a una clienta en fuga (tu no envias nada).',
   crear_cita: 'crear_cita: crea una cita a partir de una conversacion de la Bandeja.',
 };
 
@@ -784,6 +698,7 @@ export function buildSystemPrompt(
   //     todas las superficies; son el nucleo estable del chat estrecho) ---
   const base: string[] = [
     'Eres Chispa, la asistente de IA del software de gestion del salon (Mecha): consultas datos del salon Y guias al usuario sobre como usar y configurar el software. Operas en espanol, con tono breve, calido y profesional. Si te preguntan que eres, di con naturalidad que eres una IA que ayuda con la gestion del salon.',
+    'ALCANCE (decision de producto): eres ante todo INFORMATIVA. Puedes listarlo y consultarlo TODO (citas, clientes, caja, informes, inventario, resenas, equipo...) y explicar como abordar el negocio, pero las UNICAS operaciones que puedes proponer son las del bloque ACCIONES DISPONIBLES de este turno. Para cualquier otra operacion (crear/mover/cancelar citas desde el chat, cobros, envios, campanas...) NO prometas hacerla tu: guia a la pantalla correspondiente con sugerir_enlace.',
     PROCEDIMIENTO_UNIVERSAL,
     hechosMemoria ? `HECHOS Y PREFERENCIAS APRENDIDAS (Memoria a largo plazo):\n${hechosMemoria}\nTen en cuenta obligatoriamente esta informacion al razonar y responder.` : '',
     'REGLA DE VOZ: Usa una ortografía impecable, con todas las tildes, signos de puntuación de apertura (¿, ¡) y comas necesarias. Evita abreviaturas no pronunciables.',
@@ -830,10 +745,7 @@ export function buildSystemPrompt(
         acciones.push('DOS SENTIDOS DE "CITA SIN CONFIRMAR" (no los mezcles): (a) cita PENDIENTE = falta que el EQUIPO/salon la confirme -> eso lo resuelve confirmar_citas. (b) cita ya CONFIRMADA por el salon pero que el CLIENTE aun no ha confirmado -> para esas usa reenviar_confirmacion (reenvia el recordatorio; el envio real lo hace el motor del salon). El hallazgo "Citas sin confirmar" de la vigilancia se refiere al sentido (b). Si confirmar_citas no encuentra pendientes pero la vigilancia sigue marcando "Citas sin confirmar", EXPLICA la diferencia y ofrece reenviar_confirmacion.');
       }
       if (disponibles.includes('confirmar_citas')) {
-        acciones.push('Ejemplo de confirmacion masiva con exclusiones: "Confirmamelas todas excepto Juan y Nuria" -> confirmar_citas(excluir_clientes: ["Juan", "Nuria"]).');
-      }
-      if (disponibles.includes('optimizar_agenda')) {
-        acciones.push('MODO TETRIS: ante "optimiza la agenda", "junta mis citas", "compacta los huecos", "reorganiza el dia", invoca SIEMPRE optimizar_agenda (previa lectura de la agenda con citas_hoy/listar_citas si te falta el detalle). Devuelve un diff visual con los movimientos; NUNCA respondas con un parrafo de analisis.');
+        acciones.push('Ejemplos de confirmacion masiva por franjas: "Confirmamelas todas excepto Juan y Nuria" -> confirmar_citas(excluir_clientes: ["Juan", "Nuria"]). "Confirma las de manana por la tarde" -> confirmar_citas(fecha, desde_hora: "15:00"). "Confirma los tintes de Maria de esta semana" -> una llamada por dia con servicio: "tinte" y profesional: "Maria".');
       }
       if (disponibles.includes('crear_presupuesto')) {
         acciones.push('EXPERTO COLORISTA (VISION): si recibes una imagen de cabello, asume el rol de Maestro Colorista (LOréal, Wella): analiza base, altura de tono y estado; si te dan un objetivo, formula una receta exacta y acto seguido llama a crear_presupuesto para presupuestar los servicios. Precios SIEMPRE del catalogo real.');
@@ -2879,10 +2791,21 @@ export async function construirPropuesta(
         profId = profes[0].id;
       }
 
+      // Filtro por servicio (nombre parcial): franjas "por servicio".
+      let servicioIds: string[] | null = null;
+      if (inp.servicio && String(inp.servicio).trim()) {
+        const { data: servs } = await svc
+          .from('servicios').select('id, nombre')
+          .eq('negocio_id', negocioId).ilike('nombre', `%${String(inp.servicio).trim()}%`);
+        const listaServ = (servs ?? []) as { id: string; nombre: string }[];
+        if (listaServ.length === 0) return { error: `Servicio "${inp.servicio}" no encontrado en el catalogo.` };
+        servicioIds = listaServ.map((s) => s.id);
+      }
+
       let q = svc
         .from('citas').select('id, inicio, servicio_id, cliente_id')
         .eq('negocio_id', negocioId).eq('estado', 'pendiente');
-      
+
       if (fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
         q = q.gte('inicio', `${fecha}T00:00:00`).lte('inicio', `${fecha}T23:59:59`);
       } else {
@@ -2890,10 +2813,22 @@ export async function construirPropuesta(
         q = q.gte('inicio', `${hoyStr}T00:00:00`);
       }
       if (profId) q = q.eq('profesional_id', profId);
+      if (servicioIds) q = q.in('servicio_id', servicioIds);
       q = q.order('inicio');
-      
-      const { data: citas } = await q;
-      if (!citas || citas.length === 0) return { error: `No hay citas pendientes por confirmar${fecha ? ` el ${fecha}` : ' desde hoy'}.` };
+
+      const { data: citasCrudas } = await q;
+      // Franja horaria local (Madrid): "por la manana/tarde" o un rango concreto.
+      const horaLocal = (iso: string) =>
+        new Date(iso).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+      const desdeHora = /^\d{1,2}:\d{2}$/.test(String(inp.desde_hora ?? '').trim()) ? String(inp.desde_hora).trim().padStart(5, '0') : null;
+      const hastaHora = /^\d{1,2}:\d{2}$/.test(String(inp.hasta_hora ?? '').trim()) ? String(inp.hasta_hora).trim().padStart(5, '0') : null;
+      const citas = (citasCrudas ?? []).filter((c: { inicio: string }) => {
+        const h = horaLocal(c.inicio);
+        if (desdeHora && h < desdeHora) return false;
+        if (hastaHora && h >= hastaHora) return false;
+        return true;
+      });
+      if (citas.length === 0) return { error: `No hay citas pendientes por confirmar con esos criterios${fecha ? ` el ${fecha}` : ''}.` };
 
       const servIds = [...new Set(citas.map((c: { servicio_id: string | null }) => c.servicio_id).filter(Boolean))] as string[];
       const cliIds = [...new Set(citas.map((c: { cliente_id: string | null }) => c.cliente_id).filter(Boolean))] as string[];
@@ -3071,158 +3006,6 @@ export async function construirPropuesta(
         lineas,
         total_cents: total,
         resumen,
-      };
-    }
-
-    case 'recuperar_cliente': {
-      const { data: clientes } = await svc
-        .from('clientes').select('id, nombre, ultima_visita, frecuencia_dias')
-        .eq('negocio_id', negocioId).eq('consiente_ia', true)
-        .or(`nombre.ilike.%${sanitizarFiltro(inp.cliente)}%,telefono.ilike.%${sanitizarFiltro(inp.cliente)}%`)
-        .limit(5);
-      if (!clientes || clientes.length === 0) return { error: `Cliente "${inp.cliente}" no encontrado (o sin consentimiento de IA).` };
-      if (clientes.length > 1) return { error: `Varios clientes coinciden con "${inp.cliente}". ¿Cual?` };
-      const cli = clientes[0] as { id: string; nombre: string; ultima_visita: string | null; frecuencia_dias: number | null };
-      if (!cli.ultima_visita || cli.frecuencia_dias == null) {
-        return { error: `Aun no tengo historial suficiente de ${cli.nombre} para preparar una propuesta de vuelta.` };
-      }
-      const dias = Math.max(0, Math.round((Date.now() - new Date(cli.ultima_visita).getTime()) / 86400000));
-      return {
-        tipo: 'recuperar_cliente',
-        negocio_id: negocioId,
-        cliente_id: cli.id,
-        cliente_nombre: cli.nombre,
-        dias_sin_venir: dias,
-        resumen: `Preparar propuesta de vuelta para ${cli.nombre} (${dias} dias sin venir). El envio lo gestiona el equipo.`,
-      };
-    }
-
-    case 'avisar_lista_espera': {
-      // Llamar a la RPC matching_lista_espera (Sesion 8-B) para encontrar la mejor candidata.
-      // La RPC devuelve { ok, candidata, cita_origen, mensaje }.
-      const { data: match, error: eMatch } = await svc.rpc('matching_lista_espera', { p_cita_id: inp.cita_id });
-      if (eMatch || !match) return { error: `No se ha podido buscar candidatas en lista de espera.` };
-      const m = match as { ok: boolean; candidata: null | { lista_espera_id: string; nombre: string; servicio_nombre: string; profesional_nombre: string; fidelidad_citas: number; created_at: string }; cita_origen: null | { id: string; inicio: string }; mensaje: string };
-      if (!m.ok || !m.candidata || !m.cita_origen) {
-        // No hay candidatas: no es error, es una respuesta válida (información)
-        return { error: m.mensaje || 'No hay candidatas compatibles en lista de espera para este hueco.' };
-      }
-      const fechaHora = new Date(m.cita_origen.inicio).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-      const resumen = `Avisar a ${m.candidata.nombre} (${m.candidata.fidelidad_citas} citas) para ${m.candidata.servicio_nombre} con ${m.candidata.profesional_nombre} el ${fechaHora}`;
-      return {
-        tipo: 'avisar_lista_espera_match',
-        negocio_id: negocioId,
-        lista_espera_id: m.candidata.lista_espera_id,
-        cita_origen_id: m.cita_origen.id,
-        cliente_nombre: m.candidata.nombre,
-        servicio_nombre: m.candidata.servicio_nombre,
-        profesional_nombre: m.candidata.profesional_nombre,
-        inicio: m.cita_origen.inicio,
-        fidelidad_citas: m.candidata.fidelidad_citas,
-        resumen,
-      };
-    }
-
-    case 'optimizar_agenda': {
-      const arrayMovs = Array.isArray(inp.movimientos) ? inp.movimientos : [];
-      if (arrayMovs.length === 0) return { error: 'No has propuesto ningun movimiento de agenda.' };
-      return {
-        tipo: 'optimizar_agenda',
-        negocio_id: negocioId,
-        fecha: inp.fecha,
-        movimientos: arrayMovs as { cita_id: string; nuevo_inicio: string; nuevo_fin: string; cliente_nombre: string }[],
-        resumen: `Optimizar agenda del ${inp.fecha} (${arrayMovs.length} movimientos). Avisaremos por WhatsApp.`,
-      };
-    }
-
-    case 'gestionar_retraso': {
-      // Absorber un retraso del dia. El edge calcula la MEJOR estrategia con la
-      // logica pura (lib/retrasos.ts) y la emite como una propuesta
-      // 'optimizar_agenda' (el cliente ya sabe aplicarla: mueve las 4 marcas y
-      // re-notifica por WhatsApp). No se ejecuta: el usuario confirma.
-      const minutos = parseInt(String(inp.minutos ?? ''), 10);
-      if (!Number.isFinite(minutos) || minutos <= 0) return { error: 'Indica cuantos minutos de retraso.' };
-      const hoyRet = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
-      const fecha = inp.fecha && /^\d{4}-\d{2}-\d{2}$/.test(inp.fecha) ? inp.fecha : hoyRet;
-
-      // 1. Resolver el profesional cuyas citas se recolocan (por cita, por self o por nombre).
-      let profId: string | null = null;
-      let citaAncla: string | null = inp.cita_id?.trim() || null;
-      if (citaAncla) {
-        const { data: citaRow } = await svc
-          .from('citas').select('profesional_id').eq('id', citaAncla).eq('negocio_id', negocioId).maybeSingle();
-        if (!citaRow) return { error: 'No encuentro esa cita.' };
-        profId = (citaRow as { profesional_id: string }).profesional_id;
-      } else if (scope === 'self') {
-        profId = await resolverProfesionalDelUsuario(negocioId, userId);
-      } else if (inp.profesional?.trim()) {
-        const { data: profes } = await svc
-          .from('profesionales').select('id, nombre').eq('negocio_id', negocioId).eq('activo', true)
-          .ilike('nombre', `%${sanitizarFiltro(inp.profesional)}%`);
-        const lista = (profes ?? []) as { id: string; nombre: string }[];
-        if (lista.length === 0) return { error: `No encuentro a ningun profesional que coincida con "${inp.profesional}".` };
-        if (lista.length > 1) return { error: `Varios profesionales coinciden con "${inp.profesional}". Dime el nombre exacto.` };
-        profId = lista[0].id;
-      }
-      if (!profId) return { error: 'Dime de que profesional es el retraso (o indica la cita).' };
-
-      // 2. Cargar sus citas confirmadas del dia (con las 4 marcas de fase).
-      const { data: citasRaw } = await svc
-        .from('citas')
-        .select('id, inicio, fin, fin_activa, fin_espera, cliente_id')
-        .eq('negocio_id', negocioId).eq('profesional_id', profId).eq('estado', 'confirmada')
-        .gte('inicio', `${fecha}T00:00:00`).lt('inicio', `${fecha}T23:59:59`);
-      const citas = (citasRaw ?? []) as {
-        id: string; inicio: string; fin: string; fin_activa: string | null; fin_espera: string | null; cliente_id: string | null;
-      }[];
-      if (citas.length === 0) return { error: `No hay citas confirmadas para recolocar el ${fecha}.` };
-
-      // 3. Nombres de cliente para las etiquetas (deterministas, no van al LLM).
-      const clienteIds = [...new Set(citas.map((c) => c.cliente_id).filter(Boolean))] as string[];
-      const nombrePorCliente = new Map<string, string>();
-      if (clienteIds.length > 0) {
-        const { data: cls } = await svc.from('clientes').select('id, nombre').eq('negocio_id', negocioId).in('id', clienteIds);
-        for (const c of (cls ?? []) as { id: string; nombre: string }[]) nombrePorCliente.set(c.id, c.nombre);
-      }
-      const nombreDe = (id: string | null): string => (id ? nombrePorCliente.get(id) : null) || 'Cliente';
-
-      // 4. Sin cita ancla -> retraso a nivel profesional: ancla en la primera cita
-      //    aun pendiente del dia (la que esta "en curso" o la proxima).
-      if (!citaAncla) {
-        const ahora = Date.now();
-        const ordenadas = [...citas].sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
-        citaAncla = (ordenadas.find((c) => +new Date(c.fin) > ahora) ?? ordenadas[0]).id;
-      } else if (!citas.some((c) => c.id === citaAncla)) {
-        return { error: 'Esa cita no esta confirmada ese dia o es de otro profesional.' };
-      }
-
-      // 5. Calcular estrategias (logica pura) y tomar la recomendada.
-      const citasRetraso: CitaRetraso[] = citas.map((c) => ({
-        id: c.id, inicio: c.inicio, fin: c.fin, fin_activa: c.fin_activa, fin_espera: c.fin_espera,
-        cliente: nombreDe(c.cliente_id),
-      }));
-      const estrategias = calcularEstrategiasRetraso(citasRetraso, citaAncla, minutos);
-      const mejor = estrategias.find((e) => e.recomendada) ?? estrategias[0];
-      if (!mejor || mejor.updates.length === 0) {
-        return { error: 'Con ese retraso no hay nada que recolocar: no se pisa ninguna cita siguiente.' };
-      }
-
-      // 6. Emitir como optimizar_agenda (reutiliza el aplicador; conserva fases).
-      const movimientos = mejor.updates.map((u) => ({
-        cita_id: u.id,
-        nuevo_inicio: u.inicio,
-        nuevo_fin: u.fin,
-        nuevo_fin_activa: u.fin_activa,
-        nuevo_fin_espera: u.fin_espera,
-        cliente_nombre: nombreDe(citas.find((c) => c.id === u.id)?.cliente_id ?? null),
-      }));
-      const cierre = mejor.retrasoCierreMin > 0 ? ` El cierre se retrasa ${mejor.retrasoCierreMin} min.` : '';
-      return {
-        tipo: 'optimizar_agenda',
-        negocio_id: negocioId,
-        fecha,
-        movimientos,
-        resumen: `Retraso de ${minutos} min: ${mejor.titulo}. ${mejor.resumen}${cierre} Avisaremos por WhatsApp.`,
       };
     }
 

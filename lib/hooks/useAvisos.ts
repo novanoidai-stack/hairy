@@ -91,6 +91,8 @@ export function useAvisos(enabled = true): AvisosData {
         const manana0 = new Date(hoy0.getTime() + 86400000);
 
         const [citasRes, clientesRes, mensajes, fugaRes, hallazgosRes, citasHoyRes, profsRes] = await Promise.all([
+          // Equivalente SQL del predicado canonico esSinConfirmar48h (lib/citasMetrics):
+          // si se toca aqui, tocar tambien alli (banner de agenda y pagina Citas lo usan).
           supabase
             .from('citas')
             .select('id, inicio, cliente_id')
@@ -98,7 +100,7 @@ export function useAvisos(enabled = true): AvisosData {
             .eq('estado', CITA_STATUS.CONFIRMADA)
             .eq('confirmada_cliente', false)
             .eq('oculta_en_calendario', false)
-            .gte('inicio', ahora.toISOString())
+            .gt('inicio', ahora.toISOString())
             .lte('inicio', en48h.toISOString())
             .order('inicio', { ascending: true }),
           supabase.from('clientes').select('id, nombre, fecha_nacimiento').eq('negocio_id', negocioId).not('fecha_nacimiento', 'is', null),

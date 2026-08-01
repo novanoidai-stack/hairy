@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useResponsive } from '@/lib/hooks/useResponsive';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
-import { esConfirmada, esPendiente, esNoShow, esCompletada } from '@/lib/citasMetrics';
+import { esConfirmada, esPendiente, esNoShow, esCompletada, esSinConfirmar48h, VENTANA_SIN_CONFIRMAR_MS } from '@/lib/citasMetrics';
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { SSelect, STextInput } from '@/components/ui/SettingsAtoms';
@@ -55,6 +55,7 @@ interface Cita {
   profesional_id: string | null; servicio_id: string | null; cliente_id: string | null;
   confirmada_cliente: boolean | null; notas: string | null; importe_final: number | null;
   cobrada: boolean | null; canal: string | null; created_at: string;
+  oculta_en_calendario: boolean | null;
 }
 
 function eur(n: number | null | undefined): string {
@@ -106,10 +107,16 @@ function CitasCRMScreen() {
     try {
       let q = supabase
         .from('citas')
-        .select('id, inicio, fin, estado, profesional_id, servicio_id, cliente_id, confirmada_cliente, notas, importe_final, cobrada, canal, created_at')
+        .select('id, inicio, fin, estado, profesional_id, servicio_id, cliente_id, confirmada_cliente, notas, importe_final, cobrada, canal, created_at, oculta_en_calendario')
         .order('inicio', { ascending: false });
 
-      if (dateRange !== 'todo') {
+      if (soloSinConfirmar) {
+        // Modo "Sin confirmar": misma ventana canonica que la campana de avisos y
+        // el banner de la agenda (proximas 48h, ver esSinConfirmar48h). Ignora el
+        // rango de fechas elegido para que las cifras cuadren entre pantallas.
+        const now = new Date();
+        q = q.gt('inicio', now.toISOString()).lte('inicio', new Date(now.getTime() + VENTANA_SIN_CONFIRMAR_MS).toISOString());
+      } else if (dateRange !== 'todo') {
         const now = new Date();
         let start: Date | undefined, end: Date | undefined;
         if (dateRange === 'hoy') { start = startOfDay(now); end = endOfDay(now); }
@@ -117,7 +124,7 @@ function CitasCRMScreen() {
         else if (dateRange === 'mes') { start = startOfMonth(now); end = endOfMonth(now); }
         if (start && end) q = q.gte('inicio', start.toISOString()).lte('inicio', end.toISOString());
       }
-      if (statusFilter !== 'todos') q = q.eq('estado', statusFilter);
+      if (statusFilter !== 'todos' && !soloSinConfirmar) q = q.eq('estado', statusFilter);
       if (profFilter !== 'todos') q = q.eq('profesional_id', profFilter);
       if (srvFilter !== 'todos') q = q.eq('servicio_id', srvFilter);
 
@@ -129,7 +136,7 @@ function CitasCRMScreen() {
     } finally {
       setLoading(false);
     }
-  }, [dateRange, statusFilter, profFilter, srvFilter]);
+  }, [dateRange, statusFilter, profFilter, srvFilter, soloSinConfirmar]);
 
   useEffect(() => { fetchBaseData(); }, [fetchBaseData]);
   useEffect(() => { fetchCitas(); }, [fetchCitas]);
@@ -148,7 +155,9 @@ function CitasCRMScreen() {
 
   const filteredCitas = useMemo(() => {
     let list = citas;
-    if (soloSinConfirmar) list = list.filter((c) => !c.confirmada_cliente);
+    // Predicado canonico compartido con avisos y agenda (48h + confirmada por el
+    // salon + sin respuesta del cliente): las tres pantallas dicen lo mismo.
+    if (soloSinConfirmar) { const ahora = Date.now(); list = list.filter((c) => esSinConfirmar48h(c, ahora)); }
     if (search.trim()) {
       const s = search.toLowerCase();
       list = list.filter((c) => {
@@ -266,9 +275,10 @@ function CitasCRMScreen() {
         <button
           className="btn-interactive"
           onClick={() => setSoloSinConfirmar((v) => !v)}
+          title="Citas de las proximas 48h confirmadas por el salon pero sin respuesta del cliente (mismo criterio que la campana de avisos y la agenda)"
           style={{ flexShrink: 0, padding: '9px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
             background: soloSinConfirmar ? T.primary : T.bgPanel, color: soloSinConfirmar ? '#fff' : T.textSec, border: `1px solid ${soloSinConfirmar ? T.primary : T.border}` }}
-        >Sin confirmar</button>
+        >Sin confirmar (48h)</button>
       </div>
 
       {/* Tabla */}

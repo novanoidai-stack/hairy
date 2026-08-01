@@ -95,11 +95,12 @@ Deno.test('Sesion 7: ficha_cliente sigue clientes.ver (todos los roles la tienen
   }
 });
 
-Deno.test('Sesion 7: recuperar_cliente solo recepcion+ (misma capacidad que Bandeja)', () => {
-  assertEquals(toolPermitida('recuperar_cliente', roleOf('employee'), 'self'), false);
-  assertEquals(toolPermitida('recuperar_cliente', roleOf('recepcion'), 'all'), true);
-  assertEquals(toolPermitida('recuperar_cliente', roleOf('admin'), 'all'), true);
-  assertEquals(toolPermitida('recuperar_cliente', roleOf('owner'), 'all'), true);
+Deno.test('Purga ago 2026: las tools retiradas fallan cerrado para todos los roles', () => {
+  for (const name of ['recuperar_cliente', 'avisar_lista_espera', 'gestionar_retraso', 'optimizar_agenda']) {
+    for (const valor of ['employee', 'recepcion', 'admin', 'owner']) {
+      assertEquals(toolPermitida(name, roleOf(valor), 'all'), false);
+    }
+  }
 });
 
 Deno.test('Sesion 9/11: buscar_recuerdos y guardar_recuerdo se declaran a TODOS los roles', () => {
@@ -173,11 +174,12 @@ Deno.test('Cobertura de tablas V3: campanas/hallazgos/cumpleanos/lista_espera/tu
 });
 
 // --- Rework KISS (2026-07): gating por superficie ---
-Deno.test('Rework KISS: el chat solo ofrece las 4 acciones en bloque', () => {
+Deno.test('Chat informativo (ago 2026): solo confirmaciones en bloque', () => {
   assertEquals(accionPermitidaEnSuperficie('confirmar_citas', 'chat'), true);
   assertEquals(accionPermitidaEnSuperficie('reenviar_confirmacion', 'chat'), true);
-  assertEquals(accionPermitidaEnSuperficie('avisar_lista_espera', 'chat'), true);
-  assertEquals(accionPermitidaEnSuperficie('gestionar_retraso', 'chat'), true);
+  // Las purgadas ya no se ofrecen en el chat:
+  assertEquals(accionPermitidaEnSuperficie('avisar_lista_espera', 'chat'), false);
+  assertEquals(accionPermitidaEnSuperficie('gestionar_retraso', 'chat'), false);
   // Escrituras de entidad NO se ofrecen en el chat general:
   assertEquals(accionPermitidaEnSuperficie('crear_presupuesto', 'chat'), false);
   assertEquals(accionPermitidaEnSuperficie('optimizar_agenda', 'chat'), false);
@@ -186,9 +188,10 @@ Deno.test('Rework KISS: el chat solo ofrece las 4 acciones en bloque', () => {
 
 Deno.test('Rework KISS: cada superficie de accion conserva su tool acotada', () => {
   assertEquals(accionPermitidaEnSuperficie('crear_presupuesto', 'presupuestos'), true);
-  assertEquals(accionPermitidaEnSuperficie('recuperar_cliente', 'clientes'), true);
-  assertEquals(accionPermitidaEnSuperficie('optimizar_agenda', 'agenda'), true);
-  assertEquals(accionPermitidaEnSuperficie('gestionar_retraso', 'agenda'), true);
+  // Superficies purgadas (agenda/clientes) fallan cerrado:
+  assertEquals(accionPermitidaEnSuperficie('recuperar_cliente', 'clientes'), false);
+  assertEquals(accionPermitidaEnSuperficie('optimizar_agenda', 'agenda'), false);
+  assertEquals(accionPermitidaEnSuperficie('gestionar_retraso', 'agenda'), false);
   // Bandeja conserva crear_cita/crear_presupuesto (convierte hilo en cita/presupuesto):
   assertEquals(accionPermitidaEnSuperficie('crear_cita', 'bandeja'), true);
   assertEquals(accionPermitidaEnSuperficie('crear_presupuesto', 'bandeja'), true);
