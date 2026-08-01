@@ -7680,24 +7680,19 @@ function DayTimeline({
                                   : estrecho
                                     ? 24
                                     : 18;
-                                const isCol = estrecho && !narrow;
                                 return (
                                   <div
                                     style={{
                                       position: "relative",
                                       zIndex: 2,
                                       display: "flex",
-                                      flexDirection: isCol ? "column" : "row",
-                                      alignItems: isCol
-                                        ? "flex-start"
-                                        : "center",
-                                      // En columna el contenido va arriba. El "center" de antes no
-                                      // se notaba porque el nombre llevaba flex:1 y llenaba el alto.
-                                      justifyContent: "flex-start",
-                                      gap: isCol ? 2 : 5,
+                                      flexDirection: "column",
+                                      alignItems: "flex-start",
+                                      justifyContent: "center",
+                                      gap: 1,
                                       overflow: "hidden",
                                       height: "100%",
-                                      padding: isCol ? "0 2px" : 0,
+                                      padding: "1px 4px",
                                     }}
                                   >
                                     <div
@@ -7707,7 +7702,6 @@ function DayTimeline({
                                         gap: 4,
                                       }}
                                     >
-                                      {/* Removed initials badge as requested */}
                                       {catIconChip && !superNarrow && (
                                         <span
                                           style={{
@@ -7718,104 +7712,78 @@ function DayTimeline({
                                           {catIconChip}
                                         </span>
                                       )}
-                                    </div>
-                                    {!superNarrow && (
-                                      <span
-                                        style={{
-                                          fontSize: estrecho ? 9.5 : 10,
-                                          fontWeight: 700,
-                                          color: cancelada
-                                            ? TOKENS.textTer
-                                            : TOKENS.textSec,
-                                          flexShrink: 0,
-                                          whiteSpace: "nowrap",
-                                        }}
-                                      >
-                                        {timeStrCompact}
-                                      </span>
-                                    )}
-                                      <span
-                                        style={{
-                                          display: "flex",
-                                          flexDirection: isCol ? "column" : "row",
-                                          gap: 4,
-                                          alignItems: "center",
-                                          flex: isCol ? "0 1 auto" : 1,
-                                          minWidth: 0,
-                                          overflow: "hidden",
-                                        }}
-                                      >
+                                      {!superNarrow && (
                                         <span
                                           style={{
-                                            fontSize: 11,
-                                            fontWeight: 800,
+                                            fontSize: 9.5,
+                                            fontWeight: 700,
                                             color: cancelada
                                               ? TOKENS.textTer
-                                              : TOKENS.text,
+                                              : TOKENS.textSec,
+                                            flexShrink: 0,
+                                            whiteSpace: "nowrap",
+                                            lineHeight: 1,
+                                          }}
+                                        >
+                                          {timeStrCompact}
+                                        </span>
+                                      )}
+                                      {chainBadge}
+                                      {icon}
+                                    </div>
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 4,
+                                        maxWidth: "100%",
+                                        overflow: "hidden",
+                                      }}
+                                    >
+                                      <span
+                                        style={{
+                                          fontSize: 10.5,
+                                          fontWeight: 800,
+                                          color: cancelada
+                                            ? TOKENS.textTer
+                                            : TOKENS.text,
+                                          whiteSpace: "nowrap",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                          textDecoration: cancelada
+                                            ? "line-through"
+                                            : "none",
+                                        }}
+                                      >
+                                        {nombreCliente}
+                                      </span>
+                                      {nombreServicio && height > 32 && (
+                                        <span
+                                          style={{
+                                            fontSize: 9.5,
+                                            fontWeight: 600,
+                                            color: cancelada
+                                              ? TOKENS.textTer
+                                              : TOKENS.textSec,
+                                            background: cancelada
+                                              ? "transparent"
+                                              : TOKENS.bgCard,
+                                            border: cancelada
+                                              ? "none"
+                                              : `1px solid ${TOKENS.borderHi}`,
+                                            padding: "1px 4px",
+                                            borderRadius: 4,
+                                            boxShadow: cancelada ? "none" : "0 1px 2px rgba(0,0,0,0.06)",
                                             whiteSpace: "nowrap",
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
-                                            textDecoration: cancelada
-                                              ? "line-through"
-                                              : "none",
+                                            maxWidth: "100%",
                                           }}
                                         >
-                                          {nombreCliente}
+                                          {nombreServicio}
                                         </span>
-                                        {nombreServicio && (
-                                          <span
-                                            style={{
-                                              fontSize: 10,
-                                              fontWeight: 600,
-                                              color: cancelada
-                                                ? TOKENS.textTer
-                                                : TOKENS.textSec,
-                                              background: cancelada
-                                                ? "transparent"
-                                                : TOKENS.bgCard,
-                                              border: cancelada
-                                                ? "none"
-                                                : `1px solid ${TOKENS.borderHi}`,
-                                              padding: cancelada ? 0 : "1px 5px",
-                                              borderRadius: 5,
-                                              boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.06)",
-                                              whiteSpace: "nowrap",
-                                              overflow: "hidden",
-                                              textOverflow: "ellipsis",
-                                              maxWidth: "100%",
-                                            }}
-                                          >
-                                            {nombreServicio}
-                                          </span>
-                                        )}
-                                      </span>
-                                    {isCol && (
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          gap: 4,
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        {cita.estado === "Confirmada" && (
-                                          <Icon name="check" size={10} color={TOKENS.success} />
-                                        )}
-                                        {clienteMap?.get(cita.cliente_id)?.tag === "VIP" && (
-                                          <Icon name="star" size={10} color={TOKENS.warning} />
-                                        )}
-                                        {clienteMap?.get(cita.cliente_id)?.tag === "Habitual" && (
-                                          <Icon name="star" size={10} color={TOKENS.primary} />
-                                        )}
-                                        {chainBadge}
-                                        {icon}
-                                      </div>
-                                    )}
-                                    {!isCol && (
-                                      <>
-                                        {chainBadge}
-                                        {icon}
-                                      </>
-                                    )}
+                                      )}
+                                    </div>
                                   </div>
                                 );
                               }

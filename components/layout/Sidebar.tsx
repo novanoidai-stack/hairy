@@ -81,9 +81,7 @@ export function Sidebar() {
   const { t } = useAppLang();
   const configActive = pathname.includes('configuracion');
 
-  // Rail fijo y compacto: no se ensancha. Al pasar el raton por un icono se
-  // muestra su nombre en una etiqueta flotante (patron tipo Booksy).
-  const collapsed = true;
+  const [collapsed, setCollapsed] = useState(false);
   const [tip, setTip] = useState<{ x: number; y: number; label: string } | null>(null);
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const roleTheme = getRoleTheme(profile);
@@ -236,15 +234,55 @@ export function Sidebar() {
   return (
     // El hueco reserva SOLO el ancho del rail; la barra va flotando encima,
     // asi al desplegarse con el raton no empuja el contenido de la pagina.
-    <View style={[s.sidebar, s.sidebarCollapsed]}>
-      <View style={[s.logoContainer, s.logoContainerCollapsed]}>
+    <View style={[s.sidebar, collapsed && s.sidebarCollapsed]}>
+      <View style={[s.logoContainer, collapsed && s.logoContainerCollapsed]}>
         <TouchableOpacity
           style={s.brand}
           onPress={() => router.replace('/(tabs)' as any)}
           activeOpacity={0.8}
           {...webTitle('Mecha — Inicio')}
         >
-          <MechaMark size={38} />
+          <MechaMark size={collapsed ? 38 : 32} />
+          {!collapsed && (
+            <View style={{ flexDirection: 'column', gap: 2 }}>
+              <View style={s.brandRow}>
+                <TText style={s.logoText}>Mecha</TText>
+                <View style={s.brandTag}><TText style={s.brandTagText}>OS</TText></View>
+              </View>
+              {profile !== undefined && profile !== null && (
+                <View style={{
+                  backgroundColor: roleTheme.badgeBg,
+                  borderRadius: 4,
+                  paddingHorizontal: 6,
+                  paddingVertical: 1.5,
+                  alignSelf: 'flex-start',
+                  marginTop: 1,
+                  borderWidth: 1,
+                  borderColor: roleTheme.accentGlow,
+                }}>
+                  <TText style={{
+                    fontSize: 9.5,
+                    fontWeight: '700',
+                    color: roleTheme.badgeText,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}>{roleTheme.label}</TText>
+                </View>
+              )}
+            </View>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            padding: 6,
+            borderRadius: 8,
+            backgroundColor: 'transparent',
+            cursor: 'pointer',
+          } as any}
+          onPress={() => setCollapsed(!collapsed)}
+          {...webTitle(collapsed ? 'Expandir menú lateral' : 'Contraer menú lateral')}
+        >
+          <Ionicons name={collapsed ? 'chevron-forward' : 'chevron-back'} size={18} color={tokens.textSecondary} />
         </TouchableOpacity>
       </View>
       {/* Navigation Scroll Container */}
