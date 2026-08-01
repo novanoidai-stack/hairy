@@ -1763,59 +1763,38 @@ export default function AgendaCalendar() {
           }}
         >
           {/* Boton Ocultar Filtros eliminado */}
-          {!isMobile && (
-            <button
-              onClick={() => setRailCollapsed((v) => !v)}
-              title={
-                railCollapsed ? "Mostrar panel lateral" : "Pantalla completa"
-              }
-              style={{
-                padding: isTablet ? 7 : "7px 12px",
-                background: railCollapsed
-                  ? roleTheme.primarySoft
-                  : TOKENS.bgCard,
-                border: `1px solid ${railCollapsed ? roleTheme.primary + "40" : TOKENS.border}`,
-                color: railCollapsed ? roleTheme.primaryHi : TOKENS.textSec,
-                borderRadius: 9,
-                cursor: "pointer",
-                fontSize: 12.5,
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                whiteSpace: "nowrap",
-                minHeight: 33,
-                transition:
-                  "transform 0.18s cubic-bezier(0.16,1,0.3,1), background 0.18s ease, border-color 0.18s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-1px)";
-                e.currentTarget.style.background = railCollapsed
-                  ? roleTheme.primary + "2e"
-                  : TOKENS.bgCardHi;
-                e.currentTarget.style.borderColor = railCollapsed
-                  ? roleTheme.primary + "80"
-                  : roleTheme.primary + "40";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.background = railCollapsed
-                  ? roleTheme.primarySoft
-                  : TOKENS.bgCard;
-                e.currentTarget.style.borderColor = railCollapsed
-                  ? roleTheme.primary + "40"
-                  : TOKENS.border;
-              }}
-            >
-              <Icon
-                name={railCollapsed ? "minimize" : "maximize"}
-                size={15}
-                color={railCollapsed ? roleTheme.primaryHi : TOKENS.textSec}
-              />
-              {!isTablet &&
-                (railCollapsed ? "Mostrar lateral" : "Pantalla completa")}
-            </button>
-          )}
+          <button
+            onClick={() => setRailCollapsed((v) => !v)}
+            title={
+              railCollapsed ? "Desplegar Dashboard / Panel lateral" : "Ocultar Dashboard"
+            }
+            aria-label="Desplegar Dashboard"
+            style={{
+              padding: isMobile ? "6px 10px" : (isTablet ? 7 : "7px 12px"),
+              background: railCollapsed
+                ? roleTheme.primarySoft
+                : TOKENS.bgCard,
+              border: `1px solid ${railCollapsed ? roleTheme.primary + "40" : TOKENS.border}`,
+              color: railCollapsed ? roleTheme.primaryHi : TOKENS.textSec,
+              borderRadius: 9,
+              cursor: "pointer",
+              fontSize: 12.5,
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              whiteSpace: "nowrap",
+              minHeight: 33,
+              transition: "all 0.15s ease",
+            }}
+          >
+            <Icon
+              name="calendar"
+              size={15}
+              color={railCollapsed ? roleTheme.primaryHi : TOKENS.textSec}
+            />
+            <span>{railCollapsed ? "Desplegar Dashboard" : "Dashboard"}</span>
+          </button>
           {/* Boton Organizar movido abajo */}
           {/* Boton Hoy movido abajo */}
           <button
@@ -14944,99 +14923,7 @@ export function DetalleCitaModal({
                   ))}
                 </SearchDropdown>
 
-                {/* Dictar Fórmula Color / Notas Post-Servicio */}
-                {selectedCliente?.id && (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                      marginTop: 12,
-                    }}
-                  >
-                    <button
-                      type="button"
-                      className="m-row-hover"
-                      onClick={() => setShowFichaColor(true)}
-                      style={{
-                        width: "100%",
-                        padding: "12px",
-                        background: "rgba(244,80,30,0.06)",
-                        border: `2px dashed rgba(244,80,30,0.3)`,
-                        borderRadius: 12,
-                        color: TOKENS.primary,
-                        fontSize: 14,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      <Icon name="mic" size={20} color={TOKENS.primary} />
-                      Dictar Fórmula de Color
-                    </button>
-                    <button
-                      type="button"
-                      className="m-row-hover"
-                      onClick={() => {
-                        if (estadoVoz === "inactivo")
-                          iniciarEscucha(procesarDictadoNotas);
-                        else detenerEscucha();
-                      }}
-                      disabled={loadingDictado}
-                      style={{
-                        width: "100%",
-                        padding: "12px",
-                        background:
-                          estadoVoz === "inactivo"
-                            ? TOKENS.bgCardHi
-                            : "rgba(16,185,129,0.1)",
-                        border: `1px solid ${estadoVoz === "inactivo" ? TOKENS.border : TOKENS.success}`,
-                        borderRadius: 12,
-                        color:
-                          estadoVoz === "inactivo"
-                            ? TOKENS.textSec
-                            : TOKENS.success,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        cursor: loadingDictado ? "not-allowed" : "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <Icon
-                        name="mic"
-                        size={18}
-                        color={
-                          estadoVoz === "inactivo"
-                            ? TOKENS.textSec
-                            : TOKENS.success
-                        }
-                      />
-                      {estadoVoz === "inactivo"
-                        ? "Dictar Notas Post-Servicio"
-                        : estadoVoz === "escuchando"
-                          ? "Escuchando..."
-                          : "Procesando dictado..."}
-                    </button>
-                    {errorVoz && (
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: TOKENS.danger,
-                          textAlign: "center",
-                        }}
-                      >
-                        {errorVoz}
-                      </div>
-                    )}
-                  </div>
-                )}
+
               </div>
 
               </>)}

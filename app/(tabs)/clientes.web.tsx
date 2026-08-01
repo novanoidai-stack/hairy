@@ -1895,17 +1895,7 @@ function ColorTab({ cliente, citas, servicios, profesionales, fichasTecnicas, ne
             <Icon name="sparkle" size={12} color={TOKENS.primary} />
             Probar Color IA
           </button>
-          {/* Atajo directo al dictado (dentro del editor de ficha ya hay 'Dictar
-              Formula (Manos libres)'): lo hacemos descubrible desde la cabecera. */}
-          <button
-            className="m-btn-secondary"
-            onClick={() => setShowAdd(true)}
-            title="Crea una ficha dictando la formula con la voz"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.primary}`, color: TOKENS.primary, borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
-          >
-            <Icon name="mic" size={12} color={TOKENS.primary} />
-            Dictar
-          </button>
+
           <button
             className="m-btn-secondary"
             onClick={() => setShowAdd(true)}
@@ -2258,52 +2248,7 @@ export function FichaColorModal({ mode, ficha, clienteId, negocioId, citasClient
           </button>
         )}
 
-        <div style={{ marginBottom: 20 }}>
-          <button
-            type="button"
-            onClick={() => {
-              if (estadoVoz === 'inactivo') iniciarEscucha(procesarDictado);
-              else detenerEscucha();
-            }}
-            disabled={loading}
-            style={{
-              width: '100%', padding: '18px 24px', 
-              background: estadoVoz === 'inactivo' ? TOKENS.bgCardHi : 'rgba(192,38,10,0.1)', 
-              border: `2px dashed ${estadoVoz === 'inactivo' ? TOKENS.borderHi : TOKENS.primary}`, 
-              borderRadius: 16, 
-              color: estadoVoz === 'inactivo' ? TOKENS.text : TOKENS.primary, 
-              fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', 
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-              transition: 'all 0.2s ease',
-              boxShadow: estadoVoz !== 'inactivo' ? '0 8px 24px rgba(192,38,10,0.2)' : 'none'
-            }}
-          >
-            <div style={{ width: 48, height: 48, borderRadius: 24, background: estadoVoz === 'inactivo' ? TOKENS.border : TOKENS.primary, color: '#fff', display: 'grid', placeItems: 'center' }}>
-              <Icon name="mic" size={24} color="#fff" />
-            </div>
-            {estadoVoz === 'inactivo' ? 'Dictar Fórmula (Manos libres)' : 
-             estadoVoz === 'escuchando' ? 'Escuchando... (pulsa para detener)' : 'Procesando dictado...'}
-          </button>
-          {estadoVoz === 'escuchando' && transcripcionParcial && (
-            <div style={{ fontSize: 14, color: TOKENS.textSec, fontStyle: 'italic', marginTop: 8, padding: '0 10px', textAlign: 'center' }}>
-              "{transcripcionParcial}"
-            </div>
-          )}
-          {errorVoz && <div style={{ fontSize: 12, color: TOKENS.danger, marginTop: 8, textAlign: 'center' }}>{errorVoz}</div>}
-          {dictadoWarn && (
-            <div style={{ padding: '12px 16px', background: TOKENS.danger, borderRadius: 12, color: '#fff', fontSize: 14, fontWeight: 600, marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, boxShadow: '0 4px 12px rgba(239,68,68,0.4)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Icon name="alert" size={20} color="#fff" />
-                <span>{dictadoWarn}</span>
-              </div>
-              {onGoToNotas && (
-                <button onClick={() => { onClose(); onGoToNotas(); }} style={{ background: '#fff', color: TOKENS.danger, padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Ir a Notas de Salud
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+
 
         {/* Form wrapper - disabled when locked */}
         <div style={{ pointerEvents: isLocked ? 'none' : 'auto', opacity: isLocked ? 0.6 : 1 }}>

@@ -196,7 +196,7 @@ export function Sidebar() {
             isPrincipal && !collapsed && isActive && s.navItemPrincipalActive,
             isPrincipal && !collapsed && isActive && { backgroundColor: roleTheme.accentGlow, borderColor: roleTheme.accentGlow },
           ]}
-          onPress={() => router.push(item.href as any)}
+          onPress={() => router.replace(item.href as any)}
           {...{
             onMouseEnter: (e: any) => {
               hoverIn(hoverAnim); setHoveredIdx(idx);
@@ -241,7 +241,7 @@ export function Sidebar() {
       <View style={[s.logoContainer, collapsed && s.logoContainerCollapsed]}>
         <TouchableOpacity
           style={s.brand}
-          onPress={() => router.push('/(tabs)' as any)}
+          onPress={() => router.replace('/(tabs)' as any)}
           activeOpacity={0.8}
           {...webTitle('Mecha — Inicio')}
         >
@@ -274,9 +274,27 @@ export function Sidebar() {
               )}
             </View>
           )}
-        </TouchableOpacity>
+        {!collapsed && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            {/* Campana global de avisos: visible en todas las paginas, no solo la agenda */}
+            <AvisosBell collapsed={false} />
+            <TouchableOpacity style={s.collapseBtn} onPress={toggleCollapsed} {...({ title: 'Contraer menú lateral' } as any)}>
+              <Ionicons name="chevron-back" size={16} color={tokens.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
+      {collapsed && (
+        <>
+          <TouchableOpacity style={s.collapseBtnFull} onPress={toggleCollapsed} {...({ title: 'Expandir menú lateral' } as any)}>
+            <Ionicons name="chevron-forward" size={18} color={roleTheme.accent} />
+          </TouchableOpacity>
+          <View style={{ marginBottom: tokens.spacing.xs }}>
+            <AvisosBell collapsed />
+          </View>
+        </>
+      )}
       {/* Navigation Scroll Container */}
       <ScrollView
         style={s.navScroll}
@@ -334,7 +352,7 @@ export function Sidebar() {
               configActive && { backgroundColor: roleTheme.accentGlow, borderColor: roleTheme.accentGlow },
               !configActive && configHovered && s.navItemHovered
             ]}
-            onPress={() => router.push('/(tabs)/configuracion' as any)}
+            onPress={() => router.replace('/(tabs)/configuracion' as any)}
             {...{ onMouseEnter: () => { hoverIn(configHoverAnim); setConfigHovered(true); }, onMouseLeave: () => { hoverOut(configHoverAnim); setConfigHovered(false); }, ...webTitle(t('nav_configuracion')) } as any}
           >
             {configActive && !collapsed && <View style={[s.navItemBar, { backgroundColor: roleTheme.accent }]} />}

@@ -14,7 +14,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       <View style={{ flex: 1, flexDirection: 'row', backgroundColor: c.bg }}>
         <Sidebar />
         <View style={{ flex: 1 }}>
-          <Tabs screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } as any, unmountOnBlur: false, sceneStyle: { backgroundColor: '#f6f1ea' } } as any}>
+          <Tabs screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } as any, unmountOnBlur: true, sceneStyle: { backgroundColor: '#f6f1ea' } } as any}>
             <Tabs.Screen name="index" />
             <Tabs.Screen name="mi-jornada" />
             <Tabs.Screen name="caja" />
@@ -45,6 +45,7 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       tabBar={(props) => <MobileTabBar state={props.state} navigation={props.navigation} />}
       screenOptions={{
         headerShown: false,
+        unmountOnBlur: true,
         // sceneStyle: fondo solido en el contenedor de escena de bottom-tabs. Sin
         // esto, una pantalla mas corta que el viewport dejaba ver la de detras.
         sceneStyle: { backgroundColor: '#f6f1ea' },

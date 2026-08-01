@@ -92,7 +92,7 @@ export function MobileTabBar({ state }: TabBarProps) {
   // re-navegar si ya estamos en la ruta.
   const go = (item: NavItem) => {
     if (currentName === item.name) return;
-    router.push(item.route as any);
+    router.replace(item.route as any);
   };
 
   const fullName = [profile?.nombre, profile?.apellido].filter(Boolean).join(' ').trim();
