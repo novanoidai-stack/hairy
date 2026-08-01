@@ -237,65 +237,16 @@ export function Sidebar() {
     // El hueco reserva SOLO el ancho del rail; la barra va flotando encima,
     // asi al desplegarse con el raton no empuja el contenido de la pagina.
     <View style={[s.sidebar, s.sidebarCollapsed]}>
-      {/* Logo + toggle */}
-      <View style={[s.logoContainer, collapsed && s.logoContainerCollapsed]}>
+      <View style={[s.logoContainer, s.logoContainerCollapsed]}>
         <TouchableOpacity
           style={s.brand}
           onPress={() => router.replace('/(tabs)' as any)}
           activeOpacity={0.8}
           {...webTitle('Mecha — Inicio')}
         >
-          <MechaMark size={collapsed ? 38 : 32} />
-          {!collapsed && (
-            <View style={{ flexDirection: 'column', gap: 2 }}>
-              <View style={s.brandRow}>
-                <TText style={s.logoText}>Mecha</TText>
-                <View style={s.brandTag}><TText style={s.brandTagText}>OS</TText></View>
-              </View>
-              {profile !== undefined && profile !== null && (
-                <View style={{
-                  backgroundColor: roleTheme.badgeBg,
-                  borderRadius: 4,
-                  paddingHorizontal: 6,
-                  paddingVertical: 1.5,
-                  alignSelf: 'flex-start',
-                  marginTop: 1,
-                  borderWidth: 1,
-                  borderColor: roleTheme.accentGlow,
-                }}>
-                  <TText style={{
-                    fontSize: 9.5,
-                    fontWeight: '700',
-                    color: roleTheme.badgeText,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                  }}>{roleTheme.label}</TText>
-                </View>
-              )}
-            </View>
-          )}
+          <MechaMark size={38} />
         </TouchableOpacity>
-        {!collapsed && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            {/* Campana global de avisos: visible en todas las paginas, no solo la agenda */}
-            <AvisosBell collapsed={false} />
-            <TouchableOpacity style={s.collapseBtn} onPress={toggleCollapsed} {...({ title: 'Contraer menú lateral' } as any)}>
-              <Ionicons name="chevron-back" size={16} color={tokens.textSecondary} />
-            </TouchableOpacity>
-          </View>
-        )}
       </View>
-
-      {collapsed && (
-        <>
-          <TouchableOpacity style={s.collapseBtnFull} onPress={toggleCollapsed} {...({ title: 'Expandir menú lateral' } as any)}>
-            <Ionicons name="chevron-forward" size={18} color={roleTheme.accent} />
-          </TouchableOpacity>
-          <View style={{ marginBottom: tokens.spacing.xs }}>
-            <AvisosBell collapsed />
-          </View>
-        </>
-      )}
       {/* Navigation Scroll Container */}
       <ScrollView
         style={s.navScroll}

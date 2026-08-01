@@ -6214,11 +6214,11 @@ function DayTimeline({
 
       const h = START_H + Math.floor(sl.minutesFromStart / 60);
       const m = sl.minutesFromStart % 60;
-      const nuevoInicio = new Date(dateObj);
+      let nuevoInicio = new Date(dateObj);
       nuevoInicio.setHours(h, m, 0, 0);
-      const nuevoFinActiva = new Date(nuevoInicio.getTime() + activaMs);
-      const nuevoFinEspera = new Date(nuevoFinActiva.getTime() + esperaMs);
-      const nuevoFin = new Date(nuevoInicio.getTime() + durMs);
+      let nuevoFinActiva = new Date(nuevoInicio.getTime() + activaMs);
+      let nuevoFinEspera = new Date(nuevoFinActiva.getTime() + esperaMs);
+      let nuevoFin = new Date(nuevoInicio.getTime() + durMs);
 
       if (
         nuevoInicio.getTime() === new Date(cita.inicio).getTime() &&
