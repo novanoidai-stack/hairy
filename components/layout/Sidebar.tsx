@@ -274,6 +274,7 @@ export function Sidebar() {
               )}
             </View>
           )}
+        </TouchableOpacity>
         {!collapsed && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {/* Campana global de avisos: visible en todas las paginas, no solo la agenda */}

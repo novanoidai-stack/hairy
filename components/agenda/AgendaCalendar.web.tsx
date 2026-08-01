@@ -705,9 +705,7 @@ export default function AgendaCalendar() {
   // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral.
   // En tablet arranca plegado (el dia es lo principal y el espacio es justo), pero el
   // usuario lo abre/cierra con el boton "Mostrar lateral / Pantalla completa".
-  const [railCollapsed, setRailCollapsed] = useState<boolean>(
-    () => typeof window !== "undefined" && window.innerWidth < 1024,
-  );
+  const [railCollapsed, setRailCollapsed] = useState<boolean>(false);
   // Colapso de la barra de filtros (vista/servicio/estado). En movil arranca plegada:
   // ocupa demasiado alto y el dia es la vista principal; se despliega con el chip "Filtros".
   const [toolbarCollapsed, setToolbarCollapsed] = useState<boolean>(
@@ -6285,14 +6283,14 @@ function DayTimeline({
         return;
       }
 
-      const c1 = isTimeSlotOccupied(
+      let c1 = isTimeSlotOccupied(
         nuevoInicio,
         nuevoFinActiva,
         currentCitas,
         targetProf.id,
         cita.id,
       );
-      const c2 =
+      let c2 =
         activo2Ms > 0 &&
         isTimeSlotOccupied(
           nuevoFinEspera,
@@ -6301,6 +6299,36 @@ function DayTimeline({
           targetProf.id,
           cita.id,
         );
+
+      // Si choca por solapamiento pero se solto cerca del inicio de un hueco libre donde la cita cabe perfectamente:
+      if (c1 || c2) {
+        const prevCita = currentCitas.find(
+          (c: any) =>
+            c.id !== cita.id &&
+            c.profesional_id === targetProf.id &&
+            c.estado !== 'cancelada' &&
+            new Date(c.fin).getTime() <= nuevoInicio.getTime() + 25 * 60 * 1000 &&
+            new Date(c.fin).getTime() > nuevoInicio.getTime() - 45 * 60 * 1000
+        );
+        if (prevCita) {
+          const adjStart = new Date(prevCita.fin);
+          const adjFinActiva = new Date(adjStart.getTime() + activaMs);
+          const adjFinEspera = new Date(adjFinActiva.getTime() + esperaMs);
+          const adjFin = new Date(adjStart.getTime() + durMs);
+          const fitsCleanly =
+            !isTimeSlotOccupied(adjStart, adjFinActiva, currentCitas, targetProf.id, cita.id) &&
+            !(activo2Ms > 0 && isTimeSlotOccupied(adjFinEspera, adjFin, currentCitas, targetProf.id, cita.id)) &&
+            adjFin <= limFin;
+          if (fitsCleanly) {
+            nuevoInicio = adjStart;
+            nuevoFinActiva = adjFinActiva;
+            nuevoFinEspera = adjFinEspera;
+            nuevoFin = adjFin;
+            c1 = false;
+            c2 = false;
+          }
+        }
+      }
 
       // Encaje en reposo: si el conflicto es solo que la cita se pasa un poco del
       // reposo de OTRA cita (empieza dentro de su reposo pero su fase activa lo
@@ -7434,10 +7462,10 @@ function DayTimeline({
                                       height: esperaPx,
                                       pointerEvents: "none",
                                       zIndex: 1,
-                                      background: "transparent",
-                                      borderTop: `1px dashed ${stripeColor}`,
+                                      background: "rgba(16, 185, 129, 0.12)",
+                                      borderTop: `1px dashed rgba(16, 185, 129, 0.4)`,
                                       borderBottom: hayActiva2
-                                        ? `1px dashed ${stripeColor}`
+                                        ? `1px dashed rgba(16, 185, 129, 0.4)`
                                         : "none",
                                       display: "flex",
                                       alignItems: "center",
@@ -7448,18 +7476,19 @@ function DayTimeline({
                                     {!hasNested && esperaPx >= 16 && (
                                       <span
                                         style={{
-                                          padding: "1px 8px",
+                                          padding: "2px 8px",
                                           borderRadius: 999,
-                                          background: "rgba(255,255,255,0.72)",
-                                          fontSize: 9,
-                                          fontWeight: 600,
+                                          background: "#10b981",
+                                          fontSize: 9.5,
+                                          fontWeight: 700,
                                           letterSpacing: 0.4,
                                           textTransform: "uppercase",
-                                          color: TOKENS.textTer,
+                                          color: "#ffffff",
                                           whiteSpace: "nowrap",
+                                          boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
                                         }}
                                       >
-                                        Libre {reposoMin}′
+                                        Hueco libre {reposoMin}′
                                       </span>
                                     )}
                                   </div>
@@ -7707,39 +7736,58 @@ function DayTimeline({
                                     )}
                                       <span
                                         style={{
-                                          fontSize: 11,
-                                          fontWeight: 700,
-                                          color: cancelada
-                                            ? TOKENS.textTer
-                                            : TOKENS.text,
-                                          // En fila, flex:1 le da el ancho sobrante (para el ellipsis).
-                                          // En columna crecia en ALTURA y estiraba el fondo blanco
-                                          // hasta el fondo del bloque: ahi se cine al contenido.
+                                          display: "flex",
+                                          flexDirection: isCol ? "column" : "row",
+                                          gap: 4,
+                                          alignItems: "center",
                                           flex: isCol ? "0 1 auto" : 1,
-                                          maxWidth: isCol ? "100%" : undefined,
                                           minWidth: 0,
                                           overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                          display: "-webkit-box",
-                                          WebkitLineClamp: 2,
-                                          WebkitBoxOrient: "vertical",
-                                          whiteSpace: "normal",
-                                          wordBreak: "break-word",
-                                          textDecoration: cancelada
-                                            ? "line-through"
-                                            : "none",
-                                          background: cancelada
-                                            ? "transparent"
-                                            : TOKENS.bgCard,
-                                          border: cancelada
-                                            ? "none"
-                                            : `1px solid ${TOKENS.borderHi}`,
-                                          padding: cancelada ? 0 : "2px 5px",
-                                          borderRadius: 6,
-                                          boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
                                         }}
                                       >
-                                        {`${nombreCliente}${nombreServicio ? ` · ${nombreServicio}` : ""}`}
+                                        <span
+                                          style={{
+                                            fontSize: 11,
+                                            fontWeight: 800,
+                                            color: cancelada
+                                              ? TOKENS.textTer
+                                              : TOKENS.text,
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            textDecoration: cancelada
+                                              ? "line-through"
+                                              : "none",
+                                          }}
+                                        >
+                                          {nombreCliente}
+                                        </span>
+                                        {nombreServicio && (
+                                          <span
+                                            style={{
+                                              fontSize: 10,
+                                              fontWeight: 600,
+                                              color: cancelada
+                                                ? TOKENS.textTer
+                                                : TOKENS.textSec,
+                                              background: cancelada
+                                                ? "transparent"
+                                                : TOKENS.bgCard,
+                                              border: cancelada
+                                                ? "none"
+                                                : `1px solid ${TOKENS.borderHi}`,
+                                              padding: cancelada ? 0 : "1px 5px",
+                                              borderRadius: 5,
+                                              boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.06)",
+                                              whiteSpace: "nowrap",
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              maxWidth: "100%",
+                                            }}
+                                          >
+                                            {nombreServicio}
+                                          </span>
+                                        )}
                                       </span>
                                     {isCol && (
                                       <div
@@ -7874,17 +7922,11 @@ function DayTimeline({
                                           }
                                         }}
                                         style={{
-                                          background: cancelada ? "transparent" : TOKENS.bgCard,
-                                          border: cancelada ? "none" : `1px solid ${badgeColor}60`,
-                                          borderLeft: cancelada ? "none" : `4px solid ${badgeColor}`,
-                                          padding: height < 30 ? "1px 4px" : "3px 6px",
-                                          borderRadius: 6,
-                                          boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
                                           width: "fit-content",
                                           maxWidth: "100%",
                                           fontSize: height < 30 ? 11 : 12,
                                           lineHeight: height < 30 ? "1.1" : "1.2",
-                                          fontWeight: 700,
+                                          fontWeight: 800,
                                           color: cancelada ? TOKENS.textTer : TOKENS.text,
                                           whiteSpace: "nowrap",
                                           overflow: "hidden",
@@ -7908,14 +7950,23 @@ function DayTimeline({
                                       {height > 32 && (
                                         <div
                                           style={{
+                                            background: cancelada ? "transparent" : TOKENS.bgCard,
+                                            border: cancelada ? "none" : `1px solid ${TOKENS.borderHi}`,
+                                            padding: "2px 6px",
+                                            borderRadius: 6,
+                                            boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.06)",
+                                            width: "fit-content",
+                                            maxWidth: "100%",
                                             fontSize: 10,
-                                            color: TOKENS.textSec,
+                                            fontWeight: 600,
+                                            color: cancelada ? TOKENS.textTer : TOKENS.textSec,
                                             whiteSpace: "normal",
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
                                             display: "flex",
-                                            alignItems: "flex-start",
+                                            alignItems: "center",
                                             gap: 4,
+                                            marginTop: 1,
                                           }}
                                         >
                                           {catIconChip ? (

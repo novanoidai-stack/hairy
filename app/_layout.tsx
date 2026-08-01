@@ -74,7 +74,6 @@ function ThemedRoot({ children }: { children: React.ReactNode }) {
       <OfflineBanner />
       <PrivacyConsentModal />
       <ChispaLauncher />
-      <ProximaAccionLauncher />
       <CoachLauncher />
       <TourLauncher />
       {children}
