@@ -6078,6 +6078,28 @@ function DayTimeline({
   const isToday =
     now.getHours() >= START_H && now.getHours() < START_H + HOURS.length;
 
+  // Al abrir la agenda del dia de HOY, llevar la vista a la hora actual. Antes
+  // arrancaba siempre en la hora de apertura: por la tarde el salon veia la
+  // rejilla vacia de la manana y tenia que bajar a mano cada vez.
+  const yaAutoScroll = useRef(false);
+  const esMismoDiaQueHoy =
+    selectedDateObj instanceof Date &&
+    selectedDateObj.toDateString() === new Date().toDateString();
+  useEffect(() => {
+    if (yaAutoScroll.current || !esMismoDiaQueHoy || !isToday) return;
+    const grid = gridRef.current;
+    if (!grid) return;
+    // Contenedor con scroll vertical mas cercano (la rejilla vive dentro de el).
+    let cont: HTMLElement | null = grid.parentElement;
+    while (cont && cont.scrollHeight <= cont.clientHeight + 8) cont = cont.parentElement;
+    if (!cont) return;
+    const topAhora =
+      (now.getHours() - START_H + now.getMinutes() / 60) * ROW_H;
+    // Un tercio por encima: se ve lo que acaba de pasar y lo que viene.
+    cont.scrollTop = Math.max(0, topAhora - cont.clientHeight / 3);
+    yaAutoScroll.current = true;
+  }, [esMismoDiaQueHoy, isToday, citas.length]);
+
   async function toggleCompletada(citaId: string, estadoActual: string) {
     const nuevoEstado =
       estadoActual === CITA_STATUS.COMPLETADA
@@ -7681,6 +7703,11 @@ function DayTimeline({
                                     <img
                                       src={prof.foto_perfil}
                                       alt=""
+                                      // Perezosa: hay avatares antiguos sin comprimir
+                                      // (las subidas nuevas van a 400px) y no deben
+                                      // frenar el pintado de la rejilla de citas.
+                                      loading="lazy"
+                                      decoding="async"
                                       style={{
                                         width: "100%",
                                         height: "100%",

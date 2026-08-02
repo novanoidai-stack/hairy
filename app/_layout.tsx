@@ -95,6 +95,11 @@ export default function RootLayout() {
   });
 
   const [session, setSession] = useState<any>(undefined);
+  // Demo compartida: hasta que no aterriza su sesion no se puede consultar nada.
+  // Si dejamos montar las pantallas antes, lanzan sus consultas sin token, se
+  // quedan vacias y NO se reintentan: el visitante veia "0 citas" para siempre.
+  // Esto marca cuando ya no tiene sentido seguir esperando (fallo o timeout).
+  const [demoSinSesion, setDemoSinSesion] = useState(false);
   const router = useRouter();
   const segments = useSegments();
   const isWeb = Platform.OS === 'web';
@@ -121,6 +126,14 @@ export default function RootLayout() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Salvavidas de la espera de demo: si en 8 segundos no ha entrado, dejamos
+  // pasar igualmente en vez de dejar al visitante mirando un spinner eterno.
+  useEffect(() => {
+    if (!IS_DEMO_MODE || session) return;
+    const t = setTimeout(() => setDemoSinSesion(true), 8000);
+    return () => clearTimeout(t);
+  }, [session]);
+
   useEffect(() => {
     if (session === undefined) return;
     // WEB: el UNICO acceso es el login de la landing (acceso.html), mismo origen
@@ -134,7 +147,7 @@ export default function RootLayout() {
         // sesion personal del sitio. Si el login de demo falla, no redirigimos
         // (el marco de demo.html ya muestra su propio aviso).
         if (IS_DEMO_MODE) {
-          signInDemoViewer().catch(() => {});
+          signInDemoViewer().catch(() => setDemoSinSesion(true));
           return;
         }
         window.location.href = '/acceso.html';
@@ -204,7 +217,11 @@ export default function RootLayout() {
     return null;
   }
 
-  if (session === undefined) {
+  // Espera de la sesion de demo (con salvavidas de 8s por si el login falla o
+  // se queda colgado: mejor entrar y que la pantalla avise que quedarse fijo).
+  const esperandoDemo = isWeb && IS_DEMO_MODE && session === null && !isPublicRoute && !demoSinSesion;
+
+  if (session === undefined || esperandoDemo) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f6f1ea' }}>
         <ActivityIndicator size="large" color="#f4501e" />

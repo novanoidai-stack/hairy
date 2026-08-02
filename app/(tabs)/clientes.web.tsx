@@ -422,7 +422,7 @@ function ClientesWeb() {
     }
     setNegocioId(profile.negocio_id);
 
-    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }, { data: fugaData }, { data: riesgoNoShowData }] = await Promise.all([
+    const [{ data: clts }, { data: citsData }, { data: srvData }, { data: profData }, { data: fichasData }, { data: cfgRow }, { data: fugaData }, { data: riesgoNoShowData }, { data: recompraData }] = await Promise.all([
       supabase
         .from('clientes')
         .select('id, nombre, telefono, email, fecha_nacimiento, alergias, notas, canal_preferido, bebida_preferida, sensibilidades_cuero, noshows_count, perfil_riesgo, ticket_medio, frecuencia_dias, bloqueado, bloqueo_motivo, etiquetas, deposito_perfil_override, consiente_ia, consiente_ia_origen, consiente_ia_fecha')
@@ -468,8 +468,11 @@ function ClientesWeb() {
       riesgoPorCliente.set(r.cliente_id, { nivel: r.nivel, score: r.score, no_shows: r.no_shows, cancelaciones_tardias: r.cancelaciones_tardias });
     });
 
+    // Oportunidad de recompra (ciclo habitual cumplido, aun sin llegar a fuga).
+    // Antes se leia de `arguments[2]`, que en esta funcion sin parametros era
+    // siempre undefined: el mapa quedaba vacio y la insignia no salia nunca.
     const recompraPorCliente = new Map<string, { dias: number }>();
-    ((arguments[2] as any)?.data ?? []).forEach((r: any) => {
+    (recompraData ?? []).forEach((r: any) => {
       recompraPorCliente.set(r.id, { dias: r.dias_desde_ultima_visita });
     });
 
