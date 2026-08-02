@@ -30,7 +30,11 @@ const RUIDO = [
   'favicon',
   'Download the React DevTools',
   'analytics',
+  // Vercel Analytics solo existe servido desde Vercel: en el espejo local da 404.
   '/_vercel/insights',
+  // El mensaje generico del navegador no dice QUE recurso fallo; las peticiones
+  // fallidas ya se reportan aparte con su URL, que es lo util.
+  'Failed to load resource',
 ];
 const esRuido = (t) => RUIDO.some((r) => t.includes(r));
 
