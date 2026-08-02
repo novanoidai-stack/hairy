@@ -1,16 +1,27 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm install",
-  "buildCommand": "npx expo export -p web --output-dir web/app",
+  "buildCommand": "npm run build:web",
   "outputDirectory": "web",
   "rewrites": [
-    { "source": "/app", "destination": "/app/index.html" },
-    { "source": "/app/:path*", "destination": "/app/index.html" }
+    {
+      "source": "/app",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "/app/index.html"
+    }
   ],
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "hairy-two.vercel.app" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "hairy-two.vercel.app"
+        }
+      ],
       "destination": "https://www.mechaa.es/:path*",
       "permanent": true
     }
@@ -19,28 +30,64 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(self), microphone=(self), geolocation=()" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
-        { "key": "X-Permitted-Cross-Domain-Policies", "value": "none" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://translate.google.com https://translate.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://vtrggiogjrhqtwbhbgia.supabase.co https://lh3.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com https://translate.google.com https://translate.googleapis.com https://www.google.com; connect-src 'self' https://vtrggiogjrhqtwbhbgia.supabase.co wss://vtrggiogjrhqtwbhbgia.supabase.co https://api.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://translate.googleapis.com; frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://accounts.google.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests" }
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=(self), geolocation=()"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "X-Permitted-Cross-Domain-Policies",
+          "value": "none"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://accounts.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://translate.google.com https://translate.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://vtrggiogjrhqtwbhbgia.supabase.co https://lh3.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com https://translate.google.com https://translate.googleapis.com https://www.google.com; connect-src 'self' https://vtrggiogjrhqtwbhbgia.supabase.co wss://vtrggiogjrhqtwbhbgia.supabase.co https://api.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://translate.googleapis.com; frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://accounts.google.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+        }
       ]
     },
     {
       "source": "/app/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     }
   ]
