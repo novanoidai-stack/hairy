@@ -44,14 +44,12 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   themeColorMeta.content = '#f4501e';
   document.head.appendChild(themeColorMeta);
 
-  // Inject global CSS with warm charcoal as default text on light bg + Ionicons font
+  // Inject global CSS with warm charcoal as default text on light bg.
+  // (Aqui habia un @font-face de Ionicons apuntando a un CDN. Sobraba: la fuente
+  // viaja en el propio bundle y se sirve desde /app/assets, asi que en produccion
+  // la CSP bloqueaba esa peticion y solo dejaba un error en consola.)
   const style = document.createElement('style');
   style.textContent = `
-    @font-face {
-      font-family: 'Ionicons';
-      src: url('https://cdn.jsdelivr.net/npm/@expo/vector-icons@14.0.0/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf') format('truetype');
-      font-display: swap;
-    }
     * { color: #1c1814; }
     input::placeholder, textarea::placeholder { color: #8a7d70 !important; }
     input, select, textarea { background-color: #f6f1ea; color: #1c1814 !important; border-color: rgba(40,30,24,0.14); }

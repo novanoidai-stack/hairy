@@ -308,12 +308,18 @@ export function Sidebar() {
           style={[s.collapseBtnFull, collapsed && s.collapseBtnCollapsed]}
           onPress={toggleCollapsed}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={collapsed ? 'Expandir menú lateral' : 'Contraer menú lateral'}
           {...({
             title: collapsed ? 'Expandir menú lateral' : 'Contraer menú lateral',
             dataSet: { coach: 'sidebar-toggle' },
           } as any)}
         >
-          <Ionicons name={collapsed ? 'chevron-forward' : 'chevron-back'} size={16} color={tokens.textSecondary} />
+          {/* Chevron de TEXTO a proposito, no un icono de fuente: con la fuente de
+              iconos este boton salia VACIO en produccion (se pintaba antes de que
+              cargara y no volvia a pintarse), y es justo el boton que despliega el
+              menu. Con texto siempre se ve. */}
+          <TText style={s.collapseChevron}>{collapsed ? '›' : '‹'}</TText>
         </TouchableOpacity>
       </View>
       {/* Navigation Scroll Container */}
@@ -561,6 +567,13 @@ const s = StyleSheet.create({
     width: 36,
     height: 30,
     borderColor: tokens.borderHi,
+  },
+  collapseChevron: {
+    fontSize: 20,
+    lineHeight: 20,
+    fontWeight: '700',
+    color: tokens.textSecondary,
+    marginTop: -2,
   },
   navScroll: {
     flex: 1,
