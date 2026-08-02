@@ -70,3 +70,53 @@
   .gallery-grid{grid-template-columns:1fr}
   .gallery-item:first-child img{aspect-ratio:4/3}
 }
+
+/* ---------- ANCLAS BAJO LA NAV FIJA ----------
+   La nav es sticky (top:0), asi que al saltar a un ancla la seccion quedaba
+   PARCIALMENTE TAPADA por la barra (se comia el eyebrow o el badge de la
+   tarjeta destacada de precios). scroll-margin-top reserva su alto. */
+main section[id],
+section[id]{scroll-margin-top:96px}
+@media (max-width:820px){
+  main section[id],
+  section[id]{scroll-margin-top:78px}
+}
+
+/* ---------- ETIQUETA DE ESCENARIO DE EJEMPLO ----------
+   Las cifras de la seccion "Qué te devuelve Mecha" son una simulacion, no
+   resultados medidos: la etiqueta lo dice a la vista, no solo en letra pequena
+   (regla del proyecto: sin cifras sin fuente presentadas como reales). */
+.ejemplo-tag{display:inline-flex;align-items:center;gap:7px;margin-top:14px;
+  padding:5px 13px;border-radius:999px;font-size:12px;font-weight:700;
+  letter-spacing:.03em;color:var(--text-sec);
+  background:rgba(255,255,255,.04);border:1px dashed var(--border-hi)}
+.ejemplo-tag::before{content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--text-ter);flex-shrink:0}
+
+/* ---------- FAQ (objeciones de venta) ----------
+   <details>/<summary> nativos: accesibles y sin JS que se pueda romper. */
+.faq{border-top:1px solid var(--border)}
+.faq-list{max-width:820px;margin:34px auto 0;display:flex;flex-direction:column;gap:10px}
+.faq-item{background:linear-gradient(180deg,var(--card-hi),var(--card));
+  border:1px solid var(--border-hi);border-radius:16px;overflow:hidden;
+  transition:border-color .2s var(--ease)}
+.faq-item[open]{border-color:rgba(244,80,30,.45)}
+.faq-item summary{list-style:none;cursor:pointer;padding:17px 52px 17px 20px;
+  font-size:15.5px;font-weight:600;color:var(--text);position:relative;
+  line-height:1.4;transition:color .2s}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary:hover{color:var(--accent-hi)}
+.faq-item summary::after{content:'';position:absolute;right:22px;top:50%;
+  width:9px;height:9px;border-right:2.2px solid var(--text-ter);
+  border-bottom:2.2px solid var(--text-ter);
+  transform:translateY(-70%) rotate(45deg);transition:transform .25s var(--ease)}
+.faq-item[open] summary::after{transform:translateY(-20%) rotate(225deg);
+  border-color:var(--accent-hi)}
+.faq-a{padding:0 20px 18px;font-size:14.5px;line-height:1.65;color:var(--text-sec)}
+.faq-a b{color:var(--text);font-weight:700}
+.faq-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:14px;margin-top:30px;font-size:15px;color:var(--text-sec)}
+@media (max-width:600px){
+  .faq-item summary{font-size:14.5px;padding:15px 46px 15px 16px}
+  .faq-a{padding:0 16px 16px;font-size:13.5px}
+}

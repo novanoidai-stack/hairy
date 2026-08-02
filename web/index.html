@@ -55,14 +55,40 @@
     "name": "Mecha OS Inc.",
     "url": "https://www.mechaa.es/"
   },
-  "offers": {
-    "@type": "Offer",
-    "price": "0.00",
-    "priceCurrency": "EUR",
-    "category": "SaaS",
-    "description": "Prueba gratuita de 14 días sin tarjeta de crédito",
-    "url": "https://www.mechaa.es/demo.html"
-  },
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Plan Esencial",
+      "price": "29.00",
+      "priceCurrency": "EUR",
+      "category": "SaaS",
+      "description": "Agenda inteligente con tiempos de reposo, fichas de cliente con fórmulas de color, portal de reserva online propio, recordatorios por WhatsApp, caja e informes. Primer mes gratis sin tarjeta, sin permanencia y sin comisiones por reserva.",
+      "url": "https://www.mechaa.es/#precios",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "29.00",
+        "priceCurrency": "EUR",
+        "unitCode": "MON",
+        "valueAddedTaxIncluded": false
+      }
+    },
+    {
+      "@type": "Offer",
+      "name": "Plan Estudio",
+      "price": "49.00",
+      "priceCurrency": "EUR",
+      "category": "SaaS",
+      "description": "Todo lo del plan Esencial más Chispa IA: asistente de WhatsApp 24/7 que reserva y cobra señales con Stripe, campañas, lista de espera inteligente y organización automática de retrasos. Primer mes gratis sin tarjeta y sin permanencia.",
+      "url": "https://www.mechaa.es/#precios",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "49.00",
+        "priceCurrency": "EUR",
+        "unitCode": "MON",
+        "valueAddedTaxIncluded": false
+      }
+    }
+  ],
   "featureList": [
     "Agenda interactiva con arrastrar y soltar (drag & drop) y detección de conflictos en tiempo real",
     "Optimización de tiempos muertos productivos y reposo de tintes/decoloraciones",
@@ -93,25 +119,25 @@
   "offers": {
     "@type": "AggregateOffer",
     "priceCurrency": "EUR",
-    "lowPrice": "0",
+    "lowPrice": "29",
     "highPrice": "49",
     "offerCount": "2",
     "offers": [
       {
         "@type": "Offer",
-        "name": "Plan Free Trial",
-        "price": "0",
+        "name": "Plan Esencial",
+        "price": "29",
         "priceCurrency": "EUR",
-        "description": "Acceso de prueba durante 14 días",
-        "url": "https://www.mechaa.es/demo.html"
+        "description": "Agenda inteligente, fichas de cliente, reserva online y recordatorios. Primer mes gratis sin tarjeta, sin permanencia y sin comisiones por reserva.",
+        "url": "https://www.mechaa.es/#precios"
       },
       {
         "@type": "Offer",
-        "name": "Plan Pro",
+        "name": "Plan Estudio",
         "price": "49",
         "priceCurrency": "EUR",
-        "description": "Suscripción mensual completa para salones",
-        "url": "https://www.mechaa.es/reservar.html"
+        "description": "Todo lo del Esencial más Chispa IA por WhatsApp 24/7, señales con Stripe y campañas. Primer mes gratis sin tarjeta.",
+        "url": "https://www.mechaa.es/#precios"
       }
     ]
   }
@@ -160,7 +186,7 @@
       "name": "¿Cómo reduce Mecha los no-shows en peluquerías?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Mecha reduce los no-shows (clientes que no se presentan) del promedio del sector (18%) a menos del 1.2% mediante un sistema dual automatizado: recordatorios amigables y bidireccionales por WhatsApp gestionados por IA, combinados con la pasarela de pago Stripe para solicitar un depósito o fianza en el momento de la reserva."
+        "text": "Mecha ataca los no-shows (clientes que no se presentan) con un sistema doble: recordatorios automáticos y bidireccionales por WhatsApp gestionados por IA, y el cobro de una señal o depósito mediante Stripe en el momento de la reserva, de forma que el hueco queda comprometido. Además calcula el riesgo de no presentarse de cada cliente a partir de su propio historial, para reforzar el aviso solo donde hace falta."
       }
     },
     {
@@ -225,6 +251,22 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "Mecha soporta 4 roles con permisos granulares (propietario, dirección, recepción y profesional). El sistema calcula comisiones personalizadas de forma mensual por cada profesional basándose en sus citas completadas y servicios ofrecidos, con la capacidad de añadir bonus o exclusiones directamente desde el panel de control."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cuánto cuesta Mecha?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mecha tiene dos planes mensuales sin permanencia y con el primer mes gratis sin tarjeta. El plan Esencial cuesta 29 € al mes más IVA e incluye la agenda inteligente con tiempos de reposo y servicios encadenados, las fichas de cliente con fórmulas de color, el portal de reserva online propio, los recordatorios por WhatsApp, la caja y los informes. El plan Estudio cuesta 49 € al mes más IVA y añade Chispa IA (el asistente de WhatsApp 24/7 que reserva y cobra señales con Stripe), las campañas, la lista de espera inteligente y la facturación VeriFactu. En ambos planes los profesionales son ilimitados y no se cobra ninguna comisión por reserva."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Mecha cobra comisión por cada reserva?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Mecha es una suscripción mensual fija y no cobra ninguna comisión por reserva ni por cliente nuevo, a diferencia de los marketplaces de reservas. El salón se queda el 100% de lo que factura y los clientes son suyos: Mecha no los comparte con otros salones."
       }
     }
   ]
@@ -291,6 +333,7 @@
       <a href="#diferenciales" data-i18n="nav_agenda">Agenda</a>
       <a href="#fichas" data-i18n="nav_fichas">Fichas</a>
       <a href="#comparativa" data-i18n="nav_comparativa">Comparativa</a>
+      <a href="#precios" data-i18n="nav_precios">Precios</a>
       <a href="especificaciones.html" data-i18n="nav_specs">Especificaciones</a>
     </div>
     <div class="nav-cta">
@@ -331,7 +374,7 @@
         <span class="hb-short">Especializado para salones</span>
       </span>
       <h1 class="reveal d1">El teléfono ya no te interrumpe.<br />Tu salón <span class="em">sigue reservando</span>.</h1>
-      <p class="hero-sub reveal d2"><span class="sub-full">Mecha es la primera agenda inteligente con un asistente virtual de WhatsApp que atiende a tus clientes, organiza los tiempos de servicio y cobra las señales sin que tengas que dejar las tijeras.</span><span class="sub-short">El asistente de WhatsApp que atiende a tus clientes, organiza tus tiempos y cobra las señales por ti.</span></p>
+      <p class="hero-sub reveal d2"><span class="sub-full">Mecha es el software de gestión para peluquerías y barberías: agenda que entiende los tiempos de reposo, fichas de color, caja e informes — y un asistente de WhatsApp que atiende a tus clientes y cobra las señales sin que sueltes las tijeras.</span><span class="sub-short">La agenda que entiende tu oficio y el asistente de WhatsApp que atiende y cobra por ti.</span></p>
       <div class="hero-actions reveal d3">
         <a href="demo.html" class="btn btn-primary btn-lg">Ver demo gratis
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
@@ -347,7 +390,7 @@
       <a href="#resenas" id="heroRating" class="hero-rating reveal d3" style="display:none" aria-label="Valoraciones de Mecha"></a>
       <div class="hero-micro reveal d4">
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Sin comisiones: todo es para ti</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Te lo montamos todo</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg><a href="#precios" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Desde 29 €/mes · 1 mes gratis</a></span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Conecta tu Booksy o Fresha</span>
       </div>
     </div>
@@ -497,9 +540,10 @@
   <section class="metrics" id="impacto">
     <div class="wrap">
       <div class="sec-head center reveal">
-        <span class="eyebrow center">Tus informes, en vivo</span>
-        <h2 class="sec-title">Los datos de tu salón, <span class="display" style="font-style:italic">a la vista y creciendo</span></h2>
-        <p class="sec-sub">Así se ven tus informes en Mecha, y suben semana a semana. Cifras ilustrativas de un salón típico — en la demo las ajustamos a los tuyos.</p>
+        <span class="eyebrow center">Qué te devuelve Mecha</span>
+        <h2 class="sec-title">Lo que hoy se te escapa, <span class="display" style="font-style:italic">en tu caja</span></h2>
+        <p class="sec-sub">Escenario de ejemplo de un salón de 3 sillas que cobra señal y aprovecha los reposos. No son resultados medidos: es la cuenta que hacemos contigo, con tus números, en la demo.</p>
+        <span class="ejemplo-tag" aria-label="Escenario de ejemplo">Escenario de ejemplo · no son datos reales</span>
       </div>
 
       <div class="met-grid">
@@ -874,6 +918,168 @@
     </div>
   </section>
 
+  <!-- ============ PRECIOS ============ -->
+  <!-- PRECIOS: fuente de verdad compartida con el SYSTEM_PROMPT de la edge
+       supabase/functions/chispa-landing/index.ts. Si cambian los planes,
+       cambiar AMBOS sitios a la vez. -->
+  <style>
+    .price-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;max-width:860px;margin:38px auto 0}
+    @media(max-width:760px){.price-grid{grid-template-columns:1fr}}
+    .price-card{position:relative;display:flex;flex-direction:column;gap:14px;background:linear-gradient(180deg,var(--card-hi),var(--card));border:1px solid var(--border-hi);border-radius:22px;padding:30px 28px 26px}
+    .price-card.featured{border-color:rgba(244,80,30,.55);box-shadow:0 0 0 1px rgba(244,80,30,.25),0 24px 60px -20px rgba(224,52,14,.35)}
+    .pc-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--grad);color:#0b0a12;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:999px;white-space:nowrap}
+    .pc-name{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.02em}
+    .pc-tag{font-size:13.5px;color:var(--text-sec);margin-top:-8px}
+    .pc-price{font-family:var(--display);font-weight:800;font-size:44px;letter-spacing:-.03em;line-height:1}
+    .pc-price span{font-size:15px;font-weight:600;color:var(--text-ter);letter-spacing:0}
+    .pc-list{display:flex;flex-direction:column;gap:9px;margin:4px 0 6px;flex:1}
+    .pc-list li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--text-sec);line-height:1.45;list-style:none}
+    .pc-list .ck{flex-shrink:0;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;background:rgba(16,185,129,.15);color:#34d399;margin-top:1px}
+    .pc-list .ck svg{width:10px;height:10px}
+    .pc-list b{color:var(--text)}
+    .pc-plus{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-hi);margin:2px 0 -2px}
+    .price-conds{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;margin:26px auto 0;font-size:13.5px;color:var(--text-sec)}
+    .price-conds span{display:inline-flex;align-items:center;gap:7px}
+    .price-conds svg{width:15px;height:15px;color:#34d399}
+    .price-math{max-width:860px;margin:44px auto 0;border:1px solid var(--border-hi);border-radius:22px;background:linear-gradient(180deg,var(--card-hi),var(--card));padding:30px 28px}
+    .price-math h3{font-family:var(--display);font-weight:700;font-size:clamp(19px,2.6vw,24px);letter-spacing:-.02em;text-align:center;margin:0 0 6px}
+    .price-math .pm-sub{text-align:center;font-size:13.5px;color:var(--text-sec);margin:0 0 22px}
+    .pm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    @media(max-width:700px){.pm-grid{grid-template-columns:1fr}}
+    .pm-item{display:flex;gap:13px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:14px;padding:15px 16px}
+    .pm-item .ico{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi)}
+    .pm-item .ico svg{width:17px;height:17px}
+    .pm-item h5{margin:0 0 3px;font-size:14px;font-weight:700;color:var(--text)}
+    .pm-item p{margin:0;font-size:12.5px;color:var(--text-sec);line-height:1.5}
+    .pm-item p b{color:#34d399}
+    .pm-foot{margin:18px 0 0;text-align:center;font-size:11.5px;color:var(--text-ter)}
+  </style>
+  <section class="section pricing" id="precios">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Precio simple, sin letra pequeña</span>
+        <h2 class="sec-title">Un precio que se paga <span class="display" style="font-style:italic">solo</span></h2>
+        <p class="sec-sub">Dos planes, sin permanencia y con el primer mes gratis para probarlo con tu salón real. Sin comisiones por reserva: todo lo que facturas es tuyo.</p>
+      </div>
+
+      <div class="price-grid reveal">
+        <div class="price-card">
+          <div class="pc-name">Esencial</div>
+          <p class="pc-tag">La agenda profesional que entiende tu oficio</p>
+          <div class="pc-price">29 €<span> /mes + IVA</span></div>
+          <ul class="pc-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Agenda con <b>tiempos de reposo</b> y servicios encadenados</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Fichas de cliente: <b>fórmulas de color</b>, fotos y alergias</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Portal de reserva online</b> propio, sin comisiones</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Recordatorios automáticos por WhatsApp</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Caja, informes y equipo — <b>profesionales ilimitados</b></span></li>
+          </ul>
+          <a href="demo.html" class="btn btn-ghost" style="justify-content:center">Ver demo gratis</a>
+        </div>
+
+        <div class="price-card featured">
+          <span class="pc-badge">Recomendado · con IA</span>
+          <div class="pc-name">Estudio</div>
+          <p class="pc-tag">Chispa IA atiende, reserva y cobra por ti</p>
+          <div class="pc-price">49 €<span> /mes + IVA</span></div>
+          <ul class="pc-list">
+            <li class="pc-plus">Todo lo del Esencial, y además:</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Chispa IA por WhatsApp 24/7</b>: reserva, confirma y responde sola</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span><b>Señales por Stripe</b>: el no-show deja de ser tu problema</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Campañas, <b>lista de espera inteligente</b> y recuperación de clientas</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Retrasos absorbidos con un clic y organización del día con IA</span></li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Facturación <b>VeriFactu</b> y fichaje de jornada legal</span></li>
+          </ul>
+          <a href="reservar.html" class="btn btn-primary" style="justify-content:center">Empezar con 1 mes gratis</a>
+        </div>
+      </div>
+
+      <div class="price-conds reveal">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg>1 mes gratis, sin tarjeta</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg>Sin permanencia</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg>0% comisiones por reserva</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg>Te lo montamos todo</span>
+      </div>
+
+      <div class="price-math reveal">
+        <h3>¿De dónde sale el precio? La cuenta, clara</h3>
+        <p class="pm-sub">No es un número al azar: es menos de lo que hoy pierdes cada mes por teléfono, huecos y plantones.</p>
+        <div class="pm-grid">
+          <div class="pm-item">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg></span>
+            <div><h5>Un plantón: ~35 € tirados</h5><p>Con la señal por Stripe y los recordatorios, <b>evitar 1-2 no-shows al mes ya paga Mecha entero</b>.</p></div>
+          </div>
+          <div class="pm-item">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg></span>
+            <div><h5>Comisiones de marketplace: 0 €</h5><p>Otras plataformas se llevan <b>un 20-35% por cliente nuevo</b>. En Mecha, el 100% de cada servicio es tuyo.</p></div>
+          </div>
+          <div class="pm-item">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></span>
+            <div><h5>Horas de teléfono, a tijera</h5><p>El asistente atiende WhatsApp y reservas 24/7: <b>horas a la semana</b> que vuelven a ser para tus clientes.</p></div>
+          </div>
+          <div class="pm-item">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></svg></span>
+            <div><h5>Los reposos, facturando</h5><p>Un corte encajado en el reposo de un tinte a la semana son <b>cientos de euros más al mes</b>, sin alargar la jornada.</p></div>
+          </div>
+        </div>
+        <p class="pm-foot">Cifras orientativas de un salón típico — en la demo hacemos la cuenta con los números del tuyo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ (objeciones de venta) ============ -->
+  <section class="section faq" id="faq">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow center">Lo que todo el mundo pregunta</span>
+        <h2 class="sec-title">Las dudas, <span class="display" style="font-style:italic">resueltas</span></h2>
+        <p class="sec-sub">Sin letra pequeña. Si te queda alguna, pregúntale a Chispa aquí abajo o te lo contamos en la llamada.</p>
+      </div>
+
+      <div class="faq-list reveal">
+        <details class="faq-item">
+          <summary>¿Me ato a algo? ¿Qué pasa si no me convence?</summary>
+          <div class="faq-a">Nada de permanencia. El primer mes es gratis y <b>sin tarjeta</b>: si no te convence, no haces nada y se acaba. Tus datos son tuyos y te los puedes llevar exportados cuando quieras.</div>
+        </details>
+        <details class="faq-item">
+          <summary>Ya uso Booksy o Fresha. ¿Pierdo mis clientes y mis reseñas?</summary>
+          <div class="faq-a">No. Puedes <b>conectarlo</b> y que sus reservas entren solas en tu agenda, o migrar del todo en unos 10 minutos desde un Excel — incluso desde una foto de tu agenda de papel. Conservas clientes e historial, y migras a tu ritmo (o no migras).</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Cuánto tardo en tenerlo funcionando?</summary>
+          <div class="faq-a">Te lo montamos nosotros. En la llamada dejamos cargados tus servicios, tu equipo y tus horarios, y sales con el salón configurado y listo para dar citas ese mismo día.</div>
+        </details>
+        <details class="faq-item">
+          <summary>Somos un salón pequeño (o trabajo yo solo). ¿Me compensa?</summary>
+          <div class="faq-a">El precio no cambia por número de profesionales: son <b>ilimitados</b> en los dos planes. Y la cuenta es la misma para todos: con evitar un par de plantones al mes, Mecha ya está pagado. Cuanto menos personal tengas, más te libera que el asistente coja el teléfono por ti.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Los clientes que reservan son míos o vuestros?</summary>
+          <div class="faq-a">Tuyos, siempre. Mecha <b>no es un marketplace</b>: no te compartimos los clientes con otros salones ni te cobramos comisión por reserva. El 100% de lo que facturas se queda en tu caja.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿La IA habla con mis clientes sin que yo lo controle?</summary>
+          <div class="faq-a">Tú mandas. La IA usa <b>plantillas aprobadas</b> para los avisos y, en lo demás, te propone y confirmas tú. Puedes revisar cada conversación y desactivarla cuando quieras — el plan Esencial funciona perfectamente sin ella.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Sirve para facturar en regla?</summary>
+          <div class="faq-a">Sí: tickets homologados <b>VeriFactu</b> con QR de la AEAT y registro de jornada del equipo conforme a la ley, dentro del plan Estudio.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Funciona en el móvil?</summary>
+          <div class="faq-a">Sí. Funciona en el navegador y en móvil (iOS y Android) con la misma cuenta: la agenda, las fichas y la caja las llevas encima.</div>
+        </details>
+      </div>
+
+      <div class="faq-foot reveal">
+        <span>¿Te queda alguna duda?</span>
+        <a href="reservar.html" class="btn btn-primary">Que nos lo pregunten en una llamada
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ ESPECIFICACIONES (enlace a la pagina completa) ============ -->
   <section class="section" id="especificaciones" style="padding:26px 0 70px">
     <div class="wrap" style="text-align:center">
@@ -940,7 +1146,7 @@
             </a>
             <a href="reservar.html" class="btn btn-ghost btn-lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg><span class="cta-full">¿Quieres el acceso ya?</span><span class="cta-short">Acceso ya</span></a>
           </div>
-          <p class="cta-micro">Demo gratis sin compromiso · Acceso inmediato · Sin permanencia</p>
+          <p class="cta-micro">Desde 29 €/mes · 1 mes gratis sin tarjeta · Sin permanencia · 0% comisiones</p>
         </div>
       </div>
     </div>
@@ -1007,9 +1213,9 @@
         <a class="brand" href="#top" aria-label="Mecha, inicio"><svg class="brand-mark" viewBox="0 0 32 32"><use href="#mecha-mark" /></svg><span class="brand-row"><span class="brand-name">Mecha</span><span class="brand-tag">OS</span></span></a>
         <p>El sistema operativo de tu salón o barbería. Agenda inteligente, asistente de IA y toda la gestión en un solo sitio.</p>
       </div>
-      <div class="foot-col"><h5>Producto</h5><a href="#asistente">Asistente IA</a><a href="#diferenciales">Agenda</a><a href="#fichas">Fichas de cliente</a><a href="especificaciones.html">Especificaciones</a></div>
+      <div class="foot-col"><h5>Producto</h5><a href="#asistente">Asistente IA</a><a href="#diferenciales">Agenda</a><a href="#fichas">Fichas de cliente</a><a href="#precios">Precios</a><a href="especificaciones.html">Especificaciones</a></div>
       <div class="foot-col"><h5>Integra</h5><a href="#integra">Conectar Booksy</a><a href="#integra">Conectar Fresha</a><a href="#comparativa">Todo lo que suma Mecha</a></div>
-      <div class="foot-col"><h5>Empezar</h5><a href="demo.html">Ver demo gratis</a><a href="reservar.html">Habla con nosotros (acceso inmediato)</a><a href="acceso.html">Iniciar sesión</a><a href="mailto:soporte@mechaa.es">Soporte técnico</a><a href="privacidad.html">Privacidad y derechos</a></div>
+      <div class="foot-col"><h5>Empezar</h5><a href="demo.html">Ver demo gratis</a><a href="#precios">Precios y planes</a><a href="#faq">Preguntas frecuentes</a><a href="reservar.html">Habla con nosotros (acceso inmediato)</a><a href="acceso.html">Iniciar sesión</a><a href="mailto:soporte@mechaa.es">Soporte técnico</a><a href="privacidad.html">Privacidad y derechos</a></div>
     </div>
     <div class="foot-bot">
       <span>© 2026 Mecha · Hecho para salones de peluquería.</span>
@@ -1327,6 +1533,13 @@ window.MECHA_CHAT = [
   .chispa-dot:nth-child(2) { animation-delay: -0.16s; }
   @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
   
+  .chispa-msg strong { color: var(--text); font-weight: 700; }
+  .chispa-msg .li { display: block; padding-left: 12px; position: relative; }
+  .chispa-msg .li::before { content: '·'; position: absolute; left: 3px; color: #f4501e; font-weight: 700; }
+  .chispa-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chispa-chips button { background: var(--bg-alt); border: 1px solid rgba(244,80,30,.45); color: var(--text); font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 999px; cursor: pointer; transition: background .15s, border-color .15s; }
+  .chispa-chips button:hover { background: rgba(244,80,30,.12); border-color: #f4501e; }
+
   @media (max-width: 480px) {
     #chispa-window { width: calc(100vw - 40px); height: 400px; }
   }
@@ -1342,7 +1555,12 @@ window.MECHA_CHAT = [
       <button id="chispa-close" aria-label="Cerrar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <div id="chispa-messages">
-      <div class="chispa-msg bot">¡Hola! Soy Chispa, la Inteligencia Artificial de Mecha. ¿Tienes alguna duda sobre cómo funciona nuestro software?</div>
+      <div class="chispa-msg bot">¡Hola! Soy Chispa, la IA de Mecha. Pregúntame lo que quieras de nuestro software: qué hace por tu salón, cuánto cuesta o cómo cambiarte sin líos.</div>
+      <div class="chispa-chips" id="chispa-chips">
+        <button type="button" data-q="¿Cuánto cuesta Mecha y qué incluye cada plan?">¿Cuánto cuesta?</button>
+        <button type="button" data-q="¿Qué hace la IA de WhatsApp por mi salón?">¿Qué hace la IA?</button>
+        <button type="button" data-q="Uso Booksy, ¿cómo me cambio a Mecha sin perder mis clientes y reseñas?">Vengo de Booksy</button>
+      </div>
     </div>
     <div id="chispa-input-area">
       <input type="text" id="chispa-input" placeholder="Pregunta sobre Mecha..." autocomplete="off">
@@ -1379,15 +1597,36 @@ window.MECHA_CHAT = [
   bubble.addEventListener('click', toggleChat);
   closeBtn.addEventListener('click', toggleChat);
 
-  function parseMdLinks(text) {
-    // Converts [text](url) to <a href="url">text</a>
-    return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  function escapeHtml(text) {
+    // La respuesta del modelo es DATO, no HTML: se escapa antes de pintarla y
+    // solo despues se aplica el markdown que nosotros permitimos.
+    return String(text)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function renderMd(text) {
+    var html = escapeHtml(text);
+    // Enlaces [texto](destino): solo rutas internas o http(s), nunca javascript:.
+    html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, label, url) {
+      var seguro = /^(https?:\/\/|\/|[\w./-]+\.html)/i.test(url);
+      if (!seguro) return label;
+      var externo = /^https?:\/\//i.test(url);
+      return '<a href="' + url + '"' + (externo ? ' target="_blank" rel="noopener"' : '') + '>' + label + '</a>';
+    });
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // Vinetas "- item" a lista y saltos de linea a <br>. Los saltos multiples se
+    // colapsan: si no, cada parrafo del modelo dejaba un hueco enorme en el chat.
+    html = html.replace(/^[-•]\s+(.+)$/gm, '<span class="li">$1</span>');
+    html = html.replace(/\n{2,}/g, '\n').replace(/\n/g, '<br>');
+    return html.replace(/<\/span><br>/g, '</span>').replace(/<br>(<span class="li">)/g, '$1');
   }
 
   function appendMsg(role, content) {
     var div = document.createElement('div');
     div.className = 'chispa-msg ' + (role === 'user' ? 'user' : 'bot');
-    div.innerHTML = parseMdLinks(content);
+    if (role === 'user') div.textContent = content;
+    else div.innerHTML = renderMd(content);
     msgsContainer.appendChild(div);
     msgsContainer.scrollTop = msgsContainer.scrollHeight;
   }
@@ -1412,6 +1651,9 @@ window.MECHA_CHAT = [
 
     appendMsg('user', text);
     input.value = '';
+    // Las sugerencias rapidas solo sirven para arrancar: fuera tras el primer envio.
+    var chips = document.getElementById('chispa-chips');
+    if (chips) chips.remove();
     isWaiting = true;
     sendBtn.disabled = true;
     showTyping();
@@ -1460,6 +1702,17 @@ window.MECHA_CHAT = [
   input.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') sendMessage();
   });
+
+  // Sugerencias rapidas: un clic manda la pregunta completa al asistente.
+  var chipsBox = document.getElementById('chispa-chips');
+  if (chipsBox) {
+    chipsBox.addEventListener('click', function(e) {
+      var b = e.target.closest('button[data-q]');
+      if (!b) return;
+      input.value = b.getAttribute('data-q') || '';
+      sendMessage();
+    });
+  }
 })();
 </script>
 

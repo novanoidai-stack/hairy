@@ -19,7 +19,7 @@
   var DICTS = {
     es: {
       nav_asistente: 'Asistente IA', nav_agenda: 'Agenda', nav_fichas: 'Fichas',
-      nav_comparativa: 'Comparativa', nav_specs: 'Especificaciones',
+      nav_comparativa: 'Comparativa', nav_precios: 'Precios', nav_specs: 'Especificaciones',
       nav_login: 'Iniciar sesión', nav_demo: 'Ver demo gratis',
       nav_enter: 'Entrar al software',
       hero_eyebrow: 'Software de gestión para peluquerías y barberías',
@@ -28,7 +28,7 @@
     },
     en: {
       nav_asistente: 'AI Assistant', nav_agenda: 'Schedule', nav_fichas: 'Client cards',
-      nav_comparativa: 'Compare', nav_specs: 'Specs',
+      nav_comparativa: 'Compare', nav_precios: 'Pricing', nav_specs: 'Specs',
       nav_login: 'Sign in', nav_demo: 'Try free demo',
       nav_enter: 'Enter software',
       hero_eyebrow: 'Management software for salons & barbers',
@@ -37,7 +37,7 @@
     },
     fr: {
       nav_asistente: 'Assistant IA', nav_agenda: 'Agenda', nav_fichas: 'Fiches',
-      nav_comparativa: 'Comparatif', nav_specs: 'Spécifications',
+      nav_comparativa: 'Comparatif', nav_precios: 'Tarifs', nav_specs: 'Spécifications',
       nav_login: 'Se connecter', nav_demo: 'Voir la démo',
       nav_enter: 'Entrer dans l\'app',
       hero_eyebrow: 'Logiciel de gestion pour salons de coiffure',
@@ -46,7 +46,7 @@
     },
     de: {
       nav_asistente: 'KI-Assistent', nav_agenda: 'Kalender', nav_fichas: 'Kundenkarten',
-      nav_comparativa: 'Vergleich', nav_specs: 'Spezifikationen',
+      nav_comparativa: 'Vergleich', nav_precios: 'Preise', nav_specs: 'Spezifikationen',
       nav_login: 'Anmelden', nav_demo: 'Kostenlose Demo',
       nav_enter: 'Zur Software',
       hero_eyebrow: 'Salon- und Barbermanagement-Software',
@@ -55,7 +55,7 @@
     },
     it: {
       nav_asistente: 'Assistente IA', nav_agenda: 'Agenda', nav_fichas: 'Schede',
-      nav_comparativa: 'Confronto', nav_specs: 'Specifiche',
+      nav_comparativa: 'Confronto', nav_precios: 'Prezzi', nav_specs: 'Specifiche',
       nav_login: 'Accedi', nav_demo: 'Prova la demo',
       nav_enter: 'Entra nel software',
       hero_eyebrow: 'Software di gestione per parrucchieri e barbieri',
@@ -64,7 +64,7 @@
     },
     pt: {
       nav_asistente: 'Assistente IA', nav_agenda: 'Agenda', nav_fichas: 'Fichas',
-      nav_comparativa: 'Comparativo', nav_specs: 'Especificações',
+      nav_comparativa: 'Comparativo', nav_precios: 'Preços', nav_specs: 'Especificações',
       nav_login: 'Entrar', nav_demo: 'Ver demo grátis',
       nav_enter: 'Entrar no software',
       hero_eyebrow: 'Software de gestão para cabeleireiros e barbeiros',
@@ -73,7 +73,7 @@
     },
     ca: {
       nav_asistente: 'Assistent IA', nav_agenda: 'Agenda', nav_fichas: 'Fitxes',
-      nav_comparativa: 'Comparativa', nav_specs: 'Especificacions',
+      nav_comparativa: 'Comparativa', nav_precios: 'Preus', nav_specs: 'Especificacions',
       nav_login: 'Entra', nav_demo: 'Prova la demo',
       nav_enter: 'Entra al programari',
       hero_eyebrow: 'Programari de gestió per a perruqueries i barberies',
