@@ -53,6 +53,7 @@
       case 'invalid_email_domain': return 'El dominio de este correo electrónico no es válido o no existe.';
       case 'phone_limit_reached': return 'Este número de teléfono ya ha superado el límite de 2 cuentas permitidas.';
       case 'weak_password': return 'La contrasena necesita al menos 8 caracteres.';
+      case 'leaked_password': return 'Esa contrasena aparece en filtraciones publicas de otros sitios. Elige otra distinta para proteger tu salon.';
       case 'missing_fields': return 'Completa el nombre del salon y tu nombre.';
       case 'network': return 'No se pudo conectar. Revisa tu conexion e intentalo de nuevo.';
       default: return 'No se pudo crear la cuenta. Intentalo de nuevo en un momento.';
@@ -200,8 +201,38 @@
 
   // Tras volver del enlace de recuperacion (sesion temporal ya activa), fija la
   // nueva contrasena. Devuelve { error }.
+  // Misma proteccion que en el alta, tambien al CAMBIAR la contrasena (el alta
+  // la comprueba en el servidor; aqui no hay servidor de por medio, asi que se
+  // hace en el navegador). K-anonimato: solo salen 5 caracteres del hash SHA-1,
+  // nunca la contrasena. Si el servicio falla, no se bloquea el cambio.
+  async function contrasenaFiltrada(password) {
+    try {
+      if (!window.crypto || !window.crypto.subtle) return false;
+      var datos = new TextEncoder().encode(password);
+      var hash = await window.crypto.subtle.digest('SHA-1', datos);
+      var hex = Array.prototype.map
+        .call(new Uint8Array(hash), function (b) { return ('0' + b.toString(16)).slice(-2); })
+        .join('').toUpperCase();
+      var res = await fetch('https://api.pwnedpasswords.com/range/' + hex.slice(0, 5), {
+        headers: { 'Add-Padding': 'true' }
+      });
+      if (!res.ok) return false;
+      var cuerpo = await res.text();
+      var sufijo = hex.slice(5);
+      return cuerpo.split('\n').some(function (linea) {
+        var partes = linea.trim().split(':');
+        return partes[0] === sufijo && Number(partes[1]) > 0;
+      });
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function updatePassword(newPassword) {
     try {
+      if (await contrasenaFiltrada(newPassword)) {
+        return { error: { message: signupErrorMessage('leaked_password'), code: 'leaked_password' } };
+      }
       var res = await client.auth.updateUser({ password: newPassword });
       return { error: res.error || null };
     } catch (e) {

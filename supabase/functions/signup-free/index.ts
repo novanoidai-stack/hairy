@@ -13,14 +13,18 @@ const ALLOWED_ORIGINS = [
   'https://mechaa.es',
   'https://hairy-two.vercel.app',
   'https://www.novanoidai.com',
-  'http://localhost:8080',
-  'http://localhost:3000',
-  'http://localhost:19006',
 ];
+
+// Cualquier puerto de localhost vale para desarrollo (el espejo local se sirve
+// en 8080, 8910 o el PORT que toque; fijar una lista rompia el alta en local).
+function esOrigenPermitido(origin: string): boolean {
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+}
 
 function corsHeaders(req: Request) {
   const origin = req.headers.get('origin') || '';
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowed = esOrigenPermitido(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -48,6 +52,49 @@ const DEMO_NEGOCIO_ID = 'demo_salon_001';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Proteccion contra contrasenas filtradas, hecha por nuestra cuenta.
+// Supabase Auth trae esta comprobacion (HaveIBeenPwned) SOLO en plan de pago, asi
+// que la hacemos aqui: es el mismo servicio y es gratis.
+//
+// K-ANONIMATO: la contrasena NUNCA sale de este servidor. Se calcula su SHA-1 y
+// se envian a la API solo los 5 PRIMEROS caracteres del hash; ellos devuelven
+// todos los hashes que empiezan igual (cientos) y comparamos aqui. El servicio
+// no puede saber cual era. La cabecera Add-Padding rellena la respuesta con
+// resultados falsos para que ni el tamano de la respuesta filtre informacion.
+async function contrasenaFiltrada(password: string): Promise<boolean> {
+  try {
+    const datos = new TextEncoder().encode(password);
+    const hash = await crypto.subtle.digest('SHA-1', datos);
+    const hex = Array.from(new Uint8Array(hash))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+      .toUpperCase();
+    const prefijo = hex.slice(0, 5);
+    const sufijo = hex.slice(5);
+
+    const ctl = new AbortController();
+    const tiempo = setTimeout(() => ctl.abort(), 3000);
+    const res = await fetch(`https://api.pwnedpasswords.com/range/${prefijo}`, {
+      headers: { 'Add-Padding': 'true' },
+      signal: ctl.signal,
+    });
+    clearTimeout(tiempo);
+    if (!res.ok) return false; // el servicio falla -> no bloqueamos el alta
+
+    const cuerpo = await res.text();
+    for (const linea of cuerpo.split('\n')) {
+      const [suf, veces] = linea.trim().split(':');
+      // El padding viene con contador 0: esas entradas son de relleno.
+      if (suf === sufijo && Number(veces) > 0) return true;
+    }
+    return false;
+  } catch (_e) {
+    // Sin red o timeout: preferimos dejar crear la cuenta a dejar fuera a un
+    // cliente real por un fallo nuestro (fail-open deliberado).
+    return false;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405, req);
@@ -73,6 +120,12 @@ Deno.serve(async (req: Request) => {
   if (!password || password.length < 8 || password.length > 200) return json({ error: 'weak_password' }, 400, req);
   if (!nombre || !salon) return json({ error: 'missing_fields' }, 400, req);
   if (nombre.length > 80 || salon.length > 80 || telefono.length > 20) return json({ error: 'missing_fields' }, 400, req);
+
+  // Contrasena aparecida en filtraciones publicas: se rechaza antes de crear
+  // nada (sustituye a la opcion "Leaked password protection" de Supabase Pro).
+  if (await contrasenaFiltrada(password)) {
+    return json({ error: 'leaked_password' }, 400, req);
+  }
 
   // 1) Validar dominio de correo mediante DNS MX para evitar cuentas ficticias
   const domain = email.split('@')[1];
