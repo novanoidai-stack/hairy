@@ -134,6 +134,18 @@
   .ad-tab .badge{display:inline-block;margin-left:8px;font-size:11px;font-weight:700;color:var(--text);
     background:var(--card-hi);border:1px solid var(--border-hi);border-radius:20px;padding:1px 8px;vertical-align:middle}
 
+  /* ---- acciones rapidas de una peticion ---- */
+  .r-acts{display:flex;flex-wrap:wrap;gap:7px;margin-left:auto}
+  .r-act{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
+    color:var(--text-sec);background:var(--card);border:1px solid var(--border-hi);
+    border-radius:8px;padding:6px 11px;cursor:pointer;text-decoration:none;font-family:inherit;
+    transition:border-color .15s,color .15s}
+  .r-act:hover{color:var(--text);border-color:var(--accent)}
+  .r-act svg{width:14px;height:14px}
+  .r-act-ok{color:#34d399;border-color:rgba(16,185,129,.3)}
+  .r-act-ok:hover{color:#34d399;border-color:#34d399}
+  .r-act:disabled{opacity:.5;cursor:wait}
+
   /* ---- selector de plan contratado ---- */
   .plan-switch{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;
     color:var(--text-sec);background:var(--card);border:1px solid var(--border-hi);
@@ -247,17 +259,17 @@
   <div class="ad-hero">
     <span class="ad-eyebrow">Equipo Mecha · Centro de control</span>
     <h1 class="ad-h1">Solicitudes y cuentas</h1>
-    <p class="ad-sub">Revisa las solicitudes de demo y reserva, y gestiona las cuentas: da acceso completo o ajusta las visitas de demo.</p>
+    <p class="ad-sub">Peticiones que entran por la web y gestion de cuentas: plan contratado, rol de cada persona, equipo de Mecha, referidos y gasto de IA.</p>
   </div>
 
   <div class="ad-tabs">
     <button class="ad-tab active" id="tabSol" data-view="solicitudes">Solicitudes<span class="badge" id="badgeSol">0</span></button>
     <button class="ad-tab" id="tabCue" data-view="cuentas">Cuentas<span class="badge" id="badgeCue">0</span></button>
-    <button class="ad-tab" id="tabRef" data-view="referidos">Referidos<span class="badge" id="badgeRef">0</span></button>
-    <button class="ad-tab" id="tabRes" data-view="resenas">Reseñas Mecha<span class="badge" id="badgeRes">0</span></button>
-    <button class="ad-tab" id="tabStf" data-view="staff">Staff / Equipo<span class="badge" id="badgeStf">0</span></button>
-    <button class="ad-tab" id="tabAud" data-view="auditoria_ia">Auditoría IA<span class="badge" id="badgeAud">0</span></button>
-    <button class="ad-tab" id="tabMov" data-view="movimientos">Movimientos<span class="badge" id="badgeMov">0</span></button>
+    <button class="ad-tab" id="tabRef" data-view="referidos">Referidos<span class="badge" id="badgeRef"></span></button>
+    <button class="ad-tab" id="tabRes" data-view="resenas">Reseñas Mecha<span class="badge" id="badgeRes"></span></button>
+    <button class="ad-tab" id="tabStf" data-view="staff">Staff / Equipo<span class="badge" id="badgeStf"></span></button>
+    <button class="ad-tab" id="tabAud" data-view="auditoria_ia">Auditoría IA<span class="badge" id="badgeAud"></span></button>
+    <button class="ad-tab" id="tabMov" data-view="movimientos">Movimientos<span class="badge" id="badgeMov"></span></button>
   </div>
 
   <!-- VISTA: RESEÑAS MECHA -->
@@ -337,8 +349,9 @@
       </div>
       <select class="ad-sel" id="fPlan">
         <option value="">Todos los planes</option>
-        <option value="free">Free</option>
-        <option value="full">Full</option>
+        <option value="free">Gratis (solo demo)</option>
+        <option value="esencial">Esencial</option>
+        <option value="estudio">Estudio</option>
       </select>
       <select class="ad-sel" id="fRole">
         <option value="">Todos los roles</option>
@@ -546,6 +559,7 @@
     panel.style.display = 'block';
     $('meEmail').textContent = email || '';
     load();
+    cargarContadores();
   }
 
   function denyAccess(text) {
@@ -684,6 +698,31 @@
 
     var note = r.nota ? '<div class="r-note">' + esc(r.nota) + '</div>' : '';
 
+    // Acciones rapidas: contestar sin salir del panel y cerrar el lead de un clic.
+    var quien = (r.nombre || '').split(' ')[0] || '';
+    var asunto = r.tipo === 'reserva_llamada' ? 'Tu llamada con Mecha' : 'Tu consulta sobre Mecha';
+    var cuerpo = 'Hola' + (quien ? ' ' + quien : '') + ',' + String.fromCharCode(10, 10);
+    var acciones = '<div class="r-acts">';
+    if (r.email) {
+      acciones += '<a class="r-act" href="mailto:' + esc(r.email) +
+        '?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo) + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>Responder</a>';
+    }
+    if (r.telefono) {
+      var tel = String(r.telefono).replace(/[^0-9+]/g, '');
+      var wa = tel.replace(/^\+/, '');
+      if (wa && wa.length >= 9 && wa.charAt(0) !== '0' && wa.length <= 9) wa = '34' + wa;
+      acciones += '<a class="r-act" href="https://wa.me/' + esc(wa) + '" target="_blank" rel="noopener">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg>WhatsApp</a>';
+      acciones += '<a class="r-act" href="tel:' + esc(tel) + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Llamar</a>';
+    }
+    if (r.estado === 'nueva') {
+      acciones += '<button class="r-act r-act-ok" data-contactada="' + esc(r.id) + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Marcar contactada</button>';
+    }
+    acciones += '</div>';
+
     return '<div class="card-row" data-id="' + esc(r.id) + '">' +
       '<div class="r-head">' +
         '<div class="r-id">' +
@@ -698,6 +737,7 @@
       '<div class="r-foot">' +
         '<label>Estado</label>' +
         '<select class="estado-sel" data-estado="' + esc(r.estado) + '" data-id="' + esc(r.id) + '">' + estadoOpts + '</select>' +
+        acciones +
       '</div>' +
     '</div>';
   }
@@ -711,6 +751,24 @@
       return;
     }
     listEl.innerHTML = data.map(rowHtml).join('');
+
+    listEl.querySelectorAll('[data-contactada]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-contactada');
+        btn.disabled = true;
+        api.client.from('solicitudes').update({ estado: 'contactada' }).eq('id', id).then(function (res) {
+          if (res.error) {
+            btn.disabled = false;
+            msg($('panelMsg'), 'err', 'No se pudo marcar como contactada.');
+            return;
+          }
+          var local = rows.filter(function (x) { return x.id === id; })[0];
+          if (local) local.estado = 'contactada';
+          renderStats();
+          render();
+        });
+      });
+    });
 
     listEl.querySelectorAll('.estado-sel').forEach(function (sel) {
       sel.addEventListener('change', function () {
@@ -769,6 +827,13 @@
   };
 
   function isStaffAccount(p) { return !!(p && p.email && staffEmails[String(p.email).toLowerCase()]); }
+  // Plan canonico: 'full' es el valor historico de las cuentas con acceso
+  // completo y equivale a 'estudio' (mismo criterio que lib/planes.ts).
+  var PLAN_TXT = { free: 'gratis', esencial: 'Esencial', estudio: 'Estudio' };
+  function planCanonico(p) {
+    var v = String((p && p.plan) || 'free').toLowerCase();
+    return v === 'full' ? 'estudio' : (PLAN_TXT[v] ? v : 'free');
+  }
   // Clasificacion de la cuenta: equipo (staff) > con acceso (full) > demo (free).
   function accountKind(p) {
     if (isStaffAccount(p)) return 'staff';
@@ -803,8 +868,9 @@
   function renderCuentasStats() {
     var total = accounts.length;
     var staffN = accounts.filter(isStaffAccount).length;
-    var free = accounts.filter(function (p) { return accountKind(p) === 'free'; }).length;
-    var full = accounts.filter(function (p) { return accountKind(p) === 'full'; }).length;
+    var free = accounts.filter(function (p) { return planCanonico(p) === 'free'; }).length;
+    var esencial = accounts.filter(function (p) { return planCanonico(p) === 'esencial'; }).length;
+    var estudio = accounts.filter(function (p) { return planCanonico(p) === 'estudio'; }).length;
     var enDemo = accounts.filter(function (p) { return p.negocio_id === 'demo_salon_001'; }).length;
     var negocios = {};
     accounts.forEach(function (p) {
@@ -816,26 +882,14 @@
       { n: total, l: 'Cuentas' },
       { n: negociosUnicos, l: 'Negocios' },
       { n: staffN, l: 'Equipo' },
-      { n: full, l: 'Con acceso' },
-      { n: free, l: 'Free' }
+      { n: estudio, l: 'Estudio' },
+      { n: esencial, l: 'Esencial' },
+      { n: free, l: 'Gratis' }
     ];
     $('statsCue').innerHTML = stats.map(function (s) {
       return '<div class="ad-stat"><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>';
     }).join('');
     var bc = $('badgeCue'); if (bc) bc.textContent = total;
-  }
-
-  function cuentasFiltered() {
-    var q = ($('qCue').value || '').trim().toLowerCase();
-    var plan = $('fPlan').value;
-    return accounts.filter(function (p) {
-      if (plan && (p.plan || 'free') !== plan) return false;
-      if (q) {
-        var hay = [p.nombre, p.apellido, p.email, p.nombre_negocio, p.negocio_id, p.phone].join(' ').toLowerCase();
-        if (hay.indexOf(q) === -1) return false;
-      }
-      return true;
-    });
   }
 
   function getRoleBadgeHtml(role) {
@@ -876,12 +930,8 @@
   }
 
   function cuentaRowHtml(p, subaccountsCount) {
-    var plan = p.plan || 'free';
-    // 'full' es el valor historico de las cuentas con acceso completo: se lee
-    // como 'estudio' (mismo criterio que lib/planes.ts en la app).
-    var planCanon = plan === 'full' ? 'estudio' : plan;
+    var planCanon = planCanonico(p);
     var planClass = planCanon === 'free' ? 'free' : 'full';
-    var PLAN_TXT = { free: 'gratis', esencial: 'Esencial', estudio: 'Estudio' };
     var isDemo = p.negocio_id === 'demo_salon_001';
 
     var grid = '';
@@ -905,6 +955,17 @@
         '<option value="free"' + (planCanon === 'free' ? ' selected' : '') + '>Gratis (solo demo)</option>' +
         '<option value="esencial"' + (planCanon === 'esencial' ? ' selected' : '') + '>Esencial</option>' +
         '<option value="estudio"' + (planCanon === 'estudio' ? ' selected' : '') + '>Estudio</option>' +
+      '</select></label>';
+
+    // Rol dentro de su salon: quien manda y quien no. Antes solo se veia la
+    // insignia y no habia forma de cambiarlo desde aqui.
+    var ROLES = [['owner','Propietario'],['admin','Direccion'],['recepcion','Recepcion'],['employee','Profesional']];
+    var rolActual = p.role || 'employee';
+    action += '<label class="plan-switch" title="Rol dentro de su salon: que puede hacer esta persona.">' +
+      '<span>Rol</span><select data-role-for="' + esc(p.id) + '">' +
+      ROLES.map(function (r) {
+        return '<option value="' + r[0] + '"' + (rolActual === r[0] ? ' selected' : '') + '>' + r[1] + '</option>';
+      }).join('') +
       '</select></label>';
 
     if (planCanon === 'free') {
@@ -963,7 +1024,7 @@
 
     // Filtrar cuentas primero
     var filtered = accounts.filter(function (p) {
-      if (plan && (p.plan || 'free') !== plan) return false;
+      if (plan && planCanonico(p) !== plan) return false;
       if (role) {
         var roleMatch = (p.role || 'employee') === role || (role === 'employee' && !p.role);
         if (!roleMatch) return false;
@@ -1083,6 +1144,44 @@
           sel.disabled = false;
           sel.value = anterior;
           msg($('cueMsg'), 'err', 'No se pudo cambiar el plan: ' + (e && e.message ? e.message : e));
+        });
+      });
+    });
+
+    // Cambio de rol dentro del salon.
+    listEl.querySelectorAll('select[data-role-for]').forEach(function (sel) {
+      var anterior = sel.value;
+      sel.addEventListener('change', function () {
+        var id = sel.getAttribute('data-role-for');
+        var nuevo = sel.value;
+        var p = accounts.filter(function (x) { return x.id === id; })[0];
+        var quien = p ? (p.nombre || p.email || 'esta cuenta') : 'esta cuenta';
+        var TXT = { owner: 'Propietario', admin: 'Direccion', recepcion: 'Recepcion', employee: 'Profesional' };
+        if (!window.confirm('Cambiar el rol de "' + quien + '" a ' + TXT[nuevo] + '?')) {
+          sel.value = anterior;
+          return;
+        }
+        sel.disabled = true;
+        api.client.rpc('staff_set_role', { target_user_id: id, new_role: nuevo }).then(function (res) {
+          sel.disabled = false;
+          if (res.error) {
+            sel.value = anterior;
+            var m = res.error.message || '';
+            msg($('cueMsg'), 'err', m.indexOf('not_authorized') !== -1
+              ? 'Tu cuenta no tiene permiso para cambiar roles.'
+              : 'No se pudo cambiar el rol: ' + m);
+            return;
+          }
+          var updated = res.data && res.data.length ? res.data[0] : res.data;
+          var local = accounts.filter(function (x) { return x.id === id; })[0];
+          if (local && updated) local.role = updated.role;
+          anterior = nuevo;
+          msg($('cueMsg'), 'ok', 'Rol de "' + quien + '" cambiado a ' + TXT[nuevo] + '.');
+          renderCuentas();
+        }).catch(function (e) {
+          sel.disabled = false;
+          sel.value = anterior;
+          msg($('cueMsg'), 'err', 'No se pudo cambiar el rol: ' + (e && e.message ? e.message : e));
         });
       });
     });
@@ -1775,6 +1874,18 @@
   }
 
   // ---------- TABS ----------
+  // Cuenta lo de cada pestana nada mas entrar, para que las insignias digan la
+  // verdad desde el principio (antes ponian 0 hasta que abrias la pestana).
+  function cargarContadores() {
+    function pon(id, n) { var el = $(id); if (el) el.textContent = (n == null ? '' : String(n)); }
+    api.client.from('staff').select('email', { count: 'exact', head: true })
+      .then(function (r) { if (!r.error) pon('badgeStf', r.count); }).catch(function () {});
+    api.client.from('resenas').select('id', { count: 'exact', head: true })
+      .then(function (r) { if (!r.error) pon('badgeRes', r.count); }).catch(function () {});
+    api.client.from('profiles').select('id', { count: 'exact', head: true })
+      .then(function (r) { if (!r.error) pon('badgeCue', r.count); }).catch(function () {});
+  }
+
   function switchView(view) {
     var sol = view === 'solicitudes';
     var cue = view === 'cuentas';
