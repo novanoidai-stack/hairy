@@ -1058,9 +1058,7 @@
         var p = accounts.filter(function (x) { return x.id === id; })[0];
         var quien = p ? (p.nombre_negocio || p.email || 'esta cuenta') : 'esta cuenta';
         var TXT = { free: 'Gratis (solo demo)', esencial: 'Esencial', estudio: 'Estudio' };
-        if (!window.confirm('Cambiar el plan de "' + quien + '" a ' + TXT[nuevo] + '?
-
-La cuenta pasara a tener exactamente lo que incluye ese plan.')) {
+        if (!window.confirm('Cambiar el plan de "' + quien + '" a ' + TXT[nuevo] + '?' + String.fromCharCode(10, 10) + 'La cuenta pasara a tener exactamente lo que incluye ese plan.')) {
           sel.value = anterior;
           return;
         }
