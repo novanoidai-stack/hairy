@@ -3603,6 +3603,10 @@ function slugifyPortal(s: string): string {
     .slice(0, 40);
 }
 
+// Foto del local para la ficha del directorio (tabla negocio_fotos, bucket
+// publico salon-fotos). La primera por `orden` es la que sale en el listado.
+type NegocioFoto = { id: string; url: string; alt: string | null; orden: number };
+
 // Gestion del portal de reserva publica de ESTE salon (tabla negocio_portal).
 // Cada negocio activa su portal, elige su enlace (slug) y que se muestra.
 function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultTelefono }: {
@@ -3612,6 +3616,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
   defaultTelefono?: string;
 }) {
   const router = useRouter();
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activo, setActivo] = useState(true);
@@ -3627,6 +3632,17 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const [analyticsMeasurementId, setAnalyticsMeasurementId] = useState('');
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  // Directorio publico (/salones). Presencia opt-in: nadie sale listado sin pedirlo.
+  const [directorioVisible, setDirectorioVisible] = useState(false);
+  const [descripcion, setDescripcion] = useState('');
+  const [ciudad, setCiudad] = useState('');
+  const [provincia, setProvincia] = useState('');
+  const [codigoPostal, setCodigoPostal] = useState('');
+  const [lat, setLat] = useState('');
+  const [lng, setLng] = useState('');
+  const [fotos, setFotos] = useState<NegocioFoto[]>([]);
+  const [subiendoFotos, setSubiendoFotos] = useState(false);
+  const [fotosMsg, setFotosMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
     if (!negocioId) return;
@@ -3649,6 +3665,13 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         const analyticsCfg = data.analytics_config as { enabled?: boolean; measurementId?: string } | null;
         setAnalyticsEnabled(analyticsCfg?.enabled || false);
         setAnalyticsMeasurementId(analyticsCfg?.measurementId || '');
+        setDirectorioVisible(!!data.directorio_visible);
+        setDescripcion(data.descripcion || '');
+        setCiudad(data.ciudad || '');
+        setProvincia(data.provincia || '');
+        setCodigoPostal(data.codigo_postal || '');
+        setLat(data.lat != null ? String(data.lat) : '');
+        setLng(data.lng != null ? String(data.lng) : '');
       } else {
         setActivo(true);
         setSlug(slugifyPortal(defaultNombre || ''));
@@ -3656,6 +3679,14 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         setDireccion(defaultDireccion || '');
         setTelefono(defaultTelefono || '');
       }
+      const { data: fotosData } = await supabase
+        .from('negocio_fotos')
+        .select('id, url, alt, orden')
+        .eq('negocio_id', negocioId)
+        .order('orden')
+        .order('created_at');
+      if (cancel) return;
+      setFotos((fotosData as NegocioFoto[]) || []);
       setLoading(false);
     })();
     return () => { cancel = true; };
@@ -3704,10 +3735,24 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     }
   }, [enlaceResena]);
 
+  // Coordenada opcional: vacio -> null. Devuelve undefined si el texto no es un
+  // numero valido dentro de rango (la tabla tiene checks y rechazaria el upsert).
+  const parseCoord = (raw: string, limite: number): number | null | undefined => {
+    const t = raw.trim().replace(',', '.');
+    if (!t) return null;
+    const n = Number(t);
+    if (!Number.isFinite(n) || n < -limite || n > limite) return undefined;
+    return n;
+  };
+
   const guardar = useCallback(async () => {
     setMsg(null);
     const s = slugifyPortal(slug);
     if (s.length < 3) { setMsg({ ok: false, text: 'El enlace debe tener al menos 3 caracteres (letras, numeros o guiones).' }); return; }
+    const latNum = parseCoord(lat, 90);
+    const lngNum = parseCoord(lng, 180);
+    if (latNum === undefined) { setMsg({ ok: false, text: 'La latitud debe ser un numero entre -90 y 90.' }); return; }
+    if (lngNum === undefined) { setMsg({ ok: false, text: 'La longitud debe ser un numero entre -180 y 180.' }); return; }
     setSaving(true);
     const { error } = await supabase.from('negocio_portal').upsert({
       negocio_id: negocioId,
@@ -3721,6 +3766,13 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
       mostrar_precios: mostrarPrecios,
       captcha_activo: captchaActivo,
       analytics_config: { enabled: analyticsEnabled, measurementId: analyticsMeasurementId.trim(), consentGiven: false },
+      directorio_visible: directorioVisible,
+      descripcion: descripcion.trim() || null,
+      ciudad: ciudad.trim() || null,
+      provincia: provincia.trim() || null,
+      codigo_postal: codigoPostal.trim() || null,
+      lat: latNum,
+      lng: lngNum,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'negocio_id' });
     setSaving(false);
@@ -3736,7 +3788,74 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     setSlug(s);
     setSavedSlug(s);
     setMsg({ ok: true, text: 'Portal guardado correctamente.' });
-  }, [negocioId, slug, nombre, direccion, telefono, web, idioma, activo, mostrarPrecios, captchaActivo]);
+  }, [negocioId, slug, nombre, direccion, telefono, web, idioma, activo, mostrarPrecios, captchaActivo,
+      analyticsEnabled, analyticsMeasurementId, directorioVisible, descripcion, ciudad, provincia, codigoPostal, lat, lng]);
+
+  // Las fotos NO esperan al boton "Guardar portal": se suben y se borran al
+  // momento, porque cada una es una fila y un objeto en el bucket.
+  const subirFotos = useCallback(async (files: FileList | null) => {
+    if (!files || !files.length || !negocioId) return;
+    setFotosMsg(null);
+    setSubiendoFotos(true);
+    const nuevas: NegocioFoto[] = [];
+    let base = fotos.length ? Math.max(...fotos.map((f) => f.orden)) + 1 : 0;
+    try {
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith('image/')) { setFotosMsg({ ok: false, text: 'Solo se pueden subir imagenes.' }); continue; }
+        if (file.size > 5 * 1024 * 1024) { setFotosMsg({ ok: false, text: `"${file.name}" supera los 5MB.` }); continue; }
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const c: any = (globalThis as any).crypto;
+        const rand = c && typeof c.randomUUID === 'function' ? c.randomUUID() : `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        // La politica del bucket exige que la primera carpeta sea el negocio_id.
+        const path = `${negocioId}/${rand}.${ext}`;
+        const up = await supabase.storage.from('salon-fotos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false });
+        if (up.error) { setFotosMsg({ ok: false, text: 'No se pudo subir la foto.' }); continue; }
+        const { data: pub } = supabase.storage.from('salon-fotos').getPublicUrl(path);
+        const ins = await supabase.from('negocio_fotos')
+          .insert({ negocio_id: negocioId, url: pub.publicUrl, orden: base })
+          .select('id, url, alt, orden')
+          .single();
+        if (ins.error || !ins.data) {
+          // Si la fila no entra, el objeto subido se queda huerfano: se retira.
+          await supabase.storage.from('salon-fotos').remove([path]);
+          setFotosMsg({ ok: false, text: mensajeDeError(ins.error, 'No se pudo guardar la foto.') });
+          continue;
+        }
+        nuevas.push(ins.data as NegocioFoto);
+        base += 1;
+      }
+      if (nuevas.length) {
+        setFotos((prev) => [...prev, ...nuevas]);
+        setFotosMsg({ ok: true, text: nuevas.length === 1 ? 'Foto subida.' : `${nuevas.length} fotos subidas.` });
+      }
+    } finally {
+      setSubiendoFotos(false);
+    }
+  }, [negocioId, fotos]);
+
+  const borrarFoto = useCallback(async (foto: NegocioFoto) => {
+    setFotosMsg(null);
+    const { error } = await supabase.from('negocio_fotos').delete().eq('id', foto.id);
+    if (error) { setFotosMsg({ ok: false, text: mensajeDeError(error, 'No se pudo borrar la foto.') }); return; }
+    // El objeto del bucket se retira despues: si falla, la foto ya no se ve.
+    const marca = '/salon-fotos/';
+    const i = foto.url.indexOf(marca);
+    if (i >= 0) await supabase.storage.from('salon-fotos').remove([foto.url.slice(i + marca.length)]);
+    setFotos((prev) => prev.filter((f) => f.id !== foto.id));
+  }, []);
+
+  // La foto principal es la de `orden` mas bajo: es la unica que sale en el
+  // listado del directorio, el resto solo en la ficha.
+  const hacerPrincipal = useCallback(async (foto: NegocioFoto) => {
+    setFotosMsg(null);
+    const resto = fotos.filter((f) => f.id !== foto.id);
+    const ordenadas = [foto, ...resto].map((f, i) => ({ ...f, orden: i }));
+    setFotos(ordenadas);
+    for (const f of ordenadas) {
+      const { error } = await supabase.from('negocio_fotos').update({ orden: f.orden }).eq('id', f.id);
+      if (error) { setFotosMsg({ ok: false, text: mensajeDeError(error, 'No se pudo reordenar.') }); return; }
+    }
+  }, [fotos]);
 
   if (loading) {
     return <div style={{ padding: 40, textAlign: 'center', color: T.textTertiary }}>Cargando portal...</div>;
@@ -3812,16 +3931,16 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
 
       <Section title="Datos publicos" desc="Lo que ven las clientes en la cabecera del portal.">
         <FieldRow label="Nombre publico" hint="El nombre de tu salon tal y como aparece en el portal.">
-          <STextInput value={nombre} onChange={setNombre} placeholder="Mi salon" width={280} />
+          <STextInput value={nombre} onChange={setNombre} placeholder="Mi salon" width={isMobile ? undefined : 280} />
         </FieldRow>
         <FieldRow label="Direccion" hint="Direccion que se muestra bajo el nombre. Opcional.">
-          <STextInput value={direccion} onChange={setDireccion} placeholder="Calle, numero, ciudad" width={360} />
+          <STextInput value={direccion} onChange={setDireccion} placeholder="Calle, numero, ciudad" width={isMobile ? undefined : 360} />
         </FieldRow>
         <FieldRow label="Telefono" hint="Telefono de contacto para las clientes. Opcional.">
           <div style={{ width: 240 }}><PhoneInput compact value={telefono} onChange={(e164) => setTelefono(e164)} placeholder="600 000 000" /></div>
         </FieldRow>
         <FieldRow label="Sitio web" hint="Tu web o redes. Se muestra en el portal para que las clientes te encuentren. Opcional.">
-          <STextInput value={web} onChange={setWeb} placeholder="https://tusalon.com" width={360} />
+          <STextInput value={web} onChange={setWeb} placeholder="https://tusalon.com" width={isMobile ? undefined : 360} />
         </FieldRow>
       </Section>
 
@@ -3838,6 +3957,81 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         </FieldRow>
         <FieldRow label="Proteccion CAPTCHA" hint="Protege el portal contra bots automatizados. Recomendado: siempre activo.">
           <Toggle on={captchaActivo} onChange={setCaptchaActivo} label={captchaActivo ? 'Activo' : 'Inactivo'} />
+        </FieldRow>
+      </Section>
+
+      <Section title="Directorio publico" desc="El buscador de salones de Mecha. Salir en el es opcional: solo aparece tu salon si lo pides aqui.">
+        <FieldRow label="Aparecer en el directorio" hint="Si esta apagado no sales en el buscador. Tu enlace de reserva y tu QR siguen funcionando igual.">
+          <Toggle on={directorioVisible} onChange={setDirectorioVisible} label={directorioVisible ? 'Listado' : 'No listado'} />
+        </FieldRow>
+        <FieldRow label="Descripcion" hint="Un par de frases sobre tu salon. Solo se ve en tu ficha del directorio, no en el portal de reserva.">
+          <textarea
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            maxLength={600}
+            placeholder="Barberia de barrio con veinte anos detras. Cortes clasicos y afeitado a navaja."
+            style={{
+              width: '100%', maxWidth: 520, minHeight: 76, padding: '8px 10px',
+              background: T.bg, border: `1px solid ${T.border}`, borderRadius: 9,
+              color: T.text, fontSize: 12.5, fontFamily: 'inherit', outline: 'none',
+              resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.5,
+            }}
+          />
+        </FieldRow>
+        <FieldRow label="Ciudad" hint="Es como te encuentran al buscar por zona. Sin ciudad solo apareces buscando por nombre o por servicio.">
+          <STextInput value={ciudad} onChange={setCiudad} placeholder="A Coruna" width={isMobile ? undefined : 240} />
+        </FieldRow>
+        <FieldRow label="Provincia y codigo postal" hint="Opcionales. Ayudan a situar el salon en su ficha.">
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <STextInput value={provincia} onChange={setProvincia} placeholder="A Coruna" width={isMobile ? undefined : 200} />
+            <STextInput value={codigoPostal} onChange={setCodigoPostal} placeholder="15004" width={isMobile ? undefined : 110} />
+          </div>
+        </FieldRow>
+        <FieldRow label="Coordenadas" hint="Opcional y solo si las sabes (por ejemplo, copiadas de Google Maps). Sirven para ordenar por cercania cuando la clienta busca cerca de ella.">
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <STextInput value={lat} onChange={setLat} placeholder="Latitud: 43.3713" width={isMobile ? undefined : 180} />
+            <STextInput value={lng} onChange={setLng} placeholder="Longitud: -8.4188" width={isMobile ? undefined : 180} />
+          </div>
+        </FieldRow>
+        <FieldRow label="Fotos del local" hint="Se ven en tu ficha del directorio. La principal es ademas la que sale en el listado de resultados. JPG o PNG, max 5 MB cada una.">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {fotos.length > 0 && (
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {fotos.map((f, i) => (
+                  <div key={f.id} style={{ width: 132 }}>
+                    <div style={{ position: 'relative', width: 132, height: 96, borderRadius: 9, overflow: 'hidden', background: T.bgCardHi, border: `1px solid ${T.border}` }}>
+                      <img src={f.url} alt={f.alt || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      {i === 0 && (
+                        <span style={{ position: 'absolute', top: 6, left: 6, padding: '2px 7px', borderRadius: 999, background: 'rgba(244,80,30,0.92)', color: '#fff', fontSize: 10, fontWeight: 700 }}>Principal</span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, marginTop: 5 }}>
+                      {i !== 0 && (
+                        <button
+                          onClick={() => hacerPrincipal(f)}
+                          style={{ background: 'none', border: 'none', padding: 0, color: T.primaryHi, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                        >Principal</button>
+                      )}
+                      <button
+                        onClick={() => borrarFoto(f)}
+                        style={{ background: 'none', border: 'none', padding: 0, color: T.danger, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                      >Quitar</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 8, background: 'rgba(244,80,30,0.14)', border: '1px solid rgba(244,80,30,0.4)', color: T.primaryHi, fontSize: 11, fontWeight: 600, cursor: subiendoFotos ? 'default' : 'pointer' }}>
+                {subiendoFotos ? 'Subiendo...' : fotos.length ? 'Anadir fotos' : 'Subir fotos'}
+                <input type="file" accept="image/*" multiple disabled={subiendoFotos} onChange={(e) => { subirFotos(e.target.files); e.target.value = ''; }} style={{ display: 'none' }} />
+              </label>
+              {fotosMsg && <span style={{ fontSize: 11, color: fotosMsg.ok ? T.success : T.danger }}>{fotosMsg.text}</span>}
+            </div>
+            {!fotos.length && (
+              <span style={{ fontSize: 11, color: T.textTertiary }}>Sin fotos, tu salon sale con la inicial de su nombre sobre un fondo de color.</span>
+            )}
+          </div>
         </FieldRow>
       </Section>
 
