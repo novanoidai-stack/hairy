@@ -445,20 +445,57 @@
   /* ---- slots ---- */
   var AM=['09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00'];
   var PM=['16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30'];
+  // La fecha del calendario se guarda como marca de tiempo (toISOString), que en
+  // hora de Espana cae en el dia ANTERIOR a las 22:00Z. Para comparar dias (y
+  // para guardarlos) usamos siempre el dia LOCAL en formato YYYY-MM-DD.
+  function diaLocal(x){
+    if(!x) return null;
+    var d = (x instanceof Date) ? x : new Date(x);
+    if(isNaN(d.getTime())) return null;
+    var m = String(d.getMonth()+1).padStart(2,'0');
+    var dd = String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + m + '-' + dd;
+  }
+  // Horas ya cogidas ese dia (de verdad). Antes se marcaban al azar con una
+  // formula "para que pareciera real": bloqueaba huecos libres sin sentido.
+  var ocupadas = [];
+  function esPasado(t){
+    if(!state.day) return false;
+    var hoy=new Date(); var d=new Date(state.day);
+    if(d.toDateString()!==hoy.toDateString()) return false;
+    var hm=String(t).split(':');
+    var cuando=new Date(d); cuando.setHours(parseInt(hm[0],10)||0, parseInt(hm[1],10)||0, 0, 0);
+    // Margen de media hora: no ofrecemos una llamada "ya mismo".
+    return cuando.getTime() < (hoy.getTime() + 30*60000);
+  }
   function buildSlots(){
     var amWrap=$('.bk-slots[data-period="am"]'); amWrap.innerHTML='';
     var pmWrap=$('.bk-slots[data-period="pm"]'); pmWrap.innerHTML='';
-    // pseudo-random unavailability seeded by selected day so it feels real & stable
-    var seed = state.day ? new Date(state.day).getDate() : 7;
-    function make(list,wrap,off){
-      list.forEach(function(t,i){
+    function make(list,wrap){
+      list.forEach(function(t){
         var b=document.createElement('button'); b.type='button'; b.className='bk-slot'; b.textContent=t;
-        if(((i+seed+off)%5)===0){ b.classList.add('off'); }
-        else b.addEventListener('click',function(){ selectSlot(this,t); });
+        var noDisponible = ocupadas.indexOf(t)!==-1 || esPasado(t);
+        if(noDisponible){
+          b.classList.add('off');
+          b.title = ocupadas.indexOf(t)!==-1 ? 'Esa hora ya esta cogida' : 'Esa hora ya ha pasado';
+        } else {
+          b.addEventListener('click',function(){ selectSlot(this,t); });
+        }
         wrap.appendChild(b);
       });
     }
-    make(AM,amWrap,0); make(PM,pmWrap,2);
+    make(AM,amWrap); make(PM,pmWrap);
+  }
+  // Consulta las horas cogidas del dia elegido y repinta. Si falla, se muestran
+  // todas libres: mejor eso que inventarse ocupacion.
+  function cargarOcupadas(){
+    ocupadas = [];
+    buildSlots();
+    if(!state.day || !window.MechaAPI || !window.MechaAPI.client) return;
+    window.MechaAPI.client.rpc('horas_llamada_ocupadas',{ p_fecha: diaLocal(state.day) })
+      .then(function(res){
+        if(res && !res.error && Array.isArray(res.data)) { ocupadas = res.data; buildSlots(); }
+      }).catch(function(){});
   }
   buildSlots();
 
@@ -467,7 +504,7 @@
     el.classList.add('sel');
     state.day=el.dataset.iso; state.slot=null;
     $('#slotEmpty').hidden=true; $('#slotWrap').hidden=false;
-    buildSlots();
+    cargarOcupadas();
     updateSummary(); checkStep1();
   }
   function selectSlot(el,t){
@@ -589,8 +626,28 @@
       herramienta_actual:state.tool||null,
       nota:$('#fNote').value.trim()||null,
       fecha_preferida:state.day?fmtLong(state.day):null,
-      hora_preferida:state.slot||null
+      hora_preferida:state.slot||null,
+      // La fecha en ISO va en meta: fecha_preferida es texto legible y no sirve
+      // para saber que horas estan cogidas (ver horas_llamada_ocupadas).
+      meta:{ fecha_iso: diaLocal(state.day) }
     }); }
+    // Aviso por correo: a NOSOTROS con sus datos y a el con la confirmacion.
+    // Antes solo se escribia la solicitud en la base y el correo dependia de un
+    // endpoint de otro proyecto: si fallaba, no nos enteraba nadie.
+    if(window.MechaAPI && window.MechaAPI.client){
+      window.MechaAPI.client.functions.invoke('notificar-solicitud',{ body:{
+        tipo:'reserva_llamada',
+        nombre:$('#fName').value.trim(),
+        email:$('#fEmail').value.trim(),
+        telefono:PhoneE164.e164($('#fPhone')),
+        salon:$('#fSalon').value.trim(),
+        mensaje:$('#fNote').value.trim()||null,
+        fecha_iso: diaLocal(state.day),
+        hora: state.slot||null,
+        herramienta: state.tool||null,
+        num_profesionales: $('#fTeam').value||null
+      }}).catch(function(){});
+    }
     // Crea el evento + Google Meet y manda el link al cliente por email (no bloquea).
     try{
       fetch(MECHA_CALL_URL,{
@@ -604,11 +661,16 @@
           fecha_hora: fechaHoraISO
         })
       }).then(function(r){ return r.ok?r.json():null; }).then(function(d){
-        if(d&&d.meetLink){ var b=$('#doneMeet'); if(b){ b.href=d.meetLink; b.style.display='inline-flex'; } }
+        if(d&&d.meetLink){
+          var b=$('#doneMeet'); if(b){ b.href=d.meetLink; b.style.display='inline-flex'; }
+          // Solo prometemos el enlace de videollamada si ha llegado de verdad.
+          var n=$('#doneNote');
+          if(n) n.innerHTML='Gracias, <b style="color:var(--text)">'+escHtml(name)+'</b>. Te hemos enviado a tu email la confirmacion y el <b style="color:var(--text)">enlace de videollamada</b>. Es <b style="color:var(--text)">gratis y sin compromiso</b>.';
+        }
       }).catch(function(){});
     }catch(e){}
     $('#doneWhen').textContent=fmtLong(state.day)+' · '+state.slot+'h';
-    $('#doneNote').innerHTML='Gracias, <b style="color:var(--text)">'+escHtml(name)+'</b>. Te hemos enviado a tu email la invitación con el <b style="color:var(--text)">enlace de Google Meet</b> y un recordatorio. La llamada es <b style="color:var(--text)">gratis y breve</b>.';
+    $('#doneNote').innerHTML='Gracias, <b style="color:var(--text)">'+escHtml(name)+'</b>. Te hemos enviado la confirmacion a tu email y te llamamos a la hora elegida. Es <b style="color:var(--text)">gratis y sin compromiso</b>.';
     gotoStep(3);
   });
 

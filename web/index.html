@@ -938,6 +938,38 @@
     .pc-list .ck svg{width:10px;height:10px}
     .pc-list b{color:var(--text)}
     .pc-plus{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-hi);margin:2px 0 -2px}
+    /* --- Tres vias de contacto --- */
+    .vias{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:860px;margin:30px auto 0}
+    @media(max-width:820px){.vias{grid-template-columns:1fr}}
+    .via{display:flex;flex-direction:column;gap:7px;text-align:left;padding:20px 18px;border-radius:16px;
+      border:1px solid var(--border-hi);background:linear-gradient(180deg,var(--card-hi),var(--card));
+      cursor:pointer;font:inherit;color:inherit;transition:border-color .2s var(--ease),transform .2s var(--ease)}
+    .via:hover{border-color:var(--accent);transform:translateY(-2px)}
+    .via-fuerte{border-color:rgba(244,80,30,.5);background:linear-gradient(180deg,rgba(244,80,30,.09),var(--card))}
+    .via-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-hi);margin-bottom:2px}
+    .via-ic svg{width:18px;height:18px}
+    .via h4{margin:0;font-family:var(--display);font-size:16.5px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
+    .via p{margin:0;font-size:13px;line-height:1.55;color:var(--text-sec);flex:1}
+    .via p b{color:var(--text)}
+    .via-go{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;font-weight:700;color:var(--accent-hi)}
+    .via-go svg{width:14px;height:14px}
+
+    /* --- Formulario de mensaje / quiero el software --- */
+    .via-modal{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(6,8,14,.72)}
+    .via-modal.on{display:flex}
+    .via-box{width:100%;max-width:440px;background:var(--card);border:1px solid var(--border-hi);border-radius:18px;padding:24px;max-height:92vh;overflow-y:auto}
+    .via-box h3{margin:0 0 4px;font-family:var(--display);font-size:20px;font-weight:700;color:var(--text)}
+    .via-box .sub{margin:0 0 16px;font-size:13.5px;color:var(--text-sec);line-height:1.5}
+    .via-box label{display:block;font-size:12.5px;font-weight:600;color:var(--text-sec);margin:0 0 5px}
+    .via-box input,.via-box textarea{width:100%;box-sizing:border-box;padding:11px 13px;margin-bottom:12px;border-radius:10px;
+      border:1px solid var(--border-hi);background:var(--bg);color:var(--text);font:14px inherit;outline:none}
+    .via-box input:focus,.via-box textarea:focus{border-color:var(--accent)}
+    .via-box textarea{min-height:92px;resize:vertical}
+    .via-acts{display:flex;gap:9px;margin-top:4px}
+    .via-msg{margin:10px 0 0;font-size:13px;line-height:1.5}
+    .via-msg.ok{color:#34d399}
+    .via-msg.err{color:#f87171}
+
     .price-conds{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;margin:26px auto 0;font-size:13.5px;color:var(--text-sec)}
     .price-conds span{display:inline-flex;align-items:center;gap:7px}
     .price-conds svg{width:15px;height:15px;color:#34d399}
@@ -995,6 +1027,34 @@
         </div>
       </div>
 
+      <!-- Tres formas de dar el paso: cada uno elige cómo prefiere hablar. -->
+      <div class="vias reveal" id="vias">
+        <a class="via" href="reservar.html">
+          <span class="via-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" /></svg></span>
+          <h4>Una llamada de 10 minutos</h4>
+          <p>Eliges día y hora. Vemos tu salón, te enseñamos Mecha con <b>tus</b> servicios y horarios y, si te encaja, te lo dejamos montado.</p>
+          <span class="via-go">Elegir día y hora
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+          </span>
+        </a>
+        <button class="via" type="button" id="viaMensaje">
+          <span class="via-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg></span>
+          <h4>Mándanos un mensaje</h4>
+          <p>Sin llamadas. Escríbenos tu duda y te contestamos por correo hoy mismo.</p>
+          <span class="via-go">Escribir ahora
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+          </span>
+        </button>
+        <button class="via via-fuerte" type="button" id="viaQuiero">
+          <span class="via-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg></span>
+          <h4>Quiero el software</h4>
+          <p>Lo tienes claro. Déjanos tus datos y te damos acceso y te lo configuramos.</p>
+          <span class="via-go">Empezar ya
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+          </span>
+        </button>
+      </div>
+
       <div class="price-conds reveal">
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg>1 mes gratis, sin tarjeta</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg>Sin permanencia</span>
@@ -1027,6 +1087,32 @@
       </div>
     </div>
   </section>
+
+  <!-- Formulario de las vias "mensaje" y "quiero el software". Mismo modal, dos
+       textos: lo que cambia es a que viene el contacto. -->
+  <div class="via-modal" id="viaModal" role="dialog" aria-modal="true" aria-labelledby="viaTitulo">
+    <div class="via-box">
+      <h3 id="viaTitulo">Mándanos un mensaje</h3>
+      <p class="sub" id="viaSub">Cuéntanos qué necesitas y te contestamos por correo hoy mismo.</p>
+      <form id="viaForm" novalidate>
+        <label for="viaNombre">Tu nombre</label>
+        <input id="viaNombre" type="text" autocomplete="name" placeholder="Nombre y apellido" required />
+        <label for="viaSalon">Tu salón</label>
+        <input id="viaSalon" type="text" autocomplete="organization" placeholder="Nombre del salón" />
+        <label for="viaEmail">Email</label>
+        <input id="viaEmail" type="email" autocomplete="email" placeholder="hola@tusalon.com" required />
+        <label for="viaTel">Teléfono (opcional)</label>
+        <input id="viaTel" type="tel" autocomplete="tel" placeholder="600 000 000" />
+        <label for="viaTexto" id="viaTextoLbl">Tu mensaje</label>
+        <textarea id="viaTexto" placeholder="¿Qué te gustaría saber?"></textarea>
+        <div class="via-acts">
+          <button type="submit" class="btn btn-primary" id="viaEnviar" style="flex:1;justify-content:center">Enviar</button>
+          <button type="button" class="btn btn-ghost" id="viaCerrar">Cancelar</button>
+        </div>
+        <p class="via-msg" id="viaMsg" hidden></p>
+      </form>
+    </div>
+  </div>
 
   <!-- ============ FAQ (objeciones de venta) ============ -->
   <section class="section faq" id="faq">
@@ -1492,6 +1578,87 @@ window.MECHA_CHAT = [
     }
   }, 8000);
 
+})();
+</script>
+
+<!-- Vias de contacto del pricing: mensaje y "quiero el software". Ambas dejan la
+     solicitud en la base Y nos avisan por correo (edge notificar-solicitud). -->
+<script>
+(function(){
+  var modal=document.getElementById('viaModal');
+  if(!modal) return;
+  var form=document.getElementById('viaForm');
+  var msg=document.getElementById('viaMsg');
+  var tipo='mensaje';
+
+  var TEXTOS={
+    mensaje:{ titulo:'Mándanos un mensaje', sub:'Cuéntanos qué necesitas y te contestamos por correo hoy mismo.', campo:'Tu mensaje', ph:'¿Qué te gustaría saber?', btn:'Enviar mensaje' },
+    quiero_software:{ titulo:'Quiero el software', sub:'Déjanos tus datos y te damos acceso. Te lo configuramos con tus servicios y horarios para que empieces a dar citas.', campo:'Algo que debamos saber (opcional)', ph:'Cuántos sois, qué usáis ahora...', btn:'Quiero empezar' }
+  };
+
+  function abrir(t){
+    tipo=t;
+    var x=TEXTOS[t];
+    document.getElementById('viaTitulo').textContent=x.titulo;
+    document.getElementById('viaSub').textContent=x.sub;
+    document.getElementById('viaTextoLbl').textContent=x.campo;
+    document.getElementById('viaTexto').placeholder=x.ph;
+    document.getElementById('viaEnviar').textContent=x.btn;
+    msg.hidden=true; msg.className='via-msg';
+    modal.classList.add('on');
+    setTimeout(function(){ document.getElementById('viaNombre').focus(); },60);
+  }
+  function cerrar(){ modal.classList.remove('on'); }
+
+  var bM=document.getElementById('viaMensaje');
+  var bQ=document.getElementById('viaQuiero');
+  if(bM) bM.addEventListener('click',function(){ abrir('mensaje'); });
+  if(bQ) bQ.addEventListener('click',function(){ abrir('quiero_software'); });
+  document.getElementById('viaCerrar').addEventListener('click',cerrar);
+  modal.addEventListener('click',function(e){ if(e.target===modal) cerrar(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') cerrar(); });
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var nombre=document.getElementById('viaNombre').value.trim();
+    var email=document.getElementById('viaEmail').value.trim();
+    var salon=document.getElementById('viaSalon').value.trim();
+    var tel=document.getElementById('viaTel').value.trim();
+    var texto=document.getElementById('viaTexto').value.trim();
+    if(!nombre || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      msg.hidden=false; msg.className='via-msg err';
+      msg.textContent='Necesitamos tu nombre y un email válido para contestarte.';
+      return;
+    }
+    var btn=document.getElementById('viaEnviar');
+    btn.disabled=true; var antes=btn.textContent; btn.textContent='Enviando...';
+
+    var api=window.MechaAPI;
+    // La solicitud queda guardada (llega al panel de staff) y ademas nos avisa
+    // por correo. Si el correo fallara, el lead NO se pierde: esta en la base.
+    var guardar = (api && api.insertSolicitud)
+      ? api.insertSolicitud({ tipo:tipo, nombre:nombre, salon:salon, email:email, telefono:tel, nota:texto||null, meta:{ origen:'precios' } })
+      : Promise.resolve({ error:null });
+
+    guardar.then(function(){
+      if(api && api.client){
+        return api.client.functions.invoke('notificar-solicitud',{ body:{
+          tipo:tipo, nombre:nombre, email:email, telefono:tel, salon:salon, mensaje:texto||null
+        }});
+      }
+    }).then(function(){
+      btn.disabled=false; btn.textContent=antes;
+      msg.hidden=false; msg.className='via-msg ok';
+      msg.textContent = tipo==='quiero_software'
+        ? 'Recibido. Te escribimos hoy mismo para darte acceso y dejártelo montado.'
+        : 'Mensaje enviado. Te contestamos hoy mismo a ' + email + '.';
+      form.reset();
+    }).catch(function(){
+      btn.disabled=false; btn.textContent=antes;
+      msg.hidden=false; msg.className='via-msg err';
+      msg.textContent='No se ha podido enviar. Escríbenos a contacto@mechaa.es y lo vemos.';
+    });
+  });
 })();
 </script>
 
