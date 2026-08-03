@@ -20,7 +20,7 @@ const ANIM = `
   .rs-cta:active:not(:disabled) { transform: translateY(0) scale(0.97) }
   .rs-star { transition: transform 0.14s cubic-bezier(0.16,1,0.3,1); cursor: pointer; background: none; border: none; padding: 3px }
   .rs-star:hover { transform: scale(1.18) }
-  .rs-field { color: #f6f8ff !important; background-color: #101729 !important; }
+  .rs-field { color: ${T.text} !important; background-color: ${T.card} !important; }
   .rs-field:focus { border-color: ${T.primary} !important; box-shadow: 0 0 0 3px ${T.primarySoft} }
   @media (prefers-reduced-motion: reduce) {
     .rs-step, .rs-flame { animation: none !important }
@@ -69,13 +69,13 @@ function FlameIcon({ filled, size = 24, isOptional = false }: { filled: boolean;
           <>
             <path
               d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z"
-              fill="rgba(255,255,255,0.03)"
-              stroke="rgba(255,255,255,0.15)"
+              fill="rgba(40,30,24,0.03)"
+              stroke="rgba(40,30,24,0.12)"
               strokeWidth="2"
             />
             <path
               d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z"
-              fill="rgba(255,255,255,0.05)"
+              fill="rgba(40,30,24,0.05)"
               stroke="none"
             />
           </>
@@ -327,11 +327,10 @@ export default function ResenaWeb() {
       overflowY: 'auto'
     }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
-      <EmbersCanvas />
       <div style={{ maxWidth: 540, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '24px 4px 14px', borderBottom: `1px solid ${T.border}`, marginBottom: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, padding: '4px 8px', borderRadius: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(40,30,24,0.05)', border: `1px solid ${T.border}`, padding: '4px 8px', borderRadius: 8 }}>
               <span className="rs-flame" style={{ display: 'inline-flex' }}><MechaMark size={14} /></span>
               <span style={{ fontSize: 11, fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.8px' }}>mecha</span>
             </div>
@@ -346,7 +345,7 @@ export default function ResenaWeb() {
           )}
         </div>
 
-        <main style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 22, padding: 24, boxShadow: '0 16px 50px rgba(0,0,0,0.4)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+        <main style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 22, padding: 24, boxShadow: '0 18px 44px rgba(40,30,24,0.10)' }}>
           {notFound ? (
             <div style={{ padding: 32, textAlign: 'center' }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 6 }}>No disponible</div>
@@ -356,7 +355,7 @@ export default function ResenaWeb() {
             <div className="rs-step" style={{ textAlign: 'center', padding: '14px 0 6px' }}>
               <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
                 <span style={{ position: 'absolute', width: 74, height: 74, borderRadius: '50%', background: T.primarySoft, animation: 'rsRing 1.8s ease-out infinite' }} />
-                <span style={{ position: 'relative', display: 'inline-flex', width: 74, height: 74, borderRadius: '50%', background: '#101729', border: `1px solid ${T.border}`, alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(244,80,30,0.25)' }}>
+                <span style={{ position: 'relative', display: 'inline-flex', width: 74, height: 74, borderRadius: '50%', background: T.cardHi, border: `1px solid ${T.border}`, alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(244,80,30,0.25)' }}>
                   <span className="rs-flame"><MechaMark size={38} /></span>
                 </span>
               </div>
@@ -379,7 +378,7 @@ export default function ResenaWeb() {
                      gap: 8,
                      padding: '12px 20px',
                      borderRadius: 12,
-                     background: 'rgba(255,255,255,0.06)',
+                     background: 'rgba(40,30,24,0.05)',
                      border: `1.5px solid ${T.border}`,
                      color: T.text,
                      fontSize: 14,
@@ -417,7 +416,7 @@ export default function ResenaWeb() {
                   letterSpacing: '0.02em',
                   fontFamily: SANS_SERIF
                 }}>
-                  🔒 Valoración 100% anónima · Tu feedback nos ayuda a mejorar
+                  Valoración 100% anónima · Tu opinión nos ayuda a mejorar
                 </span>
               </div>
 
@@ -474,8 +473,8 @@ export default function ResenaWeb() {
 
               {/* BLOQUE 2: OPCIONAL / VOLUNTARIO */}
               <div style={{
-                border: `1.5px dashed rgba(255, 255, 255, 0.14)`,
-                background: 'rgba(255, 255, 255, 0.02)',
+                border: `1.5px dashed rgba(40,30,24,0.16)`,
+                background: 'rgba(40,30,24,0.02)',
                 borderRadius: 16,
                 padding: 20,
                 marginBottom: 24,
@@ -536,7 +535,7 @@ export default function ResenaWeb() {
                 </div>
 
                 {/* Sistema de reservas */}
-                <div style={{ borderTop: `1px solid rgba(255,255,255,0.06)`, paddingTop: 16, marginTop: 16, marginBottom: 20 }}>
+                <div style={{ borderTop: `1px solid rgba(40,30,24,0.05)`, paddingTop: 16, marginTop: 16, marginBottom: 20 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 10, fontFamily: SANS_SERIF }}>
                     Sobre el proceso de reserva online (Mecha):
                   </div>
@@ -553,7 +552,7 @@ export default function ResenaWeb() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14, background: 'rgba(255,255,255,0.015)', padding: '10px 14px', borderRadius: 10, border: `1px solid ${T.border}` }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14, background: 'rgba(40,30,24,0.02)', padding: '10px 14px', borderRadius: 10, border: `1px solid ${T.border}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: 12, color: T.textTer }}>Facilidad para reservar</span>
                       <RatingSelector value={mechaFacilidad} onChange={setMechaFacilidad} size={18} isOptional={true} />
@@ -574,7 +573,7 @@ export default function ResenaWeb() {
                 </div>
 
                 {/* Identificación */}
-                <div style={{ borderTop: `1px solid rgba(255,255,255,0.06)`, paddingTop: 16, marginTop: 16 }}>
+                <div style={{ borderTop: `1px solid rgba(40,30,24,0.05)`, paddingTop: 16, marginTop: 16 }}>
                   <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>Tu nombre (opcional)</label>
                   <input className="rs-field" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Carlos M. (se mostrará públicamente)" style={inputBase} />
                 </div>

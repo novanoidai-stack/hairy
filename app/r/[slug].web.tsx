@@ -8,7 +8,6 @@ import {
   getPortalInfo, getDisponibilidad, getDiasDisponibles, crearCitaPublica, fechaISOaClave, getResenasPublicas,
   type PortalInfo, type PortalServicio, type SlotDisponible, type CrearCitaResult, type ResenaResumen,
 } from '@/lib/reservaPublica';
-import { EmbersCanvas } from '../resena/[slug].web';
 import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
 import { categoryColorHex } from '@/lib/categoryColors';
 import { initGA4, trackPageView, trackEvent, giveConsent, withdrawConsent, loadSavedConsent, AnalyticsEvents } from '@/lib/analytics';
@@ -49,8 +48,8 @@ const ANIM = `
   .rp-link:hover { color: ${T.primaryHi} !important }
   .rp-bar { animation: rpBarUp 0.4s cubic-bezier(0.16,1,0.3,1) both }
   .rp-rail::-webkit-scrollbar { height: 0 }
-  .rp-skel { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 37%, rgba(255,255,255,0.04) 63%); background-size: 720px 100%; animation: rpShimmer 1.4s linear infinite; border-radius: 10px }
-  .rp-field { color: #f6f8ff !important; background-color: #101729 !important; }
+  .rp-skel { background: linear-gradient(90deg, rgba(40,30,24,0.05) 25%, rgba(40,30,24,0.10) 37%, rgba(40,30,24,0.05) 63%); background-size: 720px 100%; animation: rpShimmer 1.4s linear infinite; border-radius: 10px }
+  .rp-field { color: ${T.text} !important; background-color: ${T.card} !important; }
   .rp-field:focus { border-color: ${T.primary} !important; box-shadow: 0 0 0 3px ${T.primarySoft} }
   .rp-check { transition: background 0.15s ease, border-color 0.15s ease }
   .rp-check-wrap { position: relative }
@@ -956,24 +955,21 @@ function Shell({ children, negocio, resenas, t, loc = 'es-ES', slug }: {
     <div style={{
       minHeight: '100vh',
       background: T.bg,
-      backgroundImage: `
-        radial-gradient(80% 60% at 50% -10%, rgba(224,52,14,0.06), transparent 75%),
-        radial-gradient(60% 50% at 85% 5%, rgba(255,130,40,0.12), transparent 70%),
-        radial-gradient(65% 55% at 15% 15%, rgba(255,90,30,0.12), transparent 70%),
-        radial-gradient(75% 60% at 50% 110%, rgba(224,52,14,0.08), transparent 70%)
-      `,
+      // Un solo degradado calido y estatico. Antes habia cuatro radiales sobre
+      // fondo negro mas un canvas de brasas animado a pantalla completa; sobre
+      // crema no aportan nada y eran la mitad del coste de pintado.
+      backgroundImage: 'radial-gradient(90% 55% at 50% -10%, rgba(244,80,30,0.07), transparent 70%)',
       padding: '0 16px 48px',
-      fontFamily: 'Inter, system-ui, sans-serif',
+      fontFamily: SERIF,
       position: 'relative',
       overflowY: 'auto'
     }}>
       <style dangerouslySetInnerHTML={{ __html: ANIM }} />
-      <EmbersCanvas />
       <div style={{ maxWidth: 600, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Cabecera: el nombre del salon es el protagonista */}
         <header style={{ padding: '26px 4px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(10px)', border: `1px solid ${T.border}`, padding: '5px 11px', borderRadius: 999, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: T.card, border: `1px solid ${T.border}`, padding: '5px 11px', borderRadius: 999, boxShadow: '0 2px 8px rgba(40,30,24,0.08)' }}>
               <span className="rp-flame" style={{ display: 'inline-flex' }}><MechaMark size={13} /></span>
               <span style={{ fontSize: 10.5, fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.8px' }}>mecha</span>
             </div>
@@ -1005,7 +1001,10 @@ function Shell({ children, negocio, resenas, t, loc = 'es-ES', slug }: {
         </header>
 
         {/* Panel principal */}
-        <main style={{ background: T.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: `1px solid ${T.border}`, borderRadius: 22, padding: 20, boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
+        {/* Panel opaco a proposito: el backdrop-filter que habia aqui obligaba al
+            navegador a recomponer el desenfoque en cada scroll y era el mayor
+            culpable del tiron. Sobre fondo claro no se nota la diferencia. */}
+        <main style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 22, padding: 20, boxShadow: '0 18px 44px rgba(40,30,24,0.10)' }}>
           {children}
         </main>
 
@@ -1014,25 +1013,25 @@ function Shell({ children, negocio, resenas, t, loc = 'es-ES', slug }: {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
             {dir && (
               <a className="rp-cta" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dir)}`} target="_blank" rel="noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: T.card, border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
                 <Icon name="mapPin" size={14} color={T.primary} /> {t('como_llegar')}
               </a>
             )}
             {tel && (
               <a className="rp-cta" href={`tel:${tel}`}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: T.card, border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
                 <Icon name="phone" size={14} color={T.primary} /> {t('llamar')}
               </a>
             )}
             {web && (
               <a className="rp-cta" href={normalizeUrl(web)} target="_blank" rel="noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: T.card, border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
                 <Icon name="globe" size={14} color={T.primary} /> {hostOf(web)}
               </a>
             )}
             {slug && (
               <a className="rp-cta" href={`/app/contacto/${slug}`}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 13px', borderRadius: 12, background: T.card, border: `1px solid ${T.border}`, color: T.text, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
                 <Icon name="mail" size={14} color={T.primary} /> Contactar
               </a>
             )}

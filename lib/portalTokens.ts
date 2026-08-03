@@ -1,25 +1,32 @@
-// Portal public tokens — Tema dark para pages publicas (r/[slug], resena/[slug])
-// Coherente con la landing Hairy/web/assets/mecha.css
+// Portal public tokens — paginas publicas (r/[slug], resena/[slug]).
+//
+// Tema CLARO crema, el mismo de la app (lib/designTokens.ts) y el del directorio
+// publico. Antes seguia la paleta oscura de la landing, pero el recorrido de la
+// clienta es directorio -> ficha -> reserva, y las tres deben verse igual: la
+// landing oscura es para el salon que compra el software, no para quien reserva.
+//
+// Los nombres de token NO cambian: r/[slug], resena/[slug] y PortalGrupoModal
+// siguen funcionando sin tocar sus referencias.
 
 export const PORTAL_TOKENS = {
-  bg: '#060202', // Basalt black
-  panel: 'rgba(11, 16, 32, 0.72)', // Glassmorphic very dark gray-blue
-  card: '#101729',
-  cardHi: '#16203a',
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderHi: 'rgba(255, 255, 255, 0.16)',
-  text: '#f6f8ff',
-  textSec: '#9aa6c2',
-  textTer: '#8a9ab8',
+  bg: '#f6f1ea',        // lienzo crema calido
+  panel: '#fffdfb',     // panel principal (opaco: nada de blur, ver nota de rendimiento)
+  card: '#ffffff',
+  cardHi: '#fbf6f0',
+  border: 'rgba(40,30,24,0.08)',
+  borderHi: 'rgba(40,30,24,0.14)',
+  text: '#1c1814',
+  textSec: '#5c5249',
+  textTer: '#736658',
   primary: '#f4501e',
-  primaryHi: '#ff8a3d',
-  primarySoft: 'rgba(244,80,30,0.14)',
-  star: '#f59e0b',
-  ember: '#f59e0b', // Alias para star (usado en r/[slug])
-  success: '#10b981',
-  successSoft: 'rgba(16,185,129,0.14)',
-  danger: '#ef4444',
-  dangerSoft: 'rgba(239,68,68,0.14)',
+  primaryHi: '#c0260a',  // sobre fondo claro el acento "alto" es el profundo, por contraste
+  primarySoft: 'rgba(244,80,30,0.12)',
+  star: '#e08a00',
+  ember: '#e08a00',      // alias de star (usado en r/[slug])
+  success: '#0f9d6b',
+  successSoft: 'rgba(15,157,107,0.14)',
+  danger: '#e23b34',
+  dangerSoft: 'rgba(226,59,52,0.14)',
   warning: '#e08a00',
   warningSoft: 'rgba(224,138,0,0.16)',
 };
@@ -27,5 +34,5 @@ export const PORTAL_TOKENS = {
 // Gradientes compartidos
 export const FIRE_GRADIENT = 'linear-gradient(135deg,#e0340e 0%,#ff7a2e 55%,#ffcf4a 100%)';
 
-// Tipografía
-export const SANS_SERIF = '"Space Grotesk", "Outfit", "Inter", sans-serif';
+// Tipografia: la misma de la app y del directorio.
+export const SANS_SERIF = 'Inter, system-ui, -apple-system, sans-serif';
