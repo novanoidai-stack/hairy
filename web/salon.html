@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Salón — Mecha</title>
+<meta name="description" content="Servicios, precios, valoraciones y horario del salón. Reserva cita online." />
+<meta name="robots" content="noindex, follow" />
+<meta name="theme-color" content="#f6f1ea" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<!-- Rutas absolutas a proposito: esta pagina tambien se sirve en /salon/<slug>
+     (rewrite de vercel.json), donde una ruta relativa apuntaria a /salon/assets. -->
+<link rel="stylesheet" href="/assets/directorio.css" />
+<style>
+  .f-galeria { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; height: 340px; margin: 0 0 22px; }
+  .f-galeria > * { border-radius: var(--d-r-md); overflow: hidden; background: var(--d-card-hi); }
+  .f-galeria > *:first-child { grid-row: 1 / span 2; }
+  /* Una sola imagen (o el fallback): ocupa el ancho completo de la columna,
+     hasta topar con el panel de reserva. Si no, el grid le da solo 2fr de 4fr. */
+  .f-galeria.sola { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+  .f-galeria.sola > *:first-child { grid-row: 1; }
+  .f-galeria img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .f-galeria .fallback { width: 100%; height: 100%; background: var(--d-grad); display: grid; place-items: center; font-family: 'Bricolage Grotesque','Inter',sans-serif; font-size: 96px; font-weight: 800; color: rgba(255,255,255,0.92); }
+  /* La galeria vive DENTRO de la columna izquierda para que el panel de reserva
+     arranque a su misma altura y se quede pegado al hacer scroll. Si la galeria
+     va fuera del grid, el aside empieza por debajo y parece que "sube solo". */
+  .f-cols { display: grid; grid-template-columns: 1fr 340px; gap: 28px; padding: 20px 0 64px; align-items: start; }
+  .f-main { min-width: 0; }
+  .f-card { background: var(--d-card); border: 1px solid var(--d-border); border-radius: var(--d-r-lg); padding: 20px; margin-bottom: 18px; }
+  .f-card h2 { font-size: 17px; margin: 0 0 14px; }
+  .f-h1 { font-family: 'Bricolage Grotesque','Inter',sans-serif; font-size: clamp(26px,4vw,36px); font-weight: 800; letter-spacing: -0.03em; margin: 0 0 6px; }
+  .f-meta { font-size: 14px; color: var(--d-text-sec); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .f-star { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; color: var(--d-text); }
+  .f-cat { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--d-text-ter); margin: 16px 0 8px; }
+  .f-cat:first-child { margin-top: 0; }
+  .f-serv { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--d-border); font-size: 14px; }
+  .f-serv:last-child { border-bottom: 0; }
+  .f-serv .p { white-space: nowrap; color: var(--d-text-sec); }
+  .f-serv .p strong { color: var(--d-text); }
+  .f-prof { display: inline-block; padding: 6px 12px; border-radius: var(--d-r-full); background: var(--d-fuego-soft); color: var(--d-fuego-hi); font-size: 12.5px; font-weight: 600; margin: 0 6px 6px 0; }
+  .f-res { padding: 12px 0; border-bottom: 1px solid var(--d-border); }
+  .f-res:last-child { border-bottom: 0; }
+  .f-res .top { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; margin-bottom: 4px; }
+  .f-res .aut { font-weight: 700; }
+  .f-res .txt { font-size: 14px; color: var(--d-text-sec); line-height: 1.55; margin: 0; }
+  .f-hor { display: flex; justify-content: space-between; font-size: 13.5px; padding: 7px 0; }
+  .f-hor.hoy { color: var(--d-fuego-hi); font-weight: 700; }
+  .f-hor .cerrado { color: var(--d-text-mut); }
+  .f-side { position: sticky; top: 82px; }
+  .f-reservar { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; border: 0; border-radius: var(--d-r-md); background: var(--d-grad); color: #fff; font: inherit; font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer; }
+  .f-reservar:hover { filter: brightness(1.06); }
+  .f-nota { font-size: 12px; color: var(--d-text-ter); text-align: center; margin-top: 10px; line-height: 1.5; }
+  .f-volver { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--d-text-sec); text-decoration: none; margin: 20px 0 0; }
+  .f-volver:hover { color: var(--d-fuego-hi); }
+  @media (max-width: 860px) {
+    .f-cols { grid-template-columns: 1fr; gap: 18px; }
+    .f-galeria { grid-template-columns: 1fr 1fr; grid-template-rows: 160px 90px; height: auto; }
+    .f-galeria > *:first-child { grid-column: 1 / span 2; grid-row: 1; }
+    .f-side { position: static; }
+  }
+</style>
+</head>
+<body class="directorio">
+
+<header class="d-top">
+  <div class="d-wrap d-top-in">
+    <a class="d-logo" href="/index.html" aria-label="Mecha, inicio">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+        <defs><linearGradient id="mGradDir" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#e0340e" /><stop offset=".5" stop-color="#ff7a2e" /><stop offset="1" stop-color="#ffcf4a" />
+        </linearGradient></defs>
+        <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGradDir)" />
+        <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fffdfb" opacity=".92" />
+      </svg>
+      <span class="nm">mecha</span>
+    </a>
+    <span class="d-top-sp"></span>
+    <a class="d-top-link" href="/salones.html">Buscar salones</a>
+  </div>
+</header>
+
+<main class="d-wrap" id="main" style="padding-top:20px">
+  <div class="d-skel" style="height:340px;margin-top:20px"><div class="d-skel-in"></div></div>
+</main>
+
+<footer class="d-foot">
+  <div class="d-wrap">
+    <div class="d-foot-cols">
+      <div>
+        <div class="marca">
+          <svg viewBox="0 0 40 40" aria-hidden="true">
+            <defs><linearGradient id="mGradFoot" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#e0340e" /><stop offset=".5" stop-color="#ff7a2e" /><stop offset="1" stop-color="#ffcf4a" />
+            </linearGradient></defs>
+            <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGradFoot)" />
+            <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fffdfb" opacity=".92" />
+          </svg>
+          <span class="nm">mecha</span>
+        </div>
+        <p class="desc">Software de gestión para peluquerías y barberías. El directorio lo forman los salones que lo usan.</p>
+      </div>
+      <div>
+        <h4>Directorio</h4>
+        <a href="/salones.html">Buscar salones</a>
+        <a href="/salones.html#sec-ciudades">Por ciudad</a>
+      </div>
+      <div>
+        <h4>Mecha</h4>
+        <a href="/index.html">Qué es Mecha</a>
+        <a href="/especificaciones.html">Especificaciones</a>
+        <a href="/demo.html">Ver la demo</a>
+        <a href="/acceso.html">Acceder</a>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <a href="/privacidad.html">Privacidad</a>
+        <a href="/terminos.html">Términos</a>
+        <a href="/cookies.html">Cookies</a>
+      </div>
+    </div>
+    <div class="d-foot-bajo">
+      <span>&copy; 2026 Mecha</span>
+      <span>Hecho para salones, no para intermediarios.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/salon-directorio.js"></script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Peluquerías y barberías con cita online — Mecha</title>
+<meta name="description" content="Busca peluquería o barbería por zona y servicio, mira precios y reserva cita online." />
+<!-- noindex mientras el directorio no tenga oferta real. Quitar cuando haya
+     salones suficientes: indexar un directorio casi vacio penaliza el dominio. -->
+<meta name="robots" content="noindex, follow" />
+<meta name="theme-color" content="#f6f1ea" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/directorio.css" />
+</head>
+<body class="directorio">
+
+<header class="d-top">
+  <div class="d-wrap d-top-in">
+    <a class="d-logo" href="index.html" aria-label="Mecha, inicio">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+        <defs><linearGradient id="mGradDir" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#e0340e" /><stop offset=".5" stop-color="#ff7a2e" /><stop offset="1" stop-color="#ffcf4a" />
+        </linearGradient></defs>
+        <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGradDir)" />
+        <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fffdfb" opacity=".92" />
+      </svg>
+      <span class="nm">mecha</span>
+    </a>
+    <span class="d-top-sp"></span>
+    <a class="d-top-link" href="index.html">¿Tienes un salón?</a>
+  </div>
+</header>
+
+<main class="d-wrap">
+
+  <section class="d-hero">
+    <div id="hero-texto">
+      <h1>Encuentra peluquería y <span class="em">reserva sin llamar</span></h1>
+      <p>Mira servicios, precios y valoraciones de los salones de tu zona, y pide cita online a la hora que te venga bien.</p>
+    </div>
+
+  <form class="d-search" id="form" autocomplete="off">
+    <label class="d-field">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#736658" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span style="flex:1;min-width:0">
+        <span class="lb">Qué</span>
+        <input id="q" type="text" placeholder="Corte, color, barba, nombre del salón" />
+      </span>
+    </label>
+    <label class="d-field">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#736658" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span style="flex:1;min-width:0">
+        <span class="lb">Dónde</span>
+        <input id="ciudad" type="text" placeholder="Ciudad o barrio" />
+      </span>
+    </label>
+    <button type="submit">Buscar</button>
+  </form>
+  </section>
+
+  <!-- Home: tarjetas compactas en horizontal. Al buscar se oculta y manda la lista. -->
+  <section class="d-sec" id="destacados" hidden style="padding-top:26px">
+    <h2>Mejor valorados</h2>
+    <p class="sub" id="destacados-sub">Salones con reserva online, ordenados por valoración.</p>
+    <div class="d-carrusel-wrap">
+      <div class="d-carrusel" id="carrusel"></div>
+      <button class="d-flecha izq" type="button" id="car-izq" aria-label="Anterior" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="d-flecha" type="button" id="car-der" aria-label="Siguiente" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <div class="d-controls" id="controls">
+    <div class="d-ctrl-group">
+      <button class="d-btn-ghost" type="button" disabled title="Disponible próximamente">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="11" cy="18" r="2"/></svg>
+        Filtros
+      </button>
+      <button class="d-btn-ghost" type="button" disabled title="Disponible próximamente">Ordenar por: Recomendados</button>
+    </div>
+    <button class="d-btn-ghost" type="button" disabled title="Disponible próximamente">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      Vista de mapa
+    </button>
+  </div>
+
+  <div class="d-chips" id="chips"></div>
+
+  <div class="d-count" id="count"></div>
+  <div class="d-list" id="list"></div>
+
+  <!-- Solo en la home del directorio: se ocultan en cuanto hay una busqueda. -->
+  <div id="secciones-home">
+
+    <section class="d-sec">
+      <h2>Por servicio</h2>
+      <p class="sub">Mecha es software de peluquería y barbería: aquí solo encontrarás eso.</p>
+      <div class="d-cats" id="cats-grandes"></div>
+    </section>
+
+    <section class="d-sec">
+      <h2>Cómo funciona</h2>
+      <p class="sub">Reservas directamente en la agenda del salón, no en un intermediario.</p>
+      <div class="d-ventajas">
+        <div class="d-vent">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>
+          <h3>A la hora que quieras</h3>
+          <p>El salón puede estar cerrado y su agenda sigue abierta. Eliges hueco y queda reservado.</p>
+        </div>
+        <div class="d-vent">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M4 9h16"/><path d="M9 13h6"/></svg></span>
+          <h3>Precios antes de reservar</h3>
+          <p>Cada salón publica sus servicios con precio y duración. Sin sorpresas al llegar.</p>
+        </div>
+        <div class="d-vent">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          <h3>Recordatorio de tu cita</h3>
+          <p>Los salones que lo tienen activado te avisan por WhatsApp antes de la cita.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="d-relato">
+      <div class="d-relato-txt">
+        <h2>Pide cita sin llamar por teléfono</h2>
+        <p>Buscas por zona o por lo que necesitas —un corte, unas mechas, arreglarte la barba— y ves de una vez los salones que trabajan cerca de ti, con sus precios y sus valoraciones.</p>
+        <p>Cada servicio viene con su precio y su duración antes de que reserves nada. Eliges el hueco que te encaja, dejas tu nombre y un teléfono, y ya está.</p>
+        <p class="cierre">Sin llamadas, sin esperar a que abran y sin que nadie tenga que cogerte el teléfono.</p>
+      </div>
+      <div class="d-relato-ilu">
+        <svg viewBox="0 0 400 300" fill="none" stroke="#5c5249" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Ilustración de un salón de peluquería">
+          <rect x="60" y="90" width="200" height="150" rx="4"/>
+          <path d="M52 90h216l-14-26H66z" stroke="#f4501e"/>
+          <path d="M66 64v-10M254 64v-10"/>
+          <rect x="86" y="126" width="66" height="52" rx="3"/>
+          <rect x="184" y="126" width="52" height="114" rx="3"/>
+          <circle cx="226" cy="184" r="3" fill="#5c5249"/>
+          <path d="M96 240v-28a12 12 0 0 1 24 0v28" stroke="#f4501e"/>
+          <path d="M290 118a34 34 0 1 1-68 0 34 34 0 0 1 68 0z" stroke="#f4501e" stroke-width="2.6"/>
+          <path d="M280 142l24 24" stroke="#f4501e" stroke-width="2.6"/>
+          <circle cx="256" cy="118" r="9"/>
+          <path d="M40 240h320"/>
+          <path d="M318 196c0-10 8-18 18-18s18 8 18 18-18 34-18 34-18-24-18-34z"/>
+          <circle cx="336" cy="196" r="6" fill="#f4501e" stroke="none"/>
+        </svg>
+      </div>
+    </section>
+
+    <section class="d-relato inv">
+      <div class="d-relato-txt">
+        <h2>Tu cita entra en la agenda real del salón</h2>
+        <p>Mecha no es una capa por encima del salón: es el programa con el que llevan su día a día. Cuando ves un hueco libre, es el hueco que tienen libre de verdad, con su profesional y su duración.</p>
+        <p>Al reservar, la cita aparece en su agenda en ese momento y el hueco deja de estar disponible para nadie más. No hay confirmaciones a medias ni dos personas citadas a la misma hora.</p>
+        <p>Si el salón tiene activados los avisos, te llega un recordatorio por WhatsApp antes de la cita, y puedes cambiarla o cancelarla desde ahí.</p>
+        <p class="cierre">Reservas con el salón, no con un intermediario.</p>
+      </div>
+      <div class="d-relato-ilu">
+        <svg viewBox="0 0 400 300" fill="none" stroke="#5c5249" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Ilustración de una agenda con una cita confirmada">
+          <rect x="96" y="40" width="150" height="220" rx="16"/>
+          <path d="M150 40h42"/>
+          <rect x="116" y="76" width="110" height="26" rx="4"/>
+          <path d="M128 89h30M196 82v14" stroke="#736658"/>
+          <rect x="116" y="116" width="110" height="30" rx="4" stroke="#f4501e" fill="rgba(244,80,30,0.12)"/>
+          <path d="M130 131h44" stroke="#f4501e"/>
+          <rect x="116" y="160" width="110" height="26" rx="4"/>
+          <path d="M128 173h52" stroke="#736658"/>
+          <rect x="116" y="200" width="110" height="26" rx="4"/>
+          <path d="M128 213h38" stroke="#736658"/>
+          <circle cx="286" cy="112" r="30" stroke="#f4501e" stroke-width="2.6"/>
+          <path d="M273 112l9 10 18-20" stroke="#f4501e" stroke-width="2.8"/>
+          <path d="M300 210c0-12 8-20 18-20s18 8 18 20c0 14 6 18 6 18h-48s6-4 6-18z"/>
+          <path d="M312 240a7 7 0 0 0 12 0"/>
+          <circle cx="336" cy="188" r="6" fill="#f4501e" stroke="none"/>
+          <path d="M40 268h320"/>
+        </svg>
+      </div>
+    </section>
+
+    <section class="d-relato">
+      <div class="d-relato-txt">
+        <h2>Habla con el salón, no con un formulario</h2>
+        <p>Los salones que lo tienen activado atienden sus mensajes de WhatsApp con un asistente: le cuentas qué necesitas y cuándo te viene bien, y te propone hueco y te lo reserva. A la hora que sea.</p>
+        <p>El asistente te dice siempre que es un asistente. Y si prefieres que te atienda una persona, lo pides y la conversación pasa a alguien del salón.</p>
+        <p class="cierre">Sin descargar ninguna aplicación y sin crearte una cuenta.</p>
+      </div>
+      <div class="d-relato-ilu">
+        <svg viewBox="0 0 400 300" fill="none" stroke="#5c5249" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Ilustración de una conversación de mensajería">
+          <path d="M60 70h180a14 14 0 0 1 14 14v72a14 14 0 0 1-14 14H120l-38 30v-30H60a14 14 0 0 1-14-14V84a14 14 0 0 1 14-14z"/>
+          <path d="M78 104h120M78 128h84" stroke="#736658"/>
+          <path d="M214 176h120a14 14 0 0 1 14 14v58a14 14 0 0 1-14 14h-84l-30 24v-24h-6a14 14 0 0 1-14-14v-58a14 14 0 0 1 14-14z" stroke="#f4501e" fill="rgba(244,80,30,0.10)"/>
+          <path d="M240 206h74M240 228h48" stroke="#f4501e"/>
+          <circle cx="330" cy="120" r="24" stroke="#f4501e" stroke-width="2.4"/>
+          <path d="M330 108v8M322 128h16M330 132v4" stroke="#f4501e" stroke-width="2.4"/>
+          <path d="M312 104l-6-6M348 104l6-6" stroke="#f4501e"/>
+        </svg>
+      </div>
+    </section>
+
+    <section class="d-sec" id="sec-ciudades" hidden>
+      <h2>Por ciudad</h2>
+      <p class="sub">Salones con reserva online activa.</p>
+      <div class="d-ciudades" id="ciudades"></div>
+    </section>
+
+    <section class="d-ia">
+      <h2>Lo que hace distinto a Mecha</h2>
+      <p class="lead">Un directorio lo tiene cualquiera. La diferencia está en el software que hay detrás: Mecha lleva la agenda del salón y tiene una capa de inteligencia artificial trabajando dentro de ella, no un buscador con anuncios encima.</p>
+      <div class="d-ia-lista">
+        <div class="d-ia-item">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          <div>
+            <h3>Un asistente que atiende WhatsApp</h3>
+            <p>Responde a las clientas, consulta el catálogo y reserva citas fuera de horario, sin que nadie del salón tenga que estar pendiente.</p>
+          </div>
+        </div>
+        <div class="d-ia-item">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/><path d="M8 15l3 3 5-5"/></svg></span>
+          <div>
+            <h3>Una agenda que se reorganiza sola</h3>
+            <p>Detecta huecos muertos, solapes y retrasos en cascada, y propone cómo recolocar el día. Propone: decide el salón.</p>
+          </div>
+        </div>
+        <div class="d-ia-item">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9z"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+          <div>
+            <h3>Menos plantones</h3>
+            <p>Recordatorios automáticos antes de la cita y aviso al salón cuando una reserva tiene pinta de quedarse sin cubrir.</p>
+          </div>
+        </div>
+        <div class="d-ia-item">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v3l2 2"/></svg></span>
+          <div>
+            <h3>Vigila lo que se escapa</h3>
+            <p>Revisa el negocio cada poco y avisa de citas sin confirmar, mensajes sin responder o clientas que llevan tiempo sin volver.</p>
+          </div>
+        </div>
+      </div>
+      <p class="d-ia-nota">La inteligencia artificial siempre se identifica como tal y nunca decide por su cuenta: propone y el salón aprueba. Cada función se activa o se apaga desde los ajustes del negocio.</p>
+    </section>
+
+    <div class="d-cta-salon">
+      <div>
+        <h2>¿Tienes un salón?</h2>
+        <p>Mecha es el software con el que estos salones llevan su agenda, su caja y sus clientas. Aparecer aquí va incluido.</p>
+      </div>
+      <a href="reservar.html">Ver cómo funciona
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+
+  </div>
+
+</main>
+
+<footer class="d-foot">
+  <div class="d-wrap">
+    <div class="d-foot-cols">
+      <div>
+        <div class="marca">
+          <svg viewBox="0 0 40 40" aria-hidden="true">
+            <defs><linearGradient id="mGradFoot" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#e0340e" /><stop offset=".5" stop-color="#ff7a2e" /><stop offset="1" stop-color="#ffcf4a" />
+            </linearGradient></defs>
+            <path d="M22.5 3.5c-1 5.5 2.5 8 3 12.5.4 3.4-1.8 5.6-4.2 5.6-2 0-3.3-1.4-3.3-3.3 0-1.6 1-2.8 1-4.4-3.2 2-6.5 5.6-6.5 11.2a9.5 9.5 0 0 0 19 .3c0-6.4-4.6-10.4-7-16.2-.6-1.5-1.2-3.4-2-5.7Z" fill="url(#mGradFoot)" />
+            <path d="M21.8 22.5c-.4 2.6-2.6 3.8-2.4 6.2.15 1.9 1.5 3.1 3.1 3.1 1.9 0 3.3-1.4 3.3-3.4 0-2.8-2-4.3-4-5.9Z" fill="#fffdfb" opacity=".92" />
+          </svg>
+          <span class="nm">mecha</span>
+        </div>
+        <p class="desc">Software de gestión para peluquerías y barberías. El directorio lo forman los salones que lo usan.</p>
+      </div>
+      <div>
+        <h4>Directorio</h4>
+        <a href="salones.html">Buscar salones</a>
+        <a href="salones.html#sec-ciudades">Por ciudad</a>
+      </div>
+      <div>
+        <h4>Mecha</h4>
+        <a href="index.html">Qué es Mecha</a>
+        <a href="especificaciones.html">Especificaciones</a>
+        <a href="demo.html">Ver la demo</a>
+        <a href="acceso.html">Acceder</a>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <a href="privacidad.html">Privacidad</a>
+        <a href="terminos.html">Términos</a>
+        <a href="cookies.html">Cookies</a>
+      </div>
+    </div>
+    <div class="d-foot-bajo">
+      <span>&copy; 2026 Mecha</span>
+      <span>Hecho para salones, no para intermediarios.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/directorio.js"></script>
+</body>
+</html>

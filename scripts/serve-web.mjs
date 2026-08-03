@@ -74,6 +74,17 @@ async function resolveFile(urlPath) {
     if (await exists(APP_INDEX)) return APP_INDEX;
   }
 
+  // Directorio publico: mismas reescrituras que vercel.json, si no el espejo
+  // local da 404 en las URLs limpias que si funcionan en produccion.
+  if (pathname === '/salones') {
+    const f = path.join(ROOT, 'salones.html');
+    if (await exists(f)) return f;
+  }
+  if (/^\/salon\/[^/]+$/.test(pathname)) {
+    const f = path.join(ROOT, 'salon.html');
+    if (await exists(f)) return f;
+  }
+
   return null;
 }
 
