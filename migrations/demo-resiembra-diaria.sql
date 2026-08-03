@@ -1,4 +1,4 @@
--- Demo SIEMPRE viva (2 ago 2026). APLICADA en remoto.
+-- Demo SIEMPRE viva (2-3 ago 2026). APLICADA en remoto.
 --
 -- PROBLEMA: la agenda de la demo compartida (demo_salon_001) estaba anclada a
 -- fechas fijas, asi que envejecia sola: al dia siguiente de sembrarla el
@@ -102,16 +102,20 @@ begin
      v_ancla + interval '100 minutes', v_ancla + interval '115 minutes',
      null, null, 'confirmada', false, 'whatsapp');
 
-  -- Lo que ya ha pasado hoy: COMPLETADO. Solo lo que cabe en la jornada.
+  -- Completadas en franjas FIJAS de manana: entran las que caben antes del
+  -- ancla, asi que siempre hay al menos una (Caja e Informes nunca a cero).
+  -- Antes se calculaban restando horas al ancla y, corriendo el cron de
+  -- madrugada (ancla pegada a las 10:00), caian antes de las 9 y se descartaban
+  -- TODAS: la demo amanecia sin una sola cita completada.
   insert into public.citas
     (negocio_id, cliente_id, servicio_id, profesional_id, inicio, fin, estado, confirmada_cliente, canal)
   select * from (values
-    (v_negocio, v_cli[4], v_cortes, v_carlos, v_ancla - interval '3 hours',  v_ancla - interval '2 hours 25 minutes', 'completada', true, 'manual'),
-    (v_negocio, v_cli[5], v_lavado, v_carlos, v_ancla - interval '2 hours',  v_ancla - interval '1 hour 40 minutes',  'completada', true, 'web'),
-    (v_negocio, v_cli[6], v_barba,  v_laura,  v_ancla - interval '2 hours 30 minutes', v_ancla - interval '2 hours 15 minutes', 'completada', true, 'manual'),
-    (v_negocio, v_cli[1], v_cortec, v_laura,  v_ancla - interval '1 hour 30 minutes',  v_ancla - interval '1 hour 5 minutes',   'completada', true, 'whatsapp')
+    (v_negocio, v_cli[4], v_cortes, v_carlos, v_dia + interval '9 hours',             v_dia + interval '9 hours 35 minutes',  'completada', true, 'manual'),
+    (v_negocio, v_cli[5], v_lavado, v_carlos, v_dia + interval '9 hours 45 minutes',  v_dia + interval '10 hours 5 minutes',  'completada', true, 'web'),
+    (v_negocio, v_cli[6], v_barba,  v_laura,  v_dia + interval '10 hours 15 minutes', v_dia + interval '10 hours 30 minutes', 'completada', true, 'manual'),
+    (v_negocio, v_cli[1], v_cortec, v_laura,  v_dia + interval '11 hours',            v_dia + interval '11 hours 25 minutes', 'completada', true, 'whatsapp')
   ) as t(n, cl, sv, pr, ini, fin, est, conf, can)
-  where t.ini >= v_dia + interval '9 hours';
+  where t.fin <= v_ancla;
 
   -- Un unico retraso, pequeno y creible (empezo hace 40 min y deberia haber
   -- acabado hace 10): suficiente para ensenar el aviso sin parecer un desastre.
@@ -154,8 +158,13 @@ $$;
 -- Solo el job (owner) la ejecuta: ni anon ni los usuarios pueden dispararla.
 revoke all on function public.resembrar_demo() from public, anon, authenticated;
 
--- Job diario a las 04:10 UTC: la demo amanece limpia y anclada al dia.
+-- Cada 2 HORAS, no una vez al dia: la funcion ancla el dia a la hora en que
+-- corre, asi que con una sola pasada de madrugada el resto de la jornada se
+-- quedaba desfasada (la cita estrella ya pasada, la tarde vacia). Cada 2 horas
+-- el visitante siempre pilla un dia con sentido, y de paso se limpia lo que
+-- hayan tocado los anteriores. El estado de lo ya pasado lo mantiene el cron
+-- `autocompletar-citas` (cada 15 min), que completa lo que termino hace poco.
 select cron.unschedule('resembrar-demo-diaria')
 where exists (select 1 from cron.job where jobname = 'resembrar-demo-diaria');
 
-select cron.schedule('resembrar-demo-diaria', '10 4 * * *', $cron$select public.resembrar_demo();$cron$);
+select cron.schedule('resembrar-demo', '0 */2 * * *', $cron$select public.resembrar_demo();$cron$);
