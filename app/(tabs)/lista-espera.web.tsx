@@ -16,6 +16,7 @@ import { manualListaEspera } from '@/lib/manuals/lista-espera';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
 import { AvisosBell } from '@/components/avisos/AvisosBell';
+import { withPlanGate } from '@/components/PlanGateOverlay';
 
 // ---------------------------------------------------------------------------
 // Tokens (consistentes con el resto de .web.tsx)
@@ -589,4 +590,4 @@ function AddModal({ negocioId, servicios, profesionales, clientes, onClose, onSa
   );
 }
 
-export default withClientDataGate(ListaEsperaScreen, 'Lista de espera');
+export default withPlanGate(withClientDataGate(ListaEsperaScreen, 'Lista de espera'), 'lista_espera');

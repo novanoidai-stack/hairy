@@ -14,6 +14,7 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualCampanas } from '@/lib/manuals/campanas';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
+import { withPlanGate } from '@/components/PlanGateOverlay';
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
@@ -298,4 +299,4 @@ function Header({ onBack, isMobile, onManual }: { onBack: () => void; isMobile: 
   );
 }
 
-export default CampanasScreen;
+export default withPlanGate(CampanasScreen, 'campanas');

@@ -8,6 +8,7 @@ import { DESIGN_TOKENS } from '@/lib/designTokens';
 import { getUserProfile, can, roleOf, roleLabel, type UserProfile, type Capability } from '@/lib/auth';
 import { IS_DEMO_MODE } from '@/lib/supabase';
 import { useAppLang } from '@/lib/hooks/useAppLang';
+import { incluyePlan, type FuncionPlan } from '@/lib/planes';
 
 const tokens = DESIGN_TOKENS;
 
@@ -26,15 +27,17 @@ const GROUP_META: Record<string, { color: string }> = {
   'General': { color: '#f4501e' },
 };
 
-const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: string; href: string; cap?: Capability; group?: string }[] = [
+// `plan`: funcion del plan que hace falta para ver la seccion. El `cap` es el
+// permiso del ROL; son dos filtros distintos y hay que pasar los dos.
+const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: string; href: string; cap?: Capability; plan?: FuncionPlan; group?: string }[] = [
   { label: 'Agenda', labelKey: 'nav_agenda', icon: 'calendar-outline', activeIcon: 'calendar', href: '/(tabs)', group: 'Operativa' },
   { label: 'Mi jornada', labelKey: 'nav_mi_jornada', icon: 'person-circle-outline', activeIcon: 'person-circle', href: '/(tabs)/mi-jornada', group: 'Operativa' },
-  { label: 'Lista de espera', labelKey: 'nav_lista_espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas', group: 'Operativa' },
+  { label: 'Lista de espera', labelKey: 'nav_lista_espera', icon: 'time-outline', activeIcon: 'time', href: '/(tabs)/lista-espera', cap: 'agenda.ver_todas', plan: 'lista_espera', group: 'Operativa' },
   { label: 'Citas', labelKey: 'nav_citas', icon: 'calendar-number-outline', activeIcon: 'calendar-number', href: '/(tabs)/citas', cap: 'agenda.ver_todas', group: 'Operativa' },
   
   { label: 'Clientes', labelKey: 'nav_clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver', group: 'CRM & Marketing' },
   { label: 'Bandeja', labelKey: 'nav_bandeja', icon: 'mail-outline', activeIcon: 'mail', href: '/(tabs)/bandeja', group: 'CRM & Marketing' },
-  { label: 'Campañas', labelKey: 'nav_campanas', icon: 'megaphone-outline', activeIcon: 'megaphone', href: '/(tabs)/campanas', cap: 'informes.ver', group: 'CRM & Marketing' },
+  { label: 'Campañas', labelKey: 'nav_campanas', icon: 'megaphone-outline', activeIcon: 'megaphone', href: '/(tabs)/campanas', cap: 'informes.ver', plan: 'campanas', group: 'CRM & Marketing' },
   
   { label: 'Caja', labelKey: 'nav_caja', icon: 'wallet-outline', activeIcon: 'wallet', href: '/(tabs)/caja', cap: 'config.ver', group: 'Gestión' },
   { label: 'Presupuestos', labelKey: 'nav_presupuestos', icon: 'document-text-outline', activeIcon: 'document-text', href: '/(tabs)/presupuestos', group: 'Gestión' },
@@ -122,6 +125,11 @@ export function Sidebar() {
   }, []);
   const allows = (cap?: Capability) =>
     !cap || profile === undefined || profile === null || can(profile, cap);
+  // Filtro por PLAN contratado. La demo compartida lo enseña todo (es el
+  // escaparate) y mientras el perfil carga no se esconde nada, para que el menu
+  // no baile al entrar.
+  const entraEnPlan = (fn?: FuncionPlan) =>
+    !fn || IS_DEMO_MODE || profile === undefined || profile === null || incluyePlan(profile, fn);
 
   // Salir del software de vuelta a la web publica, sin cerrar sesion.
   const exitToWeb = () => {
@@ -349,7 +357,7 @@ export function Sidebar() {
               )}
               <View style={s.navGroupContainer}>
                 {items.map(({ item, index }) => {
-                  if (!allows(item.cap)) return null;
+                  if (!allows(item.cap) || !entraEnPlan(item.plan)) return null;
                   return renderNavItem(item, index);
                 })}
               </View>

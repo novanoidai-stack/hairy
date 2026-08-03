@@ -11,6 +11,7 @@ import { getUserProfile } from '@/lib/auth';
 import { useCalendarRefresh } from '@/lib/calendarContext';
 import { useOnboardingStatus } from '@/lib/hooks/useOnboardingStatus';
 import { escanearHallazgosAhora } from '@/lib/hallazgos';
+import { incluyePlan } from '@/lib/planes';
 import ChispaPanel from '@/components/chispa/ChispaPanel.web';
 
 type PerfilChispa = {
@@ -54,7 +55,10 @@ export function ChispaLauncher() {
         id: p.id, role: p.role, negocio_id: p.negocio_id,
         nombre: p.nombre, nombreNegocio: p.nombre_negocio, codigoPostal: p.codigo_postal,
       });
-      setActivo(cfg.asistenteAgendaActivo === true);
+      // Chispa entra en el plan Estudio: con Esencial no se monta siquiera (ni
+      // burbuja ni panel). La demo compartida queda exenta: es el escaparate.
+      const planIncluyeChispa = IS_DEMO_MODE || incluyePlan(p, 'ia_chispa');
+      setActivo(planIncluyeChispa && cfg.asistenteAgendaActivo === true);
       setBriefingActivo(cfg.briefingProactivoActivo !== false);
       setChispaVozId((cfg.chispaVozId as string) || 'ef_dora');
 
