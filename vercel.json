@@ -11,6 +11,14 @@
     {
       "source": "/app/:path*",
       "destination": "/app/index.html"
+    },
+    {
+      "source": "/salones",
+      "destination": "/salones.html"
+    },
+    {
+      "source": "/salon/:slug",
+      "destination": "/salon.html"
     }
   ],
   "redirects": [
@@ -82,12 +90,18 @@
       ]
     },
     {
-      "source": "/assets/(.*)",
+      "source": "/assets/(.*).(png|jpg|jpeg|gif|webp|svg|ico|mp3|woff|woff2|ttf|otf)",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
         }
+      ]
+    },
+    {
+      "source": "/assets/(.*).(css|js)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     }
   ]
