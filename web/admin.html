@@ -805,6 +805,18 @@
   var staffEmails = {};
   var cuentasLoaded = false;
 
+  // Plegar/desplegar un salon entero. Faltaba: la cabecera llamaba a una funcion
+  // que no existia y al pulsarla solo saltaba un error en consola.
+  window.toggleNegocioGroup = function (event, nid) {
+    if (event) event.stopPropagation();
+    var wrap = $('negocio-' + nid);
+    var arrow = $('ngarrow-' + nid);
+    if (!wrap) return;
+    var abierto = wrap.style.display !== 'none';
+    wrap.style.display = abierto ? 'none' : 'block';
+    if (arrow) arrow.style.transform = abierto ? 'rotate(-90deg)' : 'rotate(0deg)';
+  };
+
   // Función global para toggle de subcuentas (llamada desde onclick)
   window.toggleSubs = function(event, nid, count) {
     event.stopPropagation();
@@ -922,6 +934,8 @@
           '<span style="color:var(--text-sec); font-size:12.5px;">(' + esc(p.email) + ')</span>' +
         '</div>' +
         '<div style="display:flex; align-items:center; gap:8px;">' +
+          '<span class="plan ' + (planCanonico(p) === 'free' ? 'free' : 'full') + '" title="Heredado del propietario del salón.">' +
+            esc(PLAN_TXT[planCanonico(p)] || planCanonico(p)) + '</span>' +
           (p.phone ? '<span style="font-size:12.5px; color:var(--text-ter);">' + esc(p.phone) + '</span>' : '') +
           action +
         '</div>' +
@@ -929,7 +943,9 @@
     '</div>';
   }
 
-  function cuentaRowHtml(p, subaccountsCount) {
+  function cuentaRowHtml(p, subcuentas) {
+    subcuentas = subcuentas || [];
+    var subaccountsCount = subcuentas.length;
     var planCanon = planCanonico(p);
     var planClass = planCanon === 'free' ? 'free' : 'full';
     var isDemo = p.negocio_id === 'demo_salon_001';
@@ -949,8 +965,8 @@
     // Cambiar el plan contratado. Lo que incluye cada uno se aplica de verdad en
     // la app (lib/planes.ts): al cambiarlo aqui, esa cuenta gana o pierde
     // Chispa, campanas, lista de espera, senales y el resto de extras.
-    action += '<label class="plan-switch" title="Plan contratado. Cambia lo que la cuenta puede usar.">' +
-      '<span>Plan</span>' +
+    action += '<label class="plan-switch" title="Plan contratado por el salón. Se aplica al propietario y a todo su equipo.">' +
+      '<span>Plan del salón</span>' +
       '<select data-plan-for="' + esc(p.id) + '">' +
         '<option value="free"' + (planCanon === 'free' ? ' selected' : '') + '>Gratis (solo demo)</option>' +
         '<option value="esencial"' + (planCanon === 'esencial' ? ' selected' : '') + '>Esencial</option>' +
@@ -978,7 +994,8 @@
     action += '<button class="btn-delete-account" data-del-acc="' + esc(p.id) + '" data-email="' + esc(p.email) + '">Eliminar cuenta</button>';
 
     if (subaccountsCount > 0) {
-      action += '<button class="btn-toggle-subs" style="margin-left:8px; padding:6px 12px; font-size:12px;" data-nid="' + esc(p.negocio_id) + '" data-count="' + subaccountsCount + '">' +
+      action += '<button class="btn-toggle-subs" style="margin-left:8px; padding:6px 12px; font-size:12px;" data-nid="' + esc(p.negocio_id) + '" data-count="' + subaccountsCount + '"' +
+        ' onclick="toggleSubs(event, \'' + esc(p.negocio_id) + '\', ' + subaccountsCount + ')">' +
         'Ver subcuentas (' + subaccountsCount + ')' +
         '</button>';
     }
@@ -1009,7 +1026,10 @@
       (subaccountsCount > 0 ?
         '<div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px;">' +
           '<div id="subs-wrap-' + esc(p.negocio_id) + '" style="display:none; transition: all 0.25s ease;">' +
-            '<!--SUB_ACCOUNTS_HERE-->' +
+            '<div style="font-size:11.5px;color:var(--text-sec);margin-bottom:6px;">' +
+              'Trabajadores de este salón. Entran con su propio correo y heredan el plan del propietario.' +
+            '</div>' +
+            subcuentas.map(subcuentaRowHtml).join('') +
           '</div>' +
         '</div>' : '') +
     '</div>';
@@ -1048,9 +1068,12 @@
 
     // Convertir a array y ordenar
     var groupList = Object.keys(groups).map(function (nid) {
+      // El nombre del salon lo pone el Propietario: los trabajadores no tienen
+      // nombre_negocio y hacian que el grupo se llamara como el negocio_id.
+      var dueno = groups[nid].cuentas.filter(function (p) { return p.role === 'owner' && p.nombre_negocio; })[0];
       return {
         negocioId: nid,
-        nombreNegocio: groups[nid].nombreNegocio,
+        nombreNegocio: (dueno && dueno.nombre_negocio) || groups[nid].nombreNegocio,
         cuentas: groups[nid].cuentas
       };
     }).sort(function (a, b) {
@@ -1069,45 +1092,47 @@
       return;
     }
 
-    // Renderizar grupos de negocio
+    // Renderizar grupos de negocio.
+    //
+    // Cada salon = un Propietario (la cuenta que paga) + sus trabajadores. La
+    // tarjeta grande es la del Propietario; el resto van debajo como subcuentas.
+    // El tenant compartido de la demo es la excepcion: ahi no hay jerarquia, son
+    // todos prospectos sueltos, asi que se listan planos.
     var html = '';
     groupList.forEach(function (g) {
+      var esDemo = g.negocioId === 'demo_salon_001';
+      var duenos = g.cuentas.filter(function (p) { return p.role === 'owner'; });
+      var equipo = g.cuentas.filter(function (p) { return p.role !== 'owner'; });
+      // Sin propietario visible (por el filtro o por dato roto) no se puede
+      // anidar: se muestran todas al mismo nivel para no esconder ninguna.
+      var plano = esDemo || duenos.length === 0;
+      var principal = plano ? g.cuentas : duenos;
+      var subs = plano ? [] : equipo;
+
       html += '<div class="negocio-group" style="margin-bottom:24px;">';
 
       // Header del negocio
       html += '<div class="negocio-header" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:12px;margin-bottom:12px;cursor:pointer;" onclick="toggleNegocioGroup(event, \'' + esc(g.negocioId) + '\')">';
-      html += '<svg style="width:18px;height:18px;color:#a855f7;transition:transform 0.2s;" id="arrow-' + esc(g.negocioId) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+      html += '<svg style="width:18px;height:18px;color:#a855f7;transition:transform 0.2s;" id="ngarrow-' + esc(g.negocioId) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
       html += '<span style="font-size:14px;font-weight:700;color:#a855f7;">' + esc(g.nombreNegocio) + '</span>';
-      html += '<span style="font-size:12px;color:var(--text-sec);margin-left:auto;">' + g.cuentas.length + ' cuentas</span>';
+      html += '<span style="font-size:12px;color:var(--text-sec);margin-left:auto;">' +
+        g.cuentas.length + (g.cuentas.length === 1 ? ' cuenta' : ' cuentas') +
+        (subs.length ? ' · ' + subs.length + (subs.length === 1 ? ' trabajador' : ' trabajadores') : '') +
+        '</span>';
       html += '</div>';
 
       // Lista de cuentas de este negocio (expandido por defecto)
       html += '<div id="negocio-' + esc(g.negocioId) + '" style="display:block;">';
 
-      g.cuentas.forEach(function (p) {
-        html += cuentaRowHtml(p);
+      principal.forEach(function (p, i) {
+        // Las subcuentas cuelgan del primer propietario: es quien contrata.
+        html += cuentaRowHtml(p, i === 0 ? subs : []);
       });
 
       html += '</div></div>';
     });
 
     listEl.innerHTML = html;
-
-    listEl.querySelectorAll('.btn-toggle-subs').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var nid = btn.getAttribute('data-nid');
-        var wrap = $('subs-wrap-' + nid);
-        if (wrap) {
-          if (wrap.style.display === 'none') {
-            wrap.style.display = 'block';
-            btn.textContent = 'Ocultar subcuentas';
-          } else {
-            wrap.style.display = 'none';
-            btn.textContent = 'Ver subcuentas (' + btn.getAttribute('data-count') + ')';
-          }
-        }
-      });
-    });
 
     // Cambio de plan contratado. Al guardarse, la app aplica de inmediato lo que
     // ese plan incluye (Chispa, campanas, lista de espera, senales...).
@@ -1119,7 +1144,7 @@
         var p = accounts.filter(function (x) { return x.id === id; })[0];
         var quien = p ? (p.nombre_negocio || p.email || 'esta cuenta') : 'esta cuenta';
         var TXT = { free: 'Gratis (solo demo)', esencial: 'Esencial', estudio: 'Estudio' };
-        if (!window.confirm('Cambiar el plan de "' + quien + '" a ' + TXT[nuevo] + '?' + String.fromCharCode(10, 10) + 'La cuenta pasara a tener exactamente lo que incluye ese plan.')) {
+        if (!window.confirm('Cambiar el plan de "' + quien + '" a ' + TXT[nuevo] + '?' + String.fromCharCode(10, 10) + 'Se aplica al salon entero: el propietario y todos sus trabajadores pasan a tener exactamente lo que incluye ese plan.')) {
           sel.value = anterior;
           return;
         }
@@ -1134,12 +1159,11 @@
               : 'No se pudo cambiar el plan: ' + m);
             return;
           }
-          var updated = res.data && res.data.length ? res.data[0] : res.data;
-          var local = accounts.filter(function (x) { return x.id === id; })[0];
-          if (local && updated) local.plan = updated.plan;
           anterior = nuevo;
-          msg($('cueMsg'), 'ok', 'Plan de "' + quien + '" cambiado a ' + TXT[nuevo] + '.');
-          renderCuentas();
+          msg($('cueMsg'), 'ok', 'Plan de "' + quien + '" cambiado a ' + TXT[nuevo] + '. Su equipo lo hereda.');
+          // El cambio toca a TODO el equipo del salon (staff_set_plan sincroniza),
+          // asi que se recargan las cuentas en vez de parchear una sola fila.
+          loadCuentas();
         }).catch(function (e) {
           sel.disabled = false;
           sel.value = anterior;
@@ -2045,7 +2069,9 @@
   function loadMovimientos() {
     // Primero cargar la lista de negocios para el selector
     if (negociosParaMovimientos.length === 0) {
-      api.client.from('profiles').select('negocio_id, nombre_negocio').in('role', 'owner').then(function (res) {
+      // .in('role','owner') recorria la CADENA letra a letra (o,w,n,e,r) y no
+      // devolvia nada: el selector de negocios salia siempre vacio.
+      api.client.from('profiles').select('negocio_id, nombre_negocio').eq('role', 'owner').then(function (res) {
         if (!res.error && res.data) {
           var uniq = {};
           res.data.forEach(function (p) {

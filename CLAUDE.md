@@ -125,9 +125,31 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
   - Se aplica en: menú lateral (esconde lo que no entra), pantallas (`withPlanGate`) y **servidor**
     (la edge `agenda-asistente` devuelve 402 sin plan Estudio: gasta tokens, esconder el botón no
     es un control de acceso).
-  - El plan se cambia desde el panel de staff (selector por cuenta → RPC `staff_set_plan`, solo
-    equipo, con traza en `eventos_negocio`).
+  - El plan lo contrata el **SALÓN, no la cuenta**: la fuente es el `owner` y el resto del equipo
+    lo hereda (`plan_del_negocio` / `sincronizar_plan_negocio`). `staff_set_plan` y
+    `staff_grant_full_access` propagan a todo el negocio. `demo_salon_001` queda fuera.
+  - `profiles.plan` **no se puede tocar desde el cliente**: el trigger `guard_profile_identity_columns`
+    congela `role`, `negocio_id` **y `plan`**. Solo cambia dentro de funciones `security definer`
+    que marquen `mecha.identity_ctx`. (Antes cualquiera se ponía `plan='estudio'` y el 402 del
+    servidor no servía de nada, porque leía ese mismo campo.)
   - `demo_salon_001` está EXENTA: la demo es el escaparate y debe enseñarlo todo.
+- **ECOSISTEMA DE CUENTAS: propietario + trabajadores (3 ago 2026).** Un salón = un `owner` (quien
+  paga) + sus trabajadores, todos con `negocio_id` común y su propio correo de acceso.
+  - **Dos cosas distintas que se confunden:** la **ficha** (`profesionales`, la columna de la agenda,
+    sirve aunque esa persona no entre nunca) y la **cuenta** (`profiles` + `auth`, el correo con el
+    que se entra). Se unen por `profesionales.profile_id`. Ficha sin cuenta = normal; cuenta sin
+    ficha (rol profesional) = error, entra pero nadie puede darle citas.
+  - **Tener perfil ≠ poder entrar.** El perfil se crea AL INVITAR. El estado real (`activa` /
+    `pendiente`) sale de `auth.users.last_sign_in_at` vía la RPC **`equipo_cuentas()`** (owner/admin).
+  - **Invitar / reenviar / revocar**: todo en la edge `crear-acceso-empleado` (campo `accion`).
+    La invitación aterriza en **`/restablecer.html`**, donde la persona ELIGE SU CONTRASEÑA
+    (antes iba a `acceso.html`, que la trataba como login normal: entraba una vez y nunca más).
+    Al invitar se puede pasar `profesional_id` (vincula la ficha en el servidor) o `crear_ficha`.
+  - Capa común en el cliente: **`lib/equipoAccesos.ts`** — la usan Equipo y Ajustes → Accesos y roles.
+  - Un trabajador NO ve la pantalla de "completa tu salón" ni la de contratar: `acceso.html`
+    distingue por `role`.
+  - El tenant de la demo **no expone cuentas reales**: ahí nacen todos los registros, así que la
+    política de SELECT y `equipo_cuentas()` filtran por `profiles.es_cuenta_demo` (las 4 de atrezzo).
 - **Contacto comercial: TRES vías** en `#precios` (llamada de 10 min · mensaje · "quiero el
   software"). Todas dejan la solicitud en `solicitudes` **y** avisan por correo con la edge
   `notificar-solicitud` (SMTP de Hostinger): a `contacto@mechaa.es` con los datos y al interesado

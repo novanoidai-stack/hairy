@@ -732,11 +732,21 @@
   function gotoDemo() { clearDemoIntent(); window.location.href = 'demo.html'; }
   function gotoAdmin() { window.location.href = 'admin.html'; }
 
+  // Un trabajador invitado NO es dueño de un salon: entro a uno que ya existe.
+  // Ni se le piden datos de salon ni se le ofrece contratar nada.
+  function esTrabajador(profile) {
+    var rol = profile && profile.role ? String(profile.role).toLowerCase() : '';
+    return rol === 'admin' || rol === 'recepcion' || rol === 'employee';
+  }
+
   // Solo 'free' se queda en la pantalla limitada; el resto entra al software.
   function routeByPlan(profile) {
     var plan = (profile && profile.plan) ? String(profile.plan).toLowerCase() : 'free';
-    if (plan === 'free') { showStage('paneFree'); initFreePane(); }
-    else { gotoApp(); }
+    if (plan !== 'free') { gotoApp(); return; }
+    // Su salon todavia no tiene el software activo: quien lo contrata es la
+    // persona que gestiona la cuenta, no el trabajador.
+    if (esTrabajador(profile)) { showStage('paneFree'); initFreePane(true); return; }
+    showStage('paneFree'); initFreePane(false);
   }
 
   // Despues de autenticar: demo -> demo; equipo -> elige; perfil incompleto -> completar;
@@ -754,6 +764,13 @@
 
         // El staff nunca tiene perfil "incompleto" porque no tiene un salón asociado.
         if (staff) {
+          incomplete = false;
+        }
+
+        // Tampoco un trabajador invitado: el salón ya existe y es de otra
+        // persona. Antes se le pedía "nombre del salón y código postal", que no
+        // son suyos, para dejarle pasar.
+        if (esTrabajador(profile)) {
           incomplete = false;
         }
 
@@ -868,7 +885,17 @@
 
   // FREE
   var freeInit = false;
-  function initFreePane() {
+  function initFreePane(esDelEquipo) {
+    // Trabajador de un salon que aun no tiene el software activo: no puede
+    // contratarlo el, asi que no se le ofrece "solicitar acceso".
+    if (esDelEquipo) {
+      var hFree = document.querySelector('#paneFree .auth-h');
+      var pFree = document.querySelector('#paneFree .auth-p');
+      if (hFree) hFree.textContent = 'Tu salón aún no tiene el software activo';
+      if (pFree) pFree.textContent = 'Tu cuenta ya está lista. En cuanto la persona que gestiona el salón active Mecha, podrás entrar con este mismo correo.';
+      var btnReq = document.getElementById('frRequest');
+      if (btnReq) btnReq.style.display = 'none';
+    }
     if (freeInit) return; freeInit = true;
     if (api && api.demoVisitsStatus) {
       api.demoVisitsStatus().then(function (st) {
