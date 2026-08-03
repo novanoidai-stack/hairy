@@ -1635,28 +1635,34 @@ window.MECHA_CHAT = [
 
     var api=window.MechaAPI;
     // La solicitud queda guardada (llega al panel de staff) y ademas nos avisa
-    // por correo. Si el correo fallara, el lead NO se pierde: esta en la base.
+    // por correo. Son dos caminos: basta con que UNO funcione para que el
+    // contacto no se pierda, pero si fallan LOS DOS hay que decirlo (antes se
+    // daba "enviado" por bueno aunque no se hubiera guardado nada).
     var guardar = (api && api.insertSolicitud)
       ? api.insertSolicitud({ tipo:tipo, nombre:nombre, salon:salon, email:email, telefono:tel, nota:texto||null, meta:{ origen:'precios' } })
-      : Promise.resolve({ error:null });
+          .then(function(r){ return !(r && r.error); })
+          .catch(function(){ return false; })
+      : Promise.resolve(false);
 
-    guardar.then(function(){
-      if(api && api.client){
-        return api.client.functions.invoke('notificar-solicitud',{ body:{
+    var avisar = (api && api.client)
+      ? api.client.functions.invoke('notificar-solicitud',{ body:{
           tipo:tipo, nombre:nombre, email:email, telefono:tel, salon:salon, mensaje:texto||null
-        }});
-      }
-    }).then(function(){
+        }}).then(function(r){ return !(r && r.error); }).catch(function(){ return false; })
+      : Promise.resolve(false);
+
+    Promise.all([guardar, avisar]).then(function(res){
       btn.disabled=false; btn.textContent=antes;
-      msg.hidden=false; msg.className='via-msg ok';
+      msg.hidden=false;
+      if(!res[0] && !res[1]){
+        msg.className='via-msg err';
+        msg.textContent='No se ha podido enviar. Escríbenos a contacto@mechaa.es y lo vemos.';
+        return;
+      }
+      msg.className='via-msg ok';
       msg.textContent = tipo==='quiero_software'
         ? 'Recibido. Te escribimos hoy mismo para darte acceso y dejártelo montado.'
         : 'Mensaje enviado. Te contestamos hoy mismo a ' + email + '.';
       form.reset();
-    }).catch(function(){
-      btn.disabled=false; btn.textContent=antes;
-      msg.hidden=false; msg.className='via-msg err';
-      msg.textContent='No se ha podido enviar. Escríbenos a contacto@mechaa.es y lo vemos.';
     });
   });
 })();

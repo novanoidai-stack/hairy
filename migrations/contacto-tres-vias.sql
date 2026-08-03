@@ -37,3 +37,13 @@ grant execute on function public.horas_llamada_ocupadas(text) to anon, authentic
 -- crear_solicitud_publica: ver migracion aplicada
 -- 'solicitudes_tipos_mensaje_y_quiero_software' (anade 'mensaje' y
 -- 'quiero_software' a la lista de tipos validos).
+
+-- 3) OJO: ademas de la funcion, la TABLA tenia su propio CHECK de tipos. Al
+--    ampliar solo la funcion, la insercion seguia fallando con 23514 y los
+--    mensajes del pricing NO se guardaban (el correo si salia, asi que el fallo
+--    pasaba desapercibido). Aplicado en la migracion
+--    'solicitudes_check_tipo_nuevos':
+alter table public.solicitudes drop constraint if exists solicitudes_tipo_check;
+alter table public.solicitudes
+  add constraint solicitudes_tipo_check
+  check (tipo = any (array['demo'::text, 'reserva_llamada'::text, 'signup'::text, 'mensaje'::text, 'quiero_software'::text]));
