@@ -112,10 +112,27 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
     libera el hueco si no se paga en 15 min, workflow n8n "Mecha — Expirar señales").
   - **Página de autogestión del cliente `/app/cita/[id]`** (ver/cambiar/cancelar). Rutas `cita` y `pago`
     exentas de los guards de auth en `app/_layout.tsx` (como `r`/`resena`).
-- **Precios PÚBLICOS (2 ago 2026):** Esencial **29 €/mes**, Estudio **49 €/mes** (+IVA), 1 mes gratis
-  sin tarjeta, sin permanencia, 0% comisiones, profesionales ilimitados. Viven en DOS sitios que hay
-  que cambiar a la vez: la sección `#precios` de `web/index.html` y el `SYSTEM_PROMPT` de
-  `supabase/functions/chispa-landing/index.ts` (el asistente los recita de memoria).
+- **Precios PÚBLICOS (3 ago 2026):** Esencial **39 €/mes**, Estudio **59 €/mes** (+IVA), 1 mes gratis
+  sin tarjeta, sin permanencia, 0% comisiones, profesionales ilimitados. Viven en TRES sitios que hay
+  que cambiar a la vez: la sección `#precios` de `web/index.html` (incluidos los datos estructurados
+  y el FAQ), y el `SYSTEM_PROMPT` de `supabase/functions/chispa-landing/index.ts` (el asistente los
+  recita de memoria).
+- **PLANES que limitan de verdad (3 ago 2026).** `profiles.plan` ∈ `free | esencial | estudio`
+  (`full` = valor histórico, se lee como `estudio`; ninguna cuenta antigua pierde nada).
+  **Fuente única de qué incluye cada plan: `lib/planes.ts`** — debe cuadrar con la sección de precios.
+  - Solo Estudio: Chispa IA, agente de voz (contesta el teléfono), señales Stripe, campañas,
+    lista de espera y VeriFactu. Lo demás es Esencial.
+  - Se aplica en: menú lateral (esconde lo que no entra), pantallas (`withPlanGate`) y **servidor**
+    (la edge `agenda-asistente` devuelve 402 sin plan Estudio: gasta tokens, esconder el botón no
+    es un control de acceso).
+  - El plan se cambia desde el panel de staff (selector por cuenta → RPC `staff_set_plan`, solo
+    equipo, con traza en `eventos_negocio`).
+  - `demo_salon_001` está EXENTA: la demo es el escaparate y debe enseñarlo todo.
+- **Contacto comercial: TRES vías** en `#precios` (llamada de 10 min · mensaje · "quiero el
+  software"). Todas dejan la solicitud en `solicitudes` **y** avisan por correo con la edge
+  `notificar-solicitud` (SMTP de Hostinger): a `contacto@mechaa.es` con los datos y al interesado
+  la confirmación. Al añadir un `tipo` de solicitud hay que tocar DOS sitios: la función
+  `crear_solicitud_publica` **y** el CHECK de la tabla `solicitudes`.
 - **Contraseñas filtradas: RESUELTO sin Supabase Pro.** La opción "Leaked password protection" del
   dashboard es de plan de pago, así que la comprobación se hace por nuestra cuenta contra
   HaveIBeenPwned con k-anonimato: en el servidor al crear cuenta (`supabase/functions/signup-free`)
