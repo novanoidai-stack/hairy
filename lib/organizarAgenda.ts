@@ -35,6 +35,7 @@ import {
   toUpdate,
   buscarHueco,
   hayColision,
+  ventanasActivas,
 } from './retrasos.ts';
 import {
   HORARIO_APERTURA,
@@ -50,7 +51,16 @@ const MAX_RETRASO_MIN = 240; // citas "olvidadas" de hace horas no cuentan como 
 // porque los dos son ajustes de salon (claves agendaUmbralHuecoMin / agendaMaxAdelantoMin).
 export const UMBRAL_HUECO_MIN_DEFAULT = AGENDA_UMBRAL_HUECO_MIN_DEFAULT;
 
-export type TipoProblemaAgenda = 'retraso' | 'solape' | 'hueco_muerto' | 'reposo_desaprovechado';
+export type TipoProblemaAgenda =
+  | 'retraso'
+  | 'solape'
+  | 'hueco_muerto'
+  | 'reposo_desaprovechado'
+  // Hueco INTERIOR (entre dos citas) que ninguna cita del dia puede tapar
+  // adelantandose. No tiene arreglo de un clic: es un aviso para ofrecerlo a la
+  // lista de espera. Antes este caso no generaba ningun problema y por eso "el
+  // organizador no avisaba de los huecos".
+  | 'hueco_vacio';
 
 // Cita de entrada: lo que ya pide CitaRetraso (fases + cliente/telefono/servicio
 // para las tarjetas) mas lo que este modulo necesita para agrupar y filtrar.
@@ -63,6 +73,14 @@ export interface CitaOrganizar extends CitaRetraso {
   categoriaMinima?: string | null;
 }
 
+// Tramo de la rejilla al que apunta un problema. Lo consume el modo "Enseñamelo"
+// de la agenda para resaltar la zona exacta en la columna del profesional.
+export interface ZonaProblema {
+  profesionalId: string;
+  desde: string; // ISO
+  hasta: string; // ISO
+}
+
 export interface ProblemaAgenda {
   id: string;
   tipo: TipoProblemaAgenda;
@@ -71,13 +89,70 @@ export interface ProblemaAgenda {
   titulo: string;
   descripcion: string;
   citaIds: string[];
-  // >=1 opciones aplicables; estrategias[0] es la recomendada/unica. El tipo
+  // Opciones aplicables; estrategias[0] es la recomendada/unica. El tipo
   // 'retraso' puede traer varias (cascada/hueco/reposo/pedir), igual que el
-  // picker de retraso de una sola cita; el resto siempre trae una.
+  // picker de retraso de una sola cita. OJO: 'hueco_vacio' viene con la lista
+  // VACIA (es informativo, no hay nada que aplicar) — quien lo pinte debe
+  // tolerar estrategias.length === 0.
   estrategias: EstrategiaRetraso[];
   // Solo tipo 'retraso': minutos de retraso detectados (para reutilizar
   // RetrasoEstrategiasModal, que los muestra en su cabecera).
   minutos?: number;
+  // Donde mirar en la rejilla. Siempre presente.
+  zona: ZonaProblema;
+}
+
+function zona(profesionalId: string, desdeMs: number, hastaMs: number): ZonaProblema {
+  return {
+    profesionalId,
+    desde: new Date(desdeMs).toISOString(),
+    hasta: new Date(hastaMs).toISOString(),
+  };
+}
+
+// --- Adaptador de la fila cruda de `citas` a la entrada del analizador. ---
+// Vive aqui (y no en el panel) porque hay DOS consumidores: el panel
+// "Organizar mi agenda" y el contador/resalte de la propia rejilla. Duplicar el
+// mapeo llevaba a que el badge y el panel contasen cosas distintas.
+export interface CitaCrudaAnalisis {
+  id: string;
+  inicio: string;
+  fin: string;
+  fin_activa?: string | null;
+  fin_espera?: string | null;
+  estado: string;
+  profesional_id: string;
+  servicio_id?: string | null;
+  cliente_id?: string | null;
+  grupo_id?: string | null;
+}
+
+export function prepararCitas(
+  citas: CitaCrudaAnalisis[],
+  clientes: { id: string; nombre: string; telefono?: string | null }[],
+  servicios: { id: string; nombre: string; categoria_minima?: string | null; duracion_minima_min?: number | null }[],
+): CitaOrganizar[] {
+  const porCliente = new Map(clientes.map((c) => [c.id, c]));
+  const porServicio = new Map(servicios.map((s) => [s.id, s]));
+  return citas.map((c) => {
+    const cliente = c.cliente_id ? porCliente.get(c.cliente_id) : undefined;
+    const servicio = c.servicio_id ? porServicio.get(c.servicio_id) : undefined;
+    return {
+      id: c.id,
+      inicio: c.inicio,
+      fin: c.fin,
+      fin_activa: c.fin_activa,
+      fin_espera: c.fin_espera,
+      estado: c.estado,
+      profesional_id: c.profesional_id,
+      grupoId: c.grupo_id ?? null,
+      cliente: cliente?.nombre ?? null,
+      telefono: cliente?.telefono ?? null,
+      servicio: servicio?.nombre ?? null,
+      categoriaMinima: servicio?.categoria_minima ?? null,
+      duracionMinimaMin: servicio?.duracion_minima_min ?? null,
+    };
+  });
 }
 
 // Bloqueo tal cual viene de la tabla bloqueos_profesional (no hace falta filtrarlos al dia:
@@ -104,6 +179,10 @@ export interface JornadaDia {
 
 export interface AnalisisAgendaOpts {
   ahoraMs?: number;
+  // Dia que se esta MIRANDO en la agenda (cualquier instante dentro de el).
+  // Por defecto, el dia de ahoraMs. Sin esto el analisis solo veia HOY y el
+  // contador de problemas no cuadraba con la pantalla al cambiar de fecha.
+  diaMs?: number;
   umbralHuecoMin?: number;
   bloqueos?: BloqueoOrganizar[];
   horarios?: HorarioNegocio[];
@@ -190,6 +269,7 @@ function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: 
     citaIds: Array.from(citaIds),
     estrategias,
     minutos,
+    zona: zona(candidata.c.profesional_id, +new Date(candidata.c.inicio), +new Date(candidata.c.fin)),
   };
 }
 
@@ -237,6 +317,12 @@ function detectarSolapes(
         descripcion: `${intrusa.cliente ?? 'Una cita'} choca con ${fija.cliente ?? 'otra cita'}. Hay ${estrategias.length} forma${estrategias.length > 1 ? 's' : ''} de resolverlo.`,
         citaIds: [intrusa.id, fija.id],
         estrategias,
+        // La zona cubre las dos citas: el resalte tiene que dejar ver el choque.
+        zona: zona(
+          intrusa.profesional_id,
+          Math.min(fases[fijaIdx].ini, fases[intrusaIdx].ini),
+          Math.max(fases[fijaIdx].fin, fases[intrusaIdx].fin),
+        ),
       });
     }
   }
@@ -257,12 +343,18 @@ function detectarHuecos(
   umbralMs: number,
   aperturaMs: number,
   maxAdelantoMs: number,
+  // Citas ya comprometidas por un arreglo de retraso o de solape en esta misma
+  // pasada: moverlas otra vez daria dos propuestas contradictorias sobre la
+  // misma cita. Antes esto se evitaba saltandose ENTERA la busqueda de huecos
+  // del profesional (un `continue`), y por eso un dia con un retraso nunca
+  // avisaba de sus huecos.
+  excluirIds: Set<string>,
 ): ProblemaAgenda[] {
   const problemas: ProblemaAgenda[] = [];
   const efectivo = new Map<string, Fases>(citasProf.map((c) => [c.id, fasesDe(c)]));
 
   const movibles = citasProf
-    .filter((c) => !c.grupoId && +new Date(c.inicio) > ahoraMs)
+    .filter((c) => !c.grupoId && !excluirIds.has(c.id) && +new Date(c.inicio) > ahoraMs)
     .sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
 
   for (const cand of movibles) {
@@ -306,6 +398,73 @@ function detectarHuecos(
           recomendada: true,
         },
       ],
+      // Zona = el hueco que se va a tapar (destino), no la posicion actual de la
+      // cita: es lo que hay que mirar en la rejilla.
+      zona: zona(cand.profesional_id, nueva.ini, nueva.fin),
+    });
+  }
+  return problemas;
+}
+
+// --- 4) Huecos INTERIORES que nadie puede tapar adelantandose: el aviso que
+//        faltaba. Solo entre dos tramos ocupados (un dia que empieza tarde o
+//        acaba pronto no es un "problema", es que no esta lleno). El reposo NO
+//        cuenta como ocupacion: ahi el profesional esta libre. ---
+function detectarHuecosVacios(
+  citasProf: CitaOrganizar[],
+  ahoraMs: number,
+  umbralMs: number,
+  bloqueos: { inicio: string; fin: string }[],
+  // Destinos ya propuestos por detectarHuecos: ese hueco ya tiene tarjeta con
+  // arreglo, no hace falta duplicarlo como aviso informativo.
+  yaPropuestos: [number, number][],
+  esHoy: boolean,
+): ProblemaAgenda[] {
+  if (citasProf.length === 0) return [];
+
+  const ocupado: [number, number][] = [];
+  for (const c of citasProf) {
+    const f = fasesDe(c);
+    const w = ventanasActivas(f);
+    // Una cita que ya deberia haber acabado y sigue abierta ocupa al profesional
+    // HASTA AHORA: sin esto se anunciaba como libre un tramo que esta pisado.
+    // Si estamos dentro de su reposo la ultima ventana aun no ha llegado, asi
+    // que no se estira (ahi el profesional si esta libre de verdad).
+    const ult = w[w.length - 1];
+    if (esHoy && f.ini <= ahoraMs && ult[1] < ahoraMs && ahoraMs - ult[1] <= MAX_RETRASO_MIN * MIN) {
+      ult[1] = ahoraMs;
+    }
+    for (const v of w) ocupado.push(v);
+  }
+  for (const b of bloqueos) ocupado.push([+new Date(b.inicio), +new Date(b.fin)]);
+  ocupado.sort((a, b) => a[0] - b[0]);
+
+  const fundido: [number, number][] = [];
+  for (const w of ocupado) {
+    const ultimo = fundido[fundido.length - 1];
+    if (ultimo && w[0] <= ultimo[1]) ultimo[1] = Math.max(ultimo[1], w[1]);
+    else fundido.push([w[0], w[1]]);
+  }
+
+  const problemas: ProblemaAgenda[] = [];
+  for (let i = 1; i < fundido.length; i++) {
+    const fin = fundido[i][0];
+    // Lo ya pasado no se puede aprovechar: cuenta solo el tramo desde ahora.
+    const ini = Math.max(fundido[i - 1][1], ahoraMs);
+    if (fin - ini < umbralMs) continue;
+    if (yaPropuestos.some(([a, b]) => ini < b && a < fin)) continue;
+
+    const min = Math.round((fin - ini) / MIN);
+    problemas.push({
+      id: `hueco_vacio:${citasProf[0].profesional_id}:${ini}`,
+      tipo: 'hueco_vacio',
+      profesionalId: citasProf[0].profesional_id,
+      profesionalNombre: '',
+      titulo: `Hueco libre de ${min} min`,
+      descripcion: `Entre las ${fmtHora(new Date(ini).toISOString())} y las ${fmtHora(new Date(fin).toISOString())} no hay nada, y ninguna cita del dia puede adelantarse a taparlo. Ofrecelo a la lista de espera.`,
+      citaIds: [],
+      estrategias: [],
+      zona: zona(citasProf[0].profesional_id, ini, fin),
     });
   }
   return problemas;
@@ -319,15 +478,28 @@ export function analizarAgendaDia(
   opts?: AnalisisAgendaOpts,
 ): ProblemaAgenda[] {
   const ahoraMs = opts?.ahoraMs ?? Date.now();
+  // Dia analizado: el que se esta mirando en la agenda (por defecto, hoy).
+  const diaMs = opts?.diaMs ?? ahoraMs;
+  const esHoy = esMismoDiaLocal(new Date(diaMs).toISOString(), ahoraMs);
+  // Corte "lo que ya no se puede aprovechar". Hoy es el reloj; en un dia futuro
+  // es el arranque del dia (esta entero por delante, da igual a que hora se mire).
+  const inicioDelDia = new Date(diaMs);
+  inicioDelDia.setHours(0, 0, 0, 0);
+  const corteMs = esHoy ? ahoraMs : inicioDelDia.getTime();
   const umbralHuecoMs = (opts?.umbralHuecoMin ?? AGENDA_UMBRAL_HUECO_MIN_DEFAULT) * MIN;
   const maxAdelantoMs = (opts?.maxAdelantoMin ?? AGENDA_MAX_ADELANTO_MIN_DEFAULT) * MIN;
   const nombrePorId = new Map(profesionales.map((p) => [p.id, p.nombre]));
   const inicioPorId = new Map(citas.map((c) => [c.id, +new Date(c.inicio)]));
 
+  // Un dia que ya termino no se reorganiza: no hay nada que mover.
+  const finDelDia = new Date(diaMs);
+  finDelDia.setHours(23, 59, 59, 999);
+  if (finDelDia.getTime() < ahoraMs) return [];
+
   const porProfesional = new Map<string, CitaOrganizar[]>();
   for (const c of citas) {
     if (c.estado !== 'confirmada' && c.estado !== 'pendiente') continue;
-    if (!esMismoDiaLocal(c.inicio, ahoraMs)) continue;
+    if (!esMismoDiaLocal(c.inicio, diaMs)) continue;
     const lista = porProfesional.get(c.profesional_id) ?? [];
     lista.push(c);
     porProfesional.set(c.profesional_id, lista);
@@ -347,10 +519,20 @@ export function analizarAgendaDia(
     const citasProf = [...citasProfSinOrdenar].sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
     const { aperturaMs, cierreMs } = ventanaDelDia(citasProf[0].inicio, opts?.horarios);
 
-    const retraso = detectarRetraso(citasProf, ahoraMs, cierreMs, aperturaMs, maxAdelantoMs);
+    // Citas ya comprometidas por un arreglo de este profesional. Antes, con un
+    // retraso o un solape se hacia `continue` y ese profesional se quedaba sin
+    // analizar los huecos en toda la pasada; ahora solo se excluyen las citas
+    // concretas que ya tienen propuesta, para no dar dos ordenes sobre la misma.
+    const comprometidas = new Set<string>();
+
+    // El retraso solo tiene sentido HOY: en un dia futuro nadie llega tarde
+    // todavia, y mirando un dia pasado saldria todo retrasado.
+    const retraso = esHoy
+      ? detectarRetraso(citasProf, ahoraMs, cierreMs, aperturaMs, maxAdelantoMs)
+      : null;
     if (retraso) {
       problemas.push(retraso);
-      continue;
+      retraso.citaIds.forEach((id) => comprometidas.add(id));
     }
 
     const candidatos = activos
@@ -363,18 +545,43 @@ export function analizarAgendaDia(
         bloqueos: bloqueosPorProf.get(p.id) ?? [],
       }));
 
-    const solapes = detectarSolapes(citasProf, ahoraMs, cierreMs, candidatos, aperturaMs, maxAdelantoMs);
-    if (solapes.length > 0) {
-      problemas.push(...solapes);
-      continue;
+    const solapes = detectarSolapes(citasProf, corteMs, cierreMs, candidatos, aperturaMs, maxAdelantoMs);
+    for (const s of solapes) {
+      problemas.push(s);
+      s.citaIds.forEach((id) => comprometidas.add(id));
     }
 
-    problemas.push(...detectarHuecos(citasProf, ahoraMs, cierreMs, umbralHuecoMs, aperturaMs, maxAdelantoMs));
+    const huecos = detectarHuecos(
+      citasProf,
+      corteMs,
+      cierreMs,
+      umbralHuecoMs,
+      aperturaMs,
+      maxAdelantoMs,
+      comprometidas,
+    );
+    problemas.push(...huecos);
+
+    problemas.push(
+      ...detectarHuecosVacios(
+        citasProf,
+        corteMs,
+        umbralHuecoMs,
+        bloqueosPorProf.get(profId) ?? [],
+        huecos.map((h) => [+new Date(h.zona.desde), +new Date(h.zona.hasta)] as [number, number]),
+        esHoy,
+      ),
+    );
   }
+
+  // Orden temporal: por la cita implicada o, si no hay ninguna (hueco_vacio),
+  // por el inicio de la zona resaltada.
+  const claveTemporal = (p: ProblemaAgenda) =>
+    inicioPorId.get(p.citaIds[0] ?? '') ?? +new Date(p.zona.desde);
 
   return problemas
     .map((p) => ({ ...p, profesionalNombre: nombrePorId.get(p.profesionalId) ?? 'Profesional' }))
-    .sort((a, b) => (inicioPorId.get(a.citaIds[0]) ?? 0) - (inicioPorId.get(b.citaIds[0]) ?? 0));
+    .sort((a, b) => claveTemporal(a) - claveTemporal(b));
 }
 
 // --- Movimientos listos para chispaOps.ejecutarAccion({tipo:'optimizar_agenda'}):

@@ -263,7 +263,9 @@ export function fasesDeBloqueo(b: BloqueoProfesional): Fases {
 
 // Ventanas en que el profesional esta OCUPADO de verdad (fase activa 1 y, si existe, 2).
 // El reposo [finA, finE] NO cuenta: ahi el profesional esta libre.
-function ventanasActivas(f: Fases): Array<[number, number]> {
+// Exportada: organizarAgenda.ts la necesita para calcular los huecos reales del dia
+// y no debe reimplementar esta regla (el reposo es hueco aprovechable, no ocupacion).
+export function ventanasActivas(f: Fases): Array<[number, number]> {
   const w: Array<[number, number]> = [[f.ini, f.finA]];
   if (f.finE < f.fin) w.push([f.finE, f.fin]);
   return w;

@@ -7,6 +7,7 @@ import { DESIGN_TOKENS } from '@/lib/designTokens';
 import {
   analizarAgendaDia,
   estrategiaAMovimientos,
+  prepararCitas,
   type ProblemaAgenda,
   type CitaOrganizar,
 } from '@/lib/organizarAgenda';
@@ -67,8 +68,13 @@ export interface OrganizarAgendaPanelProps {
   limites?: { maxAdelantoMin?: number; umbralHuecoMin?: number };
   negocioId: string;
   isMobile?: boolean;
+  // Dia que se esta viendo en la agenda. Sin esto el panel analizaba siempre HOY
+  // y el numero de problemas no cuadraba con lo que hay en pantalla.
+  fechaVista?: Date;
   onClose: () => void;
   onAplicado: (updates: UpdateRetraso[]) => void;
+  // Resalta el problema en la rejilla ("Enseñamelo"). Si no se pasa, no se ofrece.
+  onEnsenar?: (problema: ProblemaAgenda) => void;
 }
 
 function iconoTipo(tipo: ProblemaAgenda['tipo']) {
@@ -77,6 +83,10 @@ function iconoTipo(tipo: ProblemaAgenda['tipo']) {
       return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.amber} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
     case 'solape':
       return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>;
+    case 'hueco_vacio':
+      // Verde, igual que la etiqueta "Hueco libre" de la rejilla: es una
+      // oportunidad que llenar, no una averia que arreglar.
+      return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.success} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /><line x1="4.9" y1="4.9" x2="19.1" y2="19.1" /></svg>;
     default:
       return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></svg>;
   }
@@ -84,11 +94,13 @@ function iconoTipo(tipo: ProblemaAgenda['tipo']) {
 function fondoTipo(tipo: ProblemaAgenda['tipo']): string {
   if (tipo === 'retraso') return T.amberSoft;
   if (tipo === 'solape') return T.dangerSoft;
+  if (tipo === 'hueco_vacio') return T.successSoft;
   return T.primarySoft;
 }
 
 export default function OrganizarAgendaPanel({
-  citas, profesionales, clientes, servicios, bloqueos, horarios, limites, negocioId, isMobile, onClose, onAplicado,
+  citas, profesionales, clientes, servicios, bloqueos, horarios, limites, negocioId, isMobile,
+  fechaVista, onClose, onAplicado, onEnsenar,
 }: OrganizarAgendaPanelProps) {
   const esDemoCompartida = IS_DEMO_MODE || negocioId === 'demo_salon_001';
   // Arnes de pruebas SOLO con ?orgnow=<ISO> en la URL (mismo espiritu que
@@ -115,45 +127,35 @@ export default function OrganizarAgendaPanel({
     return () => { cancel = true; };
   }, []);
 
-  const citasHoy: CitaOrganizar[] = useMemo(() => {
-    const clienteMap = new Map(clientes.map((c) => [c.id, c]));
-    const servicioMap = new Map(servicios.map((s) => [s.id, s.nombre]));
-    const servicioCatMinMap = new Map(servicios.map((s) => [s.id, s.categoria_minima ?? null]));
-    const servicioDurMinMap = new Map(servicios.map((s) => [s.id, s.duracion_minima_min ?? null]));
-    return citas.map((c) => {
-      const cliente = c.cliente_id ? clienteMap.get(c.cliente_id) : undefined;
-      return {
-        id: c.id,
-        inicio: c.inicio,
-        fin: c.fin,
-        fin_activa: c.fin_activa,
-        fin_espera: c.fin_espera,
-        estado: c.estado,
-        profesional_id: c.profesional_id,
-        grupoId: c.grupo_id ?? null,
-        cliente: cliente?.nombre ?? null,
-        telefono: cliente?.telefono ?? null,
-        servicio: c.servicio_id ? (servicioMap.get(c.servicio_id) ?? null) : null,
-        categoriaMinima: c.servicio_id ? (servicioCatMinMap.get(c.servicio_id) ?? null) : null,
-        duracionMinimaMin: c.servicio_id ? (servicioDurMinMap.get(c.servicio_id) ?? null) : null,
-      };
-    });
-  }, [citas, clientes, servicios]);
+  // Mismo adaptador que usa el contador de la rejilla (lib/organizarAgenda.ts):
+  // si divergen, el badge y este panel cuentan cosas distintas.
+  const citasHoy: CitaOrganizar[] = useMemo(
+    () => prepararCitas(citas, clientes, servicios),
+    [citas, clientes, servicios],
+  );
 
   const citasPorId = useMemo(() => new Map(citasHoy.map((c) => [c.id, c])), [citasHoy]);
 
+  const diaMs = fechaVista ? +fechaVista : undefined;
   const problemas = useMemo(
     () =>
       analizarAgendaDia(citasHoy, profesionales, {
         ahoraMs: ahoraOverrideMs,
+        diaMs,
         bloqueos,
         horarios,
         maxAdelantoMin: limites?.maxAdelantoMin,
         umbralHuecoMin: limites?.umbralHuecoMin,
       }),
-    [citasHoy, profesionales, ahoraOverrideMs, bloqueos, horarios, limites],
+    [citasHoy, profesionales, ahoraOverrideMs, diaMs, bloqueos, horarios, limites],
   );
   const pendientes = problemas.filter((p) => !resueltasDemo.has(p.id));
+  // 'hueco_vacio' es informativo (sin estrategia): no entra en "Aplicar los N".
+  const aplicables = pendientes.filter((p) => p.estrategias.length > 0);
+  const esHoy = !fechaVista || new Date().toDateString() === fechaVista.toDateString();
+  const cuandoTxt = esHoy
+    ? 'hoy'
+    : `el ${fechaVista!.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}`;
 
   async function aplicarEstrategia(problema: ProblemaAgenda, estrategia: EstrategiaRetraso) {
     setError('');
@@ -171,9 +173,13 @@ export default function OrganizarAgendaPanel({
         return false;
       }
       const movimientos = estrategiaAMovimientos(estrategia, citasPorId);
-      const hoyIso = new Date().toISOString().slice(0, 10);
+      // La fecha de la accion es la del dia ANALIZADO, no la de hoy: el panel ya
+      // puede organizar un dia futuro. En hora LOCAL del salon: con toISOString,
+      // la madrugada española (UTC+1/+2) mandaba el dia anterior.
+      const d = fechaVista ?? new Date();
+      const fechaIso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       const res = await ejecutarAccion(
-        { tipo: 'optimizar_agenda', negocio_id: negocioId, fecha: hoyIso, movimientos, resumen: problema.titulo },
+        { tipo: 'optimizar_agenda', negocio_id: negocioId, fecha: fechaIso, movimientos, resumen: problema.titulo },
         userId,
       );
       if (!res.ok) {
@@ -195,7 +201,7 @@ export default function OrganizarAgendaPanel({
   async function aplicarTodos() {
     setAplicandoTodo(true);
     setError('');
-    for (const p of pendientes) {
+    for (const p of aplicables) {
       const recomendada = p.estrategias.find((e) => e.recomendada) ?? p.estrategias[0];
       const ok = await aplicarEstrategia(p, recomendada);
       if (!ok) break; // se detiene y muestra el error; lo ya aplicado queda aplicado
@@ -224,7 +230,9 @@ export default function OrganizarAgendaPanel({
             <div>
               <div style={{ fontSize: 16.5, fontWeight: 800, color: T.text }}>Organizar mi agenda</div>
               <div style={{ fontSize: 12.5, color: T.textSec, marginTop: 2 }}>
-                {pendientes.length === 0 ? 'Tu agenda de hoy esta en orden' : `${pendientes.length} problema${pendientes.length > 1 ? 's' : ''} detectado${pendientes.length > 1 ? 's' : ''} hoy`}
+                {pendientes.length === 0
+                  ? `Tu agenda de ${cuandoTxt} esta en orden`
+                  : `${pendientes.length} problema${pendientes.length > 1 ? 's' : ''} detectado${pendientes.length > 1 ? 's' : ''} ${cuandoTxt}`}
               </div>
             </div>
           </div>
@@ -254,7 +262,8 @@ export default function OrganizarAgendaPanel({
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {pendientes.map((p) => {
-                const recomendada = p.estrategias.find((e) => e.recomendada) ?? p.estrategias[0];
+                // 'hueco_vacio' no trae ninguna: es un aviso, no una orden.
+                const recomendada = p.estrategias.find((e) => e.recomendada) ?? p.estrategias[0] ?? null;
                 const aplicandoEsta = aplicandoId === p.id;
                 return (
                   <div key={p.id} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -266,15 +275,31 @@ export default function OrganizarAgendaPanel({
                       <span style={{ fontSize: 11, fontWeight: 700, color: T.textTer, whiteSpace: 'nowrap' }}>{p.profesionalNombre}</span>
                     </div>
                     <div style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.45, marginLeft: 34 }}>{p.descripcion}</div>
-                    <div style={{ fontSize: 12.5, color: T.primaryHi, lineHeight: 1.4, marginLeft: 34, fontWeight: 600 }}>→ {recomendada.resumen}</div>
+                    {recomendada && (
+                      <div style={{ fontSize: 12.5, color: T.primaryHi, lineHeight: 1.4, marginLeft: 34, fontWeight: 600 }}>→ {recomendada.resumen}</div>
+                    )}
                     <div style={{ display: 'flex', gap: 8, marginLeft: 34, marginTop: 2, flexWrap: 'wrap' }}>
-                      <button
-                        onClick={() => aplicarRecomendada(p)}
-                        disabled={bloqueado}
-                        style={{ padding: '7px 14px', borderRadius: 9, border: 'none', background: aplicandoEsta ? T.primarySoft : FIRE, color: aplicandoEsta ? T.primaryHi : '#fff', fontSize: 12.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer', opacity: bloqueado && !aplicandoEsta ? 0.5 : 1 }}
-                      >
-                        {aplicandoEsta ? 'Aplicando...' : 'Aplicar'}
-                      </button>
+                      {recomendada ? (
+                        <button
+                          onClick={() => aplicarRecomendada(p)}
+                          disabled={bloqueado}
+                          style={{ padding: '7px 14px', borderRadius: 9, border: 'none', background: aplicandoEsta ? T.primarySoft : FIRE, color: aplicandoEsta ? T.primaryHi : '#fff', fontSize: 12.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer', opacity: bloqueado && !aplicandoEsta ? 0.5 : 1 }}
+                        >
+                          {aplicandoEsta ? 'Aplicando...' : 'Aplicar'}
+                        </button>
+                      ) : (
+                        <span style={{ padding: '7px 0', fontSize: 11.5, color: T.textTer, fontWeight: 600 }}>
+                          Nada que mover: es un aviso para llenarlo tu.
+                        </span>
+                      )}
+                      {onEnsenar && (
+                        <button
+                          onClick={() => onEnsenar(p)}
+                          style={{ padding: '7px 14px', borderRadius: 9, border: `1px solid ${T.border}`, background: 'transparent', color: T.textSec, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Enséñamelo
+                        </button>
+                      )}
                       {p.tipo === 'retraso' && p.estrategias.length > 1 && (
                         <button
                           onClick={() => setRetrasoAbierto(p)}
@@ -297,13 +322,13 @@ export default function OrganizarAgendaPanel({
           <button onClick={onClose} disabled={bloqueado} style={{ flex: 1, padding: '13px', borderRadius: 13, border: `1.5px solid ${T.border}`, background: T.card, color: T.textSec, fontSize: 14.5, fontWeight: 700, cursor: bloqueado ? 'default' : 'pointer' }}>
             Cerrar
           </button>
-          {pendientes.length > 1 && (
+          {aplicables.length > 1 && (
             <button
               onClick={aplicarTodos}
               disabled={bloqueado}
               style={{ flex: 2, padding: '13px', borderRadius: 13, border: 'none', background: FIRE, color: '#fff', fontSize: 14.5, fontWeight: 800, cursor: bloqueado ? 'default' : 'pointer', opacity: bloqueado ? 0.7 : 1, boxShadow: '0 10px 26px rgba(192,38,10,0.25)' }}
             >
-              {aplicandoTodo ? 'Aplicando todo...' : `Aplicar los ${pendientes.length}`}
+              {aplicandoTodo ? 'Aplicando todo...' : `Aplicar los ${aplicables.length}`}
             </button>
           )}
         </div>

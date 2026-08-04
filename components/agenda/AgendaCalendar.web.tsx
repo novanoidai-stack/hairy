@@ -37,6 +37,11 @@ import {
 } from "@/lib/agendaUndo";
 import RetrasoEstrategiasModal from "./RetrasoEstrategiasModal";
 import OrganizarAgendaPanel from "./OrganizarAgendaPanel.web";
+import {
+  analizarAgendaDia,
+  prepararCitas,
+  type ProblemaAgenda,
+} from "@/lib/organizarAgenda";
 import ListaEsperaPropuestaModal, {
   type CandidataListaEspera,
   type CitaOrigen,
@@ -120,6 +125,15 @@ const ANIMATIONS = `
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
+  }
+  /* Modo "Enseñamelo": late el marco de la zona con problema para que el ojo
+     la encuentre sin taparla. Respeta prefers-reduced-motion. */
+  @keyframes pulseZona {
+    0%, 100% { opacity: 0.95; }
+    50% { opacity: 0.45; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [style*="pulseZona"] { animation: none !important; }
   }
   @keyframes shimmer {
     0% { background-position: -1000px 0; }
@@ -433,6 +447,15 @@ export default function AgendaCalendar() {
     setHideCitasVencidas(false);
   }, [citasVencidas.length]);
   const [showRetrasoProf, setShowRetrasoProf] = useState<string | null>(null);
+  // Estrategias calculadas al declarar "este profesional llega X min tarde".
+  // Vivian en el scope de DayTimeline, asi que el modal de retraso llamaba a
+  // setters inexistentes y reventaba al pulsar los minutos.
+  const [retrasoProf, setRetrasoProf] = useState<{
+    minutos: number;
+    estrategias: EstrategiaRetraso[];
+    profNombre: string;
+  } | null>(null);
+  const [aplicandoRetrasoProf, setAplicandoRetrasoProf] = useState(false);
   const [showClientaTarde, setShowClientaTarde] = useState<Cita | null>(null);
   const [showCierreSalon, setShowCierreSalon] = useState(false);
   const [cierreLoading, setCierreLoading] = useState(false);
@@ -709,9 +732,10 @@ export default function AgendaCalendar() {
   const [dropServicioOpen, setDropServicioOpen] = useState(false);
   const [dropEstadoOpen, setDropEstadoOpen] = useState(false);
   // Modo pantalla completa para la vista de dia (estilo Booksy): oculta el panel lateral.
-  // En tablet arranca plegado (el dia es lo principal y el espacio es justo), pero el
-  // usuario lo abre/cierra con el boton "Mostrar lateral / Pantalla completa".
-  const [railCollapsed, setRailCollapsed] = useState<boolean>(false);
+  // Arranca SIEMPRE plegado: al entrar al software la agenda es lo unico que importa y
+  // el rail (mini-calendario + KPIs) robaba 340px de rejilla. El usuario lo abre/cierra
+  // con el boton "Pantalla completa / Salir de pantalla completa" de la cabecera.
+  const [railCollapsed, setRailCollapsed] = useState<boolean>(true);
   // Colapso de la barra de filtros (vista/servicio/estado). En movil arranca plegada:
   // ocupa demasiado alto y el dia es la vista principal; se despliega con el chip "Filtros".
   const [toolbarCollapsed, setToolbarCollapsed] = useState<boolean>(
@@ -740,7 +764,9 @@ export default function AgendaCalendar() {
   // Colapso independiente de los bloques del rail lateral (KPIs y mini-calendario)
   const [kpisCollapsed, setKpisCollapsed] = useState(false);
   const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
-  const [profsCollapsed, setProfsCollapsed] = useState(true);
+  // Profesionales arranca DESPLEGADO: es el filtro que mas se usa y, plegado y al
+  // fondo del rail, era invisible en la practica.
+  const [profsCollapsed, setProfsCollapsed] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState<
     "hoy" | "confirmadas" | "mes" | "canceladas" | null
   >(null);
@@ -749,8 +775,14 @@ export default function AgendaCalendar() {
   // Hoja selectora de profesional en movil (un profesional a la vez)
   const [showProfPicker, setShowProfPicker] = useState(false);
   // Panel "Organizar mi agenda" (Sesion 5, IA por pagina): detecta retrasos,
-  // solapes y huecos de HOY y los arregla de un clic. lib/organizarAgenda.ts.
+  // solapes y huecos del DIA VISIBLE y los arregla de un clic. lib/organizarAgenda.ts.
   const [showOrganizar, setShowOrganizar] = useState(false);
+  // Modo "Enseñamelo": interruptor. Mientras esta encendido, la rejilla resalta
+  // con animacion la zona de cada problema detectado, sin tocar nada. Es el
+  // complemento visual del panel (que es el que aplica).
+  const [ensenar, setEnsenar] = useState(false);
+  // Problema concreto al que se ha hecho zoom desde el panel (null = todos).
+  const [problemaEnfocado, setProblemaEnfocado] = useState<string | null>(null);
 
   // Puente chat->panel: mientras la Agenda esta montada, avisa a Chispa de que
   // el organizador determinista (con varias estrategias visuales) esta
@@ -1264,6 +1296,93 @@ export default function AgendaCalendar() {
     () => profesionales.filter((p) => p.activo),
     [profesionales],
   );
+
+  // Analisis del dia VISIBLE (retrasos, solapes, huecos aprovechables y huecos
+  // vacios). Alimenta dos cosas: el contador del boton de organizar (badge, como
+  // las notificaciones) y el resalte del modo "Enseñamelo". Es el MISMO calculo
+  // que usa el panel, asi que el numero del badge y el del panel coinciden.
+  const problemasAgenda = useMemo<ProblemaAgenda[]>(() => {
+    if (profesionales.length === 0 || citas.length === 0) return [];
+    try {
+      return analizarAgendaDia(
+        prepararCitas(citas as any, clientes as any, servicios as any),
+        profesionales,
+        {
+          diaMs: selectedDateObj.getTime(),
+          bloqueos,
+          horarios,
+          maxAdelantoMin: limitesAgenda?.maxAdelantoMin,
+          umbralHuecoMin: limitesAgenda?.umbralHuecoMin,
+        },
+      );
+    } catch {
+      // El badge nunca debe tumbar la agenda: sin analisis, sin badge.
+      return [];
+    }
+  }, [
+    citas,
+    clientes,
+    servicios,
+    profesionales,
+    selectedDateObj,
+    bloqueos,
+    horarios,
+    limitesAgenda,
+  ]);
+
+  // Aplica en la agenda (estado local + pila de deshacer) un lote de updates ya
+  // escrito en BD. Lo comparten el panel "Organizar mi agenda" y el modal de
+  // "profesional llega tarde": los dos producen cascadas que deben deshacerse
+  // como UN paso (a medias dejarian la agenda peor de lo que estaba).
+  const aplicarUpdatesEnAgenda = useCallback(
+    (updates: { id: string; inicio: string; fin: string; fin_activa?: string; fin_espera?: string; profesional_id?: string }[]) => {
+      const paso: PasoAgenda = [];
+      for (const u of updates) {
+        const orig = (citas as any[]).find((c) => c.id === u.id);
+        if (!orig) continue;
+        paso.push({
+          citaId: u.id,
+          antes: snapshotDe(orig),
+          despues: snapshotDe({
+            inicio: u.inicio,
+            fin: u.fin,
+            fin_activa: u.fin_activa ?? orig.fin_activa,
+            fin_espera: u.fin_espera ?? orig.fin_espera,
+            profesional_id: u.profesional_id ?? orig.profesional_id,
+          }),
+        });
+      }
+      if (paso.length > 0) setPilaAgenda((prev) => registrarPaso(prev, paso));
+      setCitas((prev: any[]) =>
+        prev.map((c) => {
+          const u = updates.find((x) => x.id === c.id);
+          return u
+            ? {
+                ...c,
+                inicio: u.inicio,
+                fin: u.fin,
+                fin_activa: u.fin_activa ?? c.fin_activa,
+                fin_espera: u.fin_espera ?? c.fin_espera,
+                // Sin esto, una estrategia que cambia de profesional (reasignar /
+                // mover_reasignar) no movia la cita de columna hasta recargar.
+                profesional_id: u.profesional_id ?? c.profesional_id,
+              }
+            : c;
+        }),
+      );
+    },
+    [citas],
+  );
+
+  // Lo que se resalta en la rejilla: todo si el interruptor esta encendido, o
+  // solo el problema al que el panel ha hecho zoom.
+  const zonasResaltadas = useMemo(() => {
+    if (problemaEnfocado) {
+      const p = problemasAgenda.find((x) => x.id === problemaEnfocado);
+      return p ? [p] : [];
+    }
+    return ensenar ? problemasAgenda : [];
+  }, [ensenar, problemaEnfocado, problemasAgenda]);
 
   // El rail se colapsa si railCollapsed=true o si estamos en movil. En tablet ya no
   // se fuerza: lo controla railCollapsed (arranca plegado) via el boton de la cabecera.
@@ -1789,9 +1908,14 @@ export default function AgendaCalendar() {
           <button
             onClick={() => setRailCollapsed((v) => !v)}
             title={
-              railCollapsed ? "Desplegar Dashboard / Panel lateral" : "Ocultar Dashboard"
+              railCollapsed
+                ? "Salir de pantalla completa (mostrar profesionales, calendario y resumen)"
+                : "Pantalla completa (ocultar el panel lateral)"
             }
-            aria-label="Desplegar Dashboard"
+            aria-label={
+              railCollapsed ? "Salir de pantalla completa" : "Pantalla completa"
+            }
+            aria-pressed={railCollapsed}
             style={{
               padding: isMobile ? "6px 10px" : (isTablet ? 7 : "7px 12px"),
               background: railCollapsed
@@ -1812,11 +1936,19 @@ export default function AgendaCalendar() {
             }}
           >
             <Icon
-              name="calendar"
+              name={railCollapsed ? "minimize" : "maximize"}
               size={15}
               color={railCollapsed ? roleTheme.primaryHi : TOKENS.textSec}
             />
-            <span>{railCollapsed ? "Desplegar Dashboard" : "Dashboard"}</span>
+            {/* La etiqueta larga solo cabe en escritorio; en movil/tablet manda el icono
+                (el estado tambien se lee por el color de fondo del boton). */}
+            {!isMobile && !isTablet && (
+              <span>
+                {railCollapsed
+                  ? "Salir de pantalla completa"
+                  : "Pantalla completa"}
+              </span>
+            )}
           </button>
           {/* Boton Organizar movido abajo */}
           {/* Boton Hoy movido abajo */}
@@ -2081,17 +2213,23 @@ export default function AgendaCalendar() {
               gap: 18,
             }}
           >
-            {/* KPIs — colapsable de forma independiente */}
-            <div>
+            {/* Profesionales — filtro de columnas. Va PRIMERO en el rail: es lo
+                que mas se toca durante el dia (ver quien tiene hueco, aislar una
+                columna). El mini-calendario y el resumen quedan debajo. */}
+            <div style={{ flexShrink: 0 }}>
               <button
-                onClick={() => setKpisCollapsed((v) => !v)}
-                title={kpisCollapsed ? "Mostrar resumen" : "Ocultar resumen"}
+                onClick={() => setProfsCollapsed((v) => !v)}
+                title={
+                  profsCollapsed
+                    ? "Mostrar profesionales"
+                    : "Ocultar profesionales"
+                }
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
                   width: "100%",
-                  marginBottom: kpisCollapsed ? 0 : 10,
+                  marginBottom: profsCollapsed ? 0 : 10,
                   background: "none",
                   border: "none",
                   padding: 0,
@@ -2107,70 +2245,74 @@ export default function AgendaCalendar() {
                     fontWeight: 600,
                   }}
                 >
-                  Resumen
+                  Profesionales
                 </span>
                 <span
                   style={{
                     display: "grid",
                     placeItems: "center",
-                    transform: kpisCollapsed ? "rotate(0deg)" : "rotate(90deg)",
+                    transform: profsCollapsed
+                      ? "rotate(0deg)"
+                      : "rotate(90deg)",
                     transition: "transform 0.18s ease",
                   }}
                 >
                   <Icon name="chevronRight" size={14} color={TOKENS.textTer} />
                 </span>
               </button>
-              {!kpisCollapsed && (
+              {!profsCollapsed && (
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 10,
-                    animation: "slideInUp 0.3s ease both",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 6,
+                    // Con plantillas grandes la lista empujaba el calendario y el
+                    // resumen fuera del rail. A partir de 8 profesionales scrollea
+                    // ella sola; por debajo manda el scroll unico del rail.
+                    ...(visibleProfs.length > 8
+                      ? {
+                          maxHeight: 320,
+                          overflowY: "auto" as const,
+                          overscrollBehavior: "contain" as const,
+                          paddingRight: 4,
+                        }
+                      : null),
                   }}
                 >
-                  <div style={{ animation: "slideInUp 0.5s ease 0.1s both" }}>
-                    <StatCard
-                      label="HOY"
-                      value={totalCitasHoy}
-                      sub="citas"
-                      tone={TOKENS.primary}
-                      onClick={() => setShowStatsModal("hoy")}
+                  <ProfRow
+                    id="todos"
+                    name="Todos"
+                    color={TOKENS.primary}
+                    count={citasHoy.length}
+                    selected={selectedProf === "todos"}
+                    onSel={() => setSelectedProf("todos")}
+                  />
+                  {visibleProfs.map((p) => (
+                    <ProfRow
+                      key={p.id}
+                      id={p.id}
+                      name={p.nombre}
+                      role={p.rol}
+                      color={p.color}
+                      count={
+                        citasHoy.filter((c) => c.profesional_id === p.id).length
+                      }
+                      selected={selectedProf === p.id}
+                      onSel={() => setSelectedProf(p.id)}
+                      reposoUtil={reposoUtilMap[p.id]}
+                      onRetraso={
+                        recolocarRetraso
+                          ? () => setShowRetrasoProf(p.id)
+                          : undefined
+                      }
                     />
-                  </div>
-                  <div style={{ animation: "slideInUp 0.5s ease 0.2s both" }}>
-                    <StatCard
-                      label="CONFIRMADAS"
-                      value={confirmadasHoy}
-                      sub={`de ${totalCitasHoy} hoy`}
-                      tone={TOKENS.success}
-                      onClick={() => setShowStatsModal("confirmadas")}
-                    />
-                  </div>
-                  <div style={{ animation: "slideInUp 0.5s ease 0.3s both" }}>
-                    <StatCard
-                      label="MES"
-                      value={`${totalCitasMes}`}
-                      sub="citas este mes"
-                      tone={TOKENS.warning}
-                      onClick={() => setShowStatsModal("mes")}
-                    />
-                  </div>
-                  <div style={{ animation: "slideInUp 0.5s ease 0.4s both" }}>
-                    <StatCard
-                      label="CANCELADAS"
-                      value={`${citasMes.filter(esCanceladaONoShow).length}`}
-                      sub="este mes"
-                      tone={TOKENS.violet}
-                      onClick={() => setShowStatsModal("canceladas")}
-                    />
-                  </div>
+                  ))}
                 </div>
               )}
             </div>
 
             {/* Mini-calendario — colapsable de forma independiente */}
-            <div>
+            <div style={{ flexShrink: 0 }}>
               <button
                 onClick={() => setMiniCalCollapsed((v) => !v)}
                 title={
@@ -2398,20 +2540,17 @@ export default function AgendaCalendar() {
               )}
             </div>
 
-            <div>
+            {/* KPIs — colapsable de forma independiente */}
+            <div style={{ flexShrink: 0 }}>
               <button
-                onClick={() => setProfsCollapsed((v) => !v)}
-                title={
-                  profsCollapsed
-                    ? "Mostrar profesionales"
-                    : "Ocultar profesionales"
-                }
+                onClick={() => setKpisCollapsed((v) => !v)}
+                title={kpisCollapsed ? "Mostrar resumen" : "Ocultar resumen"}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
                   width: "100%",
-                  marginBottom: profsCollapsed ? 0 : 10,
+                  marginBottom: kpisCollapsed ? 0 : 10,
                   background: "none",
                   border: "none",
                   padding: 0,
@@ -2427,53 +2566,64 @@ export default function AgendaCalendar() {
                     fontWeight: 600,
                   }}
                 >
-                  Profesionales
+                  Resumen
                 </span>
                 <span
                   style={{
                     display: "grid",
                     placeItems: "center",
-                    transform: profsCollapsed
-                      ? "rotate(0deg)"
-                      : "rotate(90deg)",
+                    transform: kpisCollapsed ? "rotate(0deg)" : "rotate(90deg)",
                     transition: "transform 0.18s ease",
                   }}
                 >
                   <Icon name="chevronRight" size={14} color={TOKENS.textTer} />
                 </span>
               </button>
-              {!profsCollapsed && (
+              {!kpisCollapsed && (
                 <div
-                  style={{ display: "flex", flexDirection: "column", gap: 6 }}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 10,
+                    animation: "slideInUp 0.3s ease both",
+                  }}
                 >
-                  <ProfRow
-                    id="todos"
-                    name="Todos"
-                    color={TOKENS.primary}
-                    count={citasHoy.length}
-                    selected={selectedProf === "todos"}
-                    onSel={() => setSelectedProf("todos")}
-                  />
-                  {visibleProfs.map((p) => (
-                    <ProfRow
-                      key={p.id}
-                      id={p.id}
-                      name={p.nombre}
-                      role={p.rol}
-                      color={p.color}
-                      count={
-                        citasHoy.filter((c) => c.profesional_id === p.id).length
-                      }
-                      selected={selectedProf === p.id}
-                      onSel={() => setSelectedProf(p.id)}
-                      reposoUtil={reposoUtilMap[p.id]}
-                      onRetraso={
-                        recolocarRetraso
-                          ? () => setShowRetrasoProf(p.id)
-                          : undefined
-                      }
+                  <div style={{ animation: "slideInUp 0.5s ease 0.1s both" }}>
+                    <StatCard
+                      label="HOY"
+                      value={totalCitasHoy}
+                      sub="citas"
+                      tone={TOKENS.primary}
+                      onClick={() => setShowStatsModal("hoy")}
                     />
-                  ))}
+                  </div>
+                  <div style={{ animation: "slideInUp 0.5s ease 0.2s both" }}>
+                    <StatCard
+                      label="CONFIRMADAS"
+                      value={confirmadasHoy}
+                      sub={`de ${totalCitasHoy} hoy`}
+                      tone={TOKENS.success}
+                      onClick={() => setShowStatsModal("confirmadas")}
+                    />
+                  </div>
+                  <div style={{ animation: "slideInUp 0.5s ease 0.3s both" }}>
+                    <StatCard
+                      label="MES"
+                      value={`${totalCitasMes}`}
+                      sub="citas este mes"
+                      tone={TOKENS.warning}
+                      onClick={() => setShowStatsModal("mes")}
+                    />
+                  </div>
+                  <div style={{ animation: "slideInUp 0.5s ease 0.4s both" }}>
+                    <StatCard
+                      label="CANCELADAS"
+                      value={`${citasMes.filter(esCanceladaONoShow).length}`}
+                      sub="este mes"
+                      tone={TOKENS.violet}
+                      onClick={() => setShowStatsModal("canceladas")}
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -2707,11 +2857,19 @@ export default function AgendaCalendar() {
                           <Icon name="calendar" size={isMobile ? 12 : 14} color={TOKENS.text} />
                           {!isMobile && "Hoy"}
                         </button>
+                        {/* Organizar: abre el panel que APLICA los arreglos. El badge
+                            cuenta los problemas del dia visible, como las notificaciones. */}
                         <button
                           onClick={() => setShowOrganizar(true)}
-                          title="Organizar la agenda"
+                          title={
+                            problemasAgenda.length === 0
+                              ? "Organizar la agenda (sin problemas detectados)"
+                              : `Organizar la agenda · ${problemasAgenda.length} problema${problemasAgenda.length > 1 ? "s" : ""} detectado${problemasAgenda.length > 1 ? "s" : ""}`
+                          }
+                          aria-label="Organizar mi agenda"
                           className="m-btn-ai-glow"
                           style={{
+                            position: "relative",
                             padding: isMobile ? "6px 10px" : "8px 14px",
                             background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(244,80,30,0.1) 100%)`,
                             border: `1px solid rgba(244,80,30,0.3)`,
@@ -2729,30 +2887,77 @@ export default function AgendaCalendar() {
                           onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
                         >
                           <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
+                          {problemasAgenda.length > 0 && (
+                            <span
+                              aria-hidden
+                              style={{
+                                position: "absolute",
+                                top: -6,
+                                right: -6,
+                                minWidth: 17,
+                                height: 17,
+                                padding: "0 4px",
+                                borderRadius: 999,
+                                background: TOKENS.primary,
+                                color: "#fff",
+                                fontSize: 10,
+                                fontWeight: 800,
+                                lineHeight: "17px",
+                                textAlign: "center",
+                                border: `1.5px solid ${TOKENS.bg}`,
+                                boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                                pointerEvents: "none",
+                              }}
+                            >
+                              {problemasAgenda.length > 9 ? "9+" : problemasAgenda.length}
+                            </span>
+                          )}
                         </button>
+                        {/* Enseñamelo: interruptor de PREVISUALIZACION. Encendido, la
+                            rejilla resalta con animacion cada problema en su sitio. No
+                            escribe nada. Antes este boton decia "Organizar mi agenda" y
+                            abria un modal de "Profesional llega tarde" que no tenia nada
+                            que ver (ese sigue accesible desde la fila del profesional). */}
                         <button
                           onClick={() => {
-                            const profId = selectedProf !== "todos" ? selectedProf : (visibleProfs[0]?.id || null);
-                            if (profId) setShowRetrasoProf(profId);
+                            setProblemaEnfocado(null);
+                            setEnsenar((v) => !v);
                           }}
+                          aria-pressed={ensenar}
+                          title={
+                            ensenar
+                              ? "Dejar de resaltar los problemas en la agenda"
+                              : "Enseñamelo: resalta en la agenda los huecos, solapes y retrasos detectados"
+                          }
                           style={{
                             display: "flex",
                             alignItems: "center",
                             gap: 6,
                             padding: "7px 12px",
-                            background: "rgba(244,80,30,0.12)",
-                            border: "1px solid rgba(244,80,30,0.45)",
+                            background: ensenar
+                              ? TOKENS.primary
+                              : "rgba(244,80,30,0.12)",
+                            border: `1px solid ${ensenar ? TOKENS.primary : "rgba(244,80,30,0.45)"}`,
                             borderRadius: 10,
                             cursor: "pointer",
                             fontSize: 12,
                             fontWeight: 700,
-                            color: TOKENS.primary,
+                            color: ensenar ? "#fff" : TOKENS.primary,
                             whiteSpace: "nowrap",
-                            boxShadow: "0 2px 6px rgba(244,80,30,0.15)",
+                            boxShadow: ensenar
+                              ? "0 2px 10px rgba(244,80,30,0.45)"
+                              : "0 2px 6px rgba(244,80,30,0.15)",
                             transition: "all 0.15s ease",
                           }}
                         >
-                          <span>⚡ Organizar mi agenda</span>
+                          <Icon
+                            name="zap"
+                            size={13}
+                            color={ensenar ? "#fff" : TOKENS.primary}
+                          />
+                          {!isMobile && (
+                            <span>{ensenar ? "Ocultar" : "Enséñamelo"}</span>
+                          )}
                         </button>
                         {/* Retirado el boton del "Optimizador de la agenda" (tarjeta de IA con
                             prompt de texto libre): duplicaba "Organizar mi agenda", que hace lo
@@ -3410,6 +3615,132 @@ export default function AgendaCalendar() {
             )}
           </div>
 
+          {/* Acceso rapido por profesional, junto a la lupa. Aisla la columna de un
+              estilista sin tener que salir de pantalla completa para llegar al filtro
+              del rail. Pulsar el que ya esta activo vuelve a "Todos". */}
+          {!isMobile && visibleProfs.length > 1 && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                paddingLeft: 8,
+                marginLeft: 4,
+                borderLeft: `1px solid ${TOKENS.border}`,
+              }}
+            >
+              <button
+                onClick={() => setSelectedProf("todos")}
+                title="Ver todos los profesionales"
+                aria-pressed={selectedProf === "todos"}
+                style={{
+                  height: 28,
+                  padding: "0 9px",
+                  borderRadius: 999,
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: 0.3,
+                  cursor: "pointer",
+                  flexShrink: 0,
+                  transition: "all 0.15s ease",
+                  background:
+                    selectedProf === "todos"
+                      ? "rgba(244,80,30,0.12)"
+                      : TOKENS.bgCard,
+                  border: `1px solid ${selectedProf === "todos" ? TOKENS.primary : TOKENS.border}`,
+                  color:
+                    selectedProf === "todos"
+                      ? TOKENS.primaryHi
+                      : TOKENS.textTer,
+                }}
+              >
+                Todos
+              </button>
+              {visibleProfs.map((p) => {
+                const activo = selectedProf === p.id;
+                const ini =
+                  (p.nombre || "?")
+                    .split(/\s+/)
+                    .map((w: string) => w[0])
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase() || "?";
+                const nCitas = citasHoy.filter(
+                  (c: any) => c.profesional_id === p.id,
+                ).length;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() =>
+                      setSelectedProf(activo ? "todos" : p.id)
+                    }
+                    title={
+                      activo
+                        ? `${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy (pulsa para ver a todos)`
+                        : `Ver solo la agenda de ${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy`
+                    }
+                    aria-label={`Ver solo la agenda de ${p.nombre}`}
+                    aria-pressed={activo}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 999,
+                      padding: 0,
+                      overflow: "hidden",
+                      flexShrink: 0,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: p.color,
+                      border: `2px solid ${activo ? p.color : "transparent"}`,
+                      boxShadow: activo
+                        ? `0 0 0 2px ${TOKENS.bg}, 0 0 0 3.5px ${p.color}`
+                        : "0 1px 2px rgba(0,0,0,0.15)",
+                      opacity: activo || selectedProf === "todos" ? 1 : 0.45,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = "1";
+                      e.currentTarget.style.transform = "scale(1.12)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity =
+                        activo || selectedProf === "todos" ? "1" : "0.45";
+                      e.currentTarget.style.transform = "scale(1)";
+                    }}
+                  >
+                    {p.foto_perfil ? (
+                      <img
+                        src={p.foto_perfil}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 800,
+                          color: "#ffffff",
+                          lineHeight: 1,
+                        }}
+                      >
+                        {ini}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
                       </div>
 
                     </div>
@@ -3988,6 +4319,7 @@ export default function AgendaCalendar() {
                   categorias={categorias}
                   selectedProf={selectedProf}
                   agendaFit={agendaFit}
+                  zonasResaltadas={zonasResaltadas}
                 />
               )}
             </>
@@ -4141,6 +4473,81 @@ export default function AgendaCalendar() {
         </div>
       )}
 
+      {/* Aviso flotante del modo "Enseñamelo". Da salida al resalte (sobre todo
+          cuando viene del panel con un solo problema enfocado) y evita que el
+          interruptor parezca roto en un dia sin problemas. */}
+      {(ensenar || problemaEnfocado) && (
+        <div
+          style={{
+            position: "fixed",
+            left: "50%",
+            transform: "translateX(-50%)",
+            bottom: isMobile ? 96 : 24,
+            zIndex: 190,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "9px 12px 9px 14px",
+            borderRadius: 999,
+            background: TOKENS.bgPanel,
+            border: `1px solid ${TOKENS.borderHi}`,
+            boxShadow: "0 10px 30px rgba(40,30,24,0.22)",
+            fontSize: 12.5,
+            fontWeight: 600,
+            color: TOKENS.textSec,
+            maxWidth: "92vw",
+          }}
+        >
+          <Icon name="zap" size={14} color={TOKENS.primary} />
+          <span>
+            {problemaEnfocado
+              ? problemasAgenda.find((p) => p.id === problemaEnfocado)?.titulo ??
+                "Problema resaltado"
+              : problemasAgenda.length === 0
+                ? "Nada que resaltar: la agenda de este día está en orden"
+                : `Resaltando ${problemasAgenda.length} problema${problemasAgenda.length > 1 ? "s" : ""} en la agenda`}
+          </span>
+          {problemaEnfocado && (
+            <button
+              onClick={() => {
+                setProblemaEnfocado(null);
+                setShowOrganizar(true);
+              }}
+              style={{
+                padding: "4px 10px",
+                borderRadius: 999,
+                border: `1px solid ${TOKENS.border}`,
+                background: "transparent",
+                color: TOKENS.textSec,
+                fontSize: 11.5,
+                fontWeight: 700,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Volver al panel
+            </button>
+          )}
+          <button
+            onClick={() => {
+              setEnsenar(false);
+              setProblemaEnfocado(null);
+            }}
+            aria-label="Dejar de resaltar"
+            style={{
+              display: "inline-flex",
+              padding: 4,
+              border: "none",
+              background: "transparent",
+              color: TOKENS.textTer,
+              cursor: "pointer",
+            }}
+          >
+            <Icon name="x" size={14} color={TOKENS.textTer} />
+          </button>
+        </div>
+      )}
+
       {showOrganizar && (
         <OrganizarAgendaPanel
           citas={citas}
@@ -4152,44 +4559,15 @@ export default function AgendaCalendar() {
           limites={limitesAgenda}
           negocioId={negocioId}
           isMobile={isMobile}
-          onClose={() => setShowOrganizar(false)}
-          onAplicado={(updates) => {
-            // La cascada del organizador es UN paso: deshacerla a medias dejaria la agenda peor.
-            const paso: PasoAgenda = [];
-            for (const u of updates) {
-              const orig = (citas as any[]).find((c) => c.id === u.id);
-              if (!orig) continue;
-              paso.push({
-                citaId: u.id,
-                antes: snapshotDe(orig),
-                despues: snapshotDe({
-                  inicio: u.inicio,
-                  fin: u.fin,
-                  fin_activa: u.fin_activa ?? orig.fin_activa,
-                  fin_espera: u.fin_espera ?? orig.fin_espera,
-                  profesional_id: u.profesional_id ?? orig.profesional_id,
-                }),
-              });
-            }
-            if (paso.length > 0) setPilaAgenda((prev) => registrarPaso(prev, paso));
-            setCitas((prev: any[]) =>
-              prev.map((c) => {
-                const u = updates.find((x) => x.id === c.id);
-                return u
-                  ? {
-                      ...c,
-                      inicio: u.inicio,
-                      fin: u.fin,
-                      fin_activa: u.fin_activa ?? c.fin_activa,
-                      fin_espera: u.fin_espera ?? c.fin_espera,
-                      // Sin esto, una estrategia que cambia de profesional (reasignar /
-                      // mover_reasignar) no movia la cita de columna hasta recargar.
-                      profesional_id: u.profesional_id ?? c.profesional_id,
-                    }
-                  : c;
-              }),
-            );
+          fechaVista={selectedDateObj}
+          onEnsenar={(p) => {
+            // Cierra el panel y deja resaltado SOLO ese problema en la rejilla.
+            setShowOrganizar(false);
+            setEnsenar(false);
+            setProblemaEnfocado(p.id);
           }}
+          onClose={() => setShowOrganizar(false)}
+          onAplicado={aplicarUpdatesEnAgenda}
         />
       )}
       {showManualPanel && (
@@ -4788,6 +5166,47 @@ export default function AgendaCalendar() {
           );
         })()}
 
+      {/* Estrategias del retraso declarado a mano ("llega X min tarde"). Se
+          escribe en BD y se refleja en la agenda por el mismo camino que el
+          organizador, para que Deshacer trate la cascada como un solo paso. */}
+      {retrasoProf && (
+        <RetrasoEstrategiasModal
+          estrategias={retrasoProf.estrategias}
+          minutos={retrasoProf.minutos}
+          profesionalNombre={retrasoProf.profNombre}
+          avisarDisponible={false}
+          enviando={aplicandoRetrasoProf}
+          onConfirmar={async (estrategia: EstrategiaRetraso) => {
+            setAplicandoRetrasoProf(true);
+            try {
+              for (const u of estrategia.updates) {
+                const payload: any = {
+                  inicio: u.inicio,
+                  fin: u.fin,
+                };
+                if (u.fin_activa) payload.fin_activa = u.fin_activa;
+                if (u.fin_espera) payload.fin_espera = u.fin_espera;
+                if (u.profesional_id) payload.profesional_id = u.profesional_id;
+                const { error } = await supabase
+                  .from("citas")
+                  .update(payload)
+                  .eq("id", u.id);
+                if (error) {
+                  setUndoError(mensajeDeError(error));
+                  setTimeout(() => setUndoError(null), 3000);
+                  return;
+                }
+              }
+              aplicarUpdatesEnAgenda(estrategia.updates);
+              setRetrasoProf(null);
+            } finally {
+              setAplicandoRetrasoProf(false);
+            }
+          }}
+          onCancelar={() => setRetrasoProf(null)}
+        />
+      )}
+
       {/* Modal: Profesional llega tarde (6.1) */}
       {showRetrasoProf &&
         (() => {
@@ -4817,8 +5236,11 @@ export default function AgendaCalendar() {
               return;
             }
             const ests = calcularEstrategiasRetraso(citasMapped as any, primera.id, minutos);
-            setRetrasoMin(minutos);
-            setEstrategiasRetraso(ests);
+            setRetrasoProf({
+              minutos,
+              estrategias: ests,
+              profNombre: prof!.nombre,
+            });
             setShowRetrasoProf(null);
           }
 
@@ -6027,6 +6449,8 @@ function DayTimeline({
   categorias = [],
   selectedProf,
   agendaFit = true,
+  // Zonas a resaltar en modo "Enseñamelo" (ProblemaAgenda[]). Vacio = nada.
+  zonasResaltadas = [],
 }: any) {
   const { isMobile, isTablet } = useResponsive();
   // Rango horario base = apertura..cierre. Si alguna cita del día seleccionado
@@ -6136,6 +6560,14 @@ function DayTimeline({
   const gridRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<any>(null);
   const dropRef = useRef<any>(null);
+  // Nodo del fantasma de arrastre y frame pendiente. Arrastrar hacia un setState
+  // por cada mousemove re-renderizaba TODA la agenda (rail, toolbar y las ~N
+  // citas) decenas de veces por segundo: era la causa real de que arrastrar
+  // fuese a tirones. Ahora el fantasma se mueve escribiendo su transform en el
+  // DOM dentro de un requestAnimationFrame, sin pasar por React.
+  const ghostRef = useRef<HTMLDivElement | null>(null);
+  const ghostFrameRef = useRef<number | null>(null);
+  const ghostPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const _profRef = useRef(profesionales);
   _profRef.current = profesionales;
   const _citasRef = useRef(citas);
@@ -6159,6 +6591,11 @@ function DayTimeline({
       blockHeight: rect.height,
     };
     dragRef.current = d;
+    // El fantasma se monta YA (antes aparecia en el primer mousemove). A partir
+    // de aqui su posicion se actualiza escribiendo el transform sobre el nodo,
+    // no con setState: ver onMove.
+    ghostPosRef.current = { x: d.ghostX, y: d.ghostY };
+    setDrag(d);
     setIsDragging(true);
   };
 
@@ -6179,7 +6616,17 @@ function DayTimeline({
         ghostY: e.clientY - d.offsetY,
       };
       dragRef.current = upd;
-      setDrag(upd);
+      // Sin setState: el fantasma se coloca por transform en el proximo frame.
+      ghostPosRef.current = { x: upd.ghostX, y: upd.ghostY };
+      if (ghostFrameRef.current == null) {
+        ghostFrameRef.current = requestAnimationFrame(() => {
+          ghostFrameRef.current = null;
+          const nodo = ghostRef.current;
+          if (!nodo) return;
+          const { x, y } = ghostPosRef.current;
+          nodo.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        });
+      }
 
       const grid = gridRef.current;
       if (!grid) return;
@@ -6246,8 +6693,18 @@ function DayTimeline({
         }
       }
       const sl = { profIndex, minutesFromStart, colW };
+      const ant = dropRef.current;
       dropRef.current = sl;
-      setDropSlot(sl);
+      // El slot solo cambia cada 5-15 min de recorrido: re-renderizar la previa
+      // de suelta en cada pixel era trabajo tirado.
+      if (
+        !ant ||
+        ant.profIndex !== sl.profIndex ||
+        ant.minutesFromStart !== sl.minutesFromStart ||
+        ant.colW !== sl.colW
+      ) {
+        setDropSlot(sl);
+      }
     };
 
     const onUp = async (e: MouseEvent) => {
@@ -6583,6 +7040,11 @@ function DayTimeline({
     return () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
+      // El frame pendiente escribiria sobre un nodo ya desmontado.
+      if (ghostFrameRef.current != null) {
+        cancelAnimationFrame(ghostFrameRef.current);
+        ghostFrameRef.current = null;
+      }
     };
   }, [isDragging]);
   // ---- END DRAG & DROP ----
@@ -6598,21 +7060,58 @@ function DayTimeline({
       // Citas ANIDADAS: caben enteras dentro del reposo de otra cita del mismo
       // profesional (aprovechan el tiempo muerto). NO deben partir la columna en
       // dos carriles ("al lado"); se pintan ENCAJADAS dentro del reposo del host.
+      // Una cita cuenta como anidada cuando SOLAPA con el reposo de otra, no
+      // solo cuando empieza justo dentro. Antes bastaba con arrastrarla un
+      // minuto por delante de fin_activa para que dejara de ser anidada, pasara
+      // a ser una cita normal que choca con el host y el repartidor de carriles
+      // partiera la columna: ese era el bug de "se me va a la derecha".
+      // Se elige el host con el que MAS se solapa, por si hay varios reposos.
       profCitas.forEach((c: any) => {
-        const host = profCitas.find(
-          (h: any) =>
-            h.id !== c.id &&
-            h.estado !== CITA_STATUS.CANCELADA &&
-            c.estado !== CITA_STATUS.CANCELADA &&
-            h.fin_activa &&
-            h.fin_espera &&
-            new Date(h.fin_espera).getTime() >
-              new Date(h.fin_activa).getTime() &&
-            new Date(c.inicio).getTime() >= new Date(h.fin_activa).getTime() &&
-            new Date(c.inicio).getTime() < new Date(h.fin_espera).getTime(),
-        );
-        c._nested = !!host;
-        c._hostId = host ? host.id : null;
+        if (c.estado === CITA_STATUS.CANCELADA) {
+          c._nested = false;
+          c._hostId = null;
+          c._desbordaMin = 0;
+          return;
+        }
+        const cIni = new Date(c.inicio).getTime();
+        const cFin = new Date(c.fin).getTime();
+        let mejor: any = null;
+        let mejorSolape = 0;
+        for (const h of profCitas) {
+          if (h.id === c.id) continue;
+          if (h.estado === CITA_STATUS.CANCELADA) continue;
+          if (!h.fin_activa || !h.fin_espera) continue;
+          const rIni = new Date(h.fin_activa).getTime();
+          const rFin = new Date(h.fin_espera).getTime();
+          if (rFin <= rIni) continue;
+          const solape = Math.min(cFin, rFin) - Math.max(cIni, rIni);
+          if (solape <= 0) continue;
+          // El grueso de la cita tiene que caer dentro del reposo. Si solo lo
+          // roza (p.ej. 5' de una cita de 60'), es una cita normal que choca.
+          if (solape * 2 < cFin - cIni) continue;
+          if (solape > mejorSolape) {
+            mejorSolape = solape;
+            mejor = h;
+          }
+        }
+        c._nested = !!mejor;
+        c._hostId = mejor ? mejor.id : null;
+        // Minutos que la cita se sale del hueco (0 = encaja justa). Se pinta
+        // encajada igualmente, con un aviso: bloquear el arrastre era peor.
+        c._desbordaMin = mejor
+          ? Math.max(
+              0,
+              Math.round(
+                (cFin - new Date(mejor.fin_espera).getTime()) / 60000,
+              ),
+            ) +
+            Math.max(
+              0,
+              Math.round(
+                (new Date(mejor.fin_activa).getTime() - cIni) / 60000,
+              ),
+            )
+          : 0;
       });
 
       // Lanes/solapes SOLO entre las citas normales (las anidadas van encima).
@@ -7516,6 +8015,32 @@ function DayTimeline({
                                   "2px solid #e0340e";
                             }}
                           >
+                            {/* Encajada en un reposo pero mas larga que el hueco.
+                                No se bloquea (el gestor sabe lo que hace): se
+                                pinta encajada y se avisa de cuanto se sale. */}
+                            {nested && cita._desbordaMin > 0 && !cancelada && (
+                              <span
+                                title={`Esta cita se sale ${cita._desbordaMin} min del hueco de reposo`}
+                                style={{
+                                  position: "absolute",
+                                  top: 2,
+                                  right: 2,
+                                  zIndex: 8,
+                                  padding: "1px 5px",
+                                  borderRadius: 999,
+                                  background: "#f59e0b",
+                                  color: "#fff",
+                                  fontSize: 8.5,
+                                  fontWeight: 800,
+                                  lineHeight: 1.5,
+                                  whiteSpace: "nowrap",
+                                  pointerEvents: "none",
+                                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                                }}
+                              >
+                                +{cita._desbordaMin}′
+                              </span>
+                            )}
                             {hasEspera &&
                               !cancelada &&
                               (() => {
@@ -7631,6 +8156,35 @@ function DayTimeline({
                                   </div>
                                 );
                               })()}
+                            {/* Cabecera de la cita ANCLADA A LA FASE ACTIVA. Con reposo, el
+                                bloque es alto pero el profesional solo trabaja en la franja
+                                de arriba: si el texto fluye por todo el bloque acaba cayendo
+                                sobre la trama del reposo (y sobre las citas encajadas ahi).
+                                Acotandolo a activaPx, el nombre y la hora se quedan siempre
+                                donde corresponde. Sin reposo no se toca nada (display:contents).
+                                Suelo de 20px: con una activa muy corta, recortar a cero
+                                dejaria el bloque mudo. */}
+                            <div
+                              style={
+                                hasEspera && !nested && !cancelada
+                                  ? {
+                                      position: "absolute",
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      height: Math.max(20, activaPx),
+                                      overflow: "hidden",
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      gap: activaPx <= 45 ? 0 : 2,
+                                      padding:
+                                        activaPx <= 45 ? "2px 6px" : "6px 8px",
+                                      boxSizing: "border-box",
+                                      zIndex: 6,
+                                    }
+                                  : { display: "contents" }
+                              }
+                            >
                             {(() => {
                               const narrow = height < 50;
                               const nombreCliente =
@@ -8259,6 +8813,69 @@ function DayTimeline({
                                 </div>
                               );
                             })()}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                    {/* Modo "Enseñamelo": marco pulsante sobre la zona de cada
+                        problema detectado en esta columna. Va el ultimo y con
+                        zIndex alto para leerse por encima de las citas, pero sin
+                        capturar el raton (se sigue pudiendo arrastrar debajo). */}
+                    {(zonasResaltadas as ProblemaAgenda[])
+                      .filter((p) => p.zona.profesionalId === prof.id)
+                      .map((p) => {
+                        const zIni = new Date(p.zona.desde);
+                        const zFin = new Date(p.zona.hasta);
+                        const zTop =
+                          (zIni.getHours() + zIni.getMinutes() / 60 - START_H) *
+                          ROW_H;
+                        const zH =
+                          ((zFin.getTime() - zIni.getTime()) / 3600000) * ROW_H;
+                        if (zH <= 0) return null;
+                        const tono =
+                          p.tipo === "solape"
+                            ? "#e23b34"
+                            : p.tipo === "retraso"
+                              ? "#f59e0b"
+                              : "#10b981";
+                        return (
+                          <div
+                            key={`zona-${p.id}`}
+                            title={`${p.titulo} — ${p.descripcion}`}
+                            style={{
+                              position: "absolute",
+                              top: Math.max(0, zTop),
+                              left: 2,
+                              right: 2,
+                              height: Math.max(14, zH),
+                              borderRadius: 10,
+                              border: `2px dashed ${tono}`,
+                              background: `${tono}1f`,
+                              boxShadow: `0 0 0 3px ${tono}22`,
+                              pointerEvents: "none",
+                              zIndex: 40,
+                              animation: "pulseZona 1.6s ease-in-out infinite",
+                            }}
+                          >
+                            <span
+                              style={{
+                                position: "absolute",
+                                top: -9,
+                                left: 8,
+                                padding: "1px 7px",
+                                borderRadius: 999,
+                                background: tono,
+                                color: "#fff",
+                                fontSize: 9.5,
+                                fontWeight: 800,
+                                letterSpacing: 0.3,
+                                whiteSpace: "nowrap",
+                                boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                              }}
+                            >
+                              {p.titulo}
+                            </span>
                           </div>
                         );
                       })}
@@ -8270,13 +8887,29 @@ function DayTimeline({
         </div>
       </div>
 
-      {/* Ghost element — sigue al cursor durante el arrastre */}
+      {/* Ghost element — sigue al cursor durante el arrastre.
+          Se ancla en 0,0 y se desplaza por transform: el movimiento lo escribe
+          onMove directamente sobre este nodo (via ghostRef + rAF), sin pasar
+          por React. Por eso `drag` ya no cambia durante el arrastre. */}
       {drag && (
         <div
+          // El transform NO puede vivir en el style de React: cualquier
+          // re-render (p.ej. al cambiar el slot de suelta) lo repintaria con la
+          // posicion INICIAL y el fantasma daba un salto atras. Se escribe
+          // siempre desde ghostPosRef: aqui al montar/re-montar la ref, y en
+          // cada frame desde onMove.
+          ref={(n) => {
+            ghostRef.current = n;
+            if (n) {
+              const { x, y } = ghostPosRef.current;
+              n.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+            }
+          }}
           style={{
             position: "fixed",
-            top: drag.ghostY,
-            left: drag.ghostX,
+            top: 0,
+            left: 0,
+            willChange: "transform",
             width: drag.blockWidth,
             height: drag.blockHeight,
             pointerEvents: "none",

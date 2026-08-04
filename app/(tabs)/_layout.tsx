@@ -65,7 +65,9 @@ export default function TabsLayout({ children }: { children?: React.ReactNode })
       <Tabs.Screen name="inventario" />
       <Tabs.Screen name="informes" />
       <Tabs.Screen name="configuracion" />
-      <Tabs.Screen name="lista-espera" />
+      {/* OJO: nada de repetir un name aqui. "lista-espera" estaba declarado dos
+          veces y expo-router lanzaba "Screen names must be unique", que tumbaba
+          TODA la app en movil/tablet (pantalla de error global). */}
     </Tabs>
   );
 }

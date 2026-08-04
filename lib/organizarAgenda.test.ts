@@ -75,10 +75,15 @@ Deno.test('reposo_desaprovechado: adelanta una cita al reposo libre de otra', ()
   // Adelantar B de 12:00 a 10:30 son 90 min: por encima del techo por defecto (60), asi que
   // este escenario necesita un salon que permita adelantos largos. Ver el test siguiente.
   const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 20), maxAdelantoMin: 120 });
-  assertEquals(problemas.length, 1);
-  assertEquals(problemas[0].tipo, 'reposo_desaprovechado');
-  assertEquals(problemas[0].estrategias[0].updates[0].id, 'B');
-  assertEquals(problemas[0].estrategias[0].updates[0].inicio, iso(10, 30));
+  const reposo = problemas.find((p) => p.tipo === 'reposo_desaprovechado')!;
+  assert(reposo, 'B debe poder adelantarse al reposo de A');
+  assertEquals(reposo.estrategias[0].updates[0].id, 'B');
+  assertEquals(reposo.estrategias[0].updates[0].inicio, iso(10, 30));
+  // Ademas queda un hueco real detras de A (11:15) que nadie puede tapar.
+  const vacio = problemas.find((p) => p.tipo === 'hueco_vacio')!;
+  assert(vacio, 'el tramo 11:15-12:00 sigue vacio y debe avisarse');
+  assertEquals(vacio.zona.desde, iso(11, 15));
+  assertEquals(vacio.zona.hasta, iso(12, 0));
 });
 
 Deno.test('reposo_desaprovechado: el techo manda tambien sobre los reposos', () => {
@@ -128,7 +133,15 @@ Deno.test('cadena multiprofesional (grupoId) no se propone para compactar huecos
     cita('Y', 'P6', 11, 30, 30, { grupoId: 'cadena-1' }),
   ];
   const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 31) });
-  assertEquals(problemas.length, 0);
+  // Mover la cadena sigue prohibido...
+  assert(!problemas.some((p) => p.tipo === 'hueco_muerto' || p.tipo === 'reposo_desaprovechado'));
+  // ...pero el hueco de 10:31 a 11:30 existe y hay que avisarlo (no hay nada que
+  // adelantar, asi que es informativo: se ofrece a la lista de espera).
+  assertEquals(problemas.length, 1);
+  assertEquals(problemas[0].tipo, 'hueco_vacio');
+  assertEquals(problemas[0].estrategias.length, 0);
+  assertEquals(problemas[0].citaIds.length, 0);
+  assertEquals(problemas[0].zona.hasta, iso(11, 30));
 });
 
 Deno.test('dia limpio (huecos por debajo del umbral): no reporta ruido', () => {
@@ -144,14 +157,98 @@ Deno.test('solo analiza el dia de "ahora": una cita retrasada de ayer no cuenta'
   assertEquals(problemas.length, 0);
 });
 
-Deno.test('retraso tiene prioridad: no reporta huecos del mismo profesional en la misma pasada', () => {
+Deno.test('un retraso ya NO deja mudo al organizador sobre los huecos del mismo profesional', () => {
   const citas = [
     cita('A', 'P1', 9, 0, 30), // 9:00-9:30, ya deberia haber acabado a las 9:45
-    cita('B', 'P1', 11, 0, 30), // hueco grande detras, pero se ignora esta pasada
+    cita('B', 'P1', 11, 0, 30), // hueco grande detras
   ];
   const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(9, 45) });
-  assertEquals(problemas.length, 1);
-  assertEquals(problemas[0].tipo, 'retraso');
+  assert(problemas.some((p) => p.tipo === 'retraso'), 'A va 15 min tarde');
+  // Antes el `continue` por profesional se comia esto y solo salia el retraso.
+  const hueco = problemas.find((p) => p.tipo === 'hueco_muerto')!;
+  assert(hueco, 'el hueco hasta las 11:00 debe seguir saliendo pese al retraso');
+  assertEquals(hueco.citaIds, ['B']);
+});
+
+Deno.test('retraso: una cita comprometida por el arreglo no se propone ademas para compactar', () => {
+  // Cascada: el arreglo del retraso ya mueve B, asi que B no puede salir tambien
+  // como "hueco muerto" (serian dos ordenes contradictorias sobre la misma cita).
+  const citas = [
+    cita('A', 'P1', 9, 0, 30),
+    cita('B', 'P1', 9, 40, 30), // pegada: entra en la cascada del retraso
+  ];
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(9, 45) });
+  const retraso = problemas.find((p) => p.tipo === 'retraso')!;
+  assert(retraso);
+  const movidasPorElRetraso = new Set(retraso.citaIds);
+  for (const p of problemas) {
+    if (p.tipo === 'hueco_muerto' || p.tipo === 'reposo_desaprovechado') {
+      assert(
+        !p.citaIds.some((id) => movidasPorElRetraso.has(id)),
+        `${p.id} propone mover una cita que el retraso ya mueve`,
+      );
+    }
+  }
+});
+
+Deno.test('hueco_vacio: no se reporta el tramo antes de la primera cita ni despues de la ultima', () => {
+  // Solo interesan los huecos INTERIORES. Que el dia empiece tarde o acabe
+  // pronto no es un problema de organizacion: es que no esta lleno.
+  // La cita va encadenada para que tampoco se proponga compactarla hacia la
+  // apertura y quede claro que el tramo suelto no genera aviso por si mismo.
+  const citas = [cita('A', 'P2', 12, 0, 30, { grupoId: 'cadena-9' })];
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(9, 0) });
+  assertEquals(problemas.length, 0);
+});
+
+Deno.test('hueco_vacio: un bloqueo (ausencia) tapa el hueco, no se avisa', () => {
+  const citas = [cita('A', 'P2', 10, 0, 30), cita('B', 'P2', 12, 0, 30)];
+  const bloqueos = [{ profesional_id: 'P2', inicio: iso(10, 30), fin: iso(12, 0) }];
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(9, 0), bloqueos });
+  assert(!problemas.some((p) => p.tipo === 'hueco_vacio'));
+});
+
+Deno.test('diaMs: analiza el dia que se esta MIRANDO, no solo hoy', () => {
+  const manana = '2026-07-09';
+  const citas = [
+    cita('X', 'P4', 10, 0, 30, { inicio: iso(10, 0, manana), fin: iso(10, 30, manana) }),
+    cita('Y', 'P4', 12, 0, 30, { inicio: iso(12, 0, manana), fin: iso(12, 30, manana) }),
+  ];
+  // Sin diaMs (comportamiento viejo): no ve nada, las citas no son de hoy.
+  assertEquals(analizarAgendaDia(citas, PROFS, { ahoraMs: ms(9, 0) }).length, 0);
+  // Con diaMs apuntando a manana si las analiza.
+  const problemas = analizarAgendaDia(citas, PROFS, {
+    ahoraMs: ms(9, 0),
+    diaMs: ms(15, 0, manana),
+  });
+  assert(problemas.length > 0, 'el dia siguiente tiene un hueco de 10:30 a 12:00');
+  assert(problemas.every((p) => p.profesionalId === 'P4'));
+});
+
+Deno.test('diaMs: un dia ya terminado no genera problemas', () => {
+  const ayer = '2026-07-07';
+  const citas = [
+    cita('X', 'P4', 10, 0, 30, { inicio: iso(10, 0, ayer), fin: iso(10, 30, ayer) }),
+    cita('Y', 'P4', 12, 0, 30, { inicio: iso(12, 0, ayer), fin: iso(12, 30, ayer) }),
+  ];
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(9, 0), diaMs: ms(12, 0, ayer) });
+  assertEquals(problemas.length, 0);
+});
+
+Deno.test('todo problema trae zona para poder resaltarlo en la rejilla', () => {
+  const citas = [
+    cita('A', 'P5', 10, 0, 60),
+    cita('B', 'P5', 10, 30, 30), // solape
+    cita('C', 'P6', 10, 0, 30),
+    cita('D', 'P6', 11, 30, 30), // hueco
+  ];
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(9, 0) });
+  assert(problemas.length > 0);
+  for (const p of problemas) {
+    assert(p.zona, `${p.tipo} sin zona`);
+    assertEquals(p.zona.profesionalId, p.profesionalId);
+    assert(+new Date(p.zona.hasta) > +new Date(p.zona.desde), `${p.tipo} con zona vacia`);
+  }
 });
 
 Deno.test('solape: si otro profesional esta libre a la misma hora, ofrece reasignar', () => {
