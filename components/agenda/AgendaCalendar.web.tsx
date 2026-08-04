@@ -8065,6 +8065,7 @@ function DayTimeline({
                                     zIndex: 6,
                                     minWidth: 0,
                                     display: "flex",
+                                     alignItems: "flex-start",
                                     gap: 7,
                                     height: "100%",
                                     overflow: "hidden",
