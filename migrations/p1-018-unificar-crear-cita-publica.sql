@@ -44,7 +44,11 @@ create or replace function public.crear_cita_publica(
   p_cliente_email        text default null,
   p_notas                text default null,
   p_canal                text default 'web',
-  p_consentimiento_datos boolean default false,
+  -- default true igual que las dos versiones originales. NO bajarlo a false sin
+  -- revisar los otros canales: la funcion aborta si es falso, asi que el agente
+  -- de WhatsApp y el de voz dejarian de poder reservar si no lo envian.
+  -- Pedir consentimiento explicito por canal es B2-044.
+  p_consentimiento_datos boolean default true,
   p_consiente_ia         boolean default false,
   p_captcha_token        text default null
 )
