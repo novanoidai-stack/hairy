@@ -128,7 +128,11 @@ export async function crearCitaPublica(args: CrearCitaArgs): Promise<CrearCitaRe
     p_notas: args.notas ?? null,
     p_consentimiento_datos: args.consentimientoDatos ?? true,
     p_consiente_ia: args.consienteIa ?? false,
-    p_captcha_token: args.captchaToken ?? null, // CAPTCHA v3 token
+    // NO añadir p_captcha_token aqui: en la BD conviven dos sobrecargas de
+    // crear_cita_publica (una con p_consiente_ia, otra con p_captcha_token) y
+    // ninguna acepta ambos, asi que mandar los dos hace que PostgREST no resuelva
+    // la funcion y devuelva 404 PGRST202. El token se sigue pidiendo en el portal;
+    // se volvera a enviar cuando las dos firmas se unifiquen en una sola (P1-018).
   });
   if (error) throw error;
   return data as CrearCitaResult;
