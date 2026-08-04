@@ -740,7 +740,7 @@ export default function AgendaCalendar() {
   // Colapso independiente de los bloques del rail lateral (KPIs y mini-calendario)
   const [kpisCollapsed, setKpisCollapsed] = useState(false);
   const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
-  const [profsCollapsed, setProfsCollapsed] = useState(false);
+  const [profsCollapsed, setProfsCollapsed] = useState(true);
   const [showStatsModal, setShowStatsModal] = useState<
     "hoy" | "confirmadas" | "mes" | "canceladas" | null
   >(null);
