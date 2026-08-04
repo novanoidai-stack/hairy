@@ -7475,7 +7475,7 @@ function DayTimeline({
                                   ? `2px solid #e0340e`
                                   : undefined,
                               borderRadius: height <= 32 ? 6 : 12,
-                              padding: height <= 16 ? "0px 4px" : height <= 32 ? "2px 4px" : "6px 8px",
+                              padding: (hasEspera && activaPx <= 45) ? "2px 4px" : height <= 16 ? "0px 4px" : height <= 32 ? "2px 4px" : "6px 8px",
                               overflow: "hidden",
                               cursor: isDragging ? "grabbing" : "grab",
                               display: "flex",
@@ -8084,8 +8084,8 @@ function DayTimeline({
                                   <span
                                     style={{
                                       flexShrink: 0,
-                                      width: 28,
-                                      height: 28,
+                                      width: (hasEspera && activaPx <= 45) ? 22 : 28,
+                                      height: (hasEspera && activaPx <= 45) ? 22 : 28,
                                       borderRadius: 8,
                                       background: cancelada
                                         ? "#99999955"
@@ -8127,7 +8127,7 @@ function DayTimeline({
                                       {height > 24 && (
                                         <span
                                           style={{
-                                            fontSize: 12.5,
+                                            fontSize: (hasEspera && activaPx <= 45) ? 10.5 : 12.5,
                                             color: cancelada
                                               ? TOKENS.textTer
                                               : TOKENS.text,
@@ -8177,7 +8177,7 @@ function DayTimeline({
                                         style={{
                                           width: "fit-content",
                                           maxWidth: "100%",
-                                          fontSize: height < 30 ? 11 : 12,
+                                          fontSize: (hasEspera && activaPx <= 45) ? 10.5 : height < 30 ? 11 : 12,
                                           lineHeight: height < 30 ? "1.1" : "1.2",
                                           fontWeight: 800,
                                           color: cancelada ? TOKENS.textTer : TOKENS.text,
@@ -8210,12 +8210,12 @@ function DayTimeline({
                                             borderLeft: cancelada
                                               ? "none"
                                               : `3px solid ${catColor || profColor}`,
-                                            padding: "2px 6px",
+                                            padding: (hasEspera && activaPx <= 45) ? "1px 4px" : "2px 6px",
                                             borderRadius: 6,
                                             boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
                                             width: "fit-content",
                                             maxWidth: "100%",
-                                            fontSize: 10.5,
+                                            fontSize: (hasEspera && activaPx <= 45) ? 9.5 : 10.5,
                                             fontWeight: 700,
                                             color: cancelada ? TOKENS.textTer : TOKENS.text,
                                             whiteSpace: "normal",
