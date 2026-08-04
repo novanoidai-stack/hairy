@@ -2730,6 +2730,30 @@ export default function AgendaCalendar() {
                         >
                           <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
                         </button>
+                        <button
+                          onClick={() => {
+                            const profId = selectedProf !== "todos" ? selectedProf : (visibleProfs[0]?.id || null);
+                            if (profId) setShowRetrasoProf(profId);
+                          }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "7px 12px",
+                            background: "rgba(244,80,30,0.12)",
+                            border: "1px solid rgba(244,80,30,0.45)",
+                            borderRadius: 10,
+                            cursor: "pointer",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: TOKENS.primary,
+                            whiteSpace: "nowrap",
+                            boxShadow: "0 2px 6px rgba(244,80,30,0.15)",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          <span>⚡ Organizar mi agenda</span>
+                        </button>
                         {/* Retirado el boton del "Optimizador de la agenda" (tarjeta de IA con
                             prompt de texto libre): duplicaba "Organizar mi agenda", que hace lo
                             mismo de forma determinista y con propuestas aplicables a un clic. */}
@@ -4774,16 +4798,15 @@ export default function AgendaCalendar() {
               c.profesional_id === showRetrasoProf && c.estado === "confirmada",
           );
 
-          async function retrasarTodas(minutos: number) {
-            // Cascada inteligente (misma logica que el retraso por cita): el profesional llega
-            // X tarde -> su primera cita aun no terminada se retrasa X y las siguientes se
-            // recolocan ABSORBIENDO los huecos (no se desplazan todas a ciegas).
+          function retrasarTodas(minutos: number) {
             const citasMapped = citasProf.map((c: any) => ({
               id: c.id,
               inicio: c.inicio,
               fin: c.fin,
               fin_activa: c.fin_activa,
               fin_espera: c.fin_espera,
+              cliente: clientes.find((cl: any) => cl.id === c.cliente_id)?.nombre ?? null,
+              servicio: servicios.find((s: any) => s.id === c.servicio_id)?.nombre ?? null,
             }));
             const ahora = Date.now();
             const primera = citasMapped
@@ -4793,43 +4816,9 @@ export default function AgendaCalendar() {
               setShowRetrasoProf(null);
               return;
             }
-            const prop = proponerRetrasoPorCita(
-              citasMapped,
-              primera.id,
-              minutos,
-            );
-            const updates = construirUpdatesRetraso(prop, citasMapped);
-            if (updates.length === 0) {
-              setShowRetrasoProf(null);
-              return;
-            }
-            const profile = await getUserProfile();
-            const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
-            for (const u of updates) {
-              const orig = citasProf.find((c: any) => c.id === u.id);
-              const { id, ...campos } = u;
-              await supabase.from("citas").update(campos).eq("id", id);
-              if (orig)
-                await registrarHistorial(
-                  id,
-                  nId,
-                  [
-                    {
-                      campo: "inicio",
-                      anterior: orig.inicio,
-                      nuevo: campos.inicio,
-                    },
-                    { campo: "fin", anterior: orig.fin, nuevo: campos.fin },
-                  ],
-                  `Profesional llega tarde (+${minutos} min)`,
-                );
-            }
-            setCitas((prev) =>
-              prev.map((c) => {
-                const u = updates.find((x) => x.id === c.id);
-                return u ? { ...c, ...u } : c;
-              }),
-            );
+            const ests = calcularEstrategiasRetraso(citasMapped as any, primera.id, minutos);
+            setRetrasoMin(minutos);
+            setEstrategiasRetraso(ests);
             setShowRetrasoProf(null);
           }
 
