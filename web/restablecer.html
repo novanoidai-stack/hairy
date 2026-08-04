@@ -7,6 +7,9 @@
 <meta name="description" content="Crea una nueva contraseña para tu cuenta de Mecha." />
 <meta name="robots" content="noindex, nofollow" />
 <meta name="theme-color" content="#070a14" />
+<!-- El cliente de Supabase limpia el hash en cuanto procesa el enlace, asi que
+     el tipo (invite / recovery) se guarda antes de que se cargue nada mas. -->
+<script>window.__mechaHashInicial = window.location.hash || '';</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -144,6 +147,29 @@
 
   if (!api) { show('invalid'); return; }
 
+  // Esta misma pantalla sirve para dos cosas: recuperar una contraseña olvidada
+  // y ACTIVAR la cuenta de un trabajador recién invitado (?bienvenida=1). El
+  // enlace de invitación aterriza aquí a propósito: antes iba a acceso.html, que
+  // lo trataba como un login normal y nunca pedía contraseña, así que el
+  // trabajador entraba una vez y ya no podía volver a entrar jamás.
+  // Supabase deja `type=invite` en el hash cuando el enlace es una invitación.
+  var hashInicial = window.__mechaHashInicial || window.location.hash || '';
+  var esBienvenida = hashInicial.indexOf('type=invite') !== -1
+    || window.location.search.indexOf('bienvenida=1') !== -1;
+  if (esBienvenida) {
+    document.title = 'Mecha — Activa tu cuenta';
+    var hLoad = document.querySelector('#stateLoading .gate-h');
+    if (hLoad) hLoad.textContent = 'Activa tu cuenta';
+    var hForm = document.querySelector('#stateForm .gate-h');
+    if (hForm) hForm.textContent = 'Elige tu contraseña';
+    var pForm = document.querySelector('#stateForm .gate-p');
+    if (pForm) pForm.textContent = 'Con este correo y esta contraseña entrarás en Mecha a partir de ahora. Mínimo 8 caracteres.';
+    var hInv = document.querySelector('#stateInvalid .gate-h');
+    if (hInv) hInv.textContent = 'Este enlace ya no vale';
+    var pInv = document.querySelector('#stateInvalid .gate-p');
+    if (pInv) pInv.textContent = 'La invitación caducó o ya se usó. Pide a tu salón que te la reenvíe desde Ajustes → Accesos y roles.';
+  }
+
   // La sesion de recuperacion llega en el hash del enlace del correo. El cliente
   // (detectSessionInUrl) la procesa y dispara PASSWORD_RECOVERY. Mostramos el
   // formulario en cuanto haya sesion; si en unos segundos no hay nada, el enlace
@@ -178,7 +204,9 @@
           saveBtn.disabled = false; saveBtn.textContent = prev;
           return;
         }
-        msg(formMsg, 'ok', 'Contraseña actualizada. Te llevamos a iniciar sesión...');
+        msg(formMsg, 'ok', esBienvenida
+          ? 'Cuenta activada. Ya puedes entrar con tu correo y esta contraseña...'
+          : 'Contraseña actualizada. Te llevamos a iniciar sesión...');
         if (api.signOut) api.signOut();
         setTimeout(function () { window.location.href = 'acceso.html'; }, 1800);
       });

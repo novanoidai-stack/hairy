@@ -740,7 +740,7 @@ export default function AgendaCalendar() {
   // Colapso independiente de los bloques del rail lateral (KPIs y mini-calendario)
   const [kpisCollapsed, setKpisCollapsed] = useState(false);
   const [miniCalCollapsed, setMiniCalCollapsed] = useState(false);
-  const [profsCollapsed, setProfsCollapsed] = useState(false);
+  const [profsCollapsed, setProfsCollapsed] = useState(true);
   const [showStatsModal, setShowStatsModal] = useState<
     "hoy" | "confirmadas" | "mes" | "canceladas" | null
   >(null);
@@ -2729,6 +2729,30 @@ export default function AgendaCalendar() {
                           onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
                         >
                           <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const profId = selectedProf !== "todos" ? selectedProf : (visibleProfs[0]?.id || null);
+                            if (profId) setShowRetrasoProf(profId);
+                          }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "7px 12px",
+                            background: "rgba(244,80,30,0.12)",
+                            border: "1px solid rgba(244,80,30,0.45)",
+                            borderRadius: 10,
+                            cursor: "pointer",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: TOKENS.primary,
+                            whiteSpace: "nowrap",
+                            boxShadow: "0 2px 6px rgba(244,80,30,0.15)",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          <span>⚡ Organizar mi agenda</span>
                         </button>
                         {/* Retirado el boton del "Optimizador de la agenda" (tarjeta de IA con
                             prompt de texto libre): duplicaba "Organizar mi agenda", que hace lo
@@ -4774,16 +4798,15 @@ export default function AgendaCalendar() {
               c.profesional_id === showRetrasoProf && c.estado === "confirmada",
           );
 
-          async function retrasarTodas(minutos: number) {
-            // Cascada inteligente (misma logica que el retraso por cita): el profesional llega
-            // X tarde -> su primera cita aun no terminada se retrasa X y las siguientes se
-            // recolocan ABSORBIENDO los huecos (no se desplazan todas a ciegas).
+          function retrasarTodas(minutos: number) {
             const citasMapped = citasProf.map((c: any) => ({
               id: c.id,
               inicio: c.inicio,
               fin: c.fin,
               fin_activa: c.fin_activa,
               fin_espera: c.fin_espera,
+              cliente: clientes.find((cl: any) => cl.id === c.cliente_id)?.nombre ?? null,
+              servicio: servicios.find((s: any) => s.id === c.servicio_id)?.nombre ?? null,
             }));
             const ahora = Date.now();
             const primera = citasMapped
@@ -4793,43 +4816,9 @@ export default function AgendaCalendar() {
               setShowRetrasoProf(null);
               return;
             }
-            const prop = proponerRetrasoPorCita(
-              citasMapped,
-              primera.id,
-              minutos,
-            );
-            const updates = construirUpdatesRetraso(prop, citasMapped);
-            if (updates.length === 0) {
-              setShowRetrasoProf(null);
-              return;
-            }
-            const profile = await getUserProfile();
-            const nId = profile?.negocio_id || NEGOCIO_ID_FALLBACK;
-            for (const u of updates) {
-              const orig = citasProf.find((c: any) => c.id === u.id);
-              const { id, ...campos } = u;
-              await supabase.from("citas").update(campos).eq("id", id);
-              if (orig)
-                await registrarHistorial(
-                  id,
-                  nId,
-                  [
-                    {
-                      campo: "inicio",
-                      anterior: orig.inicio,
-                      nuevo: campos.inicio,
-                    },
-                    { campo: "fin", anterior: orig.fin, nuevo: campos.fin },
-                  ],
-                  `Profesional llega tarde (+${minutos} min)`,
-                );
-            }
-            setCitas((prev) =>
-              prev.map((c) => {
-                const u = updates.find((x) => x.id === c.id);
-                return u ? { ...c, ...u } : c;
-              }),
-            );
+            const ests = calcularEstrategiasRetraso(citasMapped as any, primera.id, minutos);
+            setRetrasoMin(minutos);
+            setEstrategiasRetraso(ests);
             setShowRetrasoProf(null);
           }
 
@@ -6620,7 +6609,7 @@ function DayTimeline({
             new Date(h.fin_espera).getTime() >
               new Date(h.fin_activa).getTime() &&
             new Date(c.inicio).getTime() >= new Date(h.fin_activa).getTime() &&
-            new Date(c.fin).getTime() <= new Date(h.fin_espera).getTime(),
+            new Date(c.inicio).getTime() < new Date(h.fin_espera).getTime(),
         );
         c._nested = !!host;
         c._hostId = host ? host.id : null;
@@ -7373,8 +7362,8 @@ function DayTimeline({
                           100 -
                           (hostL +
                             ((NEST_INSET_L + (nLane + 1) * nW) * hostW) / 100);
-                        const nestedLeft = `calc(${nestL}% + 6px)`;
-                        const nestedRight = `calc(${nestR}% + 6px)`;
+                        const nestedLeft = `calc(${Math.max(0, nestL)}% + 2px)`;
+                        const nestedRight = `calc(${Math.max(0, nestR)}% + 2px)`;
                         const cancelada = cita.estado === CITA_STATUS.CANCELADA;
                         // El fondo del bloque lleva SIEMPRE el color del
                         // profesional, tenga reposo o no. Antes los estados
@@ -7475,7 +7464,7 @@ function DayTimeline({
                                   ? `2px solid #e0340e`
                                   : undefined,
                               borderRadius: height <= 32 ? 6 : 12,
-                              padding: height <= 16 ? "0px 4px" : height <= 32 ? "2px 4px" : "6px 8px",
+                              padding: (hasEspera && activaPx <= 45) ? "2px 4px" : height <= 16 ? "0px 4px" : height <= 32 ? "2px 4px" : "6px 8px",
                               overflow: "hidden",
                               cursor: isDragging ? "grabbing" : "grab",
                               display: "flex",
@@ -7612,8 +7601,9 @@ function DayTimeline({
                                             background:
                                               "rgba(16,185,129,0.10)",
                                             display: "flex",
-                                            alignItems: "center",
+                                            alignItems: gapTop < 15 && gapH < 45 ? "flex-end" : "center",
                                             justifyContent: "center",
+                                            paddingBottom: gapTop < 15 && gapH < 45 ? 4 : 0,
                                           }}
                                         >
                                           {gapH >= 15 && (
@@ -7883,6 +7873,77 @@ function DayTimeline({
                                   : estrecho
                                     ? 24
                                     : 18;
+                                 if (height <= 28) {
+                                   return (
+                                     <div
+                                       style={{
+                                         position: "relative",
+                                         zIndex: 6,
+                                         display: "flex",
+                                         alignItems: "center",
+                                         gap: 4,
+                                         overflow: "hidden",
+                                         height: "100%",
+                                         padding: "0 4px",
+                                         whiteSpace: "nowrap",
+                                       }}
+                                     >
+                                       <span
+                                         style={{
+                                           fontSize: 10,
+                                           fontWeight: 800,
+                                           color: cancelada ? TOKENS.textTer : TOKENS.text,
+                                           flexShrink: 0,
+                                           fontVariantNumeric: "tabular-nums" as any,
+                                           lineHeight: 1,
+                                         }}
+                                       >
+                                         {timeStrCompact}
+                                       </span>
+                                       {chainBadge}
+                                       {stylistAvatar}
+                                       {icon}
+                                       <span
+                                         style={{
+                                           fontSize: 10,
+                                           fontWeight: 800,
+                                           color: cancelada ? TOKENS.textTer : TOKENS.text,
+                                           overflow: "hidden",
+                                           textOverflow: "ellipsis",
+                                           whiteSpace: "nowrap",
+                                           lineHeight: 1,
+                                           flexShrink: 1,
+                                           minWidth: 0,
+                                           textDecoration: cancelada ? "line-through" : "none",
+                                         }}
+                                       >
+                                         {nombreCliente}
+                                       </span>
+                                       {nombreServicio && (
+                                         <span
+                                           style={{
+                                             fontSize: 9.5,
+                                             fontWeight: 700,
+                                             color: cancelada ? TOKENS.textTer : TOKENS.text,
+                                             background: cancelada ? "transparent" : TOKENS.bgCard,
+                                             border: cancelada ? "none" : `1px solid ${(catColor || profColor)}55`,
+                                             borderLeft: cancelada ? "none" : `2px solid ${catColor || profColor}`,
+                                             padding: "0 3px",
+                                             borderRadius: 3,
+                                             overflow: "hidden",
+                                             textOverflow: "ellipsis",
+                                             whiteSpace: "nowrap",
+                                             flexShrink: 2,
+                                             minWidth: 0,
+                                             lineHeight: 1,
+                                           }}
+                                         >
+                                           {nombreServicio}
+                                         </span>
+                                       )}
+                                     </div>
+                                   );
+                                 }
                                 return (
                                   <div
                                     style={{
@@ -8004,6 +8065,7 @@ function DayTimeline({
                                     zIndex: 6,
                                     minWidth: 0,
                                     display: "flex",
+                                     alignItems: "flex-start",
                                     gap: 7,
                                     height: "100%",
                                     overflow: "hidden",
@@ -8012,8 +8074,8 @@ function DayTimeline({
                                   <span
                                     style={{
                                       flexShrink: 0,
-                                      width: 28,
-                                      height: 28,
+                                      width: (hasEspera && activaPx <= 45) ? 22 : 28,
+                                      height: (hasEspera && activaPx <= 45) ? 22 : 28,
                                       borderRadius: 8,
                                       background: cancelada
                                         ? "#99999955"
@@ -8035,7 +8097,7 @@ function DayTimeline({
                                   </span>
                                   <div
                                     style={{
-                                      flex: 1,
+                                      flex: "0 0 auto",
                                       minWidth: 0,
                                       display: "flex",
                                       flexDirection: "column",
@@ -8055,7 +8117,7 @@ function DayTimeline({
                                       {height > 24 && (
                                         <span
                                           style={{
-                                            fontSize: 12.5,
+                                            fontSize: (hasEspera && activaPx <= 45) ? 10.5 : 12.5,
                                             color: cancelada
                                               ? TOKENS.textTer
                                               : TOKENS.text,
@@ -8105,7 +8167,7 @@ function DayTimeline({
                                         style={{
                                           width: "fit-content",
                                           maxWidth: "100%",
-                                          fontSize: height < 30 ? 11 : 12,
+                                          fontSize: (hasEspera && activaPx <= 45) ? 10.5 : height < 30 ? 11 : 12,
                                           lineHeight: height < 30 ? "1.1" : "1.2",
                                           fontWeight: 800,
                                           color: cancelada ? TOKENS.textTer : TOKENS.text,
@@ -8138,12 +8200,12 @@ function DayTimeline({
                                             borderLeft: cancelada
                                               ? "none"
                                               : `3px solid ${catColor || profColor}`,
-                                            padding: "2px 6px",
+                                            padding: (hasEspera && activaPx <= 45) ? "1px 4px" : "2px 6px",
                                             borderRadius: 6,
                                             boxShadow: cancelada ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
                                             width: "fit-content",
                                             maxWidth: "100%",
-                                            fontSize: 10.5,
+                                            fontSize: (hasEspera && activaPx <= 45) ? 9.5 : 10.5,
                                             fontWeight: 700,
                                             color: cancelada ? TOKENS.textTer : TOKENS.text,
                                             whiteSpace: "normal",
@@ -13127,6 +13189,12 @@ export function DetalleCitaModal({
     useState<CitaOrigen | null>(null);
   const [avisandoChispa, setAvisandoChispa] = useState(false);
   // --- Retrasos encadenados con estrategias (IA de agenda, Sesion 4) ---
+  const [previewState, setPreviewState] = useState<{
+    profId?: string;
+    minutos: number;
+    updates: Array<{ id: string; inicio: string; fin: string; fin_activa?: string; fin_espera?: string }>;
+    originalCitas?: any[];
+  } | null>(null);
   const [retrasoPickerOpen, setRetrasoPickerOpen] = useState(false);
   const [estrategiasRetraso, setEstrategiasRetraso] = useState<
     EstrategiaRetraso[] | null

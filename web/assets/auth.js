@@ -263,7 +263,7 @@
       if (!uid) return null;
       var res = await client
         .from('profiles')
-        .select('id, plan, negocio_id, nombre, nombre_negocio, phone, codigo_postal, email, codigo_referido, referido_por, descuento_pct, descuento_referido_aplicado')
+        .select('id, plan, role, negocio_id, nombre, nombre_negocio, phone, codigo_postal, email, codigo_referido, referido_por, descuento_pct, descuento_referido_aplicado')
         .eq('id', uid)
         .maybeSingle();
       if (res.error) return null;
@@ -291,9 +291,12 @@
   }
 
   // La cuenta tiene el perfil minimo para entrar al software?
+  // La cuenta tiene el perfil minimo para entrar al software?
   // Pedimos nombre del negocio + telefono + codigo postal (lo que falta tras Google).
+  // Si el usuario es empleado o rol no-propietario, se considera siempre completo.
   function profileComplete(p) {
     if (!p) return false;
+    if (p.role && p.role !== 'owner') return true;
     var hasNeg = !!(p.nombre_negocio && String(p.nombre_negocio).trim());
     var hasTel = !!(p.phone && String(p.phone).trim());
     var hasCp = !!(p.codigo_postal && String(p.codigo_postal).trim());

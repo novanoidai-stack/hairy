@@ -29,6 +29,10 @@ import {
   Btn, IconBtn, ScopeChip, SettingsIcon,
 } from '@/components/ui/SettingsAtoms';
 import { mensajeDeError } from '@/lib/errores';
+import {
+  cargarCuentasEquipo, invitarAcceso, reenviarInvitacion, revocarAcceso,
+  estadoLegible, type CuentaEquipo, type RolInvitable,
+} from '@/lib/equipoAccesos';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { useAppLang } from '@/lib/hooks/useAppLang';
 import { APP_LANGS, type AppLang } from '@/lib/appI18n';
@@ -1601,49 +1605,61 @@ const ACCESO_ERROR_MSG: Record<string, string> = {
   target_not_found: 'No se encontro la cuenta.',
 };
 
-const ACCESO_ALTA_ERROR: Record<string, string> = {
-  invalid_email: 'Email no valido.',
-  missing_nombre: 'Indica el nombre.',
-  invalid_role: 'Rol no valido.',
-  email_exists: 'Ya existe una cuenta con ese email.',
-  not_authorized: 'No tienes permiso para crear accesos.',
-  not_authenticated: 'Sesion no valida, vuelve a entrar.',
-  no_negocio: 'Tu cuenta no tiene un negocio asignado.',
-  create_failed: 'No se pudo crear la cuenta.',
-  profile_failed: 'No se pudo asignar el perfil.',
+// Roles que se pueden invitar. Propietario no se crea: se asciende despues.
+const ACCESO_ROLES_INVITABLES = [
+  { value: 'employee', label: 'Profesional' },
+  { value: 'recepcion', label: 'Recepcion' },
+  { value: 'admin', label: 'Direccion' },
+];
+
+const ROL_QUE_HACE: Record<string, string> = {
+  owner: 'Manda en todo: plan, datos y accesos.',
+  admin: 'Todo menos el plan y el borrado de datos.',
+  recepcion: 'Agenda completa y clientes; no toca configuracion.',
+  employee: 'Su agenda y sus fichas de cliente.',
 };
 
+// ===========================================================================
+// Tab: Accesos y roles — quien puede entrar al software y con que permisos
+// ===========================================================================
+//
+// Aqui se ve el ecosistema completo de una cuenta: el salon lo paga el
+// Propietario y cada trabajador entra con SU correo dentro de ese mismo salon.
+// Lo que esta pantalla tiene que dejar claro, porque antes no lo hacia:
+//   - si una persona ya puede entrar o su invitacion sigue pendiente,
+//   - si tiene ficha en la agenda o solo cuenta (o al reves),
+//   - y como arreglarlo sin salir de aqui (reenviar, retirar, crear ficha).
 function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: string; currentUserId: string; currentRole: string }) {
   const { isMobile } = useResponsive();
-  const [cuentas, setCuentas] = useState<CuentaMiembro[]>([]);
+  const [cuentas, setCuentas] = useState<CuentaEquipo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ id: string; text: string; ok: boolean } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formEmail, setFormEmail] = useState('');
   const [formNombre, setFormNombre] = useState('');
-  const [formRol, setFormRol] = useState('recepcion');
+  const [formRol, setFormRol] = useState('employee');
+  const [formFicha, setFormFicha] = useState(true);
   const [creando, setCreando] = useState(false);
   const [formError, setFormError] = useState('');
-  const [creada, setCreada] = useState<{ email: string; invited?: boolean } | null>(null);
+  const [creada, setCreada] = useState<{ email: string } | null>(null);
 
   const isOwner = currentRole === 'owner';
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, nombre, apellido, email, role')
-      .eq('negocio_id', negocioId)
-      .order('role');
-    setCuentas((data as CuentaMiembro[]) ?? []);
+    setLoadError('');
+    const { cuentas: filas, error } = await cargarCuentasEquipo();
+    if (error) setLoadError(error);
+    setCuentas(filas);
     setLoading(false);
-  }, [negocioId]);
+  }, []);
 
   useEffect(() => { if (negocioId) load(); }, [negocioId, load]);
 
-  // Direccion (admin) no puede asignar Propietario; se mantiene la opcion solo
-  // para mostrar correctamente el rol de una cuenta que ya es Propietario.
+  // Direccion (admin) no puede asignar Propietario; la opcion se mantiene solo
+  // para mostrar correctamente el rol de una cuenta que ya lo es.
   const optionsFor = (targetRole: string) =>
     isOwner || targetRole === 'owner'
       ? ACCESO_ROLE_OPTIONS
@@ -1663,85 +1679,147 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
     setMsg({ id, text: 'Rol actualizado.', ok: true });
   }
 
+  async function reenviar(id: string) {
+    setSavingId(id);
+    setMsg(null);
+    const { ok, error } = await reenviarInvitacion(id);
+    setSavingId(null);
+    setMsg({ id, text: ok ? 'Correo reenviado. Que revise su bandeja (y el spam).' : (error ?? ''), ok });
+  }
+
+  async function retirar(c: CuentaEquipo) {
+    const quien = `${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || c.email;
+    const aviso = c.profesional_id
+      ? `Retirar el acceso de ${quien}?\n\nDejara de poder entrar al software. Su ficha en la agenda y su historial de citas se quedan como estan.`
+      : `Retirar el acceso de ${quien}?\n\nDejara de poder entrar al software.`;
+    if (typeof window !== 'undefined' && !window.confirm(aviso)) return;
+    setSavingId(c.id);
+    setMsg(null);
+    const { ok, error } = await revocarAcceso(c.id);
+    setSavingId(null);
+    if (!ok) { setMsg({ id: c.id, text: error ?? '', ok: false }); return; }
+    setCuentas(prev => prev.filter(x => x.id !== c.id));
+  }
+
   async function crearAcceso() {
     setFormError('');
     setCreada(null);
     const email = formEmail.trim().toLowerCase();
     const nombre = formNombre.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setFormError('Email no valido.'); return; }
-    if (!nombre) { setFormError('Indica el nombre.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setFormError('Ese correo no es válido.'); return; }
+    if (!nombre) { setFormError('Indica el nombre de la persona.'); return; }
     setCreando(true);
-    const { data, error } = await supabase.functions.invoke('crear-acceso-empleado', {
-      body: { email, nombre, rol: formRol },
+    const { ok, error } = await invitarAcceso({
+      email,
+      nombre,
+      rol: formRol as RolInvitable,
+      crearFicha: formRol === 'employee' && formFicha,
     });
     setCreando(false);
-    if (error || (data && data.error)) {
-      const code = (data && data.error) || 'error';
-      setFormError(ACCESO_ALTA_ERROR[code] ?? 'No se pudo crear el acceso.');
-      return;
-    }
-    setCreada({ email: data.email, invited: !!data.invited });
-    setFormEmail(''); setFormNombre(''); setFormRol('recepcion');
+    if (!ok) { setFormError(error ?? ''); return; }
+    setCreada({ email });
+    setFormEmail(''); setFormNombre(''); setFormRol('employee'); setFormFicha(true);
     load();
   }
 
+  const pendientes = cuentas.filter(c => c.estado === 'pendiente' && !IS_DEMO_MODE).length;
+  const sinFicha = cuentas.filter(c => c.role === 'employee' && !c.profesional_id).length;
+
   return (
-    <Section title="Accesos y roles" desc="Define que ve y puede hacer cada cuenta del salon. Recepcion gestiona agenda y clientes; Direccion accede ademas a configuracion e informes; Propietario tiene acceso total." action={<Btn variant="primary" size="sm" onClick={() => { setShowForm(v => !v); setCreada(null); setFormError(''); }}>{showForm ? 'Cancelar' : 'Anadir acceso'}</Btn>}>
+    <Section
+      title="Accesos y roles"
+      desc="Cada persona de tu equipo entra con SU correo, dentro de tu salón. Tú decides qué ve cada una: Profesional ve lo suyo, Recepción lleva la agenda y los clientes, Dirección accede además a configuración e informes, y Propietario lo controla todo."
+      action={<Btn variant="primary" size="sm" onClick={() => { setShowForm(v => !v); setCreada(null); setFormError(''); }}>{showForm ? 'Cancelar' : 'Invitar a alguien'}</Btn>}
+    >
       {showForm && (
         <div style={{ marginBottom: 14, padding: 14, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.5 }}>
+            Le enviamos un correo. Al abrirlo elige su contraseña y, desde ese momento, entra en Mecha con su correo como una persona más de tu salón.
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
             <STextInput value={formNombre} onChange={setFormNombre} placeholder="Nombre y apellidos" />
-            <STextInput value={formEmail} onChange={setFormEmail} placeholder="email@salon.com" />
+            <STextInput value={formEmail} onChange={setFormEmail} placeholder="correo@ejemplo.com" />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <SSelect width={170} value={formRol} onChange={setFormRol} options={ACCESO_ROLE_OPTIONS.filter(o => o.value !== 'owner')} />
-            <Btn variant="primary" size="sm" onClick={crearAcceso} disabled={creando}>{creando ? 'Creando...' : 'Crear acceso'}</Btn>
+            <SSelect width={isMobile ? '100%' : 190} value={formRol} onChange={setFormRol} options={ACCESO_ROLES_INVITABLES} />
+            <span style={{ fontSize: 12, color: T.textTertiary }}>{ROL_QUE_HACE[formRol]}</span>
+          </div>
+          {formRol === 'employee' && (
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12.5, color: T.text, cursor: 'pointer' }}>
+              <input type="checkbox" checked={formFicha} onChange={e => setFormFicha(e.target.checked)} style={{ marginTop: 2 }} />
+              <span>
+                Crearle también su columna en la agenda
+                <span style={{ color: T.textTertiary }}> — sin ella entra al software pero nadie puede darle citas.</span>
+              </span>
+            </label>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <Btn variant="primary" size="sm" onClick={crearAcceso} disabled={creando}>{creando ? 'Enviando...' : 'Enviar invitación'}</Btn>
             {formError && <span style={{ fontSize: 12, color: T.danger }}>{formError}</span>}
           </div>
           {creada && (
             <div style={{ padding: 10, background: 'rgba(15,157,107,0.10)', border: '1px solid rgba(15,157,107,0.30)', borderRadius: 10, fontSize: 12, color: T.text }}>
-              Se ha enviado una invitación por correo a <b>{creada.email}</b>. Para activar la cuenta y acceder, el empleado deberá establecer su contraseña desde el enlace recibido.
+              Invitación enviada a <b>{creada.email}</b>. Aparecerá como pendiente hasta que abra el correo y elija su contraseña.
             </div>
           )}
         </div>
       )}
+
+      {(pendientes > 0 || sinFicha > 0) && !loading && (
+        <div style={{ marginBottom: 12, padding: '10px 12px', background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.28)', borderRadius: 10, fontSize: 12.5, color: T.text, lineHeight: 1.5 }}>
+          {pendientes > 0 && (
+            <div>
+              {pendientes === 1 ? 'Hay 1 invitación sin aceptar' : `Hay ${pendientes} invitaciones sin aceptar`}: esa persona todavía no puede entrar. Puedes reenviarle el correo desde su fila.
+            </div>
+          )}
+          {sinFicha > 0 && (
+            <div>
+              {sinFicha === 1 ? 'Hay 1 profesional con cuenta pero sin columna en la agenda' : `Hay ${sinFicha} profesionales con cuenta pero sin columna en la agenda`}: entran al software, pero nadie puede darles citas. Se arregla en Equipo, creando su ficha.
+            </div>
+          )}
+        </div>
+      )}
+
+      {loadError && (
+        <div style={{ marginBottom: 12, fontSize: 12.5, color: T.danger }}>{loadError}</div>
+      )}
+
       {loading ? (
         <div style={{ color: T.textTertiary, fontSize: 13, padding: '8px 0' }}>Cargando cuentas...</div>
       ) : cuentas.length === 0 ? (
-        <div style={{ color: T.textTertiary, fontSize: 13, padding: '8px 0' }}>No hay cuentas con acceso en este negocio todavia.</div>
+        <div style={{ color: T.textTertiary, fontSize: 13, padding: '8px 0' }}>Todavía no hay nadie más con acceso. Invita a tu equipo con el botón de arriba.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {cuentas.map(c => {
             const esYo = c.id === currentUserId;
             const esOwnerTarget = c.role === 'owner';
             const bloqueado = esYo || (!isOwner && esOwnerTarget);
-            
-            if (isMobile) {
-              return (
-                <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 14px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12 }}>
-                  {/* Fila superior: Avatar + Info */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 999, background: 'rgba(244,80,30,0.12)', color: T.primaryHi, display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
-                      {(c.nombre || c.email || '?').trim().charAt(0).toUpperCase()}
-                    </div>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: T.text, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>{`${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || 'Sin nombre'}</span>
-                        {esYo && <Badge tone="neutral">Tu cuenta</Badge>}
-                      </div>
-                      <div style={{ fontSize: 11, color: T.textTertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.email}</div>
-                    </div>
+            // En la demo compartida las cuentas son atrezzo: no se avisa de nada.
+            const estado = IS_DEMO_MODE
+              ? { etiqueta: 'Activa', tono: 'success' as const, detalle: 'Puede entrar con su correo y contraseña.' }
+              : estadoLegible(c);
+            const puedeRetirar = isOwner && !esYo && !esOwnerTarget && !IS_DEMO_MODE;
+            const puedeReenviar = !esYo && !IS_DEMO_MODE;
+            const avisoFicha = c.role === 'employee' && !c.profesional_id;
+            const nombreCompleto = `${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || 'Sin nombre';
+
+            return (
+              <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 14px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 999, background: 'rgba(244,80,30,0.12)', color: T.primaryHi, display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                    {(c.nombre || c.email || '?').trim().charAt(0).toUpperCase()}
                   </div>
-
-                  {msg && msg.id === c.id && (
-                    <div style={{ fontSize: 11, color: msg.ok ? T.success : T.danger, paddingLeft: 46 }}>{msg.text}</div>
-                  )}
-
-                  {/* Fila inferior: Etiqueta y Selector */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: `1px solid ${T.border}`, paddingTop: 8, marginTop: 2 }}>
-                    <span style={{ fontSize: 12, color: T.textTertiary }}>Rol de acceso:</span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: T.text, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: isMobile ? 170 : undefined }}>{nombreCompleto}</span>
+                      {esYo && <Badge tone="neutral">Tu cuenta</Badge>}
+                      <Badge tone={estado.tono}>{estado.etiqueta}</Badge>
+                    </div>
+                    <div style={{ fontSize: 11, color: T.textTertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.email}</div>
+                  </div>
+                  <div style={{ flexShrink: 0 }}>
                     <SSelect
-                      width="60%"
+                      width={isMobile ? 150 : 150}
                       value={c.role}
                       disabled={bloqueado || savingId === c.id}
                       onChange={v => cambiarRol(c.id, v)}
@@ -1749,33 +1827,32 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
                     />
                   </div>
                 </div>
-              );
-            }
 
-            return (
-              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 999, background: 'rgba(244,80,30,0.12)', color: T.primaryHi, display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
-                  {(c.nombre || c.email || '?').trim().charAt(0).toUpperCase()}
+                <div style={{ fontSize: 11.5, color: T.textTertiary, paddingLeft: isMobile ? 0 : 48, lineHeight: 1.5 }}>
+                  {estado.detalle}
+                  {c.profesional_nombre
+                    ? ` · Ficha en la agenda: ${c.profesional_nombre}.`
+                    : avisoFicha
+                      ? ' · Sin columna en la agenda: no se le pueden dar citas.'
+                      : ''}
                 </div>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: T.text, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{`${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || 'Sin nombre'}</span>
-                    {esYo && <Badge tone="neutral">Tu cuenta</Badge>}
+
+                {msg && msg.id === c.id && (
+                  <div style={{ fontSize: 11.5, color: msg.ok ? T.success : T.danger, paddingLeft: isMobile ? 0 : 48 }}>{msg.text}</div>
+                )}
+
+                {(puedeReenviar || puedeRetirar) && (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingLeft: isMobile ? 0 : 48 }}>
+                    {puedeReenviar && (
+                      <Btn size="sm" onClick={() => reenviar(c.id)} disabled={savingId === c.id}>
+                        {c.estado === 'pendiente' ? 'Reenviar invitación' : 'Enviar enlace de contraseña'}
+                      </Btn>
+                    )}
+                    {puedeRetirar && (
+                      <Btn size="sm" onClick={() => retirar(c)} disabled={savingId === c.id}>Retirar acceso</Btn>
+                    )}
                   </div>
-                  <div style={{ fontSize: 11, color: T.textTertiary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.email}</div>
-                  {msg && msg.id === c.id && (
-                    <div style={{ fontSize: 11, marginTop: 3, color: msg.ok ? T.success : T.danger }}>{msg.text}</div>
-                  )}
-                </div>
-                <div style={{ flexShrink: 0 }}>
-                  <SSelect
-                    width={150}
-                    value={c.role}
-                    disabled={bloqueado || savingId === c.id}
-                    onChange={v => cambiarRol(c.id, v)}
-                    options={optionsFor(c.role)}
-                  />
-                </div>
+                )}
               </div>
             );
           })}

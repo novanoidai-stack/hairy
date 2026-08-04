@@ -1,0 +1,20 @@
+-- Panel de staff: lo que faltaba y lo que estaba roto (3 ago 2026). APLICADO en remoto.
+--
+-- 1) staff_add_member y staff_remove_member NO EXISTIAN. admin.html las llamaba
+--    desde la pestana "Staff / Equipo", asi que anadir o quitar a un companero
+--    fallaba SIEMPRE. Se crean con las mismas garantias que el resto del panel
+--    (solo equipo + traza en eventos_negocio) y con dos frenos de seguridad:
+--    nadie puede quitarse a si mismo ni dejar el equipo vacio.
+--
+-- 2) staff_set_role: no existia en ninguna forma. El panel ensenaba el rol de
+--    cada cuenta pero no dejaba cambiarlo, y es gestion de usuarios basica.
+--
+-- 3) staff_auditoria_tokens estaba ROTA: declaraba `ejecuciones integer` y
+--    devolvia COUNT(*) (bigint), asi que Postgres respondia siempre
+--    "structure of query does not match function result type" y la pestana
+--    "Auditoria IA" se quedaba colgada en "Cargando...". Ademas su chequeo de
+--    permiso exigia una fila en profiles con el mismo correo; ahora usa
+--    is_staff(), que mira el correo del token.
+--
+-- El cuerpo exacto vive en las migraciones aplicadas
+-- 'staff_gestion_equipo_y_roles' y 'staff_auditoria_tokens_fix_tipo'.

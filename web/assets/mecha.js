@@ -377,7 +377,9 @@
     // (.mobile-menu-enter) cuando la cuenta tiene acceso (plan != free).
     var enterLink = document.createElement('a');
     enterLink.className = 'btn btn-primary btn-lg btn-block mobile-menu-enter';
-    enterLink.href = '#';
+    // href real para que funcione el clic con rueda y si el JS no carga; el
+    // listener de abajo sigue mandando porque goToApp() arrastra la query.
+    enterLink.href = (window.MechaAPI && window.MechaAPI.APP_URL) || '/app';
     enterLink.textContent = 'Entrar al software';
     enterLink.style.display = 'none';
     enterLink.addEventListener('click', function (e) {
