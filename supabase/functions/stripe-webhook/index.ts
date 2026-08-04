@@ -13,6 +13,33 @@ const supabase = createClient(
 );
 const PLATFORM_WHSEC = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
 
+// Precios de la suscripcion de Mecha, en la cuenta de PLATAFORMA. Van por secret y
+// no hardcodeados a proposito: los price_... de prueba y los de produccion son
+// distintos, asi que cada entorno pone los suyos.
+const PRECIO_ESENCIAL = Deno.env.get('STRIPE_PRICE_ESENCIAL') ?? '';
+const PRECIO_ESTUDIO = Deno.env.get('STRIPE_PRICE_ESTUDIO') ?? '';
+
+function planDePrecio(priceId: string | null): string | null {
+  if (!priceId) return null;
+  if (priceId === PRECIO_ESENCIAL) return 'esencial';
+  if (priceId === PRECIO_ESTUDIO) return 'estudio';
+  console.error('price_id desconocido, no se toca el plan:', priceId);
+  return null;
+}
+
+// Estado de Stripe -> estado de acceso nuestro. 'prueba' no aparece: el mes gratis
+// es sin tarjeta y no crea nada en Stripe, lo lleva trial_ends_at en la BD.
+const ESTADO_SUSCRIPCION: Record<string, string> = {
+  trialing: 'activa',
+  active: 'activa',
+  incomplete: 'pago_pendiente',
+  past_due: 'pago_pendiente',
+  unpaid: 'impagada',
+  canceled: 'cancelada',
+  incomplete_expired: 'cancelada',
+  paused: 'pausada',
+};
+
 Deno.serve(async (req) => {
   const sig = req.headers.get('stripe-signature');
   const body = await req.text();
@@ -34,9 +61,18 @@ Deno.serve(async (req) => {
     return new Response('Bad signature: ' + String((e as Error)?.message ?? e), { status: 400 });
   }
 
+  // Eventos de la SUSCRIPCION DE MECHA (cuenta de plataforma). No llevan ?negocio.
+  const esSuscripcion = event.type.startsWith('customer.subscription.') ||
+                        event.type.startsWith('invoice.');
+
   const eventTimestamp = event.created;
   const now = Math.floor(Date.now() / 1000);
-  if (now - eventTimestamp > 300) {
+  // La ventana de 5 min es anti-replay para los cobros del salon. NO se aplica al
+  // ciclo de vida de la suscripcion: Stripe reintenta durante horas y un
+  // invoice.payment_failed reintentado a los 10 minutos se perderia para siempre
+  // (cada reintento volveria a fallar por antiguo). Ahi la proteccion real es la
+  // tabla de deduplicacion por event_id, que sigue aplicandose igual.
+  if (!esSuscripcion && now - eventTimestamp > 300) {
     return new Response('Stale event - replay detected', { status: 400 });
   }
 
@@ -111,6 +147,41 @@ Deno.serve(async (req) => {
     if (session.id) {
       await supabase.from('pagos').update({ estado: 'cancelado' })
         .eq('pasarela_ref', session.id).eq('estado', 'pendiente');
+    }
+  } else if (event.type.startsWith('customer.subscription.')) {
+    // --- Suscripcion de Mecha al salon (P0-003) ---
+    const sub = event.data.object as Stripe.Subscription;
+    const priceId = sub.items?.data?.[0]?.price?.id ?? null;
+    await supabase.rpc('aplicar_suscripcion_stripe', {
+      p_stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer?.id,
+      p_stripe_subscription_id: sub.id,
+      p_estado: ESTADO_SUSCRIPCION[sub.status] ?? 'pago_pendiente',
+      p_periodo_fin: new Date(sub.current_period_end * 1000).toISOString(),
+      p_plan: planDePrecio(priceId),
+      p_profile_id: (sub.metadata?.profile_id as string) ?? null,
+    });
+  } else if (event.type === 'invoice.paid') {
+    const inv = event.data.object as Stripe.Invoice;
+    if (inv.subscription) {
+      await supabase.rpc('aplicar_suscripcion_stripe', {
+        p_stripe_customer_id: typeof inv.customer === 'string' ? inv.customer : inv.customer?.id,
+        p_stripe_subscription_id: typeof inv.subscription === 'string' ? inv.subscription : inv.subscription.id,
+        p_estado: 'activa',
+        p_periodo_fin: inv.lines?.data?.[0]?.period?.end
+          ? new Date(inv.lines.data[0].period.end * 1000).toISOString()
+          : null,
+      });
+    }
+  } else if (event.type === 'invoice.payment_failed') {
+    const inv = event.data.object as Stripe.Invoice;
+    if (inv.subscription) {
+      // No se corta el acceso aqui: se marca y se deja que periodo_fin haga de
+      // margen. Stripe reintenta varios dias antes de dar la suscripcion por
+      // impagada, y ahi llegara customer.subscription.updated con unpaid.
+      await supabase.rpc('aplicar_suscripcion_stripe', {
+        p_stripe_customer_id: typeof inv.customer === 'string' ? inv.customer : inv.customer?.id,
+        p_estado: 'pago_pendiente',
+      });
     }
   } else {
     console.log('evento no manejado:', event.type);

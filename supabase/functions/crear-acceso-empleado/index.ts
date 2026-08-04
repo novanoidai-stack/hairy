@@ -160,7 +160,11 @@ Deno.serve(async (req: Request) => {
     nombre,
     negocio_id: callerProfile.negocio_id,
     role: rol,
-    plan: 'full',
+    // 'estudio' es el valor canonico equivalente al historico 'full' (lib/planes.ts).
+    // PENDIENTE: deberia heredar el plan del salon, no dar siempre el plan superior;
+    // con la facturacion activa esto regala funciones de Estudio a empleados de un
+    // salon que solo paga Esencial.
+    plan: 'estudio',
   }, { onConflict: 'id' });
 
   if (pErr) {
