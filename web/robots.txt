@@ -1,0 +1,20 @@
+# Mecha OS — https://www.mechaa.es
+# El dominio canonico es www; el apex y hairy-two.vercel.app redirigen (308) aqui.
+
+User-agent: *
+Allow: /
+
+# Panel de staff y recuperacion de contrasena: nunca.
+Disallow: /admin.html
+Disallow: /restablecer.html
+
+# La SPA del software: todas las rutas /app/* devuelven el MISMO shell
+# (ver rewrites de vercel.json), asi que indexarlas solo genera duplicados.
+# Reabrir cuando los portales publicos /app/r/<slug> tengan metadatos propios
+# servidos desde el servidor — es la base del directorio SEO del mes 2-3.
+Disallow: /app/
+
+# Las paginas con noindex (demo, acceso, legales, directorio) NO se bloquean
+# aqui a proposito: hay que dejar que Google las rastree para que lea su noindex.
+
+Sitemap: https://www.mechaa.es/sitemap.xml
