@@ -943,3 +943,22 @@ export function mejorAlternativaSlot(
   }
   return null;
 }
+
+export function formatFechaRelativa(dateInput: Date | string | number): string {
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return '';
+  const ahora = new Date();
+  const esHoy = d.toDateString() === ahora.toDateString();
+  const ayer = new Date(ahora);
+  ayer.setDate(ahora.getDate() - 1);
+  const esAyer = d.toDateString() === ayer.toDateString();
+  const manana = new Date(ahora);
+  manana.setDate(ahora.getDate() + 1);
+  const esManana = d.toDateString() === manana.toDateString();
+  const horaStr = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  if (esHoy) return `Hoy ${horaStr}`;
+  if (esAyer) return `Ayer ${horaStr}`;
+  if (esManana) return `Mañana ${horaStr}`;
+  const diaSem = d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+  return `${diaSem} ${horaStr}`;
+}

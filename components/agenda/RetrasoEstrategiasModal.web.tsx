@@ -33,6 +33,7 @@ export interface RetrasoEstrategiasModalProps {
   avisarDisponible?: boolean; // el negocio tiene el aviso al cliente activado (config)
   enviando?: boolean;
   onConfirmar: (estrategia: EstrategiaRetraso, avisarClientes: boolean) => void;
+  onPreview?: (estrategia: EstrategiaRetraso) => void;
   onCancelar: () => void;
 }
 
@@ -48,7 +49,7 @@ function Chip({ label, tone }: { label: string; tone: 'neutral' | 'amber' | 'goo
 
 export default function RetrasoEstrategiasModal({
   estrategias, minutos, profesionalNombre, avisarDisponible = false, enviando = false,
-  onConfirmar, onCancelar,
+  onConfirmar, onPreview, onCancelar,
 }: RetrasoEstrategiasModalProps) {
   // Preselecciona la estrategia recomendada (o la primera).
   const idxRecomendada = useMemo(() => {
@@ -86,18 +87,19 @@ export default function RetrasoEstrategiasModal({
             {estrategias.map((e, i) => {
               const activa = i === sel;
               return (
-                <button
+                <div
                   key={e.tipo}
-                  onClick={() => setSel(i)}
                   style={{
-                    textAlign: 'left', cursor: 'pointer', width: '100%',
                     background: activa ? T.primarySoft : T.card,
                     border: `1.5px solid ${activa ? T.primary : T.border}`,
                     borderRadius: 14, padding: '13px 14px', transition: 'all 0.15s ease',
-                    display: 'flex', flexDirection: 'column', gap: 7,
+                    display: 'flex', flexDirection: 'column', gap: 8,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div
+                    onClick={() => setSel(i)}
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+                  >
                     <span style={{ display: 'inline-flex', width: 18, height: 18, borderRadius: 999, border: `2px solid ${activa ? T.primary : T.textTer}`, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       {activa && <span style={{ width: 8, height: 8, borderRadius: 999, background: T.primary }} />}
                     </span>
@@ -105,12 +107,41 @@ export default function RetrasoEstrategiasModal({
                     {e.recomendada && <Chip label="Recomendada" tone="good" />}
                   </div>
                   <div style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.4, marginLeft: 26 }}>{e.resumen}</div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginLeft: 26 }}>
-                    <Chip label={e.citasMovidas === 0 ? 'No mueve otras citas' : `Mueve ${e.citasMovidas} cita${e.citasMovidas > 1 ? 's' : ''}`} tone={e.citasMovidas === 0 ? 'good' : 'amber'} />
-                    <Chip label={e.retrasoCierreMin === 0 ? 'Cierra a su hora' : `Cierra +${e.retrasoCierreMin}m`} tone={e.retrasoCierreMin === 0 ? 'good' : 'amber'} />
-                    {e.avisos.length > 0 && <Chip label={`Avisa a ${e.avisos.length}`} tone="neutral" />}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginLeft: 26, alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <Chip label={e.citasMovidas === 0 ? 'No mueve otras citas' : `Mueve ${e.citasMovidas} cita${e.citasMovidas > 1 ? 's' : ''}`} tone={e.citasMovidas === 0 ? 'good' : 'amber'} />
+                      <Chip label={e.retrasoCierreMin === 0 ? 'Cierra a su hora' : `Cierra +${e.retrasoCierreMin}m`} tone={e.retrasoCierreMin === 0 ? 'good' : 'amber'} />
+                      {e.avisos.length > 0 && <Chip label={`Avisa a ${e.avisos.length}`} tone="neutral" />}
+                    </div>
+                    {onPreview && (
+                      <button
+                        type="button"
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setSel(i);
+                          onPreview(e);
+                        }}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: 8,
+                          border: `1px solid ${T.primary}`,
+                          background: 'rgba(244,80,30,0.12)',
+                          color: T.primary,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                        }}
+                      >
+                        👁️ Enseñámelo
+                      </button>
+                    )}
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>

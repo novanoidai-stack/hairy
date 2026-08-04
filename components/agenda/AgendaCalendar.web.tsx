@@ -6620,7 +6620,7 @@ function DayTimeline({
             new Date(h.fin_espera).getTime() >
               new Date(h.fin_activa).getTime() &&
             new Date(c.inicio).getTime() >= new Date(h.fin_activa).getTime() &&
-            new Date(c.fin).getTime() <= new Date(h.fin_espera).getTime(),
+            new Date(c.inicio).getTime() < new Date(h.fin_espera).getTime(),
         );
         c._nested = !!host;
         c._hostId = host ? host.id : null;
@@ -7373,8 +7373,8 @@ function DayTimeline({
                           100 -
                           (hostL +
                             ((NEST_INSET_L + (nLane + 1) * nW) * hostW) / 100);
-                        const nestedLeft = `calc(${nestL}% + 6px)`;
-                        const nestedRight = `calc(${nestR}% + 6px)`;
+                        const nestedLeft = `calc(${Math.max(0, nestL)}% + 2px)`;
+                        const nestedRight = `calc(${Math.max(0, nestR)}% + 2px)`;
                         const cancelada = cita.estado === CITA_STATUS.CANCELADA;
                         // El fondo del bloque lleva SIEMPRE el color del
                         // profesional, tenga reposo o no. Antes los estados
@@ -7612,8 +7612,9 @@ function DayTimeline({
                                             background:
                                               "rgba(16,185,129,0.10)",
                                             display: "flex",
-                                            alignItems: "center",
+                                            alignItems: gapTop < 15 && gapH < 45 ? "flex-end" : "center",
                                             justifyContent: "center",
+                                            paddingBottom: gapTop < 15 && gapH < 45 ? 4 : 0,
                                           }}
                                         >
                                           {gapH >= 15 && (
@@ -7883,6 +7884,77 @@ function DayTimeline({
                                   : estrecho
                                     ? 24
                                     : 18;
+                                 if (height <= 28) {
+                                   return (
+                                     <div
+                                       style={{
+                                         position: "relative",
+                                         zIndex: 6,
+                                         display: "flex",
+                                         alignItems: "center",
+                                         gap: 4,
+                                         overflow: "hidden",
+                                         height: "100%",
+                                         padding: "0 4px",
+                                         whiteSpace: "nowrap",
+                                       }}
+                                     >
+                                       <span
+                                         style={{
+                                           fontSize: 10,
+                                           fontWeight: 800,
+                                           color: cancelada ? TOKENS.textTer : TOKENS.text,
+                                           flexShrink: 0,
+                                           fontVariantNumeric: "tabular-nums" as any,
+                                           lineHeight: 1,
+                                         }}
+                                       >
+                                         {timeStrCompact}
+                                       </span>
+                                       {chainBadge}
+                                       {stylistAvatar}
+                                       {icon}
+                                       <span
+                                         style={{
+                                           fontSize: 10,
+                                           fontWeight: 800,
+                                           color: cancelada ? TOKENS.textTer : TOKENS.text,
+                                           overflow: "hidden",
+                                           textOverflow: "ellipsis",
+                                           whiteSpace: "nowrap",
+                                           lineHeight: 1,
+                                           flexShrink: 1,
+                                           minWidth: 0,
+                                           textDecoration: cancelada ? "line-through" : "none",
+                                         }}
+                                       >
+                                         {nombreCliente}
+                                       </span>
+                                       {nombreServicio && (
+                                         <span
+                                           style={{
+                                             fontSize: 9.5,
+                                             fontWeight: 700,
+                                             color: cancelada ? TOKENS.textTer : TOKENS.text,
+                                             background: cancelada ? "transparent" : TOKENS.bgCard,
+                                             border: cancelada ? "none" : `1px solid ${(catColor || profColor)}55`,
+                                             borderLeft: cancelada ? "none" : `2px solid ${catColor || profColor}`,
+                                             padding: "0 3px",
+                                             borderRadius: 3,
+                                             overflow: "hidden",
+                                             textOverflow: "ellipsis",
+                                             whiteSpace: "nowrap",
+                                             flexShrink: 2,
+                                             minWidth: 0,
+                                             lineHeight: 1,
+                                           }}
+                                         >
+                                           {nombreServicio}
+                                         </span>
+                                       )}
+                                     </div>
+                                   );
+                                 }
                                 return (
                                   <div
                                     style={{
@@ -8035,7 +8107,7 @@ function DayTimeline({
                                   </span>
                                   <div
                                     style={{
-                                      flex: 1,
+                                      flex: "0 0 auto",
                                       minWidth: 0,
                                       display: "flex",
                                       flexDirection: "column",
@@ -13127,6 +13199,12 @@ export function DetalleCitaModal({
     useState<CitaOrigen | null>(null);
   const [avisandoChispa, setAvisandoChispa] = useState(false);
   // --- Retrasos encadenados con estrategias (IA de agenda, Sesion 4) ---
+  const [previewState, setPreviewState] = useState<{
+    profId?: string;
+    minutos: number;
+    updates: Array<{ id: string; inicio: string; fin: string; fin_activa?: string; fin_espera?: string }>;
+    originalCitas?: any[];
+  } | null>(null);
   const [retrasoPickerOpen, setRetrasoPickerOpen] = useState(false);
   const [estrategiasRetraso, setEstrategiasRetraso] = useState<
     EstrategiaRetraso[] | null

@@ -291,9 +291,12 @@
   }
 
   // La cuenta tiene el perfil minimo para entrar al software?
+  // La cuenta tiene el perfil minimo para entrar al software?
   // Pedimos nombre del negocio + telefono + codigo postal (lo que falta tras Google).
+  // Si el usuario es empleado o rol no-propietario, se considera siempre completo.
   function profileComplete(p) {
     if (!p) return false;
+    if (p.role && p.role !== 'owner') return true;
     var hasNeg = !!(p.nombre_negocio && String(p.nombre_negocio).trim());
     var hasTel = !!(p.phone && String(p.phone).trim());
     var hasCp = !!(p.codigo_postal && String(p.codigo_postal).trim());

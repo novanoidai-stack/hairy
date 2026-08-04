@@ -740,12 +740,11 @@
   }
 
   // Solo 'free' se queda en la pantalla limitada; el resto entra al software.
+  // Los trabajadores invitados entran siempre directo al software de su salon.
   function routeByPlan(profile) {
+    if (esTrabajador(profile)) { gotoApp(); return; }
     var plan = (profile && profile.plan) ? String(profile.plan).toLowerCase() : 'free';
     if (plan !== 'free') { gotoApp(); return; }
-    // Su salon todavia no tiene el software activo: quien lo contrata es la
-    // persona que gestiona la cuenta, no el trabajador.
-    if (esTrabajador(profile)) { showStage('paneFree'); initFreePane(true); return; }
     showStage('paneFree'); initFreePane(false);
   }
 
