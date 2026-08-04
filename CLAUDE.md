@@ -112,7 +112,7 @@ npx tsc --noEmit           # typecheck (ignorar errores de supabase/functions: s
     libera el hueco si no se paga en 15 min, workflow n8n "Mecha — Expirar señales").
   - **Página de autogestión del cliente `/app/cita/[id]`** (ver/cambiar/cancelar). Rutas `cita` y `pago`
     exentas de los guards de auth en `app/_layout.tsx` (como `r`/`resena`).
-- **Precios PÚBLICOS (2 ago 2026):** Esencial **29 €/mes**, Estudio **49 €/mes** (+IVA), 1 mes gratis
+- **Precios PÚBLICOS (commit `ba495ab2`):** Esencial **39 €/mes**, Estudio **59 €/mes** (+IVA), 1 mes gratis
   sin tarjeta, sin permanencia, 0% comisiones, profesionales ilimitados. Viven en DOS sitios que hay
   que cambiar a la vez: la sección `#precios` de `web/index.html` y el `SYSTEM_PROMPT` de
   `supabase/functions/chispa-landing/index.ts` (el asistente los recita de memoria).
