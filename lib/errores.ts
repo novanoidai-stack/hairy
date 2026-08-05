@@ -72,6 +72,7 @@ const CODIGOS: Record<string, string> = {
   cita_futura: 'La cita aun no ha pasado.',
   estado_no_valido: 'La cita no esta en un estado valido para esto.',
   no_autorizado: 'No tienes permiso para hacer esto.',
+  limite_profesionales: 'Ya tienes 15 profesionales activos en la agenda. Desactiva a alguien que ya no trabaje contigo para hacer sitio: su historial de citas no se pierde.',
   cross_tenant: 'No tienes permiso para hacer esto.',
   sin_perfil: 'Tu usuario no tiene un negocio asignado.',
   no_es_pago_online: 'Ese cobro no es online; no se puede reembolsar desde aqui.',

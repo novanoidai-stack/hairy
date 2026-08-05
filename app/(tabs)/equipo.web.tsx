@@ -17,7 +17,7 @@ import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import { BloqueRenderer } from '@/components/chispa/BloqueRenderer.web';
 import { registrarEventoIA } from '@/lib/registroUniversal';
 import * as chispaOps from '@/lib/chispaOps';
-import { cargarCuentasEquipo, estadoLegible, invitarAcceso, reenviarInvitacion, type CuentaEquipo } from '@/lib/equipoAccesos';
+import { cargarCuentasEquipo, avisoDeAcceso, estadoLegible, invitarAcceso, reenviarInvitacion, type CuentaEquipo } from '@/lib/equipoAccesos';
 
 // Iconos SVG simples
 const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
@@ -34,6 +34,11 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
   };
   return <div style={{ display: 'inline-flex', color }} dangerouslySetInnerHTML={{ __html: icons[name] || '' }} />;
 };
+
+// Cuantas fichas activas caben en la agenda de un salon. El mismo numero lo
+// impone la base de datos (migrations/limite-profesionales-15.sql): si se
+// cambia aqui, hay que cambiarlo alli.
+const LIMITE_FICHAS = 15;
 
 const TOKENS = {
   bg: '#f6f1ea',
@@ -348,6 +353,17 @@ export default function EquipoWeb() {
     }
   }, [focusParams.focus, profesionales]);
 
+  // El cupo lo ocupan las fichas ACTIVAS: desactivar a quien ya no trabaja aqui
+  // libera sitio (su historial de citas se queda). Antes contaban todas, asi que
+  // un salon con rotacion se quedaba sin poder dar de alta a nadie. El limite de
+  // verdad lo pone la base de datos (migrations/limite-profesionales-15.sql);
+  // esto es solo para avisar antes de abrir el formulario.
+  const activos = profesionales.filter((p) => p.activo).length;
+  const cupoLleno = activos >= LIMITE_FICHAS;
+  const avisarCupo = () => alert(
+    `Has alcanzado el límite de ${LIMITE_FICHAS} profesionales activos en tu agenda. Desactiva a alguien que ya no trabaje contigo para hacer sitio: su historial de citas no se pierde.`,
+  );
+
   if (accessDenied) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: TOKENS.bg, color: TOKENS.textSec, flexDirection: 'column', gap: 8, fontFamily: 'Inter, sans-serif' }}>
       <div style={{ fontSize: 16, fontWeight: 700, color: TOKENS.text }}>Acceso restringido</div>
@@ -476,7 +492,9 @@ export default function EquipoWeb() {
             <AvisosBell mode="header" />
           </h1>
           <p style={{ margin: 0, marginTop: 4, fontSize: isMobile ? 12 : 13, color: TOKENS.textSec }}>
-            {isMobile ? 'Profesionales y disponibilidad' : '5 profesionales · 4 activos · gestiona disponibilidad y bloqueos'}
+            {isMobile
+              ? 'Profesionales y disponibilidad'
+              : `${profesionales.length} ${profesionales.length === 1 ? 'profesional' : 'profesionales'} · ${activos} ${activos === 1 ? 'activo' : 'activos'} · gestiona disponibilidad y bloqueos`}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -494,10 +512,7 @@ export default function EquipoWeb() {
             <button
               className="m-btn-primary"
               onClick={() => {
-                if (profesionales.length >= 15) {
-                  alert('Has alcanzado el límite de 15 profesionales en tu agenda. Tu plan admite hasta 15 fichas de profesionales.');
-                  return;
-                }
+                if (cupoLleno) { avisarCupo(); return; }
                 setShowNewProf(true);
               }}
               style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px rgba(244,80,30,0.45)`, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -726,10 +741,7 @@ export default function EquipoWeb() {
             {/* Add card */}
             <div
               onClick={() => {
-                if (profesionales.length >= 15) {
-                  alert('Has alcanzado el límite de 15 profesionales en tu agenda. Tu plan admite hasta 15 fichas de profesionales.');
-                  return;
-                }
+                if (cupoLleno) { avisarCupo(); return; }
                 setShowNewProf(true);
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.primarySoft; e.currentTarget.style.borderColor = `rgba(244,80,30,0.4)`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
@@ -1340,6 +1352,12 @@ function NewProfModal({ onClose, negocioId, onCreated }: any) {
           setDarAcceso(false);
           return;
         }
+        const aviso = avisoDeAcceso(res.data);
+        if (aviso) {
+          setLoading(false);
+          setAvisoAcceso(aviso);
+          return;
+        }
       }
 
       onCreated();
@@ -1607,7 +1625,10 @@ function EditProfModal({ prof, negocioId, cuenta, onClose, onSaved }: { prof: Pr
         profesional_id: prof.id, profesional_nombre: nombre.trim(),
       });
     }
-    setCuentaMsg({ ok: true, text: 'Invitación enviada. Ya está vinculada a esta ficha.' });
+    const aviso = avisoDeAcceso(data);
+    setCuentaMsg(aviso
+      ? { ok: false, text: aviso }
+      : { ok: true, text: 'Invitación enviada. Ya está vinculada a esta ficha.' });
   };
 
   const reenviarCuenta = async () => {

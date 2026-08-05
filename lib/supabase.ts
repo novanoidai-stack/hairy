@@ -78,6 +78,22 @@ export const DEMO_VIEWER = {
   password: 'MechaDemoView_2026',
 };
 
+// Entrar en la demo con reintentos. Si el primer intento se pierde (Supabase
+// frio, red del visitante), antes se daba por perdida la partida: la demo se
+// montaba SIN sesion y se quedaba enseñando ceros para siempre, porque las
+// pantallas lanzan sus consultas una vez y no las repiten.
 export async function signInDemoViewer() {
-  return supabase.auth.signInWithPassword(DEMO_VIEWER);
+  const esperas = [0, 900, 2500];
+  let ultimo: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>> | null = null;
+  for (const espera of esperas) {
+    if (espera) await new Promise((r) => setTimeout(r, espera));
+    try {
+      ultimo = await supabase.auth.signInWithPassword(DEMO_VIEWER);
+      if (!ultimo.error) return ultimo;
+    } catch (e) {
+      ultimo = null;
+      if (espera === esperas[esperas.length - 1]) throw e;
+    }
+  }
+  return ultimo ?? supabase.auth.signInWithPassword(DEMO_VIEWER);
 }

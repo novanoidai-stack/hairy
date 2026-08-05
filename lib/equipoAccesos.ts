@@ -38,6 +38,8 @@ export type RolInvitable = 'admin' | 'recepcion' | 'employee';
 interface RespuestaEdge {
   ok?: boolean;
   error?: string;
+  // Aviso: la invitacion SI salio, pero algo secundario no cuajo (la ficha).
+  aviso?: string | null;
   user_id?: string;
   email?: string;
   profesional_id?: string | null;
@@ -70,9 +72,25 @@ export const ERROR_ACCESO: Record<string, string> = {
   delete_failed: 'No se pudo retirar el acceso.',
 };
 
+// Avisos: la invitación salió, pero la ficha de la agenda no. La persona podrá
+// entrar al software y no tendrá columna para recibir citas, así que hay que
+// decirlo en el momento y no dejar una "cuenta fantasma" sin ficha.
+export const AVISO_ACCESO: Record<string, string> = {
+  ficha_no_creada: 'La invitación salió, pero no se pudo crear su ficha en la agenda. Créala a mano desde «Añadir profesional» para poder darle citas.',
+  ficha_no_vinculada: 'La invitación salió, pero no se pudo enlazar con su ficha de la agenda. Ábrela y vuelve a guardarla.',
+  ficha_limite: 'La invitación salió, pero no cabe otra ficha en la agenda: ya tienes 15 profesionales activos. Desactiva a alguien y luego crea su ficha.',
+};
+
 function mensaje(codigo: string | undefined): string {
   if (!codigo) return 'No se pudo completar la operación.';
   return ERROR_ACCESO[codigo] ?? 'No se pudo completar la operación.';
+}
+
+// Texto del aviso que devuelve el servidor, o null si todo fue bien.
+export function avisoDeAcceso(data: { aviso?: string | null } | null | undefined): string | null {
+  const clave = data?.aviso;
+  if (!clave) return null;
+  return AVISO_ACCESO[clave] ?? 'La invitación salió, pero su ficha de la agenda quedó pendiente.';
 }
 
 export async function cargarCuentasEquipo(): Promise<{ cuentas: CuentaEquipo[]; error: string | null }> {

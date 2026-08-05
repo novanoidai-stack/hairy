@@ -144,6 +144,20 @@ Deno.serve(async (req: Request) => {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
+  // Freno por IP. Esta funcion crea cuentas YA confirmadas (nadie comprueba que
+  // el buzon sea tuyo), asi que sin limite se pueden crear en bucle. 4 altas por
+  // hora desde la misma IP: un salon de verdad no crea mas ni queriendo.
+  // Si la comprobacion falla (BD caida), NO bloqueamos: preferimos dejar entrar
+  // a un cliente real antes que cerrar el alta por un fallo nuestro.
+  const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '').split(',')[0].trim();
+  if (ip) {
+    const { data: permitido, error: rlErr } = await admin.rpc('check_rate_limit', {
+      p_cubo: 'signup_ip', p_clave: ip, p_max: 4, p_minutos: 60,
+    });
+    if (rlErr) console.error('rate_limit_error:', rlErr.message);
+    else if (permitido === false) return json({ error: 'demasiados_intentos' }, 429, req);
+  }
+
   // 2) Validar que el teléfono no esté duplicado en más de 2 cuentas
   if (telefono) {
     const { data: phoneMatch, error: phoneErr } = await admin

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { supabase, IS_DEMO_MODE, signInDemoViewer } from '@/lib/supabase';
-import { getUserProfile, isStaff } from '@/lib/auth';
+import { getUserProfile } from '@/lib/auth';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -83,6 +83,49 @@ const webModal = Platform.OS === 'web'
   ? { presentation: 'transparentModal' as const, headerShown: false }
   : {};
 
+// --- Quien puede estar dentro de /app -------------------------------------
+// 'completo'    -> equipo Mecha o cuenta de pago: adelante.
+// 'free'        -> cuenta gratis: su sitio es /acceso.html.
+// 'desconocido' -> no hemos podido leer perfil ni saber si es staff.
+
+type Veredicto = 'completo' | 'free' | 'desconocido';
+
+// La respuesta de is_staff hay que distinguirla de un fallo: `false` por error
+// de red no es lo mismo que "no es del equipo" (a un staff lo echariamos).
+async function esStaffCierto(): Promise<boolean | null> {
+  const { data, error } = await supabase.rpc('is_staff');
+  if (error) return null;
+  return data === true;
+}
+
+// Una lectura fallida no decide nada, asi que se reintenta con esperas cortas
+// antes de rendirse (un parpadeo de red no debe cambiar quien entra).
+async function veredictoDeAcceso(cancelado: () => boolean): Promise<Veredicto> {
+  const esperas = [0, 700, 1800];
+  for (const espera of esperas) {
+    if (espera) await new Promise((r) => setTimeout(r, espera));
+    if (cancelado()) return 'desconocido';
+    const [profile, staff] = await Promise.all([getUserProfile(), esStaffCierto()]);
+    if (cancelado()) return 'desconocido';
+    if (staff === true) return 'completo';
+    if (!profile || staff === null) continue; // lectura incompleta: otra vuelta
+    return String(profile.plan || '').toLowerCase() === 'free' ? 'free' : 'completo';
+  }
+  return 'desconocido';
+}
+
+const CLAVE_ACCESO = 'mecha_acceso:';
+
+function recordarAcceso(uid: string, valor: 'free' | 'completo') {
+  if (!uid) return;
+  try { window.localStorage.setItem(CLAVE_ACCESO + uid, valor); } catch { /* modo privado */ }
+}
+
+function recuerdoDeAcceso(uid: string): string | null {
+  if (!uid) return null;
+  try { return window.localStorage.getItem(CLAVE_ACCESO + uid); } catch { return null; }
+}
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -124,11 +167,13 @@ export default function RootLayout() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Salvavidas de la espera de demo: si en 8 segundos no ha entrado, dejamos
-  // pasar igualmente en vez de dejar al visitante mirando un spinner eterno.
+  // Salvavidas de la espera de demo: si la peticion se queda colgada del todo,
+  // dejamos pasar igualmente en vez de dejar al visitante mirando un spinner
+  // eterno. Es el ultimo recurso: el caso normal de fallo lo resuelve antes
+  // signInDemoViewer(), que reintenta y avisa en cuanto se rinde.
   useEffect(() => {
     if (!IS_DEMO_MODE || session) return;
-    const t = setTimeout(() => setDemoSinSesion(true), 8000);
+    const t = setTimeout(() => setDemoSinSesion(true), 10000);
     return () => clearTimeout(t);
   }, [session]);
 
@@ -145,7 +190,11 @@ export default function RootLayout() {
         // sesion personal del sitio. Si el login de demo falla, no redirigimos
         // (el marco de demo.html ya muestra su propio aviso).
         if (IS_DEMO_MODE) {
-          signInDemoViewer().catch(() => setDemoSinSesion(true));
+          // signInDemoViewer ya reintenta por dentro; si vuelve con error (o
+          // peta), es que no hay nada que hacer y se monta la demo sin sesion.
+          signInDemoViewer()
+            .then((r) => { if (r?.error) setDemoSinSesion(true); })
+            .catch(() => setDemoSinSesion(true));
           return;
         }
         window.location.href = '/acceso.html';
@@ -175,15 +224,26 @@ export default function RootLayout() {
     if (embedded || !inApp) return;
     let cancel = false;
     (async () => {
-      const [profile, staff] = await Promise.all([getUserProfile(), isStaff()]);
+      const uid = String(session?.user?.id || '');
+      const veredicto = await veredictoDeAcceso(() => cancel);
       if (cancel) return;
-      // Solo expulsamos a /acceso.html si SABEMOS que la cuenta es free. Si el
-      // perfil no se pudo leer (null por un fallo puntual de red/RLS), NO
-      // expulsamos: evita el bug "te logueas y se te sale afuera" cuando la
-      // lectura del perfil falla un instante (la cuenta sigue teniendo sesion).
-      if (!profile) return;
-      const plan = String(profile.plan || '').toLowerCase();
-      if (!staff && plan === 'free') {
+      // Sabemos que es free -> a su pantalla, y lo apuntamos.
+      if (veredicto === 'free') {
+        recordarAcceso(uid, 'free');
+        window.location.href = '/acceso.html';
+        return;
+      }
+      if (veredicto === 'completo') {
+        recordarAcceso(uid, 'completo');
+        return;
+      }
+      // No hemos podido saberlo ni reintentando. Aqui antes se dejaba pasar
+      // siempre (fail-open): un fallo de red bastaba para colar a una cuenta
+      // free en el software. Ahora tiramos de lo ultimo que SI supimos de esta
+      // misma cuenta: si era free, fuera; si nunca lo supimos o tenia acceso,
+      // la dejamos seguir — que es lo que evita el viejo bug de "te logueas y
+      // se te sale afuera" cuando la lectura del perfil falla un instante.
+      if (recuerdoDeAcceso(uid) === 'free') {
         window.location.href = '/acceso.html';
       }
     })();

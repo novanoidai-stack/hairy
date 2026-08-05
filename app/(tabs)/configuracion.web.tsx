@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/SettingsAtoms';
 import { mensajeDeError } from '@/lib/errores';
 import {
-  cargarCuentasEquipo, invitarAcceso, reenviarInvitacion, revocarAcceso,
+  cargarCuentasEquipo, avisoDeAcceso, invitarAcceso, reenviarInvitacion, revocarAcceso,
   estadoLegible, type CuentaEquipo, type RolInvitable,
 } from '@/lib/equipoAccesos';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
@@ -1643,7 +1643,7 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
   const [formFicha, setFormFicha] = useState(true);
   const [creando, setCreando] = useState(false);
   const [formError, setFormError] = useState('');
-  const [creada, setCreada] = useState<{ email: string } | null>(null);
+  const [creada, setCreada] = useState<{ email: string; aviso?: string | null } | null>(null);
 
   const isOwner = currentRole === 'owner';
 
@@ -1716,7 +1716,7 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setFormError('Ese correo no es válido.'); return; }
     if (!nombre) { setFormError('Indica el nombre de la persona.'); return; }
     setCreando(true);
-    const { ok, error } = await invitarAcceso({
+    const { ok, error, data } = await invitarAcceso({
       email,
       nombre,
       rol: formRol as RolInvitable,
@@ -1724,7 +1724,7 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
     });
     setCreando(false);
     if (!ok) { setFormError(error ?? ''); return; }
-    setCreada({ email });
+    setCreada({ email, aviso: avisoDeAcceso(data) });
     setFormEmail(''); setFormNombre(''); setFormRol('employee'); setFormFicha(true);
     load();
   }
@@ -1767,6 +1767,13 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
           {creada && (
             <div style={{ padding: 10, background: 'rgba(15,157,107,0.10)', border: '1px solid rgba(15,157,107,0.30)', borderRadius: 10, fontSize: 12, color: T.text }}>
               Invitación enviada a <b>{creada.email}</b>. Aparecerá como pendiente hasta que abra el correo y elija su contraseña.
+            </div>
+          )}
+          {/* La cuenta se creó pero su ficha de la agenda no: sin ficha no hay
+              columna donde darle citas, así que se dice aquí y no en un log. */}
+          {creada?.aviso && (
+            <div style={{ padding: 10, background: 'rgba(244,80,30,0.10)', border: '1px solid rgba(244,80,30,0.30)', borderRadius: 10, fontSize: 12, color: T.text }}>
+              {creada.aviso}
             </div>
           )}
         </div>

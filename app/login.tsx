@@ -47,26 +47,24 @@ export default function LoginScreen() {
     // cuando el equipo Mecha da el acceso completo (staff_grant_full_access).
     // Antes este formulario insertaba el perfil a mano con un negocio_id propio:
     // chocaba con el trigger y rompia la demo compartida.
+    // El apellido y el codigo postal viajan AQUI, en la metadata. Antes se
+    // intentaban guardar con un UPDATE despues del alta y se perdian: si el
+    // proyecto pide confirmar el correo, en ese momento no hay sesion, RLS
+    // tumbaba el UPDATE y el catch se lo tragaba sin decir nada.
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           nombre: `${nombre.trim()} ${apellido.trim()}`,
+          apellido: apellido.trim(),
+          codigo_postal: codigoPostal.trim(),
           salon: nombreNegocio.trim(),
         },
       },
     });
     if (error) { setError(mensajeDeError(error)); setLoading(false); return; }
     if (data.user) {
-      // Completa los campos que el trigger no conoce (best-effort: si el alta
-      // requiere confirmar el email aun no hay sesion y RLS lo impedira).
-      try {
-        await supabase
-          .from('profiles')
-          .update({ apellido: apellido.trim(), codigo_postal: codigoPostal.trim() })
-          .eq('id', data.user.id);
-      } catch { /* sin sesion todavia: no pasa nada */ }
       setSuccess(
         data.session
           ? 'Cuenta creada. Entrando…'

@@ -295,14 +295,22 @@ Deno.serve(async (req: Request) => {
   // Vinculo con la ficha del profesional: se hace AQUI, no al guardar el
   // formulario. Antes, si el propietario cerraba el modal sin guardar, quedaba
   // una cuenta suelta sin ficha y una ficha sin cuenta.
+  // Si la ficha no se puede crear/vincular, la invitacion NO se cae (el correo
+  // ya salio), pero hay que decirlo: si no, queda una cuenta que entra al
+  // software y no tiene columna en la agenda, y nadie se entera hasta que
+  // alguien intenta darle una cita.
   let fichaVinculada = profesionalId || '';
+  let avisoFicha: string | null = null;
   if (profesionalId) {
     const { error: linkFichaErr } = await admin
       .from('profesionales')
       .update({ profile_id: user.id, email })
       .eq('id', profesionalId)
       .eq('negocio_id', negocioId);
-    if (linkFichaErr) console.error('link_ficha_failed', linkFichaErr.message);
+    if (linkFichaErr) {
+      console.error('link_ficha_failed', linkFichaErr.message);
+      avisoFicha = 'ficha_no_vinculada';
+    }
   } else if (crearFicha && rol === 'employee') {
     // Un profesional sin ficha no tiene columna en la agenda: no se le pueden
     // dar citas. Se crea junto con el acceso.
@@ -321,8 +329,14 @@ Deno.serve(async (req: Request) => {
       })
       .select('id')
       .maybeSingle();
-    if (fichaErr) console.error('crear_ficha_failed', fichaErr.message);
-    else if (nuevaFicha) fichaVinculada = nuevaFicha.id;
+    if (fichaErr) {
+      console.error('crear_ficha_failed', fichaErr.message);
+      // El tope de 15 fichas activas lo pone la base de datos: se distingue
+      // para poder explicarlo, en vez de soltar un "no se pudo" generico.
+      avisoFicha = fichaErr.message.includes('limite_profesionales')
+        ? 'ficha_limite'
+        : 'ficha_no_creada';
+    } else if (nuevaFicha) fichaVinculada = nuevaFicha.id;
   }
 
   return json({
@@ -332,5 +346,6 @@ Deno.serve(async (req: Request) => {
     invited: true,
     plan: planHeredado,
     profesional_id: fichaVinculada || null,
+    aviso: avisoFicha,
   }, 200, req);
 });

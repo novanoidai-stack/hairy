@@ -17,6 +17,7 @@
 //           SMTP_USER SMTP_PASS SMTP_FROM (def = SMTP_USER)
 //           MECHA_CONTACTO_EMAIL (def contacto@mechaa.es)
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const ORIGENES = [
   'https://www.mechaa.es',
@@ -32,16 +33,43 @@ function cors(req: Request) {
   const o = req.headers.get('origin') || '';
   return {
     'Access-Control-Allow-Origin': esOrigenPermitido(o) ? o : ORIGENES[0],
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-forwarded-for, x-real-ip',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Vary': 'Origin',
   };
 }
+
 function json(body: unknown, status = 200, req?: Request) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...(req ? cors(req) : {}), 'Content-Type': 'application/json' },
   });
+}
+
+// Freno de mano. Esta funcion manda un correo a la direccion que le pases: sin
+// limite, cualquiera puede usarla para llenarle el buzon a otra persona con
+// nuestro remite (y de paso quemar la reputacion del dominio). Se limita por
+// las dos puntas: quien llama (IP) y a quien se escribe (email).
+// El limite vive en la BD (public.check_rate_limit) y solo lo consulta la
+// service_role, nunca el navegador.
+async function dentroDelLimite(cubo: string, clave: string, max: number, minutos: number): Promise<boolean> {
+  const url = Deno.env.get('SUPABASE_URL');
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!url || !key || !clave) return true; // sin con que comprobar, no bloqueamos
+  try {
+    const db = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+    const { data, error } = await db.rpc('check_rate_limit', {
+      p_cubo: cubo, p_clave: clave, p_max: max, p_minutos: minutos,
+    });
+    if (error) {
+      console.error('rate_limit_error', error.message);
+      return true; // un fallo nuestro no puede dejar sin contacto a un cliente real
+    }
+    return data !== false;
+  } catch (e) {
+    console.error('rate_limit_error', String(e));
+    return true;
+  }
 }
 
 const esc = (s: unknown) =>
@@ -114,6 +142,15 @@ Deno.serve(async (req: Request) => {
     num_profesionales: recorta(p.num_profesionales, 20),
   };
   if (!d.email && !d.telefono) return json({ enviado: false, error: 'faltan_datos' }, 400, req);
+
+  // 6 contactos por hora desde la misma IP y 3 por hora al mismo buzon. Un
+  // interesado de verdad no manda mas; un abusador se queda aqui.
+  const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '').split(',')[0].trim();
+  const okIp = await dentroDelLimite('solicitud_ip', ip, 6, 60);
+  const okEmail = d.email ? await dentroDelLimite('solicitud_email', d.email.toLowerCase(), 3, 60) : true;
+  if (!okIp || !okEmail) {
+    return json({ enviado: false, error: 'demasiados_intentos' }, 429, req);
+  }
 
   const host = Deno.env.get('SMTP_HOST') || Deno.env.get('EMAIL_HOST') || 'smtp.hostinger.com';
   const port = Number(Deno.env.get('SMTP_PORT') || Deno.env.get('EMAIL_PORT') || 465);

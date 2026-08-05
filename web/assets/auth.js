@@ -55,6 +55,7 @@
       case 'weak_password': return 'La contrasena necesita al menos 8 caracteres.';
       case 'leaked_password': return 'Esa contrasena aparece en filtraciones publicas de otros sitios. Elige otra distinta para proteger tu salon.';
       case 'missing_fields': return 'Completa el nombre del salon y tu nombre.';
+      case 'demasiados_intentos': return 'Se han creado varias cuentas desde aqui hace muy poco. Espera un rato e intentalo de nuevo, o escribenos a contacto@mechaa.es.';
       case 'network': return 'No se pudo conectar. Revisa tu conexion e intentalo de nuevo.';
       default: return 'No se pudo crear la cuenta. Intentalo de nuevo en un momento.';
     }
