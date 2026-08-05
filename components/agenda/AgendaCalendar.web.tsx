@@ -558,7 +558,16 @@ export default function AgendaCalendar() {
     onboarding?: string;
     cita?: string;
     fecha?: string;
+    // Arnes de pruebas: fija la hora "ahora" del analisis de agenda. Ya lo leia
+    // OrganizarAgendaPanel; el badge y "Enseñamelo" tienen que usar el MISMO
+    // valor o el panel y la rejilla cuentan cosas distintas.
+    orgnow?: string;
   }>();
+  const ahoraOverrideMs = useMemo(() => {
+    if (!obParams?.orgnow) return undefined;
+    const t = new Date(obParams.orgnow).getTime();
+    return Number.isNaN(t) ? undefined : t;
+  }, [obParams?.orgnow]);
   const esGestor =
     userProfile?.role === "owner" || userProfile?.role === "admin";
   const onboardingEligible =
@@ -1305,6 +1314,7 @@ export default function AgendaCalendar() {
         prepararCitas(citas as any, clientes as any, servicios as any),
         profesionales,
         {
+          ahoraMs: ahoraOverrideMs,
           diaMs: selectedDateObj.getTime(),
           bloqueos,
           horarios,
@@ -1325,6 +1335,7 @@ export default function AgendaCalendar() {
     bloqueos,
     horarios,
     limitesAgenda,
+    ahoraOverrideMs,
   ]);
 
   // Aplica en la agenda (estado local + pila de deshacer) un lote de updates ya
@@ -4591,36 +4602,107 @@ export default function AgendaCalendar() {
             maxWidth: isMobile ? undefined : "92vw",
           }}
         >
-          <Icon name="zap" size={14} color={TOKENS.primary} />
-          <span>
-            {problemaEnfocado
-              ? problemasAgenda.find((p) => p.id === problemaEnfocado)?.titulo ??
-                "Problema resaltado"
-              : problemasAgenda.length === 0
-                ? "Nada que resaltar: la agenda de este día está en orden"
-                : `Resaltando ${problemasAgenda.length} problema${problemasAgenda.length > 1 ? "s" : ""} en la agenda`}
-          </span>
-          {problemaEnfocado && (
-            <button
-              onClick={() => {
-                setProblemaEnfocado(null);
-                setShowOrganizar(true);
-              }}
-              style={{
-                padding: "4px 10px",
-                borderRadius: 999,
-                border: `1px solid ${TOKENS.border}`,
-                background: "transparent",
-                color: TOKENS.textSec,
-                fontSize: 11.5,
-                fontWeight: 700,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Volver al panel
-            </button>
-          )}
+          {(() => {
+            const enfocado =
+              idxEnfocado >= 0 ? problemasAgenda[idxEnfocado] : null;
+            const n = problemasAgenda.length;
+            const flecha = (dir: -1 | 1, etiqueta: string) => (
+              <button
+                onClick={() => enfocarProblema((idxEnfocado + dir + n) % n)}
+                aria-label={etiqueta}
+                title={etiqueta}
+                disabled={n < 2}
+                style={{
+                  display: "inline-flex",
+                  padding: 5,
+                  borderRadius: 999,
+                  border: `1px solid ${TOKENS.border}`,
+                  background: TOKENS.bgCard,
+                  color: TOKENS.textSec,
+                  cursor: n < 2 ? "default" : "pointer",
+                  opacity: n < 2 ? 0.35 : 1,
+                  flexShrink: 0,
+                }}
+              >
+                <Icon
+                  name={dir === -1 ? "chevronLeft" : "chevronRight"}
+                  size={13}
+                  color={TOKENS.textSec}
+                />
+              </button>
+            );
+            if (n === 0) {
+              return (
+                <>
+                  <Icon name="zap" size={14} color={TOKENS.primary} />
+                  <span>Nada que resaltar: este día está en orden</span>
+                </>
+              );
+            }
+            return (
+              <>
+                {flecha(-1, "Problema anterior")}
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: TOKENS.textTer,
+                    flexShrink: 0,
+                    fontVariantNumeric: "tabular-nums" as any,
+                  }}
+                >
+                  {idxEnfocado >= 0 ? idxEnfocado + 1 : "–"}/{n}
+                </span>
+                {flecha(1, "Problema siguiente")}
+                <div style={{ minWidth: 0, lineHeight: 1.25 }}>
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      color: TOKENS.text,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {enfocado ? enfocado.accionCorta : `${n} problemas`}
+                  </div>
+                  {enfocado && (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: TOKENS.textTer,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {enfocado.profesionalNombre} · {enfocado.titulo}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => {
+                    setProblemaEnfocado(null);
+                    setShowOrganizar(true);
+                  }}
+                  style={{
+                    padding: "5px 11px",
+                    borderRadius: 999,
+                    border: "none",
+                    background: TOKENS.primary,
+                    color: "#fff",
+                    fontSize: 11.5,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                  }}
+                >
+                  Arreglar
+                </button>
+              </>
+            );
+          })()}
           <button
             onClick={() => {
               setEnsenar(false);
@@ -4634,6 +4716,7 @@ export default function AgendaCalendar() {
               background: "transparent",
               color: TOKENS.textTer,
               cursor: "pointer",
+              flexShrink: 0,
             }}
           >
             <Icon name="x" size={14} color={TOKENS.textTer} />
@@ -4654,10 +4737,11 @@ export default function AgendaCalendar() {
           isMobile={isMobile}
           fechaVista={selectedDateObj}
           onEnsenar={(p) => {
-            // Cierra el panel y deja resaltado SOLO ese problema en la rejilla.
+            // Cierra el panel, resalta SOLO ese problema, cambia al profesional
+            // que toque (en movil solo hay una columna montada) y hace scroll.
             setShowOrganizar(false);
             setEnsenar(false);
-            setProblemaEnfocado(p.id);
+            enfocarProblema(problemasAgenda.findIndex((x) => x.id === p.id));
           }}
           onClose={() => setShowOrganizar(false)}
           onAplicado={aplicarUpdatesEnAgenda}

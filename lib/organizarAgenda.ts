@@ -98,8 +98,19 @@ export interface ProblemaAgenda {
   // Solo tipo 'retraso': minutos de retraso detectados (para reutilizar
   // RetrasoEstrategiasModal, que los muestra en su cabecera).
   minutos?: number;
-  // Donde mirar en la rejilla. Siempre presente.
+  // Donde mirar en la rejilla: el DESTINO de la accion (el hueco que se tapa),
+  // no la posicion actual de la cita. Siempre presente.
   zona: ZonaProblema;
+  // Solo cuando la accion mueve una cita: de donde sale. Permite pintar la cita
+  // de origen y una flecha hacia el destino ("mueve ESTA hasta AQUI"), que es lo
+  // que hace entendible el resalte.
+  zonaOrigen?: ZonaProblema;
+  // Etiqueta corta e imperativa para pintar sobre la zona ("Adelantar a 14:30").
+  // El titulo ('Hueco muerto') describe el problema; esto describe la ACCION.
+  accionCorta: string;
+  // Por que esa hora y no otra. El tope de adelanto y la ganancia minima son
+  // ajustes del salon, y sin explicarlos la propuesta parece arbitraria.
+  porQue?: string;
 }
 
 function zona(profesionalId: string, desdeMs: number, hastaMs: number): ZonaProblema {
@@ -270,6 +281,8 @@ function detectarRetraso(citasProf: CitaOrganizar[], ahoraMs: number, cierreMs: 
     estrategias,
     minutos,
     zona: zona(candidata.c.profesional_id, +new Date(candidata.c.inicio), +new Date(candidata.c.fin)),
+    accionCorta: `Va ${minutos} min tarde`,
+    porQue: `Se cuenta como retraso a partir de ${UMBRAL_RETRASO_MIN} min de desfase y hasta ${MAX_RETRASO_MIN / 60} h (mas alla se da por olvidada, no por retrasada).`,
   };
 }
 
@@ -323,6 +336,8 @@ function detectarSolapes(
           Math.min(fases[fijaIdx].ini, fases[intrusaIdx].ini),
           Math.max(fases[fijaIdx].fin, fases[intrusaIdx].fin),
         ),
+        accionCorta: 'Aqui chocan dos citas',
+        porQue: 'Solo cuenta como choque cuando se pisan dos fases ACTIVAS: una cita encajada en el reposo de otra es valida (tiempo muerto aprovechado).',
       });
     }
   }
@@ -401,6 +416,21 @@ function detectarHuecos(
       // Zona = el hueco que se va a tapar (destino), no la posicion actual de la
       // cita: es lo que hay que mirar en la rejilla.
       zona: zona(cand.profesional_id, nueva.ini, nueva.fin),
+      // De donde sale, para poder pintar la flecha "mueve ESTA hasta AQUI".
+      zonaOrigen: zona(cand.profesional_id, propia.ini, propia.fin),
+      accionCorta: `Adelantar a las ${fmtHora(update.inicio)}`,
+      // El "por que no antes" es la duda numero uno al ver la propuesta: casi
+      // siempre la respuesta es el techo de adelanto del salon.
+      porQue: (() => {
+        const topeMin = Math.round(maxAdelantoMs / MIN);
+        const tocaTecho = propia.ini - slot >= maxAdelantoMs - 1;
+        const base = `No se propone antes porque ${
+          tocaTecho
+            ? `el salon no adelanta una cita mas de ${topeMin} min sobre su hora (ajuste "adelanto maximo")`
+            : 'antes de esa hora el hueco no cabe entero o hay otra cita delante'
+        }.`;
+        return `${base} Solo se avisa si se ganan al menos ${Math.round(umbralMs / MIN)} min.`;
+      })(),
     });
   }
   return problemas;
@@ -465,6 +495,8 @@ function detectarHuecosVacios(
       citaIds: [],
       estrategias: [],
       zona: zona(citasProf[0].profesional_id, ini, fin),
+      accionCorta: `${min} min libres`,
+      porQue: `Ninguna cita del dia puede adelantarse hasta aqui sin romper otra cosa (o su clienta tendria que venir demasiado antes de su hora). Solo se avisa a partir de ${Math.round(umbralMs / MIN)} min.`,
     });
   }
   return problemas;

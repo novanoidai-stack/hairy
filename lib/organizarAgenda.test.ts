@@ -235,6 +235,38 @@ Deno.test('diaMs: un dia ya terminado no genera problemas', () => {
   assertEquals(problemas.length, 0);
 });
 
+Deno.test('el tope de adelanto explica "por que a esa hora y no antes"', () => {
+  // Caso que reporto Carlos: son las 14:00, hay una cita a las 15:30 y el
+  // organizador propone las 14:30, no las 14:00. Motivo: el techo de adelanto
+  // (60 min por defecto) — no un capricho. La tarjeta tiene que decirlo.
+  const citas = [
+    cita('A', 'P1', 13, 0, 30), // 13:00-13:30, ya pasada
+    cita('B', 'P1', 15, 30, 30), // la candidata a adelantarse
+  ];
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(14, 0) });
+  const hueco = problemas.find((p) => p.tipo === 'hueco_muerto')!;
+  assert(hueco, 'B puede adelantarse');
+  // 15:30 - 60 min = 14:30, no 14:00.
+  assertEquals(hueco.estrategias[0].updates[0].inicio, iso(14, 30));
+  assertEquals(hueco.accionCorta, 'Adelantar a las 14:30');
+  assert(/adelanto maximo/.test(hueco.porQue ?? ''), `porQue no explica el techo: ${hueco.porQue}`);
+  // Y con el techo subido, si llega a las 14:00.
+  const conTechoAlto = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(14, 0), maxAdelantoMin: 240 });
+  const hueco2 = conTechoAlto.find((p) => p.tipo === 'hueco_muerto')!;
+  assertEquals(hueco2.estrategias[0].updates[0].inicio, iso(14, 0));
+});
+
+Deno.test('un hueco que se puede tapar trae zonaOrigen para pintar la flecha', () => {
+  const citas = [cita('X', 'P2', 10, 0, 30), cita('Y', 'P2', 11, 30, 30)];
+  const problemas = analizarAgendaDia(citas, PROFS, { ahoraMs: ms(10, 31) });
+  const hueco = problemas.find((p) => p.tipo === 'hueco_muerto')!;
+  assert(hueco.zonaOrigen, 'sin origen no se puede dibujar "mueve ESTA hasta AQUI"');
+  // Origen = donde esta ahora (11:30); destino = a donde iria (10:45).
+  assertEquals(hueco.zonaOrigen!.desde, iso(11, 30));
+  assertEquals(hueco.zona.desde, iso(10, 45));
+  assert(+new Date(hueco.zona.desde) < +new Date(hueco.zonaOrigen!.desde), 'adelantar va hacia arriba');
+});
+
 Deno.test('todo problema trae zona para poder resaltarlo en la rejilla', () => {
   const citas = [
     cita('A', 'P5', 10, 0, 60),

@@ -278,6 +278,17 @@ export default function OrganizarAgendaPanel({
                     {recomendada && (
                       <div style={{ fontSize: 12.5, color: T.primaryHi, lineHeight: 1.4, marginLeft: 34, fontWeight: 600 }}>→ {recomendada.resumen}</div>
                     )}
+                    {/* Por que esa hora y no otra. Sin esto la propuesta parece un
+                        capricho ("¿por que a las 14:30 y no a las 14:00?"): casi
+                        siempre la respuesta es el tope de adelanto del salon. */}
+                    {p.porQue && (
+                      <div style={{ display: 'flex', gap: 6, marginLeft: 34, alignItems: 'flex-start' }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={T.textTer} strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: 2 }}>
+                          <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg>
+                        <span style={{ fontSize: 11.5, color: T.textTer, lineHeight: 1.4 }}>{p.porQue}</span>
+                      </div>
+                    )}
                     <div style={{ display: 'flex', gap: 8, marginLeft: 34, marginTop: 2, flexWrap: 'wrap' }}>
                       {recomendada ? (
                         <button
