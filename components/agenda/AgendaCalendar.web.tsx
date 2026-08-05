@@ -4575,16 +4575,20 @@ export default function AgendaCalendar() {
             zIndex: 190,
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            padding: "9px 12px 9px 14px",
-            borderRadius: 999,
+            gap: isMobile ? 6 : 10,
+            padding: isMobile ? "7px 8px" : "9px 12px 9px 14px",
+            borderRadius: isMobile ? 14 : 999,
             background: TOKENS.bgPanel,
             border: `1px solid ${TOKENS.borderHi}`,
             boxShadow: "0 10px 30px rgba(40,30,24,0.22)",
             fontSize: 12.5,
             fontWeight: 600,
             color: TOKENS.textSec,
-            maxWidth: "92vw",
+            // En movil ocupa el ancho util: el navegador lleva flechas, contador,
+            // dos lineas de texto y dos botones, y en una pildora estrecha se
+            // amontonaba todo.
+            width: isMobile ? "calc(100vw - 24px)" : undefined,
+            maxWidth: isMobile ? undefined : "92vw",
           }}
         >
           <Icon name="zap" size={14} color={TOKENS.primary} />
