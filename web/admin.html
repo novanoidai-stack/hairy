@@ -154,6 +154,13 @@
     font-weight:700;cursor:pointer;outline:none}
   .plan-switch select:disabled{opacity:.5;cursor:wait}
 
+  /* ---- modo de acceso del salon (cabecera del grupo) ---- */
+  .acceso-modo{display:inline-flex;align-items:center;gap:7px;margin-left:12px;font-size:12px;
+    background:rgba(168,85,247,.10);border:1px solid rgba(168,85,247,.28);border-radius:9px;padding:4px 9px}
+  .acceso-modo select{background:transparent;border:none;color:var(--text);font-size:12px;
+    font-weight:700;cursor:pointer;outline:none}
+  .acceso-modo select:disabled{opacity:.5;cursor:wait}
+
   /* ---- plan badge ---- */
   .plan{display:inline-flex;align-items:center;font-size:11.5px;font-weight:700;letter-spacing:.03em;
     text-transform:uppercase;padding:4px 9px;border-radius:7px;border:1px solid transparent}
@@ -803,6 +810,9 @@
   // ---------- CUENTAS ----------
   var accounts = [];
   var staffEmails = {};
+  // Resumen por salon (RPC staff_resumen_salones): modo de acceso, si tiene PIN
+  // y cuantos profesionales trabajan ahi, tengan correo propio o no.
+  var salones = {};
   var cuentasLoaded = false;
 
   // Plegar/desplegar un salon entero. Faltaba: la cabecera llamaba a una funcion
@@ -859,11 +869,19 @@
     clearMsg($('cueMsg'));
     // El panel de staff lee todas las cuentas (RLS is_staff() sobre profiles) y la
     // lista de correos del equipo (RPC staff_emails) para distinguir las cuentas.
+    // El tercero es el resumen por SALON: modo de acceso y cuanta gente trabaja
+    // ahi de verdad. Sin el, un salon donde todos entran con el correo del jefe
+    // figuraba como "1 cuenta" y parecia un autonomo aunque fuesen seis.
     Promise.all([
       api.client.from('profiles').select('*').order('created_at', { ascending: false }),
-      api.client.rpc('staff_emails')
+      api.client.rpc('staff_emails'),
+      api.client.rpc('staff_resumen_salones')
     ]).then(function (out) {
-      var res = out[0], st = out[1];
+      var res = out[0], st = out[1], rs = out[2];
+      salones = {};
+      if (rs && !rs.error && Array.isArray(rs.data)) {
+        rs.data.forEach(function (s) { salones[s.negocio_id] = s; });
+      }
       if (res.error) {
         listEl.innerHTML = '';
         msg($('cueMsg'), 'err', 'No se pudieron cargar las cuentas: ' + (res.error.message || ''));
@@ -1115,10 +1133,32 @@
       html += '<div class="negocio-header" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:12px;margin-bottom:12px;cursor:pointer;" onclick="toggleNegocioGroup(event, \'' + esc(g.negocioId) + '\')">';
       html += '<svg style="width:18px;height:18px;color:#a855f7;transition:transform 0.2s;" id="ngarrow-' + esc(g.negocioId) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
       html += '<span style="font-size:14px;font-weight:700;color:#a855f7;">' + esc(g.nombreNegocio) + '</span>';
+      var resumen = salones[g.negocioId] || null;
+      var profesN = resumen ? resumen.profesionales_activos : null;
       html += '<span style="font-size:12px;color:var(--text-sec);margin-left:auto;">' +
         g.cuentas.length + (g.cuentas.length === 1 ? ' cuenta' : ' cuentas') +
         (subs.length ? ' · ' + subs.length + (subs.length === 1 ? ' trabajador' : ' trabajadores') : '') +
+        (profesN != null ? ' · ' + profesN + (profesN === 1 ? ' profesional' : ' profesionales') : '') +
         '</span>';
+
+      // Como entra este salon. Con "un solo correo" el equipo comparte la cuenta
+      // del jefe y, al abrir, la app pregunta quien eres; el PIN protege lo del
+      // propietario (caja, informes, configuracion). Es una barrera de USO, no
+      // un muro: la sesion de debajo sigue siendo la del jefe.
+      if (!esDemo) {
+        var modo = resumen ? resumen.modo : 'individual';
+        html += '<span class="acceso-modo" onclick="event.stopPropagation()" ' +
+          'title="Cada uno con su correo = cada persona entra con su cuenta (separacion real). ' +
+          'Un solo correo = el salon comparte la cuenta del jefe y elige quien es al entrar; el PIN protege lo del propietario.">' +
+          '<select data-acceso-for="' + esc(g.negocioId) + '">' +
+            '<option value="individual"' + (modo === 'individual' ? ' selected' : '') + '>Cada uno con su correo</option>' +
+            '<option value="compartido"' + (modo === 'compartido' ? ' selected' : '') + '>Un solo correo (selector + PIN)</option>' +
+          '</select>' +
+          (modo === 'compartido' && resumen && !resumen.tiene_pin
+            ? '<em style="color:#f59e0b;font-style:normal;font-size:11px;">sin PIN</em>'
+            : '') +
+          '</span>';
+      }
       html += '</div>';
 
       // Lista de cuentas de este negocio (expandido por defecto)
@@ -1168,6 +1208,47 @@
           sel.disabled = false;
           sel.value = anterior;
           msg($('cueMsg'), 'err', 'No se pudo cambiar el plan: ' + (e && e.message ? e.message : e));
+        });
+      });
+    });
+
+    // Como entra el salon: cada persona con su correo, o todos con el del jefe
+    // y un selector de "quien eres" al abrir (con PIN para lo del propietario).
+    listEl.querySelectorAll('select[data-acceso-for]').forEach(function (sel) {
+      var anterior = sel.value;
+      sel.addEventListener('change', function () {
+        var nid = sel.getAttribute('data-acceso-for');
+        var nuevo = sel.value;
+        var aviso = nuevo === 'compartido'
+          ? 'Poner "' + nid + '" en modo UN SOLO CORREO?' + String.fromCharCode(10, 10) +
+            'Todo el equipo entrara con la cuenta del propietario y al abrir la app elegira quien es. ' +
+            'Elegir Propietario o Direccion pedira el PIN que ponga el jefe en Configuracion.' + String.fromCharCode(10, 10) +
+            'OJO: es una barrera de uso, no de seguridad. La sesion real sigue siendo la del propietario. ' +
+            'Si el salon necesita separacion de verdad entre personas, dejalo en "cada uno con su correo".'
+          : 'Volver "' + nid + '" a CADA UNO CON SU CORREO?' + String.fromCharCode(10, 10) +
+            'Dejara de preguntar quien eres al entrar. Cada persona necesitara su propia cuenta invitada.';
+        if (!window.confirm(aviso)) { sel.value = anterior; return; }
+        sel.disabled = true;
+        api.client.rpc('staff_set_acceso_modo', { p_negocio_id: nid, p_modo: nuevo }).then(function (res) {
+          sel.disabled = false;
+          if (res.error) {
+            sel.value = anterior;
+            var m = res.error.message || '';
+            msg($('cueMsg'), 'err', m.indexOf('not_authorized') !== -1
+              ? 'Tu cuenta no tiene permiso para cambiar el modo de acceso.'
+              : 'No se pudo cambiar el modo de acceso: ' + m);
+            return;
+          }
+          anterior = nuevo;
+          if (salones[nid]) salones[nid].modo = nuevo;
+          msg($('cueMsg'), 'ok', nuevo === 'compartido'
+            ? 'Salon "' + nid + '" en modo un solo correo. Recuerdale al propietario que ponga su PIN en Configuracion.'
+            : 'Salon "' + nid + '" vuelve a cada persona con su correo.');
+          renderCuentas();
+        }).catch(function (e) {
+          sel.disabled = false;
+          sel.value = anterior;
+          msg($('cueMsg'), 'err', 'No se pudo cambiar el modo de acceso: ' + (e && e.message ? e.message : e));
         });
       });
     });

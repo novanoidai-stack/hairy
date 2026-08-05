@@ -40,6 +40,15 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
 // cambia aqui, hay que cambiarlo alli.
 const LIMITE_FICHAS = 15;
 
+// Que ve cada ficha al identificarse, en los salones que entran con un solo
+// correo. Owner y Direccion piden PIN (ver lib/identidadActiva.ts).
+const ROLES_ACCESO_FICHA: { value: string; label: string; desc: string }[] = [
+  { value: 'employee', label: 'Profesional', desc: 'Su agenda y sus clientas.' },
+  { value: 'recepcion', label: 'Recepción', desc: 'La agenda de todo el salón y las clientas.' },
+  { value: 'admin', label: 'Dirección', desc: 'Además: equipo, informes y configuración.' },
+  { value: 'owner', label: 'Propietario', desc: 'Todo, incluida la caja.' },
+];
+
 const TOKENS = {
   bg: '#f6f1ea',
   bgPanel: '#fffdfb',
@@ -63,6 +72,9 @@ interface Profesional {
   profile_id?: string | null;
   foto_perfil?: string | null;
   rol?: string;
+  // Solo se usa en salones con un solo correo: que ve esta persona al elegirse
+  // en la pantalla de "¿quien eres?".
+  rol_acceso?: string;
   citas?: number;
   exp?: string;
   categoria?: string;
@@ -246,7 +258,7 @@ export default function EquipoWeb() {
       const mesFin = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
       const [{ data: profsRaw }, { data: citsData }, { data: srvData }] = await Promise.all([
-        supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id, foto_perfil').eq('negocio_id', negocioId),
+        supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id, foto_perfil, rol_acceso').eq('negocio_id', negocioId),
         supabase.from('citas').select('id, profesional_id, cliente_id, servicio_id, inicio, estado')
           .eq('negocio_id', negocioId)
           .gte('inicio', mesInicio)
@@ -1569,6 +1581,17 @@ function EditProfModal({ prof, negocioId, cuenta, onClose, onSaved }: { prof: Pr
   const [telefono, setTelefono] = useState(prof.telefono ?? '');
   const [email, setEmail] = useState(prof.email ?? '');
   const [tipoRelacion, setTipoRelacion] = useState(prof.tipo_relacion ?? 'empleado');
+  // Solo aplica en salones con un solo correo: que ve esta persona cuando se
+  // elige a si misma en la pantalla de "¿quien eres?".
+  const [rolAcceso, setRolAcceso] = useState<string>(prof.rol_acceso ?? 'employee');
+  const [modoAcceso, setModoAcceso] = useState<'individual' | 'compartido'>('individual');
+  useEffect(() => {
+    let vivo = true;
+    supabase.rpc('acceso_salon_estado').then(({ data }) => {
+      if (vivo && (data as any)?.modo === 'compartido') setModoAcceso('compartido');
+    });
+    return () => { vivo = false; };
+  }, []);
   const [fotoPerfil, setFotoPerfil] = useState(prof.foto_perfil ?? '');
   const [loading, setLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -1664,6 +1687,7 @@ function EditProfModal({ prof, negocioId, cuenta, onClose, onSaved }: { prof: Pr
       telefono: telefono.trim() || null,
       email: email.trim() || null,
       tipo_relacion: tipoRelacion,
+      rol_acceso: rolAcceso,
       profile_id: cuentaId || null,
       foto_perfil: fotoPerfil || null,
     }).eq('id', prof.id);
@@ -1807,6 +1831,31 @@ function EditProfModal({ prof, negocioId, cuenta, onClose, onSaved }: { prof: Pr
               <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nombre@salon.com" style={inputStyle} />
             </div>
           </div>
+          {/* Salon que entra con un solo correo: aqui se dice QUE VE cada
+              persona cuando se elige a si misma en la pantalla de "¿quien
+              eres?". Por defecto, lo suyo y nada mas. */}
+          {modoAcceso === 'compartido' && (
+            <div>
+              <div style={labelStyle}>Qué ve al entrar (este salón usa un solo correo)</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {ROLES_ACCESO_FICHA.map((r) => (
+                  <button
+                    key={r.value}
+                    onClick={() => setRolAcceso(r.value)}
+                    title={r.desc}
+                    style={{ padding: '6px 10px', borderRadius: 8, background: rolAcceso === r.value ? 'rgba(244,80,30,0.18)' : TOKENS.bgCard, border: `1px solid ${rolAcceso === r.value ? 'rgba(244,80,30,0.5)' : TOKENS.border}`, color: rolAcceso === r.value ? '#ff7a2e' : TOKENS.textSec, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+              <div style={{ fontSize: 11, color: TOKENS.textTer, marginTop: 6 }}>
+                {ROLES_ACCESO_FICHA.find((r) => r.value === rolAcceso)?.desc}
+                {(rolAcceso === 'owner' || rolAcceso === 'admin') && ' Al elegirse en la tablet le pedirá el PIN.'}
+              </div>
+            </div>
+          )}
+
           {/* Acceso al software. Una ficha SIN cuenta es normal (le das citas pero
               no entra); lo que hay que avisar es cuando la invitacion sigue sin
               aceptar, porque parece que tiene acceso y no lo tiene. */}

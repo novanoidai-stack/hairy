@@ -9,6 +9,12 @@ import { getUserProfile, can, roleOf, roleLabel, type UserProfile, type Capabili
 import { IS_DEMO_MODE } from '@/lib/supabase';
 import { useAppLang } from '@/lib/hooks/useAppLang';
 import { incluyePlan, type FuncionPlan } from '@/lib/planes';
+import {
+  identidadActiva,
+  soltarIdentidad,
+  suscribirIdentidad,
+  type IdentidadActiva,
+} from '@/lib/identidadActiva';
 
 const tokens = DESIGN_TOKENS;
 
@@ -123,6 +129,14 @@ export function Sidebar() {
   useEffect(() => {
     getUserProfile().then(setProfile).catch(() => setProfile(null));
   }, []);
+
+  // Quien esta usando el dispositivo (solo en salones con un solo correo).
+  // Al cambiar de persona hay que releer el perfil: su rol decide el menu.
+  const [identidad, setIdentidad] = useState<IdentidadActiva | null>(identidadActiva());
+  useEffect(() => suscribirIdentidad((i) => {
+    setIdentidad(i);
+    getUserProfile().then(setProfile).catch(() => {});
+  }), []);
   const allows = (cap?: Capability) =>
     !cap || profile === undefined || profile === null || can(profile, cap);
   // Filtro por PLAN contratado. La demo compartida lo enseña todo (es el
@@ -186,8 +200,11 @@ export function Sidebar() {
 
   const webTitle = (label: string) => (collapsed ? ({ title: label } as any) : {});
 
-  // Cuenta real (la que tiene sesion), no un placeholder.
-  const fullName = [profile?.nombre, profile?.apellido].filter(Boolean).join(' ').trim();
+  // Cuenta real (la que tiene sesion), no un placeholder. En un salon con
+  // acceso compartido manda quien se ha identificado en este dispositivo: la
+  // cuenta es la del jefe, pero delante de la tablet esta Marta.
+  const fullName = identidad?.nombre
+    || [profile?.nombre, profile?.apellido].filter(Boolean).join(' ').trim();
   const accountName = fullName || 'Mi cuenta';
   const salonName = (profile?.nombre_negocio || '').trim();
   const roleText = profile ? roleLabel(profile) : '';
@@ -195,7 +212,9 @@ export function Sidebar() {
   const accountInitials = fullName
     ? fullName.split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2)
     : '';
-  const accountTitle = accountSubtitle ? `${accountName} · ${accountSubtitle}` : accountName;
+  const accountTitle = identidad
+    ? `${accountName} · ${accountSubtitle} — pulsa para cambiar de persona`
+    : accountSubtitle ? `${accountName} · ${accountSubtitle}` : accountName;
 
   const renderNavItem = (item: typeof NAV_ITEMS[0], idx: number) => {
     const hrefSlug = item.href.split('/').pop() || '';
@@ -419,6 +438,9 @@ export function Sidebar() {
         <Animated.View style={{ transform: [{ scale: accountScaleAnim }] }}>
           <TouchableOpacity
             style={[s.accountCard, collapsed && s.accountCardCollapsed, accountHovered && s.accountCardHovered]}
+            // Solo hace algo con acceso compartido: suelta la identidad y vuelve
+            // a salir la puerta de "¿Quien eres?" para que entre el siguiente.
+            onPress={identidad ? () => { soltarIdentidad(); } : undefined}
             {...{
               onMouseEnter: () => {
                 setAccountHovered(true);
@@ -440,7 +462,11 @@ export function Sidebar() {
                   <TText style={s.accountName} numberOfLines={1}>{accountName}</TText>
                   {accountSubtitle ? <TText style={s.accountRole} numberOfLines={1}>{accountSubtitle}</TText> : null}
                 </View>
-                <Ionicons name="chevron-forward" size={14} color={tokens.textTertiary} />
+                <Ionicons
+                  name={identidad ? 'swap-horizontal' : 'chevron-forward'}
+                  size={14}
+                  color={tokens.textTertiary}
+                />
               </>
             )}
           </TouchableOpacity>

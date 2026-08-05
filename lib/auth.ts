@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { can, roleOf } from './permissions';
+import { identidadActiva, suscribirIdentidad } from './identidadActiva';
 
 export interface UserProfile {
   id: string;
@@ -18,6 +19,10 @@ export interface UserProfile {
   privacy_accepted_at?: string | null;
   privacy_policy_version?: string | null;
   paginas_manual_vistas?: Record<string, string>;
+  // Solo en salones con acceso compartido: quien se ha identificado en ESTE
+  // dispositivo. `role` ya viene sustituido por el suyo (ver conIdentidadActiva).
+  identidad_profesional_id?: string | null;
+  identidad_nombre?: string | null;
 }
 
 // Cache de sesion/perfil (Sesion 10 V2 — rendimiento por pestaña).
@@ -53,6 +58,23 @@ export async function getUser() {
   return promise;
 }
 
+// Salon con acceso compartido (un solo correo): delante del dispositivo puede
+// estar cualquiera del equipo, asi que manda el rol de la persona que se ha
+// identificado, no el de la cuenta con la que se entro (que es la del jefe).
+// Se hace AQUI, en el unico sitio por el que pasa todo el mundo, en vez de en
+// las veinte pantallas que preguntan "que puede hacer este".
+function conIdentidadActiva(profile: UserProfile | null): UserProfile | null {
+  if (!profile) return profile;
+  const ident = identidadActiva(profile.negocio_id);
+  if (!ident) return profile;
+  return {
+    ...profile,
+    role: ident.rol,
+    identidad_profesional_id: ident.profesionalId,
+    identidad_nombre: ident.nombre,
+  };
+}
+
 export async function getUserProfile(): Promise<UserProfile | null> {
   const now = Date.now();
   if (profileCache && now - profileCache.at < AUTH_TTL_MS) return profileCache.promise;
@@ -64,12 +86,16 @@ export async function getUserProfile(): Promise<UserProfile | null> {
       .select('*')
       .eq('id', user.id)
       .maybeSingle();
-    return (data as UserProfile | null) ?? null;
+    return conIdentidadActiva((data as UserProfile | null) ?? null);
   })();
   profileCache = { at: now, promise };
   promise.then((p) => { if (!p) profileCache = null; }, () => { profileCache = null; });
   return promise;
 }
+
+// Cambiar de persona en el mostrador tiene que notarse ya: sin esto, la app
+// seguiria 8 segundos con el rol de la anterior (lo que dura el cache).
+suscribirIdentidad(() => { invalidateAuthCache(); });
 
 // Cualquier cambio de sesion (login/logout/refresh de token) invalida el cache.
 supabase.auth.onAuthStateChange(() => { invalidateAuthCache(); });

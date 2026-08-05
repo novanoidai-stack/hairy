@@ -13,6 +13,7 @@ import { ThemeProvider } from '@/lib/themeContext';
 import { CalendarProvider } from '@/lib/calendarContext';
 import { PrivacyConsentProvider } from '@/lib/privacyConsentContext';
 import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
+import { GuardaIdentidad } from '@/components/acceso/GuardaIdentidad';
 import { ChispaLauncher } from '@/components/chispa/ChispaLauncher';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 import { ProximaAccionLauncher } from '@/components/chispa/ProximaAccionLauncher';
@@ -71,6 +72,8 @@ function ThemedRoot({ children }: { children: React.ReactNode }) {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <OfflineBanner />
       <PrivacyConsentModal />
+      {/* Salon con un solo correo: antes de nada, quien eres. */}
+      <GuardaIdentidad />
       <ChispaLauncher />
       <CoachLauncher />
       <TourLauncher />

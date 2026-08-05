@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile, roleLabel } from '@/lib/auth';
+import { identidadActiva } from '@/lib/identidadActiva';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { format, parseISO, startOfDay, addDays, startOfWeek, addWeeks, startOfMonth, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -344,19 +345,29 @@ para proponerla completa, así que no llames a esa herramienta.`;
       if (!profile?.negocio_id) { setLoading(false); return; }
       setUserId(profile.id || '');
       const hoy0 = startOfDay(new Date());
-      const { data: fchs } = await supabase
+      // Con acceso compartido, user_id es el del jefe para todo el mundo: las
+      // marcas de cada persona se distinguen por su ficha, no por la cuenta.
+      const identidadFichajes = identidadActiva(profile.negocio_id);
+      let qFichajes = supabase
         .from('fichajes')
         .select('tipo, marcado_at, user_id')
-        .eq('negocio_id', profile.negocio_id)
-        .eq('user_id', profile.id)
+        .eq('negocio_id', profile.negocio_id);
+      qFichajes = identidadFichajes?.profesionalId
+        ? qFichajes.eq('profesional_id', identidadFichajes.profesionalId)
+        : qFichajes.eq('user_id', profile.id);
+      const { data: fchs } = await qFichajes
         .gte('marcado_at', hoy0.toISOString())
         .lt('marcado_at', addDays(hoy0, 1).toISOString())
         .order('marcado_at', { ascending: true });
       setFichajesHoy((fchs as Fichaje[]) || []);
       const [d, h] = rangoDe(per);
+      // En un salon con un solo correo la cuenta es la del jefe, asi que la
+      // ficha hay que decirla: es la persona que se identifico en la tablet.
+      // El servidor comprueba que sea de este salon antes de hacerle caso.
       const { data, error: rpcErr } = await supabase.rpc('mi_jornada_resumen', {
         p_desde: d.toISOString(),
         p_hasta: h.toISOString(),
+        p_profesional_id: identidadActiva(profile.negocio_id)?.profesionalId ?? null,
       });
       if (rpcErr) throw rpcErr;
       setResumen(data as Resumen);
@@ -586,9 +597,14 @@ para proponerla completa, así que no llames a esa herramienta.`;
     try {
       const profile = await getUserProfile();
       if (!profile?.negocio_id) { setFichando(false); return; }
+      // El fichaje se apunta a la persona que esta delante del dispositivo. Con
+      // un solo correo, user_id es siempre el del jefe: sin profesional_id, las
+      // horas de todo el equipo se le acumularian a el.
+      const identidad = identidadActiva(profile.negocio_id);
       const { error: insErr } = await supabase.from('fichajes').insert({
         negocio_id: profile.negocio_id,
         user_id: profile.id,
+        profesional_id: identidad?.profesionalId ?? resumen?.profesional?.id ?? null,
         tipo,
       });
       if (insErr) throw insErr;

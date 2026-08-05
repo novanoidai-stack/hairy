@@ -1647,6 +1647,47 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
 
   const isOwner = currentRole === 'owner';
 
+  // Modo de acceso del salón (lo enciende el equipo de Mecha desde su panel) y
+  // PIN del propietario, que es lo que protege la caja y los informes cuando
+  // todo el salón entra con el mismo correo.
+  const [modoAcceso, setModoAcceso] = useState<'individual' | 'compartido'>('individual');
+  const [tienePin, setTienePin] = useState(false);
+  const [pin, setPin] = useState('');
+  const [guardandoPin, setGuardandoPin] = useState(false);
+  const [pinMsg, setPinMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => {
+    let vivo = true;
+    supabase.rpc('acceso_salon_estado').then(({ data }) => {
+      if (!vivo || !data) return;
+      const d = data as { modo?: string; tiene_pin?: boolean };
+      setModoAcceso(d.modo === 'compartido' ? 'compartido' : 'individual');
+      setTienePin(d.tiene_pin === true);
+    });
+    return () => { vivo = false; };
+  }, []);
+
+  async function guardarPin() {
+    setGuardandoPin(true);
+    setPinMsg(null);
+    const { error } = await supabase.rpc('set_pin_propietario', { p_pin: pin });
+    setGuardandoPin(false);
+    if (error) {
+      const clave = (error.message || '').match(/[a-z_]+/)?.[0] ?? '';
+      const textos: Record<string, string> = {
+        pin_no_valido: 'El PIN tiene que ser de 4 a 8 dígitos.',
+        solo_propietario: 'Solo el Propietario puede poner el PIN.',
+        demo_no_permitido: 'En la demo no se puede poner PIN.',
+        sin_negocio: 'Tu cuenta no tiene un salón asignado.',
+      };
+      setPinMsg({ ok: false, text: textos[clave] ?? 'No se pudo guardar el PIN.' });
+      return;
+    }
+    setTienePin(true);
+    setPin('');
+    setPinMsg({ ok: true, text: 'PIN guardado. Ya protege lo del propietario.' });
+  }
+
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError('');
@@ -1738,6 +1779,39 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
       desc="Cada persona de tu equipo entra con SU correo, dentro de tu salón. Tú decides qué ve cada una: Profesional ve lo suyo, Recepción lleva la agenda y los clientes, Dirección accede además a configuración e informes, y Propietario lo controla todo."
       action={<Btn variant="primary" size="sm" onClick={() => { setShowForm(v => !v); setCreada(null); setFormError(''); }}>{showForm ? 'Cancelar' : 'Invitar a alguien'}</Btn>}
     >
+      {/* Salón que entra con un solo correo: aquí el jefe pone el PIN que
+          separa lo suyo (caja, informes, configuración) del resto del equipo. */}
+      {modoAcceso === 'compartido' && (
+        <div style={{ marginBottom: 14, padding: 14, background: 'rgba(244,80,30,0.06)', border: '1px solid rgba(244,80,30,0.22)', borderRadius: 12 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 4 }}>
+            Este salón entra con un solo correo
+          </div>
+          <div style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.55, marginBottom: 10 }}>
+            Al abrir Mecha, la pantalla pregunta quién eres y se elige de la lista del equipo. Elegir
+            Propietario o Dirección pide este PIN, así que ponlo tú y no lo compartas: es lo único que
+            separa tu caja y tus informes del resto.
+            {!tienePin && <b style={{ color: T.danger }}> Todavía no lo has puesto: ahora mismo cualquiera puede entrar como propietario.</b>}
+          </div>
+          {isOwner ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <STextInput
+                value={pin}
+                onChange={(v: string) => setPin(v.replace(/\D/g, '').slice(0, 8))}
+                placeholder={tienePin ? 'Cambiar el PIN (4-8 dígitos)' : 'PIN nuevo (4-8 dígitos)'}
+              />
+              <Btn variant="primary" size="sm" onClick={guardarPin} disabled={pin.length < 4 || guardandoPin}>
+                {guardandoPin ? 'Guardando…' : tienePin ? 'Cambiar PIN' : 'Poner PIN'}
+              </Btn>
+              {pinMsg && (
+                <span style={{ fontSize: 12, color: pinMsg.ok ? T.success : T.danger }}>{pinMsg.text}</span>
+              )}
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, color: T.textTertiary }}>Solo el Propietario puede cambiar el PIN.</div>
+          )}
+        </div>
+      )}
+
       {showForm && (
         <div style={{ marginBottom: 14, padding: 14, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ fontSize: 12.5, color: T.textSec, lineHeight: 1.5 }}>

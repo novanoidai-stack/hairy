@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import qrcode from 'qrcode-generator';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '@/lib/auth';
+import { identidadActiva } from '@/lib/identidadActiva';
 import { mensajeDeError } from '@/lib/errores';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 
@@ -154,6 +155,13 @@ export function CobroSheet(props: CobroSheetProps) {
         .eq('activo', true)
         .order('nombre');
       setProfesionales(data ?? []);
+      // Salon con un solo correo: el cobro se apunta por defecto a quien esta
+      // atendiendo (la persona identificada en el dispositivo), no al jefe.
+      // Se puede cambiar a mano en el desplegable, como siempre.
+      const identidad = identidadActiva(profile.negocio_id);
+      if (identidad?.profesionalId && (data ?? []).some((p) => p.id === identidad.profesionalId)) {
+        setProfesionalId((prev) => prev || identidad.profesionalId!);
+      }
       const { data: prods } = await supabase
         .from('productos')
         .select('id, nombre, precio')
