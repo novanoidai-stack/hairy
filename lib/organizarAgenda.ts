@@ -113,6 +113,50 @@ export interface ProblemaAgenda {
   porQue?: string;
 }
 
+// --- Prioridad: por donde empezar cuando hay varios problemas a la vez ---
+//
+// Un dia cargado saca diez avisos y, pintados todos igual, la agenda se
+// emborrona y no se sabe cual duele mas. Esto los ordena por lo que le cuesta
+// al salon si no se toca nada:
+//
+//   1. Solape: dos clientas a la misma hora con la misma persona. Se rompe hoy.
+//   2. Retraso: la cadena se va detras; cuanto mas retraso, mas urgente.
+//   3. Hueco muerto / reposo desaprovechado: dinero parado que se puede
+//      recuperar adelantando a alguien.
+//   4. Hueco vacio: solo informativo (nada que aplicar de un clic).
+//
+// Dentro de cada grupo manda el tamaño (minutos de retraso o de hueco), asi que
+// un retraso de 40' pesa mas que uno de 5'.
+const PESO_TIPO: Record<TipoProblemaAgenda, number> = {
+  solape: 4000,
+  retraso: 3000,
+  hueco_muerto: 2000,
+  reposo_desaprovechado: 1800,
+  hueco_vacio: 1000,
+};
+
+export function prioridadProblema(p: ProblemaAgenda): number {
+  const base = PESO_TIPO[p.tipo] ?? 0;
+  let magnitud = p.minutos ?? 0;
+  if (!magnitud && p.zona) {
+    const dur =
+      (new Date(p.zona.hasta).getTime() - new Date(p.zona.desde).getTime()) / 60000;
+    magnitud = Number.isFinite(dur) && dur > 0 ? dur : 0;
+  }
+  // Se recorta a 240' para que un hueco enorme no adelante a un solape.
+  return base + Math.min(240, Math.round(magnitud));
+}
+
+// Copia ordenada de mas urgente a menos. A igualdad de peso, manda la hora:
+// lo que pasa antes se atiende antes.
+export function ordenarPorPrioridad(problemas: ProblemaAgenda[]): ProblemaAgenda[] {
+  return problemas.slice().sort((a, b) => {
+    const d = prioridadProblema(b) - prioridadProblema(a);
+    if (d !== 0) return d;
+    return new Date(a.zona.desde).getTime() - new Date(b.zona.desde).getTime();
+  });
+}
+
 function zona(profesionalId: string, desdeMs: number, hastaMs: number): ZonaProblema {
   return {
     profesionalId,

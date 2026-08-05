@@ -39,6 +39,7 @@ import RetrasoEstrategiasModal from "./RetrasoEstrategiasModal";
 import OrganizarAgendaPanel from "./OrganizarAgendaPanel.web";
 import {
   analizarAgendaDia,
+  ordenarPorPrioridad,
   prepararCitas,
   type ProblemaAgenda,
 } from "@/lib/organizarAgenda";
@@ -132,8 +133,19 @@ const ANIMATIONS = `
     0%, 100% { opacity: 0.95; }
     50% { opacity: 0.45; }
   }
+  /* La "caja viajera": una copia fantasma de la cita que recorre el camino
+     desde donde esta hasta donde deberia ir. Es lo que hace entender de un
+     golpe que ESA cita se mueve HASTA AHI, sin tener que leer la etiqueta.
+     El recorrido en px se pasa por la variable --viaje. */
+  @keyframes viajeZona {
+    0%      { transform: translateY(0);        opacity: 0; }
+    12%     { transform: translateY(0);        opacity: 0.85; }
+    78%     { transform: translateY(var(--viaje)); opacity: 0.85; }
+    100%    { transform: translateY(var(--viaje)); opacity: 0; }
+  }
   @media (prefers-reduced-motion: reduce) {
     [style*="pulseZona"] { animation: none !important; }
+    [style*="viajeZona"] { animation: none !important; opacity: 0.5 !important; }
   }
   @keyframes shimmer {
     0% { background-position: -1000px 0; }
@@ -1307,10 +1319,14 @@ export default function AgendaCalendar() {
   // vacios). Alimenta dos cosas: el contador del boton de organizar (badge, como
   // las notificaciones) y el resalte del modo "Enseñamelo". Es el MISMO calculo
   // que usa el panel, asi que el numero del badge y el del panel coinciden.
+  // Ordenados por prioridad: primero lo que rompe el dia (solapes), luego los
+  // retrasos por tamaño y al final las oportunidades de adelantar. Todo lo que
+  // consume esta lista (el panel, las flechas de "Enseñamelo", el resalte de la
+  // rejilla) hereda ese orden, asi que el n.1 siempre es lo que mas duele.
   const problemasAgenda = useMemo<ProblemaAgenda[]>(() => {
     if (profesionales.length === 0 || citas.length === 0) return [];
     try {
-      return analizarAgendaDia(
+      return ordenarPorPrioridad(analizarAgendaDia(
         prepararCitas(citas as any, clientes as any, servicios as any),
         profesionales,
         {
@@ -1321,7 +1337,7 @@ export default function AgendaCalendar() {
           maxAdelantoMin: limitesAgenda?.maxAdelantoMin,
           umbralHuecoMin: limitesAgenda?.umbralHuecoMin,
         },
-      );
+      ));
     } catch {
       // El badge nunca debe tumbar la agenda: sin analisis, sin badge.
       return [];
@@ -1670,6 +1686,36 @@ export default function AgendaCalendar() {
     setCurrentMonth(new Date(today.getFullYear(), today.getMonth()));
     setView("day");
   };
+
+  // Las flechas mueven el PERIODO que estas viendo, no siempre un dia: en
+  // Semana saltan una semana y en Mes un mes. Antes iban de dia en dia en las
+  // tres vistas, asi que en Mes habia que pulsar treinta veces para pasar de mes.
+  const moverPeriodo = (dir: -1 | 1) => {
+    const d = new Date(selectedDateObj);
+    if (view === "week") {
+      d.setDate(d.getDate() + 7 * dir);
+    } else if (view === "month") {
+      // Ojo al 31: pasar de mes desde un dia que el mes destino no tiene se
+      // desbordaria al siguiente (31 ene + 1 mes = 3 mar). Se ancla al dia 1 y
+      // luego se recupera el dia, recortado al ultimo del mes.
+      const diaOriginal = d.getDate();
+      const destino = new Date(d.getFullYear(), d.getMonth() + dir, 1);
+      const ultimoDia = new Date(
+        destino.getFullYear(),
+        destino.getMonth() + 1,
+        0,
+      ).getDate();
+      destino.setDate(Math.min(diaOriginal, ultimoDia));
+      d.setTime(destino.getTime());
+    } else {
+      d.setDate(d.getDate() + dir);
+    }
+    setSelectedDate(d.getDate());
+    setCurrentMonth(new Date(d.getFullYear(), d.getMonth()));
+  };
+
+  const etiquetaPeriodo =
+    view === "week" ? "semana" : view === "month" ? "mes" : "día";
 
   if (loading)
     return (
@@ -3694,20 +3740,16 @@ export default function AgendaCalendar() {
                     flex: isMobile ? 1 : undefined,
                   }}
                 >
-                  {/* Navegacion de dia anterior/siguiente (estilo Booksy) */}
+                  {/* Navegacion anterior/siguiente (estilo Booksy). Mueve el
+                      periodo de la vista activa: dia, semana o mes. */}
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 4 }}
                   >
                     <button
                       className="m-btn-icon"
-                      onClick={() => {
-                        const d = new Date(selectedDateObj);
-                        d.setDate(d.getDate() - 1);
-                        setSelectedDate(d.getDate());
-                        setCurrentMonth(
-                          new Date(d.getFullYear(), d.getMonth()),
-                        );
-                      }}
+                      onClick={() => moverPeriodo(-1)}
+                      title={`${etiquetaPeriodo === "día" ? "Día" : etiquetaPeriodo === "semana" ? "Semana" : "Mes"} anterior`}
+                      aria-label={`Ir al ${etiquetaPeriodo} anterior`}
                       style={{
                         width: 32,
                         height: 32,
@@ -3728,14 +3770,9 @@ export default function AgendaCalendar() {
                     </button>
                     <button
                       className="m-btn-icon"
-                      onClick={() => {
-                        const d = new Date(selectedDateObj);
-                        d.setDate(d.getDate() + 1);
-                        setSelectedDate(d.getDate());
-                        setCurrentMonth(
-                          new Date(d.getFullYear(), d.getMonth()),
-                        );
-                      }}
+                      onClick={() => moverPeriodo(1)}
+                      title={`${etiquetaPeriodo === "día" ? "Día" : etiquetaPeriodo === "semana" ? "Semana" : "Mes"} siguiente`}
+                      aria-label={`Ir al ${etiquetaPeriodo} siguiente`}
                       style={{
                         width: 32,
                         height: 32,
@@ -4504,6 +4541,7 @@ export default function AgendaCalendar() {
             <MonthView
               citas={citas}
               bloqueos={bloqueos}
+              cierres={cierres}
               profesionales={visibleProfs}
               servicios={servicios}
               clientes={clientes}
@@ -9044,12 +9082,36 @@ function DayTimeline({
                         const zTop = aY(p.zona.desde);
                         const zH = aY(p.zona.hasta) - zTop;
                         if (zH <= 0) return null;
-                        const tono =
-                          p.tipo === "solape"
+                        // Rango de prioridad dentro del dia (la lista ya viene
+                        // ordenada). Los tres primeros se pintan fuerte; el resto
+                        // se atenua para que la agenda no se emborrone cuando hay
+                        // ocho avisos a la vez.
+                        const rango = (zonasResaltadas as ProblemaAgenda[]).findIndex(
+                          (x) => x.id === p.id,
+                        );
+                        const principal = rango >= 0 && rango < 3;
+                        // Movimiento ENTRE profesionales: el destino es de otra
+                        // persona. Se marca aparte porque es el cambio que mas
+                        // confunde si se pinta igual que un movimiento propio.
+                        const cambiaDeProfesional =
+                          !!p.zonaOrigen &&
+                          p.zonaOrigen.profesionalId !== p.zona.profesionalId;
+                        const colorDe = (id: string) =>
+                          (profesionales as any[]).find((x) => x.id === id)?.color ||
+                          TOKENS.primary;
+                        const nombreDe = (id: string) =>
+                          (profesionales as any[]).find((x) => x.id === id)?.nombre || "";
+                        const tono = cambiaDeProfesional
+                          ? colorDe(p.zona.profesionalId)
+                          : p.tipo === "solape"
                             ? "#e23b34"
                             : p.tipo === "retraso"
                               ? "#f59e0b"
                               : "#10b981";
+                        const tonoOrigen = cambiaDeProfesional
+                          ? colorDe(p.zonaOrigen!.profesionalId)
+                          : tono;
+                        const opacidad = principal ? 1 : 0.42;
                         const oTop = p.zonaOrigen ? aY(p.zonaOrigen.desde) : null;
                         const oH =
                           p.zonaOrigen && oTop != null
@@ -9061,8 +9123,21 @@ function DayTimeline({
                           oTop != null ? Math.min(oTop, zTop + zH) : null;
                         const flechaHasta =
                           oTop != null ? Math.max(zTop + zH, oTop) : null;
+                        // Recorrido de la "caja viajera": del origen al destino.
+                        // Solo tiene sentido dentro de la MISMA columna; si la
+                        // cita cambia de profesional, el viaje seria en diagonal
+                        // entre columnas y ahi lo que se pinta es el color de cada
+                        // persona en cada punta.
+                        const viaje =
+                          principal &&
+                          !cambiaDeProfesional &&
+                          oTop != null &&
+                          oH > 0 &&
+                          Math.abs(zTop - oTop) > 8
+                            ? zTop - oTop
+                            : null;
                         return (
-                          <div key={`zona-${p.id}`}>
+                          <div key={`zona-${p.id}`} style={{ opacity: opacidad }}>
                             {/* Cita de origen: marco tenue, sin latido (el latido
                                 se reserva al destino, que es donde hay que mirar). */}
                             {oTop != null && oH > 0 && (
@@ -9074,8 +9149,8 @@ function DayTimeline({
                                   right: 2,
                                   height: Math.max(14, oH),
                                   borderRadius: 10,
-                                  border: `2px solid ${tono}`,
-                                  background: `${tono}12`,
+                                  border: `2px solid ${tonoOrigen}`,
+                                  background: `${tonoOrigen}12`,
                                   pointerEvents: "none",
                                   zIndex: 39,
                                 }}
@@ -9088,16 +9163,42 @@ function DayTimeline({
                                     padding: "1px 7px",
                                     borderRadius: 999,
                                     background: "#fff",
-                                    border: `1.5px solid ${tono}`,
-                                    color: tono,
+                                    border: `1.5px solid ${tonoOrigen}`,
+                                    color: tonoOrigen,
                                     fontSize: 9.5,
                                     fontWeight: 800,
                                     whiteSpace: "nowrap",
                                   }}
                                 >
-                                  mover esta
+                                  {cambiaDeProfesional
+                                    ? `mover a ${nombreDe(p.zona.profesionalId).split(" ")[0]}`
+                                    : "mover esta"}
                                 </span>
                               </div>
+                            )}
+
+                            {/* La caja viajera: una copia fantasma de la cita que
+                                recorre el camino hasta su sitio, una y otra vez.
+                                Es lo que se entiende sin leer nada. */}
+                            {viaje != null && (
+                              <div
+                                style={
+                                  {
+                                    position: "absolute",
+                                    top: Math.max(0, oTop!),
+                                    left: 8,
+                                    right: 8,
+                                    height: Math.max(14, oH),
+                                    borderRadius: 10,
+                                    background: `${tono}55`,
+                                    border: `1.5px solid ${tono}`,
+                                    pointerEvents: "none",
+                                    zIndex: 42,
+                                    ["--viaje" as any]: `${viaje}px`,
+                                    animation: "viajeZona 2.4s ease-in-out infinite",
+                                  } as React.CSSProperties
+                                }
+                              />
                             )}
 
                             {/* Flecha origen -> destino */}
@@ -9116,8 +9217,9 @@ function DayTimeline({
                                     opacity: 0.85,
                                     pointerEvents: "none",
                                     zIndex: 41,
-                                    animation:
-                                      "pulseZona 1.6s ease-in-out infinite",
+                                    animation: principal
+                                      ? "pulseZona 1.6s ease-in-out infinite"
+                                      : undefined,
                                   }}
                                 >
                                   {/* Punta: sube hacia el destino */}
@@ -9139,7 +9241,7 @@ function DayTimeline({
                             {/* Destino: lo que hay que mirar */}
                             <div
                               data-mecha-zona={p.id}
-                              title={`${p.titulo} — ${p.descripcion}${p.porQue ? ` (${p.porQue})` : ""}`}
+                              title={`${rango >= 0 ? `#${rango + 1} · ` : ""}${p.titulo} — ${p.descripcion}${p.porQue ? ` (${p.porQue})` : ""}`}
                               style={{
                                 position: "absolute",
                                 top: Math.max(0, zTop),
@@ -9149,13 +9251,39 @@ function DayTimeline({
                                 borderRadius: 10,
                                 border: `2px dashed ${tono}`,
                                 background: `${tono}1f`,
-                                boxShadow: `0 0 0 3px ${tono}22`,
+                                boxShadow: principal ? `0 0 0 3px ${tono}22` : "none",
                                 pointerEvents: "none",
                                 zIndex: 40,
-                                animation:
-                                  "pulseZona 1.6s ease-in-out infinite",
+                                animation: principal
+                                  ? "pulseZona 1.6s ease-in-out infinite"
+                                  : undefined,
                               }}
                             >
+                              {/* Numero de prioridad: por cual empezar cuando el
+                                  dia saca varios avisos a la vez. */}
+                              {rango >= 0 && (
+                                <span
+                                  style={{
+                                    position: "absolute",
+                                    top: -9,
+                                    right: 6,
+                                    minWidth: 16,
+                                    height: 16,
+                                    padding: "0 4px",
+                                    borderRadius: 999,
+                                    background: "#fff",
+                                    border: `1.5px solid ${tono}`,
+                                    color: tono,
+                                    fontSize: 9,
+                                    fontWeight: 900,
+                                    lineHeight: "13px",
+                                    textAlign: "center",
+                                    boxShadow: "0 1px 3px rgba(0,0,0,0.18)",
+                                  }}
+                                >
+                                  {rango + 1}
+                                </span>
+                              )}
                               <span
                                 style={{
                                   position: "absolute",
@@ -9177,6 +9305,8 @@ function DayTimeline({
                                   whiteSpace: "nowrap",
                                   display: "block",
                                   boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                                  // Deja sitio al numero de prioridad de la esquina.
+                                  paddingRight: 22,
                                 }}
                               >
                                 {p.accionCorta || p.titulo}
@@ -20426,6 +20556,7 @@ function MonthView({
   selectedProf,
   onSelectDay,
   bloqueos,
+  cierres = [],
 }: any) {
   const { isMobile } = useResponsive();
   const year = currentMonth.getFullYear();
@@ -20433,6 +20564,55 @@ function MonthView({
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
   const offset = firstDay === 0 ? 6 : firstDay - 1;
+
+  // Color de cada profesional, para que los puntos de cada dia digan TAMBIEN
+  // de quien son las citas y no solo cuantas hay.
+  const colorProf = useMemo(() => {
+    const m: Record<string, string> = {};
+    (profesionales || []).forEach((p: any) => {
+      m[p.id] = p.color || TOKENS.primary;
+    });
+    return m;
+  }, [profesionales]);
+
+  // Orden de los profesionales, para agrupar los puntos por persona: los del
+  // mismo color quedan juntos y de un vistazo se ve quien carga con el dia.
+  const ordenProf = useMemo(() => {
+    const m: Record<string, number> = {};
+    (profesionales || []).forEach((p: any, i: number) => {
+      m[p.id] = i;
+    });
+    return m;
+  }, [profesionales]);
+
+  // Cierres REALES del salon (tabla cierres_negocio: festivos, vacaciones, dias
+  // sueltos), por dia del mes. Antes aqui habia cinco festivos escritos a mano
+  // (Navidad, Reyes...) que salian igual para todos los salones aunque ese dia
+  // trabajaran, y no se veian los cierres que el salon si habia configurado.
+  const cierrePorDia = useMemo(() => {
+    const m: Record<number, string | null> = {};
+    (cierres || []).forEach((c: any) => {
+      if (!c?.fecha) return;
+      const [y, mm, dd] = String(c.fecha).split("-").map(Number);
+      if (y === year && mm === month + 1) m[dd] = c.motivo || null;
+    });
+    return m;
+  }, [cierres, year, month]);
+
+  // Cumpleaños REALES de la clientela ese mes (antes ponia "Cumpleaños Cliente"
+  // el dia 15 de todos los meses, fuese cierto o no).
+  const cumplesPorDia = useMemo(() => {
+    const m: Record<number, string[]> = {};
+    (clientes || []).forEach((cl: any) => {
+      if (!cl?.fecha_nacimiento) return;
+      const fn = new Date(cl.fecha_nacimiento);
+      if (isNaN(fn.getTime()) || fn.getMonth() !== month) return;
+      const d = fn.getDate();
+      if (!m[d]) m[d] = [];
+      m[d].push(cl.nombre || "Clienta");
+    });
+    return m;
+  }, [clientes, month]);
 
   const filteredCitas = useMemo(() => {
     return citas.filter((c: any) => {
@@ -20466,7 +20646,8 @@ function MonthView({
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
   while (cells.length % 7) cells.push(null);
 
-  const cellMinH = isMobile ? 54 : 92;
+  // La celda tiene que dar para varias filas de puntos sin recortarlos.
+  const cellMinH = isMobile ? 66 : 108;
   const gap = isMobile ? 4 : 6;
 
   return (
@@ -20513,18 +20694,19 @@ function MonthView({
           const dayCitas = citasByDay[d] || [];
           const isToday = isCurrentMonth && d === todayDate.getDate();
           const total = dayCitas.length;
-          
-          let festivo = null;
-          if (month === 9 && d === 12) festivo = "Día de la Hispanidad";
-          if (month === 11 && d === 25) festivo = "Navidad";
-          if (month === 0 && d === 1) festivo = "Año Nuevo";
-          if (month === 0 && d === 6) festivo = "Reyes Magos";
-          if (month === 4 && d === 1) festivo = "Día del Trabajador";
 
-          let birthday = null;
-          if (d === 15) birthday = "Cumpleaños Cliente";
-          
-          const isClosed = (bloqueos || []).some((b: any) => {
+          // Cierre del salon: primero el que el salon ha configurado de verdad
+          // (cierres_negocio) y, si no, unas vacaciones puestas como bloqueo.
+          const cerradoPorCierre = Object.prototype.hasOwnProperty.call(cierrePorDia, d);
+          const festivo = cerradoPorCierre ? (cierrePorDia[d] || "Cerrado") : null;
+          const cumplesDia = cumplesPorDia[d] || [];
+          const birthday = cumplesDia.length
+            ? cumplesDia.length === 1
+              ? cumplesDia[0]
+              : `${cumplesDia.length} cumpleaños`
+            : null;
+
+          const isClosed = cerradoPorCierre || (bloqueos || []).some((b: any) => {
              const bDate = new Date(b.inicio || b.dia);
              return b.tipo === "vacaciones" && bDate.getFullYear() === year && bDate.getMonth() === month && bDate.getDate() === d;
           });
@@ -20534,6 +20716,22 @@ function MonthView({
           let satColor = TOKENS.success;
           if(ratio > 0.5) satColor = TOKENS.warning;
           if(ratio > 0.8) satColor = TOKENS.danger;
+
+          // Un punto por cita, agrupados por profesional y repartidos en varias
+          // filas: asi el hueco de la celda se aprovecha entero y el volumen del
+          // dia se lee de un vistazo. Antes cabian 12 en una linea y a partir de
+          // ahi solo ponia un "+", con lo que 16 y 40 citas se veian igual.
+          const puntos = dayCitas
+            .slice()
+            .sort((a: any, b: any) => {
+              const oa = ordenProf[a.profesional_id] ?? 99;
+              const ob = ordenProf[b.profesional_id] ?? 99;
+              if (oa !== ob) return oa - ob;
+              return new Date(a.inicio).getTime() - new Date(b.inicio).getTime();
+            });
+          const MAX_PUNTOS = isMobile ? 9 : 30;
+          const puntosVisibles = puntos.slice(0, MAX_PUNTOS);
+          const puntosOcultos = total - puntosVisibles.length;
 
           return (
             <div
@@ -20622,7 +20820,11 @@ function MonthView({
 
               <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
                   {!isMobile && birthday && (
-                     <div className="m-birthday-link" style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(139,92,246,0.1)", padding: "2px 4px", borderRadius: 4, color: "#8b5cf6", maxWidth: "90%" }}>
+                     <div
+                       className="m-birthday-link"
+                       title={`Cumpleaños: ${cumplesDia.join(", ")}`}
+                       style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(139,92,246,0.1)", padding: "2px 4px", borderRadius: 4, color: "#8b5cf6", maxWidth: "90%" }}
+                     >
                          <Icon name="gift" size={10} color="#8b5cf6" style={{ flexShrink: 0 }} />
                          <span style={{ fontSize: 9, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{birthday}</span>
                      </div>
@@ -20643,7 +20845,10 @@ function MonthView({
                     style={{
                       fontSize: 10,
                       fontWeight: 700,
-                      color: isToday ? TOKENS.primaryHi : TOKENS.textSec,
+                      // El color dice como de lleno esta el dia (verde/ambar/rojo).
+                      // Los puntos ya no lo pueden decir: ahora llevan el color de
+                      // cada profesional.
+                      color: satColor,
                     }}
                   >
                     {total} cita{total !== 1 && "s"}
@@ -20652,11 +20857,28 @@ function MonthView({
               </div>
 
               {total > 0 && !isClosed && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
-                     {Array.from({ length: Math.min(12, total) }).map((_, idx) => (
-                        <div key={idx} style={{ width: 6, height: 6, background: satColor, borderRadius: "50%", opacity: 0.8 }} />
+                  <div
+                    style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: isMobile ? 3 : 4, marginTop: 4 }}
+                    title={`${total} cita${total !== 1 ? "s" : ""} · un punto por cita, agrupados por profesional`}
+                  >
+                     {puntosVisibles.map((c: any, idx: number) => (
+                        <div
+                          key={c.id ?? idx}
+                          style={{
+                            width: isMobile ? 5 : 6,
+                            height: isMobile ? 5 : 6,
+                            background: colorProf[c.profesional_id] || satColor,
+                            borderRadius: "50%",
+                            opacity: 0.9,
+                            flexShrink: 0,
+                          }}
+                        />
                      ))}
-                     {total > 12 && <span style={{fontSize: 9, fontWeight: 700, color: TOKENS.textSec, lineHeight: "6px"}}>+</span>}
+                     {puntosOcultos > 0 && (
+                       <span style={{ fontSize: 9, fontWeight: 800, color: TOKENS.textSec, lineHeight: `${isMobile ? 5 : 6}px` }}>
+                         +{puntosOcultos}
+                       </span>
+                     )}
                   </div>
               )}
             </div>

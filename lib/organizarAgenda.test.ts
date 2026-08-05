@@ -4,7 +4,13 @@
 // multiprofesional de la compactacion de huecos.
 // Ejecutar: deno test lib/organizarAgenda.test.ts
 import { assertEquals, assert } from 'https://deno.land/std@0.224.0/assert/mod.ts';
-import { analizarAgendaDia, type CitaOrganizar } from './organizarAgenda.ts';
+import {
+  analizarAgendaDia,
+  ordenarPorPrioridad,
+  prioridadProblema,
+  type CitaOrganizar,
+  type ProblemaAgenda,
+} from './organizarAgenda.ts';
 
 const D = '2026-07-08';
 function iso(h: number, m = 0, dia: string = D): string {
@@ -506,4 +512,70 @@ Deno.test('limites: el techo no afecta a mover_reasignar (solo va hacia adelante
   const mv = solape.estrategias.find((e) => e.tipo === 'mover_reasignar');
   assert(mv, 'mover_reasignar retrasa, no adelanta: el techo no le aplica');
   assertEquals(mv!.updates[0].inicio, iso(11, 0));
+});
+
+// --- Prioridad: por donde empezar cuando el dia saca varios avisos ---
+
+function problemaFalso(
+  tipo: 'solape' | 'retraso' | 'hueco_muerto' | 'reposo_desaprovechado' | 'hueco_vacio',
+  o: { id: string; minutos?: number; desde?: string; hasta?: string } ,
+): ProblemaAgenda {
+  return {
+    id: o.id,
+    tipo,
+    profesionalId: 'P1',
+    profesionalNombre: 'Ana',
+    titulo: tipo,
+    descripcion: '',
+    citaIds: [],
+    estrategias: [],
+    minutos: o.minutos,
+    zona: { profesionalId: 'P1', desde: o.desde ?? iso(10, 0), hasta: o.hasta ?? iso(10, 30) },
+    accionCorta: '',
+  };
+}
+
+Deno.test('prioridad: un solape pesa mas que cualquier retraso', () => {
+  const solape = problemaFalso('solape', { id: 's' });
+  const retrasoGordo = problemaFalso('retraso', { id: 'r', minutos: 240 });
+  assert(prioridadProblema(solape) > prioridadProblema(retrasoGordo));
+});
+
+Deno.test('prioridad: entre dos retrasos manda el que va mas tarde', () => {
+  const corto = problemaFalso('retraso', { id: 'a', minutos: 5 });
+  const largo = problemaFalso('retraso', { id: 'b', minutos: 45 });
+  assert(prioridadProblema(largo) > prioridadProblema(corto));
+});
+
+Deno.test('prioridad: un hueco enorme nunca adelanta a un solape', () => {
+  const hueco = problemaFalso('hueco_muerto', { id: 'h', desde: iso(9, 0), hasta: iso(20, 0) });
+  const solape = problemaFalso('solape', { id: 's' });
+  assert(prioridadProblema(solape) > prioridadProblema(hueco), 'el recorte de magnitud evita el sorpaso');
+});
+
+Deno.test('ordenarPorPrioridad: solape, retrasos por tamaño y huecos al final', () => {
+  const lista = [
+    problemaFalso('hueco_vacio', { id: 'hv' }),
+    problemaFalso('retraso', { id: 'r-corto', minutos: 5 }),
+    problemaFalso('solape', { id: 'sol' }),
+    problemaFalso('retraso', { id: 'r-largo', minutos: 60 }),
+    problemaFalso('hueco_muerto', { id: 'hm' }),
+  ];
+  const orden = ordenarPorPrioridad(lista).map((p) => p.id);
+  assertEquals(orden, ['sol', 'r-largo', 'r-corto', 'hm', 'hv']);
+});
+
+Deno.test('ordenarPorPrioridad: a igual peso, primero lo que pasa antes', () => {
+  const tarde = problemaFalso('hueco_muerto', { id: 'tarde', desde: iso(18, 0), hasta: iso(18, 30) });
+  const pronto = problemaFalso('hueco_muerto', { id: 'pronto', desde: iso(9, 0), hasta: iso(9, 30) });
+  assertEquals(ordenarPorPrioridad([tarde, pronto]).map((p) => p.id), ['pronto', 'tarde']);
+});
+
+Deno.test('ordenarPorPrioridad no toca la lista original', () => {
+  const lista = [
+    problemaFalso('hueco_vacio', { id: 'a' }),
+    problemaFalso('solape', { id: 'b' }),
+  ];
+  ordenarPorPrioridad(lista);
+  assertEquals(lista.map((p) => p.id), ['a', 'b']);
 });
