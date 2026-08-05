@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mecha — Chispa · Motion v3 (3D oner)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--fuego:#F4501E;--deep:#C0260A;--amber:#FF9B3D;--gold:#FFC46B;--bg1:#070A14;--txt:#fff;--muted:#94A3B8}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#000;overflow:hidden;font-family:Inter,system-ui,sans-serif;color:var(--txt)}
+#c3d{position:fixed;inset:0;z-index:1;display:block}
+#overlay{position:fixed;inset:0;z-index:5;pointer-events:none}
+#cc{position:absolute;left:50%;bottom:60px;transform:translateX(-50%);width:min(1380px,92vw);text-align:center;
+  font-size:clamp(20px,2.1vw,34px);line-height:1.35;font-weight:500;text-shadow:0 3px 22px rgba(0,0,0,.95)}
+#cc.off{display:none}
+.kicker{font-family:'Space Grotesk';font-weight:700;letter-spacing:.28em;text-transform:uppercase;font-size:clamp(13px,1vw,18px);color:var(--fuego)}
+#caption{position:absolute;left:50%;top:18%;transform:translate(-50%,0);text-align:center;
+  font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(30px,5vw,76px);line-height:1;letter-spacing:-.02em;
+  opacity:0;transition:opacity .5s;text-shadow:0 6px 40px rgba(0,0,0,.8)}
+#caption.show{opacity:1}
+#caption .mk{color:var(--fuego)}
+/* HUD */
+#hud{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;align-items:center;gap:14px;padding:10px 18px;
+  background:linear-gradient(0deg,rgba(0,0,0,.7),rgba(0,0,0,0));pointer-events:none}
+#hud>*{pointer-events:auto}
+#btnPlay{width:44px;height:44px;border:0;border-radius:50%;background:var(--fuego);color:#fff;font-size:18px;cursor:pointer;display:grid;place-items:center}
+#btnPlay:hover{background:var(--deep)}
+#bar{flex:1;height:8px;background:rgba(255,255,255,.16);border-radius:6px;cursor:pointer;position:relative}
+#fill{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--fuego));border-radius:6px}
+#tc{font-family:'Space Grotesk';font-size:13px;color:#cbd5e1;min-width:74px;text-align:right}
+.tg{font-size:12px;color:#cbd5e1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:6px 12px;cursor:pointer;user-select:none}
+.tg.on{background:var(--fuego);border-color:var(--fuego);color:#fff}
+.tg:hover{border-color:var(--fuego)}
+/* Cover */
+#cover{position:fixed;inset:0;z-index:50;display:grid;place-items:center;cursor:pointer;
+  background:radial-gradient(120% 120% at 50% 40%,#0b1020 0%,#070A14 60%,#04060c 100%)}
+#cover .cor{text-align:center}
+#cover .kick{font-family:'Space Grotesk';letter-spacing:.34em;text-transform:uppercase;color:var(--fuego);font-size:14px;margin-bottom:10px}
+#cover h2{font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(46px,8vw,110px);line-height:.95;letter-spacing:-.03em}
+#cover h2 .mk{color:var(--fuego)}
+#cover .sub{color:var(--muted);margin-top:14px;font-size:15px}
+#cover .go{margin-top:26px;display:inline-flex;align-items:center;gap:10px;background:var(--fuego);color:#fff;font-weight:700;
+  padding:14px 26px;border-radius:40px;font-size:16px}
+#cover .hint{margin-top:18px;font-size:12px;color:#475569}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+}}
+</script></head>
+<body>
+<canvas id="c3d"></canvas>
+<div id="overlay">
+  <div id="caption"></div>
+  <div id="cc" class="off"></div>
+</div>
+<div id="hud">
+  <button id="btnPlay" title="Play/Pausa">▶</button>
+  <div id="bar"><div id="fill"></div></div>
+  <div id="tc">0:00</div>
+  <div class="tg on" id="tgVoz">Voz</div>
+  <div class="tg on" id="tgSfx">SFX</div>
+  <div class="tg on" id="tgCc">CC</div>
+</div>
+<div id="cover"><div class="cor">
+  <div class="kick">Mecha · Motion</div>
+  <h2>Tu salón,<br><span class="mk">funcionando solo.</span></h2>
+  <div class="sub">Un recorrido de 75 segundos por el software que se gestiona solo.</div>
+  <div class="go">▶ Reproducir</div>
+  <div class="hint">Chispa v3 · 3D / WebGL</div>
+</div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+try {
+
+// -------------------- RENDERER / SCENE --------------------
+const canvas = document.getElementById('c3d');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x070A14);
+scene.fog = new THREE.FogExp2(0x070A14, 0.005);
+
+const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 2000);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const key = new THREE.DirectionalLight(0xfff0d8, 1.4); key.position.set(6,9,7); scene.add(key);
+const fillLight = new THREE.DirectionalLight(0x9bb0ff, 0.45); fillLight.position.set(-7,4,5); scene.add(fillLight);
+const fuegoLight = new THREE.PointLight(0xF4501E, 3.0, 80); fuegoLight.position.set(-5,3,-3); scene.add(fuegoLight);
+
+// -------------------- DATOS CANONICOS --------------------
+// Anclas de camara (una por escena) — el oner viaja por esta spline
+const ANCHORS = [
+  new THREE.Vector3(   0,  0,    0),
+  new THREE.Vector3(   0,  0, -45),
+  new THREE.Vector3( -10,  3, -88),
+  new THREE.Vector3(  10,  0,-132),
+  new THREE.Vector3(   0, -3,-176),
+  new THREE.Vector3(  -8,  6,-220),
+  new THREE.Vector3(   0,  2,-264),
+];
+// Duraciones reales de los WAVs (generar_voz_v4.py) + locucion + beats SFX
+const SCENES = [
+  {d:10.6, vo:"A ver… te lo pinto. Son las once y cuarenta de un martes. Tienes las manos llenas de tinte, el teléfono sonando, y tres WhatsApps sin leer.",
+   cap:[["WhatsApp",0.5],["3 mensajes",2.2]], sfx:[[.1,'whoosh'],[1.0,'ring'],[2.4,'pop'],[4.2,'alert']]},
+  {d:8.7, vo:"Hola. Yo soy Chispa, la inteligencia artificial de Mecha. Y mi trabajo es que eso no te vuelva a pasar.",
+   cap:[["Hola",.4],["Soy Chispa",1.6]], sfx:[[.05,'boom'],[.4,'chime'],[1.8,'pop']]},
+  {d:9.9, vo:"Mecha no es otra agenda bonita. Entiende tu oficio: fase activa, tiempo de reposo, y el hueco que recuperas mientras el color trabaja.",
+   cap:[["Fase activa",1.0],["Reposo",3.4],["Hueco recuperado",6.0]], sfx:[[.1,'whoosh'],[1.0,'click'],[3.4,'ok'],[6.0,'pop']]},
+  {d:9.5, vo:"El WhatsApp y el teléfono los llevo yo. De día y de noche: doy precios, confirmo la cita, cobro la señal… y tú sigues cortando.",
+   cap:[["WhatsApp",.6],["Señal cobrada",4.0]], sfx:[[.1,'whoosh'],[.6,'ring'],[4.0,'coin'],[5.4,'ok'],[7.0,'chime']]},
+  {d:7.1, vo:"Tu clienta reserva desde el portal en un clic y deja la señal. Ahí se acaban los plantones.",
+   cap:[["Portal",.6],["Señal",3.0]], sfx:[[.1,'whoosh'],[1.4,'coin'],[3.0,'ok']]},
+  {d:16.9, vo:"¿Y las agendas genéricas? Sirven igual para uñas, masajes o tatuajes. No tienen ficha de color, ni fases de tinte, y la IA te la cobran aparte. Mecha es cien por cien pelo, desde treinta y nueve euros al mes, sin comisiones.",
+   cap:[["¿Genéricas?",.6],["100% pelo",8.0],["39 €/mes",12.5]], sfx:[[.1,'whoosh'],[1.2,'click'],[8.0,'ok'],[12.5,'chime']]},
+  {d:8.4, vo:"El resultado: tu salón, funcionando solo. Entra en mechaa punto es, pruébalo gratis… y hablamos.",
+   cap:[["mechaa.es",2.0]], sfx:[[.05,'boom'],[.1,'whoosh'],[2.0,'chime'],[4.0,'pop']]},
+];
+
+// -------------------- SPLINE + TIMING --------------------
+const curve = new THREE.CatmullRomCurve3(ANCHORS, false, 'catmullrom', 0.5);
+let TOTAL = 0; SCENES.forEach(s => TOTAL += s.d);
+const stops = [0]; { let a=0; SCENES.forEach(s=>{a+=s.d; stops.push(a/TOTAL);}); }
+// durante la escena i, la camara viaja del ancla i al ancla i+1
+function progressFor(elapsed){
+  const e = Math.max(0, Math.min(elapsed, TOTAL));
+  let acc = 0;
+  for(let i=0;i<SCENES.length;i++){
+    const start = acc, end = acc + SCENES[i].d;
+    if(e <= end || i === SCENES.length-1){
+      const local = (e - start) / SCENES[i].d;
+      return stops[i] + local * (stops[i+1] - stops[i]);
+    }
+    acc = end;
+  }
+  return 1;
+}
+function sceneIndexFor(elapsed){
+  let acc = 0;
+  for(let i=0;i<SCENES.length;i++){ acc += SCENES[i].d; if(elapsed < acc) return i; }
+  return SCENES.length - 1;
+}
+
+// -------------------- TEXTURAS / UTILS --------------------
+const texLoader = new THREE.TextureLoader();
+function loadTex(url, cb){ return texLoader.load(url, t=>{ t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; cb && cb(t); }); }
+
+function makeLogoTexture(){
+  const c=document.createElement('canvas'); c.width=256; c.height=256; const g=c.getContext('2d');
+  const grd=g.createLinearGradient(128,40,128,215);
+  grd.addColorStop(0,'#FFE2B0'); grd.addColorStop(.45,'#FF9B3D'); grd.addColorStop(1,'#F4501E');
+  g.fillStyle=grd; g.beginPath(); g.moveTo(128,40);
+  g.bezierCurveTo(196,108,178,182,128,216); g.bezierCurveTo(78,182,60,108,128,40); g.fill();
+  g.fillStyle='rgba(255,255,255,.6)'; g.beginPath(); g.moveTo(128,118);
+  g.bezierCurveTo(152,156,144,190,128,204); g.bezierCurveTo(112,190,104,156,128,118); g.fill();
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
+function makeKeyboardTexture(){
+  const cols=12, rows=4;
+  const c=document.createElement('canvas'); c.width=cols*100; c.height=rows*100; const g=c.getContext('2d'); g.clearRect(0,0,c.width,c.height);
+  const layout=['1234567890','QWERTYUIOP','ASDFGHJKLÑ','ZXCVBNM,.'];
+  g.fillStyle='rgba(210,218,232,0.80)'; g.font='700 42px Inter,system-ui,sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  for(let r=0;r<rows;r++){ const chs=layout[r]||''; const pad=Math.floor((cols-chs.length)/2);
+    for(let i=0;i<chs.length;i++){ g.fillText(chs[i], (pad+i+0.5)*100, (r+0.5)*100); } }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
+
+// portatil reutilizable (pantalla con textura)
+function makeLaptop(texUrl){
+  const g = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({color:0x2a3550, metalness:.6, roughness:.36});
+  const darkMat = new THREE.MeshStandardMaterial({color:0x11151f, metalness:.5, roughness:.45});
+  const base = new THREE.Mesh(new RoundedBoxGeometry(10, .55, 7, 5, .14), bodyMat);
+  const keyGeo = new RoundedBoxGeometry(.6, .18, .6, 2, .06);
+  const keyMat = new THREE.MeshStandardMaterial({color:0x0a0f1a, metalness:.2, roughness:.7});
+  const keys = new THREE.InstancedMesh(keyGeo, keyMat, 12*4);
+  const d = new THREE.Object3D(); let k=0;
+  for(let r=0;r<4;r++) for(let cI=0;cI<12;cI++){ d.position.set(-3.3+cI*.6, .33, -2.4+r*.62); d.rotation.x=-0.05; d.updateMatrix(); keys.setMatrixAt(k++, d.matrix); }
+  keys.instanceMatrix.needsUpdate = true;
+  const kbGlow = new THREE.Mesh(new THREE.PlaneGeometry(7.4,2.6), new THREE.MeshBasicMaterial({color:0xF4501E, transparent:true, opacity:.45, blending:THREE.AdditiveBlending}));
+  kbGlow.position.set(0,.30,-1.0); kbGlow.rotation.x=-Math.PI/2;
+  const kbLabels = new THREE.Mesh(new THREE.PlaneGeometry(7.2,2.48), new THREE.MeshBasicMaterial({map:makeKeyboardTexture(), transparent:true, toneMapped:false}));
+  kbLabels.position.set(0,.435,-1.35); kbLabels.rotation.x=-Math.PI/2;
+  const trackpad = new THREE.Mesh(new RoundedBoxGeometry(3.6,.06,2.3,3,.1), new THREE.MeshStandardMaterial({color:0x161d2e, metalness:.4, roughness:.5}));
+  trackpad.position.set(0,.31,1.95);
+  const logo = new THREE.Mesh(new THREE.PlaneGeometry(1.15,1.15), new THREE.MeshBasicMaterial({map:makeLogoTexture(), transparent:true, toneMapped:false}));
+  logo.position.set(0,.32,2.95); logo.rotation.x=-Math.PI/2;
+  const lid = new THREE.Group(); lid.position.set(0,0.3,-3.15); lid.rotation.x=-0.16;
+  const bezel = new THREE.Mesh(new RoundedBoxGeometry(10,6.4,.4,4,.14), bodyMat); bezel.position.set(0,3.2,0);
+  const screenFrame = new THREE.Mesh(new RoundedBoxGeometry(9.3,5.75,.05), darkMat); screenFrame.position.set(0,3.2,0.22);
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(9.0,5.06), new THREE.MeshBasicMaterial({color:0xCCCCCC, side:THREE.DoubleSide, toneMapped:false}));
+  screen.position.set(0,3.2,0.252);
+  if(texUrl){ loadTex(texUrl, t=>{ screen.material.map = t; screen.material.needsUpdate = true; }); }
+  const webcam = new THREE.Mesh(new THREE.CircleGeometry(.07,18), new THREE.MeshStandardMaterial({color:0x05070d, metalness:.8, roughness:.2}));
+  webcam.position.set(0,6.05,0.24);
+  const hinge = new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,10.2,24), new THREE.MeshStandardMaterial({color:0x0e131c, metalness:.7, roughness:.4}));
+  hinge.rotation.z = Math.PI/2; hinge.position.set(0,0.3,-3.15);
+  lid.add(bezel, screenFrame, screen, webcam);
+  g.add(base, kbGlow, keys, kbLabels, trackpad, logo, lid, hinge);
+  g.userData = { screen };
+  return g;
+}
+
+// -------------------- ENTORNO + ORBE CHISPA --------------------
+const orb = (function makeOrb(){
+  const g=new THREE.Group();
+  const core=new THREE.Mesh(new THREE.IcosahedronGeometry(.85,3), new THREE.MeshStandardMaterial({color:0xFF9B3D, emissive:0xF4501E, emissiveIntensity:2.5, roughness:.3}));
+  g.add(core);
+  for(let i=0;i<3;i++){ const halo=new THREE.Mesh(new THREE.RingGeometry(1.15+i*0.4,1.32+i*0.4,48),
+    new THREE.MeshBasicMaterial({color:0xF4501E, transparent:true, opacity:.5-i*0.12, side:THREE.DoubleSide})); g.add(halo); }
+  g.userData.core=core; g.userData.halos=g.children.slice(1);
+  return g;
+})();
+scene.add(orb);
+
+const N=440, pos=new Float32Array(N*3);
+for(let i=0;i<N;i++){ pos[i*3]=(Math.random()-.5)*44; pos[i*3+1]=Math.random()*24-6; pos[i*3+2]=(Math.random()-.5)*44; }
+const eg=new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.BufferAttribute(pos,3));
+const embers=new THREE.Points(eg, new THREE.PointsMaterial({color:0xFF9B3D, size:.085, transparent:true, opacity:.85, blending:THREE.AdditiveBlending}));
+scene.add(embers);
+
+// -------------------- GRUPOS DE ESCENA --------------------
+const sceneGroups = SCENES.map(()=>new THREE.Group());
+sceneGroups.forEach((g,i)=>{ g.position.copy(ANCHORS[i]); scene.add(g); });
+// S3 (gestion vertical): portatil con la agenda real
+const laptopS3 = makeLaptop('capturas_recortadas/agenda_full_clean.png?v=20260805a');
+laptopS3.scale.setScalar(1.1); laptopS3.rotation.y = 0.4; laptopS3.position.y -= 1.4;
+sceneGroups[2].add(laptopS3);
+// S7 (CTA): wordmark DOM (caption basta por ahora); grupo vacio aqui
+
+// -------------------- AUDIO --------------------
+let actx=null, master=null;
+function ensureAudio(){
+  if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); master=actx.createGain(); master.gain.value=0.9; master.connect(actx.destination);}catch(e){} }
+  if(actx && actx.state==='suspended') actx.resume();
+}
+function env(t0,dur,peak){ const g=actx.createGain(); g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(peak,t0+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur); return g; }
+function tone(freq,dur,type='sine',peak=0.18){ if(!actx||!flags.sfx)return; const t0=actx.currentTime; const o=actx.createOscillator(); o.type=type; o.frequency.value=freq; const g=env(t0,dur,peak); o.connect(g).connect(master); o.start(t0); o.stop(t0+dur+0.02); }
+function noiseBurst(dur,peak=0.14,hp=300){ if(!actx||!flags.sfx)return; const t0=actx.currentTime; const n=actx.createBufferSource(); const b=actx.createBuffer(1, Math.floor(actx.sampleRate*dur), actx.sampleRate); const dd=b.getChannelData(0); for(let i=0;i<dd.length;i++) dd[i]=Math.random()*2-1; n.buffer=b; const f=actx.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp; const g=env(t0,dur,peak); n.connect(f).connect(g).connect(master); n.start(t0); n.stop(t0+dur); }
+const SFX={
+  whoosh:()=>noiseBurst(0.45,0.12,250), pop:()=>tone(660,0.13,'triangle',0.16),
+  chime:()=>{ tone(880,0.3,'sine',0.13); setTimeout(()=>tone(1320,0.4,'sine',0.09),60); },
+  ring:()=>{ tone(440,0.15,'square',0.07); setTimeout(()=>tone(440,0.15,'square',0.07),200); },
+  alert:()=>tone(220,0.2,'sawtooth',0.09), click:()=>tone(1200,0.05,'square',0.10),
+  ok:()=>{ tone(523,0.1,'sine',0.11); setTimeout(()=>tone(784,0.18,'sine',0.11),80); },
+  coin:()=>{ tone(988,0.08,'square',0.11); setTimeout(()=>tone(1319,0.18,'square',0.11),70); },
+  boom:()=>tone(70,0.5,'sine',0.2),
+};
+function nn(i){ return (i<9?'0':'')+(i+1); }
+const vozCache = SCENES.map((s,i)=>{ const a=new Audio('voz/chispa_'+nn(i)+'.wav'); a.preload='auto'; a.volume=0.95; return a; });
+function stopVoz(){ vozCache.forEach(a=>{ try{ a.pause(); a.currentTime=0; }catch(e){} }); }
+function say(i){ if(!flags.voz) return; stopVoz(); const a=vozCache[i]; if(a){ try{ a.currentTime=0; a.play().catch(()=>{}); }catch(e){} } }
+
+// -------------------- TIMING ENGINE --------------------
+const flags = { voz:true, sfx:true, cc:true };
+let playing=false, elapsed=0, cur=-1, last=0, pendingSfx=[];
+const cc=document.getElementById('cc'), captionEl=document.getElementById('caption');
+const fill=document.getElementById('fill'), tc=document.getElementById('tc'), btnPlay=document.getElementById('btnPlay');
+
+function fmt(s){ s=Math.max(0,Math.floor(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function setCaption(text){
+  if(!flags.cc || !text){ captionEl.classList.remove('show'); captionEl.textContent=''; return; }
+  captionEl.innerHTML = text.replace(/\b(Chispa|Mecha|mechaa\.es|39\s*€\/mes|100%\s*pelo)\b/g, '<span class="mk">$1</span>');
+  captionEl.classList.add('show');
+}
+
+function enterScene(i){
+  if(cur===i) return;
+  cur=i;
+  sceneGroups.forEach((g,k)=> g.visible = (k===i));   // optimiza render
+  cc.textContent = SCENES[i].vo; cc.classList.toggle('off', !flags.cc);
+  say(i);
+  // programar SFX locales
+  pendingSfx.forEach(t=>clearTimeout(t)); pendingSfx=[];
+  SCENES[i].sfx.forEach(b=>{ pendingSfx.push(setTimeout(()=>{ if(cur===i&&playing) SFX[b[1]]&&SFX[b[1]](); }, b[0]*1000)); });
+  // programar captions cineticas
+  SCENES[i].cap.forEach((c,j)=>{ const prev=SCENES[i].cap[j-1]; const startMs=(prev?prev[1]:0)*1000; const delay=(c[1])*1000 - elapsed*1000 + (SCENES[i].vo?0:0);
+    // se actualiza en upd en su momento; simplificado: timeout relativo a la entrada
+  });
+  // captions: usamos el array cap con offsets relativos al inicio de escena
+  let capIdx=0;
+  SCENES[i]._capTimer && clearTimeout(SCENES[i]._capTimer);
+  const advanceCap=()=>{ if(cur!==i) return; if(capIdx<SCENES[i].cap.length){ setCaption(SCENES[i].cap[capIdx][0]); const dur = (capIdx+1<SCENES[i].cap.length? SCENES[i].cap[capIdx+1][1] : SCENES[i].d) - SCENES[i].cap[capIdx][1]; capIdx++; SCENES[i]._capTimer=setTimeout(advanceCap, dur*1000); } else { SCENES[i]._capTimer=setTimeout(()=>{ if(cur===i) setCaption(null); }, 1200); } };
+  const firstOff = SCENES[i].cap.length? SCENES[i].cap[0][1]*1000 : 400;
+  SCENES[i]._capTimer=setTimeout(advanceCap, firstOff);
+}
+
+// -------------------- LOOP --------------------
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight), 0.7, 0.55, 1.1));
+
+function loop(t){
+  requestAnimationFrame(loop);
+  const dt = last ? (t-last)/1000 : 0; last = t;
+  if(playing){
+    elapsed += dt;
+    if(elapsed >= TOTAL){ elapsed = TOTAL; playing=false; btnPlay.textContent='▶'; setCaption(null); }
+    const si = sceneIndexFor(elapsed);
+    if(si !== cur) enterScene(si);
+    // HUD
+    const p = elapsed/TOTAL;
+    fill.style.width = (p*100)+'%'; tc.textContent = fmt(elapsed)+' / '+fmt(TOTAL);
+  }
+  const pr = progressFor(elapsed);
+  const camPos = curve.getPointAt(Math.min(pr,1));
+  camera.position.copy(camPos);
+  camera.lookAt(curve.getPointAt(Math.min(pr+0.02,1)));
+  // orbe viaja un paso por delante de la camara (hilo conductor)
+  orb.position.copy(curve.getPointAt(Math.min(pr+0.015,1)));
+  orb.userData.core.rotation.y = t*0.0006; orb.userData.core.scale.setScalar(1+Math.sin(t*0.003)*0.05);
+  orb.userData.halos.forEach((h,idx)=>{ h.rotation.z=t*0.0008*(idx+1); h.lookAt(camera.position); });
+  embers.rotation.y = t*0.00002; embers.position.y = (t*0.0008)%4;
+  composer.render();
+}
+requestAnimationFrame(loop);
+
+addEventListener('resize', ()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight); });
+
+// -------------------- CONTROLES / HUD --------------------
+function play(){ ensureAudio(); playing=true; last=performance.now(); btnPlay.textContent='❚❚'; if(cur<0) enterScene(sceneIndexFor(elapsed)); requestAnimationFrame(loop); }
+function pause(){ playing=false; btnPlay.textContent='▶'; stopVoz(); }
+btnPlay.addEventListener('click', ()=> playing?pause():play());
+document.getElementById('bar').addEventListener('click', e=>{
+  const r=e.currentTarget.getBoundingClientRect(); const p=(e.clientX-r.left)/r.width;
+  elapsed = Math.max(0,Math.min(TOTAL,p*TOTAL)); cur=-1; stopVoz();
+  // forzar re-entrada de escena
+  playing=true; last=performance.now(); enterScene(sceneIndexFor(elapsed));
+});
+function bindToggle(id,key){ const el=document.getElementById(id); el.addEventListener('click', ()=>{ flags[key]=!flags[key]; el.classList.toggle('on',flags[key]); if(key==='cc'){ cc.classList.toggle('off',!flags.cc); if(!flags.cc) captionEl.classList.remove('show'); } if(key==='voz'&&!flags.voz) stopVoz(); }); }
+bindToggle('tgVoz','voz'); bindToggle('tgSfx','sfx'); bindToggle('tgCc','cc');
+
+document.getElementById('cover').addEventListener('click', ()=>{
+  document.getElementById('cover').style.display='none';
+  play();
+});
+
+window.__qa_ok = true;
+} catch(e){
+  window.__qa_ok = false; window.__qa_err = String(e && e.message || e); console.error(e);
+}
+</script></body></html>
