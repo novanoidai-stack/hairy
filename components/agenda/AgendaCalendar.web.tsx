@@ -8364,6 +8364,13 @@ function DayTimeline({
                             >
                             {(() => {
                               const narrow = height < 50;
+                              // Bloque bajo pero ancho (tipico de movil: una columna
+                              // de 290px y una cita de 20'). Apilar hora + nombre +
+                              // chip de servicio pide ~64px de contenido dentro de 41
+                              // utiles, asi que el servicio se cortaba. Por debajo de
+                              // 64px el servicio se pinta EN LINEA tras el nombre,
+                              // aprovechando el ancho que sobra.
+                              const bloqueBajo = height < 64;
                               const nombreCliente =
                                 clienteMap?.get(cita.cliente_id)?.nombre || "-";
                               const nombreServicio =
@@ -8920,8 +8927,26 @@ function DayTimeline({
                                         {(cita.fin_activa || cita.fin_espera) && !cancelada && (
                                           <Icon name="coffee" size={12} color="#f59e0b" />
                                         )}
+                                        {/* Servicio en linea cuando no cabe su chip debajo. */}
+                                        {bloqueBajo && height > 32 && nombreServicio && (
+                                          <span
+                                            style={{
+                                              fontWeight: 600,
+                                              color: cancelada
+                                                ? TOKENS.textTer
+                                                : TOKENS.textSec,
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              whiteSpace: "nowrap",
+                                              minWidth: 0,
+                                            }}
+                                            title={nombreServicio}
+                                          >
+                                            · {nombreServicio}
+                                          </span>
+                                        )}
                                       </div>
-                                      {height > 32 && (
+                                      {height > 32 && !bloqueBajo && (
                                         <div
                                           style={{
                                             background: cancelada ? "transparent" : TOKENS.bgCard,
@@ -13925,13 +13950,16 @@ const RAIL_ICONS: Record<SeccionCita, (c: string) => React.ReactNode> = {
   ),
 };
 
-const RAIL_ITEMS: { id: SeccionCita; label: string }[] = [
-  { id: "servicio", label: "Servicio y tiempos" },
-  { id: "cliente", label: "Cliente" },
-  { id: "color", label: "Ficha de color" },
-  { id: "productos", label: "Productos" },
-  { id: "pagos", label: "Pagos" },
-  { id: "historial", label: "Historial" },
+// labelCorto: version para el rail horizontal de movil. Con las etiquetas largas
+// la barra medía 770px dentro de 390 y cuatro de las seis secciones quedaban
+// fuera de pantalla tras un scroll lateral que no se veia venir.
+const RAIL_ITEMS: { id: SeccionCita; label: string; labelCorto: string }[] = [
+  { id: "servicio", label: "Servicio y tiempos", labelCorto: "Servicio" },
+  { id: "cliente", label: "Cliente", labelCorto: "Cliente" },
+  { id: "color", label: "Ficha de color", labelCorto: "Color" },
+  { id: "productos", label: "Productos", labelCorto: "Productos" },
+  { id: "pagos", label: "Pagos", labelCorto: "Pagos" },
+  { id: "historial", label: "Historial", labelCorto: "Historial" },
 ];
 
 function SeccionRailItem({
@@ -16022,9 +16050,11 @@ export function DetalleCitaModal({
           {/* Cuerpo maestro-detalle: rail de secciones + panel (estilo Booksy) */}
           <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: isMobileOrTablet ? "column" : "row" }}>
             {isMobileOrTablet ? (
-              <div style={{ display: "flex", gap: 4, padding: "10px 12px", overflowX: "auto", borderBottom: `1px solid ${TOKENS.border}`, background: TOKENS.bgPanel, flexShrink: 0 }}>
+              // Rail de secciones en hoja inferior: envuelve en dos filas en vez de
+              // esconder la mitad tras un scroll lateral. Todas a la vista y a un toque.
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, rowGap: 4, padding: "10px 12px", borderBottom: `1px solid ${TOKENS.border}`, background: TOKENS.bgPanel, flexShrink: 0 }}>
                 {RAIL_ITEMS.map((it) => (
-                  <SeccionRailItem key={it.id} id={it.id} label={it.label} active={seccionActiva === it.id} onClick={() => setSeccionActiva(it.id)} vertical={false} />
+                  <SeccionRailItem key={it.id} id={it.id} label={it.labelCorto} active={seccionActiva === it.id} onClick={() => setSeccionActiva(it.id)} vertical={false} />
                 ))}
               </div>
             ) : (
