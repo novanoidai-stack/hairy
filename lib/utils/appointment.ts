@@ -30,12 +30,12 @@ export function isTimeSlotOccupied(
       testEnd.getTime() > citaInicio.getTime();
 
     // Starts during wait phase and reaches/exceeds the second active phase → blocked
-    // Uses >= so that ending exactly at the boundary (zero transition time) is also blocked
+    // Uses > so that ending exactly at the boundary is permitted.
     const excedeLaEspera =
       citaFinEspera.getTime() < citaFin.getTime() &&
       testStart.getTime() >= citaFinActiva.getTime() &&
       testStart.getTime() < citaFinEspera.getTime() &&
-      testEnd.getTime() >= citaFinEspera.getTime();
+      testEnd.getTime() > citaFinEspera.getTime();
 
     // Starts during second active phase (if it exists) → blocked
     const solapaSegundaFaseActiva =

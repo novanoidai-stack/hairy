@@ -88,7 +88,11 @@ async function llamarEdge(body: Record<string, unknown>): Promise<{ ok: boolean;
   const { data, error } = await supabase.functions.invoke('crear-acceso-empleado', { body });
   const resp = (data ?? null) as RespuestaEdge | null;
   if (error || resp?.error) {
-    return { ok: false, error: mensaje(resp?.error), data: resp };
+    let msg = mensaje(resp?.error);
+    if (msg === 'No se pudo completar la operación.' && error) {
+      msg = `${msg} Detalles: ${error.message || 'Error de conexión'}`;
+    }
+    return { ok: false, error: msg, data: resp };
   }
   return { ok: true, error: null, data: resp };
 }

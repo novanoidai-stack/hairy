@@ -61,7 +61,7 @@ const DRAWER_CLOSE_MS = 280;
 // Ancho de la columna de contenido en pantalla completa (desktop). Antes se
 // centraba a 760 (apenas mas que el drawer de 400), por eso "no se ganaba nada"
 // al maximizar. Con mas ancho + rejilla de prompts, el espacio se aprovecha.
-const ANCHO_AMPLIO = 1240;
+const ANCHO_AMPLIO = 960;
 
 const PANEL_STYLES = `
   @keyframes chispaDrawerIn { from { transform: translateX(28px) scale(0.94); opacity: 0; filter: blur(6px); } 55% { filter: blur(0); } to { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); } }
@@ -563,7 +563,7 @@ export default function ChispaPanel({
   const omitidosOnboardingRef = useRef<Record<string, boolean>>({});
   const hiloCargado = useRef(false);
 
-  const amplio = pantallaCompleta && !isMobile;
+  const amplio = true; // Always use wide layout for centered chat
 
   const esGestor = profile.role === 'owner' || profile.role === 'admin';
   const pathNormalizado = normalizarPathname(pathname);
@@ -1399,7 +1399,7 @@ export default function ChispaPanel({
     }
   }
 
-  const drawerWidth = isMobile || amplio ? '100%' : 400;
+  const drawerWidth = '100%';
 
   const contenido = (
     <>
@@ -1440,11 +1440,13 @@ export default function ChispaPanel({
           <div className={`chispa-drawer${cerrando ? ' chispa-drawer-closing' : ''}`} style={{
             position: 'fixed', top: 0, right: 0, height: '100%', width: drawerWidth, zIndex: 2147483000,
             display: 'flex', flexDirection: 'column',
-            background: '#ffffff',
+            background: 'rgba(255, 255, 255, 0.75)',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
             boxShadow: '-12px 0 50px rgba(0,0,0,0.22)',
             borderLeft: `1px solid rgba(0, 0, 0, 0.08)`,
             fontFamily: 'Inter, system-ui, sans-serif',
-            transition: isMobile ? undefined : 'width 0.32s cubic-bezier(0.16,1,0.3,1)',
+            transition: 'opacity 0.32s cubic-bezier(0.16,1,0.3,1)',
           }}>
             {/* Cabecera */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', background: 'linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%)', flexShrink: 0 }}>
@@ -1498,16 +1500,7 @@ export default function ChispaPanel({
                   <IconoNueva size={15} color={T.textSecondary} />
                 </button>
               )}
-              {!isMobile && (
-                <button
-                  onClick={alternarPantallaCompleta}
-                  aria-label={pantallaCompleta ? 'Salir de pantalla completa' : 'Ver Chispa a pantalla completa'}
-                  aria-pressed={pantallaCompleta}
-                  title={pantallaCompleta ? 'Salir de pantalla completa' : 'Pantalla completa'}
-                  style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <IconoPantallaCompleta activo={pantallaCompleta} size={15} color={T.textSecondary} />
-                </button>
-              )}
+              {/* Toggle fullscreen button removed since it is now always fullscreen */}
               <button onClick={cerrarPanel} aria-label="Cerrar Chispa"
                 style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${T.border}`, background: T.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <IconoCerrar size={15} color={T.danger} />

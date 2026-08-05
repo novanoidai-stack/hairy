@@ -50,10 +50,10 @@ function copyDe(tipo: string, count: number): { titulo: string; cuerpo: string; 
       };
     case 'cita_sin_confirmar':
       return {
-        titulo: 'Confirma las citas de mañana',
+        titulo: 'Confirma las próximas citas',
         cuerpo: count === 1
-          ? 'Hay una cita próxima sin confirmar. Refuerza el recordatorio para evitar el hueco.'
-          : `Hay ${count} citas próximas sin confirmar. Refuerza el recordatorio para evitar huecos.`,
+          ? 'Hay una cita (48h) sin confirmar. Refuerza el recordatorio para evitar el hueco.'
+          : `Hay ${count} citas próximas (48h) sin confirmar. Refuerza el recordatorio para evitar huecos.`,
         cta: 'Ver agenda',
       };
     case 'senal_sin_pagar':

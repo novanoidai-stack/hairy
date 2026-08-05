@@ -1283,7 +1283,7 @@
       btn.addEventListener('click', function () {
         var id = btn.getAttribute('data-del-acc');
         var email = btn.getAttribute('data-email') || 'este usuario';
-        if (!window.confirm('¿Seguro que quieres eliminar la cuenta de "' + email + '"?\n\nSe eliminará su perfil de la base de datos de Mecha. Si tiene salones o datos vinculados, Supabase impedirá el borrado físico si hay restricciones activas.')) return;
+        if (!window.confirm('¿Seguro que quieres eliminar la cuenta de "' + email + '"?\n\nSe eliminará su perfil, su usuario de acceso y todos sus datos asociados. El correo quedará libre para volverse a registrar.')) return;
         
         btn.disabled = true;
         api.client.rpc('staff_delete_account', { target_user_id: id }).then(function (res) {

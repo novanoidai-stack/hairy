@@ -35,8 +35,8 @@ export const BIBLIOTECA_PROMPTS: PromptBiblioteca[] = [
   {
     id: 'citas-sin-confirmar',
     icono: '🔔',
-    label: 'Citas sin confirmar mañana',
-    prompt: 'Dime qué citas de mañana están todavía sin confirmar por parte del cliente y redacta un recordatorio.',
+    label: 'Citas sin confirmar (48h)',
+    prompt: 'Dime qué próximas citas (próximas 48h) están todavía sin confirmar por parte del cliente y redacta un recordatorio.',
     descripcion: 'Identifica citas sin confirmar y genera un mensaje amable.',
     categoria: 'agenda',
     paginas: ['/', '/agenda', '/bandeja'],

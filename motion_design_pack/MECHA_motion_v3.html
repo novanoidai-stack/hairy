@@ -212,6 +212,21 @@ function makeLaptop(texUrl){
   return g;
 }
 
+// movil reutilizable (pantalla con textura opcional)
+function makePhone(texUrl){
+  const g = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({color:0x232a3d, metalness:.6, roughness:.4});
+  const body = new THREE.Mesh(new RoundedBoxGeometry(2.3, 4.8, 0.32, 4, 0.16), bodyMat);
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(2.05, 4.45), new THREE.MeshBasicMaterial({color:0x05070d, side:THREE.DoubleSide, toneMapped:false}));
+  screen.position.z = 0.17;
+  if(texUrl){ loadTex(texUrl, t=>{ screen.material.map = t; screen.material.needsUpdate = true; }); }
+  const camDot = new THREE.Mesh(new THREE.CircleGeometry(.05,16), new THREE.MeshStandardMaterial({color:0x05070d, metalness:.8, roughness:.2}));
+  camDot.position.set(0, 2.15, 0.18);
+  g.add(body, screen, camDot);
+  g.userData = { screen };
+  return g;
+}
+
 // -------------------- ENTORNO + ORBE CHISPA --------------------
 const orb = (function makeOrb(){
   const g=new THREE.Group();
@@ -233,11 +248,44 @@ scene.add(embers);
 // -------------------- GRUPOS DE ESCENA --------------------
 const sceneGroups = SCENES.map(()=>new THREE.Group());
 sceneGroups.forEach((g,i)=>{ g.position.copy(ANCHORS[i]); scene.add(g); });
-// S3 (gestion vertical): portatil con la agenda real
+// inicios absolutos de cada escena (para animaciones locales en el loop)
+const startTimes = []; { let a=0; SCENES.forEach(s=>{ startTimes.push(a); a+=s.d; }); }
+const sceneFx = {}; // referencias para animar por escena
+
+// S1 (dolor, idx0): movil sonando + 3 notificaciones apiladas
+const phoneS1 = makePhone(); phoneS1.rotation.y = -0.35; phoneS1.position.set(0,-0.3,0);
+const notiColor = [0xFF9B3D, 0xF4501E, 0x38bdf8];
+const notis = [];
+for(let i=0;i<3;i++){ const b=new THREE.Mesh(new THREE.PlaneGeometry(2.0,0.62),
+  new THREE.MeshBasicMaterial({color:notiColor[i], transparent:true, opacity:.92, side:THREE.DoubleSide, toneMapped:false}));
+  b.position.set(0.25, 0.7+i*0.78, 0.26); b.rotation.y=-0.35; phoneS1.add(b); notis.push(b); }
+sceneFx.shakePhone = phoneS1;
+sceneGroups[0].add(phoneS1);
+
+// S3 (gestion vertical, idx2): portatil con la agenda real
 const laptopS3 = makeLaptop('capturas_recortadas/agenda_full_clean.png?v=20260805a');
 laptopS3.scale.setScalar(1.1); laptopS3.rotation.y = 0.4; laptopS3.position.y -= 1.4;
 sceneGroups[2].add(laptopS3);
-// S7 (CTA): wordmark DOM (caption basta por ahora); grupo vacio aqui
+
+// S4 (24/7, idx3): movil con chat animado + moneda señal
+const phoneS4 = makePhone(); phoneS4.rotation.y = 0.35;
+const chat = [];
+for(let i=0;i<3;i++){ const b=new THREE.Mesh(new THREE.PlaneGeometry(1.55,0.55),
+  new THREE.MeshBasicMaterial({color: i===2?0x10B981:0x25D366, transparent:true, opacity:0, side:THREE.DoubleSide, toneMapped:false}));
+  b.position.set(-0.12, -1.0+i*0.75, 0.26); b.rotation.y=0.35; phoneS4.add(b); chat.push(b); }
+const coin = new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,.08,28),
+  new THREE.MeshStandardMaterial({color:0xFFC46B, metalness:.9, roughness:.25, emissive:0xFF9B3D, emissiveIntensity:.35}));
+coin.position.set(2.4, 4, 1.2); coin.rotation.x = Math.PI/2; coin.visible=false;
+sceneFx.chat = chat; sceneFx.coin = coin;
+sceneGroups[3].add(phoneS4, coin);
+
+// S5 (portal+señal, idx4): movil portal + chip "Señal pagada"
+const phoneS5 = makePhone(); phoneS5.rotation.y = -0.25;
+const okChip = new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.65),
+  new THREE.MeshBasicMaterial({color:0x10B981, transparent:true, opacity:.95, side:THREE.DoubleSide, toneMapped:false}));
+okChip.position.set(0, 1.8, 0.28); phoneS5.add(okChip);
+sceneGroups[4].add(phoneS5);
+// S2, S6, S7 usan overlays DOM (orb + captions + tablas/CTA)
 
 // -------------------- AUDIO --------------------
 let actx=null, master=null;

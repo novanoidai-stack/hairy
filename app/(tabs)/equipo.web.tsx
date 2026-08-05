@@ -493,7 +493,13 @@ export default function EquipoWeb() {
           {!profileData || can({ role: roleOf(profileData as any) as any } as any, 'equipo.gestionar') ? (
             <button
               className="m-btn-primary"
-              onClick={() => setShowNewProf(true)}
+              onClick={() => {
+                if (profesionales.length >= 15) {
+                  alert('Has alcanzado el límite de 15 profesionales en tu agenda. Tu plan admite hasta 15 fichas de profesionales.');
+                  return;
+                }
+                setShowNewProf(true);
+              }}
               style={{ padding: isMobile ? '8px 10px' : '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: `0 6px 20px rgba(244,80,30,0.45)`, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon name="plus" size={16} color="#fff" />
               {isMobile ? 'Añadir' : 'Añadir profesional'}
@@ -581,7 +587,7 @@ export default function EquipoWeb() {
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{p.nombre}</div>
                         {!p.activo && <Pill color={TOKENS.textTer}>Inactivo</Pill>}
                         {/* Acceso al software: sin cuenta / invitado sin aceptar / dentro. */}
-                        {!p.profile_id ? (
+                        {(!p.profile_id || (can(profileData as any, 'equipo.gestionar') && !cuentasPorFicha[p.id])) ? (
                           <span title="Esta persona tiene ficha en la agenda pero no entra al software. Ábrela para invitarla.">
                             <Pill color={TOKENS.textTer}>Sin acceso</Pill>
                           </span>
@@ -719,7 +725,13 @@ export default function EquipoWeb() {
 
             {/* Add card */}
             <div
-              onClick={() => setShowNewProf(true)}
+              onClick={() => {
+                if (profesionales.length >= 15) {
+                  alert('Has alcanzado el límite de 15 profesionales en tu agenda. Tu plan admite hasta 15 fichas de profesionales.');
+                  return;
+                }
+                setShowNewProf(true);
+              }}
               onMouseEnter={(e) => { e.currentTarget.style.background = TOKENS.primarySoft; e.currentTarget.style.borderColor = `rgba(244,80,30,0.4)`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = TOKENS.borderHi; e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
               style={{
@@ -848,11 +860,16 @@ export default function EquipoWeb() {
               <div style={{ marginBottom: 14 }}>
                 <div style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 }}>Especialidades</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {profSel.especialidades.map((esp: string) => (
-                    <span key={esp} style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(6,182,212,0.10)', border: '1px solid rgba(6,182,212,0.25)', color: '#06b6d4', fontSize: 11, fontWeight: 600 }}>{esp}</span>
+                  {profSel.especialidades.map(esp => (
+                    <span key={esp} style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(148,163,184,0.06)', color: TOKENS.textSec, fontSize: 11, fontWeight: 500 }}>{esp}</span>
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Acceso al software (Boton Invitar) */}
+            {(!profileData || can({ role: roleOf(profileData as any) as any } as any, 'equipo.gestionar')) && (
+              <BotonInvitarAcceso prof={profSel} cuenta={cuentasPorFicha[profSel.id]} negocioId={negocioId} />
             )}
 
             {/* IA Helper */}
@@ -2876,6 +2893,109 @@ function MetricCard({ label, value, color }: { label: string; value: string; col
     <div style={{ background: `${color}0a`, border: `1px solid ${color}22`, borderRadius: 10, padding: '10px 12px', textAlign: 'center' }}>
       <div style={{ fontSize: 16, fontWeight: 700, color, letterSpacing: -0.3 }}>{value}</div>
       <div style={{ fontSize: 9, letterSpacing: 0.8, color: TOKENS.textTer, fontWeight: 600, textTransform: 'uppercase', marginTop: 3 }}>{label}</div>
+    </div>
+  );
+}
+
+function BotonInvitarAcceso({ prof, cuenta, negocioId }: { prof: Profesional; cuenta?: CuentaEquipo | null; negocioId: string }) {
+  const [showForm, setShowForm] = useState(false);
+  const [email, setEmail] = useState(prof.email || '');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  // If there's already an account linked to this professional, show nothing (or show "Tiene acceso").
+  // But wait, the parent might already check this. We'll check anyway.
+  if (cuenta) {
+    return (
+      <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(15,157,107,0.06)', border: '1px solid rgba(15,157,107,0.2)', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 999, background: 'rgba(15,157,107,0.15)', display: 'grid', placeItems: 'center' }}>
+          <Icon name="mail" size={16} color="#0f9d6b" />
+        </div>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#0f9d6b' }}>Tiene acceso al software</div>
+          <div style={{ fontSize: 11.5, color: '#0f9d6b', opacity: 0.8 }}>Email: {cuenta.email}</div>
+        </div>
+      </div>
+    );
+  }
+
+  const handleInvitar = async () => {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErrorMsg('Introduce un email válido.');
+      return;
+    }
+    setLoading(true);
+    setErrorMsg('');
+    const { ok, error } = await invitarAcceso({
+      email: email.trim().toLowerCase(),
+      nombre: prof.nombre,
+      rol: 'employee',
+      crearFicha: false // Ficha ya existe
+    });
+    
+    if (ok) {
+      // Ahora vinculamos la cuenta a la ficha
+      // Nota: invitarAcceso() con crearFicha=false asocia si hacemos un match, pero es mejor actualizar el profesional con el profile_id si lo devuelve. 
+      // Por ahora, asumimos que el usuario lo acepta y se vincula.
+      setSuccess(true);
+      setShowForm(false);
+    } else {
+      setErrorMsg(error || 'Error al invitar');
+    }
+    setLoading(false);
+  };
+
+  if (success) {
+    return (
+      <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(15,157,107,0.1)', border: '1px solid rgba(15,157,107,0.3)', borderRadius: 10, fontSize: 12.5, color: '#0f9d6b', fontWeight: 500 }}>
+        Invitación enviada a {email}. Cuando acepte, tendrá acceso.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: 16, padding: 14, background: '#fff', border: '1px dashed rgba(40,30,24,0.15)', borderRadius: 10 }}>
+      {!showForm ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#1c1814' }}>Acceso al software</div>
+            <div style={{ fontSize: 11.5, color: '#736658' }}>No tiene cuenta para iniciar sesión.</div>
+          </div>
+          <button 
+            onClick={() => setShowForm(true)}
+            style={{ padding: '6px 12px', background: 'rgba(244,80,30,0.1)', color: '#f4501e', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+            Dar acceso (Invitar)
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#1c1814' }}>Invitar a {prof.nombre}</div>
+          <div style={{ fontSize: 11.5, color: '#736658', marginBottom: 4 }}>Le enviaremos un correo con un enlace para elegir su contraseña. Entrará con rol Profesional.</div>
+          <input 
+            type="email" 
+            placeholder="correo@ejemplo.com" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)}
+            style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(40,30,24,0.15)', fontSize: 13, outline: 'none' }}
+          />
+          {errorMsg && <div style={{ fontSize: 11, color: '#e23b34' }}>{errorMsg}</div>}
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            <button 
+              disabled={loading}
+              onClick={handleInvitar}
+              style={{ flex: 1, padding: '8px', background: '#f4501e', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              {loading ? 'Enviando...' : 'Enviar invitación'}
+            </button>
+            <button 
+              disabled={loading}
+              onClick={() => setShowForm(false)}
+              style={{ padding: '8px 12px', background: 'transparent', color: '#736658', border: '1px solid rgba(40,30,24,0.15)', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

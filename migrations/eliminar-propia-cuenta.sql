@@ -7,13 +7,32 @@ set search_path = public
 as $$
 declare
   v_user_id uuid;
+  v_negocio_id text;
+  v_role text;
+  v_table text;
 begin
   v_user_id := auth.uid();
   if v_user_id is null then
     raise exception 'No autenticado';
   end if;
 
-  -- Eliminar de auth.users. Esto cascada a public.profiles y todos sus datos relacionados
+  -- Obtener el negocio_id y el role del usuario
+  select negocio_id, role into v_negocio_id, v_role
+  from public.profiles
+  where id = v_user_id;
+
+  -- Si es el owner, eliminar todos los datos del negocio en todas las tablas (RGPD)
+  if v_role = 'owner' and v_negocio_id is not null then
+    for v_table in
+      select table_name
+      from information_schema.columns
+      where table_schema = 'public' and column_name = 'negocio_id'
+    loop
+      execute format('delete from public.%I where negocio_id = %L', v_table, v_negocio_id);
+    end loop;
+  end if;
+
+  -- Eliminar de auth.users. Esto cascada a public.profiles y cualquier dato atado directamente por auth
   delete from auth.users where id = v_user_id;
   return true;
 end;

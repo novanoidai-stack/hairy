@@ -8,8 +8,8 @@ import { CATEGORY_COLOR_TOKENS, categoryColorHex, type CategoryColorToken } from
 import { TabPresupuestoConceptos } from '@/components/config/TabPresupuestoConceptos';
 import { MiPerfilProfesional } from '@/components/config/MiPerfilProfesional';
 import { TabMigracionMagica } from '@/components/config/TabMigracionMagica';
-import { TabRecompensas } from '@/components/config/TabRecompensas.web';
 import { TabVoz } from '@/components/config/TabVoz.web';
+import { TabRecompensas } from '@/components/config/TabRecompensas.web';
 import { HubIA } from '@/components/config/HubIA';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -39,6 +39,7 @@ import { APP_LANGS, type AppLang } from '@/lib/appI18n';
 import { useAyudaIA } from '@/lib/hooks/useAyudaIA';
 import { TarjetaAyudaIA } from '@/components/chispa/TarjetaAyudaIA.web';
 import { registrarEventoIA } from '@/lib/registroUniversal';
+
 
 const T = DESIGN_TOKENS;
 
@@ -277,7 +278,6 @@ const TABS: TabDef[] = [
   { id: 'presupuestos',   label: 'Presupuestos',   icon: 'copy',      section: 'Operativa' },
   { id: 'plantillas',     label: 'Plantillas',     icon: 'copy',      section: 'Operativa' },
   { id: 'migracion_magica', label: 'Migración Mágica', icon: 'zap', section: 'Operativa' },
-  { id: 'voz',            label: 'Voz de Chispa',  icon: 'mic',       section: 'Cuenta' },
   { id: 'hub_ia',         label: 'Qué hace la IA', icon: 'sparkles',  section: 'Cuenta' },
   { id: 'notificaciones', label: 'Notificaciones', icon: 'bell',      section: 'Comunicacion' },
   { id: 'politicas',      label: 'Politicas',      icon: 'shield',    section: 'Comunicacion' },
@@ -1666,6 +1666,13 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
       : ACCESO_ROLE_OPTIONS.filter(o => o.value !== 'owner');
 
   async function cambiarRol(id: string, nuevoRol: string) {
+    const target = cuentas.find(x => x.id === id);
+    const totalOwners = cuentas.filter(x => x.role === 'owner').length;
+    if (target?.role === 'owner' && nuevoRol !== 'owner' && totalOwners <= 1) {
+      setMsg({ id, text: 'Tu salón debe tener al menos un Propietario. No se puede cambiar el rol del único propietario.', ok: false });
+      return;
+    }
+
     setSavingId(id);
     setMsg(null);
     const { error } = await supabase.rpc('set_member_role', { target_user_id: id, new_role: nuevoRol });
@@ -1793,7 +1800,9 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
           {cuentas.map(c => {
             const esYo = c.id === currentUserId;
             const esOwnerTarget = c.role === 'owner';
-            const bloqueado = esYo || (!isOwner && esOwnerTarget);
+            const totalOwners = cuentas.filter(x => x.role === 'owner').length;
+            const esUnicoOwner = esOwnerTarget && totalOwners <= 1;
+            const bloqueado = esYo || (!isOwner && esOwnerTarget) || esUnicoOwner;
             // En la demo compartida las cuentas son atrezzo: no se avisa de nada.
             const estado = IS_DEMO_MODE
               ? { etiqueta: 'Activa', tono: 'success' as const, detalle: 'Puede entrar con su correo y contraseña.' }
@@ -1830,6 +1839,7 @@ function TabAccesos({ negocioId, currentUserId, currentRole }: { negocioId: stri
 
                 <div style={{ fontSize: 11.5, color: T.textTertiary, paddingLeft: isMobile ? 0 : 48, lineHeight: 1.5 }}>
                   {estado.detalle}
+                  {esUnicoOwner ? ' · Único Propietario del salón (siempre debe haber al menos uno).' : ''}
                   {c.profesional_nombre
                     ? ` · Ficha en la agenda: ${c.profesional_nombre}.`
                     : avisoFicha
@@ -2048,7 +2058,7 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
 
       <Section title="Plan y plazas" desc="Tu equipo y tus plazas. Para gestionar la facturacion, contacta con soporte.">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-          <StatBox label="Profesionales activos" value={`${profCount} / 10`} sub={`${plazasLibres} ${plazasLibres === 1 ? 'plaza disponible' : 'plazas disponibles'}`} />
+          <StatBox label="Fichas en la agenda" value={`${profCount} / 10`} sub={`${plazasLibres} ${plazasLibres === 1 ? 'plaza disponible' : 'plazas disponibles'}`} />
         </div>
         <div style={{ marginTop: 14, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <Btn

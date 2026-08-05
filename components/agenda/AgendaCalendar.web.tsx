@@ -12747,12 +12747,8 @@ function NewCitaModal({
                   const slotFinActiva = new Date(
                     cFinActiva.getTime() + duracionActiva * 60000,
                   );
-                  // Si hay segunda fase activa, la activa debe terminar ANTES del fin del reposo (no justo al límite)
-                  if (
-                    hasSegundaFase
-                      ? slotFinActiva >= cFinEspera
-                      : slotFinActiva > cFinEspera
-                  )
+                  // Si encaja exacto en el límite, está permitido (<= cFinEspera).
+                  if (slotFinActiva > cFinEspera)
                     return;
                   const timeStr = `${String(cFinActiva.getHours()).padStart(2, "0")}:${String(cFinActiva.getMinutes()).padStart(2, "0")}`;
                   if (!slotsSet.has(timeStr)) extraSlots.push(timeStr);
@@ -12780,12 +12776,10 @@ function NewCitaModal({
                     const cFin = new Date(c.fin);
                     const hasSegundaFase =
                       cFinEspera.getTime() < cFin.getTime();
-                    // Si hay segunda fase activa, la nueva activa debe terminar ANTES del reposo (no justo al límite)
+                    // La nueva activa debe terminar <= cFinEspera (puede tocar el límite exacto)
                     return (
                       slotInicio >= cFinActiva &&
-                      (hasSegundaFase
-                        ? slotFinActiva < cFinEspera
-                        : slotFinActiva <= cFinEspera)
+                      slotFinActiva <= cFinEspera
                     );
                   });
                   if (encajaEnReposo) reposaSlots.add(time);
