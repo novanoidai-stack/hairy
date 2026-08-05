@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mecha v3 — spike look (hinge + agenda legible)</title>
+<style>html,body{margin:0;height:100%;background:#070A14;overflow:hidden}#c{display:block;width:100%;height:100%}</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+}}
+</script></head>
+<body>
+<div id="c"></div>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.getElementById('c').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x070A14);
+scene.fog = new THREE.FogExp2(0x070A14, 0.005); // niebla cinematografica (como el primero)
+const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 1000);
+camera.position.set(2.0, 2.4, 11.0); camera.lookAt(0, 1.7, 0);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const key = new THREE.DirectionalLight(0xfff0d8, 1.4); key.position.set(6,9,7); scene.add(key);
+const fill = new THREE.DirectionalLight(0x9bb0ff, 0.45); fill.position.set(-7,4,5); scene.add(fill);
+const fuego = new THREE.PointLight(0xF4501E, 3.0, 60); fuego.position.set(-5,3,-3); scene.add(fuego);
+// spot sobre la pantalla para que la agenda no se vea tenue
+const spot = new THREE.SpotLight(0xffffff, 2.2, 30, Math.PI/5, 0.6, 1.5); spot.position.set(0,8,7); spot.target.position.set(0,2,-1); scene.add(spot, spot.target);
+
+// --- logo Mecha "fueguito" ---
+function makeLogoTexture(){
+  const c=document.createElement('canvas'); c.width=256; c.height=256;
+  const g=c.getContext('2d');
+  const grd=g.createLinearGradient(128,40,128,215);
+  grd.addColorStop(0,'#FFE2B0'); grd.addColorStop(.45,'#FF9B3D'); grd.addColorStop(1,'#F4501E');
+  g.fillStyle=grd; g.beginPath();
+  g.moveTo(128,40); g.bezierCurveTo(196,108,178,182,128,216); g.bezierCurveTo(78,182,60,108,128,40); g.fill();
+  g.fillStyle='rgba(255,255,255,.6)'; g.beginPath();
+  g.moveTo(128,118); g.bezierCurveTo(152,156,144,190,128,204); g.bezierCurveTo(112,190,104,156,128,118); g.fill();
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
+
+// --- agenda real (captura de produccion) ---
+const loader = new THREE.TextureLoader();
+const tex = loader.load('capturas_recortadas/agenda_full_clean.png',
+  t=>{t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=16; window.__texState='loaded '+t.image.width+'x'+t.image.height;},
+  undefined,
+  e=>{window.__texState='ERROR '+String(e);});
+window.__texState='loading';
+window.__tex=tex;
+
+// --- portatil con bisagra real ---
+const laptop = new THREE.Group();
+const bodyMat = new THREE.MeshStandardMaterial({color:0x2a3550, metalness:.6, roughness:.36});
+const darkMat = new THREE.MeshStandardMaterial({color:0x11151f, metalness:.5, roughness:.45});
+
+// base
+const base = new THREE.Mesh(new RoundedBoxGeometry(10, .55, 7, 5, .14), bodyMat);
+base.position.y = 0;
+
+// teclado iluminado
+const keyGeo = new RoundedBoxGeometry(.6, .18, .6, 2, .06);
+const keyMat = new THREE.MeshStandardMaterial({color:0x0d1424, metalness:.3, roughness:.62, emissive:0xff7a2a, emissiveIntensity:.18});
+const keys = new THREE.InstancedMesh(keyGeo, keyMat, 12*4);
+const dummy = new THREE.Object3D(); let kk=0;
+for(let r=0;r<4;r++) for(let cI=0;cI<12;cI++){ dummy.position.set(-3.3+cI*.6, .33, -2.4+r*.62); dummy.rotation.x=-0.05; dummy.updateMatrix(); keys.setMatrixAt(kk++, dummy.matrix); }
+keys.instanceMatrix.needsUpdate = true;
+const kbGlow = new THREE.Mesh(new THREE.PlaneGeometry(7.6,2.7),
+  new THREE.MeshBasicMaterial({color:0xF4501E, transparent:true, opacity:.22, blending:THREE.AdditiveBlending}));
+kbGlow.position.set(0,.31,-0.9); kbGlow.rotation.x=-Math.PI/2;
+// trackpad
+const trackpad = new THREE.Mesh(new RoundedBoxGeometry(3.6,.06,2.3,3,.1),
+  new THREE.MeshStandardMaterial({color:0x161d2e, metalness:.4, roughness:.5}));
+trackpad.position.set(0,.31,1.9);
+// logo fueguito en reposamuñecas
+const logo = new THREE.Mesh(new THREE.PlaneGeometry(1.15,1.15),
+  new THREE.MeshBasicMaterial({map:makeLogoTexture(), transparent:true, toneMapped:false}));
+logo.position.set(0,.32,2.95); logo.rotation.x=-Math.PI/2;
+
+// --- tapa articulada (group pivote en la bisagra) ---
+const lid = new THREE.Group();
+lid.position.set(0, 0.3, -3.15); // linea de bisagra: arriba-atras de la base
+lid.rotation.x = -0.16;          // casi vertical, ladeada solo ~9º hacia atras
+const bezel = new THREE.Mesh(new RoundedBoxGeometry(10,6.4,.4,4,.14), bodyMat);
+bezel.position.set(0, 3.2, 0);   // centro de la tapa, 3.2 sobre la bisagra
+const screenFrame = new THREE.Mesh(new RoundedBoxGeometry(9.3,5.7,.05), darkMat);
+screenFrame.position.set(0, 3.2, 0.22);
+// pantalla: aspect real de la captura 1920x842 = 2.28:1 → ancho 9, alto 3.95
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(9.0, 3.95),
+  new THREE.MeshBasicMaterial({map:tex, color:0xCCCCCC, side:THREE.DoubleSide, toneMapped:false}));
+screen.position.set(0, 3.2, 0.252);
+const webcam = new THREE.Mesh(new THREE.CircleGeometry(.07,18),
+  new THREE.MeshStandardMaterial({color:0x05070d, metalness:.8, roughness:.2}));
+webcam.position.set(0, 6.05, 0.24);
+// bisagra visible (cilindro oscuro) para que base y tapa se vean unidas
+const hinge = new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,10.2,24),
+  new THREE.MeshStandardMaterial({color:0x0e131c, metalness:.7, roughness:.4}));
+hinge.rotation.z = Math.PI/2; hinge.position.set(0, 0.3, -3.15);
+lid.add(bezel, screenFrame, screen, webcam);
+
+laptop.add(base, kbGlow, keys, trackpad, logo, lid, hinge);
+laptop.rotation.y = 0.12;        // ligero 3/4 hero
+laptop.position.y = -1.7;
+scene.add(laptop);
+
+// --- orbe Chispa ---
+const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(.85, 3),
+  new THREE.MeshStandardMaterial({color:0xFF9B3D, emissive:0xF4501E, emissiveIntensity:2.5, roughness:.3}));
+orb.position.set(4.6,3.1,2.2); scene.add(orb);
+const halo = new THREE.Mesh(new THREE.RingGeometry(1.15,1.32,48),
+  new THREE.MeshBasicMaterial({color:0xF4501E, transparent:true, opacity:.6, side:THREE.DoubleSide}));
+halo.position.copy(orb.position); scene.add(halo);
+
+// --- brasas ---
+const N=420, pos=new Float32Array(N*3);
+for(let i=0;i<N;i++){pos[i*3]=(Math.random()-.5)*42; pos[i*3+1]=Math.random()*22-6; pos[i*3+2]=(Math.random()-.5)*42;}
+const eg=new THREE.BufferGeometry(); eg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+const embers=new THREE.Points(eg,new THREE.PointsMaterial({color:0xFF9B3D,size:.085,transparent:true,opacity:.85,blending:THREE.AdditiveBlending}));
+scene.add(embers);
+
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight), .7, .55, 1.1); // umbral alto: solo brilla lo HDR (orbe/brasas), no la pantalla LDR
+composer.addPass(bloom);
+
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);});
+
+function animate(t){
+  embers.rotation.y=t*0.00002; embers.position.y=(t*0.0008)%4;
+  orb.rotation.y=t*0.0006; orb.scale.setScalar(1+Math.sin(t*0.003)*0.05);
+  halo.rotation.z=t*0.0008; halo.lookAt(camera.position);
+  composer.render(); requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+</script></body></html>
