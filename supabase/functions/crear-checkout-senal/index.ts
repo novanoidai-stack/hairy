@@ -18,14 +18,17 @@ const SUPA_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const PLATFORM_KEY = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
 
 async function stripeParaNegocio(negocioId: string | null): Promise<Stripe> {
-  let key = PLATFORM_KEY;
   if (negocioId) {
     try {
-      const { data } = await supabase.rpc('pasarela_stripe_secret', { p_negocio_id: negocioId });
-      if (typeof data === 'string' && data.length > 10) key = data;
+      const { data: acct } = await supabase.rpc('pasarela_stripe_account', { p_negocio_id: negocioId });
+      if (typeof acct === 'string' && acct.startsWith('acct_')) {
+        return new Stripe(PLATFORM_KEY, { apiVersion: '2024-06-20', stripeAccount: acct });
+      }
+      const { data: sk } = await supabase.rpc('pasarela_stripe_secret', { p_negocio_id: negocioId });
+      if (typeof sk === 'string' && sk.length > 10) return new Stripe(sk, { apiVersion: '2024-06-20' });
     } catch { /* fallback plataforma */ }
   }
-  return new Stripe(key, { apiVersion: '2024-06-20' });
+  return new Stripe(PLATFORM_KEY, { apiVersion: '2024-06-20' });
 }
 
 // --- Redsys (S6): firma 3DES (node-forge, relleno de CEROS) + HMAC-SHA256 (Web Crypto). ---
