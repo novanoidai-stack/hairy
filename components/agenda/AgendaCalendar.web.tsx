@@ -1838,7 +1838,7 @@ export default function AgendaCalendar() {
         title={
           ensenar
             ? "Dejar de resaltar los problemas en la agenda"
-            : "Enseñamelo: resalta en la agenda los huecos, solapes y retrasos detectados"
+            : "Enséñamelo: resalta en la agenda los huecos, solapes y retrasos detectados"
         }
         style={{
           display: "flex",
