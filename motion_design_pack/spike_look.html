@@ -51,9 +51,26 @@ function makeLogoTexture(){
   const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
 }
 
+// --- layout de teclas (QWERTY + numeros) pintado en canvas ---
+function makeKeyboardTexture(){
+  const cols=12, rows=4;
+  const c=document.createElement('canvas'); c.width=cols*100; c.height=rows*100;
+  const g=c.getContext('2d'); g.clearRect(0,0,c.width,c.height);
+  const layout=['1234567890','QWERTYUIOP','ASDFGHJKLÑ','ZXCVBNM,.'];
+  g.fillStyle='rgba(210,218,232,0.80)'; g.font='700 42px Inter,system-ui,sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  for(let r=0;r<rows;r++){
+    const chs=layout[r]||'';
+    const pad=Math.floor((cols-chs.length)/2);
+    for(let i=0;i<chs.length;i++){
+      g.fillText(chs[i], (pad+i+0.5)*100, (r+0.5)*100);
+    }
+  }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
+
 // --- agenda real (captura de produccion) ---
 const loader = new THREE.TextureLoader();
-const tex = loader.load('capturas_recortadas/agenda_full_clean.png',
+const tex = loader.load('capturas_recortadas/agenda_full_clean.png?v=20260805a',
   t=>{t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=16; window.__texState='loaded '+t.image.width+'x'+t.image.height;},
   undefined,
   e=>{window.__texState='ERROR '+String(e);});
@@ -96,8 +113,8 @@ const bezel = new THREE.Mesh(new RoundedBoxGeometry(10,6.4,.4,4,.14), bodyMat);
 bezel.position.set(0, 3.2, 0);   // centro de la tapa, 3.2 sobre la bisagra
 const screenFrame = new THREE.Mesh(new RoundedBoxGeometry(9.3,5.7,.05), darkMat);
 screenFrame.position.set(0, 3.2, 0.22);
-// pantalla: aspect real de la captura 1920x842 = 2.28:1 → ancho 9, alto 3.95
-const screen = new THREE.Mesh(new THREE.PlaneGeometry(9.0, 3.95),
+// pantalla: aspect 16:9 (captura 3840x2160) → ancho 9, alto 5.06
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(9.0, 5.06),
   new THREE.MeshBasicMaterial({map:tex, color:0xCCCCCC, side:THREE.DoubleSide, toneMapped:false}));
 screen.position.set(0, 3.2, 0.252);
 const webcam = new THREE.Mesh(new THREE.CircleGeometry(.07,18),
