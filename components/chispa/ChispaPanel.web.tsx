@@ -61,7 +61,7 @@ const DRAWER_CLOSE_MS = 280;
 // Ancho de la columna de contenido en pantalla completa (desktop). Antes se
 // centraba a 760 (apenas mas que el drawer de 400), por eso "no se ganaba nada"
 // al maximizar. Con mas ancho + rejilla de prompts, el espacio se aprovecha.
-const ANCHO_AMPLIO = 1000;
+const ANCHO_AMPLIO = 1240;
 
 const PANEL_STYLES = `
   @keyframes chispaDrawerIn { from { transform: translateX(28px) scale(0.94); opacity: 0; filter: blur(6px); } 55% { filter: blur(0); } to { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); } }
@@ -69,11 +69,20 @@ const PANEL_STYLES = `
   @keyframes chispaBackdropIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes chispaBackdropOut { from { opacity: 1; } to { opacity: 0; } }
   @keyframes chispaMsgIn { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-  @keyframes chispaTabIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes chispaTabIn { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
   @keyframes chispaDot { 0%, 80%, 100% { opacity: 0.3; transform: scale(0.85); } 40% { opacity: 1; transform: scale(1); } }
-  @keyframes chispaTabPulse {
-    0%, 100% { box-shadow: 0 8px 24px rgba(192,38,10,0.32); }
-    50% { box-shadow: 0 8px 32px rgba(244,80,30,0.52), 0 0 16px rgba(255,140,66,0.3); }
+  @keyframes chispaOrbFloat {
+    0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 10px 28px rgba(244,80,30,0.45), 0 0 18px rgba(255,140,66,0.3); }
+    50% { transform: translateY(-5px) scale(1.05); box-shadow: 0 18px 36px rgba(244,80,30,0.65), 0 0 28px rgba(255,140,66,0.5); }
+  }
+  @keyframes chispaPulseRing {
+    0% { transform: scale(0.9); opacity: 0.8; }
+    100% { transform: scale(1.55); opacity: 0; }
+  }
+  @keyframes chispaThinkingOrb {
+    0% { transform: rotate(0deg) scale(0.96); box-shadow: 0 0 14px rgba(244,80,30,0.5), inset 0 0 10px rgba(255,255,255,0.7); }
+    50% { transform: rotate(180deg) scale(1.12); box-shadow: 0 0 28px rgba(244,80,30,0.9), inset 0 0 18px rgba(255,255,255,0.95); }
+    100% { transform: rotate(360deg) scale(0.96); box-shadow: 0 0 14px rgba(244,80,30,0.5), inset 0 0 10px rgba(255,255,255,0.7); }
   }
   @keyframes chispaLogoGlow {
     0%, 100% { box-shadow: 0 0 8px 2px rgba(244,80,30,0.28), 0 0 18px 4px rgba(255,140,66,0.14); }
@@ -89,7 +98,10 @@ const PANEL_STYLES = `
   .chispa-drawer-closing { animation: chispaDrawerOut 0.26s cubic-bezier(0.4,0,1,1) forwards; transform-origin: bottom right; will-change: transform, opacity, filter; }
   .chispa-backdrop { animation: chispaBackdropIn 0.25s ease; }
   .chispa-backdrop-closing { animation: chispaBackdropOut 0.28s ease forwards; }
-  .chispa-launch-tab { animation: chispaTabIn 0.3s cubic-bezier(0.16,1,0.3,1), chispaTabPulse 3s ease-in-out infinite 0.3s; }
+  .chispa-orb-button { animation: chispaTabIn 0.3s cubic-bezier(0.16,1,0.3,1), chispaOrbFloat 3.5s ease-in-out infinite; cursor: pointer; transition: transform 0.2s cubic-bezier(0.16,1,0.3,1); }
+  .chispa-orb-button:hover { transform: scale(1.1) translateY(-2px) !important; }
+  .chispa-pulse-ring { animation: chispaPulseRing 2.2s cubic-bezier(0.215,0.61,0.355,1) infinite; }
+  .chispa-thinking-orb { animation: chispaThinkingOrb 2.2s ease-in-out infinite; }
   .chispa-logo-badge { animation: chispaLogoGlow 3s ease-in-out infinite; }
   .chispa-typewriter-word { display: inline; animation: chispaTypewriter 0.18s ease-out both; }
   .chispa-text-bubble strong, .chispa-text-bubble b { font-weight: 700; color: #1c1814; }
@@ -97,8 +109,11 @@ const PANEL_STYLES = `
   .chispa-text-bubble code { background: rgba(40,30,24,0.06); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; font-family: monospace; }
   .chispa-text-bubble ul, .chispa-text-bubble ol { margin: 4px 0; padding-left: 18px; }
   .chispa-text-bubble li { margin-bottom: 2px; }
+  .chispa-widescreen-grid { display: flex; flex-direction: row; height: 100%; width: 100%; }
+  .chispa-widescreen-sidebar { width: 320px; border-right: 1px solid rgba(0,0,0,0.08); background: #faf9f6; display: flex; flex-direction: column; overflow-y: auto; }
+  .chispa-widescreen-main { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; background: #ffffff; }
   @media (prefers-reduced-motion: reduce) {
-    .chispa-msg, .chispa-drawer, .chispa-drawer-closing, .chispa-backdrop, .chispa-backdrop-closing, .chispa-launch-tab, .chispa-logo-badge, .chispa-typewriter-word, .chispa-status-dot, .chispa-mic-pulso { animation: none !important; }
+    .chispa-msg, .chispa-drawer, .chispa-drawer-closing, .chispa-backdrop, .chispa-backdrop-closing, .chispa-orb-button, .chispa-logo-badge, .chispa-typewriter-word, .chispa-status-dot, .chispa-mic-pulso, .chispa-thinking-orb, .chispa-pulse-ring { animation: none !important; }
   }
 `;
 
@@ -655,53 +670,16 @@ export default function ChispaPanel({
     return () => window.removeEventListener('keydown', handler);
   }, [abierto, pantallaCompleta]);
 
-  // Memoria de sesion (S09): restaura el hilo (mensajes + estado de la
-  // config guiada) al montar, UNA vez. En demo usa localStorage (para no
-  // cruzar conversaciones). En real usa chispa_memoria a largo plazo.
+  // Reset del chat al entrar al software: cada entrada o recarga inicia una conversacion limpia
   useEffect(() => {
-    if (hiloCargado.current || typeof localStorage === 'undefined') return;
-    
-    const loadState = async () => {
-      let raw: string | null = null;
-      try {
-        if (IS_DEMO_MODE) {
-          raw = localStorage.getItem(`${HILO_KEY_PREFIX}${negocioId}:${profile.id}`);
-        } else {
-          const { data } = await supabase
-            .from('chispa_memoria')
-            .select('valor')
-            .eq('negocio_id', negocioId)
-            .eq('tipo', 'hilo')
-            .eq('clave', 'sesion_actual')
-            .eq('usuario_id', profile.id)
-            .maybeSingle();
-          if (data?.valor) {
-            raw = typeof data.valor === 'string' ? data.valor : JSON.stringify(data.valor);
-          }
-        }
-      } catch {
-        // Fallo de red o storage: empezamos de cero silenciosamente
+    if (hiloCargado.current) return;
+    hiloCargado.current = true;
+    setMensajes([]);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(`${HILO_KEY_PREFIX}${negocioId}:${profile.id}`);
       }
-
-      hiloCargado.current = true;
-      if (!raw) return;
-
-      try {
-        const saved = JSON.parse(raw) as {
-          mensajes?: Mensaje[]; configGuiada?: boolean; temaIdx?: number;
-          ctx?: ContextoEjecucion; respuestas?: Record<string, unknown>;
-          descriptores?: Record<string, { tema: TemaId; kind: string }>;
-        };
-        if (Array.isArray(saved.mensajes) && saved.mensajes.length > 0) setMensajes(saved.mensajes);
-        if (saved.descriptores) bloqueDescriptorRef.current = saved.descriptores;
-        if (saved.respuestas) setRespuestasInteractivas(saved.respuestas);
-        if (saved.ctx) ctxOnboardingRef.current = saved.ctx;
-        if (typeof saved.temaIdx === 'number') setTemaIdx(saved.temaIdx);
-        if (saved.configGuiada) setConfigGuiada(true);
-      } catch { /* hilo invalido, se ignora */ }
-    };
-    
-    loadState();
+    } catch { /* no bloqueante */ }
   }, [negocioId, profile.id]);
 
   useEffect(() => {
@@ -1431,31 +1409,24 @@ export default function ChispaPanel({
           la activo — se llega por el auto-disparo, el boton de Avisos o el
           detector de intencion mientras ya esta abierto por otra via. */}
       {!abierto && !soloOnboarding && (
-        <button
-          className="chispa-launch-tab"
-          onClick={() => setAbierto(true)}
-          aria-label="Abrir Chispa, la IA del salon"
-          // Ancla para el coach intra-pagina (S16): siempre presente en la app.
-          data-coach="chispa-bubble"
-          style={{
-            position: 'fixed', bottom: isMobile ? 132 : 96, right: 0, top: 'auto',
-            zIndex: 2147483000, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-            padding: T.ia.launcherPadding, border: 'none', borderRadius: '14px 0 0 14px',
-            background: T.fireGradient, color: '#fff', boxShadow: T.ia.launcherShadow, cursor: 'pointer',
-            transition: 'padding 0.15s ease',
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.paddingRight = '12px'; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.paddingRight = '8px'; }}
-        >
-          {/* Icono electrico (rayo/chispa), no fuego: encaja con el nombre
-              "Chispa" sin repetir la marca de fuego del resto de la app. */}
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
-            <path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z" />
-          </svg>
-          <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: 11, fontWeight: 700, letterSpacing: 0.3, fontFamily: 'Inter, system-ui, sans-serif' }}>
-            Chispa
-          </span>
-        </button>
+        <div style={{ position: 'fixed', bottom: isMobile ? 84 : 28, right: isMobile ? 18 : 28, zIndex: 2147483000, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            className="chispa-orb-button"
+            onClick={() => setAbierto(true)}
+            aria-label="Abrir Chispa, la IA del salon"
+            data-coach="chispa-bubble"
+            style={{
+              width: 56, height: 56, borderRadius: '50%', border: 'none',
+              background: T.fireGradient, color: '#fff',
+              boxShadow: '0 12px 32px rgba(244, 80, 30, 0.45), 0 0 20px rgba(255, 140, 66, 0.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              position: 'relative', outline: 'none',
+            }}
+          >
+            <span className="chispa-pulse-ring" style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: '2px solid rgba(244,80,30,0.6)', pointerEvents: 'none' }} />
+            <IconoRayo size={26} color="#fff" />
+          </button>
+        </div>
       )}
 
       {/* Drawer abierto */}
@@ -1463,15 +1434,16 @@ export default function ChispaPanel({
         <>
           {isMobile && (
             <div className={`chispa-backdrop${cerrando ? ' chispa-backdrop-closing' : ''}`} onClick={cerrarPanel}
-              style={{ position: 'fixed', inset: 0, zIndex: 2147482999, background: T.ia.drawerBackdrop }} />
+              style={{ position: 'fixed', inset: 0, zIndex: 2147482999, background: 'rgba(8, 10, 18, 0.75)', backdropFilter: 'blur(12px)' }} />
           )}
 
-          <div className={`chispa-drawer${cerrando ? ' chispa-drawer-closing' : ''} glass-panel`} style={{
+          <div className={`chispa-drawer${cerrando ? ' chispa-drawer-closing' : ''}`} style={{
             position: 'fixed', top: 0, right: 0, height: '100%', width: drawerWidth, zIndex: 2147483000,
             display: 'flex', flexDirection: 'column',
-            borderLeft: `1px solid rgba(255, 255, 255, 0.5)`,
+            background: '#ffffff',
+            boxShadow: '-12px 0 50px rgba(0,0,0,0.22)',
+            borderLeft: `1px solid rgba(0, 0, 0, 0.08)`,
             fontFamily: 'Inter, system-ui, sans-serif',
-            // Transicion suave al entrar/salir de pantalla completa (desktop).
             transition: isMobile ? undefined : 'width 0.32s cubic-bezier(0.16,1,0.3,1)',
           }}>
             {/* Cabecera */}
@@ -1742,23 +1714,37 @@ export default function ChispaPanel({
                 })}
 
                 {cargando && (
-                  <div className="chispa-msg animate-fade-in-up" style={{ marginTop: 14, display: 'flex', gap: 7, alignItems: 'flex-start' }}>
-                    <div style={{ flexShrink: 0, width: 22 }}><LogoChispa size={22} glow /></div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, maxWidth: '80%' }}>
-                      <span style={{ fontSize: 11.5, fontWeight: 700, color: T.primaryHi }}>Chispa</span>
-                      <div style={{ padding: '9px 14px', borderRadius: '14px 14px 14px 4px', background: T.bgCard, border: `1px solid ${T.border}`, display: 'flex', gap: 4, alignItems: 'center', alignSelf: 'flex-start' }}>
-                        {[0, 1, 2].map((n) => (
-                          <div key={n} style={{ width: 6, height: 6, borderRadius: 999, background: T.textMuted, animation: `chispaDot 1.2s ease-in-out ${n * 0.2}s infinite` }} />
-                        ))}
+                  <div className="chispa-msg animate-fade-in-up" style={{ marginTop: 16, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <div style={{ flexShrink: 0, position: 'relative', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div className="chispa-thinking-orb" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: T.fireGradient, opacity: 0.9 }} />
+                      <IconoRayo size={18} color="#fff" />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, maxWidth: '85%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: T.primaryHi }}>Chispa</span>
+                        <span style={{ fontSize: 11, color: T.textMuted, fontStyle: 'italic' }}>Pensando...</span>
+                      </div>
+                      <div style={{
+                        padding: '12px 16px', borderRadius: '16px 16px 16px 4px',
+                        background: '#ffffff', border: `1px solid ${T.border}`,
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                        display: 'flex', alignItems: 'center', gap: 10
+                      }}>
+                        <div style={{ display: 'flex', gap: 5 }}>
+                          {[0, 1, 2].map((n) => (
+                            <div key={n} style={{ width: 7, height: 7, borderRadius: 999, background: T.primary, animation: `chispaDot 1.2s ease-in-out ${n * 0.2}s infinite` }} />
+                          ))}
+                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>Analizando tu salón en tiempo real...</span>
                       </div>
                       {tipCarga ? (
                         <div style={{
-                          marginTop: 4, padding: '8px 12px', borderRadius: 10,
-                          background: T.bgPanel, border: `1px dashed ${T.border}`,
-                          fontSize: 11.5, color: T.textSecondary, lineHeight: 1.45,
-                          fontStyle: 'italic', display: 'flex', flexDirection: 'column', gap: 3
+                          marginTop: 4, padding: '10px 14px', borderRadius: 12,
+                          background: 'rgba(244,80,30,0.06)', border: `1px solid rgba(244,80,30,0.18)`,
+                          fontSize: 12, color: T.textSecondary, lineHeight: 1.45,
+                          display: 'flex', flexDirection: 'column', gap: 3
                         }}>
-                          <span style={{ fontWeight: 700, color: T.primaryHi, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 0.3 }}>💡 Tip de Chispa</span>
+                          <span style={{ fontWeight: 800, color: T.primaryHi, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 0.5 }}>💡 Sabías que...</span>
                           <span>{tipCarga}</span>
                         </div>
                       ) : null}

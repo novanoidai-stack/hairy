@@ -736,11 +736,8 @@ export default function AgendaCalendar() {
   // el rail (mini-calendario + KPIs) robaba 340px de rejilla. El usuario lo abre/cierra
   // con el boton "Pantalla completa / Salir de pantalla completa" de la cabecera.
   const [railCollapsed, setRailCollapsed] = useState<boolean>(true);
-  // Colapso de la barra de filtros (vista/servicio/estado). En movil arranca plegada:
-  // ocupa demasiado alto y el dia es la vista principal; se despliega con el chip "Filtros".
-  const [toolbarCollapsed, setToolbarCollapsed] = useState<boolean>(
-    () => typeof window !== "undefined" && window.innerWidth < 768,
-  );
+  // (Retirado toolbarCollapsed: el chip "Filtros" que lo accionaba se elimino hace
+  // tiempo y el estado quedo huerfano. La barra ya no se pliega, se envuelve.)
   // Modo de rejilla del dia (desktop): true = "Juntos" (todos los profesionales a la
   // vista sin scroll, las columnas se reparten el ancho); false = "Scroll" (columnas
   // anchas con scroll horizontal). El usuario alterna con el segmented del toolbar y
@@ -1374,15 +1371,50 @@ export default function AgendaCalendar() {
     [citas],
   );
 
-  // Lo que se resalta en la rejilla: todo si el interruptor esta encendido, o
-  // solo el problema al que el panel ha hecho zoom.
+  // Lo que se resalta en la rejilla: con el interruptor encendido, TODOS los del
+  // dia (el enfocado solo manda el scroll); si viene del panel tarjeta a tarjeta,
+  // solo ese.
   const zonasResaltadas = useMemo(() => {
+    if (ensenar) return problemasAgenda;
     if (problemaEnfocado) {
       const p = problemasAgenda.find((x) => x.id === problemaEnfocado);
       return p ? [p] : [];
     }
-    return ensenar ? problemasAgenda : [];
+    return [];
   }, [ensenar, problemaEnfocado, problemasAgenda]);
+
+  const idxEnfocado = problemaEnfocado
+    ? problemasAgenda.findIndex((p) => p.id === problemaEnfocado)
+    : -1;
+
+  // Lleva la vista al problema n. Es lo que hace util a "Enseñamelo": antes te
+  // decia "2 problemas" y te tocaba buscarlos scrolleando, y en movil ni eso
+  // (solo se monta la columna del profesional elegido, asi que los problemas de
+  // los demas no se pintaban en ningun sitio).
+  const enfocarProblema = useCallback(
+    (i: number) => {
+      const p = problemasAgenda[i];
+      if (!p) return;
+      setProblemaEnfocado(p.id);
+      if (selectedProf !== "todos" && selectedProf !== p.zona.profesionalId) {
+        setSelectedProf(p.zona.profesionalId);
+      }
+    },
+    [problemasAgenda, selectedProf],
+  );
+
+  // Scroll a la zona enfocada. El timeout deja que la columna se monte cuando
+  // acabamos de cambiar de profesional.
+  useEffect(() => {
+    if (!problemaEnfocado || typeof document === "undefined") return;
+    const t = setTimeout(() => {
+      const nodo = document.querySelector(
+        `[data-mecha-zona="${problemaEnfocado}"]`,
+      );
+      nodo?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 160);
+    return () => clearTimeout(t);
+  }, [problemaEnfocado, selectedProf, zonasResaltadas]);
 
   // El rail se colapsa si railCollapsed=true o si estamos en movil. En tablet ya no
   // se fuerza: lo controla railCollapsed (arranca plegado) via el boton de la cabecera.
@@ -1648,6 +1680,977 @@ export default function AgendaCalendar() {
     month: "long",
     year: "numeric",
   });
+
+  // Barra de controles de la agenda (vista dia/semana/mes, Hoy, organizar,
+  // Enseñamelo, filtros de servicio/estado, buscador y avatares de acceso
+  // rapido). Se extrae a variable porque se monta en DOS sitios distintos:
+  // en escritorio va junto al titulo, y en movil baja a su propia linea a
+  // ancho completo (dentro de la columna del titulo solo tenia 195px y se
+  // partia en cuatro filas, comiendo un tercio de la pantalla).
+  // flexWrap es obligatorio: sin el, la barra era un unico item de flex de ~720px
+  // que su padre (que si envuelve) no podia partir, y la agenda acababa con scroll
+  // lateral en movil. Con wrap + minWidth:0 cae en dos filas y no desborda.
+  const barraControlesAgenda = (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        rowGap: 8,
+        flexWrap: 'wrap',
+        minWidth: 0,
+        marginLeft: isMobile ? 0 : 12,
+      }}
+    >
+      <div style={{ display: "flex", background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: "hidden" }}>
+        {(["day", "week", "month"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => {
+              setView(v);
+              // if (v !== "day") setRailCollapsed(false);
+            }}
+            style={{
+              padding: isMobile ? "6px 12px" : "8px 18px",
+              fontSize: isMobile ? 12 : 13,
+              fontWeight: view === v ? 700 : 500,
+              background: view === v ? roleTheme.primarySoft : "transparent",
+              color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
+              border: "none",
+              cursor: "pointer",
+              borderRight: v !== "month" ? `1px solid ${TOKENS.border}` : "none",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => { if (view !== v) e.currentTarget.style.background = roleTheme.primarySoft; }}
+            onMouseLeave={(e) => { if (view !== v) e.currentTarget.style.background = "transparent"; }}
+          >
+            {v === "day" ? "Dia" : v === "week" ? "Semana" : "Mes"}
+          </button>
+        ))}
+      </div>
+      <button
+        className="m-btn-secondary"
+        onClick={handleToday}
+        title="Ir a hoy"
+        style={{
+          padding: isMobile ? "6px 10px" : "8px 14px",
+          background: TOKENS.bgCard,
+          border: `1px solid ${TOKENS.border}`,
+          color: TOKENS.text,
+          borderRadius: 10,
+          cursor: "pointer",
+          fontSize: isMobile ? 12 : 13,
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <Icon name="calendar" size={isMobile ? 12 : 14} color={TOKENS.text} />
+        {!isMobile && "Hoy"}
+      </button>
+      {/* Organizar: abre el panel que APLICA los arreglos. El badge
+          cuenta los problemas del dia visible, como las notificaciones. */}
+      <button
+        onClick={() => setShowOrganizar(true)}
+        title={
+          problemasAgenda.length === 0
+            ? "Organizar la agenda (sin problemas detectados)"
+            : `Organizar la agenda · ${problemasAgenda.length} problema${problemasAgenda.length > 1 ? "s" : ""} detectado${problemasAgenda.length > 1 ? "s" : ""}`
+        }
+        aria-label="Organizar mi agenda"
+        className="m-btn-ai-glow"
+        style={{
+          position: "relative",
+          padding: isMobile ? "6px 10px" : "8px 14px",
+          background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(244,80,30,0.1) 100%)`,
+          border: `1px solid rgba(244,80,30,0.3)`,
+          color: TOKENS.text,
+          borderRadius: 10,
+          cursor: "pointer",
+          fontSize: isMobile ? 12 : 13,
+          fontWeight: 700,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          transition: "all 0.2s ease"
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.12)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+      >
+        <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
+        {problemasAgenda.length > 0 && (
+          <span
+            aria-hidden
+            style={{
+              position: "absolute",
+              top: -6,
+              right: -6,
+              minWidth: 17,
+              height: 17,
+              padding: "0 4px",
+              borderRadius: 999,
+              background: TOKENS.primary,
+              color: "#fff",
+              fontSize: 10,
+              fontWeight: 800,
+              lineHeight: "17px",
+              textAlign: "center",
+              border: `1.5px solid ${TOKENS.bg}`,
+              boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+              pointerEvents: "none",
+            }}
+          >
+            {problemasAgenda.length > 9 ? "9+" : problemasAgenda.length}
+          </span>
+        )}
+      </button>
+      {/* Enseñamelo: interruptor de PREVISUALIZACION. Encendido, la
+          rejilla resalta con animacion cada problema en su sitio. No
+          escribe nada. Antes este boton decia "Organizar mi agenda" y
+          abria un modal de "Profesional llega tarde" que no tenia nada
+          que ver (ese sigue accesible desde la fila del profesional). */}
+      <button
+        onClick={() => {
+          if (ensenar) {
+            setEnsenar(false);
+            setProblemaEnfocado(null);
+            return;
+          }
+          setEnsenar(true);
+          // Al encender lleva ya al primer problema en vez de dejarte
+          // buscandolo por la rejilla (en movil ni siquiera era visible: solo
+          // se monta la columna del profesional elegido).
+          enfocarProblema(0);
+        }}
+        aria-pressed={ensenar}
+        title={
+          ensenar
+            ? "Dejar de resaltar los problemas en la agenda"
+            : "Enseñamelo: resalta en la agenda los huecos, solapes y retrasos detectados"
+        }
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "7px 12px",
+          background: ensenar
+            ? TOKENS.primary
+            : "rgba(244,80,30,0.12)",
+          border: `1px solid ${ensenar ? TOKENS.primary : "rgba(244,80,30,0.45)"}`,
+          borderRadius: 10,
+          cursor: "pointer",
+          fontSize: 12,
+          fontWeight: 700,
+          color: ensenar ? "#fff" : TOKENS.primary,
+          whiteSpace: "nowrap",
+          boxShadow: ensenar
+            ? "0 2px 10px rgba(244,80,30,0.45)"
+            : "0 2px 6px rgba(244,80,30,0.15)",
+          transition: "all 0.15s ease",
+        }}
+      >
+        <Icon
+          name="zap"
+          size={13}
+          color={ensenar ? "#fff" : TOKENS.primary}
+        />
+        {!isMobile && (
+          <span>{ensenar ? "Ocultar" : "Enséñamelo"}</span>
+        )}
+      </button>
+      {/* Retirado el boton del "Optimizador de la agenda" (tarjeta de IA con
+          prompt de texto libre): duplicaba "Organizar mi agenda", que hace lo
+          mismo de forma determinista y con propuestas aplicables a un clic. */}
+      {/* El separador no pinta nada en movil, donde la barra ya
+          va en varias filas y solo suma ruido. */}
+      {!isMobile && (
+        <div style={{ width: 1, height: 20, background: TOKENS.border, opacity: 0.5, marginLeft: 4, marginRight: 4 }} />
+      )}
+    {/* Los dos filtros se reparten el ancho en movil (minWidth:0 para que
+    de verdad puedan encogerse) en vez de forzar 120px cada uno. */}
+    <div style={{ position: "relative", minWidth: 0, flex: isMobile ? "1 1 120px" : undefined }}>
+    <button
+    onClick={() => {
+    setDropServicioOpen(!dropServicioOpen);
+    setDropEstadoOpen(false);
+    }}
+    onBlur={() => setTimeout(() => setDropServicioOpen(false), 150)}
+    style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "7px 12px",
+    background:
+    filterServicio !== "todos"
+    ? "rgba(244,80,30,0.10)"
+    : TOKENS.bgCard,
+    border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
+    borderRadius: 10,
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: 600,
+    color:
+    filterServicio !== "todos"
+    ? TOKENS.primaryHi
+    : TOKENS.textSec,
+    transition: "all 0.2s ease",
+    minWidth: isMobile ? 0 : 120,
+    width: isMobile ? "100%" : undefined,
+    }}
+    onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = TOKENS.primary;
+    }}
+    onMouseLeave={(e) => {
+    if (!dropServicioOpen)
+    e.currentTarget.style.borderColor =
+    filterServicio !== "todos"
+    ? "rgba(244,80,30,0.30)"
+    : TOKENS.border;
+    }}
+    >
+    <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    >
+    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+    <line x1="7" y1="7" x2="7.01" y2="7" />
+    </svg>
+    <span
+    style={{
+    flex: 1,
+    textAlign: "left",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    }}
+    >
+    {filterServicio === "todos"
+    ? "Servicio"
+    : servicios.find((s) => s.id === filterServicio)?.nombre ||
+    "Servicio"}
+    </span>
+    <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    style={{
+    transform: dropServicioOpen ? "rotate(180deg)" : "none",
+    transition: "transform 0.2s ease",
+    flexShrink: 0,
+    opacity: 0.5,
+    }}
+    >
+    <polyline points="6 9 12 15 18 9" />
+    </svg>
+    </button>
+    {dropServicioOpen && (
+    <div
+    style={{
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    marginTop: 4,
+    minWidth: 200,
+    maxHeight: 260,
+    overflowY: "auto",
+    background: TOKENS.bgCard,
+    border: `1px solid ${TOKENS.border}`,
+    borderRadius: 12,
+    boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+    zIndex: 200,
+    padding: 4,
+    animation: "fadeIn 0.15s ease",
+    }}
+    >
+    <div
+    onMouseDown={() => {
+    setFilterServicio("todos");
+    setDropServicioOpen(false);
+    }}
+    style={{
+    padding: "8px 12px",
+    borderRadius: 8,
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: filterServicio === "todos" ? 700 : 500,
+    color:
+    filterServicio === "todos"
+      ? TOKENS.primaryHi
+      : TOKENS.textSec,
+    transition: "background 0.1s",
+    }}
+    onMouseEnter={(e) => {
+    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+    }}
+    onMouseLeave={(e) => {
+    e.currentTarget.style.background = "transparent";
+    }}
+    >
+    Todos los servicios
+    </div>
+    {servicios.map((s) => (
+    <div
+    key={s.id}
+    onMouseDown={() => {
+    setFilterServicio(s.id);
+    setDropServicioOpen(false);
+    }}
+    style={{
+    padding: "8px 12px",
+    borderRadius: 8,
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: filterServicio === s.id ? 700 : 500,
+    color:
+      filterServicio === s.id
+        ? TOKENS.primaryHi
+        : TOKENS.text,
+    transition: "background 0.1s",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    }}
+    onMouseEnter={(e) => {
+    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
+    }}
+    onMouseLeave={(e) => {
+    e.currentTarget.style.background = "transparent";
+    }}
+    >
+    <span>{s.nombre}</span>
+    {s.precio != null && (
+    <span style={{ fontSize: 10, color: TOKENS.textTer }}>
+      {s.precio}EUR
+    </span>
+    )}
+    </div>
+    ))}
+    </div>
+    )}
+    </div>
+
+
+    <div style={{ position: "relative", minWidth: 0, flex: isMobile ? "1 1 120px" : undefined }}>
+    <button
+    onClick={() => {
+    setDropEstadoOpen(!dropEstadoOpen);
+    setDropServicioOpen(false);
+    }}
+    onBlur={() => setTimeout(() => setDropEstadoOpen(false), 150)}
+    style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "7px 12px",
+    background:
+    filterEstado !== "todos"
+    ? "rgba(244,80,30,0.10)"
+    : TOKENS.bgCard,
+    border: `1px solid ${dropEstadoOpen ? TOKENS.primary : filterEstado !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
+    borderRadius: 10,
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: 600,
+    color:
+    filterEstado !== "todos" ? TOKENS.primaryHi : TOKENS.textSec,
+    transition: "all 0.2s ease",
+    minWidth: isMobile ? 0 : 110,
+    width: isMobile ? "100%" : undefined,
+    }}
+    onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = TOKENS.primary;
+    }}
+    onMouseLeave={(e) => {
+    if (!dropEstadoOpen)
+    e.currentTarget.style.borderColor =
+    filterEstado !== "todos"
+    ? "rgba(244,80,30,0.30)"
+    : TOKENS.border;
+    }}
+    >
+    <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M8 12l2.5 2.5L16 9" />
+    </svg>
+    <span style={{ flex: 1, textAlign: "left" }}>
+    {filterEstado === "todos"
+    ? "Estado"
+    : filterEstado === "no_presentada"
+    ? "No presentada"
+    : filterEstado.charAt(0).toUpperCase() +
+    filterEstado.slice(1)}
+    </span>
+    <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    style={{
+    transform: dropEstadoOpen ? "rotate(180deg)" : "none",
+    transition: "transform 0.2s ease",
+    flexShrink: 0,
+    opacity: 0.5,
+    }}
+    >
+    <polyline points="6 9 12 15 18 9" />
+    </svg>
+    </button>
+    {dropEstadoOpen &&
+    (() => {
+    const estados = [
+    {
+    value: "todos",
+    label: "Todos los estados",
+    dot: TOKENS.textTer,
+    },
+    {
+    value: CITA_STATUS.CONFIRMADA,
+    label: "Confirmada",
+    dot: TOKENS.primaryHi,
+    },
+    {
+    value: CITA_STATUS.COMPLETADA,
+    label: "Completada",
+    dot: "#22c55e",
+    },
+    {
+    value: CITA_STATUS.CANCELADA,
+    label: "Cancelada",
+    dot: "#ef4444",
+    },
+    {
+    value: CITA_STATUS.NO_PRESENTADA,
+    label: "No presentada",
+    dot: "#f59e0b",
+    },
+    ];
+    return (
+    <div
+    style={{
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    marginTop: 4,
+    minWidth: 180,
+    background: TOKENS.bgCard,
+    border: `1px solid ${TOKENS.border}`,
+    borderRadius: 12,
+    boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+    zIndex: 200,
+    padding: 4,
+    animation: "fadeIn 0.15s ease",
+    }}
+    >
+    {estados.map((e) => (
+    <div
+      key={e.value}
+      onMouseDown={() => {
+        setFilterEstado(e.value);
+        setDropEstadoOpen(false);
+      }}
+      style={{
+        padding: "8px 12px",
+        borderRadius: 8,
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: filterEstado === e.value ? 700 : 500,
+        color: filterEstado === e.value ? e.dot : TOKENS.text,
+        transition: "background 0.1s",
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+      }}
+      onMouseEnter={(ev) => {
+        ev.currentTarget.style.background =
+          "rgba(244,80,30,0.08)";
+      }}
+      onMouseLeave={(ev) => {
+        ev.currentTarget.style.background = "transparent";
+      }}
+    >
+      <span
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: 999,
+          background: e.dot,
+          flexShrink: 0,
+        }}
+      />
+      {e.label}
+    </div>
+    ))}
+    </div>
+    );
+    })()}
+    </div>
+
+
+    {(filterServicio !== "todos" || filterEstado !== "todos") && (
+    <button
+    onClick={() => {
+    setFilterServicio("todos");
+    setFilterEstado("todos");
+    }}
+    style={{
+    padding: "5px 10px",
+    fontSize: 11,
+    fontWeight: 600,
+    background: "rgba(239,68,68,0.08)",
+    border: "1px solid rgba(239,68,68,0.20)",
+    borderRadius: 8,
+    color: "#ef4444",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    animation: "fadeIn 0.2s ease",
+    }}
+    onMouseEnter={(e) => {
+    e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+    }}
+    onMouseLeave={(e) => {
+    e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+    }}
+    >
+    <svg
+    width="10"
+    height="10"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    >
+    <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+    Limpiar
+    </button>
+    )}
+
+
+
+    <div style={{ position: "relative" }}>
+    {!searchOpen ? (
+    <button
+    onClick={() => setSearchOpen(true)}
+    title="Buscar cita"
+    style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 36,
+    height: 36,
+    background: TOKENS.bgCard,
+    border: `1px solid ${TOKENS.border}`,
+    borderRadius: 10,
+    color: TOKENS.textSec,
+    cursor: "pointer",
+    transition: "all 0.2s ease"
+    }}
+    onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.color = TOKENS.primaryHi; }}
+    onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.color = TOKENS.textSec; }}
+    >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+    </button>
+    ) : (
+    <>
+    <div
+    style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    background: TOKENS.bgCard,
+    border: `1px solid ${searchOpen ? TOKENS.primary : TOKENS.border}`,
+    borderRadius: 10,
+    padding: "7px 12px",
+    transition: "all 0.25s ease",
+    width: searchOpen ? 280 : 36,
+    boxShadow: searchOpen
+    ? `0 0 0 3px rgba(244,80,30,0.10)`
+    : "none",
+    }}
+    >
+    <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={searchOpen ? TOKENS.primaryHi : TOKENS.textTer}
+    strokeWidth="2"
+    style={{ transition: "stroke 0.2s ease", flexShrink: 0 }}
+    >
+    <circle cx="11" cy="11" r="8" />
+    <path d="M21 21l-4.35-4.35" />
+    </svg>
+    <input
+    type="text"
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    onFocus={() => {
+    setSearchOpen(true);
+    setDropServicioOpen(false);
+    setDropEstadoOpen(false);
+    }}
+    onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
+    placeholder={searchOpen ? "Buscar cita..." : ""}
+    style={{
+    border: "none",
+    outline: "none",
+    background: "transparent",
+    color: TOKENS.text,
+    fontSize: 12,
+    width: "100%",
+    }}
+    />
+    {searchQuery && (
+    <button
+    onClick={() => setSearchQuery("")}
+    style={{
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    color: TOKENS.textTer,
+    padding: 2,
+    display: "flex",
+    transition: "color 0.15s",
+    }}
+    onMouseEnter={(e) => {
+    e.currentTarget.style.color = TOKENS.text;
+    }}
+    onMouseLeave={(e) => {
+    e.currentTarget.style.color = TOKENS.textTer;
+    }}
+    >
+    <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    >
+    <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+    </button>
+    )}
+    </div>
+    {searchOpen && searchResults.length > 0 && (
+    <div
+    onWheel={(e) => e.stopPropagation()}
+    onMouseDown={(e) => e.preventDefault()}
+    style={{
+    position: "absolute",
+    top: "100%",
+    right: 0,
+    marginTop: 6,
+    width: 360,
+    maxHeight: 340,
+    overflowY: "auto",
+    background: TOKENS.bgCard,
+    border: `1px solid ${TOKENS.border}`,
+    borderRadius: 14,
+    boxShadow: "0 16px 50px rgba(0,0,0,0.55)",
+    zIndex: 200,
+    padding: 6,
+    animation: "slideInUp 0.2s ease",
+    overscrollBehavior: "contain",
+    }}
+    >
+    <div
+    style={{
+    padding: "6px 10px 8px",
+    fontSize: 10,
+    fontWeight: 600,
+    color: TOKENS.textTer,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    }}
+    >
+    {searchResults.length} resultado
+    {searchResults.length !== 1 ? "s" : ""}
+    </div>
+    {searchResults.map((c: any) => {
+    const cli = clientes.find(
+    (cl: any) => cl.id === c.cliente_id,
+    );
+    const srv = servicios.find(
+    (s: any) => s.id === c.servicio_id,
+    );
+    const prof = profesionales.find(
+    (p: any) => p.id === c.profesional_id,
+    );
+    const fecha = new Date(c.inicio);
+    return (
+    <div
+    key={c.id}
+    onMouseDown={() => {
+      const citaDate = new Date(c.inicio);
+      setSelectedDate(citaDate.getDate());
+      setCurrentMonth(
+        new Date(citaDate.getFullYear(), citaDate.getMonth()),
+      );
+      setView("day");
+      setSearchQuery("");
+    }}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "8px 10px",
+      borderRadius: 8,
+      cursor: "pointer",
+      transition: "all 0.15s ease",
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.background =
+        "rgba(244,80,30,0.08)";
+      e.currentTarget.style.transform = "none";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.background = "transparent";
+      e.currentTarget.style.transform = "none";
+    }}
+    >
+    <div
+      style={{
+        width: 4,
+        height: 32,
+        borderRadius: 2,
+        background: prof?.color || TOKENS.primary,
+        flexShrink: 0,
+      }}
+    />
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: TOKENS.text,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {cli?.nombre || "Sin cliente"}
+      </div>
+      <div
+        style={{
+          fontSize: 10,
+          color: TOKENS.textTer,
+          marginTop: 1,
+        }}
+      >
+        {srv?.nombre} - {prof?.nombre?.split(" ")[0]}
+      </div>
+    </div>
+    <div style={{ textAlign: "right", flexShrink: 0 }}>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          color: TOKENS.textSec,
+        }}
+      >
+        {fecha.toLocaleDateString("es-ES", {
+          day: "numeric",
+          month: "short",
+        })}
+      </div>
+      <div style={{ fontSize: 10, color: TOKENS.textTer }}>
+        {fecha.toLocaleTimeString("es-ES", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </div>
+    </div>
+    <button
+      onMouseDown={(e) => {
+        e.stopPropagation();
+        setShowClienteHistorial(cli);
+      }}
+      style={{
+        padding: "4px 8px",
+        fontSize: 10,
+        fontWeight: 600,
+        background: "rgba(244,80,30,0.10)",
+        border: "1px solid rgba(244,80,30,0.25)",
+        borderRadius: 6,
+        color: TOKENS.primaryHi,
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        transition: "all 0.15s ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background =
+          "rgba(244,80,30,0.20)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background =
+          "rgba(244,80,30,0.10)";
+      }}
+    >
+      Historial
+    </button>
+    </div>
+    );
+    })}
+    </div>
+    )}
+    </>
+    )}
+    </div>
+
+    {/* Acceso rapido por profesional, junto a la lupa. Aisla la columna de un
+    estilista sin tener que salir de pantalla completa para llegar al filtro
+    del rail. Pulsar el que ya esta activo vuelve a "Todos". */}
+    {!isMobile && visibleProfs.length > 1 && (
+    <div
+    style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    paddingLeft: 8,
+    marginLeft: 4,
+    borderLeft: `1px solid ${TOKENS.border}`,
+    }}
+    >
+    <button
+    onClick={() => setSelectedProf("todos")}
+    title="Ver todos los profesionales"
+    aria-pressed={selectedProf === "todos"}
+    style={{
+    height: 28,
+    padding: "0 9px",
+    borderRadius: 999,
+    fontSize: 10.5,
+    fontWeight: 700,
+    letterSpacing: 0.3,
+    cursor: "pointer",
+    flexShrink: 0,
+    transition: "all 0.15s ease",
+    background:
+    selectedProf === "todos"
+    ? "rgba(244,80,30,0.12)"
+    : TOKENS.bgCard,
+    border: `1px solid ${selectedProf === "todos" ? TOKENS.primary : TOKENS.border}`,
+    color:
+    selectedProf === "todos"
+    ? TOKENS.primaryHi
+    : TOKENS.textTer,
+    }}
+    >
+    Todos
+    </button>
+    {visibleProfs.map((p) => {
+    const activo = selectedProf === p.id;
+    const ini =
+    (p.nombre || "?")
+    .split(/\s+/)
+    .map((w: string) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "?";
+    const nCitas = citasHoy.filter(
+    (c: any) => c.profesional_id === p.id,
+    ).length;
+    return (
+    <button
+    key={p.id}
+    onClick={() =>
+    setSelectedProf(activo ? "todos" : p.id)
+    }
+    title={
+    activo
+      ? `${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy (pulsa para ver a todos)`
+      : `Ver solo la agenda de ${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy`
+    }
+    aria-label={`Ver solo la agenda de ${p.nombre}`}
+    aria-pressed={activo}
+    style={{
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    padding: 0,
+    overflow: "hidden",
+    flexShrink: 0,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: p.color,
+    border: `2px solid ${activo ? p.color : "transparent"}`,
+    boxShadow: activo
+      ? `0 0 0 2px ${TOKENS.bg}, 0 0 0 3.5px ${p.color}`
+      : "0 1px 2px rgba(0,0,0,0.15)",
+    opacity: activo || selectedProf === "todos" ? 1 : 0.45,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    }}
+    onMouseEnter={(e) => {
+    e.currentTarget.style.opacity = "1";
+    e.currentTarget.style.transform = "scale(1.12)";
+    }}
+    onMouseLeave={(e) => {
+    e.currentTarget.style.opacity =
+      activo || selectedProf === "todos" ? "1" : "0.45";
+    e.currentTarget.style.transform = "scale(1)";
+    }}
+    >
+    {p.foto_perfil ? (
+    <img
+      src={p.foto_perfil}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+      }}
+    />
+    ) : (
+    <span
+      style={{
+        fontSize: 10,
+        fontWeight: 800,
+        color: "#ffffff",
+        lineHeight: 1,
+      }}
+    >
+      {ini}
+    </span>
+    )}
+    </button>
+    );
+    })}
+    </div>
+    )}
+
+    </div>
+  );
 
   return (
     <div
@@ -2648,8 +3651,10 @@ export default function AgendaCalendar() {
             style={{
             position: "sticky",
             top: 0,
-            padding: isMobile ? "12px 0 16px 0" : (isReallyCollapsed ? "20px 0 16px 0" : "24px 0 16px 0"),
-            marginBottom: 16,
+            // La cabecera es pegajosa: cada pixel que ocupa se lo quita a la
+            // rejilla durante todo el scroll. En movil va al minimo.
+            padding: isMobile ? "8px 0 8px 0" : (isReallyCollapsed ? "20px 0 16px 0" : "24px 0 16px 0"),
+            marginBottom: isMobile ? 8 : 16,
             background: TOKENS.bg,
             zIndex: 100,
             borderBottom: `1px solid ${TOKENS.borderHi}`,
@@ -2661,7 +3666,7 @@ export default function AgendaCalendar() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: 16,
+                  marginBottom: isMobile ? 8 : 16,
                   gap: 12,
                 }}
               >
@@ -2671,6 +3676,11 @@ export default function AgendaCalendar() {
                     alignItems: "center",
                     gap: 12,
                     minWidth: 0,
+                    // Red de seguridad: si un titulo largo no cupiera junto a las
+                    // flechas, baja de linea en vez de desbordar.
+                    flexWrap: isMobile ? "wrap" : "nowrap",
+                    rowGap: isMobile ? 8 : 0,
+                    flex: isMobile ? 1 : undefined,
                   }}
                 >
                   {/* Navegacion de dia anterior/siguiente (estilo Booksy) */}
@@ -2767,7 +3777,15 @@ export default function AgendaCalendar() {
                       </button>
                     )}
                   </div>
-                  <div style={{ minWidth: 0, cursor: "default" }}>
+                  <div
+                    style={{
+                      minWidth: 0,
+                      cursor: "default",
+                      // En movil comparte fila con las flechas de dia: la barra de
+                      // controles ya no cuelga de aqui, asi que el titulo cabe.
+                      flex: isMobile ? "1 1 auto" : undefined,
+                    }}
+                  >
                     <div
                       style={{
                         display: "flex",
@@ -2809,939 +3827,7 @@ export default function AgendaCalendar() {
                         </span>
                       )}
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: isMobile ? 0 : 12 }}>
-                        <div style={{ display: "flex", background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, overflow: "hidden" }}>
-                          {(["day", "week", "month"] as const).map((v) => (
-                            <button
-                              key={v}
-                              onClick={() => {
-                                setView(v);
-                                // if (v !== "day") setRailCollapsed(false);
-                              }}
-                              style={{
-                                padding: isMobile ? "6px 12px" : "8px 18px",
-                                fontSize: isMobile ? 12 : 13,
-                                fontWeight: view === v ? 700 : 500,
-                                background: view === v ? roleTheme.primarySoft : "transparent",
-                                color: view === v ? roleTheme.primaryHi : TOKENS.textSec,
-                                border: "none",
-                                cursor: "pointer",
-                                borderRight: v !== "month" ? `1px solid ${TOKENS.border}` : "none",
-                                transition: "all 0.2s ease",
-                              }}
-                              onMouseEnter={(e) => { if (view !== v) e.currentTarget.style.background = roleTheme.primarySoft; }}
-                              onMouseLeave={(e) => { if (view !== v) e.currentTarget.style.background = "transparent"; }}
-                            >
-                              {v === "day" ? "Dia" : v === "week" ? "Semana" : "Mes"}
-                            </button>
-                          ))}
-                        </div>
-                        <button
-                          className="m-btn-secondary"
-                          onClick={handleToday}
-                          title="Ir a hoy"
-                          style={{
-                            padding: isMobile ? "6px 10px" : "8px 14px",
-                            background: TOKENS.bgCard,
-                            border: `1px solid ${TOKENS.border}`,
-                            color: TOKENS.text,
-                            borderRadius: 10,
-                            cursor: "pointer",
-                            fontSize: isMobile ? 12 : 13,
-                            fontWeight: 600,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 6,
-                          }}
-                        >
-                          <Icon name="calendar" size={isMobile ? 12 : 14} color={TOKENS.text} />
-                          {!isMobile && "Hoy"}
-                        </button>
-                        {/* Organizar: abre el panel que APLICA los arreglos. El badge
-                            cuenta los problemas del dia visible, como las notificaciones. */}
-                        <button
-                          onClick={() => setShowOrganizar(true)}
-                          title={
-                            problemasAgenda.length === 0
-                              ? "Organizar la agenda (sin problemas detectados)"
-                              : `Organizar la agenda · ${problemasAgenda.length} problema${problemasAgenda.length > 1 ? "s" : ""} detectado${problemasAgenda.length > 1 ? "s" : ""}`
-                          }
-                          aria-label="Organizar mi agenda"
-                          className="m-btn-ai-glow"
-                          style={{
-                            position: "relative",
-                            padding: isMobile ? "6px 10px" : "8px 14px",
-                            background: `linear-gradient(135deg, ${TOKENS.bgCard} 0%, rgba(244,80,30,0.1) 100%)`,
-                            border: `1px solid rgba(244,80,30,0.3)`,
-                            color: TOKENS.text,
-                            borderRadius: 10,
-                            cursor: "pointer",
-                            fontSize: isMobile ? 12 : 13,
-                            fontWeight: 700,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 6,
-                            transition: "all 0.2s ease"
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.12)"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
-                        >
-                          <Icon name="list" size={isMobile ? 12 : 14} color={TOKENS.text} />
-                          {problemasAgenda.length > 0 && (
-                            <span
-                              aria-hidden
-                              style={{
-                                position: "absolute",
-                                top: -6,
-                                right: -6,
-                                minWidth: 17,
-                                height: 17,
-                                padding: "0 4px",
-                                borderRadius: 999,
-                                background: TOKENS.primary,
-                                color: "#fff",
-                                fontSize: 10,
-                                fontWeight: 800,
-                                lineHeight: "17px",
-                                textAlign: "center",
-                                border: `1.5px solid ${TOKENS.bg}`,
-                                boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
-                                pointerEvents: "none",
-                              }}
-                            >
-                              {problemasAgenda.length > 9 ? "9+" : problemasAgenda.length}
-                            </span>
-                          )}
-                        </button>
-                        {/* Enseñamelo: interruptor de PREVISUALIZACION. Encendido, la
-                            rejilla resalta con animacion cada problema en su sitio. No
-                            escribe nada. Antes este boton decia "Organizar mi agenda" y
-                            abria un modal de "Profesional llega tarde" que no tenia nada
-                            que ver (ese sigue accesible desde la fila del profesional). */}
-                        <button
-                          onClick={() => {
-                            setProblemaEnfocado(null);
-                            setEnsenar((v) => !v);
-                          }}
-                          aria-pressed={ensenar}
-                          title={
-                            ensenar
-                              ? "Dejar de resaltar los problemas en la agenda"
-                              : "Enseñamelo: resalta en la agenda los huecos, solapes y retrasos detectados"
-                          }
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 6,
-                            padding: "7px 12px",
-                            background: ensenar
-                              ? TOKENS.primary
-                              : "rgba(244,80,30,0.12)",
-                            border: `1px solid ${ensenar ? TOKENS.primary : "rgba(244,80,30,0.45)"}`,
-                            borderRadius: 10,
-                            cursor: "pointer",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: ensenar ? "#fff" : TOKENS.primary,
-                            whiteSpace: "nowrap",
-                            boxShadow: ensenar
-                              ? "0 2px 10px rgba(244,80,30,0.45)"
-                              : "0 2px 6px rgba(244,80,30,0.15)",
-                            transition: "all 0.15s ease",
-                          }}
-                        >
-                          <Icon
-                            name="zap"
-                            size={13}
-                            color={ensenar ? "#fff" : TOKENS.primary}
-                          />
-                          {!isMobile && (
-                            <span>{ensenar ? "Ocultar" : "Enséñamelo"}</span>
-                          )}
-                        </button>
-                        {/* Retirado el boton del "Optimizador de la agenda" (tarjeta de IA con
-                            prompt de texto libre): duplicaba "Organizar mi agenda", que hace lo
-                            mismo de forma determinista y con propuestas aplicables a un clic. */}
-                        <div style={{ width: 1, height: 20, background: TOKENS.border, opacity: 0.5, marginLeft: 4, marginRight: 4 }} />
-          <div style={{ position: "relative" }}>
-            <button
-              onClick={() => {
-                setDropServicioOpen(!dropServicioOpen);
-                setDropEstadoOpen(false);
-              }}
-              onBlur={() => setTimeout(() => setDropServicioOpen(false), 150)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
-                background:
-                  filterServicio !== "todos"
-                    ? "rgba(244,80,30,0.10)"
-                    : TOKENS.bgCard,
-                border: `1px solid ${dropServicioOpen ? TOKENS.primary : filterServicio !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
-                borderRadius: 10,
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 600,
-                color:
-                  filterServicio !== "todos"
-                    ? TOKENS.primaryHi
-                    : TOKENS.textSec,
-                transition: "all 0.2s ease",
-                minWidth: 120,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = TOKENS.primary;
-              }}
-              onMouseLeave={(e) => {
-                if (!dropServicioOpen)
-                  e.currentTarget.style.borderColor =
-                    filterServicio !== "todos"
-                      ? "rgba(244,80,30,0.30)"
-                      : TOKENS.border;
-              }}
-            >
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                <line x1="7" y1="7" x2="7.01" y2="7" />
-              </svg>
-              <span
-                style={{
-                  flex: 1,
-                  textAlign: "left",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {filterServicio === "todos"
-                  ? "Servicio"
-                  : servicios.find((s) => s.id === filterServicio)?.nombre ||
-                    "Servicio"}
-              </span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{
-                  transform: dropServicioOpen ? "rotate(180deg)" : "none",
-                  transition: "transform 0.2s ease",
-                  flexShrink: 0,
-                  opacity: 0.5,
-                }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            {dropServicioOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  marginTop: 4,
-                  minWidth: 200,
-                  maxHeight: 260,
-                  overflowY: "auto",
-                  background: TOKENS.bgCard,
-                  border: `1px solid ${TOKENS.border}`,
-                  borderRadius: 12,
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
-                  zIndex: 200,
-                  padding: 4,
-                  animation: "fadeIn 0.15s ease",
-                }}
-              >
-                <div
-                  onMouseDown={() => {
-                    setFilterServicio("todos");
-                    setDropServicioOpen(false);
-                  }}
-                  style={{
-                    padding: "8px 12px",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    fontSize: 12,
-                    fontWeight: filterServicio === "todos" ? 700 : 500,
-                    color:
-                      filterServicio === "todos"
-                        ? TOKENS.primaryHi
-                        : TOKENS.textSec,
-                    transition: "background 0.1s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(244,80,30,0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  Todos los servicios
-                </div>
-                {servicios.map((s) => (
-                  <div
-                    key={s.id}
-                    onMouseDown={() => {
-                      setFilterServicio(s.id);
-                      setDropServicioOpen(false);
-                    }}
-                    style={{
-                      padding: "8px 12px",
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      fontSize: 12,
-                      fontWeight: filterServicio === s.id ? 700 : 500,
-                      color:
-                        filterServicio === s.id
-                          ? TOKENS.primaryHi
-                          : TOKENS.text,
-                      transition: "background 0.1s",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(244,80,30,0.08)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
-                  >
-                    <span>{s.nombre}</span>
-                    {s.precio != null && (
-                      <span style={{ fontSize: 10, color: TOKENS.textTer }}>
-                        {s.precio}EUR
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-
-          <div style={{ position: "relative" }}>
-            <button
-              onClick={() => {
-                setDropEstadoOpen(!dropEstadoOpen);
-                setDropServicioOpen(false);
-              }}
-              onBlur={() => setTimeout(() => setDropEstadoOpen(false), 150)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
-                background:
-                  filterEstado !== "todos"
-                    ? "rgba(244,80,30,0.10)"
-                    : TOKENS.bgCard,
-                border: `1px solid ${dropEstadoOpen ? TOKENS.primary : filterEstado !== "todos" ? "rgba(244,80,30,0.30)" : TOKENS.border}`,
-                borderRadius: 10,
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 600,
-                color:
-                  filterEstado !== "todos" ? TOKENS.primaryHi : TOKENS.textSec,
-                transition: "all 0.2s ease",
-                minWidth: 110,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = TOKENS.primary;
-              }}
-              onMouseLeave={(e) => {
-                if (!dropEstadoOpen)
-                  e.currentTarget.style.borderColor =
-                    filterEstado !== "todos"
-                      ? "rgba(244,80,30,0.30)"
-                      : TOKENS.border;
-              }}
-            >
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 12l2.5 2.5L16 9" />
-              </svg>
-              <span style={{ flex: 1, textAlign: "left" }}>
-                {filterEstado === "todos"
-                  ? "Estado"
-                  : filterEstado === "no_presentada"
-                    ? "No presentada"
-                    : filterEstado.charAt(0).toUpperCase() +
-                      filterEstado.slice(1)}
-              </span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{
-                  transform: dropEstadoOpen ? "rotate(180deg)" : "none",
-                  transition: "transform 0.2s ease",
-                  flexShrink: 0,
-                  opacity: 0.5,
-                }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            {dropEstadoOpen &&
-              (() => {
-                const estados = [
-                  {
-                    value: "todos",
-                    label: "Todos los estados",
-                    dot: TOKENS.textTer,
-                  },
-                  {
-                    value: CITA_STATUS.CONFIRMADA,
-                    label: "Confirmada",
-                    dot: TOKENS.primaryHi,
-                  },
-                  {
-                    value: CITA_STATUS.COMPLETADA,
-                    label: "Completada",
-                    dot: "#22c55e",
-                  },
-                  {
-                    value: CITA_STATUS.CANCELADA,
-                    label: "Cancelada",
-                    dot: "#ef4444",
-                  },
-                  {
-                    value: CITA_STATUS.NO_PRESENTADA,
-                    label: "No presentada",
-                    dot: "#f59e0b",
-                  },
-                ];
-                return (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      left: 0,
-                      marginTop: 4,
-                      minWidth: 180,
-                      background: TOKENS.bgCard,
-                      border: `1px solid ${TOKENS.border}`,
-                      borderRadius: 12,
-                      boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
-                      zIndex: 200,
-                      padding: 4,
-                      animation: "fadeIn 0.15s ease",
-                    }}
-                  >
-                    {estados.map((e) => (
-                      <div
-                        key={e.value}
-                        onMouseDown={() => {
-                          setFilterEstado(e.value);
-                          setDropEstadoOpen(false);
-                        }}
-                        style={{
-                          padding: "8px 12px",
-                          borderRadius: 8,
-                          cursor: "pointer",
-                          fontSize: 12,
-                          fontWeight: filterEstado === e.value ? 700 : 500,
-                          color: filterEstado === e.value ? e.dot : TOKENS.text,
-                          transition: "background 0.1s",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                        }}
-                        onMouseEnter={(ev) => {
-                          ev.currentTarget.style.background =
-                            "rgba(244,80,30,0.08)";
-                        }}
-                        onMouseLeave={(ev) => {
-                          ev.currentTarget.style.background = "transparent";
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: 999,
-                            background: e.dot,
-                            flexShrink: 0,
-                          }}
-                        />
-                        {e.label}
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-          </div>
-
-
-          {(filterServicio !== "todos" || filterEstado !== "todos") && (
-            <button
-              onClick={() => {
-                setFilterServicio("todos");
-                setFilterEstado("todos");
-              }}
-              style={{
-                padding: "5px 10px",
-                fontSize: 11,
-                fontWeight: 600,
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.20)",
-                borderRadius: 8,
-                color: "#ef4444",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                animation: "fadeIn 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-              }}
-            >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-              Limpiar
-            </button>
-          )}
-
-
-
-          <div style={{ position: "relative" }}>
-            {!searchOpen ? (
-              <button
-                onClick={() => setSearchOpen(true)}
-                title="Buscar cita"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 36,
-                  height: 36,
-                  background: TOKENS.bgCard,
-                  border: `1px solid ${TOKENS.border}`,
-                  borderRadius: 10,
-                  color: TOKENS.textSec,
-                  cursor: "pointer",
-                  transition: "all 0.2s ease"
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = TOKENS.primary; e.currentTarget.style.color = TOKENS.primaryHi; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = TOKENS.border; e.currentTarget.style.color = TOKENS.textSec; }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </button>
-            ) : (
-            <>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                background: TOKENS.bgCard,
-                border: `1px solid ${searchOpen ? TOKENS.primary : TOKENS.border}`,
-                borderRadius: 10,
-                padding: "7px 12px",
-                transition: "all 0.25s ease",
-                width: searchOpen ? 280 : 36,
-                boxShadow: searchOpen
-                  ? `0 0 0 3px rgba(244,80,30,0.10)`
-                  : "none",
-              }}
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={searchOpen ? TOKENS.primaryHi : TOKENS.textTer}
-                strokeWidth="2"
-                style={{ transition: "stroke 0.2s ease", flexShrink: 0 }}
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => {
-                  setSearchOpen(true);
-                  setDropServicioOpen(false);
-                  setDropEstadoOpen(false);
-                }}
-                onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
-                placeholder={searchOpen ? "Buscar cita..." : ""}
-                style={{
-                  border: "none",
-                  outline: "none",
-                  background: "transparent",
-                  color: TOKENS.text,
-                  fontSize: 12,
-                  width: "100%",
-                }}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: TOKENS.textTer,
-                    padding: 2,
-                    display: "flex",
-                    transition: "color 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = TOKENS.text;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = TOKENS.textTer;
-                  }}
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            {searchOpen && searchResults.length > 0 && (
-              <div
-                onWheel={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.preventDefault()}
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  right: 0,
-                  marginTop: 6,
-                  width: 360,
-                  maxHeight: 340,
-                  overflowY: "auto",
-                  background: TOKENS.bgCard,
-                  border: `1px solid ${TOKENS.border}`,
-                  borderRadius: 14,
-                  boxShadow: "0 16px 50px rgba(0,0,0,0.55)",
-                  zIndex: 200,
-                  padding: 6,
-                  animation: "slideInUp 0.2s ease",
-                  overscrollBehavior: "contain",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "6px 10px 8px",
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: TOKENS.textTer,
-                    letterSpacing: 0.5,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {searchResults.length} resultado
-                  {searchResults.length !== 1 ? "s" : ""}
-                </div>
-                {searchResults.map((c: any) => {
-                  const cli = clientes.find(
-                    (cl: any) => cl.id === c.cliente_id,
-                  );
-                  const srv = servicios.find(
-                    (s: any) => s.id === c.servicio_id,
-                  );
-                  const prof = profesionales.find(
-                    (p: any) => p.id === c.profesional_id,
-                  );
-                  const fecha = new Date(c.inicio);
-                  return (
-                    <div
-                      key={c.id}
-                      onMouseDown={() => {
-                        const citaDate = new Date(c.inicio);
-                        setSelectedDate(citaDate.getDate());
-                        setCurrentMonth(
-                          new Date(citaDate.getFullYear(), citaDate.getMonth()),
-                        );
-                        setView("day");
-                        setSearchQuery("");
-                      }}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "8px 10px",
-                        borderRadius: 8,
-                        cursor: "pointer",
-                        transition: "all 0.15s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background =
-                          "rgba(244,80,30,0.08)";
-                        e.currentTarget.style.transform = "none";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.transform = "none";
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 4,
-                          height: 32,
-                          borderRadius: 2,
-                          background: prof?.color || TOKENS.primary,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: TOKENS.text,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {cli?.nombre || "Sin cliente"}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 10,
-                            color: TOKENS.textTer,
-                            marginTop: 1,
-                          }}
-                        >
-                          {srv?.nombre} - {prof?.nombre?.split(" ")[0]}
-                        </div>
-                      </div>
-                      <div style={{ textAlign: "right", flexShrink: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: TOKENS.textSec,
-                          }}
-                        >
-                          {fecha.toLocaleDateString("es-ES", {
-                            day: "numeric",
-                            month: "short",
-                          })}
-                        </div>
-                        <div style={{ fontSize: 10, color: TOKENS.textTer }}>
-                          {fecha.toLocaleTimeString("es-ES", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
-                      </div>
-                      <button
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          setShowClienteHistorial(cli);
-                        }}
-                        style={{
-                          padding: "4px 8px",
-                          fontSize: 10,
-                          fontWeight: 600,
-                          background: "rgba(244,80,30,0.10)",
-                          border: "1px solid rgba(244,80,30,0.25)",
-                          borderRadius: 6,
-                          color: TOKENS.primaryHi,
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                          transition: "all 0.15s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background =
-                            "rgba(244,80,30,0.20)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background =
-                            "rgba(244,80,30,0.10)";
-                        }}
-                      >
-                        Historial
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            </>
-            )}
-          </div>
-
-          {/* Acceso rapido por profesional, junto a la lupa. Aisla la columna de un
-              estilista sin tener que salir de pantalla completa para llegar al filtro
-              del rail. Pulsar el que ya esta activo vuelve a "Todos". */}
-          {!isMobile && visibleProfs.length > 1 && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                paddingLeft: 8,
-                marginLeft: 4,
-                borderLeft: `1px solid ${TOKENS.border}`,
-              }}
-            >
-              <button
-                onClick={() => setSelectedProf("todos")}
-                title="Ver todos los profesionales"
-                aria-pressed={selectedProf === "todos"}
-                style={{
-                  height: 28,
-                  padding: "0 9px",
-                  borderRadius: 999,
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  letterSpacing: 0.3,
-                  cursor: "pointer",
-                  flexShrink: 0,
-                  transition: "all 0.15s ease",
-                  background:
-                    selectedProf === "todos"
-                      ? "rgba(244,80,30,0.12)"
-                      : TOKENS.bgCard,
-                  border: `1px solid ${selectedProf === "todos" ? TOKENS.primary : TOKENS.border}`,
-                  color:
-                    selectedProf === "todos"
-                      ? TOKENS.primaryHi
-                      : TOKENS.textTer,
-                }}
-              >
-                Todos
-              </button>
-              {visibleProfs.map((p) => {
-                const activo = selectedProf === p.id;
-                const ini =
-                  (p.nombre || "?")
-                    .split(/\s+/)
-                    .map((w: string) => w[0])
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .join("")
-                    .toUpperCase() || "?";
-                const nCitas = citasHoy.filter(
-                  (c: any) => c.profesional_id === p.id,
-                ).length;
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() =>
-                      setSelectedProf(activo ? "todos" : p.id)
-                    }
-                    title={
-                      activo
-                        ? `${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy (pulsa para ver a todos)`
-                        : `Ver solo la agenda de ${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy`
-                    }
-                    aria-label={`Ver solo la agenda de ${p.nombre}`}
-                    aria-pressed={activo}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 999,
-                      padding: 0,
-                      overflow: "hidden",
-                      flexShrink: 0,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: p.color,
-                      border: `2px solid ${activo ? p.color : "transparent"}`,
-                      boxShadow: activo
-                        ? `0 0 0 2px ${TOKENS.bg}, 0 0 0 3.5px ${p.color}`
-                        : "0 1px 2px rgba(0,0,0,0.15)",
-                      opacity: activo || selectedProf === "todos" ? 1 : 0.45,
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = "1";
-                      e.currentTarget.style.transform = "scale(1.12)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity =
-                        activo || selectedProf === "todos" ? "1" : "0.45";
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
-                  >
-                    {p.foto_perfil ? (
-                      <img
-                        src={p.foto_perfil}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 800,
-                          color: "#ffffff",
-                          lineHeight: 1,
-                        }}
-                      >
-                        {ini}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-                      </div>
+                      {!isMobile && barraControlesAgenda}
 
                     </div>
                     <div
@@ -3830,6 +3916,9 @@ export default function AgendaCalendar() {
 
                 </div>
               </div>
+
+              {/* Movil: la barra de controles va aqui, a ancho completo. */}
+              {isMobile && barraControlesAgenda}
 
               
               {/* Selector de profesional en movil: UNO a la vez (switcher con flechas
@@ -8818,20 +8907,29 @@ function DayTimeline({
                         );
                       })}
 
-                    {/* Modo "Enseñamelo": marco pulsante sobre la zona de cada
-                        problema detectado en esta columna. Va el ultimo y con
-                        zIndex alto para leerse por encima de las citas, pero sin
-                        capturar el raton (se sigue pudiendo arrastrar debajo). */}
+                    {/* Modo "Enseñamelo". Por cada problema de esta columna pinta
+                        hasta tres cosas: la cita de ORIGEN (la que se movería), una
+                        FLECHA hasta el destino y el hueco DESTINO con la accion en
+                        imperativo ("Adelantar a las 14:30"). Antes solo se pintaba
+                        el destino con el nombre del problema ("Hueco muerto"), que
+                        no dice ni que hay que hacer ni con que cita.
+                        Va el ultimo y con zIndex alto para leerse por encima de las
+                        citas, sin capturar el raton (se sigue arrastrando debajo). */}
                     {(zonasResaltadas as ProblemaAgenda[])
-                      .filter((p) => p.zona.profesionalId === prof.id)
+                      .filter(
+                        (p) =>
+                          p.zona.profesionalId === prof.id ||
+                          p.zonaOrigen?.profesionalId === prof.id,
+                      )
                       .map((p) => {
-                        const zIni = new Date(p.zona.desde);
-                        const zFin = new Date(p.zona.hasta);
-                        const zTop =
-                          (zIni.getHours() + zIni.getMinutes() / 60 - START_H) *
-                          ROW_H;
-                        const zH =
-                          ((zFin.getTime() - zIni.getTime()) / 3600000) * ROW_H;
+                        const aY = (iso: string) => {
+                          const d = new Date(iso);
+                          return (
+                            (d.getHours() + d.getMinutes() / 60 - START_H) * ROW_H
+                          );
+                        };
+                        const zTop = aY(p.zona.desde);
+                        const zH = aY(p.zona.hasta) - zTop;
                         if (zH <= 0) return null;
                         const tono =
                           p.tipo === "solape"
@@ -8839,43 +8937,138 @@ function DayTimeline({
                             : p.tipo === "retraso"
                               ? "#f59e0b"
                               : "#10b981";
+                        const oTop = p.zonaOrigen ? aY(p.zonaOrigen.desde) : null;
+                        const oH =
+                          p.zonaOrigen && oTop != null
+                            ? aY(p.zonaOrigen.hasta) - oTop
+                            : 0;
+                        // La flecha va del origen al destino. "Adelantar" sube, asi
+                        // que normalmente apunta hacia arriba.
+                        const flechaDesde =
+                          oTop != null ? Math.min(oTop, zTop + zH) : null;
+                        const flechaHasta =
+                          oTop != null ? Math.max(zTop + zH, oTop) : null;
                         return (
-                          <div
-                            key={`zona-${p.id}`}
-                            title={`${p.titulo} — ${p.descripcion}`}
-                            style={{
-                              position: "absolute",
-                              top: Math.max(0, zTop),
-                              left: 2,
-                              right: 2,
-                              height: Math.max(14, zH),
-                              borderRadius: 10,
-                              border: `2px dashed ${tono}`,
-                              background: `${tono}1f`,
-                              boxShadow: `0 0 0 3px ${tono}22`,
-                              pointerEvents: "none",
-                              zIndex: 40,
-                              animation: "pulseZona 1.6s ease-in-out infinite",
-                            }}
-                          >
-                            <span
+                          <div key={`zona-${p.id}`}>
+                            {/* Cita de origen: marco tenue, sin latido (el latido
+                                se reserva al destino, que es donde hay que mirar). */}
+                            {oTop != null && oH > 0 && (
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: Math.max(0, oTop),
+                                  left: 2,
+                                  right: 2,
+                                  height: Math.max(14, oH),
+                                  borderRadius: 10,
+                                  border: `2px solid ${tono}`,
+                                  background: `${tono}12`,
+                                  pointerEvents: "none",
+                                  zIndex: 39,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    position: "absolute",
+                                    bottom: -9,
+                                    right: 8,
+                                    padding: "1px 7px",
+                                    borderRadius: 999,
+                                    background: "#fff",
+                                    border: `1.5px solid ${tono}`,
+                                    color: tono,
+                                    fontSize: 9.5,
+                                    fontWeight: 800,
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  mover esta
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Flecha origen -> destino */}
+                            {flechaDesde != null &&
+                              flechaHasta != null &&
+                              flechaHasta - flechaDesde > 16 && (
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    top: flechaDesde,
+                                    height: flechaHasta - flechaDesde,
+                                    left: "50%",
+                                    width: 2,
+                                    marginLeft: -1,
+                                    background: tono,
+                                    opacity: 0.85,
+                                    pointerEvents: "none",
+                                    zIndex: 41,
+                                    animation:
+                                      "pulseZona 1.6s ease-in-out infinite",
+                                  }}
+                                >
+                                  {/* Punta: sube hacia el destino */}
+                                  <span
+                                    style={{
+                                      position: "absolute",
+                                      top: -1,
+                                      left: -4,
+                                      width: 0,
+                                      height: 0,
+                                      borderLeft: "5px solid transparent",
+                                      borderRight: "5px solid transparent",
+                                      borderBottom: `7px solid ${tono}`,
+                                    }}
+                                  />
+                                </div>
+                              )}
+
+                            {/* Destino: lo que hay que mirar */}
+                            <div
+                              data-mecha-zona={p.id}
+                              title={`${p.titulo} — ${p.descripcion}${p.porQue ? ` (${p.porQue})` : ""}`}
                               style={{
                                 position: "absolute",
-                                top: -9,
-                                left: 8,
-                                padding: "1px 7px",
-                                borderRadius: 999,
-                                background: tono,
-                                color: "#fff",
-                                fontSize: 9.5,
-                                fontWeight: 800,
-                                letterSpacing: 0.3,
-                                whiteSpace: "nowrap",
-                                boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                                top: Math.max(0, zTop),
+                                left: 2,
+                                right: 2,
+                                height: Math.max(14, zH),
+                                borderRadius: 10,
+                                border: `2px dashed ${tono}`,
+                                background: `${tono}1f`,
+                                boxShadow: `0 0 0 3px ${tono}22`,
+                                pointerEvents: "none",
+                                zIndex: 40,
+                                animation:
+                                  "pulseZona 1.6s ease-in-out infinite",
                               }}
                             >
-                              {p.titulo}
-                            </span>
+                              <span
+                                style={{
+                                  position: "absolute",
+                                  top: -9,
+                                  left: 8,
+                                  right: 8,
+                                  padding: "1px 7px",
+                                  borderRadius: 999,
+                                  background: tono,
+                                  color: "#fff",
+                                  fontSize: 9.5,
+                                  fontWeight: 800,
+                                  letterSpacing: 0.3,
+                                  // En movil la columna es estrecha: mejor
+                                  // recortar con puntos suspensivos que dejar que
+                                  // la etiqueta se salga y pise a la de al lado.
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                  display: "block",
+                                  boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                                }}
+                              >
+                                {p.accionCorta || p.titulo}
+                              </span>
+                            </div>
                           </div>
                         );
                       })}
