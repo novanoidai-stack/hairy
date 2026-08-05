@@ -1020,20 +1020,20 @@
             <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Retrasos absorbidos con un clic y organización del día con IA</span></li>
             <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12" /></svg></span><span>Facturación <b>VeriFactu</b> y fichaje de jornada legal</span></li>
           </ul>
-          <a href="reservar.html" class="btn btn-primary" style="justify-content:center">Empezar con 1 mes gratis</a>
+          <button type="button" class="btn btn-primary" id="btnEmpezarGratis" style="justify-content:center; width:100%; cursor:pointer;">Empezar con 1 mes gratis</button>
         </div>
       </div>
 
       <!-- Tres formas de dar el paso: cada uno elige cómo prefiere hablar. -->
       <div class="vias reveal" id="vias">
-        <a class="via" href="reservar.html">
+        <button class="via" type="button" id="viaLlamada">
           <span class="via-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" /></svg></span>
           <h4>Una llamada de 10 minutos</h4>
           <p>Eliges día y hora. Vemos tu salón, te enseñamos Mecha con <b>tus</b> servicios y horarios y, si te encaja, te lo dejamos montado.</p>
           <span class="via-go">Elegir día y hora
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
           </span>
-        </a>
+        </button>
         <button class="via" type="button" id="viaMensaje">
           <span class="via-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg></span>
           <h4>Mándanos un mensaje</h4>
@@ -1108,6 +1108,48 @@
         </div>
         <p class="via-msg" id="viaMsg" hidden></p>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal de Elección de Acceso (Eligen cómo entrar antes de calendario) -->
+  <div class="via-modal" id="opcionesAccesoModal" role="dialog" aria-modal="true" aria-labelledby="opcionesAccesoTitulo">
+    <div class="via-box" style="max-width: 520px; padding: 28px 24px; text-align: center; background: #0b1020; border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.7);">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #f4501e, #ff8a3d); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 8px 22px rgba(244,80,30,0.4);">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/></svg>
+      </div>
+      <h3 id="opcionesAccesoTitulo" style="font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px;">¿Cómo prefieres empezar en Mecha?</h3>
+      <p class="sub" style="font-size: 13.5px; color: #9aa6c2; margin-bottom: 22px; line-height: 1.45;">Elige cómo quieres acceder a la plataforma antes de continuar:</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+        <a href="demo.html" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); text-decoration: none; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(244,80,30,0.12)';this.style.borderColor='rgba(244,80,30,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(244,80,30,0.18); display: flex; align-items: center; justify-content: center; color: #ff8a3d; font-size: 22px; flex-shrink: 0;">🚀</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">1. Navegar por la demo gratis ya</div>
+            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">Accede al instante a la demo navegable sin registrarte ni esperar.</div>
+          </div>
+          <span style="font-size: 13px; font-weight: 700; color: #ff8a3d; white-space: nowrap;">Entrar →</span>
+        </a>
+
+        <a href="reservar.html" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); text-decoration: none; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(16,185,129,0.12)';this.style.borderColor='rgba(16,185,129,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(16,185,129,0.18); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 22px; flex-shrink: 0;">📅</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">2. Agendar llamada de 10 minutos</div>
+            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">Elige día y hora para ver tu salón configurado en vivo con nuestro equipo.</div>
+          </div>
+          <span style="font-size: 13px; font-weight: 700; color: #10b981; white-space: nowrap;">Calendario →</span>
+        </a>
+
+        <button type="button" id="btnOpcionQuieroDirecto" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); cursor: pointer; width: 100%; text-align: left; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(99,102,241,0.12)';this.style.borderColor='rgba(99,102,241,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(99,102,241,0.18); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 22px; flex-shrink: 0;">📝</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">3. Solicitar alta y acceso directo</div>
+            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">Déjanos tus datos y te activamos el acceso completo para tu salón.</div>
+          </div>
+          <span style="font-size: 13px; font-weight: 700; color: #818cf8; white-space: nowrap;">Rellenar datos →</span>
+        </button>
+      </div>
+
+      <button type="button" class="btn btn-ghost" id="opcionesAccesoCerrar" style="margin-top: 18px; width: 100%; justify-content: center; color: #8a9ab8;">Cerrar</button>
     </div>
   </div>
 
@@ -1603,11 +1645,31 @@ window.MECHA_CHAT = [
 
   var bM=document.getElementById('viaMensaje');
   var bQ=document.getElementById('viaQuiero');
+  var bLlamada=document.getElementById('viaLlamada');
+  var bEmpezarGratis=document.getElementById('btnEmpezarGratis');
+  var accModal=document.getElementById('opcionesAccesoModal');
+  var bDirecto=document.getElementById('btnOpcionQuieroDirecto');
+  var accCerrar=document.getElementById('opcionesAccesoCerrar');
+
+  function abrirAcceso(){ if(accModal) accModal.classList.add('on'); }
+  function cerrarAcceso(){ if(accModal) accModal.classList.remove('on'); }
+
   if(bM) bM.addEventListener('click',function(){ abrir('mensaje'); });
-  if(bQ) bQ.addEventListener('click',function(){ abrir('quiero_software'); });
+  if(bQ) bQ.addEventListener('click',abrirAcceso);
+  if(bLlamada) bLlamada.addEventListener('click',abrirAcceso);
+  if(bEmpezarGratis) bEmpezarGratis.addEventListener('click',abrirAcceso);
+  if(accCerrar) accCerrar.addEventListener('click',cerrarAcceso);
+  if(accModal) accModal.addEventListener('click',function(e){ if(e.target===accModal) cerrarAcceso(); });
+  if(bDirecto) {
+    bDirecto.addEventListener('click',function(){
+      cerrarAcceso();
+      abrir('quiero_software');
+    });
+  }
+
   document.getElementById('viaCerrar').addEventListener('click',cerrar);
   modal.addEventListener('click',function(e){ if(e.target===modal) cerrar(); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape') cerrar(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ cerrar(); cerrarAcceso(); } });
 
   form.addEventListener('submit',function(e){
     e.preventDefault();
