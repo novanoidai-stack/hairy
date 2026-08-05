@@ -104,7 +104,16 @@ export async function cargarCuentasEquipo(): Promise<{ cuentas: CuentaEquipo[]; 
 
 async function llamarEdge(body: Record<string, unknown>): Promise<{ ok: boolean; error: string | null; data: RespuestaEdge | null }> {
   const { data, error } = await supabase.functions.invoke('crear-acceso-empleado', { body });
-  const resp = (data ?? null) as RespuestaEdge | null;
+  let resp = (data ?? null) as RespuestaEdge | null;
+  // En un status no-2xx (p.ej. 409 email_exists), supabase-js deja data=null y el cuerpo
+  // JSON con { error: codigo } queda en error.context (un Response). Lo leemos para poder
+  // dar el mensaje en cristiano en vez del generico "Edge Function returned a non-2xx status".
+  if (error && !resp?.error) {
+    try {
+      const ctx = (error as unknown as { context?: Response })?.context;
+      if (ctx && typeof ctx.json === 'function') resp = await ctx.json() as RespuestaEdge;
+    } catch { /* cuerpo no JSON: nos quedamos con el mensaje generico */ }
+  }
   if (error || resp?.error) {
     let msg = mensaje(resp?.error);
     if (msg === 'No se pudo completar la operación.' && error) {
