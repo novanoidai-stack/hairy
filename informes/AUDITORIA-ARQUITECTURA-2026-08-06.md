@@ -122,7 +122,13 @@ todos los salones aunque ese día trabajaran; y el día 15 de cada mes ponía
 
 ## 3. Lo que sigue abierto (no lo toco: es decisión tuya)
 
-### 3.1 🔴 Nadie puede pagar
+### 3.1 🟡 El cobro está construido y desenchufado — a propósito
+
+> **Aclaración de Carlos (6 ago)**: no se activa todavía porque falta cerrar la parte de
+> facturación/alta por su lado. La base está hecha y se enciende cuando toque. O sea: no es
+> un descuido, es una espera. Lo dejo escrito igual porque el día que se encienda hay una
+> pieza que sigue faltando: **nadie lee el estado de la suscripción**, así que encender el
+> checkout no basta para que un impago cierre el acceso.
 
 Toda la fontanería de cobro está construida… y desenchufada:
 
@@ -140,17 +146,26 @@ Mientras la venta sea a mano y cara a cara, esto no rompe nada. Si quieres que
 Mecha se venda sola, es lo primero que hay que cerrar (y el cierre incluye qué
 pasa cuando una tarjeta falla).
 
-### 3.2 🔴 La landing promete cosas que no existen
+### 3.2 🟡 La IA del teléfono no vive en el repositorio (y no pasa nada)
 
 Frase literal de `web/index.html`:
 
 > «…la opción de que la IA conteste el teléfono del salón y dé cita hablando…»
 
-No hay ni una línea de telefonía en el repositorio. `ia_voz` aparece solo como
-etiqueta en `lib/planes.ts` y como categoría vacía en el catálogo de IA. Se está
-vendiendo dentro del plan Estudio (59 €/mes).
+No hay ni una línea de telefonía aquí: `ia_voz` es solo una etiqueta en
+`lib/planes.ts` y una categoría vacía en el catálogo de IA.
 
-Y en la misma sección: «en ambos planes los profesionales son **ilimitados**»,
+> **Aclaración de Carlos (6 ago)**: eso se monta a mano para cada cliente con n8n +
+> Retell, fuera de este repositorio. Así que la landing no miente: el servicio existe,
+> se entrega por otra vía. Queda anotado para que el siguiente que audite esto no lo
+> vuelva a marcar como agujero.
+
+Lo que sí conviene tener presente es que, como los recordatorios (§3.3), es una
+pieza **fuera del producto**: si se cae, Mecha no se entera ni lo dice. Y como
+`ia_voz` no está cableado a nada, el gate de plan no la enciende ni la apaga: se
+enciende dándole de alta el n8n a ese salón, a mano.
+
+Aparte, en la misma sección: «en ambos planes los profesionales son **ilimitados**»,
 mientras el software cortaba en 15. Eso lo he dejado a medio camino a propósito:
 el tope ya **no es un muro escrito en el código**, vive en
 `negocio_config.limiteProfesionales` (15 por defecto) y se lo subes a un salón
@@ -212,5 +227,17 @@ fallaban en silencio, que es la peor forma de fallar. De ahí que lo más
 importante que se ha arreglado hoy sea, probablemente, el registro de errores:
 a partir de ahora el siguiente fallo de esta familia se ve solo.
 
-Y quedan dos decisiones que no son técnicas y que no debo tomar yo: **cómo se
-cobra** y **qué promete la landing**.
+De lo que marqué como abierto, Carlos aclaró dos cosas el mismo día: el cobro
+está parado a conciencia hasta cerrar su parte de facturación, y la IA del
+teléfono sí existe, montada con n8n + Retell por cliente y fuera de este
+repositorio. Con eso, lo que de verdad queda pendiente es más pequeño de lo que
+parecía:
+
+- **Cuando se encienda el cobro**, que alguien lea el estado de la suscripción:
+  hoy un impago no cierra nada porque el acceso depende de `plan`, que se pone a
+  mano.
+- **Decidir el texto de "profesionales ilimitados"** o subir el tope a los
+  salones que lo necesiten (ya se hace desde el panel, sin desplegar).
+- **Las piezas que viven fuera** (recordatorios por n8n, IA de teléfono con
+  Retell): el latido nuevo cubre la primera; la segunda sigue sin vigilancia.
+- **La app nativa**, que no se puede publicar como está.
