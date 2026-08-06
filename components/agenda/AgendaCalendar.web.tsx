@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useCallback, memo } from "react";
+import { createPortal } from "react-dom";
 import { ChispaMascota } from "@/components/chispa/ChispaMascota.web";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { supabase, IS_DEMO_MODE } from "@/lib/supabase";
@@ -155,9 +156,20 @@ const ANIMATIONS = `
     0%, 100% { box-shadow: 0 0 8px rgba(244,80,30,0.3); }
     50% { box-shadow: 0 0 16px rgba(244,80,30,0.6); }
   }
+  .mecha-pulse-focus {
+    animation: mechaPulseGlow 1.5s ease-in-out infinite !important;
+    z-index: 120 !important;
+    outline: 2.5px solid #f4501e !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 24px rgba(244,80,30,0.75) !important;
+  }
+  @keyframes mechaPulseGlow {
+    0%, 100% { outline-color: #f4501e; box-shadow: 0 0 20px rgba(244,80,30,0.8); }
+    50% { outline-color: #ff8a3d; box-shadow: 0 0 36px rgba(255,138,61,0.95); }
+  }
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-3px); }
+    50% { transform: translateY(-6px); }
   }
   @keyframes bounce {
     0%, 100% { transform: scale(1); }
@@ -757,6 +769,10 @@ export default function AgendaCalendar() {
   // el rail (mini-calendario + KPIs) robaba 340px de rejilla. El usuario lo abre/cierra
   // con el boton "Pantalla completa / Salir de pantalla completa" de la cabecera.
   const [railCollapsed, setRailCollapsed] = useState<boolean>(true);
+  // Pantalla completa en MOVIL: esconde la barra de titulo y la de controles.
+  // Arranca apagada (al contrario que railCollapsed) porque esa barra es la que
+  // trae "Nueva cita", los avisos y la lista de espera.
+  const [movilFullscreenOn, setMovilFullscreenOn] = useState(false);
   // (Retirado toolbarCollapsed: el chip "Filtros" que lo accionaba se elimino hace
   // tiempo y el estado quedo huerfano. La barra ya no se pliega, se envuelve.)
   // Modo de rejilla del dia (desktop): true = "Juntos" (todos los profesionales a la
@@ -790,8 +806,10 @@ export default function AgendaCalendar() {
   >(null);
   // Modal del calendario en movil
   const [showMobileCalendar, setShowMobileCalendar] = useState(false);
-  // Hoja selectora de profesional en movil (un profesional a la vez)
-  const [showProfPicker, setShowProfPicker] = useState(false);
+  // (Retirada la hoja selectora de profesional en movil: ahora se elige en la
+  // tira de avatares, la misma cuadricula que en escritorio.)
+  // Chispa (IA) se monta globalmente en app/_layout.tsx (ChispaLauncher); la
+  // agenda se refresca via useCalendarRefresh cuando aplica una accion.
   // Panel "Organizar mi agenda" (Sesion 5, IA por pagina): detecta retrasos,
   // solapes y huecos del DIA VISIBLE y los arregla de un clic. lib/organizarAgenda.ts.
   const [showOrganizar, setShowOrganizar] = useState(false);
@@ -801,6 +819,22 @@ export default function AgendaCalendar() {
   const [ensenar, setEnsenar] = useState(false);
   // Problema concreto al que se ha hecho zoom desde el panel (null = todos).
   const [problemaEnfocado, setProblemaEnfocado] = useState<string | null>(null);
+  // Toast flotante de confirmación (p.ej. cobro efectuado)
+  const [toastMensaje, setToastMensaje] = useState<string | null>(null);
+
+  const mostrarToast = useCallback((msg: string) => {
+    setToastMensaje(msg);
+    setTimeout(() => setToastMensaje(null), 4000);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onToast = (e: CustomEvent<{ text: string }>) => {
+      if (e.detail?.text) mostrarToast(e.detail.text);
+    };
+    window.addEventListener("mecha-toast" as any, onToast as any);
+    return () => window.removeEventListener("mecha-toast" as any, onToast as any);
+  }, [mostrarToast]);
 
   // Puente chat->panel: mientras la Agenda esta montada, avisa a Chispa de que
   // el organizador determinista (con varias estrategias visuales) esta
@@ -837,6 +871,15 @@ export default function AgendaCalendar() {
         const hastaW = new Date(Math.max(centro.getTime(), ahoraW.getTime()));
         hastaW.setDate(hastaW.getDate() + 120);
         hastaW.setHours(23, 59, 59, 999);
+        // La ventana nunca ENCOGE: se une con la ya cargada. Antes, al pasar de
+        // mes en mes la ventana se recentraba y la consulta dejaba fuera meses
+        // que ya se habian visto: al volver atras el calendario repintaba con
+        // menos citas (los puntos parpadeaban y los contadores cambiaban solos).
+        const previo = loadedRangeRef.current;
+        if (previo) {
+          if (previo.desde < desdeW) desdeW.setTime(previo.desde.getTime());
+          if (previo.hasta > hastaW) hastaW.setTime(previo.hasta.getTime());
+        }
         loadedRangeRef.current = { desde: desdeW, hasta: hastaW };
 
         const [
@@ -1437,8 +1480,12 @@ export default function AgendaCalendar() {
     const t = setTimeout(() => {
       const nodo = document.querySelector(
         `[data-mecha-zona="${problemaEnfocado}"]`,
-      );
-      nodo?.scrollIntoView({ block: "center", behavior: "smooth" });
+      ) as HTMLElement | null;
+      if (nodo) {
+        nodo.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+        nodo.classList.add("mecha-pulse-focus");
+        setTimeout(() => nodo.classList.remove("mecha-pulse-focus"), 5000);
+      }
     }, 160);
     return () => clearTimeout(t);
   }, [problemaEnfocado, selectedProf, zonasResaltadas]);
@@ -1446,6 +1493,19 @@ export default function AgendaCalendar() {
   // El rail se colapsa si railCollapsed=true o si estamos en movil. En tablet ya no
   // se fuerza: lo controla railCollapsed (arranca plegado) via el boton de la cabecera.
   const isReallyCollapsed = railCollapsed || isMobile;
+
+  // En movil el rail lateral NO existe, asi que railCollapsed no cambiaba nada y
+  // el boton de "Pantalla completa" era decorativo. En movil significa otra cosa:
+  // esconder el cromo de arriba (barra de titulo + barra de controles + subtitulo)
+  // y dejarle esos ~140 px a la rejilla. Estado APARTE de railCollapsed, que
+  // arranca en true (escritorio abre sin rail a proposito): reutilizarlo dejaria
+  // el movil sin barra de titulo -y sin "Nueva cita"- nada mas entrar.
+  const movilFullscreen = isMobile && movilFullscreenOn;
+  const alternarPantallaCompleta = () => {
+    if (isMobile) setMovilFullscreenOn((v) => !v);
+    else setRailCollapsed((v) => !v);
+  };
+  const pantallaCompletaActiva = isMobile ? movilFullscreenOn : railCollapsed;
 
   // En movil arrancamos mostrando UN profesional a la vez (columna a ancho completo);
   // "todos" repartiria el ancho y se ve apretado. Solo forzamos el primer profesional
@@ -2736,7 +2796,10 @@ export default function AgendaCalendar() {
       <div
         className="m-fade-in"
         style={{
-          display: "flex",
+          // En movil "pantalla completa" SI hace algo: esconde esta barra y la
+          // de controles para dejarle el alto a la rejilla. Se vuelve con el
+          // boton de minimizar que queda junto a las flechas de dia.
+          display: movilFullscreen ? "none" : "flex",
           justifyContent: "space-between",
           alignItems: "center",
           gap: isMobile ? 8 : 12,
@@ -2969,25 +3032,30 @@ export default function AgendaCalendar() {
             flexShrink: 0,
           }}
         >
-          {/* Boton Ocultar Filtros eliminado */}
+          {/* Boton Ocultar Filtros eliminado. En movil no pliega ningun rail
+              (no lo hay): apaga la barra de titulo y la de controles. */}
           <button
-            onClick={() => setRailCollapsed((v) => !v)}
+            onClick={alternarPantallaCompleta}
             title={
-              railCollapsed
-                ? "Salir de pantalla completa (mostrar profesionales, calendario y resumen)"
-                : "Pantalla completa (ocultar el panel lateral)"
+              pantallaCompletaActiva
+                ? (isMobile
+                    ? "Salir de pantalla completa (mostrar cabecera y filtros)"
+                    : "Salir de pantalla completa (mostrar profesionales, calendario y resumen)")
+                : (isMobile
+                    ? "Pantalla completa (ocultar cabecera y filtros)"
+                    : "Pantalla completa (ocultar el panel lateral)")
             }
             aria-label={
-              railCollapsed ? "Salir de pantalla completa" : "Pantalla completa"
+              pantallaCompletaActiva ? "Salir de pantalla completa" : "Pantalla completa"
             }
-            aria-pressed={railCollapsed}
+            aria-pressed={pantallaCompletaActiva}
             style={{
               padding: isMobile ? "6px 10px" : (isTablet ? 7 : "7px 12px"),
-              background: railCollapsed
+              background: pantallaCompletaActiva
                 ? roleTheme.primarySoft
                 : TOKENS.bgCard,
-              border: `1px solid ${railCollapsed ? roleTheme.primary + "40" : TOKENS.border}`,
-              color: railCollapsed ? roleTheme.primaryHi : TOKENS.textSec,
+              border: `1px solid ${pantallaCompletaActiva ? roleTheme.primary + "40" : TOKENS.border}`,
+              color: pantallaCompletaActiva ? roleTheme.primaryHi : TOKENS.textSec,
               borderRadius: 9,
               cursor: "pointer",
               fontSize: 12.5,
@@ -3001,15 +3069,15 @@ export default function AgendaCalendar() {
             }}
           >
             <Icon
-              name={railCollapsed ? "minimize" : "maximize"}
+              name={pantallaCompletaActiva ? "minimize" : "maximize"}
               size={15}
-              color={railCollapsed ? roleTheme.primaryHi : TOKENS.textSec}
+              color={pantallaCompletaActiva ? roleTheme.primaryHi : TOKENS.textSec}
             />
             {/* La etiqueta larga solo cabe en escritorio; en movil/tablet manda el icono
                 (el estado tambien se lee por el color de fondo del boton). */}
             {!isMobile && !isTablet && (
               <span>
-                {railCollapsed
+                {pantallaCompletaActiva
                   ? "Salir de pantalla completa"
                   : "Pantalla completa"}
               </span>
@@ -3098,7 +3166,7 @@ export default function AgendaCalendar() {
           // desplaza sola (marquesina) para no obligar a scroll horizontal a mano.
           // Se pausa al tocar/pasar el raton y cada chip sigue siendo clicable.
           const vencChips = citasVencidas.slice(0, isMobile ? 12 : 5);
-          const marquee = isMobile && vencChips.length > 2;
+          const marquee = isMobile && vencChips.length > 1;
           const chipList = marquee ? [...vencChips, ...vencChips] : vencChips;
           const renderChip = (c: Cita, k: number) => {
             const prof = profesionales.find((p) => p.id === c.profesional_id);
@@ -3114,13 +3182,13 @@ export default function AgendaCalendar() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 6,
-                  padding: "5px 10px",
+                  gap: isMobile ? 4 : 6,
+                  padding: isMobile ? "3px 8px" : "5px 10px",
                   background: "rgba(239,68,68,0.12)",
                   border: "1px solid rgba(239,68,68,0.25)",
                   borderRadius: 8,
                   cursor: "pointer",
-                  fontSize: 11,
+                  fontSize: isMobile ? 10.5 : 11,
                   fontWeight: 600,
                   color: TOKENS.text,
                   whiteSpace: "nowrap",
@@ -3154,34 +3222,41 @@ export default function AgendaCalendar() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
-                padding: isMobile ? "8px 14px" : "10px 32px",
+                gap: isMobile ? 6 : 12,
+                padding: isMobile ? "5px 8px" : "10px 32px",
                 background: "rgba(239,68,68,0.08)",
                 borderBottom: "1px solid rgba(239,68,68,0.20)",
                 animation: "fadeIn 0.3s ease",
-                flexWrap: isMobile ? "wrap" : "nowrap",
+                // En movil la cinta es UNA sola fila fina: reloj + nombres que
+                // giran + cruz. Antes envolvia (el rotulo "N retrasos" y la cruz
+                // se comian una linea entera y los chips bajaban a otra), asi que
+                // dos retrasos ocupaban el doble de alto que uno.
+                flexWrap: "nowrap",
               }}
             >
               <style>{`@keyframes mechaVencMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}} .venc-marquee-track:hover,.venc-marquee-track:active{animation-play-state:paused}`}</style>
               <span
+                title={`${citasVencidas.length} retraso${citasVencidas.length > 1 ? "s" : ""}`}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 6,
-                  fontSize: 13,
+                  gap: isMobile ? 3 : 6,
+                  fontSize: isMobile ? 11.5 : 13,
                   fontWeight: 700,
                   color: "#ef4444",
                   flexShrink: 0,
                 }}
               >
-                <Icon name="clock" size={15} color="#ef4444" />
-                {citasVencidas.length} retraso{citasVencidas.length > 1 ? "s" : ""}
+                <Icon name="clock" size={isMobile ? 13 : 15} color="#ef4444" />
+                {/* En movil solo la cifra: el rotulo "retrasos" no cabe sin
+                    robarle el ancho a los nombres, que es lo util. */}
+                {isMobile
+                  ? citasVencidas.length
+                  : `${citasVencidas.length} retraso${citasVencidas.length > 1 ? "s" : ""}`}
               </span>
               <div
                 style={{
-                  order: isMobile ? 3 : 0,
-                  flexBasis: isMobile ? "100%" : "auto",
-                  flex: isMobile ? undefined : 1,
+                  flex: 1,
                   minWidth: 0,
                   overflow: "hidden",
                 }}
@@ -3222,12 +3297,13 @@ export default function AgendaCalendar() {
                   cursor: "pointer",
                   color: "#ef4444",
                   opacity: 0.6,
-                  padding: 4,
+                  padding: isMobile ? 2 : 4,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   transition: "opacity 0.15s ease",
-                  marginLeft: 8,
+                  marginLeft: isMobile ? 2 : 8,
+                  flexShrink: 0,
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.opacity = "1";
@@ -3238,8 +3314,8 @@ export default function AgendaCalendar() {
                 title="Ocultar aviso"
               >
                 <svg
-                  width="16"
-                  height="16"
+                  width={isMobile ? 14 : 16}
+                  height={isMobile ? 14 : 16}
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -3883,15 +3959,17 @@ export default function AgendaCalendar() {
                       {!isMobile && barraControlesAgenda}
 
                     </div>
-                    <div
-                      style={{
-                        fontSize: 11.5,
-                        color: TOKENS.textSec,
-                        marginTop: 2,
-                      }}
-                    >
-                      {totalCitasHoy} citas · {confirmadasHoy} confirmadas
-                    </div>
+                    {!movilFullscreen && (
+                      <div
+                        style={{
+                          fontSize: 11.5,
+                          color: TOKENS.textSec,
+                          marginTop: 2,
+                        }}
+                      >
+                        {totalCitasHoy} citas · {confirmadasHoy} confirmadas
+                      </div>
+                    )}
                   </div>
                 </div>
                 {/* Toggle de la barra de filtros (vista/servicio/estado/buscador).
@@ -3905,6 +3983,46 @@ export default function AgendaCalendar() {
                     flexShrink: 0,
                   }}
                 >
+                  {/* Pantalla completa en movil. Vive aqui (y no solo en la
+                      barra de titulo) porque al entrar esa barra desaparece: sin
+                      este boton no habria forma de volver. */}
+                  {isMobile && (
+                    <button
+                      onClick={alternarPantallaCompleta}
+                      title={
+                        movilFullscreen
+                          ? "Salir de pantalla completa"
+                          : "Pantalla completa (ocultar cabecera y filtros)"
+                      }
+                      aria-label={
+                        movilFullscreen
+                          ? "Salir de pantalla completa"
+                          : "Pantalla completa"
+                      }
+                      aria-pressed={movilFullscreen}
+                      style={{
+                        display: "grid",
+                        placeItems: "center",
+                        width: 33,
+                        height: 33,
+                        background: movilFullscreen
+                          ? roleTheme.primarySoft
+                          : TOKENS.bgCard,
+                        border: `1px solid ${movilFullscreen ? roleTheme.primary + "40" : TOKENS.border}`,
+                        color: movilFullscreen
+                          ? roleTheme.primaryHi
+                          : TOKENS.textSec,
+                        borderRadius: 9,
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Icon
+                        name={movilFullscreen ? "minimize" : "maximize"}
+                        size={15}
+                        color="currentColor"
+                      />
+                    </button>
+                  )}
                   {isMobile && (
                     <button
                       onClick={() =>
@@ -3970,286 +4088,162 @@ export default function AgendaCalendar() {
                 </div>
               </div>
 
-              {/* Movil: la barra de controles va aqui, a ancho completo. */}
-              {isMobile && barraControlesAgenda}
+              {/* Movil: la barra de controles va aqui, a ancho completo. En
+                  pantalla completa se esconde (es lo que mas alto ocupa). */}
+              {isMobile && !movilFullscreen && barraControlesAgenda}
 
               
-              {/* Selector de profesional en movil: UNO a la vez (switcher con flechas
-                  + toque para elegir de una lista). Evita las columnas aplastadas. */}
-              {isMobile &&
-                visibleProfs.length > 0 &&
-                (() => {
-                  // "Ver todos": barra distinta (icono cuadricula + nº de columnas); el
-                  // toque reabre el selector para volver a un solo profesional.
-                  if (selectedProf === "todos") {
+              {/* Selector de profesional en movil: la MISMA cuadricula de
+                  avatares que en escritorio, en una tira que se desliza en
+                  horizontal. Antes era una tarjeta de dos lineas con flechas
+                  para ir pasando de uno en uno: ocupaba el triple de alto, se
+                  tardaba en llegar al cuarto estilista y no se parecia en nada
+                  a lo que el mismo salon ve en el ordenador. */}
+              {isMobile && visibleProfs.length > 0 && (
+                <div
+                  className="m-prof-strip"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    overflowX: "auto",
+                    overflowY: "hidden",
+                    WebkitOverflowScrolling: "touch",
+                    marginBottom: 8,
+                    paddingBottom: 2,
+                  }}
+                >
+                  <button
+                    onClick={() => setSelectedProf("todos")}
+                    title="Ver a todo el equipo (la rejilla se desliza en horizontal)"
+                    aria-pressed={selectedProf === "todos"}
+                    style={{
+                      height: 30,
+                      padding: "0 11px",
+                      borderRadius: 999,
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      flexShrink: 0,
+                      whiteSpace: "nowrap",
+                      background:
+                        selectedProf === "todos"
+                          ? "rgba(244,80,30,0.12)"
+                          : TOKENS.bgCard,
+                      border: `1px solid ${selectedProf === "todos" ? TOKENS.primary : TOKENS.border}`,
+                      color:
+                        selectedProf === "todos"
+                          ? TOKENS.primaryHi
+                          : TOKENS.textSec,
+                    }}
+                  >
+                    Todos
+                  </button>
+                  {visibleProfs.map((p) => {
+                    const activo = selectedProf === p.id;
+                    const ini =
+                      (p.nombre || "?")
+                        .split(/\s+/)
+                        .map((w: string) => w[0])
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .join("")
+                        .toUpperCase() || "?";
+                    const nCitas = citasHoy.filter(
+                      (c: any) => c.profesional_id === p.id,
+                    ).length;
                     return (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          background: TOKENS.bgCard,
-                          border: `1.5px solid ${TOKENS.primary}`,
-                          borderRadius: 13,
-                          padding: "8px 10px",
-                          marginBottom: 12,
-                        }}
-                      >
-                        <button
-                          onClick={() => setShowProfPicker(true)}
-                          style={{
-                            flex: 1,
-                            minWidth: 0,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 9,
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            textAlign: "left",
-                            padding: 0,
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 9,
-                              background: TOKENS.primary,
-                              color: "#fff",
-                              display: "grid",
-                              placeItems: "center",
-                              flexShrink: 0,
-                            }}
-                          >
-                            <svg
-                              width="15"
-                              height="15"
-                              viewBox="0 0 12 12"
-                              fill="#fff"
-                            >
-                              <rect x="0" y="0" width="5" height="5" rx="1" />
-                              <rect x="7" y="0" width="5" height="5" rx="1" />
-                              <rect x="0" y="7" width="5" height="5" rx="1" />
-                              <rect x="7" y="7" width="5" height="5" rx="1" />
-                            </svg>
-                          </span>
-                          <span
-                            style={{
-                              minWidth: 0,
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: 1,
-                            }}
-                          >
-                            <span
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 6,
-                                fontSize: 14.5,
-                                fontWeight: 700,
-                                color: TOKENS.text,
-                              }}
-                            >
-                              Todos los profesionales
-                              <Icon
-                                name="chevronDown"
-                                size={14}
-                                color={TOKENS.textTer}
-                              />
-                            </span>
-                            <span
-                              style={{ fontSize: 11.5, color: TOKENS.textSec }}
-                            >
-                              {visibleProfs.length} columnas · desliza en
-                              horizontal
-                            </span>
-                          </span>
-                        </button>
-                      </div>
-                    );
-                  }
-                  const idx = Math.max(
-                    0,
-                    visibleProfs.findIndex((p) => p.id === selectedProf),
-                  );
-                  const curr = visibleProfs[idx] || visibleProfs[0];
-                  const count = citasHoy.filter(
-                    (c: any) => c.profesional_id === curr.id,
-                  ).length;
-                  const conf = citasHoy.filter(
-                    (c: any) =>
-                      c.profesional_id === curr.id &&
-                      (c.estado === CITA_STATUS.CONFIRMADA ||
-                        c.estado === CITA_STATUS.COMPLETADA),
-                  ).length;
-                  const multi = visibleProfs.length > 1;
-                  const go = (dir: number) => {
-                    const n =
-                      (idx + dir + visibleProfs.length) % visibleProfs.length;
-                    setSelectedProf(visibleProfs[n].id);
-                  };
-                  const iniciales = curr.nombre
-                    .split(" ")
-                    .map((s: string) => s[0])
-                    .slice(0, 2)
-                    .join("")
-                    .toUpperCase();
-                  return (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        background: TOKENS.bgCard,
-                        border: `1.5px solid ${curr.color}`,
-                        borderRadius: 13,
-                        padding: "8px 10px",
-                        marginBottom: 12,
-                      }}
-                    >
                       <button
-                        onClick={() => {
-                          if (multi) setShowProfPicker(true);
-                        }}
+                        key={p.id}
+                        onClick={() => setSelectedProf(p.id)}
+                        title={`${p.nombre} · ${nCitas} cita${nCitas === 1 ? "" : "s"} hoy`}
+                        aria-label={`Ver la agenda de ${p.nombre}`}
+                        aria-pressed={activo}
                         style={{
-                          flex: 1,
-                          minWidth: 0,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 9,
-                          background: "none",
-                          border: "none",
-                          cursor: multi ? "pointer" : "default",
-                          textAlign: "left",
+                          position: "relative",
+                          width: 32,
+                          height: 32,
+                          borderRadius: 999,
                           padding: 0,
+                          flexShrink: 0,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: p.color,
+                          border: `2px solid ${activo ? p.color : "transparent"}`,
+                          boxShadow: activo
+                            ? `0 0 0 2px ${TOKENS.bg}, 0 0 0 3.5px ${p.color}`
+                            : "0 1px 2px rgba(0,0,0,0.15)",
+                          opacity: activo || selectedProf === "todos" ? 1 : 0.45,
+                          cursor: "pointer",
+                          transition: "opacity 0.15s ease",
                         }}
                       >
-                        {curr.foto_perfil ? (
-                          <img
-                            src={curr.foto_perfil}
-                            alt=""
-                            style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 9,
-                              objectFit: "cover",
-                              flexShrink: 0,
-                              border: `1px solid rgba(255,255,255,0.15)`,
-                            }}
-                          />
-                        ) : (
-                          <span
-                            style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 9,
-                              background: curr.color,
-                              color: "#fff",
-                              fontSize: 13,
-                              fontWeight: 700,
-                              display: "grid",
-                              placeItems: "center",
-                              flexShrink: 0,
-                            }}
-                          >
-                            {iniciales}
-                          </span>
-                        )}
                         <span
                           style={{
-                            minWidth: 0,
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 1,
+                            width: "100%",
+                            height: "100%",
+                            borderRadius: 999,
+                            overflow: "hidden",
+                            display: "grid",
+                            placeItems: "center",
                           }}
                         >
-                          <span
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 6,
-                              fontSize: 14.5,
-                              fontWeight: 700,
-                              color: TOKENS.text,
-                            }}
-                          >
+                          {p.foto_perfil ? (
+                            <img
+                              src={p.foto_perfil}
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
                             <span
                               style={{
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                maxWidth: 150,
+                                fontSize: 11,
+                                fontWeight: 800,
+                                color: "#ffffff",
+                                lineHeight: 1,
                               }}
                             >
-                              {curr.nombre}
+                              {ini}
                             </span>
-                            {multi && (
-                              <Icon
-                                name="chevronDown"
-                                size={14}
-                                color={TOKENS.textTer}
-                              />
-                            )}
-                          </span>
-                          <span
-                            style={{ fontSize: 11.5, color: TOKENS.textSec }}
-                          >
-                            {count} cita{count !== 1 ? "s" : ""} hoy · {conf}{" "}
-                            confirmada{conf !== 1 ? "s" : ""}
-                          </span>
+                          )}
                         </span>
+                        {/* Cuantas citas lleva hoy. Es el dato que daba la
+                            tarjeta antigua; aqui cabe en una esquina. */}
+                        {nCitas > 0 && (
+                          <span
+                            aria-hidden
+                            style={{
+                              position: "absolute",
+                              top: -4,
+                              right: -4,
+                              minWidth: 15,
+                              height: 15,
+                              padding: "0 3px",
+                              borderRadius: 999,
+                              background: TOKENS.bg,
+                              border: `1px solid ${TOKENS.borderHi}`,
+                              color: TOKENS.textSec,
+                              fontSize: 9,
+                              fontWeight: 800,
+                              lineHeight: "13px",
+                              textAlign: "center",
+                            }}
+                          >
+                            {nCitas}
+                          </span>
+                        )}
                       </button>
-                      {multi && (
-                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                          <button
-                            onClick={() => go(-1)}
-                            aria-label="Profesional anterior"
-                            style={{
-                              width: 30,
-                              height: 30,
-                              borderRadius: 8,
-                              background: TOKENS.bg,
-                              border: `1px solid ${TOKENS.border}`,
-                              color: TOKENS.textSec,
-                              display: "grid",
-                              placeItems: "center",
-                              cursor: "pointer",
-                            }}
-                          >
-                            <Icon
-                              name="chevronLeft"
-                              size={16}
-                              color={TOKENS.textSec}
-                            />
-                          </button>
-                          <button
-                            onClick={() => go(1)}
-                            aria-label="Profesional siguiente"
-                            style={{
-                              width: 30,
-                              height: 30,
-                              borderRadius: 8,
-                              background: TOKENS.bg,
-                              border: `1px solid ${TOKENS.border}`,
-                              color: TOKENS.textSec,
-                              display: "grid",
-                              placeItems: "center",
-                              cursor: "pointer",
-                            }}
-                          >
-                            <Icon
-                              name="chevronRight"
-                              size={16}
-                              color={TOKENS.textSec}
-                            />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
+                    );
+                  })}
+                </div>
+              )}
 
               {/* En tablet, con el rail plegado, los chips de profesional sustituyen a la
                   lista del panel lateral. Con el rail abierto se ocultan (el rail ya los trae). */}
@@ -5917,236 +5911,6 @@ export default function AgendaCalendar() {
         </div>
       )}
 
-      {/* Hoja selectora de profesional (movil): elegir a quien ver de un toque */}
-      {/* Chispa (IA) se monta globalmente en app/_layout.tsx (ChispaLauncher);
-          la agenda se refresca via useCalendarRefresh cuando aplica una accion. */}
-      {showProfPicker && (
-        <div
-          onClick={() => setShowProfPicker(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(8,6,4,0.55)",
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            zIndex: 9999,
-            animation: "fadeIn 0.2s ease",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              maxHeight: "70vh",
-              overflowY: "auto",
-              background: TOKENS.bgPanel,
-              borderRadius: "20px 20px 0 0",
-              border: `1px solid ${TOKENS.border}`,
-              borderBottom: "none",
-              padding: "16px 16px 28px",
-              animation: "slideInUp 0.3s cubic-bezier(0.16,1,0.3,1)",
-            }}
-          >
-            <div
-              style={{
-                width: 38,
-                height: 4,
-                borderRadius: 999,
-                background: TOKENS.border,
-                margin: "0 auto 14px",
-              }}
-            />
-            <div
-              style={{
-                fontSize: 15,
-                fontWeight: 700,
-                color: TOKENS.text,
-                marginBottom: 12,
-              }}
-            >
-              Ver profesional
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {/* Ver todos: muestra todas las columnas a la vez (scroll horizontal) */}
-              <button
-                onClick={() => {
-                  setSelectedProf("todos");
-                  setShowProfPicker(false);
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 11,
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  background:
-                    selectedProf === "todos"
-                      ? "rgba(244,80,30,0.10)"
-                      : TOKENS.bgCard,
-                  border: `1px solid ${selectedProf === "todos" ? TOKENS.primary : TOKENS.border}`,
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}
-              >
-                <span
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 9,
-                    background: TOKENS.primary,
-                    color: "#fff",
-                    display: "grid",
-                    placeItems: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <svg width="15" height="15" viewBox="0 0 12 12" fill="#fff">
-                    <rect x="0" y="0" width="5" height="5" rx="1" />
-                    <rect x="7" y="0" width="5" height="5" rx="1" />
-                    <rect x="0" y="7" width="5" height="5" rx="1" />
-                    <rect x="7" y="7" width="5" height="5" rx="1" />
-                  </svg>
-                </span>
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span
-                    style={{
-                      display: "block",
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: TOKENS.text,
-                    }}
-                  >
-                    Todos los profesionales
-                  </span>
-                  <span
-                    style={{
-                      display: "block",
-                      fontSize: 11.5,
-                      color: TOKENS.textSec,
-                    }}
-                  >
-                    Ver todas las columnas (desliza en horizontal)
-                  </span>
-                </span>
-                {selectedProf === "todos" && (
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: TOKENS.primaryHi,
-                      flexShrink: 0,
-                    }}
-                  >
-                    Viendo
-                  </span>
-                )}
-              </button>
-              {visibleProfs.map((p) => {
-                const sel = p.id === selectedProf;
-                const n = citasHoy.filter(
-                  (c: any) => c.profesional_id === p.id,
-                ).length;
-                const iniciales = p.nombre
-                  .split(" ")
-                  .map((s: string) => s[0])
-                  .slice(0, 2)
-                  .join("")
-                  .toUpperCase();
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => {
-                      setSelectedProf(p.id);
-                      setShowProfPicker(false);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 11,
-                      padding: "10px 12px",
-                      borderRadius: 12,
-                      background: sel ? "rgba(244,80,30,0.10)" : TOKENS.bgCard,
-                      border: `1px solid ${sel ? p.color : TOKENS.border}`,
-                      cursor: "pointer",
-                      textAlign: "left",
-                    }}
-                  >
-                    {p.foto_perfil ? (
-                      <img
-                        src={p.foto_perfil}
-                        alt=""
-                        style={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: 9,
-                          objectFit: "cover",
-                          flexShrink: 0,
-                          border: `1px solid rgba(255,255,255,0.15)`,
-                        }}
-                      />
-                    ) : (
-                      <span
-                        style={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: 9,
-                          background: p.color,
-                          color: "#fff",
-                          fontSize: 13,
-                          fontWeight: 700,
-                          display: "grid",
-                          placeItems: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {iniciales}
-                      </span>
-                    )}
-                    <span style={{ flex: 1, minWidth: 0 }}>
-                      <span
-                        style={{
-                          display: "block",
-                          fontSize: 14,
-                          fontWeight: 700,
-                          color: TOKENS.text,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {p.nombre}
-                      </span>
-                      <span
-                        style={{
-                          display: "block",
-                          fontSize: 11.5,
-                          color: TOKENS.textSec,
-                        }}
-                      >
-                        {n} cita{n !== 1 ? "s" : ""} hoy
-                      </span>
-                    </span>
-                    {sel && (
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: TOKENS.primaryHi,
-                          flexShrink: 0,
-                        }}
-                      >
-                        Viendo
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
       {showStatsModal && (
         <div
           className="m-overlay-enter"
@@ -6316,6 +6080,42 @@ export default function AgendaCalendar() {
               })()}
             </div>
           </div>
+        </div>
+      )}
+      {/* Toast flotante de confirmación (p.ej. cobro efectuado) */}
+      {toastMensaje && (
+        <div
+          style={{
+            position: "fixed",
+            top: 24,
+            right: 24,
+            zIndex: 999999,
+            background: "#0f9d6b",
+            color: "#ffffff",
+            padding: "14px 22px",
+            borderRadius: 12,
+            boxShadow: "0 12px 36px rgba(15,157,107,0.35)",
+            fontSize: 14,
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            animation: "slideInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          {toastMensaje}
         </div>
       )}
     </div>
@@ -10149,7 +9949,7 @@ function DayListView({
                         fontWeight: 600,
                       }}
                     >
-                      {srv ?? "Servicio"}
+                      {srv?.nombre ?? "Servicio"}
                     </span>
                     {prof && (
                       <span
@@ -10168,7 +9968,7 @@ function DayListView({
                             background: profColor,
                           }}
                         />
-                        {prof.nombre.split(" ")[0]}
+                        {String(prof.nombre ?? "").split(" ")[0]}
                       </span>
                     )}
                   </div>
@@ -11502,7 +11302,9 @@ function NewCitaModal({
 
   const isMobileOrTablet = isMobile || isTablet;
 
-  return (
+  // Portal a <body>, igual que el detalle de cita: dentro del arbol de escenas
+  // la barra de pestanas de movil se pinta encima y tapa el pie con "Reservar".
+  const contenido = (
     <div
       style={{
         position: "fixed",
@@ -13957,6 +13759,9 @@ function NewCitaModal({
       </div>
     </div>
   );
+  return typeof document !== "undefined"
+    ? createPortal(contenido, document.body)
+    : contenido;
 }
 
 function TimeBtn({ onClick, plus }: { onClick: () => void; plus?: boolean }) {
@@ -15749,7 +15554,12 @@ export function DetalleCitaModal({
 
   const isMobileOrTablet = isMobile || isTablet;
 
-  return (
+  // El modal se monta en <body> con un portal. Sin el, la barra de pestanas de
+  // movil le pasaba por encima y tapaba el pie con "Guardar cambios": cada View
+  // de react-native-web es position:relative con z-index:0, asi que el z-index
+  // 1000 del overlay se quedaba encerrado en el contexto de apilamiento de la
+  // escena, hermano (y anterior) al de la barra.
+  const contenido = (
     <div
       className="m-overlay-enter"
       style={{
@@ -15774,11 +15584,17 @@ export function DetalleCitaModal({
         className="m-modal-enter"
         style={{
           background: TOKENS.bgPanel,
-          borderRadius: isMobileOrTablet ? "24px 24px 0 0" : 16,
+          borderRadius: isMobileOrTablet ? "20px 20px 0 0" : 16,
           maxWidth: 1040,
           width: isMobileOrTablet ? "100%" : "95%",
-          height: isMobileOrTablet ? undefined : "86vh",
-          maxHeight: isMobileOrTablet ? "90dvh" : "86vh",
+          // La hoja sube casi hasta arriba: el detalle de la cita es largo y a
+          // 90dvh se quedaban 80 px de fondo oscuro sin usar mientras dentro
+          // sobraba scroll. height fija (no solo maxHeight) para que el pie
+          // quede SIEMPRE anclado abajo y el cuerpo scrollee por dentro.
+          // 98dvh en movil: aprovecha todo el alto posible (pide "subir un
+          // poquito mas") dejando solo un resquicio para ver que es una hoja.
+          height: isMobileOrTablet ? "98dvh" : "86vh",
+          maxHeight: isMobileOrTablet ? "98dvh" : "86vh",
           overflow: "hidden",
           border: isMobileOrTablet ? "none" : `1px solid ${TOKENS.border}`,
           boxShadow: `0 20px 60px rgba(0,0,0,0.4)`,
@@ -15805,7 +15621,9 @@ export function DetalleCitaModal({
           <div
             style={{
               marginTop: 3,
-              padding: isMobileOrTablet ? "18px 18px 16px" : "28px 32px 24px",
+              // Menos aire en movil: la cabecera ocupaba 90 px fijos y empujaba
+              // todo el detalle hacia abajo.
+              padding: isMobileOrTablet ? "12px 14px 10px" : "28px 32px 24px",
               borderBottom: `1px solid ${TOKENS.border}`,
               display: "flex",
               alignItems: "flex-start",
@@ -15826,22 +15644,26 @@ export function DetalleCitaModal({
                 flex: 1,
               }}
             >
-              <Avatar name={selectedCliente?.nombre} size={52} />
+              <Avatar name={selectedCliente?.nombre} size={isMobileOrTablet ? 40 : 52} />
               <div style={{ minWidth: 0, flex: 1 }}>
+                {/* El rotulo "DETALLE DE CITA" sobra en movil: la hoja se acaba
+                    de abrir desde la cita y el nombre ya dice de quien es. */}
+                {!isMobileOrTablet && (
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: TOKENS.textTer,
+                      letterSpacing: 1.5,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Detalle de cita
+                  </div>
+                )}
                 <div
                   style={{
-                    fontSize: 11,
-                    color: TOKENS.textTer,
-                    letterSpacing: 1.5,
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Detalle de cita
-                </div>
-                <div
-                  style={{
-                    fontSize: 22,
+                    fontSize: isMobileOrTablet ? 18 : 22,
                     fontWeight: 700,
                     letterSpacing: -0.3,
                     color: TOKENS.text,
@@ -18611,6 +18433,7 @@ export function DetalleCitaModal({
                           cobrada: true,
                           cobro_id: cobroIds[0],
                         });
+                        window.dispatchEvent(new CustomEvent("mecha-toast", { detail: { text: "El cobro se ha efectuado correctamente." } }));
                         triggerRefresh?.();
                       }}
                     />
@@ -18887,11 +18710,13 @@ export function DetalleCitaModal({
                   cobrada: true,
                   cobro_id: cobroIds[0],
                 });
+                window.dispatchEvent(new CustomEvent("mecha-toast", { detail: { text: "El cobro se ha efectuado correctamente." } }));
                 triggerRefresh?.();
               }}
             />
           );
         })()}
+
 
       {/* Estrategias de retraso (Sesion 4): Chispa ofrece 2-3 formas de resolverlo */}
       {estrategiasRetraso && (
@@ -19319,6 +19144,9 @@ export function DetalleCitaModal({
       )}
     </div>
   );
+  return typeof document !== "undefined"
+    ? createPortal(contenido, document.body)
+    : contenido;
 }
 
 function FormulaInput({
@@ -20641,6 +20469,14 @@ function MonthView({
     return map;
   }, [filteredCitas]);
 
+  // Cuanta gente cubre el dia segun el filtro activo: es el divisor con el que
+  // se decide si un dia esta lleno (verde / ambar / rojo).
+  const maxCitasDia = useMemo(() => {
+    const cuantos =
+      selectedProf === "todos" ? Math.max(1, (profesionales || []).length) : 1;
+    return 8 * cuantos;
+  }, [selectedProf, profesionales]);
+
   const todayDate = new Date();
   const isCurrentMonth =
     todayDate.getMonth() === month && todayDate.getFullYear() === year;
@@ -20716,8 +20552,11 @@ function MonthView({
              return b.tipo === "vacaciones" && bDate.getFullYear() === year && bDate.getMonth() === month && bDate.getDate() === d;
           });
 
-          const maxCitas = 15;
-          const ratio = Math.min(1, total / maxCitas);
+          // "Dia lleno" depende de cuanta gente trabaja: 12 citas son una
+          // barbaridad para una persona y poca cosa para un equipo de cuatro.
+          // Antes el umbral era 15 fijo, asi que en "Todos" casi ningun dia
+          // llegaba a rojo y en un salon de una persona casi todos lo eran.
+          const ratio = Math.min(1, total / maxCitasDia);
           let satColor = TOKENS.success;
           if(ratio > 0.5) satColor = TOKENS.warning;
           if(ratio > 0.8) satColor = TOKENS.danger;
@@ -20737,6 +20576,17 @@ function MonthView({
           const MAX_PUNTOS = isMobile ? 9 : 30;
           const puntosVisibles = puntos.slice(0, MAX_PUNTOS);
           const puntosOcultos = total - puntosVisibles.length;
+
+          // Si todas las citas del dia son del MISMO profesional (siempre en
+          // movil, que arranca con uno solo elegido, y en cualquier salon de una
+          // persona), pintarlas de su color no dice nada: todos los dias del mes
+          // salian identicos. En ese caso los puntos pasan a decir carga de
+          // trabajo (verde / ambar / rojo), que es lo que se busca de un vistazo.
+          // Con varios profesionales manda el color de cada uno, que si informa.
+          const profsDelDia = new Set(
+            dayCitas.map((c: any) => c.profesional_id ?? "sin"),
+          );
+          const puntosPorCarga = profsDelDia.size < 2;
 
           return (
             <div
@@ -20850,9 +20700,8 @@ function MonthView({
                     style={{
                       fontSize: 10,
                       fontWeight: 700,
-                      // El color dice como de lleno esta el dia (verde/ambar/rojo).
-                      // Los puntos ya no lo pueden decir: ahora llevan el color de
-                      // cada profesional.
+                      // El color dice como de lleno esta el dia (verde/ambar/rojo),
+                      // relativo a cuanta gente trabaja segun el filtro.
                       color: satColor,
                     }}
                   >
@@ -20864,7 +20713,11 @@ function MonthView({
               {total > 0 && !isClosed && (
                   <div
                     style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: isMobile ? 3 : 4, marginTop: 4 }}
-                    title={`${total} cita${total !== 1 ? "s" : ""} · un punto por cita, agrupados por profesional`}
+                    title={
+                      puntosPorCarga
+                        ? `${total} cita${total !== 1 ? "s" : ""} · el color dice como de lleno esta el dia`
+                        : `${total} cita${total !== 1 ? "s" : ""} · un punto por cita, agrupados por profesional`
+                    }
                   >
                      {puntosVisibles.map((c: any, idx: number) => (
                         <div
@@ -20872,7 +20725,9 @@ function MonthView({
                           style={{
                             width: isMobile ? 5 : 6,
                             height: isMobile ? 5 : 6,
-                            background: colorProf[c.profesional_id] || satColor,
+                            background: puntosPorCarga
+                              ? satColor
+                              : (colorProf[c.profesional_id] || satColor),
                             borderRadius: "50%",
                             opacity: 0.9,
                             flexShrink: 0,

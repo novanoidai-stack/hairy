@@ -32,8 +32,17 @@ export interface AvisoCumple {
   diff: number; // dias hasta el cumple (0 = hoy)
 }
 
+export interface AvisoCobroPendiente {
+  id: string;
+  inicio: string;
+  clienteNombre: string;
+  servicioNombre: string;
+  precio: number;
+}
+
 export interface AvisosData {
   sinConfirmar: AvisoCitaSinConfirmar[];
+  cobrosPendientes: AvisoCobroPendiente[];
   cumples: AvisoCumple[];
   mensajesSinLeer: number;
   clientesFuga: number;
@@ -54,6 +63,7 @@ export interface AvisosData {
 
 export function useAvisos(enabled = true): AvisosData {
   const [sinConfirmar, setSinConfirmar] = useState<AvisoCitaSinConfirmar[]>([]);
+  const [cobrosPendientes, setCobrosPendientes] = useState<AvisoCobroPendiente[]>([]);
   const [cumples, setCumples] = useState<AvisoCumple[]>([]);
   const [mensajesSinLeer, setMensajesSinLeer] = useState(0);
   const [clientesFuga, setClientesFuga] = useState(0);
@@ -90,7 +100,7 @@ export function useAvisos(enabled = true): AvisosData {
         const hoy0 = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
         const manana0 = new Date(hoy0.getTime() + 86400000);
 
-        const [citasRes, clientesRes, mensajes, fugaRes, hallazgosRes, citasHoyRes, profsRes] = await Promise.all([
+        const [citasRes, clientesRes, mensajes, fugaRes, hallazgosRes, citasHoyRes, profsRes, cobrosPendRes] = await Promise.all([
           // Equivalente SQL del predicado canonico esSinConfirmar48h (lib/citasMetrics):
           // si se toca aqui, tocar tambien alli (banner de agenda y pagina Citas lo usan).
           supabase
@@ -122,6 +132,17 @@ export function useAvisos(enabled = true): AvisosData {
             .lt('inicio', manana0.toISOString()),
           // Profesionales para analizar la agenda
           supabase.from('profesionales').select('id, nombre, categoria').eq('negocio_id', negocioId).eq('activo', true),
+          // Citas pasadas o completadas pendientes de cobro (olvidadas / sin marcar)
+          supabase
+            .from('citas')
+            .select('id, inicio, cliente_id, clientes(nombre), servicio_id, servicios(nombre, precio)')
+            .eq('negocio_id', negocioId)
+            .eq('cobrada', false)
+            .eq('oculta_en_calendario', false)
+            .in('estado', [CITA_STATUS.CONFIRMADA, CITA_STATUS.COMPLETADA, CITA_STATUS.FINALIZADA])
+            .lte('inicio', ahora.toISOString())
+            .order('inicio', { ascending: false })
+            .limit(15),
         ]);
         if (!alive) return;
 
@@ -134,6 +155,16 @@ export function useAvisos(enabled = true): AvisosData {
         }
         if (!alive) return;
         setSinConfirmar(citas.map((c: any) => ({ id: c.id, inicio: c.inicio, clienteNombre: nombreMap.get(c.cliente_id) || 'Cliente' })));
+
+        // Cobros pendientes (citas pasadas o completadas no cobradas)
+        const cobrosP = (cobrosPendRes.data ?? []).map((c: any) => ({
+          id: c.id,
+          inicio: c.inicio,
+          clienteNombre: c.clientes?.nombre || 'Cliente',
+          servicioNombre: c.servicios?.nombre || 'Servicio',
+          precio: c.servicios?.precio ?? 0,
+        }));
+        setCobrosPendientes(cobrosP);
 
         // Cumpleanos en los proximos 7 dias (misma logica que la agenda)
         const hoy0Ms = hoy0.getTime();
@@ -211,7 +242,24 @@ export function useAvisos(enabled = true): AvisosData {
     return () => { alive = false; };
   }, [enabled, tick]);
 
-  const total = sinConfirmar.length + cumples.length + mensajesSinLeer + clientesFuga + hallazgos.length + ineficiencias.length;
+  // Latido continuo (Heartbeat) de fondo y suscripción a eventos de movimiento de la agenda:
+  // Revalúa automáticamente retrasos, huecos y cambios parciales cada 6 segundos o tras mover una cita.
+  useEffect(() => {
+    if (!enabled || typeof window === 'undefined') return;
+    const interval = setInterval(() => setTick((t) => t + 1), 6000);
+    const handleRefresh = () => setTick((t) => t + 1);
+    window.addEventListener('mecha_calendar_refresh', handleRefresh);
+    window.addEventListener('mecha_cita_moved', handleRefresh);
+    window.addEventListener('mecha_avisos_refresh', handleRefresh);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('mecha_calendar_refresh', handleRefresh);
+      window.removeEventListener('mecha_cita_moved', handleRefresh);
+      window.removeEventListener('mecha_avisos_refresh', handleRefresh);
+    };
+  }, [enabled]);
+
+  const total = sinConfirmar.length + cobrosPendientes.length + cumples.length + mensajesSinLeer + clientesFuga + hallazgos.length + ineficiencias.length;
 
   // Vista unificada: normaliza cada fuente a AvisoItem (categoria + urgencia + ts
   // + ruta) y ordena por urgencia y cercania temporal. Un solo lugar de verdad
@@ -219,6 +267,34 @@ export function useAvisos(enabled = true): AvisosData {
   const items = useMemo<AvisoItem[]>(() => {
     const ahora = Date.now();
     const out: AvisoItem[] = [];
+
+    // Cobros pendientes (citas pasadas o completadas no cobradas): aviso urgente en 'pagos'.
+    if (cobrosPendientes.length > 0) {
+      const subItems: AvisoItem[] = cobrosPendientes.map((c) => {
+        const ts = new Date(c.inicio).getTime();
+        return {
+          id: `cobro_pend:${c.id}`,
+          categoria: 'pagos',
+          urgencia: 'alta',
+          titulo: `${c.clienteNombre} — ${c.servicioNombre}`,
+          subtitulo: `Cita no marcada como cobrada (${c.precio}€)`,
+          ts,
+          ruta: '/(tabs)/caja',
+        };
+      });
+      const minTs = Math.min(...subItems.map((i) => i.ts));
+      out.push({
+        id: 'cobros_pendientes_grupo',
+        categoria: 'pagos',
+        urgencia: 'alta',
+        titulo: `${cobrosPendientes.length} ${cobrosPendientes.length === 1 ? 'cobro pendiente' : 'cobros pendientes'} de registrar`,
+        subtitulo: 'Citas pasadas o completadas sin marcar como cobradas',
+        ts: minTs,
+        ruta: '/(tabs)/caja',
+        meta: String(cobrosPendientes.length),
+        subItems,
+      });
+    }
 
     // Citas sin confirmar (proximas 48h): agrupadas en un solo aviso.
     if (sinConfirmar.length > 0) {
@@ -323,9 +399,9 @@ export function useAvisos(enabled = true): AvisosData {
     });
 
     return ordenarAvisos(out);
-  }, [sinConfirmar, cumples, mensajesSinLeer, clientesFuga, hallazgos, ineficiencias]);
+  }, [sinConfirmar, cobrosPendientes, cumples, mensajesSinLeer, clientesFuga, hallazgos, ineficiencias]);
 
-  return { sinConfirmar, cumples, mensajesSinLeer, clientesFuga, hallazgos, ineficiencias, items, total, loading, refresh, resolverHallazgo };
+  return { sinConfirmar, cobrosPendientes, cumples, mensajesSinLeer, clientesFuga, hallazgos, ineficiencias, items, total, loading, refresh, resolverHallazgo };
 }
 
 // Ruta destino de un hallazgo segun su accion sugerida (o por tipo como
