@@ -219,11 +219,13 @@
   }
 
   function init() {
+    // En el software privado (/app) o cuando se define MECHA_COOKIES_NO_BAR,
+    // no mostramos el banner flotante para no interferir con la operativa del salón.
+    // El registro/login ya acepta los Términos de Servicio y Política de Privacidad.
+    var isApp = window.location.pathname.includes('/app') || window.MECHA_COOKIES_NO_BAR;
+    if (isApp) return;
+
     injectStyles();
-    // Paginas de "app a pantalla completa" (p. ej. demo.html) pueden desactivar
-    // el FAB flotante con window.MECHA_COOKIES_NO_FAB = true: en movil tapaba
-    // la pestana "Agenda" de la tab bar del software embebido. La configuracion
-    // de cookies sigue accesible desde la landing y cookies.html (MechaCookies.open).
     if (!fabEl && !window.MECHA_COOKIES_NO_FAB) fabEl = buildFab();
     var c = readConsent();
     if (c) {
