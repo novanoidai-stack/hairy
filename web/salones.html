@@ -94,6 +94,21 @@
   <div class="d-count" id="count"></div>
   <div class="d-list" id="list"></div>
 
+  <!-- Salones que NO usan Mecha, de OpenStreetMap. Bloque aparte y siempre
+       DEBAJO: no compiten en el mismo ranking que los de Mecha y en ellos no se
+       puede reservar. La atribucion a OSM es obligatoria por la licencia ODbL,
+       no es decorativa: no quitarla. -->
+  <section class="d-sec d-ext-sec" id="externos" hidden>
+    <h2>También en tu zona</h2>
+    <p class="sub" id="externos-sub">Peluquerías que todavía no trabajan con Mecha. Aquí no puedes reservar online, pero sí llamar.</p>
+    <div class="d-ext-reclama">
+      <p><strong>¿Es tu salón?</strong> Actívalo en Mecha y pasa a aceptar reservas online, con tu agenda de verdad detrás.</p>
+      <a class="d-btn-ghost" href="/index.html#precios">Activar mi salón</a>
+    </div>
+    <div class="d-ext-grid" id="externos-lista"></div>
+    <p class="d-atrib">Los datos de estos salones vienen de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, &copy; sus colaboradores, bajo licencia ODbL.</p>
+  </section>
+
   <!-- Solo en la home del directorio: se ocultan en cuanto hay una busqueda. -->
   <div id="secciones-home">
 

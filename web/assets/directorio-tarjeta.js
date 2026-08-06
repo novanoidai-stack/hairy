@@ -95,6 +95,42 @@
       '</a>';
   }
 
+  // Tarjeta de salon que NO usa Mecha (bloque de OpenStreetMap).
+  //
+  // Deliberadamente pobre al lado de las de arriba: sin foto, sin valoracion y
+  // sin precios, porque de esos salones no sabemos nada de eso y no se inventa.
+  // Y sobre todo SIN reservar: la pagina promete que el hueco que se ve es un
+  // hueco real, y aqui no hay agenda detras. Las unicas acciones posibles son
+  // llamar (cuando hay telefono, que es la minoria) y como llegar (siempre, que
+  // coordenadas hay de todos).
+  function externo(s) {
+    var zona = [s.direccion, s.ciudad].filter(Boolean).join(', ');
+
+    var acciones = '';
+    if (s.telefono) {
+      acciones +=
+        '<a class="d-ext-btn primaria" href="tel:' + esc(String(s.telefono).replace(/\s+/g, '')) + '">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>' +
+          'Llamar</a>';
+    }
+    if (s.lat != null && s.lng != null) {
+      var punto = encodeURIComponent(s.lat + ',' + s.lng);
+      acciones +=
+        '<a class="d-ext-btn" href="https://www.google.com/maps/search/?api=1&query=' + punto + '" target="_blank" rel="noopener noreferrer">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' +
+          'Cómo llegar</a>';
+    }
+
+    return '<div class="d-ext">' +
+        '<div class="d-ext-ini">' + esc(inicial(s.nombre)) + '</div>' +
+        '<div class="d-ext-info">' +
+          '<h3>' + esc(s.nombre || 'Salón') + '</h3>' +
+          '<div class="dir">' + esc(zona || 'Dirección no indicada') + '</div>' +
+          (acciones ? '<div class="d-ext-acciones">' + acciones + '</div>' : '') +
+        '</div>' +
+      '</div>';
+  }
+
   // El fallback de las fotos de demostracion se engancha en JS: un onerror
   // inline lo bloquearia la CSP.
   function engancharFallback(cont) {
@@ -113,6 +149,7 @@
     inicial: inicial,
     resultado: resultado,
     mini: mini,
+    externo: externo,
     engancharFallback: engancharFallback
   };
 })();

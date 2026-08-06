@@ -162,6 +162,46 @@ body.directorio {
 }
 .d-cta:hover { filter: brightness(1.06); }
 
+/* ---------- Salones que NO usan Mecha (OpenStreetMap) ----------
+   Deliberadamente mas pobres que las tarjetas de arriba: borde punteado, sin
+   foto, sin nota y sin precios. La diferencia visual es la que le dice a la
+   clienta, sin leer nada, que aqui no puede reservar. No subirles el nivel. */
+.d-ext-sec { padding-top: 8px; border-top: 1px solid var(--d-border); margin-top: 30px; }
+.d-ext-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(276px, 1fr)); gap: 14px; padding-bottom: 20px; }
+.d-ext {
+  display: flex; gap: 13px; padding: 14px; background: var(--d-card);
+  border: 1px dashed var(--d-border-hi); border-radius: var(--d-r-md);
+}
+.d-ext-ini {
+  width: 44px; height: 44px; flex-shrink: 0; border-radius: var(--d-r-full);
+  background: var(--d-card-hi); border: 1px solid var(--d-border);
+  display: grid; place-items: center;
+  font-size: 18px; font-weight: 800; color: var(--d-text-ter); user-select: none;
+}
+.d-ext-info { flex: 1; min-width: 0; }
+.d-ext-info h3 { font-size: 15px; font-weight: 700; margin: 0 0 2px; }
+.d-ext-info .dir { font-size: 12.5px; color: var(--d-text-ter); line-height: 1.45; margin-bottom: 10px; }
+.d-ext-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.d-ext-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px;
+  border-radius: var(--d-r-md); border: 1px solid var(--d-border-hi);
+  background: var(--d-card); color: var(--d-text-sec);
+  font-size: 12.5px; font-weight: 600; text-decoration: none;
+  transition: background .18s var(--d-ease), color .18s var(--d-ease);
+}
+.d-ext-btn:hover { background: var(--d-card-hi); color: var(--d-text); }
+.d-ext-btn.primaria { border-color: rgba(244,80,30,0.4); background: var(--d-fuego-soft); color: var(--d-fuego-hi); }
+.d-ext-btn.primaria:hover { background: rgba(244,80,30,0.18); }
+.d-ext-reclama {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 16px 20px; margin-bottom: 18px;
+  background: var(--d-card-hi); border: 1px solid var(--d-border); border-radius: var(--d-r-lg);
+}
+.d-ext-reclama p { margin: 0; font-size: 13.5px; color: var(--d-text-sec); line-height: 1.55; }
+.d-ext-reclama strong { color: var(--d-text); }
+.d-atrib { font-size: 11.5px; color: var(--d-text-mut); padding: 0 0 26px; }
+.d-atrib a { color: inherit; }
+
 /* ---------- Estados ---------- */
 .d-vacio { text-align: center; padding: 80px 20px; }
 .d-vacio svg { color: var(--d-text-mut); margin-bottom: 18px; }

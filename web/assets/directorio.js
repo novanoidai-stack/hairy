@@ -118,6 +118,57 @@
     }).catch(function () { /* la seccion se queda oculta */ });
   }
 
+  // Bloque de salones que no usan Mecha. Se pide APARTE de buscar_salones_publico
+  // y se pinta siempre debajo: son dos listas distintas, y una sola consulta
+  // acabaria antes o despues en un ranking mezclado.
+  // Las dos consultas van en paralelo y cualquiera puede llegar primero, asi que
+  // el total de ajenos se guarda: lo necesita el estado vacio, que se pinta
+  // cuando responde la otra.
+  var totalExternos = 0;
+
+  function cargarExternos() {
+    var sec = $('externos');
+    if (!sec) return;
+    rpc('salones_externos_publico', {
+      p_texto: estado.q || null,
+      p_ciudad: estado.ciudad || null,
+      p_limit: 12,
+      p_offset: 0
+    }).then(function (data) {
+      var salones = (data && data.salones) || [];
+      var total = (data && data.total) || 0;
+      totalExternos = total;
+      if (!salones.length) { sec.hidden = true; return; }
+
+      $('externos-lista').innerHTML = salones.map(function (s) {
+        return window.MechaTarjeta.externo(s);
+      }).join('');
+      // "De la zona" solo cuando hay zona: sin filtro de ciudad, las 12 que se
+      // ensenan pueden ser de cualquier punto del pais.
+      var zona = estado.ciudad ? ' de la zona' : '';
+      $('externos-sub').textContent = total > salones.length
+        ? 'Otras ' + total + ' peluquerías' + zona + ' que todavía no trabajan con Mecha. Aquí no puedes reservar online, pero sí llamar.'
+        : 'Peluquerías' + zona + ' que todavía no trabajan con Mecha. Aquí no puedes reservar online, pero sí llamar.';
+      sec.hidden = false;
+      ablandarVacio(total);
+    }).catch(function () { sec.hidden = true; });
+  }
+
+  // Si arriba no hay ningun salon de Mecha pero abajo hay ajenos, el cartelon de
+  // "no hemos encontrado salones" seguido de 990 tarjetas se lee fatal. Cuando
+  // llegan los ajenos se reescribe para que diga lo que de verdad pasa: aqui
+  // todavia no hay nadie con reserva online.
+  function ablandarVacio(total) {
+    var h = $('vacio-h2');
+    var p = $('vacio-msg');
+    if (!h || !p || !total) return;
+    var zona = estado.ciudad ? ' de la zona' : '';
+    h.textContent = 'Todavía no hay salones con reserva online aquí';
+    p.textContent = total === 1
+      ? 'Abajo tienes 1 peluquería' + zona + ' a la que puedes llamar.'
+      : 'Abajo tienes ' + total + ' peluquerías' + zona + ' a las que puedes llamar.';
+  }
+
   function actualizarFlechas() {
     var car = $('carrusel');
     var izq = $('car-izq');
@@ -131,8 +182,8 @@
   function vacio(mensaje) {
     return '<div class="d-vacio">' +
       '<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-      '<h2>No hemos encontrado salones</h2>' +
-      '<p>' + esc(mensaje) + '</p>' +
+      '<h2 id="vacio-h2">No hemos encontrado salones</h2>' +
+      '<p id="vacio-msg">' + esc(mensaje) + '</p>' +
       '<button class="d-btn-ghost" type="button" id="limpiar">Ver todos los salones</button>' +
       '</div>';
   }
@@ -140,6 +191,7 @@
   function buscar() {
     var enHome = !buscando();
     $('count').textContent = '';
+    cargarExternos();
     if (enHome) {
       $('carrusel').innerHTML = '<div class="d-skel" style="flex:0 0 268px;height:240px"><div class="d-skel-in"></div></div>'.repeat(4);
     } else {
@@ -171,6 +223,7 @@
       if (!salones.length) {
         $('count').textContent = '';
         $('list').innerHTML = vacio('Prueba con otra zona o quita algún filtro.');
+        ablandarVacio(totalExternos);
         var b = $('limpiar');
         if (b) b.addEventListener('click', function () {
           estado = { q: '', ciudad: '', categoria: null };
