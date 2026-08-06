@@ -1714,8 +1714,13 @@ export default function AgendaCalendar() {
     setCurrentMonth(new Date(d.getFullYear(), d.getMonth()));
   };
 
+  // "semana" es femenino: sin esto las etiquetas decian "Ir al semana anterior".
   const etiquetaPeriodo =
     view === "week" ? "semana" : view === "month" ? "mes" : "día";
+  const etiquetaPeriodoCorta =
+    view === "week" ? "Semana" : view === "month" ? "Mes" : "Día";
+  const irA = (cuando: "anterior" | "siguiente") =>
+    view === "week" ? `Ir a la semana ${cuando}` : `Ir al ${etiquetaPeriodo} ${cuando}`;
 
   if (loading)
     return (
@@ -3748,8 +3753,8 @@ export default function AgendaCalendar() {
                     <button
                       className="m-btn-icon"
                       onClick={() => moverPeriodo(-1)}
-                      title={`${etiquetaPeriodo === "día" ? "Día" : etiquetaPeriodo === "semana" ? "Semana" : "Mes"} anterior`}
-                      aria-label={`Ir al ${etiquetaPeriodo} anterior`}
+                      title={`${etiquetaPeriodoCorta} anterior`}
+                      aria-label={irA("anterior")}
                       style={{
                         width: 32,
                         height: 32,
@@ -3771,8 +3776,8 @@ export default function AgendaCalendar() {
                     <button
                       className="m-btn-icon"
                       onClick={() => moverPeriodo(1)}
-                      title={`${etiquetaPeriodo === "día" ? "Día" : etiquetaPeriodo === "semana" ? "Semana" : "Mes"} siguiente`}
-                      aria-label={`Ir al ${etiquetaPeriodo} siguiente`}
+                      title={`${etiquetaPeriodoCorta} siguiente`}
+                      aria-label={irA("siguiente")}
                       style={{
                         width: 32,
                         height: 32,
