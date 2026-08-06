@@ -1581,29 +1581,38 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
 
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24 }}>
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Ingresos</div>
-                    <LineChartMini serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.ingresos }))} color={TOKENS.success} fmt={(n) => `${fmtEur(n)} EUR`} />
+                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Ingresos acumulados (€)</div>
+                    <LineChartMini serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.ingresos }))} color={TOKENS.success} fmt={(n) => `${fmtEur(n)} €`} labelExplicativo="Ingresos recaudados en el periodo" />
                   </div>
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Citas</div>
-                    <LineChartMini serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.citas }))} color={TOKENS.primary} fmt={(n) => `${n}`} />
+                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Volumen de Citas</div>
+                    <LineChartMini serie={tendenciaData.map(d => ({ fecha: d.fecha, valor: d.citas }))} color={TOKENS.primary} fmt={(n) => `${n} citas`} labelExplicativo="Total citas reservadas" />
                   </div>
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Evolución de No-shows</div>
-                    <LineChartMini serie={noShowEvolucionData.map(d => ({ fecha: d.fecha, valor: d.count }))} color={TOKENS.danger} fmt={(n) => `${n} ausencias`} />
+                    <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Evolución de No-shows (Ausencias)</div>
+                    <LineChartMini serie={noShowEvolucionData.map(d => ({ fecha: d.fecha, valor: d.count }))} color={TOKENS.danger} fmt={(n) => `${n} ausencias`} labelExplicativo="Clientes que no acudieron" />
                   </div>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Eficiencia de Reposos (%)</div>
-                    <LineChartMini serie={eficienciaReposoEvolucionData.map(d => ({ fecha: d.fecha, valor: d.pct }))} color={TOKENS.violet} fmt={(n) => `${Math.round(n)}%`} />
+                    <LineChartMini serie={eficienciaReposoEvolucionData.map(d => ({ fecha: d.fecha, valor: d.pct }))} color={TOKENS.violet} fmt={(n) => `${Math.round(n)}%`} labelExplicativo="% tiempo reposo optimizado" />
                   </div>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Retención (Clientes Recurrentes)</div>
-                    <LineChartMini serie={retencionEvolucionData.map(d => ({ fecha: d.fecha, valor: d.recurrentes }))} color={TOKENS.rose} fmt={(n) => `${n} recurrentes`} />
+                    <LineChartMini serie={retencionEvolucionData.map(d => ({ fecha: d.fecha, valor: d.recurrentes }))} color={TOKENS.rose} fmt={(n) => `${n} recurrentes`} labelExplicativo="Clientas habituales del salón" />
                   </div>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: TOKENS.textSec, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Adquisición (Clientes Nuevos)</div>
-                    <LineChartMini serie={retencionEvolucionData.map(d => ({ fecha: d.fecha, valor: d.nuevos }))} color={TOKENS.cyan} fmt={(n) => `${n} nuevos`} />
+                    <LineChartMini serie={retencionEvolucionData.map(d => ({ fecha: d.fecha, valor: d.nuevos }))} color={TOKENS.cyan} fmt={(n) => `${n} nuevos`} labelExplicativo="Primera visita en el salón" />
                   </div>
+                </div>
+
+                <div style={{
+                  marginTop: 20, padding: '12px 16px', borderRadius: 12,
+                  background: 'rgba(244,80,30,0.05)', border: `1px solid ${TOKENS.borderHi}`,
+                  fontSize: 12, color: TOKENS.textSec, lineHeight: 1.5
+                }}>
+                  <strong style={{ color: TOKENS.primary, display: 'block', marginBottom: 4 }}>💡 ¿Cómo interpretar este informe de tendencias?</strong>
+                  Pasa el cursor o toca cualquier punto de las gráficas para consultar la <strong>fecha concreta</strong>, la <strong>cifra exacta (€ / citas)</strong> y la <strong>tendencia porcentual</strong> en tiempo real.
                 </div>
               </SectionBody>
             </div>

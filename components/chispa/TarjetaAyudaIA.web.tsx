@@ -1,12 +1,3 @@
-// Tarjeta "IA proactiva por pagina" (Sesion 4, PLAN-IA-CHISPA-V2-REDISENO.md):
-// UN solo componente que pinta los 5 estados de useAyudaIA de forma consistente
-// en toda la app, para que ninguna superficie de IA se quede en blanco si el
-// edge falla. Antes de anadir una tarjeta nueva (Sesiones 6-8), lee
-// informes/PATRON-IA-POR-PAGINA.md.
-//
-// Regla de layout: esta tarjeta vive SIEMPRE en el flujo normal de la pagina
-// (sin position fixed/absolute) para no competir en z-index con AvisosBell ni
-// con el dashboard (ver Sesion 10 del plan).
 import { type ReactNode, useState, useEffect } from 'react';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { BloqueRenderer, type BloqueRendererProps } from '@/components/chispa/BloqueRenderer.web';
@@ -15,9 +6,6 @@ import { obtenerTipCarga } from '@/lib/chispaPrompts';
 
 const SPIN_KEYFRAMES = '@keyframes taia-spin { to { transform: rotate(360deg) } }';
 
-// Destaca el dato clave del titular: convierte **x** en negrita con el acento
-// de marca. El contrato Titular->Visual->Accion (rework KISS) pide que el primer
-// texto de un analisis sea un titular con el dato en negrita.
 function renderNegritas(texto: string): ReactNode {
   return texto.split(/(\*\*[^*]+\*\*)/g).map((p, i) =>
     p.startsWith('**') && p.endsWith('**') && p.length > 4
@@ -39,7 +27,7 @@ function FilaCargando({ tip }: { tip: string }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 2px', fontSize: 13, color: T.textSecondary }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${T.primary}`, borderTopColor: 'transparent', flexShrink: 0, animation: 'taia-spin 0.8s linear infinite' }} />
-        <span>Analizando...</span>
+        <span style={{ fontWeight: 600 }}>Analizando con IA proactiva...</span>
       </div>
       {tip ? (
         <div style={{
@@ -80,23 +68,15 @@ export interface TarjetaAyudaIAProps {
   titulo: string;
   subtitulo?: string;
   estado: EstadoAyudaIA;
-  // Boton principal: relanza el analisis con los datos actuales de la pagina.
   onAnalizar: () => void;
   botonLabel?: string;
-  // Boton de la fila de error; por defecto repite onAnalizar. Pasa
-  // ayudaIA.reintentar (en vez de onAnalizar) cuando quieras repetir
-  // EXACTAMENTE la ultima peticion en vez de recalcularla.
   onReintentar?: () => void;
   mensajeVacio?: string;
-  // Resumen CALCULADO EN CLIENTE (sin LLM), siempre visible sea cual sea el
-  // estado de la IA — es la base "determinista primero" del patron.
   resumenDeterminista?: ReactNode;
   accionEstado?: BloqueRendererProps['accionEstado'];
   onConfirmarAccion?: BloqueRendererProps['onConfirmar'];
   onCancelarAccion?: BloqueRendererProps['onCancelar'];
   isMobile?: boolean;
-  // Oculta la tarjeta ENTERA (no solo el resultado). Si se pasa, se muestra un
-  // boton discreto en la cabecera; la pagina decide como traerla de vuelta.
   onOcultar?: () => void;
 }
 
@@ -105,7 +85,7 @@ export function TarjetaAyudaIA({
   subtitulo,
   estado,
   onAnalizar,
-  botonLabel = 'Analizar',
+  botonLabel = 'Analizar con IA',
   onReintentar,
   mensajeVacio = 'Chispa no ha encontrado nada que destacar ahora mismo.',
   resumenDeterminista,
@@ -117,91 +97,143 @@ export function TarjetaAyudaIA({
 }: TarjetaAyudaIAProps) {
   const cargando = estado.tipo === 'cargando';
   const [tipCarga, setTipCarga] = useState('');
-  // Permite CERRAR el resultado de un analisis/optimizacion (queja recurrente:
-  // los analisis no se podian descartar). Se resetea al relanzar el analisis.
-  const [descartado, setDescartado] = useState(false);
+  const [desplegado, setDesplegado] = useState(false);
 
   useEffect(() => {
     if (estado.tipo === 'cargando') {
       setTipCarga(obtenerTipCarga());
-      setDescartado(false);
+      setDesplegado(true);
     }
-    if (estado.tipo === 'listo') setDescartado(false);
+    if (estado.tipo === 'listo') {
+      setDesplegado(true);
+    }
   }, [estado.tipo]);
 
-  // El resultado se muestra salvo que el usuario lo haya cerrado a mano.
-  const mostrarResultado = estado.tipo !== 'idle' && !descartado;
-  // Solo tiene sentido ofrecer "cerrar" cuando ya hay algo que cerrar (no mientras carga).
-  const puedeCerrar = estado.tipo === 'listo' || estado.tipo === 'vacio' || estado.tipo === 'error';
+  const mostrarContenido = desplegado && estado.tipo !== 'idle';
+
+  // Si está replegado (idle o contraído), se muestra como un botón/mini-barra ultracompacto
+  if (!desplegado && estado.tipo === 'idle') {
+    return (
+      <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button
+          type="button"
+          onClick={() => {
+            setDesplegado(true);
+            onAnalizar();
+          }}
+          className="btn-interactive"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '7px 16px',
+            borderRadius: 20,
+            background: 'linear-gradient(135deg, rgba(244,80,30,0.08), rgba(244,80,30,0.16))',
+            border: `1px solid ${T.primarySoft}`,
+            cursor: 'pointer',
+            fontSize: 12.5,
+            fontWeight: 700,
+            color: T.primary,
+            boxShadow: '0 2px 8px rgba(244,80,30,0.1)',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <IconoChispa size={16} />
+          <span>{titulo} — {botonLabel}</span>
+          <span style={{
+            fontSize: 11,
+            background: T.fireGradient,
+            color: '#fff',
+            padding: '2px 8px',
+            borderRadius: 12,
+            fontWeight: 800,
+            marginLeft: 4,
+          }}>
+            ✨ IA
+          </span>
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="glass-panel magic-border" style={{ borderRadius: 18, padding: '16px 20px', marginBottom: 16 }}>
+    <div className="glass-panel magic-border" style={{ borderRadius: 16, padding: '12px 16px', marginBottom: 14 }}>
       <style>{SPIN_KEYFRAMES}</style>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
           <IconoChispa />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{titulo}</div>
-            {subtitulo && <div style={{ fontSize: 12, color: T.textSecondary }}>{subtitulo}</div>}
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text }}>{titulo}</div>
+            {subtitulo && <div style={{ fontSize: 11.5, color: T.textSecondary }}>{subtitulo}</div>}
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <button
+            type="button"
+            className="btn-interactive"
+            onClick={cargando ? undefined : () => {
+              if (desplegado && estado.tipo === 'listo') {
+                setDesplegado(false);
+              } else {
+                setDesplegado(true);
+                onAnalizar();
+              }
+            }}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 20,
+              border: 'none',
+              background: cargando ? T.bgCardHi : T.fireGradient,
+              color: cargando ? T.textMuted : '#fff',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: cargando ? 'default' : 'pointer',
+              flexShrink: 0,
+              boxShadow: cargando ? 'none' : '0 3px 10px rgba(244,80,30,0.2)',
+            }}
+          >
+            {cargando ? 'Pensando...' : desplegado && estado.tipo === 'listo' ? 'Plegar IA' : botonLabel}
+          </button>
+
+          {onOcultar && (
             <button
               type="button"
+              aria-label="Ocultar"
+              title="Ocultar esta tarjeta"
+              onClick={onOcultar}
               className="btn-interactive"
-              onClick={cargando ? undefined : onAnalizar}
-              style={{ padding: '8px 16px', borderRadius: 24, border: 'none', background: cargando ? T.bgCardHi : T.fireGradient, color: cargando ? T.textMuted : '#fff', fontSize: 13, fontWeight: 700, cursor: cargando ? 'default' : 'pointer', flexShrink: 0, boxShadow: cargando ? 'none' : '0 4px 12px rgba(244,80,30,0.2)' }}
+              style={{
+                width: 26, height: 26, borderRadius: 999,
+                border: `1px solid ${T.border}`, background: 'transparent',
+                color: T.textTertiary, cursor: 'pointer', display: 'inline-flex',
+                alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}
             >
-              {cargando ? 'Pensando...' : botonLabel}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
-            {onOcultar && (
-              <button
-                type="button"
-                aria-label="Ocultar"
-                title="Ocultar esta tarjeta"
-                onClick={onOcultar}
-                className="btn-interactive"
-                style={{ width: 30, height: 30, borderRadius: 999, border: `1px solid ${T.border}`, background: 'transparent', color: T.textTertiary, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-              </button>
-            )}
+          )}
         </div>
       </div>
 
       {resumenDeterminista && (
-        <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${T.border}`, fontSize: 13.5, color: T.text, lineHeight: 1.5 }}>
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${T.border}`, fontSize: 13, color: T.text, lineHeight: 1.45 }}>
           {resumenDeterminista}
         </div>
       )}
 
-      {mostrarResultado && (
-        <div style={{ marginTop: resumenDeterminista ? 8 : 14, paddingTop: resumenDeterminista ? 0 : 14, borderTop: resumenDeterminista ? 'none' : `1px solid ${T.border}`, position: 'relative' }}>
-          {puedeCerrar && (
-            <button
-              type="button"
-              aria-label="Cerrar resultado"
-              onClick={() => setDescartado(true)}
-              className="btn-interactive"
-              style={{ position: 'absolute', top: resumenDeterminista ? 2 : -6, right: -4, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 999, border: 'none', background: 'transparent', color: T.textTertiary, cursor: 'pointer', zIndex: 1 }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-            </button>
-          )}
+      {mostrarContenido && (
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${T.border}`, position: 'relative' }}>
           {estado.tipo === 'cargando' && <FilaCargando tip={tipCarga} />}
           {estado.tipo === 'vacio' && <FilaVacio mensaje={mensajeVacio} />}
           {estado.tipo === 'error' && <FilaError mensaje={estado.mensaje} onReintentar={onReintentar ?? onAnalizar} />}
           {estado.tipo === 'listo' && (() => {
-            // Titular -> Visual -> Accion: si el PRIMER bloque es texto, se pinta
-            // como TITULAR destacado (mayor peso/tamano, dato en negrita) y el
-            // resto de bloques (el visual y la accion) van debajo.
             const primero = estado.bloques[0];
             const hayTitular = !!primero && primero.tipo === 'texto' && primero.texto.trim().length > 0;
             const resto = hayTitular ? estado.bloques.slice(1) : estado.bloques;
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {hayTitular && primero.tipo === 'texto' && (
-                  <div style={{ fontSize: 15.5, fontWeight: 700, color: T.text, lineHeight: 1.35 }}>
+                  <div style={{ fontSize: 14.5, fontWeight: 700, color: T.text, lineHeight: 1.35 }}>
                     {renderNegritas(primero.texto)}
                   </div>
                 )}
