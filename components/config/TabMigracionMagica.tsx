@@ -139,17 +139,18 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
           const inicio = new Date(`${c.fecha}T${c.hora_inicio}:00`);
           const fin = new Date(inicio.getTime() + (servicio.duracion_activa_min * 60000));
 
+          // Solo columnas que EXISTEN en `citas`. Antes se mandaban tambien
+          // cliente_nombre, servicio_nombre e importe_esperado, que no existen:
+          // PostgREST devolvia PGRST204 y NINGUNA cita se importaba. El nombre
+          // del cliente y del servicio ya viajan en cliente_id / servicio_id.
           const { error } = await supabase.from('citas').insert({
             negocio_id: negocioId,
             cliente_id: clienteId,
-            cliente_nombre: c.cliente_nombre,
             servicio_id: servicio.id,
-            servicio_nombre: c.servicio_nombre,
             profesional_id: profId,
             inicio: inicio.toISOString(),
             fin: fin.toISOString(),
             estado: 'confirmada',
-            importe_esperado: servicio.precio
           });
           if (error) errores.push(`Cita ${c.fecha} ${c.hora_inicio}: ${error.message}`);
           else creadas++;
@@ -190,15 +191,19 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
           if (prods && prods[0]) {
             prodId = prods[0].id;
           } else {
-            const { data: newProd } = await supabase.from('productos').insert({
+            // `productos` guarda el precio en CENTIMOS (precio_cents) y no tiene
+            // columna stock_actual: el stock sale de los movimientos, que es lo
+            // que se registra justo debajo. Con los nombres viejos (precio,
+            // stock_actual) el insert fallaba y no se creaba ningun producto.
+            const { data: newProd, error: errProd } = await supabase.from('productos').insert({
               negocio_id: negocioId,
               nombre: l.nombre,
               codigo_barras: l.sku || null,
-              precio: l.precio_coste || 0,
-              stock_actual: 0,
+              precio_cents: Math.round((Number(l.precio_coste) || 0) * 100),
               stock_minimo: 5,
               categoria: 'general'
             }).select().single();
+            if (errProd) errores.push(`Producto ${l.nombre}: ${errProd.message}`);
             if (newProd) prodId = newProd.id;
           }
 

@@ -255,7 +255,9 @@ export default function GestionCitaWeb() {
       await actualizarConsentimientoIa({
         clienteId: cita.cliente_id,
         consentimiento: nuevo,
-        origen: 'autogestion'
+        origen: 'autogestion',
+        // El telefono con el que ha entrado: es su prueba de que la cita es suya.
+        telefono: tel.trim(),
       });
     } catch (e) {
       // Revert on error

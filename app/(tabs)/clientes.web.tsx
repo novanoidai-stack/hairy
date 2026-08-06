@@ -3851,14 +3851,24 @@ function ConsentimientosSection({ cliente, negocioId }: { cliente: Cliente; nego
   // respuestas). Los datos de salud (alergias) NUNCA viajan a la IA, con
   // independencia de este flag.
   const [consienteIA, setConsienteIA] = useState<boolean>(cliente.consiente_ia !== false);
+  const [errorIA, setErrorIA] = useState('');
   const toggleIA = async () => {
     const nuevo = !consienteIA;
     setConsienteIA(nuevo);
-    await supabase.rpc('actualizar_consentimiento_ia', {
+    setErrorIA('');
+    // Esto es RGPD: si el cambio no se guarda hay que DECIRLO y volver el
+    // interruptor a su sitio. Antes se ignoraba el error y el interruptor se
+    // quedaba en la posicion nueva aunque en la base de datos no cambiara nada
+    // (que es justo lo que pasaba: la RPC fallaba siempre).
+    const { error } = await supabase.rpc('actualizar_consentimiento_ia', {
       p_cliente_id: cliente.id,
       p_consentimiento: nuevo,
       p_origen: 'staff'
     });
+    if (error) {
+      setConsienteIA(!nuevo);
+      setErrorIA(mensajeDeError(error, 'No se pudo guardar el consentimiento de IA.'));
+    }
   };
 
   useEffect(() => {
@@ -3919,6 +3929,11 @@ function ConsentimientosSection({ cliente, negocioId }: { cliente: Cliente; nego
           <span style={{ position: 'absolute', top: 3, left: consienteIA ? 21 : 3, width: 18, height: 18, borderRadius: 9, background: '#fff', transition: 'left 0.18s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
         </button>
       </div>
+      {errorIA && (
+        <div style={{ padding: '8px 10px', marginBottom: 8, background: 'rgba(226,59,52,0.08)', border: '1px solid rgba(226,59,52,0.25)', borderRadius: 8, fontSize: 12, color: '#991b1b' }}>
+          {errorIA}
+        </div>
+      )}
       {TIPOS.map((t) => (
         <div key={t.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '9px 0', borderBottom: `1px solid ${TOKENS.border}` }}>
           <span style={{ fontSize: 13, color: TOKENS.text }}>{t.label}</span>

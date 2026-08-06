@@ -247,25 +247,11 @@ export async function crearResenaPublica(args: {
     if (error) throw error;
     return data as { resena_id: string; ok: boolean };
   } catch (e: any) {
-    // Si falla porque no existe la función con 8 parámetros (p. ej. falta aplicar migración resenas-mecha.sql),
-    // intentamos llamar a la versión original con 6 parámetros.
-    const isSignatureError = e?.message && (
-      e.message.includes('does not exist') || 
-      e.message.includes('function') || 
-      e.message.includes('parameter')
-    );
-    if (isSignatureError) {
-      const { data, error } = await supabase.rpc('crear_resena_publica', {
-        p_slug: args.slug,
-        p_puntuacion: args.puntuacion,
-        p_comentario: args.comentario ?? null,
-        p_autor_nombre: args.autorNombre ?? null,
-        p_profesional_id: args.profesionalId ?? null,
-        p_servicio_id: args.servicioId ?? null,
-      });
-      if (error) throw error;
-      return data as { resena_id: string; ok: boolean };
-    }
+    // Aqui habia un plan B que reintentaba con una version de 6 parametros por
+    // si la migracion no estaba aplicada. Esa version ya no existe (se solto en
+    // migrations/limpiar-sobrecargas-rpc.sql: tres funciones con el mismo nombre
+    // y acceso anonimo son tres cosas que auditar y una fuente de 42725). Si
+    // esto falla, falla de verdad y hay que verlo.
     throw e;
   }
 }
@@ -384,16 +370,21 @@ export async function modificarCitaPublica(args: {
   return data as ModificarCitaResult;
 }
 
-// Actualiza el consentimiento de IA de un cliente
+// Actualiza el consentimiento de IA de un cliente.
+// Desde fuera del software hay que traer el telefono de la clienta: es la misma
+// prueba de que la cita es tuya que se pide para verla o cancelarla. Sin el, el
+// servidor rechaza el cambio (antes bastaba con conocer el UUID).
 export async function actualizarConsentimientoIa(args: {
   clienteId: string;
   consentimiento: boolean;
   origen: 'portal' | 'autogestion' | 'staff';
+  telefono?: string;
 }): Promise<void> {
   const { error } = await supabase.rpc('actualizar_consentimiento_ia', {
     p_cliente_id: args.clienteId,
     p_consentimiento: args.consentimiento,
     p_origen: args.origen,
+    p_telefono: args.telefono ?? null,
   });
   if (error) throw error;
 }
