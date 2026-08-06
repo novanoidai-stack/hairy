@@ -14,6 +14,21 @@ const WORDMARK_FONT = Platform.select({
   default: undefined,
 });
 
+// Codigos que devuelve la edge signup-free → frases claras en español.
+// mensajeDeError humaniza los snake_case no listados, pero para estos merece
+// la pena dar un texto exacto que guie al usuario.
+const SIGNUP_ERRORES: Record<string, string> = {
+  invalid_email: 'El email no es válido.',
+  weak_password: 'La contraseña debe tener al menos 8 caracteres.',
+  missing_fields: 'Rellena todos los campos obligatorios.',
+  leaked_password: 'Esa contraseña ha aparecido en filtraciones públicas. Elige otra más segura.',
+  invalid_email_domain: 'El dominio de ese correo no existe. Comprueba que esté bien escrito.',
+  demasiados_intentos: 'Demasiados intentos. Espera un rato antes de volver a intentarlo.',
+  phone_limit_reached: 'Ese teléfono ya está asociado a demasiadas cuentas.',
+  email_exists: 'Ya existe una cuenta con ese email.',
+  create_failed: 'No se pudo crear la cuenta. Inténtalo de nuevo.',
+};
+
 export default function LoginScreen() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
@@ -22,6 +37,7 @@ export default function LoginScreen() {
   const [apellido, setApellido] = useState('');
   const [nombreNegocio, setNombreNegocio] = useState('');
   const [codigoPostal, setCodigoPostal] = useState('');
+  const [telefono, setTelefono] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -39,37 +55,58 @@ export default function LoginScreen() {
     if (!apellido.trim()) { setError('Introduce tu apellido'); return; }
     if (!nombreNegocio.trim()) { setError('Introduce el nombre del negocio'); return; }
     if (!codigoPostal.trim()) { setError('Introduce el código postal'); return; }
+    if (password.length < 8) { setError('La contraseña necesita al menos 8 caracteres.'); return; }
     setLoading(true);
     setError('');
-    // El perfil lo crea el trigger handle_new_user a partir de esta metadata,
-    // SIEMPRE en el tenant demo compartido (demo_salon_001) y plan free — igual
-    // que el alta de la web (signup-free). El negocio propio se asigna despues,
-    // cuando el equipo Mecha da el acceso completo (staff_grant_full_access).
-    // Antes este formulario insertaba el perfil a mano con un negocio_id propio:
-    // chocaba con el trigger y rompia la demo compartida.
-    // El apellido y el codigo postal viajan AQUI, en la metadata. Antes se
-    // intentaban guardar con un UPDATE despues del alta y se perdian: si el
-    // proyecto pide confirmar el correo, en ese momento no hay sesion, RLS
-    // tumbaba el UPDATE y el catch se lo tragaba sin decir nada.
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
+    // Antes este formulario llamaba a supabase.auth.signUp() directamente,
+    // saltandose TODAS las protecciones del servidor (HIBP, DNS MX, rate limit
+    // por IP, limite de telefono). Ahora pasa por la misma Edge Function que la
+    // web: signup-free. La cuenta se crea ya confirmada en el tenant de demo
+    // (demo_salon_001). El negocio propio se asigna despues, cuando el equipo
+    // Mecha da el acceso completo (staff_grant_full_access).
+    try {
+      const { data, error: invokeErr } = await supabase.functions.invoke('signup-free', {
+        body: {
+          email: email.trim().toLowerCase(),
+          password,
           nombre: `${nombre.trim()} ${apellido.trim()}`,
+          salon: nombreNegocio.trim(),
+          telefono: telefono.trim() || undefined,
           apellido: apellido.trim(),
           codigo_postal: codigoPostal.trim(),
-          salon: nombreNegocio.trim(),
         },
-      },
-    });
-    if (error) { setError(mensajeDeError(error)); setLoading(false); return; }
-    if (data.user) {
-      setSuccess(
-        data.session
-          ? 'Cuenta creada. Entrando…'
-          : 'Cuenta creada. Revisa tu email para confirmarla.',
-      );
+      });
+
+      // supabase-js pone el body en data cuando es 2xx; en errores (4xx) el body
+      // llega como JSON en error.context (un Response). Lo leemos para dar el
+      // mensaje traducido en vez del generico.
+      let respBody = data as { ok?: boolean; error?: string } | null;
+      if (invokeErr && !respBody?.error) {
+        try {
+          const ctx = (invokeErr as unknown as { context?: Response })?.context;
+          if (ctx && typeof ctx.json === 'function') respBody = await ctx.json();
+        } catch { /* body no JSON */ }
+      }
+
+      if (invokeErr || respBody?.error) {
+        const codigo = respBody?.error || '';
+        setError(SIGNUP_ERRORES[codigo] || mensajeDeError(invokeErr));
+        setLoading(false);
+        return;
+      }
+
+      // Cuenta creada con exito: auto-login con las mismas credenciales.
+      // signup-free no devuelve sesion (usa la Admin API), asi que hacemos
+      // signIn normalmente.
+      setSuccess('Cuenta creada. Entrando…');
+      const { error: loginErr } = await signIn(email.trim().toLowerCase(), password);
+      if (loginErr) {
+        // La cuenta existe pero el login fallo: pedir que entre manualmente.
+        setSuccess('');
+        setError('Cuenta creada, pero no se pudo entrar automaticamente. Inicia sesión.');
+      }
+    } catch (e) {
+      setError('No se pudo crear la cuenta. Comprueba tu conexión e inténtalo de nuevo.');
     }
     setLoading(false);
   }
@@ -115,6 +152,14 @@ export default function LoginScreen() {
                 value={codigoPostal}
                 onChangeText={setCodigoPostal}
                 keyboardType="number-pad"
+              />
+              <TextInput
+                style={s.input}
+                placeholder="Teléfono (opcional)"
+                placeholderTextColor="#8a7d70"
+                value={telefono}
+                onChangeText={setTelefono}
+                keyboardType="phone-pad"
               />
             </>
           )}
@@ -162,6 +207,7 @@ export default function LoginScreen() {
               setApellido('');
               setNombreNegocio('');
               setCodigoPostal('');
+              setTelefono('');
             }}
           >
             <Text style={s.switchText}>

@@ -9695,25 +9695,27 @@ function DayListView({
     let lastTime = dayStart.getTime();
 
     sortedCitas.forEach((cita) => {
-      const citaStart = new Date(cita.inicio).getTime();
-      const citaEnd = new Date(cita.fin).getTime();
+      const citaStart = cita.inicio ? new Date(cita.inicio).getTime() : lastTime;
+      const citaEnd = cita.fin ? new Date(cita.fin).getTime() : citaStart + 15 * 60000;
 
-      if (citaStart - lastTime >= 15 * 60 * 1000) {
+      if (!isNaN(citaStart) && !isNaN(citaEnd)) {
+        if (citaStart - lastTime >= 15 * 60 * 1000) {
+          items.push({
+            type: "gap",
+            start: new Date(lastTime),
+            end: new Date(citaStart),
+          });
+        }
+
         items.push({
-          type: "gap",
-          start: new Date(lastTime),
-          end: new Date(citaStart),
+          type: "cita",
+          cita,
+          start: new Date(citaStart),
+          end: new Date(citaEnd),
         });
+
+        lastTime = Math.max(lastTime, citaEnd);
       }
-
-      items.push({
-        type: "cita",
-        cita,
-        start: new Date(citaStart),
-        end: new Date(citaEnd),
-      });
-
-      lastTime = Math.max(lastTime, citaEnd);
     });
 
     if (dayEnd.getTime() - lastTime >= 15 * 60 * 1000) {

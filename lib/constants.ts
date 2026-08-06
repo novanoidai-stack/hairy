@@ -27,6 +27,7 @@ export const CITA_STATUS = {
   PENDIENTE: 'pendiente',
   CONFIRMADA: 'confirmada',
   COMPLETADA: 'completada',
+  FINALIZADA: 'finalizada',
   CANCELADA: 'cancelada',
   NO_PRESENTADA: 'no_presentada',
 } as const;

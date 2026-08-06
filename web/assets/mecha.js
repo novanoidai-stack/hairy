@@ -11,12 +11,24 @@
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---------- INTRO ---------- */
+  // En movil la intro no se salta: se quita. Ocupa la pantalla entera durante
+  // 3,2 s antes de dejar ver nada, y en un telefono eso es una barrera, no una
+  // presentacion. En escritorio se mantiene (hay sitio y el "Saltar intro" se ve).
+  function esMovil() {
+    try {
+      return window.matchMedia('(max-width: 820px)').matches
+        || window.matchMedia('(pointer: coarse)').matches;
+    } catch (e) {
+      return (window.innerWidth || 1024) <= 820;
+    }
+  }
+
   function runIntro() {
     var intro = $('#intro');
     if (!intro) return;
     var seen = false;
     try { seen = sessionStorage.getItem('mecha_intro') === '1'; } catch (e) {}
-    var skipIntro = seen || reduceMotion || (window.__mechaTweaks && window.__mechaTweaks.intro === false);
+    var skipIntro = seen || reduceMotion || esMovil() || (window.__mechaTweaks && window.__mechaTweaks.intro === false);
     if (skipIntro) { intro.remove(); return; }
     body.classList.add('intro-lock');
     function close() {

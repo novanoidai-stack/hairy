@@ -88,6 +88,11 @@ const CODIGOS: Record<string, string> = {
   no_capturable: 'No se puede capturar la retencion.',
   no_liberable: 'No se puede liberar la retencion.',
   importe_invalido: 'El importe no es valido.',
+  // Codigos de la edge signup-free (registro de cuenta)
+  leaked_password: 'Esa contraseña ha aparecido en filtraciones publicas. Elige otra mas segura.',
+  invalid_email_domain: 'El dominio de ese correo no existe. Comprueba que este bien escrito.',
+  demasiados_intentos: 'Demasiados intentos. Espera un rato antes de volver a intentarlo.',
+  phone_limit_reached: 'Ese telefono ya esta asociado a demasiadas cuentas.',
 };
 
 // Convierte un codigo snake_case ("cita_ya_cobrada") en texto legible ("Cita ya cobrada.").

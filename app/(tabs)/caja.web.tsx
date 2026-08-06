@@ -224,7 +224,7 @@ function CajaScreen() {
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
       const tomorrowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
 
-      // Citas de hoy pendientes de cobro. El esquema real usa `inicio` (timestamptz),
+      // Citas pendientes de cobro (hasta hoy y días anteriores no cobrados). El esquema real usa `inicio` (timestamptz),
       // `servicio_id` (no tabla puente) y `pagos.importe_cents`.
       const { data, error } = await supabase
         .from('citas')
@@ -243,7 +243,6 @@ function CajaScreen() {
         .eq('negocio_id', profile.negocio_id)
         .eq('cobrada', false)
         .in('estado', ['completada', 'finalizada', 'confirmada'])
-        .gte('inicio', todayStart)
         .lt('inicio', tomorrowStart)
         .order('inicio', { ascending: true });
 
@@ -367,11 +366,12 @@ function CajaScreen() {
 
   // Tras cobrar con exito desde el CobroSheet: recargar, avisar, cerrar.
   const handleCobroSuccess = async (cobroIds: string[]) => {
-    setMensaje({ type: 'success', text: `${cobroIds.length} cita${cobroIds.length === 1 ? '' : 's'} cobrada${cobroIds.length === 1 ? '' : 's'}` });
+    const txt = cobroIds.length === 1 ? 'El cobro se ha efectuado correctamente.' : `Los ${cobroIds.length} cobros se han efectuado correctamente.`;
+    setMensaje({ type: 'success', text: txt });
     setSelectedIds(new Set());
     setShowCobroModal(false);
     await cargarCitas(); // Recargar
-    setTimeout(() => setMensaje(null), 3000);
+    setTimeout(() => setMensaje(null), 4000);
   };
 
   // Reembolsar un cobro online (Stripe). El dinero se devuelve y la cita vuelve a "sin cobrar".
@@ -394,17 +394,17 @@ function CajaScreen() {
 
   // Cobro rapido (walk-in): venta sin cita, mismo motor, sin lista de pendientes que tocar.
   const handleWalkinSuccess = async () => {
-    setMensaje({ type: 'success', text: 'Venta cobrada' });
+    setMensaje({ type: 'success', text: 'El cobro se ha efectuado correctamente.' });
     setShowWalkin(false);
     await cargarCitas(); // Recargar arqueo del dia
-    setTimeout(() => setMensaje(null), 3000);
+    setTimeout(() => setMensaje(null), 4000);
   };
 
   const handleCobroPresupuestoSuccess = async () => {
-    setMensaje({ type: 'success', text: 'Presupuesto cobrado' });
+    setMensaje({ type: 'success', text: 'El cobro del presupuesto se ha efectuado correctamente.' });
     setCobroPresupuesto(null);
     await cargarCitas();
-    setTimeout(() => setMensaje(null), 3000);
+    setTimeout(() => setMensaje(null), 4000);
   };
 
   // Los fichajes/jornada viven en "Mi jornada". Caja se centra en cobros y arqueo.
@@ -423,6 +423,16 @@ function CajaScreen() {
     rows.push(['TOTAL', ((arqueo?.total || 0) / 100).toFixed(2), ((arqueo?.efectivo || 0) / 100).toFixed(2), ((arqueo?.datafono || 0) / 100).toFixed(2), ((arqueo?.propinas || 0) / 100).toFixed(2)]);
     downloadCSV(`caja-cobros-${hoyStr}.csv`, rows);
   };
+
+  // Citas pasadas pendientes de cobro (su hora ya ha llegado y siguen sin
+  // cobrarse). Va ANTES del early-return de carga: un hook despues de un
+  // return condicional rompe las reglas de hooks (React error #310) y tira
+  // toda la pantalla de Caja al pasar de "cargando" a "cargada".
+  // El esquema real usa `inicio` (timestamptz), no `fecha`.
+  const citasPasadas = useMemo(() => {
+    const ahora = Date.now();
+    return citas.filter((c: any) => new Date(c.inicio).getTime() <= ahora);
+  }, [citas]);
 
   // ─────────────────────────────────────────────────────────────────────────────────
   // RENDER
@@ -520,6 +530,36 @@ function CajaScreen() {
             onVerManual={() => { paginaManual.marcarVisto(); setShowManualPanel(true); }}
             onCerrar={paginaManual.marcarVisto}
           />
+        </div>
+      )}
+
+      {/* Banner de aviso si hay cobros de citas pasadas pendientes */}
+      {canSeeAll && citasPasadas.length > 0 && (
+        <div style={{
+          background: T.warningSoft, border: `1px solid ${T.warning}`,
+          borderRadius: 12, padding: '12px 16px', marginBottom: 16,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Icon name="alert" size={18} color={T.warning} />
+            <div>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text }}>
+                {citasPasadas.length === 1
+                  ? '1 cobro pendiente de registrar (cita pasada o completada)'
+                  : `${citasPasadas.length} cobros pendientes de registrar (citas pasadas o completadas)`}
+              </div>
+              <div style={{ fontSize: 11.5, color: T.textSec }}>
+                Se ha sobrepasado la hora de la cita sin marcarla como cobrada en el software.
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setSelectedIds(new Set(citasPasadas.map(c => c.id)))}
+            className="ca-btn"
+            style={{ padding: '6px 12px', background: T.warning, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}
+          >
+            Seleccionar pendientes ({citasPasadas.length})
+          </button>
         </div>
       )}
 
@@ -970,7 +1010,12 @@ function CajaScreen() {
           <div
             onClick={(e) => e.stopPropagation()}
             className="ca-modal"
-            style={{ background: T.panel, border: `1px solid ${T.borderHi}`, borderRadius: 16, width: '100%', maxWidth: 540, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 70px rgba(40,30,24,0.35)' }}
+            // minWidth 0: el overlay es un grid y sus hijos tienen minimo
+            // automatico = min-content. Con una fila de carrito larga (nombre +
+            // −/+ + importe + aspa) el modal se estiraba a ~520 px dentro de una
+            // pantalla de 375 y se salia por la derecha. Con minWidth 0 manda el
+            // width:100% y el nombre se corta con puntos suspensivos.
+            style={{ background: T.panel, border: `1px solid ${T.borderHi}`, borderRadius: 16, width: '100%', minWidth: 0, maxWidth: 540, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 70px rgba(40,30,24,0.35)' }}
           >
             {/* Header */}
             <div style={{ padding: '18px 20px 12px', borderBottom: `1px solid ${T.border}` }}>
@@ -1006,6 +1051,9 @@ function CajaScreen() {
                         className="ca-btn"
                         style={{
                           position: 'relative',
+                          // minWidth 0: son celdas de grid; sin esto un nombre
+                          // largo ensancha la columna y la rejilla se sale.
+                          minWidth: 0,
                           background: enCarrito ? T.primarySoft : T.card,
                           border: `1px solid ${enCarrito ? T.primary : T.border}`,
                           borderRadius: 12, padding: '14px 10px', textAlign: 'center',
@@ -1036,8 +1084,8 @@ function CajaScreen() {
               <div style={{ borderTop: `1px solid ${T.border}`, padding: '14px 20px', background: T.cardHi }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
                   {carrito.map((item) => (
-                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-                      <span style={{ flex: 1, color: T.text, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.nombre}</span>
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, minWidth: 0 }}>
+                      <span style={{ flex: 1, minWidth: 0, color: T.text, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.nombre}</span>
                       <button onClick={() => setCarrito(prev => prev.map(c => c.id === item.id ? { ...c, cantidad: Math.max(1, c.cantidad - 1) } : c))} style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, width: 24, height: 24, fontSize: 14, cursor: 'pointer', color: T.text, display: 'grid', placeItems: 'center' }}>−</button>
                       <span style={{ fontWeight: 700, color: T.text, minWidth: 20, textAlign: 'center' }}>{item.cantidad}</span>
                       <button onClick={() => setCarrito(prev => prev.map(c => c.id === item.id ? { ...c, cantidad: c.cantidad + 1 } : c))} style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 6, width: 24, height: 24, fontSize: 14, cursor: 'pointer', color: T.text, display: 'grid', placeItems: 'center' }}>+</button>
