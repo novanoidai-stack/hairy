@@ -376,7 +376,7 @@
         <a href="demo.html" class="btn btn-primary btn-lg">Ver demo gratis
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
         </a>
-        <a href="reservar.html" class="btn btn-ghost btn-lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg><span class="cta-full">¿Quieres el acceso ya?</span><span class="cta-short">Acceso ya</span></a>
+        <button type="button" id="btnAccesoYaHero" class="btn btn-ghost btn-lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg><span class="cta-full">¿Quieres el acceso ya?</span><span class="cta-short">Acceso ya</span></button>
       </div>
       <div class="hero-migration reveal d4" style="margin-top: 1.2rem; text-align: center;">
         <a href="acceso.html?migrar=true" class="btn btn-ghost btn-sm" style="color: var(--text); padding: 6px 14px; font-size: 14px;">
@@ -1147,6 +1147,15 @@
           </div>
           <span style="font-size: 13px; font-weight: 700; color: #818cf8; white-space: nowrap;">Rellenar datos →</span>
         </button>
+
+        <button type="button" id="btnOpcionContactar" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); cursor: pointer; width: 100%; text-align: left; transition: background 0.2s, border-color 0.2s;" onmouseenter="this.style.background='rgba(56,189,248,0.12)';this.style.borderColor='rgba(56,189,248,0.4)';" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.12)';">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(56,189,248,0.18); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 22px; flex-shrink: 0;">💬</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 14.5px; font-weight: 700; color: #fff;">4. Contactar directamente con nosotros</div>
+            <div style="font-size: 12px; color: #9aa6c2; margin-top: 2px;">¿Solo tienes una duda? Escríbenos y te contestamos hoy mismo, sin agendar nada.</div>
+          </div>
+          <span style="font-size: 13px; font-weight: 700; color: #38bdf8; white-space: nowrap;">Escribir →</span>
+        </button>
       </div>
 
       <button type="button" class="btn btn-ghost" id="opcionesAccesoCerrar" style="margin-top: 18px; width: 100%; justify-content: center; color: #8a9ab8;">Cerrar</button>
@@ -1164,35 +1173,35 @@
 
       <div class="faq-list reveal">
         <details class="faq-item">
-          <summary>¿Me ato a algo? ¿Qué pasa si no me convence?</summary>
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V8a5 5 0 0 1 9.9-1"/></svg></span><span class="faq-q">¿Me ato a algo? ¿Qué pasa si no me convence?</span></summary>
           <div class="faq-a">Nada de permanencia. El primer mes es gratis y <b>sin tarjeta</b>: si no te convence, no haces nada y se acaba. Tus datos son tuyos y te los puedes llevar exportados cuando quieras.</div>
         </details>
         <details class="faq-item">
-          <summary>Ya uso Booksy o Fresha. ¿Me cambio sin perder mis clientes?</summary>
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span><span class="faq-q">Ya uso Booksy o Fresha. ¿Me cambio sin perder mis clientes?</span></summary>
           <div class="faq-a">Sí, y se hace en unos <b>10 minutos</b>. Exportas tu listado de Booksy o Fresha —o le haces una foto a tu agenda de papel— y Mecha carga clientes, historial y citas. Las reseñas se quedan en la plataforma donde te las dejaron: eso no lo puede mover nadie. Y puedes <b>seguir con tu app actual mientras pruebas</b> Mecha, para cambiar a tu ritmo.</div>
         </details>
         <details class="faq-item">
-          <summary>¿Cuánto tardo en tenerlo funcionando?</summary>
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/></svg></span><span class="faq-q">¿Cuánto tardo en tenerlo funcionando?</span></summary>
           <div class="faq-a">Te lo montamos nosotros. En la llamada dejamos cargados tus servicios, tu equipo y tus horarios, y sales con el salón configurado y listo para dar citas ese mismo día.</div>
         </details>
         <details class="faq-item">
-          <summary>Somos un salón pequeño (o trabajo yo solo). ¿Me compensa?</summary>
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="faq-q">Somos un salón pequeño (o trabajo yo solo). ¿Me compensa?</span></summary>
           <div class="faq-a">El precio no cambia por número de profesionales: son <b>ilimitados</b> en los dos planes. Y la cuenta es la misma para todos: con evitar un par de plantones al mes, Mecha ya está pagado. Cuanto menos personal tengas, más te libera que el asistente coja el teléfono por ti.</div>
         </details>
         <details class="faq-item">
-          <summary>¿Los clientes que reservan son míos o vuestros?</summary>
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></span><span class="faq-q">¿Los clientes que reservan son míos o vuestros?</span></summary>
           <div class="faq-a">Tuyos, siempre. Mecha <b>no es un marketplace</b>: no te compartimos los clientes con otros salones ni te cobramos comisión por reserva. El 100% de lo que facturas se queda en tu caja.</div>
         </details>
         <details class="faq-item">
-          <summary>¿La IA habla con mis clientes sin que yo lo controle?</summary>
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span><span class="faq-q">¿La IA habla con mis clientes sin que yo lo controle?</span></summary>
           <div class="faq-a">Tú mandas. La IA usa <b>plantillas aprobadas</b> para los avisos y, en lo demás, te propone y confirmas tú. Puedes revisar cada conversación y desactivarla cuando quieras — el plan Esencial funciona perfectamente sin ella.</div>
         </details>
         <details class="faq-item">
-          <summary>¿Sirve para facturar en regla?</summary>
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg></span><span class="faq-q">¿Sirve para facturar en regla?</span></summary>
           <div class="faq-a">Sí: tickets homologados <b>VeriFactu</b> con QR de la AEAT y registro de jornada del equipo conforme a la ley, dentro del plan Estudio.</div>
         </details>
         <details class="faq-item">
-          <summary>¿Funciona en el móvil?</summary>
+          <summary><span class="faq-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg></span><span class="faq-q">¿Funciona en el móvil?</span></summary>
           <div class="faq-a">Sí. Funciona en el navegador y en móvil (iOS y Android) con la misma cuenta: la agenda, las fichas y la caja las llevas encima.</div>
         </details>
       </div>
@@ -1244,7 +1253,7 @@
       </div>
       <div class="gallery-grid reveal">
         <figure class="gallery-item">
-          <img src="captures/agenda.png" alt="Captura de la interfaz de la agenda de Mecha OS con modo oscuro, vista de calendario y citas para peluquerías" width="1344" height="768" loading="lazy" decoding="async" />
+          <img src="captures/agenda.png" alt="Captura de la interfaz de la agenda de Mecha OS con modo oscuro, vista de calendario y citas para peluquerías" width="1600" height="900" loading="lazy" decoding="async" />
           <figcaption>Dashboard de Mecha — Agenda inteligente y control del salón</figcaption>
         </figure>
         <figure class="gallery-item">
@@ -1270,7 +1279,7 @@
             <a href="demo.html" class="btn btn-primary btn-lg" id="demoCta">Ver demo gratis
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
             </a>
-            <a href="reservar.html" class="btn btn-ghost btn-lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg><span class="cta-full">¿Quieres el acceso ya?</span><span class="cta-short">Acceso ya</span></a>
+            <button type="button" id="btnAccesoYaCta" class="btn btn-ghost btn-lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg><span class="cta-full">¿Quieres el acceso ya?</span><span class="cta-short">Acceso ya</span></button>
           </div>
           <p class="cta-micro">Desde 39 €/mes · 1 mes gratis sin tarjeta · Sin permanencia · 0% comisiones</p>
         </div>
@@ -1649,7 +1658,13 @@ window.MECHA_CHAT = [
   var bEmpezarGratis=document.getElementById('btnEmpezarGratis');
   var accModal=document.getElementById('opcionesAccesoModal');
   var bDirecto=document.getElementById('btnOpcionQuieroDirecto');
+  var bContactar=document.getElementById('btnOpcionContactar');
   var accCerrar=document.getElementById('opcionesAccesoCerrar');
+  // "Acceso ya" del hero y del CTA final: antes iban directos a reservar.html
+  // (saltandose las otras 3 vias). Ahora abren el mismo selector que ya usan
+  // las tarjetas de precios.
+  var bAccesoHero=document.getElementById('btnAccesoYaHero');
+  var bAccesoCta=document.getElementById('btnAccesoYaCta');
 
   function abrirAcceso(){ if(accModal) accModal.classList.add('on'); }
   function cerrarAcceso(){ if(accModal) accModal.classList.remove('on'); }
@@ -1658,12 +1673,20 @@ window.MECHA_CHAT = [
   if(bQ) bQ.addEventListener('click',abrirAcceso);
   if(bLlamada) bLlamada.addEventListener('click',abrirAcceso);
   if(bEmpezarGratis) bEmpezarGratis.addEventListener('click',abrirAcceso);
+  if(bAccesoHero) bAccesoHero.addEventListener('click',abrirAcceso);
+  if(bAccesoCta) bAccesoCta.addEventListener('click',abrirAcceso);
   if(accCerrar) accCerrar.addEventListener('click',cerrarAcceso);
   if(accModal) accModal.addEventListener('click',function(e){ if(e.target===accModal) cerrarAcceso(); });
   if(bDirecto) {
     bDirecto.addEventListener('click',function(){
       cerrarAcceso();
       abrir('quiero_software');
+    });
+  }
+  if(bContactar) {
+    bContactar.addEventListener('click',function(){
+      cerrarAcceso();
+      abrir('mensaje');
     });
   }
 
