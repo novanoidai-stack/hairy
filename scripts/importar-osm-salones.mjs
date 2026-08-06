@@ -192,9 +192,12 @@ function mapear(el, ciudadPedida) {
     fuente_id: `${el.type}/${el.id}`,
     nombre,
     direccion: direccionDe(tags),
-    // addr:city no siempre esta; si falta, vale la ciudad por la que hemos
-    // buscado, que es exactamente el area administrativa consultada.
-    ciudad: texto(tags['addr:city']) || ciudadPedida,
+    // SIEMPRE la ciudad por la que hemos buscado, nunca addr:city. En los
+    // municipios bilingues OSM mezcla las dos formas ("Valencia" y "València")
+    // dentro del mismo municipio, y eso parte la ciudad en dos en el filtro del
+    // directorio. El area administrativa consultada es la respuesta correcta y
+    // ademas es el texto que la clienta ha escrito en el buscador.
+    ciudad: ciudadPedida,
     provincia: texto(tags['addr:province']) || null,
     codigo_postal: texto(tags['addr:postcode']),
     lat: centro?.lat ?? null,

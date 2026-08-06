@@ -76,10 +76,14 @@
    PARCIALMENTE TAPADA por la barra (se comia el eyebrow o el badge de la
    tarjeta destacada de precios). scroll-margin-top reserva su alto. */
 main section[id],
-section[id]{scroll-margin-top:96px}
+section[id],
+/* #contacto no es una <section>, es el bloque de las tres vias dentro de
+   Precios: sin esto, el enlace "Contacto" del nav lo dejaba bajo la barra. */
+#contacto{scroll-margin-top:96px}
 @media (max-width:820px){
   main section[id],
-  section[id]{scroll-margin-top:78px}
+  section[id],
+  #contacto{scroll-margin-top:78px}
 }
 
 /* ---------- ETIQUETA DE ESCENARIO DE EJEMPLO ----------
