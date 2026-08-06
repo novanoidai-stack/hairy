@@ -14,6 +14,7 @@ import { CalendarProvider } from '@/lib/calendarContext';
 import { PrivacyConsentProvider } from '@/lib/privacyConsentContext';
 import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
 import { GuardaIdentidad } from '@/components/acceso/GuardaIdentidad';
+import { instalarCazadorDeErrores } from '@/lib/reportarError';
 import { ChispaLauncher } from '@/components/chispa/ChispaLauncher';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 import { ProximaAccionLauncher } from '@/components/chispa/ProximaAccionLauncher';
@@ -169,6 +170,10 @@ export default function RootLayout() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
     return () => subscription.unsubscribe();
   }, []);
+
+  // Errores que no pasan por ningun try/catch ni por el boundary de React
+  // (promesas sin capturar, scripts sueltos). Sin esto se perdian del todo.
+  useEffect(() => instalarCazadorDeErrores(), []);
 
   // Salvavidas de la espera de demo: si la peticion se queda colgada del todo,
   // dejamos pasar igualmente en vez de dejar al visitante mirando un spinner

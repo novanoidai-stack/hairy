@@ -277,6 +277,7 @@
     <button class="ad-tab" id="tabStf" data-view="staff">Staff / Equipo<span class="badge" id="badgeStf"></span></button>
     <button class="ad-tab" id="tabAud" data-view="auditoria_ia">Auditoría IA<span class="badge" id="badgeAud"></span></button>
     <button class="ad-tab" id="tabMov" data-view="movimientos">Movimientos<span class="badge" id="badgeMov"></span></button>
+    <button class="ad-tab" id="tabErr" data-view="errores">Errores<span class="badge" id="badgeErr"></span></button>
   </div>
 
   <!-- VISTA: RESEÑAS MECHA -->
@@ -527,6 +528,39 @@
     <div class="ad-count" id="countMov">Selecciona un negocio para ver sus movimientos</div>
     <div class="ad-msg" id="movMsg" style="margin-bottom:14px"></div>
     <div class="ad-list" id="listMov"></div>
+  </div>
+
+  <!-- ERRORES DE CLIENTE. Lo que se rompe en el navegador de un salon de verdad.
+       Antes esto no existia: el error se quedaba en SU consola y aqui nadie se
+       enteraba nunca. Agrupado por huella (mismo mensaje + misma pantalla). -->
+  <div id="view-errores" style="display:none">
+    <div class="ad-stats" id="statsErr">
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statErrTipos">0</div><div class="l">Fallos distintos</div></div>
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statErrVeces">0</div><div class="l">Veces en total</div></div>
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statErrSalones">0</div><div class="l">Salones afectados</div></div>
+    </div>
+
+    <p style="font-size:12.5px; color:var(--text-sec); margin:-2px 0 16px; line-height:1.5; max-width:760px;">
+      Errores que han petado en el navegador de alguien: pantallas en blanco, promesas sin capturar,
+      fallos sueltos. Si esta lista esta vacia, es buena señal. Si un fallo sale muchas veces y en
+      varios salones, ese es el que hay que mirar primero.
+    </p>
+
+    <div class="ad-tools">
+      <select class="ad-sel" id="fDiasErr">
+        <option value="1">Últimas 24 h</option>
+        <option value="7" selected>Últimos 7 días</option>
+        <option value="30">Últimos 30 días</option>
+      </select>
+      <button class="ad-refresh" id="refreshErrBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
+        Actualizar
+      </button>
+    </div>
+
+    <div class="ad-count" id="countErr"></div>
+    <div class="ad-msg" id="errMsg" style="margin-bottom:14px"></div>
+    <div class="ad-list" id="listErr"></div>
   </div>
 </div>
 
@@ -1999,7 +2033,10 @@
     var stf = view === 'staff';
     var aud = view === 'auditoria_ia';
     var mov = view === 'movimientos';
+    var err = view === 'errores';
 
+    $('tabErr').classList.toggle('active', err);
+    $('view-errores').style.display = err ? 'block' : 'none';
     $('tabSol').classList.toggle('active', sol);
     $('tabCue').classList.toggle('active', cue);
     $('tabRef').classList.toggle('active', ref);
@@ -2022,6 +2059,7 @@
     if (stf && !staffLoaded) loadStaff();
     if (aud && !auditoriaLoaded) loadAuditoriaIA();
     if (mov && !movimientosLoaded) loadMovimientos();
+    if (err && !erroresLoaded) loadErrores();
   }
   var ts = $('tabSol'); if (ts) ts.addEventListener('click', function () { switchView('solicitudes'); });
   var tc = $('tabCue'); if (tc) tc.addEventListener('click', function () { switchView('cuentas'); });
@@ -2030,6 +2068,68 @@
   var tstf = $('tabStf'); if (tstf) tstf.addEventListener('click', function () { switchView('staff'); });
   var taux = $('tabAud'); if (taux) taux.addEventListener('click', function () { switchView('auditoria_ia'); });
   var tmov = $('tabMov'); if (tmov) tmov.addEventListener('click', function () { switchView('movimientos'); });
+  var terr = $('tabErr'); if (terr) terr.addEventListener('click', function () { switchView('errores'); });
+
+  // ---------- ERRORES DE CLIENTE ----------
+  var erroresLoaded = false;
+
+  function loadErrores() {
+    var listEl = $('listErr');
+    listEl.innerHTML = '<div class="ad-loading">Cargando errores...</div>';
+    clearMsg($('errMsg'));
+    var dias = parseInt($('fDiasErr').value, 10) || 7;
+    api.client.rpc('staff_errores_cliente', { p_dias: dias, p_limit: 100 }).then(function (res) {
+      erroresLoaded = true;
+      if (res.error) {
+        listEl.innerHTML = '';
+        msg($('errMsg'), 'err', 'No se pudieron cargar los errores: ' + (res.error.message || ''));
+        return;
+      }
+      var filas = res.data || [];
+      var veces = filas.reduce(function (n, f) { return n + (f.veces || 0); }, 0);
+      var salones = filas.reduce(function (n, f) { return Math.max(n, f.salones || 0); }, 0);
+      $('statErrTipos').textContent = filas.length;
+      $('statErrVeces').textContent = veces;
+      $('statErrSalones').textContent = salones;
+      $('badgeErr').textContent = filas.length ? String(filas.length) : '';
+      $('countErr').textContent = filas.length
+        ? filas.length + (filas.length === 1 ? ' fallo distinto' : ' fallos distintos') + ' en los últimos ' + dias + ' días'
+        : '';
+
+      if (!filas.length) {
+        listEl.innerHTML = '<div class="ad-empty">Ni un error en este periodo. Así tiene que estar esto.</div>';
+        return;
+      }
+
+      var html = '';
+      filas.forEach(function (f) {
+        var grave = (f.veces || 0) >= 10 || (f.salones || 0) > 1;
+        html += '<div class="card-row" style="border-left:3px solid ' + (grave ? '#ef4444' : 'rgba(148,163,184,.4)') + '">';
+        html += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">';
+        html += '<span style="font-size:13.5px;font-weight:700;color:var(--text)">' + esc(f.mensaje || '') + '</span>';
+        html += '<span class="plan ' + (grave ? 'demo' : 'free') + '">' + (f.veces || 0) + (f.veces === 1 ? ' vez' : ' veces') + '</span>';
+        if ((f.salones || 0) > 1) html += '<span class="plan demo">' + f.salones + ' salones</span>';
+        html += '<span class="plan free">' + esc(f.origen || 'app') + '</span>';
+        html += '</div>';
+        html += '<div style="font-size:12px;color:var(--text-sec);margin-bottom:6px">' +
+          (f.ruta ? 'En <b>' + esc(f.ruta) + '</b> · ' : '') +
+          'desde ' + new Date(f.primera_vez).toLocaleString('es-ES') +
+          ' · última ' + new Date(f.ultima_vez).toLocaleString('es-ES') + '</div>';
+        if (f.pila) {
+          html += '<details><summary style="font-size:12px;color:var(--text-sec);cursor:pointer">Ver pila</summary>' +
+            '<pre style="font-size:11px;white-space:pre-wrap;color:var(--text-sec);margin-top:6px">' + esc(f.pila) + '</pre></details>';
+        }
+        html += '</div>';
+      });
+      listEl.innerHTML = html;
+    }).catch(function (e) {
+      listEl.innerHTML = '';
+      msg($('errMsg'), 'err', 'No se pudieron cargar los errores: ' + (e && e.message ? e.message : e));
+    });
+  }
+
+  var rErr = $('refreshErrBtn'); if (rErr) rErr.addEventListener('click', loadErrores);
+  var fdErr = $('fDiasErr'); if (fdErr) fdErr.addEventListener('change', loadErrores);
 
   // ---------- AUDITORÍA IA ----------
   var auditoriaData = [];

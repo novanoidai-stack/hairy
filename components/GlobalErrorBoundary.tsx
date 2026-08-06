@@ -1,5 +1,6 @@
 import React from 'react';
 import { Platform } from 'react-native';
+import { reportarError } from '@/lib/reportarError';
 
 interface Props {
   children: React.ReactNode;
@@ -28,6 +29,9 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[GlobalErrorBoundary]', error, info.componentStack);
+    // Y ademas se manda, que si no lo de abajo ("nuestro equipo ya esta al
+    // tanto") era mentira: el error se quedaba en la consola de su navegador.
+    reportarError(error, { pila: info.componentStack ?? error.stack ?? undefined });
   }
 
   handleReload = () => {
