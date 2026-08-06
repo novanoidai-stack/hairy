@@ -209,6 +209,20 @@ export async function getResenasPublicas(slug: string): Promise<ResenaResumen | 
   return (data as ResenaResumen | null) ?? null;
 }
 
+export interface ResenaProfesional {
+  profesional_id: string;
+  profesional_nombre: string;
+  media: number;
+  total: number;
+}
+
+// Media y total de valoraciones por profesional (solo los que tienen alguna).
+export async function getResenasPorProfesional(slug: string): Promise<ResenaProfesional[]> {
+  const { data, error } = await supabase.rpc('resenas_por_profesional', { p_slug: slug });
+  if (error) throw error;
+  return (data as ResenaProfesional[] | null) ?? [];
+}
+
 // Crea una resena (anon) para el negocio del slug.
 export async function crearResenaPublica(args: {
   slug: string;
@@ -226,6 +240,8 @@ export async function crearResenaPublica(args: {
   mechaDisponibilidad?: number | null;
   mechaPagos?: number | null;
   mechaMejora?: string | null;
+  profesionalPuntuacion?: number | null;
+  profesionalComentario?: string | null;
 }): Promise<{ resena_id: string; ok: boolean }> {
   try {
     const { data, error } = await supabase.rpc('crear_resena_publica', {
@@ -243,6 +259,8 @@ export async function crearResenaPublica(args: {
       p_mecha_disponibilidad_puntuacion: args.mechaDisponibilidad ?? null,
       p_mecha_pagos_puntuacion: args.mechaPagos ?? null,
       p_mecha_mejora_comentario: args.mechaMejora ?? null,
+      p_profesional_puntuacion: args.profesionalPuntuacion ?? null,
+      p_profesional_comentario: args.profesionalComentario ?? null,
     });
     if (error) throw error;
     return data as { resena_id: string; ok: boolean };

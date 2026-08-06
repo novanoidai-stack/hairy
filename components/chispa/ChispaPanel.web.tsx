@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useGlobalSearchParams, usePathname } from 'expo-router';
 import { supabase, IS_DEMO_MODE } from '@/lib/supabase';
+import { reportarError } from '@/lib/reportarError';
 import { ejecutarAccion, deshacerAccion, type AccionPropuesta } from '@/lib/agendaOps';
 import { normalizarRespuesta, CHISPA_RUTAS, CHISPA_CONFIG_GUIADA_EVENT, CHISPA_ORGANIZAR_EVENT, CHISPA_ORGANIZAR_FLAG, CHISPA_WAKE_EVENT, type Bloque } from '@/lib/chispaBloques';
 import { estructurarBloques } from '@/lib/chispaEstructura';
@@ -1085,10 +1086,12 @@ export default function ChispaPanel({
       });
 
       if (error || !data) {
+        reportarError(error ?? 'chispa: sin respuesta del edge agenda-asistente', { tipo: 'ia' });
         pushAssistantTexto('Lo siento, hubo un problema al conectar con Chispa. Intentalo de nuevo.');
         return;
       }
       if ((data as { error?: string }).error) {
+        reportarError(`chispa: ${(data as { error?: string }).error}`, { tipo: 'ia' });
         pushAssistantTexto(`No pude procesar la solicitud: ${(data as { error?: string }).error}`);
         return;
       }
@@ -1167,6 +1170,7 @@ export default function ChispaPanel({
       }
     } else {
       // Fallo: la tarjeta queda resuelta y se explica; el usuario puede volver a pedirlo.
+      reportarError(`chispa accion fallida: ${r.error}`, { tipo: 'ia' });
       setAccionEstado(msgIndex, 'cancelada');
       pushAssistantTexto(`No se pudo aplicar: ${r.error}. Puedes pedirmelo de nuevo si quieres.`);
     }

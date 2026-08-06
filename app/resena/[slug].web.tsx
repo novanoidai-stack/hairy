@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
-import { getPortalInfo, getResenasPublicas, crearResenaPublica, type PortalNegocio, type ResenaResumen } from '@/lib/reservaPublica';
+import { getPortalInfo, getResenasPublicas, crearResenaPublica, type PortalNegocio, type PortalProfesional, type ResenaResumen } from '@/lib/reservaPublica';
 import { PageLoader } from '@/components/ui/DesignComponents';
 import { PORTAL_TOKENS, FIRE_GRADIENT, SANS_SERIF } from '@/lib/portalTokens';
 
@@ -243,6 +243,7 @@ export default function ResenaWeb() {
   const slug = String(params.slug || '');
 
   const [negocio, setNegocio] = useState<PortalNegocio | null>(null);
+  const [profesionales, setProfesionales] = useState<PortalProfesional[]>([]);
   const [resumen, setResumen] = useState<ResenaResumen | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -252,6 +253,11 @@ export default function ResenaWeb() {
   const [salonTrato, setSalonTrato] = useState(0);
   const [salonProductos, setSalonProductos] = useState(0);
   const [comentario, setComentario] = useState('');
+
+  // Profesional (opcional: el portal es generico, no viene de una cita concreta).
+  const [profesionalId, setProfesionalId] = useState('');
+  const [profesionalPuntuacion, setProfesionalPuntuacion] = useState(0);
+  const [profesionalComentario, setProfesionalComentario] = useState('');
 
   // Mecha states
   const [mechaPuntuacion, setMechaPuntuacion] = useState(0);
@@ -269,7 +275,7 @@ export default function ResenaWeb() {
     setLoading(true);
     try {
       const [info, res] = await Promise.all([getPortalInfo(slug), getResenasPublicas(slug)]);
-      if (!info) { setNotFound(true); } else { setNegocio(info.negocio); setResumen(res); }
+      if (!info) { setNotFound(true); } else { setNegocio(info.negocio); setProfesionales(info.profesionales || []); setResumen(res); }
     } catch { setNotFound(true); } finally { setLoading(false); }
   }, [slug]);
 
@@ -292,7 +298,10 @@ export default function ResenaWeb() {
         mechaFacilidad: mechaFacilidad > 0 ? mechaFacilidad : undefined,
         mechaDisponibilidad: mechaDisponibilidad > 0 ? mechaDisponibilidad : undefined,
         mechaPagos: mechaPagos > 0 ? mechaPagos : undefined,
-        mechaMejora: mechaMejora.trim() || undefined
+        mechaMejora: mechaMejora.trim() || undefined,
+        profesionalId: profesionalId || undefined,
+        profesionalPuntuacion: profesionalId && profesionalPuntuacion > 0 ? profesionalPuntuacion : undefined,
+        profesionalComentario: profesionalId && profesionalComentario.trim() ? profesionalComentario.trim() : undefined,
       });
       setEnviado(true);
     } catch (e: unknown) {
@@ -300,7 +309,7 @@ export default function ResenaWeb() {
     } finally {
       setEnviando(false);
     }
-  }, [slug, puntuacion, comentario, nombre, mechaPuntuacion, salonTrato, salonProductos, mechaFacilidad, mechaDisponibilidad, mechaPagos, mechaMejora]);
+  }, [slug, puntuacion, comentario, nombre, mechaPuntuacion, salonTrato, salonProductos, mechaFacilidad, mechaDisponibilidad, mechaPagos, mechaMejora, profesionalId, profesionalPuntuacion, profesionalComentario]);
 
   const inputBase: React.CSSProperties = {
     width: '100%', padding: '12px 13px', borderRadius: 12, border: `1.5px solid ${T.border}`,
@@ -533,6 +542,38 @@ export default function ResenaWeb() {
                   <textarea className="rs-field" value={comentario} onChange={e => setComentario(e.target.value)} placeholder="¿Qué destacarías de tu experiencia en el salón?" rows={3}
                     style={{ ...inputBase, resize: 'vertical' }} />
                 </div>
+
+                {/* Profesional que atendió (opcional: el portal es genérico, no viene de una cita concreta) */}
+                {profesionales.length > 0 && (
+                  <div style={{ borderTop: `1px solid rgba(40,30,24,0.05)`, paddingTop: 16, marginTop: 4, marginBottom: 20 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, marginBottom: 10, fontFamily: SANS_SERIF }}>
+                      Sobre quién te atendió:
+                    </div>
+                    <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>¿Quién te atendió?</label>
+                    <select
+                      className="rs-field"
+                      value={profesionalId}
+                      onChange={e => { setProfesionalId(e.target.value); if (!e.target.value) { setProfesionalPuntuacion(0); setProfesionalComentario(''); } }}
+                      style={{ ...inputBase, marginBottom: profesionalId ? 14 : 0 }}
+                    >
+                      <option value="">Prefiero no decirlo</option>
+                      {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                    </select>
+                    {profesionalId && (
+                      <>
+                        <label style={{ display: 'block', fontSize: 12, color: T.textTer, marginBottom: 6 }}>
+                          ¿Cómo valorarías su atención?
+                        </label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                          <RatingSelector value={profesionalPuntuacion} onChange={setProfesionalPuntuacion} size={26} isOptional={true} />
+                        </div>
+                        <label style={{ display: 'block', fontSize: 12.5, color: T.textSec, marginBottom: 6 }}>¿Algo que destacar de {profesionales.find(p => p.id === profesionalId)?.nombre}?</label>
+                        <textarea className="rs-field" value={profesionalComentario} onChange={e => setProfesionalComentario(e.target.value)} placeholder="Opcional..." rows={2}
+                          style={{ ...inputBase, resize: 'vertical' }} />
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {/* Sistema de reservas */}
                 <div style={{ borderTop: `1px solid rgba(40,30,24,0.05)`, paddingTop: 16, marginTop: 16, marginBottom: 20 }}>

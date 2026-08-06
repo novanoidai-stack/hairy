@@ -2216,6 +2216,35 @@ function TabSoporte({ account }: { account: AccountInfo | null }) {
   const { isMobile } = useResponsive();
   const a = account;
 
+  // Mensaje directo "a traves de Mecha": aterriza al instante en el panel de
+  // staff (soporte_mensajes), sin depender de que el navegador tenga un
+  // cliente de correo configurado. El mailto: de mas abajo sigue existiendo
+  // para quien prefiera ese camino.
+  const ASUNTOS_DIRECTOS = ['Reporte de problema', 'Sugerencia', 'Facturación y plan', 'Ayuda con el uso', 'Otro'];
+  const [asuntoDirecto, setAsuntoDirecto] = useState(ASUNTOS_DIRECTOS[0]);
+  const [mensajeDirecto, setMensajeDirecto] = useState('');
+  const [enviandoDirecto, setEnviandoDirecto] = useState(false);
+  const [enviadoDirecto, setEnviadoDirecto] = useState(false);
+  const [errorDirecto, setErrorDirecto] = useState('');
+
+  const enviarMensajeDirecto = useCallback(async () => {
+    if (!mensajeDirecto.trim()) { setErrorDirecto('Escribe el mensaje antes de enviarlo.'); return; }
+    setEnviandoDirecto(true);
+    setErrorDirecto('');
+    const { error } = await supabase.rpc('crear_mensaje_soporte', {
+      p_asunto: asuntoDirecto,
+      p_mensaje: mensajeDirecto.trim(),
+    });
+    setEnviandoDirecto(false);
+    if (error) { setErrorDirecto(mensajeDeError(error, 'No se pudo enviar el mensaje.')); return; }
+    setEnviadoDirecto(true);
+    setMensajeDirecto('');
+    // Aviso por correo al equipo: si falla, el ticket ya esta guardado y visible en el panel.
+    void supabase.functions.invoke('notificar-soporte', {
+      body: { asunto: asuntoDirecto, mensaje: mensajeDirecto.trim(), negocio: a?.nombreNegocio, autor_email: a?.email },
+    }).then(() => {}, () => {});
+  }, [asuntoDirecto, mensajeDirecto, a]);
+
   const buildMailto = (asunto: string, extra?: string) => {
     const negocio = a?.nombreNegocio || '';
     const subject = encodeURIComponent(`Mecha - ${asunto}` + (negocio ? ` (${negocio})` : ''));
@@ -2264,6 +2293,47 @@ function TabSoporte({ account }: { account: AccountInfo | null }) {
           </p>
         </div>
       </div>
+
+      {/* Mensaje directo: aterriza al instante en el panel de Mecha */}
+      <Section title="Mándanos un mensaje directo" desc="Llega al instante a nuestro panel, sin depender de tu correo. Es el camino más rápido.">
+        {enviadoDirecto ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 10, background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)' }}>
+            <SettingsIcon name="check" size={16} color="#34d399" />
+            <span style={{ fontSize: 13, color: T.text }}>Mensaje enviado. Te responderemos pronto.</span>
+            <Btn variant="ghost" size="sm" onClick={() => setEnviadoDirecto(false)}>Enviar otro</Btn>
+          </div>
+        ) : (
+          <>
+            <FieldRow label="Asunto">
+              <SSelect
+                value={asuntoDirecto}
+                onChange={setAsuntoDirecto}
+                options={ASUNTOS_DIRECTOS.map(a2 => ({ value: a2, label: a2 }))}
+                width={260}
+              />
+            </FieldRow>
+            <FieldRow label="Mensaje" full>
+              <textarea
+                value={mensajeDirecto}
+                onChange={(e) => setMensajeDirecto(e.target.value)}
+                placeholder="Cuéntanos qué ha pasado..."
+                style={{
+                  width: '100%', minHeight: 90, padding: '10px 12px',
+                  background: T.bg, border: `1px solid ${T.border}`, borderRadius: 9,
+                  color: T.text, fontSize: 13, fontFamily: 'inherit', outline: 'none',
+                  resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.5,
+                }}
+              />
+            </FieldRow>
+            {errorDirecto && <div style={{ fontSize: 12, color: '#f87171', marginBottom: 8 }}>{errorDirecto}</div>}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Btn variant="primary" icon="mail" onClick={enviarMensajeDirecto} disabled={enviandoDirecto || !mensajeDirecto.trim()}>
+                {enviandoDirecto ? 'Enviando...' : 'Enviar mensaje'}
+              </Btn>
+            </div>
+          </>
+        )}
+      </Section>
 
       {/* Motivos de contacto */}
       <Section title="Cuentanos en que podemos ayudarte" desc="Elige un tema y te abrimos un correo ya preparado en tu aplicacion de email. Solo tienes que escribir y enviar.">
@@ -3808,6 +3878,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
   const [codigoPostal, setCodigoPostal] = useState('');
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
+  const [linkResenaGoogle, setLinkResenaGoogle] = useState('');
   const [fotos, setFotos] = useState<NegocioFoto[]>([]);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [fotosMsg, setFotosMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -3840,6 +3911,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
         setCodigoPostal(data.codigo_postal || '');
         setLat(data.lat != null ? String(data.lat) : '');
         setLng(data.lng != null ? String(data.lng) : '');
+        setLinkResenaGoogle(data.link_resena_google || '');
       } else {
         setActivo(true);
         setSlug(slugifyPortal(defaultNombre || ''));
@@ -3903,6 +3975,20 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     }
   }, [enlaceResena]);
 
+  // QR a la ficha de Google del salon (enlace externo, lo pega el propio salon).
+  const qrGoogleSvg = useMemo(() => {
+    const link = linkResenaGoogle.trim();
+    if (!link) return '';
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(link);
+      qr.make();
+      return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+    } catch {
+      return '';
+    }
+  }, [linkResenaGoogle]);
+
   // Coordenada opcional: vacio -> null. Devuelve undefined si el texto no es un
   // numero valido dentro de rango (la tabla tiene checks y rechazaria el upsert).
   const parseCoord = (raw: string, limite: number): number | null | undefined => {
@@ -3941,6 +4027,7 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
       codigo_postal: codigoPostal.trim() || null,
       lat: latNum,
       lng: lngNum,
+      link_resena_google: linkResenaGoogle.trim() || null,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'negocio_id' });
     setSaving(false);
@@ -4086,6 +4173,20 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
               </>
             ) : (
               <span style={{ fontSize: 12, color: T.textTertiary }}>Guarda el enlace de reserva para activar tambien el de valoracion.</span>
+            )}
+          </div>
+        </FieldRow>
+        <FieldRow label="Reseña de Google" hint="Pega el enlace para dejar una reseña en tu ficha de Google (Google Business). Generamos un QR para imprimir y dejar en el mostrador.">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <STextInput value={linkResenaGoogle} onChange={setLinkResenaGoogle} placeholder="https://g.page/r/..." width={isMobile ? undefined : 360} />
+            {qrGoogleSvg && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
+                <div style={{ width: 104, height: 104, background: '#fff', border: `1px solid ${T.border}`, borderRadius: 10, padding: 6, flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: qrGoogleSvg }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 220 }}>
+                  <span style={{ fontSize: 12, color: T.textTertiary }}>Imprime este QR: lleva directo a dejar una reseña en Google.</span>
+                  <Btn variant="ghost" size="sm" onClick={() => descargarQR(qrGoogleSvg, `qr-google-${savedSlug || 'salon'}.svg`)}>Descargar QR</Btn>
+                </div>
+              </div>
             )}
           </div>
         </FieldRow>

@@ -11,6 +11,8 @@
 //   const { error } = await supabase.from('clientes').insert(row);
 //   if (error) { setError(mensajeDeError(error)); return; }
 
+import { reportarError } from './reportarError';
+
 interface ErrLike {
   code?: string;
   message?: string;
@@ -113,6 +115,18 @@ function textoDeCodigo(msg: string): string | null {
 export function mensajeDeError(error: unknown, fallback = 'No se pudo completar la accion. Intentalo de nuevo.'): string {
   if (!error) return fallback;
   const e = error as ErrLike;
+  const resultado = resolverMensaje(e, fallback);
+  // Le pasamos el mensaje ya humanizado (agrupa mejor y el staff lo lee sin
+  // traducir) y el crudo de Postgres como pila, para poder ver el 23505/23503
+  // real detras de una frase como "Ya existe un registro con...".
+  reportarError(
+    { message: resultado },
+    { tipo: 'operativo', pila: `${e.code || ''} ${e.message || ''} ${e.details || ''}`.trim() },
+  );
+  return resultado;
+}
+
+function resolverMensaje(e: ErrLike, fallback: string): string {
   const code = (e.code || '').toString();
   const msg = (e.message || '').toString();
 

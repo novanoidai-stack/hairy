@@ -19,6 +19,7 @@ import { supabase, IS_DEMO_MODE } from './supabase';
 const yaEnviados = new Set<string>();
 
 export type OrigenError = 'app' | 'portal' | 'landing';
+export type TipoError = 'excepcion' | 'operativo' | 'ia';
 
 function rutaActual(): string {
   if (typeof window === 'undefined') return '';
@@ -31,7 +32,7 @@ function rutaActual(): string {
 
 export function reportarError(
   error: unknown,
-  o: { origen?: OrigenError; pila?: string } = {},
+  o: { origen?: OrigenError; pila?: string; tipo?: TipoError } = {},
 ): void {
   try {
     if (IS_DEMO_MODE) return;
@@ -51,6 +52,7 @@ export function reportarError(
         p_pila: (o.pila ?? err?.stack ?? '').slice(0, 2000),
         p_origen: o.origen ?? (ruta.startsWith('/r/') || ruta.startsWith('/cita/') ? 'portal' : 'app'),
         p_navegador: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 200) : '',
+        p_tipo: o.tipo ?? 'excepcion',
       })
       .then(
         () => {},

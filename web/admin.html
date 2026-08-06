@@ -266,7 +266,7 @@
   <div class="ad-hero">
     <span class="ad-eyebrow">Equipo Mecha · Centro de control</span>
     <h1 class="ad-h1">Solicitudes y cuentas</h1>
-    <p class="ad-sub">Peticiones que entran por la web y gestion de cuentas: plan contratado, rol de cada persona, equipo de Mecha, referidos y gasto de IA.</p>
+    <p class="ad-sub">Peticiones que entran por la web y gestion de cuentas: plan contratado, rol de cada persona, equipo de Mecha, referidos, errores y soporte.</p>
   </div>
 
   <div class="ad-tabs">
@@ -275,9 +275,9 @@
     <button class="ad-tab" id="tabRef" data-view="referidos">Referidos<span class="badge" id="badgeRef"></span></button>
     <button class="ad-tab" id="tabRes" data-view="resenas">Reseñas Mecha<span class="badge" id="badgeRes"></span></button>
     <button class="ad-tab" id="tabStf" data-view="staff">Staff / Equipo<span class="badge" id="badgeStf"></span></button>
-    <button class="ad-tab" id="tabAud" data-view="auditoria_ia">Auditoría IA<span class="badge" id="badgeAud"></span></button>
     <button class="ad-tab" id="tabMov" data-view="movimientos">Movimientos<span class="badge" id="badgeMov"></span></button>
     <button class="ad-tab" id="tabErr" data-view="errores">Errores<span class="badge" id="badgeErr"></span></button>
+    <button class="ad-tab" id="tabSup" data-view="soporte">Soporte<span class="badge" id="badgeSup"></span></button>
   </div>
 
   <!-- VISTA: RESEÑAS MECHA -->
@@ -457,40 +457,6 @@
     <div class="ad-list" id="listStf"></div>
   </div>
 
-  <!-- VISTA: AUDITORÍA IA (tokens y costes) -->
-  <div id="view-auditoria_ia" style="display:none">
-    <div class="ad-stats" id="statsAud">
-      <div class="ad-stat" style="max-width:180px"><div class="n" id="statAudEjecuciones">0</div><div class="l">Ejecuciones IA</div></div>
-      <div class="ad-stat" style="max-width:180px"><div class="n" id="statAudTokens">0</div><div class="l">Tokens totales</div></div>
-      <div class="ad-stat" style="max-width:180px"><div class="n" id="statAudCoste">$0</div><div class="l">Coste total (USD)</div></div>
-    </div>
-
-    <p style="font-size:12.5px; color:var(--text-sec); margin:-2px 0 16px; line-height:1.5; max-width:760px;">
-      Auditoría de ejecuciones de IA (Chispa): tokens consumidos, modelos usados y coste en dinero.
-      Puedes ver el gasto agregado por negocio o desglosado por usuario individualmente.
-    </p>
-
-    <div class="ad-tools">
-      <div class="ad-search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
-        <input type="search" id="qAud" placeholder="Buscar por negocio, usuario, función o modelo..." />
-      </div>
-      <select class="ad-sel" id="fDias">
-        <option value="7">Últimos 7 días</option>
-        <option value="30" selected>Últimos 30 días</option>
-        <option value="90">Últimos 90 días</option>
-      </select>
-      <button class="ad-refresh" id="refreshAudBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
-        Actualizar
-      </button>
-    </div>
-
-    <div class="ad-count" id="countAud">Cargando estadísticas de IA...</div>
-    <div class="ad-msg" id="audMsg" style="margin-bottom:14px"></div>
-    <div class="ad-list" id="listAud"><div class="ad-loading">Cargando estadísticas de IA...</div></div>
-  </div>
-
   <!-- VISTA: MOVIMIENTOS (registro completo del negocio) -->
   <div id="view-movimientos" style="display:none">
     <div class="ad-stats" id="statsMov">
@@ -552,6 +518,12 @@
         <option value="7" selected>Últimos 7 días</option>
         <option value="30">Últimos 30 días</option>
       </select>
+      <select class="ad-sel" id="fTipoErr">
+        <option value="">Todos los tipos</option>
+        <option value="excepcion">Excepción (pantalla en blanco)</option>
+        <option value="operativo">Operativo (cobro, formulario, login...)</option>
+        <option value="ia">Chispa / IA</option>
+      </select>
       <button class="ad-refresh" id="refreshErrBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
         Actualizar
@@ -566,6 +538,33 @@
     <div class="ad-count" id="countErr"></div>
     <div class="ad-msg" id="errMsg" style="margin-bottom:14px"></div>
     <div class="ad-list" id="listErr"></div>
+  </div>
+
+  <!-- SOPORTE. Mensajes que un salon manda "a traves de Mecha" (ademas del
+       mailto que ya tenian): aterrizan aqui al instante, sin depender de que
+       le abra su cliente de correo. -->
+  <div id="view-soporte" style="display:none">
+    <div class="ad-stats" id="statsSup">
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statSupNuevos">0</div><div class="l">Nuevos</div></div>
+      <div class="ad-stat" style="max-width:180px"><div class="n" id="statSupTotal">0</div><div class="l">Total en el periodo</div></div>
+    </div>
+
+    <div class="ad-tools">
+      <select class="ad-sel" id="fEstadoSup">
+        <option value="">Todos los estados</option>
+        <option value="nuevo" selected>Nuevos</option>
+        <option value="leido">Leídos</option>
+        <option value="resuelto">Resueltos</option>
+      </select>
+      <button class="ad-refresh" id="refreshSupBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.85L2 9"/></svg>
+        Actualizar
+      </button>
+    </div>
+
+    <div class="ad-count" id="countSup"></div>
+    <div class="ad-msg" id="supMsg" style="margin-bottom:14px"></div>
+    <div class="ad-list" id="listSup"></div>
   </div>
 </div>
 
@@ -2073,18 +2072,19 @@
     var ref = view === 'referidos';
     var res = view === 'resenas';
     var stf = view === 'staff';
-    var aud = view === 'auditoria_ia';
     var mov = view === 'movimientos';
     var err = view === 'errores';
+    var sup = view === 'soporte';
 
     $('tabErr').classList.toggle('active', err);
     $('view-errores').style.display = err ? 'block' : 'none';
+    $('tabSup').classList.toggle('active', sup);
+    $('view-soporte').style.display = sup ? 'block' : 'none';
     $('tabSol').classList.toggle('active', sol);
     $('tabCue').classList.toggle('active', cue);
     $('tabRef').classList.toggle('active', ref);
     $('tabRes').classList.toggle('active', res);
     $('tabStf').classList.toggle('active', stf);
-    $('tabAud').classList.toggle('active', aud);
     $('tabMov').classList.toggle('active', mov);
 
     $('view-solicitudes').style.display = sol ? 'block' : 'none';
@@ -2092,28 +2092,28 @@
     $('view-referidos').style.display = ref ? 'block' : 'none';
     $('view-resenas').style.display = res ? 'block' : 'none';
     $('view-staff').style.display = stf ? 'block' : 'none';
-    $('view-auditoria_ia').style.display = aud ? 'block' : 'none';
     $('view-movimientos').style.display = mov ? 'block' : 'none';
 
     if (cue && !cuentasLoaded) loadCuentas();
     if (ref && !referidosLoaded) loadReferidos();
     if (res && !resenasLoaded) loadResenas();
     if (stf && !staffLoaded) loadStaff();
-    if (aud && !auditoriaLoaded) loadAuditoriaIA();
     if (mov && !movimientosLoaded) loadMovimientos();
     if (err && !erroresLoaded) loadErrores();
+    if (sup) loadSoporte();
   }
   var ts = $('tabSol'); if (ts) ts.addEventListener('click', function () { switchView('solicitudes'); });
   var tc = $('tabCue'); if (tc) tc.addEventListener('click', function () { switchView('cuentas'); });
   var tr = $('tabRef'); if (tr) tr.addEventListener('click', function () { switchView('referidos'); });
   var tres = $('tabRes'); if (tres) tres.addEventListener('click', function () { switchView('resenas'); });
   var tstf = $('tabStf'); if (tstf) tstf.addEventListener('click', function () { switchView('staff'); });
-  var taux = $('tabAud'); if (taux) taux.addEventListener('click', function () { switchView('auditoria_ia'); });
   var tmov = $('tabMov'); if (tmov) tmov.addEventListener('click', function () { switchView('movimientos'); });
   var terr = $('tabErr'); if (terr) terr.addEventListener('click', function () { switchView('errores'); });
+  var tsup = $('tabSup'); if (tsup) tsup.addEventListener('click', function () { switchView('soporte'); });
 
   // ---------- ERRORES DE CLIENTE ----------
   var erroresLoaded = false;
+  var TIPO_ERR_LABEL = { excepcion: 'excepción', operativo: 'operativo', ia: 'Chispa / IA' };
 
   // Salud del envio de avisos: cuantos esperan y cuanto hace que no sale ninguno.
   function loadSaludEnvios() {
@@ -2151,7 +2151,9 @@
         msg($('errMsg'), 'err', 'No se pudieron cargar los errores: ' + (res.error.message || ''));
         return;
       }
-      var filas = res.data || [];
+      var todas = res.data || [];
+      var tipoSel = $('fTipoErr').value;
+      var filas = tipoSel ? todas.filter(function (f) { return f.tipo === tipoSel; }) : todas;
       var veces = filas.reduce(function (n, f) { return n + (f.veces || 0); }, 0);
       var salones = filas.reduce(function (n, f) { return Math.max(n, f.salones || 0); }, 0);
       $('statErrTipos').textContent = filas.length;
@@ -2176,6 +2178,7 @@
         html += '<span class="plan ' + (grave ? 'demo' : 'free') + '">' + (f.veces || 0) + (f.veces === 1 ? ' vez' : ' veces') + '</span>';
         if ((f.salones || 0) > 1) html += '<span class="plan demo">' + f.salones + ' salones</span>';
         html += '<span class="plan free">' + esc(f.origen || 'app') + '</span>';
+        html += '<span class="plan free">' + esc(TIPO_ERR_LABEL[f.tipo] || f.tipo || 'excepción') + '</span>';
         html += '</div>';
         html += '<div style="font-size:12px;color:var(--text-sec);margin-bottom:6px">' +
           (f.ruta ? 'En <b>' + esc(f.ruta) + '</b> · ' : '') +
@@ -2196,117 +2199,76 @@
 
   var rErr = $('refreshErrBtn'); if (rErr) rErr.addEventListener('click', loadErrores);
   var fdErr = $('fDiasErr'); if (fdErr) fdErr.addEventListener('change', loadErrores);
+  var ftErr = $('fTipoErr'); if (ftErr) ftErr.addEventListener('change', loadErrores);
 
-  // ---------- AUDITORÍA IA ----------
-  var auditoriaData = [];
-  var auditoriaLoaded = false;
+  // ---------- SOPORTE. Mensajes que un salon manda "a traves de Mecha". ----------
+  var ESTADO_SUP_LABEL = { nuevo: 'Nuevo', leido: 'Leído', resuelto: 'Resuelto' };
 
-  function loadAuditoriaIA() {
-    var listEl = $('listAud');
-    listEl.innerHTML = '<div class="ad-loading">Cargando estadísticas de IA...</div>';
-    clearMsg($('audMsg'));
-
-    var dias = parseInt($('fDias').value, 10) || 30;
-
-    api.client.rpc('staff_auditoria_tokens', { p_dias: dias }).then(function (res) {
+  function loadSoporte() {
+    var listEl = $('listSup');
+    listEl.innerHTML = '<div class="ad-loading">Cargando mensajes...</div>';
+    clearMsg($('supMsg'));
+    var estado = $('fEstadoSup').value || null;
+    api.client.rpc('staff_mensajes_soporte', { p_estado: estado, p_limit: 100 }).then(function (res) {
       if (res.error) {
         listEl.innerHTML = '';
-        msg($('audMsg'), 'err', 'No se pudieron cargar las estadísticas: ' + (res.error.message || ''));
+        msg($('supMsg'), 'err', 'No se pudieron cargar los mensajes: ' + (res.error.message || ''));
         return;
       }
-      auditoriaData = res.data || [];
-      auditoriaLoaded = true;
-      renderAuditoriaIA();
-    });
-  }
+      var filas = res.data || [];
+      var nuevos = filas.filter(function (f) { return f.estado === 'nuevo'; }).length;
+      $('statSupNuevos').textContent = nuevos;
+      $('statSupTotal').textContent = filas.length;
+      $('badgeSup').textContent = nuevos ? String(nuevos) : '';
+      $('countSup').textContent = filas.length
+        ? filas.length + (filas.length === 1 ? ' mensaje' : ' mensajes')
+        : '';
 
-  function renderAuditoriaIA() {
-    var q = ($('qAud').value || '').trim().toLowerCase();
-    var filtered = auditoriaData.filter(function (row) {
-      if (!q) return true;
-      var hay = [row.negocio_id, row.negocio_nombre, row.usuario_email, row.usuario_nombre, row.funcion_ia, row.modelo].join(' ').toLowerCase();
-      return hay.indexOf(q) !== -1;
-    });
-
-    // Calcular totales
-    var totalEjecuciones = 0, totalTokens = 0, totalCoste = 0;
-    filtered.forEach(function (row) {
-      totalEjecuciones += row.ejecuciones || 0;
-      totalTokens += row.tokens_total || 0;
-      totalCoste += parseFloat(row.coste_total_usd || 0);
-    });
-
-    $('statAudEjecuciones').textContent = totalEjecuciones.toLocaleString('es-ES');
-    $('statAudTokens').textContent = (totalTokens / 1000).toFixed(1) + 'K';
-    $('statAudCoste').textContent = '$' + totalCoste.toFixed(2);
-    $('badgeAud').textContent = filtered.length;
-
-    $('countAud').textContent = filtered.length + ' registros de auditoría';
-
-    if (!filtered.length) {
-      $('listAud').innerHTML = '<div class="ad-empty">No hay datos de auditoría de IA que coincidan con el filtro.</div>';
-      return;
-    }
-
-    // Agrupar por negocio para mostrar jerarquía
-    var grupos = {};
-    filtered.forEach(function (row) {
-      if (!grupos[row.negocio_id]) {
-        grupos[row.negocio_id] = {
-          nombre: row.negocio_nombre || row.negocio_id,
-          usuarios: {}
-        };
+      if (!filas.length) {
+        listEl.innerHTML = '<div class="ad-empty">Ningún mensaje de soporte por aquí.</div>';
+        return;
       }
-      var key = (row.usuario_email || 'sistema') + '|||' + (row.usuario_nombre || 'Desconocido');
-      if (!grupos[row.negocio_id].usuarios[key]) {
-        grupos[row.negocio_id].usuarios[key] = {
-          email: row.usuario_email,
-          nombre: row.usuario_nombre,
-          filas: []
-        };
-      }
-      grupos[row.negocio_id].usuarios[key].filas.push(row);
-    });
 
-    var html = '';
-    for (var nid in grupos) {
-      var grp = grupos[nid];
-      html += '<div class="card-row" style="margin-bottom:16px;">';
-      html += '<div class="r-head"><div class="r-id"><span class="r-name">' + esc(grp.nombre) + '</span></div></div>';
-
-      for (var uid in grp.usuarios) {
-        var u = grp.usuarios[uid];
-        html += '<div style="margin:12px 0 8px; padding:10px 14px; background:rgba(255,255,255,0.02); border:1px dashed var(--border); border-radius:10px;">';
-        html += '<div style="font-size:13px; font-weight:600; color:var(--text); margin-bottom:8px;">';
-        html += (u.email ? esc(u.email) : 'Sistema') + (u.nombre ? ' (' + esc(u.nombre) + ')' : '');
+      var html = '';
+      filas.forEach(function (f) {
+        html += '<div class="card-row" style="border-left:3px solid ' + (f.estado === 'nuevo' ? '#f59e0b' : f.estado === 'resuelto' ? '#34d399' : 'rgba(148,163,184,.4)') + '" data-sup-id="' + f.id + '">';
+        html += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">';
+        html += '<span style="font-size:13.5px;font-weight:700;color:var(--text)">' + esc(f.asunto || '') + '</span>';
+        html += '<span class="plan ' + (f.estado === 'nuevo' ? 'demo' : 'free') + '">' + esc(ESTADO_SUP_LABEL[f.estado] || f.estado) + '</span>';
         html += '</div>';
+        html += '<div style="font-size:12px;color:var(--text-sec);margin-bottom:8px">' +
+          esc(f.negocio_nombre || f.negocio_id || '') +
+          (f.autor_nombre ? ' · ' + esc(f.autor_nombre) : '') +
+          (f.autor_email ? ' · ' + esc(f.autor_email) : '') +
+          ' · ' + new Date(f.creado_en).toLocaleString('es-ES') + '</div>';
+        html += '<div style="font-size:13px;color:var(--text);white-space:pre-wrap;margin-bottom:10px">' + esc(f.mensaje || '') + '</div>';
+        html += '<div style="display:flex;gap:8px">';
+        if (f.estado !== 'leido') html += '<button class="ad-refresh sup-marcar" data-id="' + f.id + '" data-estado="leido" style="padding:6px 12px;font-size:11.5px">Marcar leído</button>';
+        if (f.estado !== 'resuelto') html += '<button class="ad-refresh sup-marcar" data-id="' + f.id + '" data-estado="resuelto" style="padding:6px 12px;font-size:11.5px">Marcar resuelto</button>';
+        html += '</div>';
+        html += '</div>';
+      });
+      listEl.innerHTML = html;
 
-        u.filas.forEach(function (row) {
-          html += '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid rgba(255,255,255,0.04); font-size:12.5px;">';
-          html += '<div><span style="color:var(--text-sec);">' + esc(row.funcion_ia) + '</span>';
-          html += '<span style="color:var(--text-ter); font-size:11px; margin-left:8px;">(' + esc(row.modelo) + ')</span></div>';
-          html += '<div style="display:flex; gap:16px; text-align:right;">';
-          html += '<div><span style="color:var(--text-sec);">Ejecuciones:</span> ' + row.ejecuciones + '</div>';
-          html += '<div><span style="color:var(--text-sec);">Tokens:</span> ' + (row.tokens_total || 0).toLocaleString('es-ES') + '</div>';
-          html += '<div style="color:#f59e0b; font-weight:600;">$' + (row.coste_total_usd || 0).toFixed(4) + '</div>';
-          html += '</div></div>';
+      Array.prototype.forEach.call(listEl.querySelectorAll('.sup-marcar'), function (btn) {
+        btn.addEventListener('click', function () {
+          var id = parseInt(btn.getAttribute('data-id'), 10);
+          var estadoNuevo = btn.getAttribute('data-estado');
+          btn.disabled = true;
+          api.client.rpc('staff_marcar_soporte', { p_id: id, p_estado: estadoNuevo }).then(function (res2) {
+            if (res2.error) { msg($('supMsg'), 'err', 'No se pudo actualizar: ' + res2.error.message); btn.disabled = false; return; }
+            loadSoporte();
+          });
         });
-
-        html += '</div>';
-      }
-
-      html += '</div>';
-    }
-
-    $('listAud').innerHTML = html;
+      });
+    }).catch(function (e) {
+      listEl.innerHTML = '';
+      msg($('supMsg'), 'err', 'No se pudieron cargar los mensajes: ' + (e && e.message ? e.message : e));
+    });
   }
 
-  var rba = $('refreshAudBtn');
-  if (rba) rba.addEventListener('click', loadAuditoriaIA);
-  var qa = $('qAud');
-  if (qa) qa.addEventListener('input', renderAuditoriaIA);
-  var fd = $('fDias');
-  if (fd) fd.addEventListener('change', loadAuditoriaIA);
+  var rSup = $('refreshSupBtn'); if (rSup) rSup.addEventListener('click', loadSoporte);
+  var feSup = $('fEstadoSup'); if (feSup) feSup.addEventListener('change', loadSoporte);
 
   // ---------- MOVIMIENTOS (registro completo) ----------
   var movimientosData = [];
