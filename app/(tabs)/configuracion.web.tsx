@@ -3845,6 +3845,239 @@ function slugifyPortal(s: string): string {
 // publico salon-fotos). La primera por `orden` es la que sale en el listado.
 type NegocioFoto = { id: string; url: string; alt: string | null; orden: number };
 
+// Vista previa del directorio dentro de Ajustes.
+//
+// Embebe la pagina publica REAL (/salon.html?preview=1) en un iframe y le manda
+// por postMessage lo que hay en el formulario ahora mismo, sin guardar. Se hace
+// asi a proposito: la maqueta de la ficha y de la tarjeta vive en un unico sitio
+// (web/assets), y una copia en React se desincronizaria del directorio en cuanto
+// alguien tocara el CSS. La RPC no sirve para esto — exige directorio_visible, y
+// aqui hay que poder verse antes de listarse.
+
+// Lo que la RPC salon_directorio_publico no saca del formulario: hay que leerlo
+// de las tablas del propio salon (autenticado, filtrando por negocio_id).
+type BaseDirectorio = {
+  valoracion: number | null;
+  resenas_total: number;
+  servicios: { nombre: string; precio: number; duracion: number; categoria: string | null }[];
+  profesionales: { nombre: string }[];
+  resenas: { puntuacion: number; comentario: string | null; autor: string | null; fecha: string }[];
+  horario: { dia: number; abierto: boolean; apertura: string | null; cierre: string | null }[];
+};
+
+// Ancho logico del iframe: se pinta siempre a tamano escritorio y se escala para
+// caber en el panel. Sin esto, en un panel estrecho saldria la maqueta movil y el
+// salon creeria que asi es como se le ve.
+const ANCHO_PREVIEW = 1080;
+
+function VistaPreviaDirectorio({ negocioId, datosPortal, avisos }: {
+  negocioId: string;
+  datosPortal: {
+    slug: string; nombre: string; descripcion: string; direccion: string;
+    ciudad: string; provincia: string; telefono: string; web: string;
+    fotos: { url: string; alt: string | null }[];
+  };
+  avisos: string[];
+}) {
+  const { isMobile } = useResponsive();
+  const [abierto, setAbierto] = useState(!isMobile);
+  const [vista, setVista] = useState<'ficha' | 'tarjeta'>('ficha');
+  const [base, setBase] = useState<BaseDirectorio | null>(null);
+  const [listo, setListo] = useState(false);
+  const [sinIframe, setSinIframe] = useState(false);
+  const [alto, setAlto] = useState(900);
+  const [escala, setEscala] = useState(1);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const cajaRef = useRef<HTMLDivElement | null>(null);
+
+  // Se carga al desplegar, no al entrar en Ajustes: son cuatro consultas que la
+  // mayoria de las visitas a esta pestana no necesitan.
+  useEffect(() => {
+    if (!abierto || !negocioId || base) return;
+    let cancel = false;
+    (async () => {
+      const [srv, cats, profs, res, hor] = await Promise.all([
+        supabase.from('servicios')
+          .select('nombre, precio, duracion_activa_min, duracion_espera_min, duracion_activa_extra_min, categoria, categoria_id')
+          .eq('negocio_id', negocioId).eq('activo', true).eq('reservable_online', true),
+        supabase.from('categorias_servicio').select('id, nombre, orden').eq('negocio_id', negocioId),
+        supabase.from('profesionales').select('nombre').eq('negocio_id', negocioId).eq('activo', true).order('nombre'),
+        supabase.from('resenas').select('puntuacion, comentario, autor_nombre, created_at')
+          .eq('negocio_id', negocioId).eq('visible', true).order('created_at', { ascending: false }),
+        supabase.from('negocio_horarios').select('dia_semana, abierto, apertura, cierre')
+          .eq('negocio_id', negocioId).order('dia_semana'),
+      ]);
+      if (cancel) return;
+
+      const catsPorId = new Map((cats.data || []).map((c) => [c.id as string, c as { nombre: string; orden: number | null }]));
+      const servicios = ((srv.data || []) as Record<string, unknown>[]).map((s) => {
+        const cat = s.categoria_id ? catsPorId.get(s.categoria_id as string) : undefined;
+        return {
+          nombre: String(s.nombre || ''),
+          precio: Number(s.precio) || 0,
+          duracion: (Number(s.duracion_activa_min) || 0) + (Number(s.duracion_espera_min) || 0) + (Number(s.duracion_activa_extra_min) || 0),
+          categoria: (cat?.nombre ?? (s.categoria as string | null)) || null,
+          orden: cat?.orden ?? null,
+        };
+      });
+      // Mismo orden que la RPC: por orden de categoria (las sueltas al final) y luego por nombre.
+      servicios.sort((a, b) => {
+        const oa = a.orden ?? Number.MAX_SAFE_INTEGER;
+        const ob = b.orden ?? Number.MAX_SAFE_INTEGER;
+        return oa !== ob ? oa - ob : a.nombre.localeCompare(b.nombre, 'es');
+      });
+
+      const puntuaciones = (res.data || []).map((r) => Number(r.puntuacion) || 0);
+      setBase({
+        valoracion: puntuaciones.length
+          ? Math.round((puntuaciones.reduce((a, b) => a + b, 0) / puntuaciones.length) * 10) / 10
+          : null,
+        resenas_total: puntuaciones.length,
+        servicios: servicios.map(({ orden: _orden, ...s }) => s),
+        profesionales: (profs.data || []).map((p) => ({ nombre: String(p.nombre || '') })),
+        resenas: (res.data || []).slice(0, 10).map((r) => ({
+          puntuacion: Number(r.puntuacion) || 0,
+          comentario: r.comentario as string | null,
+          autor: r.autor_nombre as string | null,
+          fecha: r.created_at as string,
+        })),
+        horario: (hor.data || []).map((h) => ({
+          dia: Number(h.dia_semana) || 0,
+          abierto: !!h.abierto,
+          apertura: h.apertura as string | null,
+          cierre: h.cierre as string | null,
+        })),
+      });
+    })();
+    return () => { cancel = true; };
+  }, [abierto, negocioId, base]);
+
+  // Mismos nombres de campo que devuelve salon_directorio_publico: la pagina de
+  // vista previa pinta con el mismo codigo que la ficha publica.
+  const payload = useMemo(() => ({
+    slug: datosPortal.slug,
+    nombre: datosPortal.nombre,
+    descripcion: datosPortal.descripcion || null,
+    direccion: datosPortal.direccion || null,
+    ciudad: datosPortal.ciudad || null,
+    provincia: datosPortal.provincia || null,
+    telefono: datosPortal.telefono || null,
+    web: datosPortal.web || null,
+    fotos: datosPortal.fotos,
+    valoracion: base?.valoracion ?? null,
+    resenas_total: base?.resenas_total ?? 0,
+    servicios: base?.servicios ?? [],
+    profesionales: base?.profesionales ?? [],
+    resenas: base?.resenas ?? [],
+    horario: base?.horario ?? [],
+  }), [datosPortal, base]);
+
+  useEffect(() => {
+    if (!abierto) return;
+    const onMsg = (ev: MessageEvent) => {
+      if (ev.origin !== window.location.origin) return;
+      if (!iframeRef.current || ev.source !== iframeRef.current.contentWindow) return;
+      const m = ev.data as { tipo?: string; alto?: number };
+      if (m?.tipo === 'mecha-preview-listo') setListo(true);
+      if (m?.tipo === 'mecha-preview-alto' && m.alto) setAlto(Math.max(240, m.alto));
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, [abierto]);
+
+  // La pagina publica solo existe donde se sirve web/ (produccion o
+  // scripts/serve-web.mjs). En el dev server de Expo no esta, y sin este aviso
+  // el panel se quedaria en blanco sin explicar por que.
+  useEffect(() => {
+    if (!abierto || listo) return;
+    const t = setTimeout(() => setSinIframe(true), 4000);
+    return () => clearTimeout(t);
+  }, [abierto, listo]);
+
+  useEffect(() => {
+    if (!listo || !base) return;
+    iframeRef.current?.contentWindow?.postMessage(
+      { tipo: 'mecha-preview', vista, datos: payload },
+      window.location.origin,
+    );
+  }, [listo, base, vista, payload]);
+
+  useEffect(() => {
+    const caja = cajaRef.current;
+    if (!caja || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      setEscala(Math.min(1, (caja.clientWidth || ANCHO_PREVIEW) / ANCHO_PREVIEW));
+    });
+    ro.observe(caja);
+    return () => ro.disconnect();
+  }, [abierto]);
+
+  const avisosTodos = useMemo(() => {
+    const lista = [...avisos];
+    if (base && !base.servicios.length) {
+      lista.push('No tienes servicios reservables online, asi que tu ficha sale sin precios: es lo primero que mira quien busca salon.');
+    }
+    return lista;
+  }, [avisos, base]);
+
+  return (
+    <Section
+      title="Vista previa"
+      desc="Como ve tu salon una clienta que te encuentra en el directorio. Se actualiza con lo que escribes, antes de guardar."
+      action={<Btn variant="ghost" onClick={() => setAbierto((v) => !v)}>{abierto ? 'Ocultar' : 'Ver'}</Btn>}
+    >
+      {abierto && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '6px 0 16px' }}>
+          <Segmented
+            value={vista}
+            onChange={(v) => setVista(v as 'ficha' | 'tarjeta')}
+            options={[
+              { value: 'ficha', label: 'Su ficha' },
+              { value: 'tarjeta', label: 'En resultados' },
+            ]}
+          />
+
+          {avisosTodos.length > 0 && (
+            <div style={{
+              display: 'flex', flexDirection: 'column', gap: 6, padding: '11px 13px',
+              background: 'rgba(224,138,0,0.10)', border: '1px solid rgba(224,138,0,0.28)', borderRadius: 10,
+            }}>
+              {avisosTodos.map((a) => (
+                <span key={a} style={{ fontSize: 12, color: T.textSecondary, lineHeight: 1.5 }}>{a}</span>
+              ))}
+            </div>
+          )}
+
+          <div
+            ref={cajaRef}
+            style={{
+              position: 'relative', width: '100%', overflow: 'hidden',
+              border: `1px solid ${T.border}`, borderRadius: 12, background: '#f6f1ea',
+              height: sinIframe && !listo ? 120 : alto * escala,
+            }}
+          >
+            {sinIframe && !listo && (
+              <div style={{ padding: 18, fontSize: 12.5, color: T.textSecondary, lineHeight: 1.6 }}>
+                No se ha podido cargar la vista previa. Necesita el sitio publico, que en local
+                sirve <code>node scripts/serve-web.mjs</code> (http://localhost:8080).
+              </div>
+            )}
+            <iframe
+              ref={iframeRef}
+              src="/salon.html?preview=1"
+              title="Vista previa del directorio"
+              style={{
+                width: ANCHO_PREVIEW, height: alto, border: 0, display: sinIframe && !listo ? 'none' : 'block',
+                transform: `scale(${escala})`, transformOrigin: 'top left',
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </Section>
+  );
+}
+
 // Gestion del portal de reserva publica de ESTE salon (tabla negocio_portal).
 // Cada negocio activa su portal, elige su enlace (slug) y que se muestra.
 function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultTelefono }: {
@@ -4045,6 +4278,18 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
     setMsg({ ok: true, text: 'Portal guardado correctamente.' });
   }, [negocioId, slug, nombre, direccion, telefono, web, idioma, activo, mostrarPrecios, captchaActivo,
       analyticsEnabled, analyticsMeasurementId, directorioVisible, descripcion, ciudad, provincia, codigoPostal, lat, lng]);
+
+  // Lo que penaliza en el directorio y el salon no tiene por que saber. Van con
+  // la vista previa, al lado de lo que se esta viendo, no como error de guardado.
+  const avisosDirectorio = useMemo(() => {
+    const lista: string[] = [];
+    if (!directorioVisible) lista.push('Ahora mismo no estas listado: esto es solo una vista previa, ninguna clienta ve tu ficha todavia.');
+    if (!ciudad.trim()) lista.push('Sin ciudad no te encuentran buscando por zona: solo apareces buscando por nombre o por servicio.');
+    if (!fotos.length) lista.push('Sin fotos sales con la inicial de tu nombre sobre un fondo de color, en la ficha y en el listado.');
+    if (!descripcion.trim()) lista.push('Sin descripcion tu ficha no cuenta nada de tu salon.');
+    if (!lat.trim() || !lng.trim()) lista.push('Sin coordenadas no te ordenamos por cercania cuando la clienta busca cerca de ella.');
+    return lista;
+  }, [directorioVisible, ciudad, fotos.length, descripcion, lat, lng]);
 
   // Las fotos NO esperan al boton "Guardar portal": se suben y se borran al
   // momento, porque cada una es una fila y un objeto en el bucket.
@@ -4303,6 +4548,22 @@ function TabReservaOnline({ negocioId, defaultNombre, defaultDireccion, defaultT
           </div>
         </FieldRow>
       </Section>
+
+      <VistaPreviaDirectorio
+        negocioId={negocioId}
+        avisos={avisosDirectorio}
+        datosPortal={{
+          slug: savedSlug || slug,
+          nombre,
+          descripcion,
+          direccion,
+          ciudad,
+          provincia,
+          telefono,
+          web,
+          fotos: fotos.map((f) => ({ url: f.url, alt: f.alt })),
+        }}
+      />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
         <Btn variant="primary" onClick={guardar} disabled={saving}>{saving ? 'Guardando...' : 'Guardar portal'}</Btn>

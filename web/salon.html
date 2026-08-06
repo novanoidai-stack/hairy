@@ -54,6 +54,17 @@
   .f-nota { font-size: 12px; color: var(--d-text-ter); text-align: center; margin-top: 10px; line-height: 1.5; }
   .f-volver { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--d-text-sec); text-decoration: none; margin: 20px 0 0; }
   .f-volver:hover { color: var(--d-fuego-hi); }
+  /* Vista previa embebida en Ajustes (?preview=1). Fuera la cabecera y el pie:
+     dentro del panel de configuracion son ruido, y lo que se juzga es la ficha.
+     Nada es clicable — es una foto de como queda, no una pagina navegable. */
+  body.preview .d-top,
+  body.preview .d-foot,
+  body.preview .f-volver { display: none; }
+  body.preview #main { padding-top: 0 !important; }
+  body.preview .f-cols { padding-top: 0; padding-bottom: 24px; }
+  body.preview .f-side { position: static; }
+  body.preview .d-list { padding-bottom: 24px; }
+  body.preview a { pointer-events: none; }
   @media (max-width: 860px) {
     .f-cols { grid-template-columns: 1fr; gap: 18px; }
     .f-galeria { grid-template-columns: 1fr 1fr; grid-template-rows: 160px 90px; height: auto; }
@@ -127,6 +138,7 @@
   </div>
 </footer>
 
+<script src="/assets/directorio-tarjeta.js"></script>
 <script src="/assets/salon-directorio.js"></script>
 </body>
 </html>

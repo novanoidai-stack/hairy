@@ -162,7 +162,77 @@
       '</div>';
   }
 
+  // -------------------------------------------------------------------------
+  // Vista previa embebida en Ajustes (?preview=1)
+  // -------------------------------------------------------------------------
+  // No puede leer por RPC: salon_directorio_publico exige directorio_visible, y
+  // el salon que esta configurandose normalmente todavia no esta listado —
+  // ademas de que lo que quiere ver son sus cambios SIN GUARDAR. Asi que los
+  // datos los manda el panel de Ajustes por postMessage, con la misma forma que
+  // devuelve la RPC.
+
+  // Deriva la tarjeta del listado a partir de la ficha: mismo criterio que la
+  // RPC de busqueda (los 4 servicios mas baratos, la primera foto por orden).
+  function aTarjeta(d) {
+    return {
+      slug: d.slug,
+      nombre: d.nombre,
+      direccion: d.direccion,
+      ciudad: d.ciudad,
+      foto: (d.fotos && d.fotos[0]) ? d.fotos[0].url : null,
+      valoracion: d.valoracion,
+      resenas: d.resenas_total,
+      servicios: (d.servicios || []).slice().sort(function (a, b) {
+        return (Number(a.precio) || 0) - (Number(b.precio) || 0);
+      }).slice(0, 4)
+    };
+  }
+
+  function arrancarPreview() {
+    document.body.classList.add('preview');
+    document.getElementById('main').innerHTML = '';
+
+    var vista = 'ficha';
+    var datos = null;
+
+    function repintar() {
+      if (!datos) return;
+      if (vista === 'tarjeta') {
+        var main = document.getElementById('main');
+        main.innerHTML = '<div class="d-list">' + window.MechaTarjeta.resultado(aTarjeta(datos), 0) + '</div>';
+        window.MechaTarjeta.engancharFallback(main);
+      } else {
+        pintar(datos);
+      }
+    }
+
+    window.addEventListener('message', function (ev) {
+      // Solo del contenedor que embebe esta pagina, y del mismo origen.
+      if (ev.source !== window.parent || ev.origin !== location.origin) return;
+      var m = ev.data;
+      if (!m || m.tipo !== 'mecha-preview') return;
+      if (m.vista) vista = m.vista;
+      if (m.datos) datos = m.datos;
+      repintar();
+    });
+
+    // El panel no puede medir el contenido de un iframe de forma fiable, asi que
+    // se lo decimos nosotros cada vez que cambia de alto (tambien al cargar las
+    // fotos, que es cuando mas crece).
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(function () {
+        window.parent.postMessage({ tipo: 'mecha-preview-alto', alto: document.body.scrollHeight }, location.origin);
+      });
+      ro.observe(document.body);
+    }
+
+    // El panel no sabe cuando ha cargado el iframe: se lo decimos nosotros.
+    window.parent.postMessage({ tipo: 'mecha-preview-listo' }, location.origin);
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
+    if (new URLSearchParams(location.search).get('preview') === '1') { arrancarPreview(); return; }
+
     // Acepta las dos formas: /salon/<slug> (rewrite de Vercel) y salon.html?s=<slug>.
     var slug = new URLSearchParams(location.search).get('s');
     if (!slug) {
