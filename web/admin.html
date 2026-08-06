@@ -1192,6 +1192,17 @@
             ? '<em style="color:#f59e0b;font-style:normal;font-size:11px;">sin PIN</em>'
             : '') +
           '</span>';
+
+        // Cuantas fichas caben en su agenda. Por defecto 15; a un salon grande
+        // se le sube aqui, sin desplegar nada. (La landing dice "profesionales
+        // ilimitados": hasta que eso se decida, esto es la valvula.)
+        var lim = resumen && resumen.limite_profesionales ? resumen.limite_profesionales : 15;
+        html += '<span class="acceso-modo" onclick="event.stopPropagation()" ' +
+          'title="Maximo de profesionales activos en la agenda de este salon. Por defecto 15.">' +
+          '<span style="color:var(--text-sec);font-size:11.5px">Máx. profesionales</span>' +
+          '<input type="number" min="1" max="500" value="' + lim + '" data-limite-for="' + esc(g.negocioId) + '" ' +
+          'style="width:56px;background:transparent;border:none;color:var(--text);font-size:12px;font-weight:700;outline:none">' +
+          '</span>';
       }
       html += '</div>';
 
@@ -1283,6 +1294,32 @@
           sel.disabled = false;
           sel.value = anterior;
           msg($('cueMsg'), 'err', 'No se pudo cambiar el modo de acceso: ' + (e && e.message ? e.message : e));
+        });
+      });
+    });
+
+    // Maximo de profesionales activos de un salon.
+    listEl.querySelectorAll('input[data-limite-for]').forEach(function (inp) {
+      var anterior = inp.value;
+      inp.addEventListener('change', function () {
+        var nid = inp.getAttribute('data-limite-for');
+        var n = parseInt(inp.value, 10);
+        if (!n || n < 1 || n > 500) { inp.value = anterior; return; }
+        inp.disabled = true;
+        api.client.rpc('staff_set_limite_profesionales', { p_negocio_id: nid, p_limite: n }).then(function (res) {
+          inp.disabled = false;
+          if (res.error) {
+            inp.value = anterior;
+            msg($('cueMsg'), 'err', 'No se pudo cambiar el límite: ' + (res.error.message || ''));
+            return;
+          }
+          anterior = String(n);
+          if (salones[nid]) salones[nid].limite_profesionales = n;
+          msg($('cueMsg'), 'ok', 'El salón "' + nid + '" puede tener hasta ' + n + ' profesionales activos.');
+        }).catch(function (e) {
+          inp.disabled = false;
+          inp.value = anterior;
+          msg($('cueMsg'), 'err', 'No se pudo cambiar el límite: ' + (e && e.message ? e.message : e));
         });
       });
     });

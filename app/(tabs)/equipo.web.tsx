@@ -35,10 +35,12 @@ const Icon = ({ name, size = 24, color = '#f8fafc' }: any) => {
   return <div style={{ display: 'inline-flex', color }} dangerouslySetInnerHTML={{ __html: icons[name] || '' }} />;
 };
 
-// Cuantas fichas activas caben en la agenda de un salon. El mismo numero lo
-// impone la base de datos (migrations/limite-profesionales-15.sql): si se
-// cambia aqui, hay que cambiarlo alli.
-const LIMITE_FICHAS = 15;
+// Cuantas fichas activas caben en la agenda. Es el valor por DEFECTO: cada
+// salon puede tener el suyo en negocio_config.limiteProfesionales, y quien lo
+// sube es el equipo de Mecha desde su panel. Lo impone la base de datos
+// (migrations/limite-profesionales-configurable.sql); aqui solo se avisa antes
+// de abrir el formulario.
+const LIMITE_FICHAS_DEFECTO = 15;
 
 // Que ve cada ficha al identificarse, en los salones que entran con un solo
 // correo. Owner y Direccion piden PIN (ver lib/identidadActiva.ts).
@@ -166,6 +168,7 @@ export default function EquipoWeb() {
   const [showManualPanel, setShowManualPanel] = useState(false);
   const paginaManual = usePaginaManualVista('equipo');
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
+  const [limiteFichas, setLimiteFichas] = useState(LIMITE_FICHAS_DEFECTO);
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -257,14 +260,19 @@ export default function EquipoWeb() {
       const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const mesFin = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [{ data: profsRaw }, { data: citsData }, { data: srvData }] = await Promise.all([
+      const [{ data: profsRaw }, { data: citsData }, { data: srvData }, { data: cfgRow }] = await Promise.all([
         supabase.from('profesionales').select('id, nombre, color, activo, categoria, especialidades, comision_pct, tipo_relacion, telefono, email, profile_id, foto_perfil, rol_acceso').eq('negocio_id', negocioId),
         supabase.from('citas').select('id, profesional_id, cliente_id, servicio_id, inicio, estado')
           .eq('negocio_id', negocioId)
           .gte('inicio', mesInicio)
           .lte('inicio', mesFin),
         supabase.from('servicios').select('id, precio').eq('negocio_id', negocioId),
+        supabase.from('negocio_config').select('config').eq('negocio_id', negocioId).maybeSingle(),
       ]);
+
+      // Limite de fichas de ESTE salon (lo sube Mecha desde su panel si hace falta).
+      const limiteCfg = Number((cfgRow as { config?: Record<string, unknown> } | null)?.config?.limiteProfesionales);
+      setLimiteFichas(Number.isFinite(limiteCfg) && limiteCfg > 0 ? limiteCfg : LIMITE_FICHAS_DEFECTO);
       const profs = profsRaw ? [...profsRaw].sort((a, b) => a.nombre.localeCompare(b.nombre)) : null;
       const srvMap: Record<string, number> = {};
       (srvData ?? []).forEach((s: any) => { srvMap[s.id] = s.precio ?? 0; });
@@ -368,12 +376,12 @@ export default function EquipoWeb() {
   // El cupo lo ocupan las fichas ACTIVAS: desactivar a quien ya no trabaja aqui
   // libera sitio (su historial de citas se queda). Antes contaban todas, asi que
   // un salon con rotacion se quedaba sin poder dar de alta a nadie. El limite de
-  // verdad lo pone la base de datos (migrations/limite-profesionales-15.sql);
-  // esto es solo para avisar antes de abrir el formulario.
+  // verdad lo pone la base de datos; esto es solo para avisar antes de abrir el
+  // formulario, y sale del limite REAL de este salon (no de un 15 fijo).
   const activos = profesionales.filter((p) => p.activo).length;
-  const cupoLleno = activos >= LIMITE_FICHAS;
+  const cupoLleno = activos >= limiteFichas;
   const avisarCupo = () => alert(
-    `Has alcanzado el límite de ${LIMITE_FICHAS} profesionales activos en tu agenda. Desactiva a alguien que ya no trabaje contigo para hacer sitio: su historial de citas no se pierde.`,
+    `Has alcanzado el límite de ${limiteFichas} profesionales activos en tu agenda. Desactiva a alguien que ya no trabaje contigo para hacer sitio (su historial de citas no se pierde), o escríbenos si tu salón necesita más.`,
   );
 
   if (accessDenied) return (

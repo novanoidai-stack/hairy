@@ -210,7 +210,9 @@ returns table (
   tiene_pin             boolean,
   cuentas               int,
   profesionales_activos int,
-  profesionales_totales int
+  profesionales_totales int,
+  -- Maximo de fichas activas de ese salon (ver limite-profesionales-configurable.sql)
+  limite_profesionales  int
 )
 language plpgsql
 security definer
@@ -233,7 +235,9 @@ begin
     sa.pin_hash is not null,
     (select count(*)::int from public.profiles p where p.negocio_id = n.nid),
     (select count(*)::int from public.profesionales pr where pr.negocio_id = n.nid and pr.activo),
-    (select count(*)::int from public.profesionales pr where pr.negocio_id = n.nid)
+    (select count(*)::int from public.profesionales pr where pr.negocio_id = n.nid),
+    coalesce((select nullif(greatest(coalesce((nc.config->>'limiteProfesionales')::int, 0), 0), 0)
+                from public.negocio_config nc where nc.negocio_id = n.nid), 15)
   from negocios n
   left join public.salon_acceso sa on sa.negocio_id = n.nid
   order by n.nid;
