@@ -95,6 +95,24 @@
     }).join('');
   }
 
+  // Enlace directo de WhatsApp al salon: mismo telefono publico que el tel:,
+  // normalizado a solo digitos (wa.me no acepta '+' ni espacios) con mensaje
+  // de contexto precargado para que la clienta no empiece de cero.
+  function whatsapp(d) {
+    var digitos = String(d.telefono || '').replace(/\D/g, '');
+    if (!digitos) return '';
+    // wa.me exige el numero completo con codigo de pais (sin '+'). El telefono
+    // se guarda como movil nacional (9 digitos, sin 34): sin esto wa.me lee los
+    // 2 primeros digitos como codigo de pais equivocado (p.ej. 98 = Iran).
+    if (digitos.length === 9) digitos = '34' + digitos;
+    else if (digitos.slice(0, 3) === '034') digitos = digitos.slice(1);
+    var texto = 'Hola, te escribo desde Mecha sobre ' + (d.nombre || 'vuestro salón') + '.';
+    return '<a class="f-whatsapp" href="https://wa.me/' + digitos + '?text=' + encodeURIComponent(texto) + '" target="_blank" rel="noopener noreferrer">' +
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.48 1.32 5L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 1.67c2.2 0 4.26.86 5.82 2.42a8.19 8.19 0 0 1 2.41 5.82c0 4.54-3.7 8.24-8.25 8.24a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.18 8.18 0 0 1-1.26-4.38c0-4.55 3.7-8.24 8.26-8.24zm-4.38 4.72c-.17 0-.44.06-.67.32-.23.25-.87.85-.87 2.08s.9 2.42 1.02 2.58c.13.17 1.75 2.79 4.31 3.8 2.13.85 2.57.68 3.03.64.47-.04 1.5-.61 1.72-1.2.21-.59.21-1.09.15-1.2-.06-.1-.23-.17-.48-.29-.25-.13-1.5-.74-1.73-.82-.23-.09-.4-.13-.57.13-.17.25-.65.82-.8.99-.15.17-.29.19-.54.06-.25-.13-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.38-.44.12-.14.16-.25.24-.41.08-.17.04-.31-.02-.44-.06-.13-.57-1.4-.79-1.91-.2-.5-.42-.43-.57-.43z"/></svg>' +
+      'Escribir por WhatsApp' +
+    '</a>';
+  }
+
   function pintar(d) {
     var zona = [d.direccion, d.ciudad, d.provincia].filter(Boolean).join(', ');
     var val = d.valoracion != null
@@ -104,6 +122,7 @@
       : '<span style="color:var(--d-text-ter)">Sin valoraciones todavía</span>';
 
     document.title = (d.nombre || 'Salón') + ' — Mecha';
+    window.MechaDirectorioContexto = d.nombre || null;
 
     document.getElementById('main').innerHTML =
       '<div class="f-cols">' +
@@ -129,6 +148,7 @@
               '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
             '</a>' +
             '<p class="f-nota">Eliges servicio, profesional y hora en la página del salón.</p>' +
+            (d.telefono ? whatsapp(d) : '') +
             (d.telefono ? '<div style="margin-top:14px;font-size:14px"><span style="color:var(--d-text-ter)">Teléfono</span><br><a href="tel:' + esc(d.telefono) + '" style="color:var(--d-fuego-hi);font-weight:600;text-decoration:none">' + esc(d.telefono) + '</a></div>' : '') +
           '</div>' +
         '</aside>' +

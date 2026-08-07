@@ -372,3 +372,31 @@ body.directorio {
 @media (prefers-reduced-motion: reduce) {
   .d-res, .d-btn-ghost, .d-chip, .d-skel-in { transition: none !important; animation: none !important; }
 }
+
+/* ---------- Modal de contacto con Mecha (soporte/dudas desde el directorio) ---------- */
+.d-modal-ov {
+  position: fixed; inset: 0; z-index: 200; background: rgba(28,24,20,0.45);
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.d-modal-ov.on { display: flex; }
+.d-modal {
+  background: var(--d-panel); border-radius: var(--d-r-lg); max-width: 420px; width: 100%;
+  padding: 26px; box-shadow: 0 24px 60px rgba(28,24,20,0.25);
+}
+.d-modal h3 { margin: 0 0 6px; font-size: 19px; font-family: 'Bricolage Grotesque','Inter',sans-serif; }
+.d-modal .sub { margin: 0 0 18px; font-size: 13.5px; color: var(--d-text-sec); line-height: 1.5; }
+.d-modal label { display: block; font-size: 12.5px; font-weight: 600; color: var(--d-text-ter); margin: 12px 0 5px; }
+.d-modal input, .d-modal textarea {
+  width: 100%; border: 1px solid var(--d-border-hi); border-radius: var(--d-r-sm); background: var(--d-card);
+  color: var(--d-text); font: inherit; font-size: 14px; padding: 10px 12px; outline: 0;
+}
+.d-modal input:focus, .d-modal textarea:focus { border-color: var(--d-fuego); }
+.d-modal textarea { min-height: 84px; resize: vertical; }
+.d-modal-acts { display: flex; gap: 10px; margin-top: 18px; }
+.d-modal-acts button { flex: 1; border: 0; border-radius: var(--d-r-md); padding: 11px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.d-modal-send { background: var(--d-grad); color: #fff; }
+.d-modal-send[disabled] { opacity: .6; cursor: default; }
+.d-modal-cancel { background: var(--d-card-hi); color: var(--d-text-sec); }
+.d-modal-msg { margin: 12px 0 0; font-size: 13px; line-height: 1.5; }
+.d-modal-msg.err { color: var(--d-danger); }
+.d-modal-msg.ok { color: var(--d-ok); }

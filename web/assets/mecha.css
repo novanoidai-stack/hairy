@@ -79,6 +79,9 @@ main,nav,footer{position:relative;z-index:1}
   opacity:0;transform:translateY(20px);animation:wordIn .9s var(--ease) .55s forwards}
 .intro-tag{font-size:clamp(15px,2.4vw,20px);color:var(--text-sec);letter-spacing:.04em;
   opacity:0;transform:translateY(14px);animation:wordIn .9s var(--ease) .95s forwards}
+.intro-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);margin-top:6px;
+  box-shadow:0 0 0 0 var(--accent-glow);opacity:0;
+  animation:dotIn .5s var(--ease) 1.55s forwards,dotPulse 1.3s ease-in-out 2.05s infinite}
 .intro-skip{position:absolute;bottom:30px;right:34px;z-index:2;font-size:12.5px;color:var(--text-ter);
   display:flex;align-items:center;gap:7px;padding:8px 14px;border:1px solid var(--border);border-radius:999px;
   opacity:0;animation:wordIn .6s ease 1.6s forwards;background:rgba(255,255,255,.02)}
@@ -86,6 +89,8 @@ main,nav,footer{position:relative;z-index:1}
 @keyframes markIn{to{opacity:1;transform:scale(1) rotate(0)}}
 @keyframes wordIn{to{opacity:1;transform:none}}
 @keyframes introGlow{0%{opacity:0}40%{opacity:1}100%{opacity:.7}}
+@keyframes dotIn{to{opacity:1}}
+@keyframes dotPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 var(--accent-glow)}50%{transform:scale(1.35);box-shadow:0 0 0 6px rgba(244,80,30,0)}}
 @keyframes introOut{to{opacity:0;transform:scale(1.04);visibility:hidden}}
 @keyframes emberGlow{0%{opacity:.6}50%{opacity:1}100%{opacity:.7}}
 body.intro-lock{overflow:hidden;height:100vh}
@@ -173,10 +178,13 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .hero-badge .tag{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   background:var(--grad-soft);color:#fff;padding:3px 9px;border-radius:999px}
-.hero h1{font-size:clamp(42px,6.6vw,80px);margin-bottom:24px;letter-spacing:-.03em}
+.hero h1{font-size:clamp(38px,5.4vw,64px);margin-bottom:22px;letter-spacing:-.03em}
 .hero h1 .em{font-family:var(--serif);font-weight:400;font-style:italic}
-.hero-sub{font-size:clamp(17px,2.3vw,21px);color:var(--text-sec);max-width:660px;margin:0 auto 36px;line-height:1.6}
-.hero-sub .sub-short{display:none} /* version larga por defecto; la corta solo en movil (media 600) */
+.hero-sub{font-size:clamp(17px,2.1vw,20px);color:var(--text-sec);max-width:580px;margin:0 auto 36px;line-height:1.55}
+/* Version corta siempre: menos que leer en el primer impacto, y que el mock
+   del producto asome sin desplazar en portatiles de pantalla corta. La larga
+   se queda de reserva por si hace falta en algun sitio, pero no se usa hoy. */
+.hero-sub .sub-full{display:none}
 .cta-short,.hero-badge .hb-short{display:none} /* texto corto de CTA y badge: solo en movil (media 600) */
 .hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
 .hero-micro{font-size:13.5px;color:var(--text-ter);display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
@@ -475,8 +483,6 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
   .hero h1{font-size:33px;line-height:1.14;margin-bottom:14px}
   .hero-badge{font-size:11.5px;padding:6px 13px 6px 7px}
   .hero-sub{font-size:15px;line-height:1.55;margin-bottom:24px}
-  .hero-sub .sub-full{display:none}
-  .hero-sub .sub-short{display:inline}
   .hero-actions{gap:10px;margin-bottom:14px}
   .hero-actions .btn-lg{width:100%}
   /* Botones mas contenidos en movil (no tan grandes) */
