@@ -48,23 +48,27 @@ Deno.serve(async (req) => {
   if (code && state) {
     try {
       const [payload, sig] = state.split('.');
-      if (!payload || !sig || (await firmar(payload)) !== sig) return redirect(`${APP_URL}/app?stripe=error`);
+      if (!payload || !sig || (await firmar(payload)) !== sig) return redirect(`${APP_URL}/app/configuracion?stripe=error`);
       const data = JSON.parse(unb64url(payload)) as { negocio: string; exp: number };
-      if (!data?.negocio || Date.now() > data.exp) return redirect(`${APP_URL}/app?stripe=expirado`);
+      if (!data?.negocio || Date.now() > data.exp) return redirect(`${APP_URL}/app/configuracion?stripe=expirado`);
 
       const token = await stripe.oauth.token({ grant_type: 'authorization_code', code });
       const acct = token.stripe_user_id;
-      if (!acct) return redirect(`${APP_URL}/app?stripe=error`);
+      if (!acct) return redirect(`${APP_URL}/app/configuracion?stripe=error`);
       await service.rpc('guardar_conexion_stripe', { p_negocio_id: data.negocio, p_account_id: acct });
-      return redirect(`${APP_URL}/app?stripe=conectado`);
+      return redirect(`${APP_URL}/app/configuracion?stripe=conectado`);
     } catch {
-      return redirect(`${APP_URL}/app?stripe=error`);
+      return redirect(`${APP_URL}/app/configuracion?stripe=error`);
     }
   }
-  if (oauthError) return redirect(`${APP_URL}/app?stripe=denegado`);
+  if (oauthError) return redirect(`${APP_URL}/app/configuracion?stripe=denegado`);
 
-  // ── Start (lo llama el front con sesion) ────────────────────────────
-  if (u.searchParams.get('action') === 'start') {
+  // ── Start (lo llama el front con sesion; action por query o por body) ──
+  let accion = u.searchParams.get('action') ?? '';
+  if (!accion && req.method === 'POST') {
+    try { const b = await req.json(); accion = String((b as { action?: string })?.action ?? ''); } catch { /* sin body */ }
+  }
+  if (accion === 'start') {
     const authHeader = req.headers.get('Authorization') ?? '';
     if (!authHeader) return json({ error: 'no_autorizado' }, 401);
     if (!CLIENT_ID) return json({ error: 'connect_no_configurado' }, 500);

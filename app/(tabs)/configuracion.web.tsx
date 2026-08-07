@@ -3553,20 +3553,69 @@ function TabNotificaciones({ config, setC }: {
 }
 
 function PasarelaStripeSection({ negocioId }: { negocioId: string }) {
+  const [accountId, setAccountId] = useState('');
   const [configurado, setConfigurado] = useState(false);
   const [pk, setPk] = useState('');
   const [sk, setSk] = useState('');
   const [whsec, setWhsec] = useState('');
   const [saving, setSaving] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const [desconectando, setDesconectando] = useState(false);
+  const [retorno, setRetorno] = useState('');
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
     if (!negocioId) return;
-    supabase.from('negocio_pasarela').select('configurado, publishable_key').eq('negocio_id', negocioId).maybeSingle()
-      .then(({ data }: any) => { if (data) { setConfigurado(!!data.configurado); setPk(data.publishable_key || ''); } });
+    supabase.from('negocio_pasarela').select('configurado, publishable_key, stripe_account_id').eq('negocio_id', negocioId).maybeSingle()
+      .then(({ data }: any) => { if (data) { setConfigurado(!!data.configurado); setPk(data.publishable_key || ''); setAccountId(data.stripe_account_id || ''); } });
   }, [negocioId]);
 
+  // Vuelta del OAuth de Stripe: ?stripe=conectado|error|denegado|expirado.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const p = new URLSearchParams(window.location.search).get('stripe');
+    if (!p) return;
+    const map: Record<string, string> = {
+      conectado: 'Tu cuenta de Stripe ha quedado conectada. Los cobros iran a tu banco.',
+      error: 'No se pudo completar la conexion con Stripe. Intentalo de nuevo.',
+      denegado: 'Cancelaste la conexion con Stripe.',
+      expirado: 'El enlace caduco. Vuelve a pulsar "Conectar con Stripe".',
+    };
+    setRetorno(map[p] || '');
+    const url = new URL(window.location.href); url.searchParams.delete('stripe');
+    window.history.replaceState({}, '', url.toString());
+  }, []);
+
+  const conectadoConnect = !!accountId;
+  const conectadoLegacy = configurado && !accountId;
   const webhookUrl = `https://vtrggiogjrhqtwbhbgia.supabase.co/functions/v1/stripe-webhook?negocio=${negocioId}`;
+
+  async function conectar() {
+    setMsg(''); setConnecting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-connect-oauth', { body: { action: 'start' } });
+      const res = (data ?? {}) as { url?: string; error?: string };
+      if (error || !res.url) {
+        setMsg(res.error === 'connect_no_configurado'
+          ? 'La conexion con Stripe aun no esta habilitada en Mecha. Avisanos.'
+          : 'No se pudo iniciar la conexion con Stripe.');
+        setConnecting(false); return;
+      }
+      window.location.href = res.url;
+    } catch { setMsg('Error al conectar con Stripe.'); setConnecting(false); }
+  }
+
+  async function desconectar() {
+    if (typeof window !== 'undefined' && !window.confirm('¿Desconectar tu cuenta de Stripe? Los cobros volveran a la cuenta de Mecha hasta que la vuelvas a conectar.')) return;
+    setMsg(''); setDesconectando(true);
+    try {
+      const { data, error } = await supabase.rpc('desconectar_stripe', { p_negocio_id: negocioId });
+      const res = (data ?? {}) as { ok?: boolean };
+      if (error || !res.ok) { setMsg('No se pudo desconectar.'); setDesconectando(false); return; }
+      setAccountId(''); setConfigurado(false); setRetorno(''); setMsg('Cuenta desconectada.');
+    } catch { setMsg('No se pudo desconectar.'); }
+    setDesconectando(false);
+  }
 
   async function guardar() {
     setMsg('');
@@ -3579,40 +3628,76 @@ function PasarelaStripeSection({ negocioId }: { negocioId: string }) {
       const res = (data ?? {}) as { ok?: boolean; error?: string };
       if (error || !res.ok) { setMsg('No se pudo guardar. Revisa las claves.'); setSaving(false); return; }
       setConfigurado(true); setSk(''); setWhsec('');
-      setMsg('Guardado. Tu cuenta Stripe queda conectada.');
+      setMsg('Guardado. Tu cuenta Stripe queda conectada (modo clave propia).');
     } catch { setMsg('Error al guardar.'); }
     setSaving(false);
   }
 
   return (
     <Section title="Pasarela de pago (Stripe)"
-      desc="Conecta TU cuenta Stripe para que los cobros online (senal, QR, retenciones) vayan a tu banco, menos la suscripcion de Mecha. Las claves se guardan cifradas y nunca se muestran. Si no la configuras, se usa la cuenta de Mecha por defecto.">
+      desc="Conecta TU cuenta Stripe para que los cobros online (senal, QR, retenciones) vayan a tu banco. Nunca vemos tu clave secreta: te llevamos a Stripe y solo guardamos el identificador de tu cuenta. Si no la conectas, se usa la cuenta de Mecha por defecto.">
+      {!!retorno && (
+        <div style={{ fontSize: 12.5, color: '#0f9d6b', background: 'rgba(15,157,107,0.10)', border: '1px solid rgba(15,157,107,0.3)', borderRadius: 10, padding: '9px 12px', marginBottom: 12 }}>{retorno}</div>
+      )}
       <FieldRow label="Estado">
-        <span style={{ fontSize: 13, fontWeight: 700, color: configurado ? '#0f9d6b' : '#b45309' }}>
-          {configurado ? 'Conectada' : 'No conectada (usando cuenta Mecha)'}
+        <span style={{ fontSize: 13, fontWeight: 700, color: (conectadoConnect || conectadoLegacy) ? '#0f9d6b' : '#b45309' }}>
+          {conectadoConnect ? 'Conectada con Stripe' : conectadoLegacy ? 'Conectada (clave propia)' : 'No conectada (usando cuenta Mecha)'}
         </span>
       </FieldRow>
-      <FieldRow label="Clave secreta (sk_)" hint="Stripe -> Desarrolladores -> Claves de API -> Clave secreta.">
-        <STextInput value={sk} onChange={setSk} type="password" placeholder={configurado ? 'dejar vacio para no cambiar' : 'sk_live_...'} />
-      </FieldRow>
-      <FieldRow label="Signing secret del webhook (whsec_)" hint="Al crear el webhook en Stripe con la URL de abajo, Stripe te da este secreto.">
-        <STextInput value={whsec} onChange={setWhsec} type="password" placeholder={configurado ? 'dejar vacio para no cambiar' : 'whsec_...'} />
-      </FieldRow>
-      <FieldRow label="Clave publicable (pk_)" hint="Opcional, no es secreta.">
-        <STextInput value={pk} onChange={setPk} placeholder="pk_live_..." />
-      </FieldRow>
-      <FieldRow label="URL del webhook" hint="Crea un webhook en Stripe con ESTA URL exacta y suscribe los eventos de pago (checkout, payment_intent, charge.refunded).">
-        <span style={{ fontSize: 11.5, color: '#5c5249', wordBreak: 'break-all', fontFamily: 'monospace' }}>{webhookUrl}</span>
-      </FieldRow>
-      {!!msg && <div style={{ fontSize: 12.5, color: '#5c5249', marginTop: 4 }}>{msg}</div>}
-      <div style={{ marginTop: 10 }}>
-        <button onClick={guardar} disabled={saving}
-          onMouseEnter={(e) => { if (!saving) e.currentTarget.style.filter = 'brightness(1.06)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
-          style={{ padding: '10px 18px', background: '#f4501e', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1, boxShadow: '0 6px 16px rgba(244,80,30,0.28)', transition: 'filter 0.16s ease' }}>
-          {saving ? 'Guardando…' : 'Guardar y conectar'}
-        </button>
-      </div>
+
+      {conectadoConnect ? (
+        <>
+          <FieldRow label="Cuenta">
+            <span style={{ fontSize: 12.5, color: '#5c5249', fontFamily: 'monospace' }}>{accountId}</span>
+          </FieldRow>
+          {!!msg && <div style={{ fontSize: 12.5, color: '#5c5249', marginTop: 4 }}>{msg}</div>}
+          <div style={{ marginTop: 10 }}>
+            <button onClick={desconectar} disabled={desconectando}
+              style={{ padding: '10px 18px', background: '#fff', color: '#e23b34', border: '1px solid rgba(226,59,52,0.5)', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: desconectando ? 'default' : 'pointer', opacity: desconectando ? 0.7 : 1 }}>
+              {desconectando ? 'Desconectando…' : 'Desconectar'}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p style={{ fontSize: 12.5, color: '#5c5249', margin: '4px 0 0' }}>
+            Pulsa el boton y te llevamos a Stripe para conectar (o crear) tu cuenta. Al volver, tus cobros iran a tu banco.
+          </p>
+          {!!msg && <div style={{ fontSize: 12.5, color: '#5c5249', marginTop: 4 }}>{msg}</div>}
+          <div style={{ marginTop: 10 }}>
+            <button onClick={conectar} disabled={connecting}
+              onMouseEnter={(e) => { if (!connecting) e.currentTarget.style.filter = 'brightness(1.06)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
+              style={{ padding: '10px 18px', background: '#635bff', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: connecting ? 'default' : 'pointer', opacity: connecting ? 0.7 : 1, boxShadow: '0 6px 16px rgba(99,91,255,0.28)', transition: 'filter 0.16s ease' }}>
+              {connecting ? 'Abriendo Stripe…' : 'Conectar con Stripe'}
+            </button>
+          </div>
+
+          <details style={{ marginTop: 16 }}>
+            <summary style={{ fontSize: 12, color: '#8a7d70', cursor: 'pointer' }}>Opcion avanzada: conectar pegando tu clave secreta (no recomendado)</summary>
+            <div style={{ marginTop: 10 }}>
+              <FieldRow label="Clave secreta (sk_)" hint="Stripe -> Desarrolladores -> Claves de API -> Clave secreta.">
+                <STextInput value={sk} onChange={setSk} type="password" placeholder={conectadoLegacy ? 'dejar vacio para no cambiar' : 'sk_live_...'} />
+              </FieldRow>
+              <FieldRow label="Signing secret del webhook (whsec_)" hint="Al crear el webhook en Stripe con la URL de abajo, Stripe te da este secreto.">
+                <STextInput value={whsec} onChange={setWhsec} type="password" placeholder={conectadoLegacy ? 'dejar vacio para no cambiar' : 'whsec_...'} />
+              </FieldRow>
+              <FieldRow label="Clave publicable (pk_)" hint="Opcional, no es secreta.">
+                <STextInput value={pk} onChange={setPk} placeholder="pk_live_..." />
+              </FieldRow>
+              <FieldRow label="URL del webhook" hint="Crea un webhook en Stripe con ESTA URL exacta y suscribe los eventos de pago (checkout, payment_intent, charge.refunded).">
+                <span style={{ fontSize: 11.5, color: '#5c5249', wordBreak: 'break-all', fontFamily: 'monospace' }}>{webhookUrl}</span>
+              </FieldRow>
+              <div style={{ marginTop: 10 }}>
+                <button onClick={guardar} disabled={saving}
+                  style={{ padding: '9px 16px', background: '#fff', color: '#1c1814', border: '1px solid rgba(40,30,24,0.2)', borderRadius: 10, fontWeight: 700, fontSize: 12.5, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+                  {saving ? 'Guardando…' : 'Guardar clave'}
+                </button>
+              </div>
+            </div>
+          </details>
+        </>
+      )}
     </Section>
   );
 }
