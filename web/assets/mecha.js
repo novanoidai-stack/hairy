@@ -165,6 +165,7 @@
       }, delay));
     }
     function el(html) { var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
+    var revealInteractive = phoneChatInteractive(body);
     function play() {
       clear();
       var t = 500;
@@ -173,6 +174,7 @@
         bubble(el(m.html), t);
         t += (m.gap || 1000);
       });
+      if (revealInteractive) timers.push(setTimeout(revealInteractive, t + 300));
     }
     if (!('IntersectionObserver' in window)) { play(); }
     else {
@@ -183,6 +185,156 @@
     }
     var replay = $('#chatReplay');
     if (replay) replay.addEventListener('click', play);
+  }
+
+  /* ---------- CHISPA RECEPCIONISTA (chat real tras la demo guionizada) ----------
+     Prueba viva de que la IA funciona de verdad: el visitante escribe y recibe
+     respuesta real de un modelo barato (Haiku via OpenRouter, edge
+     chispa-recepcionista) haciendo de Chispa para un salon FICTICIO ("Studio
+     Norte"). No vende Mecha -- para eso esta el widget flotante -- solo
+     demuestra el mecanismo. Devuelve la funcion que revela el input, o null
+     si falta algun elemento del DOM. */
+  function phoneChatInteractive(waBody) {
+    var hint = $('#waHint');
+    var row = $('#waInputRow');
+    var input = $('#waInput');
+    var send = $('#waSend');
+    if (!hint || !row || !input || !send) return null;
+
+    var history = [];
+    var turns = 0;
+    var MAX_TURNS = 8;
+    var busy = false;
+    var revealed = false;
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    // Markdown minimo: solo **negrita** y [texto](url) internas/https, igual
+    // de restrictivo que el widget flotante (chispa-landing) por la misma razon:
+    // la respuesta es dato del modelo, nunca HTML de confianza.
+    function renderMd(text) {
+      var html = esc(text);
+      html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, label, url) {
+        var seguro = /^(https?:\/\/|\/|[\w./-]+\.html)/i.test(url);
+        if (!seguro) return label;
+        var externo = /^https?:\/\//i.test(url);
+        return '<a href="' + url + '"' + (externo ? ' target="_blank" rel="noopener"' : '') + '>' + label + '</a>';
+      });
+      html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      return html;
+    }
+    function hora() {
+      var d = new Date();
+      var h = d.getHours(), m = d.getMinutes();
+      return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+    }
+    function addMsg(role, text) {
+      var d = document.createElement('div');
+      d.className = 'msg ' + (role === 'user' ? 'me' : 'them');
+      d.innerHTML = (role === 'user' ? esc(text) : renderMd(text)) +
+        '<div class="mt">' + hora() + (role === 'user' ? ' ✓✓' : '') + '</div>';
+      waBody.appendChild(d);
+      waBody.scrollTop = waBody.scrollHeight;
+    }
+    function addTyping() {
+      var t = document.createElement('div');
+      t.className = 'typing'; t.innerHTML = '<span></span><span></span><span></span>';
+      waBody.appendChild(t);
+      waBody.scrollTop = waBody.scrollHeight;
+      return t;
+    }
+    function fin(msg) {
+      addMsg('them', msg);
+      input.disabled = true; send.disabled = true;
+      input.placeholder = 'Fin de la simulación';
+    }
+
+    async function enviar() {
+      var text = input.value.trim();
+      if (!text || busy) return;
+      if (!window.MechaAPI || !window.MechaAPI.client) {
+        addMsg('them', 'No se ha podido conectar. Prueba a recargar la página.');
+        return;
+      }
+      input.value = '';
+      addMsg('user', text);
+      busy = true; send.disabled = true;
+      var t = addTyping();
+
+      try {
+        var res = await window.MechaAPI.client.functions.invoke('chispa-recepcionista', {
+          body: { message: text, history: history }
+        });
+        if (t.parentNode) t.remove();
+
+        if (res.error) {
+          // Igual que el widget flotante: un error HTTP no-2xx (p.ej. 429 del
+          // rate-limit) trae el JSON real en error.context, no en data.
+          var cuerpo = null;
+          if (res.error.context && typeof res.error.context.json === 'function') {
+            try { cuerpo = await res.error.context.json(); } catch (e) {}
+          }
+          if (cuerpo && cuerpo.error === 'rate_limit_exceeded') {
+            fin(cuerpo.message || 'Se ha alcanzado el límite de esta demo por ahora.');
+          } else {
+            addMsg('them', 'Se me ha cortado la conexión — inténtalo de nuevo.');
+          }
+          return;
+        }
+
+        var data = res.data;
+        if (data && data.error) {
+          fin(data.message || 'Se ha alcanzado el límite de esta demo por ahora.');
+          return;
+        }
+        var reply = (data && data.reply) || '¿Me lo repites?';
+        addMsg('them', reply);
+        history.push({ role: 'user', content: text });
+        history.push({ role: 'assistant', content: reply });
+        if (history.length > 10) history = history.slice(history.length - 10);
+        turns++;
+        if (turns >= MAX_TURNS) fin('Esto es justo lo que Chispa hace en un salón real — [ve la demo completa](demo.html).');
+      } catch (e) {
+        if (t.parentNode) t.remove();
+        addMsg('them', 'Se me ha cortado la conexión — inténtalo de nuevo.');
+      } finally {
+        busy = false;
+        if (turns < MAX_TURNS) send.disabled = false;
+        input.focus();
+      }
+    }
+
+    send.addEventListener('click', enviar);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') enviar(); });
+
+    return function revelar() {
+      if (revealed) return;
+      revealed = true;
+      hint.hidden = false; row.hidden = false;
+    };
+  }
+
+  /* ---------- HERO MOCK (citas entrando, no estatico) ---------- */
+  function heroMockLive() {
+    var mock = $('.hero-mock');
+    if (!mock) return;
+    var appts = $$('.appt', mock);
+    if (!appts.length) return;
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      appts.forEach(function (a) { a.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      appts.forEach(function (a, i) {
+        setTimeout(function () { a.classList.add('in'); }, i * 90);
+      });
+      io.disconnect();
+    }, { threshold: 0.3 });
+    io.observe(mock);
   }
 
   /* ---------- PLATFORM TABS ---------- */
@@ -459,6 +611,7 @@
     counters();
     bars();
     charts();
+    heroMockLive();
     phoneChat();
     tabs();
     nuevaCita();

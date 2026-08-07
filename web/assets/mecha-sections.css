@@ -36,7 +36,21 @@
 .appt.repos{border-left-style:dashed;background:repeating-linear-gradient(45deg,rgba(245,158,11,.16),rgba(245,158,11,.16) 6px,transparent 6px,transparent 12px)!important;border-color:var(--warning)}
 .appt.repos .n{color:#fbbf24;font-size:9.5px}
 .tl-now{position:absolute;left:46px;right:0;height:0;border-top:2px dashed var(--danger);z-index:5}
-.tl-now::before{content:"";position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:var(--danger);box-shadow:0 0 10px var(--danger)}
+.tl-now::before{content:"";position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:var(--danger);box-shadow:0 0 10px var(--danger);
+  animation:tlNowPulse 2.2s ease-in-out infinite}
+@keyframes tlNowPulse{0%,100%{box-shadow:0 0 10px var(--danger)}50%{box-shadow:0 0 18px 4px var(--danger)}}
+
+/* Mockup del hero: las citas entran con un leve fundido/desplazamiento al
+   aparecer en pantalla, para que la unica captura estatica de toda la
+   landing tenga algo de vida en los primeros segundos (heroMockLive en
+   mecha.js). El estado inicial vive aqui, no inline, para no pisar los
+   estilos por cita (top/height/background) que si van inline en el HTML. */
+.hero-mock .appt{opacity:0;transform:translateY(6px) scale(.98);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.hero-mock .appt.in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){
+  .tl-now::before{animation:none}
+  .hero-mock .appt{opacity:1;transform:none;transition:none}
+}
 
 /* nueva cita modal mock */
 .app.has-modal .app-main{filter:blur(2px) brightness(.6)}
@@ -158,6 +172,16 @@
 .typing{align-self:flex-start;flex-shrink:0;background:#1f2c33;padding:11px 14px;border-radius:11px;border-top-left-radius:3px;display:flex;gap:4px}
 .typing span{width:7px;height:7px;border-radius:50%;background:#8696a0;animation:typing 1.2s infinite}
 .typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+
+/* ---------- Chat interactivo real (tras la conversacion guionizada) ---------- */
+.wa-hint{padding:7px 13px 0;font-size:10px;color:#8696a0;text-align:center;flex-shrink:0}
+.wa-input-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#1f2c33;flex-shrink:0}
+.wa-input-row input{flex:1;min-width:0;background:#2a3942;border:0;border-radius:999px;padding:9px 14px;font-size:13px;color:#e9edef;outline:0}
+.wa-input-row input::placeholder{color:#8696a0}
+.wa-input-row input:disabled{opacity:.6}
+.wa-input-row button{flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:0;background:var(--grad-soft);color:#fff;display:grid;place-items:center;cursor:pointer}
+.wa-input-row button:disabled{opacity:.5;cursor:default}
+.wa-input-row button svg{width:15px;height:15px}
 .demo-replay{display:flex;justify-content:center;margin-top:22px}
 .demo-replay button{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text-sec);padding:9px 16px;border-radius:999px;border:1px solid var(--border-hi);background:rgba(255,255,255,.03)}
 .demo-replay button:hover{color:var(--text);border-color:var(--accent)}

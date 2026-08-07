@@ -171,7 +171,13 @@ h1,h2,h3{letter-spacing:-.022em;line-height:1.06;font-weight:700;font-family:var
 /* ============================================================
    HERO
    ============================================================ */
-.hero{padding:78px 0 40px;overflow:hidden}
+.hero{padding:78px 0 40px;overflow:hidden;position:relative}
+/* Glow concentrado solo en el hero: el resto de la pagina ya tiene el fondo
+   fijo (.bg) mas difuso, pero la primera pantalla se beneficia de un punto
+   de luz propio -- el mismo truco que un "hero shot" con foco encima. */
+.hero::before{content:"";position:absolute;top:-8%;left:50%;transform:translateX(-50%);
+  width:1100px;max-width:170%;height:620px;pointer-events:none;z-index:0;
+  background:radial-gradient(50% 50% at 50% 32%, rgba(244,80,30,.18), transparent 72%)}
 .hero-in{position:relative;z-index:1;text-align:center;max-width:900px;margin:0 auto}
 .hero-badge{display:inline-flex;align-items:center;gap:9px;padding:7px 15px 7px 8px;border-radius:999px;
   background:rgba(255,255,255,.04);border:1px solid var(--border-hi);font-size:13px;color:var(--text-sec);margin-bottom:30px;
