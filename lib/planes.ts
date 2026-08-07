@@ -39,6 +39,40 @@ export const PLAN_LABEL: Record<Plan, string> = {
   estudio: 'Estudio',
 };
 
+// Precio mensual sin IVA. El IVA (21%) lo aplica Stripe con una tasa fija, no se
+// suma aqui. Mismo aviso que arriba: si cambia, cambia tambien en la seccion
+// #precios de web/index.html y en el prompt de chispa-landing.
+//
+// *** DESINCRONIZADO desde la reestructura del 7 ago 2026 (ver mas abajo):
+// esto sigue reflejando el modelo VIEJO (esencial 39/estudio 59, IA solo en
+// estudio) porque asi es como cobra hoy crear-checkout-suscripcion. El resto
+// de este archivo (SOFTWARE_COMPLETO, IaNivel, ia_nivel) ya implementa el
+// modelo NUEVO (software 39 llano + addon de IA aparte 19/29/39), pero el
+// checkout de Stripe todavia NO sabe vender el addon por separado. Pendiente
+// de reconciliar con quien mantiene crear-checkout-suscripcion antes de que
+// esto deje de ser una fuente de verdad partida en dos. ***
+export const PLAN_PRECIO_EUR: Record<Plan, number> = {
+  free: 0,
+  esencial: 39,
+  estudio: 59,
+};
+
+// Los dos planes que un salon puede contratar por su cuenta, en orden de precio.
+export const PLANES_CONTRATABLES: readonly Plan[] = ['esencial', 'estudio'];
+
+// Estado de la suscripcion tal cual vive en profiles.suscripcion_estado.
+// 'prueba' = mes gratis sin tarjeta (no existe en Stripe, lo lleva trial_ends_at).
+// 'caducada' = se acabo la prueba sin contratar.
+export type EstadoSuscripcion =
+  | 'prueba' | 'activa' | 'pago_pendiente' | 'impagada'
+  | 'cancelada' | 'pausada' | 'caducada';
+
+// ¿Este estado da acceso al producto? Un impago no corta al instante: Stripe
+// reintenta varios dias y periodo_fin hace de margen.
+export function tieneAcceso(estado: string | null | undefined): boolean {
+  return estado === 'prueba' || estado === 'activa' || estado === 'pago_pendiente';
+}
+
 // Addon de IA contratado (profiles.ia_nivel), ortogonal al plan de software.
 export type IaNivel = 'ninguna' | 'whatsapp' | 'voz' | 'completa';
 

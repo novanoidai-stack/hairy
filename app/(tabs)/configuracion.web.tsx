@@ -11,6 +11,7 @@ import { TabMigracionMagica } from '@/components/config/TabMigracionMagica';
 import { ModalImportarTarifasIA } from '@/components/config/ModalImportarTarifasIA';
 import { TabVoz } from '@/components/config/TabVoz.web';
 import { TabRecompensas } from '@/components/config/TabRecompensas.web';
+import { SeccionSuscripcion } from '@/components/config/SeccionSuscripcion.web';
 import { HubIA } from '@/components/config/HubIA';
 import qrcode from 'qrcode-generator';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -2156,7 +2157,9 @@ function TabCuenta({ account, userId, profCount }: { account: AccountInfo | null
         </FieldRow>
       </Section>
 
-      <Section title="Plan y plazas" desc="Tu equipo y tus plazas. Para gestionar la facturacion, contacta con soporte.">
+      <SeccionSuscripcion userId={userId} role={a?.role || ''} />
+
+      <Section title="Plazas del equipo" desc="Las fichas que caben en tu agenda. Para cualquier duda de facturacion, escribenos.">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
           <StatBox label="Fichas en la agenda" value={`${profCount} / 10`} sub={`${plazasLibres} ${plazasLibres === 1 ? 'plaza disponible' : 'plazas disponibles'}`} />
         </div>
