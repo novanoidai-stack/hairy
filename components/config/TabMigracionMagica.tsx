@@ -229,7 +229,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
     <div>
       <Section title="Migración Mágica con IA">
         <p style={{ fontSize: 13, color: T.textSec, marginBottom: 20 }}>
-          Sube tus archivos de Booksy/Fresha, o una foto de tu lista de precios o albarán. La IA extraerá los datos automáticamente y los importará a Mecha sin configuraciones complejas.
+          Sube tu lista de precios, agenda de Booksy/Fresha o albarán en el formato que tengas (foto, Excel, CSV, Word o PDF). La IA extraerá los datos automáticamente y los importará a Mecha sin configuraciones complejas.
         </p>
 
         {error && (
@@ -269,7 +269,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               >
                 <div style={{ fontSize: 24, marginBottom: 8 }}>📋</div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Lista de Precios</div>
-                <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>Sube una foto del catálogo</div>
+                <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>Foto, Excel, CSV, Word o PDF</div>
               </button>
 
               <button
@@ -283,7 +283,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               >
                 <div style={{ fontSize: 24, marginBottom: 8 }}>📦</div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: T.text }}>Albarán / Factura</div>
-                <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>Sube una foto para el inventario</div>
+                <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>Foto, Excel, CSV, Word o PDF</div>
               </button>
             </div>
           </div>
