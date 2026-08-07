@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { mensajeDeError } from '@/lib/errores';
 import { Section, Btn } from '@/components/ui/SettingsAtoms';
 import { DESIGN_TOKENS } from '@/lib/designTokens';
+import { extractDocumentContent } from '@/lib/documentExtractor';
 
 const T = DESIGN_TOKENS;
 
@@ -49,21 +50,13 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
     setState(prev => ({ ...prev, paso: 'procesando', archivo: file }));
 
     try {
-      let content = '';
-      const mimeType = file.type || 'application/octet-stream';
-
-      if (mimeType.startsWith('image/')) {
-        content = await getBase64(file);
-      } else {
-        // Assume text/csv
-        content = await file.text();
-      }
+      const doc = await extractDocumentContent(file);
 
       const { data, error: funcError } = await supabase.functions.invoke('migracion-magica', {
         body: {
           intencion: state.intencion,
-          mimeType,
-          content,
+          mimeType: doc.mimeType,
+          content: doc.content,
           negocioId
         }
       });
@@ -315,7 +308,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               onClick={() => {
                 const input = document.createElement('input');
                 input.type = 'file';
-                input.accept = state.intencion === 'agenda_booksy_fresha' ? '.csv,.txt' : 'image/*';
+                input.accept = '.docx,.xlsx,.xls,.csv,.pdf,.txt,.png,.jpg,.jpeg,.webp';
                 input.onchange = e => {
                   const file = (e.target as HTMLInputElement).files?.[0];
                   if (file) handleFileUpload(file);
@@ -326,7 +319,7 @@ export function TabMigracionMagica({ negocioId }: { negocioId: string }) {
               <div style={{ fontSize: 32, marginBottom: 8 }}>📁</div>
               <div style={{ fontSize: 14, color: T.text }}>Haz clic o arrastra tu archivo aquí</div>
               <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>
-                {state.intencion === 'agenda_booksy_fresha' ? 'Archivos CSV' : 'Imágenes (JPG, PNG)'}
+                Soporta Word (.docx), Excel (.xlsx), CSV, PDF, TXT o imágenes (JPG, PNG)
               </div>
             </div>
           </div>

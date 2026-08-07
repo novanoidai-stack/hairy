@@ -75,22 +75,24 @@ export function ListaEsperaDropdown({ negocioId }: { negocioId: string }) {
     };
   }, [open, medir]);
 
-  const fetchListaEspera = useCallback(() => {
+  const fetchListaEspera = useCallback(async () => {
     if (!negocioId) return;
     setLoading(true);
-    supabase
-      .from("lista_espera")
-      .select("id, cliente_id, nombre, telefono, franja, nota, created_at")
-      .eq("negocio_id", negocioId)
-      .eq("estado", "esperando")
-      .order("prioridad", { ascending: false })
-      .order("created_at", { ascending: true })
-      .limit(5)
-      .then(({ data }) => {
-        if (data) setItems(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    try {
+      const { data } = await supabase
+        .from("lista_espera")
+        .select("id, cliente_id, nombre, telefono, franja, nota, created_at")
+        .eq("negocio_id", negocioId)
+        .eq("estado", "esperando")
+        .order("prioridad", { ascending: false })
+        .order("created_at", { ascending: true })
+        .limit(5);
+      if (data) setItems(data);
+    } catch {
+      // Ignorar error
+    } finally {
+      setLoading(false);
+    }
   }, [negocioId]);
 
   // Cargar recuento e items al montar y cuando cambie negocioId

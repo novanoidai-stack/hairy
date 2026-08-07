@@ -8,6 +8,7 @@ import { CATEGORY_COLOR_TOKENS, categoryColorHex, type CategoryColorToken } from
 import { TabPresupuestoConceptos } from '@/components/config/TabPresupuestoConceptos';
 import { MiPerfilProfesional } from '@/components/config/MiPerfilProfesional';
 import { TabMigracionMagica } from '@/components/config/TabMigracionMagica';
+import { ModalImportarTarifasIA } from '@/components/config/ModalImportarTarifasIA';
 import { TabVoz } from '@/components/config/TabVoz.web';
 import { TabRecompensas } from '@/components/config/TabRecompensas.web';
 import { HubIA } from '@/components/config/HubIA';
@@ -463,6 +464,17 @@ export default function ConfiguracionWeb() {
   const [edit, setEdit] = useState<Servicio | null>(null);
   const [categorias, setCategorias] = useState<CategoriaServicio[]>([]);
   const [showCategoriasModal, setShowCategoriasModal] = useState(false);
+  const [modalImportarTarifasOpen, setModalImportarTarifasOpen] = useState(false);
+
+  const recargarServicios = useCallback(async () => {
+    if (!negocioId) return;
+    const [{ data: srvData }, { data: catData }] = await Promise.all([
+      supabase.from('servicios').select('*').eq('negocio_id', negocioId).order('nombre'),
+      supabase.from('categorias_servicio').select('*').eq('negocio_id', negocioId).eq('activo', true).order('orden'),
+    ]);
+    if (srvData) setServicios(srvData);
+    if (catData) setCategorias(catData);
+  }, [negocioId]);
   const [profesionales, setProfesionales] = useState<any[]>([]);
   const [profId, setProfId] = useState<string | null>(null);
   const [allOverrides, setAllOverrides] = useState<Override[]>([]);
@@ -1241,6 +1253,7 @@ export default function ConfiguracionWeb() {
                 catPricing={catPricing}
                 categorias={categorias} isOwnerUser={isOwnerUser}
                 onManageCategorias={() => setShowCategoriasModal(true)}
+                onOpenImportarIA={() => setModalImportarTarifasOpen(true)}
                 onEdit={setEdit} onToggle={handleToggleServicio}
                 onMoveCategory={handleMoveCategory}
                 onDelete={handleDeleteService} onSaveOverride={handleSaveOverride}
@@ -1311,6 +1324,12 @@ export default function ConfiguracionWeb() {
           onReorder={handleReorderCategorias}
         />
       )}
+      <ModalImportarTarifasIA
+        negocioId={negocioId}
+        isOpen={modalImportarTarifasOpen}
+        onClose={() => setModalImportarTarifasOpen(false)}
+        onImportComplete={recargarServicios}
+      />
       <DemoSpotlight
         targetRef={demoTargetRef}
         active={demoActionName !== null}
@@ -2657,7 +2676,7 @@ function TabHorarios({ config, setC, diasHorario, setDiasHorario }: {
 
 // En movil la fila de servicio pasa de grid de 5 columnas con 410px fijos
 // (que dejaba el NOMBRE a ancho 0) a dos lineas: nombre + datos.
-function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, duracionesProf, profSelData, variantCounts, catPricing, categorias, isOwnerUser, onManageCategorias, onEdit, onToggle, onMoveCategory, onDelete, onSaveOverride, onResetOverride, onSaveDurProf, onResetDurProf }: {
+function TabServicios({ services, profesionales, profId, setProfId, allOverrides, getOverride, duracionesProf, profSelData, variantCounts, catPricing, categorias, isOwnerUser, onManageCategorias, onOpenImportarIA, onEdit, onToggle, onMoveCategory, onDelete, onSaveOverride, onResetOverride, onSaveDurProf, onResetDurProf }: {
   services: Servicio[]; profesionales: any[];
   profId: string | null; setProfId: (id: string | null) => void;
   allOverrides: Override[]; getOverride: (sid: string) => Override | undefined;
@@ -2666,6 +2685,7 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
   variantCounts: Record<string, number>;
   catPricing: Record<string, Record<string, number>>;
   categorias: CategoriaServicio[]; isOwnerUser: boolean; onManageCategorias: () => void;
+  onOpenImportarIA?: () => void;
   onEdit: (s: Servicio) => void; onToggle: (s: Servicio) => void;
   onMoveCategory: (servicioId: string, categoriaId: string | null) => Promise<void>;
   onDelete: (id: string) => void;
@@ -2719,11 +2739,35 @@ function TabServicios({ services, profesionales, profId, setProfId, allOverrides
           </div>
         </div>
         {!profId && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {isOwnerUser && (
               <Btn variant="soft" size="md" icon="pricetag-outline" onClick={onManageCategorias}>
                 Gestionar categorias
               </Btn>
+            )}
+            {onOpenImportarIA && (
+              <button
+                onClick={onOpenImportarIA}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 14px',
+                  borderRadius: 10,
+                  background: 'linear-gradient(135deg, #f4501e 0%, #ff7043 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(244, 80, 30, 0.25)',
+                  transition: 'transform 0.15s ease',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
+              >
+                ✨ Importar Tarifas con IA
+              </button>
             )}
             <Btn variant="primary" size="md" icon="plus"
               onClick={() => onEdit({ nombre: '', precio: 0, duracion_activa_min: 30, categoria_id: null })}>

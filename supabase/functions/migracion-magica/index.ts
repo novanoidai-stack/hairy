@@ -61,12 +61,24 @@ Deno.serve(async (req) => {
       `;
     } else if (intencion === 'catalogo') {
       systemPrompt += `
-      Extrae los servicios del catalogo o lista de precios proporcionado.
+      Extrae los servicios, precios, duraciones y categorías del catálogo o documento de tarifas proporcionado.
       Devuelve un JSON con esta estructura exacta:
       {
-        "servicios": [{ "nombre": "string", "precio": "number", "duracion_min": "number", "categoria": "string o vacio" }]
+        "nombre_negocio": "string o vacio si no aparece",
+        "direccion": "string o vacio si no aparece",
+        "servicios": [
+          {
+            "nombre": "string (nombre del servicio)",
+            "precio": "number (precio numerico en euros, ej: 30.00)",
+            "duracion_min": "number (duracion total en minutos, CONVIERTE siempre cualquier texto como '1 h 15 min' a 75, '2 h 30 min' a 150, '30 min' a 30, '4 h' a 240)",
+            "categoria": "string (nombre exacto de la categoría o sección donde aparece el servicio)"
+          }
+        ]
       }
-      Si no hay categoria explícita, intenta inferirla (ej. 'Corte', 'Color', 'Estética') o dejala vacia.
+      Reglas críticas:
+      1. Si la duración dice '1 h 15 min', duracion_min debe ser 75. Si dice '30 min', duracion_min debe ser 30. Si dice '2 h', duracion_min debe ser 120.
+      2. No omitas ningún servicio que aparezca en el documento. Extrae todos y cada uno de los servicios.
+      3. El precio debe ser un número float o int (ej. 30.00). Elimina el símbolo de euro €.
       `;
     } else if (intencion === 'factura_proveedor') {
       systemPrompt += `
