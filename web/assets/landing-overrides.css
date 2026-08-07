@@ -121,11 +121,15 @@ section[id],
   background:rgba(244,80,30,.12);color:var(--accent-hi)}
 .faq-ic svg{width:17px;height:17px}
 .faq-q{padding-top:6px}
-.faq-item summary::after{content:'';position:absolute;right:18px;top:24px;
+/* top:50%+translateY(-50%) en vez de un top: fijo en px: con preguntas de
+   una o dos lineas la altura del summary varia, y un valor fijo solo
+   centraba la flecha para la version de una linea (se veia descolocada en
+   las preguntas largas -- el "FAQ roto" que reporto Carlos el 7 ago). */
+.faq-item summary::after{content:'';position:absolute;right:18px;top:50%;
   width:9px;height:9px;border-right:2.2px solid var(--text-ter);
   border-bottom:2.2px solid var(--text-ter);
-  transform:rotate(45deg);transition:transform .25s var(--ease)}
-.faq-item[open] summary::after{transform:translateY(6px) rotate(225deg);
+  transform:translateY(-50%) rotate(45deg);transition:transform .25s var(--ease)}
+.faq-item[open] summary::after{transform:translateY(-50%) rotate(225deg);
   border-color:var(--accent-hi)}
 .faq-a{padding:0 20px 18px 62px;font-size:14px;line-height:1.6;color:var(--text-sec)}
 .faq-a b{color:var(--text);font-weight:700}
