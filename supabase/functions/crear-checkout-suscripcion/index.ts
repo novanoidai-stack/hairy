@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
-  // 1) Quien llama: tiene que ser owner/admin de un negocio.
+  // 1) Quien llama: tiene que ser el propietario de un negocio.
   const authHeader = req.headers.get('Authorization') || '';
   const caller = createClient(SUPABASE_URL, ANON_KEY, {
     global: { headers: { Authorization: authHeader } },
@@ -58,7 +58,11 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (!perfil) return json({ error: 'profile_not_found' }, 404);
-  if (!['owner', 'admin'].includes(perfil.role)) return json({ error: 'not_authorized' }, 403);
+  // SOLO el propietario, no admin. El plan del salon se lee de la fila del owner
+  // (plan_del_negocio) y el equipo lo hereda de ahi: una suscripcion sellada en la
+  // fila de un admin dejaria al salon entero sin plan, y la sincronizacion
+  // posterior le pisaria el plan recien pagado con el viejo del owner.
+  if (perfil.role !== 'owner') return json({ error: 'not_authorized' }, 403);
   if (!perfil.negocio_id) return json({ error: 'no_negocio' }, 400);
   if (YA_TIENE_ACCESO.has(perfil.suscripcion_estado ?? '')) {
     // Cambiar de plan o de tarjeta se hace desde el portal de cliente, no aqui.

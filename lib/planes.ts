@@ -31,6 +31,31 @@ export const PLAN_LABEL: Record<Plan, string> = {
   estudio: 'Estudio',
 };
 
+// Precio mensual sin IVA. El IVA (21%) lo aplica Stripe con una tasa fija, no se
+// suma aqui. Mismo aviso que arriba: si cambia, cambia tambien en la seccion
+// #precios de web/index.html y en el prompt de chispa-landing.
+export const PLAN_PRECIO_EUR: Record<Plan, number> = {
+  free: 0,
+  esencial: 39,
+  estudio: 59,
+};
+
+// Los dos planes que un salon puede contratar por su cuenta, en orden de precio.
+export const PLANES_CONTRATABLES: readonly Plan[] = ['esencial', 'estudio'];
+
+// Estado de la suscripcion tal cual vive en profiles.suscripcion_estado.
+// 'prueba' = mes gratis sin tarjeta (no existe en Stripe, lo lleva trial_ends_at).
+// 'caducada' = se acabo la prueba sin contratar.
+export type EstadoSuscripcion =
+  | 'prueba' | 'activa' | 'pago_pendiente' | 'impagada'
+  | 'cancelada' | 'pausada' | 'caducada';
+
+// ¿Este estado da acceso al producto? Un impago no corta al instante: Stripe
+// reintenta varios dias y periodo_fin hace de margen.
+export function tieneAcceso(estado: string | null | undefined): boolean {
+  return estado === 'prueba' || estado === 'activa' || estado === 'pago_pendiente';
+}
+
 // Funciones que dependen del plan contratado.
 export type FuncionPlan =
   // --- Nucleo (Esencial en adelante) ---
