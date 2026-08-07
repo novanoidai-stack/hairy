@@ -20,7 +20,7 @@
     es: {
       nav_asistente: 'Asistente IA', nav_agenda: 'Agenda', nav_fichas: 'Fichas',
       nav_comparativa: 'Comparativa', nav_precios: 'Precios', nav_specs: 'Especificaciones',
-      nav_directorio: 'Directorio', nav_contacto: 'Contacto',
+      nav_contacto: 'Contacto',
       nav_login: 'Iniciar sesión', nav_demo: 'Ver demo gratis',
       nav_enter: 'Entrar al software',
       hero_eyebrow: 'Software de gestión para peluquerías y barberías',
