@@ -843,7 +843,7 @@ Deno.serve(async (req) => {
     // --- Perfil del usuario (service key para evitar RLS) ---
     const { data: profile } = await svc
       .from('profiles')
-      .select('negocio_id, role, plan')
+      .select('negocio_id, role, plan, ia_nivel')
       .eq('id', user.id)
       .maybeSingle();
     if (!profile?.negocio_id) return json({ error: 'Sin negocio asignado' }, 403);
@@ -851,15 +851,15 @@ Deno.serve(async (req) => {
     const negocioId: string = profile.negocio_id;
     const role: string = profile.role ?? 'employee';
 
-    // Chispa entra en el plan ESTUDIO. El cliente ya no monta la burbuja sin ese
-    // plan, pero esto se comprueba tambien AQUI porque este endpoint gasta
-    // tokens de verdad: esconder el boton no es un control de acceso.
-    // 'full' es el valor historico de las cuentas con acceso completo.
-    // demo_salon_001 queda exenta: es el escaparate de la landing.
-    const planCuenta = String(profile.plan ?? '').toLowerCase();
-    const planIncluyeChispa = planCuenta === 'estudio' || planCuenta === 'full';
-    if (!planIncluyeChispa && negocioId !== 'demo_salon_001') {
-      return json({ error: 'Chispa entra en el plan Estudio. Cambia de plan para activarla.', codigo: 'plan_insuficiente' }, 402);
+    // Chispa es el addon de IA por WhatsApp (profiles.ia_nivel), ortogonal al
+    // plan de software desde la reestructura del 7 ago 2026. El cliente ya no
+    // monta la burbuja sin el addon, pero esto se comprueba tambien AQUI
+    // porque este endpoint gasta tokens de verdad: esconder el boton no es un
+    // control de acceso. demo_salon_001 queda exenta: es el escaparate.
+    const iaNivel = String(profile.ia_nivel ?? '').toLowerCase();
+    const addonIncluyeChispa = iaNivel === 'whatsapp' || iaNivel === 'completa';
+    if (!addonIncluyeChispa && negocioId !== 'demo_salon_001') {
+      return json({ error: 'Chispa es el addon de IA por WhatsApp. Actívalo para usarla.', codigo: 'addon_ia_insuficiente' }, 402);
     }
 
     // --- Config del negocio ---

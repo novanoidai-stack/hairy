@@ -55,8 +55,9 @@ export function ChispaLauncher() {
         id: p.id, role: p.role, negocio_id: p.negocio_id,
         nombre: p.nombre, nombreNegocio: p.nombre_negocio, codigoPostal: p.codigo_postal,
       });
-      // Chispa entra en el plan Estudio: con Esencial no se monta siquiera (ni
-      // burbuja ni panel). La demo compartida queda exenta: es el escaparate.
+      // Chispa es el addon de IA por WhatsApp (profiles.ia_nivel): sin el
+      // addon activado no se monta siquiera (ni burbuja ni panel), da igual
+      // el plan de software. La demo compartida queda exenta: es el escaparate.
       const planIncluyeChispa = IS_DEMO_MODE || incluyePlan(p, 'ia_chispa');
       setActivo(planIncluyeChispa && cfg.asistenteAgendaActivo === true);
       setBriefingActivo(cfg.briefingProactivoActivo !== false);

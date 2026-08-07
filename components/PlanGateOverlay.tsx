@@ -6,7 +6,7 @@ import { Btn } from '@/components/ui/DesignComponents';
 import { DESIGN_TOKENS as T } from '@/lib/designTokens';
 import { getUserProfile, type UserProfile } from '@/lib/auth';
 import { IS_DEMO_MODE } from '@/lib/supabase';
-import { incluyePlan, planDe, PLAN_LABEL, FUNCION_LABEL, type FuncionPlan } from '@/lib/planes';
+import { incluyePlan, planDe, esFuncionDeIA, PLAN_LABEL, FUNCION_LABEL, type FuncionPlan } from '@/lib/planes';
 
 // Gating por PLAN contratado (distinto del gating por rol y del de privacidad).
 // Si el salon no tiene el plan que incluye la funcion, la pantalla no se monta:
@@ -46,6 +46,7 @@ export function usePlan(funcion: FuncionPlan): { permitido: boolean; cargando: b
 
 export function PlanGateOverlay({ funcion }: { funcion: FuncionPlan }) {
   const queEs = FUNCION_LABEL[funcion] || 'esta función';
+  const esIA = esFuncionDeIA(funcion);
   const irAPrecios = () => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     try {
@@ -55,6 +56,16 @@ export function PlanGateOverlay({ funcion }: { funcion: FuncionPlan }) {
     }
   };
 
+  // Dos motivos posibles de bloqueo, dos mensajes distintos: sin el software
+  // de pago (free) o con el software pero sin el addon de IA activado.
+  const titulo = esIA
+    ? `${queEs.charAt(0).toUpperCase() + queEs.slice(1)} es un addon opcional`
+    : `${queEs.charAt(0).toUpperCase() + queEs.slice(1)} entra en el software de pago`;
+  const detalle = esIA
+    ? 'La IA es aparte del software: se activa cuando quieras, sin permanencia.'
+    : `Tu salón está en el plan ${PLAN_LABEL.free}. Activar el software se hace en un momento y lo tienes listo el mismo día, sin permanencia.`;
+  const boton = esIA ? 'Ver precios del addon de IA' : 'Ver precios del software';
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, backgroundColor: T.bg }}>
       <View style={{ maxWidth: 400, alignItems: 'center', gap: 12 }}>
@@ -62,13 +73,13 @@ export function PlanGateOverlay({ funcion }: { funcion: FuncionPlan }) {
           <Ionicons name="sparkles-outline" size={22} color={T.primary} />
         </View>
         <TText style={{ fontSize: T.fontSize.lg, fontWeight: 700 as const, color: T.text, textAlign: 'center' }}>
-          {queEs.charAt(0).toUpperCase() + queEs.slice(1)} entra en el plan {PLAN_LABEL.estudio}
+          {titulo}
         </TText>
         <TText style={{ fontSize: T.fontSize.sm, color: T.textSecondary, textAlign: 'center', lineHeight: 20 }}>
-          Tu salón tiene el plan {PLAN_LABEL.esencial}. Cambiar de plan se hace en un momento y lo tienes activo el mismo día, sin permanencia.
+          {detalle}
         </TText>
         <Btn variant="primary" style={{ marginTop: 8 }} onPress={irAPrecios}>
-          Ver qué incluye el plan Estudio
+          {boton}
         </Btn>
       </View>
     </View>

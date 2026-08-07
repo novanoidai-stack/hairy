@@ -4,9 +4,17 @@
 // persona dentro del salon; el PLAN dice que ha contratado el salon. Para usar
 // una funcion hacen falta las dos cosas.
 //
+// Reestructura del 7 ago 2026: la IA (WhatsApp y voz) dejo de ser exclusiva de
+// "Estudio" y paso a ser un ADDON opcional, ortogonal al plan de software
+// (campo profiles.ia_nivel). El resto de funciones que antes vivian solo en
+// Estudio (senales, campanas, lista de espera, VeriFactu) no son IA: bajaron
+// al software de pago, disponible igual en Esencial y Estudio. La distincion
+// esencial/estudio ya no gatea nada por si sola -- se conserva el campo por
+// compatibilidad con cuentas existentes, pero ambos dan el mismo software.
+//
 // Lo que se anuncia en la seccion #precios de web/index.html y en el prompt de
-// supabase/functions/chispa-landing DEBE cuadrar con esta tabla. Si se cambia
-// aqui, cambiar tambien alli (y al reves).
+// supabase/functions/chispa-landing DEBE cuadrar con este archivo. Si se
+// cambia aqui, cambiar tambien alli (y al reves).
 
 export type Plan = 'free' | 'esencial' | 'estudio';
 
@@ -31,9 +39,33 @@ export const PLAN_LABEL: Record<Plan, string> = {
   estudio: 'Estudio',
 };
 
-// Funciones que dependen del plan contratado.
+// Addon de IA contratado (profiles.ia_nivel), ortogonal al plan de software.
+export type IaNivel = 'ninguna' | 'whatsapp' | 'voz' | 'completa';
+
+const VALOR_A_IA: Record<string, IaNivel> = {
+  ninguna: 'ninguna',
+  whatsapp: 'whatsapp',
+  voz: 'voz',
+  completa: 'completa',
+};
+
+export function iaNivelDe(profile: { ia_nivel?: string | null } | null | undefined): IaNivel {
+  const v = (profile?.ia_nivel || '').toLowerCase();
+  return VALOR_A_IA[v] ?? 'ninguna';
+}
+
+export const IA_NIVEL_LABEL: Record<IaNivel, string> = {
+  ninguna: 'Sin IA',
+  whatsapp: 'IA por WhatsApp',
+  voz: 'IA por voz',
+  completa: 'IA completa (WhatsApp + voz)',
+};
+
+// Funciones que dependen del plan de software (esencial y estudio dan lo mismo)
+// o del addon de IA. Las dos ultimas (ia_*) NO se miran contra PLAN_FUNCIONES:
+// incluyePlan() las desvia a IA_FUNCIONES segun ia_nivel.
 export type FuncionPlan =
-  // --- Nucleo (Esencial en adelante) ---
+  // --- Software (cualquier plan de pago, esencial o estudio) ---
   | 'agenda'              // agenda completa con reposos y servicios encadenados
   | 'clientes'            // fichas, fichas de color, fotos
   | 'portal_reserva'      // portal publico de reserva propio
@@ -44,18 +76,21 @@ export type FuncionPlan =
   | 'presupuestos'
   | 'inventario'
   | 'resenas'
-  // --- Solo Estudio ---
-  | 'ia_chispa'           // el asistente Chispa dentro del software
-  | 'ia_voz'              // la IA contesta el telefono del salon y da cita hablando
   | 'senales'             // cobro de senal/deposito con Stripe (anti no-show)
   | 'campanas'            // campanas de marketing
   | 'lista_espera'        // lista de espera con avisos automaticos
-  | 'verifactu';          // facturacion homologada + fichaje legal
+  | 'verifactu'           // facturacion homologada + fichaje legal
+  // --- Addon de IA (profiles.ia_nivel, no el plan) ---
+  | 'ia_chispa'           // el asistente Chispa por WhatsApp
+  | 'ia_voz';             // la IA contesta el telefono del salon y da cita hablando
+
+const IA_SOLO: ReadonlySet<FuncionPlan> = new Set(['ia_chispa', 'ia_voz']);
 
 // El plan gratuito solo sirve para mirar la demo compartida: no habilita nada.
 const FREE: FuncionPlan[] = [];
 
-const ESENCIAL: FuncionPlan[] = [
+// Todo lo que no es IA: igual en esencial que en estudio desde la reestructura.
+const SOFTWARE_COMPLETO: FuncionPlan[] = [
   'agenda',
   'clientes',
   'portal_reserva',
@@ -66,12 +101,6 @@ const ESENCIAL: FuncionPlan[] = [
   'presupuestos',
   'inventario',
   'resenas',
-];
-
-const ESTUDIO: FuncionPlan[] = [
-  ...ESENCIAL,
-  'ia_chispa',
-  'ia_voz',
   'senales',
   'campanas',
   'lista_espera',
@@ -80,23 +109,48 @@ const ESTUDIO: FuncionPlan[] = [
 
 export const PLAN_FUNCIONES: Record<Plan, ReadonlySet<FuncionPlan>> = {
   free: new Set(FREE),
-  esencial: new Set(ESENCIAL),
-  estudio: new Set(ESTUDIO),
+  esencial: new Set(SOFTWARE_COMPLETO),
+  estudio: new Set(SOFTWARE_COMPLETO),
 };
 
-// ¿El plan de este perfil incluye esta funcion?
+// Que funciones de IA desbloquea cada nivel del addon.
+const IA_FUNCIONES: Record<IaNivel, ReadonlySet<FuncionPlan>> = {
+  ninguna: new Set([]),
+  whatsapp: new Set(['ia_chispa']),
+  voz: new Set(['ia_voz']),
+  completa: new Set(['ia_chispa', 'ia_voz']),
+};
+
+// ¿El plan/addon de este perfil incluye esta funcion? Firma sin cambios a
+// proposito: los call sites existentes (usePlan, ChispaLauncher...) no tienen
+// que saber que ia_chispa/ia_voz ahora miran ia_nivel en vez de plan.
 export function incluyePlan(
-  profile: { plan?: string | null } | null | undefined,
+  profile: { plan?: string | null; ia_nivel?: string | null } | null | undefined,
   funcion: FuncionPlan,
 ): boolean {
+  if (IA_SOLO.has(funcion)) {
+    return IA_FUNCIONES[iaNivelDe(profile)].has(funcion);
+  }
   return PLAN_FUNCIONES[planDe(profile)].has(funcion);
 }
 
-// Plan minimo que incluye una funcion (para decir "esto es del plan Estudio").
+// Plan minimo que incluye una funcion de SOFTWARE (para "esto es del plan de pago").
+// Las funciones de IA no tienen "plan minimo": usar planMinimoParaIA() para esas.
 export function planMinimoPara(funcion: FuncionPlan): Plan {
+  if (IA_SOLO.has(funcion)) return 'esencial';
   if (PLAN_FUNCIONES.esencial.has(funcion)) return 'esencial';
-  if (PLAN_FUNCIONES.estudio.has(funcion)) return 'estudio';
   return 'estudio';
+}
+
+// Nivel de IA minimo que incluye una funcion de IA (para "activa el addon de X").
+export function iaNivelMinimoPara(funcion: FuncionPlan): IaNivel {
+  if (funcion === 'ia_chispa') return 'whatsapp';
+  if (funcion === 'ia_voz') return 'voz';
+  return 'completa';
+}
+
+export function esFuncionDeIA(funcion: FuncionPlan): boolean {
+  return IA_SOLO.has(funcion);
 }
 
 // Texto corto para el aviso de "esto no entra en tu plan".
@@ -111,7 +165,7 @@ export const FUNCION_LABEL: Record<FuncionPlan, string> = {
   presupuestos: 'los presupuestos',
   inventario: 'el inventario',
   resenas: 'las reseñas',
-  ia_chispa: 'Chispa, el asistente de IA',
+  ia_chispa: 'Chispa, el asistente de IA por WhatsApp',
   ia_voz: 'la IA que contesta el teléfono',
   senales: 'el cobro de señales',
   campanas: 'las campañas de marketing',
@@ -121,3 +175,6 @@ export const FUNCION_LABEL: Record<FuncionPlan, string> = {
 
 // Planes asignables desde el panel de staff, de menor a mayor.
 export const PLANES_ASIGNABLES: readonly Plan[] = ['free', 'esencial', 'estudio'];
+
+// Niveles de IA asignables desde el panel de staff.
+export const IA_NIVELES_ASIGNABLES: readonly IaNivel[] = ['ninguna', 'whatsapp', 'voz', 'completa'];

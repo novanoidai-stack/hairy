@@ -894,6 +894,11 @@
     var v = String((p && p.plan) || 'free').toLowerCase();
     return v === 'full' ? 'estudio' : (PLAN_TXT[v] ? v : 'free');
   }
+  var IA_NIVEL_TXT = { ninguna: 'Sin IA', whatsapp: 'IA por WhatsApp', voz: 'IA por voz', completa: 'IA completa' };
+  function iaNivelCanonico(p) {
+    var v = String((p && p.ia_nivel) || 'ninguna').toLowerCase();
+    return IA_NIVEL_TXT[v] ? v : 'ninguna';
+  }
   // Clasificacion de la cuenta: equipo (staff) > con acceso (full) > demo (free).
   function accountKind(p) {
     if (isStaffAccount(p)) return 'staff';
@@ -1027,6 +1032,19 @@
         '<option value="free"' + (planCanon === 'free' ? ' selected' : '') + '>Gratis (solo demo)</option>' +
         '<option value="esencial"' + (planCanon === 'esencial' ? ' selected' : '') + '>Esencial</option>' +
         '<option value="estudio"' + (planCanon === 'estudio' ? ' selected' : '') + '>Estudio</option>' +
+      '</select></label>';
+
+    // Addon de IA (WhatsApp y/o voz): ortogonal al plan de software desde la
+    // reestructura del 7 ago 2026. Se aplica al propietario y lo hereda el
+    // equipo igual que el plan (staff_set_ia_nivel sincroniza).
+    var iaCanon = iaNivelCanonico(p);
+    action += '<label class="plan-switch" title="Addon de IA contratado por el salón (WhatsApp y/o voz). Aparte del plan de software.">' +
+      '<span>Addon de IA</span>' +
+      '<select data-ia-for="' + esc(p.id) + '">' +
+        '<option value="ninguna"' + (iaCanon === 'ninguna' ? ' selected' : '') + '>Sin IA</option>' +
+        '<option value="whatsapp"' + (iaCanon === 'whatsapp' ? ' selected' : '') + '>IA por WhatsApp</option>' +
+        '<option value="voz"' + (iaCanon === 'voz' ? ' selected' : '') + '>IA por voz</option>' +
+        '<option value="completa"' + (iaCanon === 'completa' ? ' selected' : '') + '>IA completa</option>' +
       '</select></label>';
 
     // Rol dentro de su salon: quien manda y quien no. Antes solo se veia la
@@ -1257,6 +1275,39 @@
           sel.disabled = false;
           sel.value = anterior;
           msg($('cueMsg'), 'err', 'No se pudo cambiar el plan: ' + (e && e.message ? e.message : e));
+        });
+      });
+    });
+
+    listEl.querySelectorAll('select[data-ia-for]').forEach(function (sel) {
+      var anterior = sel.value;
+      sel.addEventListener('change', function () {
+        var id = sel.getAttribute('data-ia-for');
+        var nuevo = sel.value;
+        var p = accounts.filter(function (x) { return x.id === id; })[0];
+        var quien = p ? (p.nombre_negocio || p.email || 'esta cuenta') : 'esta cuenta';
+        if (!window.confirm('Cambiar el addon de IA de "' + quien + '" a "' + IA_NIVEL_TXT[nuevo] + '"?' + String.fromCharCode(10, 10) + 'Se aplica al salon entero: el propietario y todos sus trabajadores heredan el mismo addon.')) {
+          sel.value = anterior;
+          return;
+        }
+        sel.disabled = true;
+        api.client.rpc('staff_set_ia_nivel', { target_user_id: id, new_nivel: nuevo }).then(function (res) {
+          sel.disabled = false;
+          if (res.error) {
+            sel.value = anterior;
+            var m = res.error.message || '';
+            msg($('cueMsg'), 'err', m.indexOf('not_authorized') !== -1
+              ? 'Tu cuenta no tiene permiso para cambiar el addon de IA.'
+              : 'No se pudo cambiar el addon de IA: ' + m);
+            return;
+          }
+          anterior = nuevo;
+          msg($('cueMsg'), 'ok', 'Addon de IA de "' + quien + '" cambiado a "' + IA_NIVEL_TXT[nuevo] + '". Su equipo lo hereda.');
+          loadCuentas();
+        }).catch(function (e) {
+          sel.disabled = false;
+          sel.value = anterior;
+          msg($('cueMsg'), 'err', 'No se pudo cambiar el addon de IA: ' + (e && e.message ? e.message : e));
         });
       });
     });
