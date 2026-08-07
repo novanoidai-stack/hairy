@@ -236,17 +236,20 @@ Deno.serve(async (req: Request) => {
     if (ficha.profile_id) return json({ error: 'ficha_ya_vinculada' }, 409, req);
   }
 
-  // El plan lo contrata el SALON: el equipo hereda el del propietario. Antes se
-  // grababa 'full' a pelo y un salon en Esencial acababa con empleados en Estudio.
+  // El plan (y desde el 7 ago 2026, el addon de IA) los contrata el SALON: el
+  // equipo hereda los del propietario. Antes se grababa 'full' a pelo y un
+  // salon en Esencial acababa con empleados en Estudio; el mismo fallo se
+  // repetiria con ia_nivel si no se hereda aqui tambien.
   const { data: duenio } = await admin
     .from('profiles')
-    .select('plan')
+    .select('plan, ia_nivel')
     .eq('negocio_id', negocioId)
     .eq('role', 'owner')
     .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle();
   const planHeredado = duenio?.plan || 'free';
+  const iaNivelHeredado = duenio?.ia_nivel || 'ninguna';
 
   const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
     type: 'invite',
@@ -285,6 +288,7 @@ Deno.serve(async (req: Request) => {
     negocio_id: negocioId,
     role: rol,
     plan: planHeredado,
+    ia_nivel: iaNivelHeredado,
   }, { onConflict: 'id' });
 
   if (pErr) {
@@ -345,6 +349,7 @@ Deno.serve(async (req: Request) => {
     email,
     invited: true,
     plan: planHeredado,
+    ia_nivel: iaNivelHeredado,
     profesional_id: fichaVinculada || null,
     aviso: avisoFicha,
   }, 200, req);
