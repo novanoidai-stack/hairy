@@ -141,7 +141,9 @@ export function CobroSheet(props: CobroSheetProps) {
   const [profesionalId, setProfesionalId] = useState('');
   const [profesionales, setProfesionales] = useState<Array<{ id: string; nombre: string }>>([]);
 
-  const [productos, setProductos] = useState<Array<{ id: string; nombre: string; precio: number }>>([]);
+  const [productos, setProductos] = useState<Array<{ id: string; nombre: string; categoria: string; precio: number }>>([]);
+  const [productoPickerOpen, setProductoPickerOpen] = useState(false);
+  const [categoriaProductoFiltro, setCategoriaProductoFiltro] = useState<string>('todas');
 
   useEffect(() => {
     if (props.mode !== 'walkin' && props.mode !== 'cita') return;
@@ -164,10 +166,18 @@ export function CobroSheet(props: CobroSheetProps) {
       }
       const { data: prods } = await supabase
         .from('productos')
-        .select('id, nombre, precio')
+        .select('id, nombre, categoria, precio_cents')
         .eq('negocio_id', profile.negocio_id)
+        .eq('activo', true)
         .order('nombre');
-      setProductos(prods ?? []);
+      setProductos(
+        (prods ?? []).map((p) => ({
+          id: p.id,
+          nombre: p.nombre,
+          categoria: p.categoria || 'general',
+          precio: p.precio_cents / 100,
+        })),
+      );
     })();
   }, [props.mode]);
 
@@ -197,6 +207,29 @@ export function CobroSheet(props: CobroSheetProps) {
 
   const [lineaProductoId, setLineaProductoId] = useState('');
 
+  // Categorías reales presentes en el catálogo del negocio (para las píldoras del picker).
+  const categoriasProductos = useMemo(
+    () => Array.from(new Set(productos.map((p) => p.categoria))).sort((a, b) => a.localeCompare(b)),
+    [productos],
+  );
+
+  // Filtra por categoría elegida + texto ya escrito en el campo de nombre (misma caja sirve de búsqueda).
+  const productosFiltrados = useMemo(() => {
+    const q = lineaNombre.trim().toLowerCase();
+    return productos.filter(
+      (p) =>
+        (categoriaProductoFiltro === 'todas' || p.categoria === categoriaProductoFiltro) &&
+        (!q || p.nombre.toLowerCase().includes(q)),
+    );
+  }, [productos, lineaNombre, categoriaProductoFiltro]);
+
+  const elegirProducto = (p: { id: string; nombre: string; precio: number }) => {
+    setLineaNombre(p.nombre);
+    setLineaPrecio(p.precio.toString());
+    setLineaProductoId(p.id);
+    setProductoPickerOpen(false);
+  };
+
   const agregarLinea = () => {
     const precio = aEntero(lineaPrecio);
     if (!lineaNombre.trim() || precio <= 0) return;
@@ -204,6 +237,7 @@ export function CobroSheet(props: CobroSheetProps) {
     setLineaNombre('');
     setLineaPrecio('');
     setLineaProductoId('');
+    setProductoPickerOpen(false);
   };
   const quitarLinea = (idx: number) => setLineas((prev) => prev.filter((_, i) => i !== idx));
   const cambiarCantidad = (idx: number, cantidad: string) => {
@@ -413,12 +447,19 @@ export function CobroSheet(props: CobroSheetProps) {
               </div>
             )}
             <div style={{ display: 'flex', gap: 6 }}>
-              <div style={{ flex: 1, position: 'relative' }}>
+              <div
+                style={{ flex: 1, position: 'relative' }}
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setProductoPickerOpen(false);
+                }}
+              >
                 <input
-                  type="text" value={lineaNombre} 
+                  type="text" value={lineaNombre}
+                  onFocus={() => setProductoPickerOpen(true)}
                   onChange={(e) => {
                     const val = e.target.value;
                     setLineaNombre(val);
+                    setProductoPickerOpen(true);
                     const p = productos.find(x => x.nombre.toLowerCase() === val.toLowerCase());
                     if (p) {
                       setLineaProductoId(p.id);
@@ -426,14 +467,65 @@ export function CobroSheet(props: CobroSheetProps) {
                     } else {
                       setLineaProductoId('');
                     }
-                  }} 
+                  }}
                   placeholder="Nombre o busca producto..."
                   style={{ width: '100%', padding: '8px 10px', background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
-                  list="productos-list"
                 />
-                <datalist id="productos-list">
-                  {productos.map(p => <option key={p.id} value={p.nombre} />)}
-                </datalist>
+                {productoPickerOpen && productos.length > 0 && (
+                  <div
+                    style={{
+                      position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 5,
+                      background: T.bgCard, border: `1px solid ${T.borderHi}`, borderRadius: 10,
+                      boxShadow: '0 12px 28px rgba(40,30,24,0.18)', overflow: 'hidden',
+                    }}
+                  >
+                    {categoriasProductos.length > 1 && (
+                      <div style={{ display: 'flex', gap: 5, padding: '8px 8px 0', overflowX: 'auto' }}>
+                        {['todas', ...categoriasProductos].map((cat) => {
+                          const on = categoriaProductoFiltro === cat;
+                          return (
+                            <button
+                              key={cat}
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => setCategoriaProductoFiltro(cat)}
+                              style={{
+                                flexShrink: 0, padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                background: on ? T.primarySoft : T.bgPanel, border: `1px solid ${on ? T.primary : T.border}`,
+                                color: on ? T.primaryHi : T.textSec, textTransform: 'capitalize',
+                              }}
+                            >
+                              {cat}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <div style={{ maxHeight: 200, overflowY: 'auto', padding: 6 }}>
+                      {productosFiltrados.length === 0 ? (
+                        <div style={{ padding: '8px 6px', fontSize: 12, color: T.textTer }}>Sin productos. Puedes escribir una línea libre.</div>
+                      ) : (
+                        productosFiltrados.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => elegirProducto(p)}
+                            style={{
+                              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                              padding: '7px 8px', borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = T.bgCardHi)}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                          >
+                            <span style={{ fontSize: 12.5, color: T.text }}>{p.nombre}</span>
+                            <span style={{ fontSize: 12, color: T.textSec, flexShrink: 0 }}>{p.precio.toFixed(2)} €</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               <input
                 type="text" inputMode="decimal" value={lineaPrecio} onChange={(e) => setLineaPrecio(e.target.value)} placeholder="€"

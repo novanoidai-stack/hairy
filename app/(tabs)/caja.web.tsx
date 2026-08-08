@@ -70,6 +70,7 @@ function Icon({ name, size = 18, color = T.text }: { name: string; size?: number
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>',
     chevron: '<polyline points="6 9 12 15 18 9"/>',
+    search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>',
   };
   return (
     <span style={{ display: 'inline-flex', color, flexShrink: 0 }} dangerouslySetInnerHTML={{
@@ -150,6 +151,9 @@ function CajaScreen() {
   const [carrito, setCarrito] = useState<CarritoItem[]>([]);
   const [ventaMetodo, setVentaMetodo] = useState<'efectivo' | 'datafono' | 'bizum'>('efectivo');
   const [ventaEnviando, setVentaEnviando] = useState(false);
+  // Búsqueda + categoría del panel "Venta rápida" (salones con catálogo grande).
+  const [ventaBusqueda, setVentaBusqueda] = useState('');
+  const [ventaCategoriaFiltro, setVentaCategoriaFiltro] = useState<string>('todas');
 
   // Sesion 6 (V2): Upsell IA proactivo al cobrar. Determinista primero: el
   // candidato (que producto sugerir) lo elige elegirCandidatoUpsell (sin LLM,
@@ -352,6 +356,20 @@ function CajaScreen() {
   // Candidato DETERMINISTA (sin LLM): que producto sugerir. Null si el servicio
   // no encaja con ninguna categoria conocida o no hay producto de esa categoria.
   const upsellCandidato = citaUpsell ? elegirCandidatoUpsell(citaUpsell.servicio_nombre, productosDisponibles) : null;
+
+  // Categorías reales del catálogo (para las píldoras del panel "Venta rápida").
+  const categoriasVenta = useMemo(
+    () => Array.from(new Set(productosDisponibles.map((p) => p.categoria || 'general'))).sort((a, b) => a.localeCompare(b)),
+    [productosDisponibles],
+  );
+  const productosVentaFiltrados = useMemo(() => {
+    const q = ventaBusqueda.trim().toLowerCase();
+    return productosDisponibles.filter(
+      (p) =>
+        (ventaCategoriaFiltro === 'todas' || (p.categoria || 'general') === ventaCategoriaFiltro) &&
+        (!q || p.nombre.toLowerCase().includes(q)),
+    );
+  }, [productosDisponibles, ventaBusqueda, ventaCategoriaFiltro]);
 
   useEffect(() => {
     if (upsellCandidato) {
@@ -1028,15 +1046,57 @@ function CajaScreen() {
               <div style={{ fontSize: 12, color: T.textSec, marginTop: 4 }}>Toca un producto para añadirlo. Rápido y sin complicaciones.</div>
             </div>
 
+            {/* Búsqueda + categorías (catálogos grandes) */}
+            {productosDisponibles.length > 0 && (
+              <div style={{ padding: '12px 20px 0' }}>
+                <div style={{ position: 'relative', marginBottom: 10 }}>
+                  <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', display: 'flex' }}>
+                    <Icon name="search" size={15} color={T.textTer} />
+                  </span>
+                  <input
+                    type="text"
+                    value={ventaBusqueda}
+                    onChange={(e) => setVentaBusqueda(e.target.value)}
+                    placeholder="Buscar producto..."
+                    style={{ width: '100%', padding: '8px 10px 8px 32px', background: T.card, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 13, boxSizing: 'border-box' }}
+                  />
+                </div>
+                {categoriasVenta.length > 1 && (
+                  <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 10 }}>
+                    {['todas', ...categoriasVenta].map((cat) => {
+                      const on = ventaCategoriaFiltro === cat;
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => setVentaCategoriaFiltro(cat)}
+                          style={{
+                            flexShrink: 0, padding: '5px 12px', borderRadius: 99, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                            background: on ? T.primarySoft : T.card, border: `1px solid ${on ? T.primary : T.border}`,
+                            color: on ? T.primaryHi : T.textSec, textTransform: 'capitalize',
+                          }}
+                        >
+                          {cat}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Product grid */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px' }}>
               {productosDisponibles.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '30px 10px', color: T.textSec, fontSize: 13 }}>
                   No hay productos en el inventario. Añádelos desde la pestaña Inventario.
                 </div>
+              ) : productosVentaFiltrados.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px 10px', color: T.textSec, fontSize: 13 }}>
+                  Ningún producto coincide con la búsqueda.
+                </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
-                  {productosDisponibles.map((prod) => {
+                  {productosVentaFiltrados.map((prod) => {
                     const enCarrito = carrito.find(c => c.id === prod.id);
                     return (
                       <button
