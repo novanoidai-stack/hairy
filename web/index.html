@@ -1675,6 +1675,11 @@ window.MECHA_CHAT = [
   var form=document.getElementById('viaForm');
   var msg=document.getElementById('viaMsg');
   var tipo='mensaje';
+  // Tarjeta de precios desde la que se ha entrado ('esencial' | 'estudio' | '').
+  // Viaja hasta la solicitud y el correo: si no, todas llegan iguales y quien da
+  // el acceso no sabe a que plan venia el salon.
+  var planElegido='';
+  var PLAN_NOMBRE={ esencial:'Esencial', estudio:'Estudio' };
 
   var TEXTOS={
     mensaje:{ titulo:'Mándanos un mensaje', sub:'Cuéntanos qué necesitas y te contestamos por correo hoy mismo.', campo:'Tu mensaje', ph:'¿Qué te gustaría saber?', btn:'Enviar mensaje' },
@@ -1685,7 +1690,11 @@ window.MECHA_CHAT = [
     tipo=t;
     var x=TEXTOS[t];
     document.getElementById('viaTitulo').textContent=x.titulo;
-    document.getElementById('viaSub').textContent=x.sub;
+    // Se le recuerda que plan pulso, para que pueda darse cuenta si fallo el clic.
+    var nombrePlan=(t==='quiero_software') ? PLAN_NOMBRE[planElegido] : null;
+    document.getElementById('viaSub').textContent=nombrePlan
+      ? x.sub+' Has elegido el plan '+nombrePlan+'.'
+      : x.sub;
     document.getElementById('viaTextoLbl').textContent=x.campo;
     document.getElementById('viaTexto').placeholder=x.ph;
     document.getElementById('viaEnviar').textContent=x.btn;
@@ -1710,16 +1719,22 @@ window.MECHA_CHAT = [
   var bAccesoHero=document.getElementById('btnAccesoYaHero');
   var bAccesoCta=document.getElementById('btnAccesoYaCta');
 
-  function abrirAcceso(){ if(accModal) accModal.classList.add('on'); }
+  // El plan solo lo fijan las tarjetas de precios. Desde el hero, el CTA final o
+  // las vias de contacto no se ha elegido ninguno todavia, y se limpia el que
+  // hubiera de un clic anterior para no atribuirle un plan que no ha pedido.
+  function abrirAcceso(plan){
+    planElegido=PLAN_NOMBRE[plan] ? plan : '';
+    if(accModal) accModal.classList.add('on');
+  }
   function cerrarAcceso(){ if(accModal) accModal.classList.remove('on'); }
 
   if(bM) bM.addEventListener('click',function(){ abrir('mensaje'); });
-  if(bQ) bQ.addEventListener('click',abrirAcceso);
-  if(bLlamada) bLlamada.addEventListener('click',abrirAcceso);
-  if(bEmpezarGratis) bEmpezarGratis.addEventListener('click',abrirAcceso);
-  if(bEmpezarGratisEstudio) bEmpezarGratisEstudio.addEventListener('click',abrirAcceso);
-  if(bAccesoHero) bAccesoHero.addEventListener('click',abrirAcceso);
-  if(bAccesoCta) bAccesoCta.addEventListener('click',abrirAcceso);
+  if(bQ) bQ.addEventListener('click',function(){ abrirAcceso(); });
+  if(bLlamada) bLlamada.addEventListener('click',function(){ abrirAcceso(); });
+  if(bEmpezarGratis) bEmpezarGratis.addEventListener('click',function(){ abrirAcceso('esencial'); });
+  if(bEmpezarGratisEstudio) bEmpezarGratisEstudio.addEventListener('click',function(){ abrirAcceso('estudio'); });
+  if(bAccesoHero) bAccesoHero.addEventListener('click',function(){ abrirAcceso(); });
+  if(bAccesoCta) bAccesoCta.addEventListener('click',function(){ abrirAcceso(); });
   if(accCerrar) accCerrar.addEventListener('click',cerrarAcceso);
   if(accModal) accModal.addEventListener('click',function(e){ if(e.target===accModal) cerrarAcceso(); });
   if(bDirecto) {
@@ -1760,14 +1775,15 @@ window.MECHA_CHAT = [
     // contacto no se pierda, pero si fallan LOS DOS hay que decirlo (antes se
     // daba "enviado" por bueno aunque no se hubiera guardado nada).
     var guardar = (api && api.insertSolicitud)
-      ? api.insertSolicitud({ tipo:tipo, nombre:nombre, salon:salon, email:email, telefono:tel, nota:texto||null, meta:{ origen:'precios' } })
+      ? api.insertSolicitud({ tipo:tipo, nombre:nombre, salon:salon, email:email, telefono:tel, nota:texto||null, meta:{ origen:'precios', plan:planElegido||null } })
           .then(function(r){ return !(r && r.error); })
           .catch(function(){ return false; })
       : Promise.resolve(false);
 
     var avisar = (api && api.client)
       ? api.client.functions.invoke('notificar-solicitud',{ body:{
-          tipo:tipo, nombre:nombre, email:email, telefono:tel, salon:salon, mensaje:texto||null
+          tipo:tipo, nombre:nombre, email:email, telefono:tel, salon:salon, mensaje:texto||null,
+          plan:PLAN_NOMBRE[planElegido]||null
         }}).then(function(r){ return !(r && r.error); }).catch(function(){ return false; })
       : Promise.resolve(false);
 

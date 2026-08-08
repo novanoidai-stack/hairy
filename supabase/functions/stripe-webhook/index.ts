@@ -19,12 +19,41 @@ const PLATFORM_WHSEC = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
 const PRECIO_ESENCIAL = Deno.env.get('STRIPE_PRICE_ESENCIAL') ?? '';
 const PRECIO_ESTUDIO = Deno.env.get('STRIPE_PRICE_ESTUDIO') ?? '';
 
-function planDePrecio(priceId: string | null): string | null {
-  if (!priceId) return null;
-  if (priceId === PRECIO_ESENCIAL) return 'esencial';
-  if (priceId === PRECIO_ESTUDIO) return 'estudio';
-  console.error('price_id desconocido, no se toca el plan:', priceId);
-  return null;
+// El addon de IA "Recepcionistas" es la SEGUNDA linea de la misma suscripcion
+// (reestructura del 7 ago 2026), asi que hay que mirar todos los items, no solo el
+// primero: el orden en el que Stripe los devuelve no esta garantizado.
+const PRECIO_IA: Record<string, string> = {
+  whatsapp: Deno.env.get('STRIPE_PRICE_IA_WHATSAPP') ?? '',
+  voz: Deno.env.get('STRIPE_PRICE_IA_VOZ') ?? '',
+  completa: Deno.env.get('STRIPE_PRICE_IA_COMPLETA') ?? '',
+};
+const IA_CONFIGURADA = Object.values(PRECIO_IA).some(Boolean);
+
+// Lee las lineas de la suscripcion y devuelve que software y que addon se estan
+// cobrando. null = "no se ha reconocido, no toques ese campo": mas vale dejar el
+// valor viejo que borrar un plan que el salon si esta pagando.
+function contratadoEn(sub: Stripe.Subscription): { plan: string | null; iaNivel: string | null } {
+  let plan: string | null = null;
+  let iaNivel: string | null = null;
+
+  for (const item of sub.items?.data ?? []) {
+    const priceId = item.price?.id;
+    if (!priceId) continue;
+    if (priceId === PRECIO_ESENCIAL) plan = 'esencial';
+    else if (priceId === PRECIO_ESTUDIO) plan = 'estudio';
+    else if (priceId === PRECIO_IA.whatsapp) iaNivel = 'whatsapp';
+    else if (priceId === PRECIO_IA.voz) iaNivel = 'voz';
+    else if (priceId === PRECIO_IA.completa) iaNivel = 'completa';
+    else console.error('price_id desconocido en la suscripcion, se ignora:', priceId);
+  }
+
+  if (!plan) console.error('suscripcion sin linea de software reconocida:', sub.id);
+  // Sin linea de IA el addon esta quitado, y hay que escribirlo: es como se ve que
+  // alguien lo ha desactivado. Pero solo si los precios estan configurados; si no,
+  // la ausencia no significa nada y borrariamos un addon que si se cobra.
+  if (!iaNivel && IA_CONFIGURADA) iaNivel = 'ninguna';
+
+  return { plan, iaNivel };
 }
 
 // Estado de Stripe -> estado de acceso nuestro. 'prueba' no aparece: el mes gratis
@@ -151,14 +180,19 @@ Deno.serve(async (req) => {
   } else if (event.type.startsWith('customer.subscription.')) {
     // --- Suscripcion de Mecha al salon (P0-003) ---
     const sub = event.data.object as Stripe.Subscription;
-    const priceId = sub.items?.data?.[0]?.price?.id ?? null;
+    const estado = ESTADO_SUSCRIPCION[sub.status] ?? 'pago_pendiente';
+    const { plan, iaNivel } = contratadoEn(sub);
+    // Al darse de baja se pierde todo: el software y el addon. Se escribe explicito
+    // en vez de dejar el plan viejo, que es lo que apagaria de verdad el producto.
+    const baja = estado === 'cancelada';
     await supabase.rpc('aplicar_suscripcion_stripe', {
       p_stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer?.id,
       p_stripe_subscription_id: sub.id,
-      p_estado: ESTADO_SUSCRIPCION[sub.status] ?? 'pago_pendiente',
+      p_estado: estado,
       p_periodo_fin: new Date(sub.current_period_end * 1000).toISOString(),
-      p_plan: planDePrecio(priceId),
+      p_plan: baja ? 'free' : plan,
       p_profile_id: (sub.metadata?.profile_id as string) ?? null,
+      p_ia_nivel: baja ? 'ninguna' : iaNivel,
     });
   } else if (event.type === 'invoice.paid') {
     const inv = event.data.object as Stripe.Invoice;

@@ -90,6 +90,9 @@ function correoParaNosotros(d: Record<string, string>): string {
     ['Email', d.email],
     ['Profesionales', d.num_profesionales],
     ['Usa ahora', d.herramienta],
+    // Que tarjeta de precios pulso. Sin esto todas las solicitudes llegan iguales
+    // y quien concede el acceso no sabe a que plan venia el salon.
+    ['Plan que quiere', d.plan],
     ['Cuándo', d.fecha_iso ? `${d.fecha_iso}${d.hora ? ` a las ${d.hora}` : ''}` : ''],
   ]
     .filter(([, v]) => v)
@@ -140,6 +143,7 @@ Deno.serve(async (req: Request) => {
     hora: recorta(p.hora, 10),
     herramienta: recorta(p.herramienta, 40),
     num_profesionales: recorta(p.num_profesionales, 20),
+    plan: recorta(p.plan, 20),
   };
   if (!d.email && !d.telefono) return json({ enviado: false, error: 'faltan_datos' }, 400, req);
 

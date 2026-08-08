@@ -91,6 +91,20 @@ export const IA_NIVEL_LABEL: Record<IaNivel, string> = {
   completa: 'IA completa (WhatsApp + voz)',
 };
 
+// Precio mensual del addon, sin IVA. Mismo aviso que PLAN_PRECIO_EUR: si cambia,
+// cambiarlo tambien en la seccion #precios de web/index.html y en el prompt de
+// chispa-landing. Ojo: 'completa' NO es la suma de los otros dos (19+29=48), es
+// el precio con descuento del pack, y asi se anuncia en la landing.
+export const IA_PRECIO_EUR: Record<IaNivel, number> = {
+  ninguna: 0,
+  whatsapp: 19,
+  voz: 29,
+  completa: 39,
+};
+
+// Los niveles del addon que un salon puede contratar, en orden de precio.
+export const IA_CONTRATABLES: readonly IaNivel[] = ['whatsapp', 'voz', 'completa'];
+
 // Funciones que dependen del plan de software (esencial y estudio dan lo mismo)
 // o del addon de IA. Las dos ultimas (ia_*) NO se miran contra PLAN_FUNCIONES:
 // incluyePlan() las desvia a IA_FUNCIONES segun ia_nivel.
